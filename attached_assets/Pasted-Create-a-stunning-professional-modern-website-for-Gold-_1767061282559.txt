@@ -1,0 +1,23 @@
+Create a stunning, professional, modern website for Gold Coast Financial, an independent life insurance agency based in Naperville, Illinois. We specialize in helping families, individuals, and businesses in the Naperville and greater Chicago area secure their future with personalized term life, whole life, universal life, and final expense insurance policies. Our mission is to provide peace of mind through expert guidance, competitive rates from top carriers, and compassionate service.
+
+Use Design Mode with Gemini 3 to generate a beautiful, high-end design that feels trustworthy, approachable, and premium — like the best financial advisor sites (clean layouts, subtle animations, high-quality family-oriented photos). Avoid generic "AI slop" — aim for polished, human-designed quality with elegant typography, ample white space, and a color palette of deep navy blue, gold accents, soft grays, and white for sophistication and trust.
+
+Key pages to include:
+1. Home: Hero section with a warm, high-quality photo of a happy multi-generational family in a suburban setting (like Naperville's Riverwalk or a cozy home). Headline: "Protect What Matters Most – Personalized Life Insurance for Naperville Families". Subheadline: "Gold Coast Financial: Your Local Independent Agency in Naperville, IL – Peace of Mind Starts Here". Prominent CTAs: "Get a Free Quote" button and "Schedule a Consultation". Below: Sections for Why Choose Us (independent, multiple carriers, local expertise), quick benefits icons (affordable rates, fast approvals, personalized plans), client testimonials carousel, and a Naperville map embed showing our location.
+2. About Us: Introduce our team with professional photos, bios emphasizing experience, fiduciary duty, and community involvement in Naperville. Highlight our independence and commitment to clients over commissions.
+3. Life Insurance Products: Dedicated pages or sections for Term Life, Whole Life, Universal Life, Final Expense/Burial Insurance. Use clear cards with icons, simple explanations, pros/cons, and "Compare Plans" or "Get Quote" CTAs. Include an interactive life insurance calculator tool if possible.
+4. Get a Quote: Multi-step form (name, email, phone, age, coverage amount, health basics) that feels secure and easy. Add trust badges (SSL, privacy policy).
+5. Resources/Blog: Educational content section with articles like "How Much Life Insurance Do Naperville Families Need?", "Term vs. Whole Life Explained", "Protecting Your Family's Future in Illinois".
+6. Contact: Form, phone, email, office address in Naperville, Google Maps embed, hours.
+
+Overall design best practices:
+- Fully responsive for mobile/desktop.
+- Fast-loading, SEO-optimized (meta titles/descriptions including "life insurance Naperville IL", "best life insurance agency Naperville").
+- Subtle animations (fade-ins, hover effects) but not overwhelming.
+- High-contrast for accessibility.
+- Footer with links, social icons, compliance disclaimer (e.g., "Not affiliated with any specific carrier").
+- Integrate trust elements: Testimonials with photos/names, carrier logos (A-rated companies), privacy/security badges.
+
+Make it conversion-focused: Multiple clear CTAs throughout for quotes/consultations. Inspire confidence like top insurance sites (Haven Life, Ethos) but localized for Naperville community feel.
+
+Generate the full site now, then I'll provide feedback to refine.

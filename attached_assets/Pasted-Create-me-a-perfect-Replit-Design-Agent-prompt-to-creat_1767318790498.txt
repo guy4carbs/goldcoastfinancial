@@ -1,0 +1,23 @@
+Create me a perfect Replit Design Agent prompt to create an incredible website for Gold Coast Financial, a life insurance agency. Utilize X to find the best and most helpful tips and tricks to achieve a best-in-class brag-worthy site. Consider all of the greatest sites that have been made with it—I believe it uses Gemini for the Design Agent—and tailor the prompt to give it the greatest success possible.
+
+Use Design Mode with Gemini 3 to create a premium, professional "Careers" or "Join Our Team" application page for Gold Coast Financial, an independent life insurance agency in Naperville, Illinois. This page will be linked in the site's footer quick links (e.g., "Careers"). Match the existing site style: Logo (attached if available) with gold (#D4AF37), darker red (#8B0000), black (#000000); light mode (white/light gray backgrounds) and dark mode (black/dark gray) toggle. Elegant typography (serif headings like Playfair Display, sans-serif body like Inter). Subtle animations (fade-ins, hovers). Fully responsive, SEO-optimized (titles like "Careers at Gold Coast Financial | Life Insurance Jobs in Naperville IL").
+
+We partner with the top 40 A-rated carriers for Term Life, Whole Life, Indexed Universal Life (IUL), and Mortgage Protection. Highlight our independent, client-first culture, growth opportunities, and team (Founder: Jack Cook; Key leaders: Nick Gallagher, Gaetano Carbonara, Frank Carbonara). Emphasize values: Trust, expertise, community focus in Naperville/Chicagoland.
+
+Page structure for a brag-worthy, conversion-focused design—like top financial career pages (e.g., Northwestern Mutual, MassMutual careers): Clean, trustworthy, engaging with family-oriented imagery echoing our logo's sunset/palm vibe.
+
+1. Hero Section: Background with subtle sunset overlay or Naperville scene. Headline: "Join Gold Coast Financial: Build a Rewarding Career Protecting Families in Naperville". Subheadline: "Independent Life Insurance Agency Seeking Passionate Professionals – Competitive Pay, Growth, and Impact". CTA: Darker red "Apply Now" button scrolling to form.
+
+2. Why Join Us: Cards/icons highlighting benefits – Independent model (access top carriers), supportive team culture, professional development, work-life balance, local community involvement. Include team bios/photos (placeholders for Jack Cook, Nick Gallagher, Gaetano Carbonara, Frank Carbonara) with subtle hover animations.
+
+3. Open Positions: List roles (e.g., Life Insurance Agent, Sales Associate) with descriptions, requirements (e.g., licensing preferred, passion for financial security). Use accordions or cards for expandability.
+
+4. Application Process: Transparent steps in a numbered timeline/infographic: 1) Submit application form, 2) We review and set up a video call to chat, 3) If a fit and local (Naperville area), invite for in-person interview. Build trust: "We value your time – quick, respectful process."
+
+5. Application Form: Secure, easy multi-step form (name, email, phone, resume upload, LinkedIn, cover letter/why us, experience in insurance/finance). Include checkboxes for consent/privacy. On submit: Thank-you message with next steps (e.g., "Expect a response in 2-3 business days"). Integrate basic validation/error handling.
+
+6. Testimonials/Perks: Carousel of employee quotes (placeholders: "Great team and meaningful work!"). Sections for perks (training, commissions, flexible hours).
+
+7. CTA Footer: Repeat "Apply Now" button, link back to home. Add trust elements: Carrier logos, privacy badges, disclaimer ("Equal opportunity employer").
+
+Best practices: Build section-by-section (modular), start in planning mode for ideation, set to medium/high autonomy for smart enhancements. Ensure premium design (ample white space, accessibility), real functionality (form submission logic, perhaps email integration if possible). Inspire like top Replit sites (clean animations, responsive). Generate the full page now—I'll refine after.

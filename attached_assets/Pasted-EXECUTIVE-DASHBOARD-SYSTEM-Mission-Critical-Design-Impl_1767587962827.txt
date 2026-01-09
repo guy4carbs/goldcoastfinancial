@@ -1,0 +1,324 @@
+EXECUTIVE DASHBOARD SYSTEM
+Mission-Critical Design, Implementation, and Governance Document
+
+EXECUTIVE SUMMARY
+What the System Is
+The Executive Dashboard is a centralized, real-time decision control system that consolidates financial, operational, and organizational data into a single, authoritative interface for ownership and executive leadership.
+It is not a reporting tool, BI experiment, or visual convenience.
+It is an operational control surface for a high-growth business.
+
+Why It Exists
+As revenue, agents, and complexity scale, verbal updates, spreadsheets, and delayed reports introduce:
+Decision latency
+Financial blind spots
+Misallocation of capital
+Undetected operational decay
+This system exists to eliminate uncertainty at the executive level and allow leadership to act faster than problems can compound.
+
+Who Uses It
+Ownership
+CEO / COO / CFO-level executives
+Select senior operators with financial authority
+This dashboard is not designed for agents, frontline managers, or analysts.
+
+Decisions It Enables
+Capital allocation (marketing spend, hiring, incentives)
+Override and compensation management
+Intervention in agent churn or inactivity
+Cash flow protection
+Growth pacing and scaling decisions
+
+What Failure Looks Like
+If this system is inaccurate, delayed, or untrusted:
+Financial exposure increases
+Overrides may exceed liquidity
+Growth decisions become speculative
+Leadership reverts to anecdotal management
+Failure here does not cause inconvenience — it creates existential risk.
+
+BUSINESS OBJECTIVES & SUCCESS CRITERIA
+Primary Business Problems Solved
+Lack of real-time financial clarity
+Delayed awareness of agent inactivity or churn
+Poor visibility into override exposure
+Cash flow surprises
+Reactive instead of proactive leadership behavior
+
+Core Objectives
+Reduce executive decision latency to <10 seconds
+Maintain real-time visibility into cash and obligations
+Detect operational decay before revenue impact
+Enable confident scaling without guesswork
+
+Success Criteria (Quantifiable)
+≥99.5% financial reconciliation accuracy monthly
+<24-hour lag on all financial metrics
+Active agent ratio monitored daily
+Zero override payout surprises
+Executive reliance on dashboard over manual reports
+
+METRIC DEFINITIONS (EXTREMELY PRECISE)
+1. Total Revenue
+Formal Definition
+Total premium revenue issued by carriers within a defined period, separated by booking and collection status.
+Data Sources
+Carrier commission statements
+CRM policy records
+Accounting system
+Calculation Logic
+Gross Booked Revenue = Sum(issued policy premiums)
+Collected Revenue = Sum(carrier-paid premiums)
+Net Revenue = Collected − chargebacks − refunds
+Exclusions
+Pending applications
+Declined policies
+Unfunded drafts
+Update Frequency
+Booked: Daily
+Collected: Daily batch
+Net: Daily batch
+Data Owner
+Finance / Accounting
+Failure Modes
+Double-counting issued policies
+Prevention: Unique policy ID enforcement
+
+2. Overrides
+Formal Definition
+Commission income earned from downstream production based on predefined hierarchical percentages.
+Data Sources
+Org hierarchy table
+Commission schedules
+Carrier payout files
+Calculation Logic
+Override = Σ (Downline Production × Override %)
+Update Frequency
+Accrued: Daily
+Realized: Weekly / per carrier
+Data Owner
+Finance
+Failure Modes
+Hierarchy mismatch
+Prevention: Immutable hierarchy snapshots per period
+
+3. Agent Count
+Formal Definition
+All individuals with an active license and at least one active carrier contract.
+Data Sources
+Licensing system
+Contracting system
+CRM
+Update Frequency
+Daily
+Failure Modes
+Counting inactive or terminated agents
+Prevention: Status-based inclusion rules
+
+4. Active vs Inactive Agents
+Definitions
+Active: ≥1 issued policy in last 14 days
+Semi-Active: No policy in 14–30 days
+Inactive: No policy >30 days
+Data Source
+CRM policy issuance data
+Update Frequency
+Daily rolling window
+
+5. Cash Position
+Formal Definition
+Liquid funds available for operations after known obligations.
+Data Sources
+Bank APIs
+Accounting system
+Commission obligations ledger
+Calculation
+Cash = Bank Balances − Pending Obligations
+Update Frequency
+Daily (intra-day optional)
+
+6. Growth Rate
+Definitions
+MoM, QoQ, YoY growth for revenue and active agents
+Formula
+(Current − Prior) ÷ Prior
+Smoothing
+7-day rolling averages for daily views
+
+7. Operational Alerts
+Definition
+Automated notifications triggered by metric deviation beyond defined thresholds.
+Examples
+Cash below X weeks of obligations
+Active agent ratio below threshold
+Revenue variance outside historical band
+
+SYSTEM ARCHITECTURE
+High-Level Architecture (Described)
+Data Ingestion Layer
+APIs (CRM, banking)
+Webhooks (policy events)
+Scheduled batch jobs (carrier statements)
+Data Processing & Transformation Layer
+Data normalization
+Deduplication
+Hierarchy resolution
+Time alignment
+Storage Layer
+Raw data warehouse (immutable)
+Processed analytics tables
+Historical snapshots
+Analytics & Logic Layer
+Metric calculations
+Alert logic
+Threshold evaluation
+Visualization Layer
+Executive dashboard UI
+Drill-down views
+Alerting Layer
+Email / Slack / SMS delivery
+Escalation logic
+Security & Access Control
+Role-based access
+Read-only enforcement
+Audit logs
+
+DATA SOURCES & PIPELINES
+Internal Systems
+CRM (agents, production, recruiting)
+Commission systems
+Banking
+Accounting
+Licensing & contracting
+ETL vs ELT Decision
+ELT chosen
+Raw data preserved for audit
+Flexibility in metric evolution
+Lower transformation risk
+Data Validation Rules
+Schema validation
+Range checks
+Referential integrity enforcement
+Error Handling
+Failed loads quarantined
+Alerts sent to data owner
+No silent data drops
+
+DASHBOARD UX / UI LOGIC
+Layout Philosophy
+Top-down hierarchy:
+Cash & Revenue
+Overrides
+Agent Health
+Growth
+Alerts
+Cognitive Load Rules
+≤7 primary visual elements
+Default to trends over tables
+Drill-down only when requested
+Color Logic
+Green: Normal
+Yellow: Watch
+Red: Action required
+Mobile vs Desktop
+Desktop: Full analysis
+Mobile: Alerts + summary only
+
+OPERATIONAL ALERTS SYSTEM
+Trigger Logic
+Threshold-based
+Trend-based
+Comparative variance
+Severity Levels
+Informational
+Warning
+Critical
+Delivery
+Slack (primary)
+Email (secondary)
+SMS (critical only)
+False-Positive Prevention
+Multi-period confirmation
+Manual acknowledgment requirement
+
+GOVERNANCE & ACCOUNTABILITY
+Ownership
+Finance: Financial metrics
+Ops: Agent activity
+Data team: Pipeline integrity
+Review Cadence
+Daily automated checks
+Weekly executive review
+Monthly reconciliation
+Change Management
+Versioned metric definitions
+Executive approval required
+Backward compatibility enforced
+
+SCALING STRATEGY
+Agent Growth
+Indexed queries
+Partitioned data tables
+Revenue Scale
+Pre-aggregated metrics
+Asynchronous processing
+Future Expansion
+Predictive alerts
+Forecasting models
+Multi-entity support
+
+RISK ANALYSIS
+Technical Risks
+API outages
+Mitigation: Cached fallbacks
+Data Integrity Risks
+Carrier delays
+Mitigation: Accrual vs realized separation
+Operational Risks
+Misinterpretation
+Mitigation: Usage playbooks
+Human Error
+Manual overrides
+Mitigation: Restricted permissions
+
+IMPLEMENTATION CHECKLIST (CRITICAL)
+PLANNING
+☐ Finalize metric definitions
+Why: Prevents rework
+Owner: Exec + Finance
+Done: Signed spec
+
+BUILD
+☐ Connect data sources
+☐ Build raw data tables
+☐ Implement transformations
+☐ Create metric logic
+Done: Data reconciles with accounting
+
+TESTING
+☐ Back-test historical data
+☐ Validate alert triggers
+☐ Stress test volumes
+Done: No unexplained variance
+
+DEPLOYMENT
+☐ Secure access roles
+☐ Launch dashboard
+☐ Enable alerts
+Done: Executives using system
+
+VALIDATION
+☐ Weekly reconciliation
+☐ Executive sign-off
+Done: Dashboard replaces manual reports
+
+ONGOING MAINTENANCE
+☐ Monitor pipelines
+☐ Review thresholds quarterly
+☐ Audit annually
+Done: Sustained trust
+
+FINAL NOTE
+This system is intentionally overbuilt because:
+Trust is binary
+Financial systems either work or kill companies
+Speed without accuracy is worse than slowness

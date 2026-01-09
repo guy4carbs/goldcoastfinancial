@@ -1,0 +1,58 @@
+Create me a perfect Replit Design Agent prompt to create an incredible website for Gold Coast Financial, a life insurance agency. Utilize X to find the best and most helpful tips and tricks to achieve a best-in-class brag-worthy site. Consider all of the greatest sites that have been made with it—I believe it uses Gemini for the Design Agent—and tailor the prompt to give it the greatest success possible.
+Use Design Mode with Gemini 3 to create a premium, secure, functional "Agent Lounge" portal (also called Agent Portal) for Gold Coast Financial, an independent life insurance agency in Naperville, Illinois. This is a dedicated web app for commission-only agents and new recruits post-contract, serving as their daily operating system for behavior enforcement and revenue execution. Link to this portal from the main site's footer quick links (e.g., "Agent Lounge Login"). Require a login for agents/executives only—implement a simple demo login for now (username: demo@agent.com, password: goldcoast2026) with basic authentication (store in local storage or mock DB if possible, no real backend yet). After login, redirect to the dashboard. Match the main site's branding: Logo (attach if available) with gold (#D4AF37), darker red (#8B0000), black (#000000); elegant typography (serif headings like Playfair Display, sans-serif body like Inter); subtle animations (fade-ins, hovers); light mode (white/light gray backgrounds) and dark mode (black/dark gray) toggle (sun/moon icon in header). Fully responsive, SEO-optimized where applicable (though internal), with premium design avoiding AI slop—aim for sophisticated, trustworthy interfaces like top financial dashboards (e.g., Northwestern Mutual agent portals or Salesforce-inspired, but customized).
+Build incrementally in planning mode first (ideate structure, tech stack), then switch to build mode at medium autonomy (strict but intuitive) for core build, high autonomy for enhancements like animations/features. Use section-by-section validation: Generate one major section at a time, allow refinement before proceeding. Provide real functionality (e.g., interactive CRM views, task checklists, mock data), responsive design, edge cases (e.g., no data states), and premium visuals (ample white space, high contrast accessibility). Reference great Replit sites like retro dashboards or agency tools for inspiration—focus on clean, conversion-focused (revenue execution) layouts with depth (subtle gradients/shadows in gold/red). Use ShadCN or Tailwind for consistency, Iconify for icons (e.g., Solar set). Start with a PRD-like outline based on this spec, then build.
+Core users: Commission-only agents (view personal data only), executives (full access for demo).
+What agents see/do:
+
+Personal KPIs, assigned tasks, training status, scripts, earnings.
+Work leads, complete tasks, advance training, follow SOPs.
+Cannot: View other agents, modify compensation, access compliance, see executive data.
+
+Navigation Structure (sidebar or top nav post-login, with logout button):
+
+Dashboard
+Tasks
+CRM
+Training
+SOPs
+Performance
+Earnings (view-only)
+
+Systems Embedded (build functional mocks with mock data; use local storage/JSON for persistence if possible—no external DB yet):
+
+Dashboard: Overview with welcome (e.g., "Welcome, [Agent Name]"), quick stats (KPIs like daily calls, leads worked), announcements (culture elements like non-monetary recognition), daily tasks teaser, behavioral score overlay. Use cards with gold borders, charts (simple bar/line for performance trends via Chart.js if possible).
+Tasks (Operational Tasks & Workflows): Daily required actions surfaced (e.g., checklist: "Call 10 leads", "Complete training module"). Task completion updates performance scores (mock progress bars). Inactivity alerts (e.g., red banners if quotas missed).
+CRM (Abstracted View): Agent-only records (owned leads/clients list in table/cards). Masked fields (e.g., no full SSN). Activity logging (forms for calls/texts/notes with disposition tagging). Follow-up triggers (mock automation: "Schedule follow-up" button adds to tasks).
+Training & Development: Role-based courses (list with progress bars, e.g., "Term Life Basics - 50% Complete"). Certification gating (lock sales features until done—mock with disabled buttons). Progress signals for promotions.
+SOPs (Library): Version-controlled procedures (accordion or searchable list, e.g., "Sales Script for Illinois Term Life"). Contextual surfacing (e.g., pop-ups during tasks like "View SOP for this step").
+Performance & Accountability: Daily/7/30/90-day KPIs (tables/charts: quotas vs. actuals, e.g., min calls, conversions). Rolling metrics, alerts.
+Earnings (View-Only): Commission ledger (table: pending/paid/clawback). Locked—no edits.
+
+Additional Features (Culture & Accountability, Sales Execution):
+
+Announcements feed (scrollable cards).
+Behavioral score overlays (e.g., star rating on dashboard).
+Script delivery (dynamic by product/state: dropdown selects, displays script text).
+Call disposition tagging (in CRM: select from options like "Interested", "No Answer").
+Non-monetary recognition (e.g., badges on profile).
+
+Backend/Build Requirements (frontend-focused for now):
+
+Role-based rendering (agent vs. executive mocks: executives see all, agents only personal).
+Abstracted CRM layer (use mock JSON data).
+Event-driven logging (console.log or local storage for activities).
+Inputs: Agent activity (forms), call outcomes (tags), task completions (checkboxes).
+Outputs: Update metrics (real-time refresh), compensation events (mock updates), promotion signals (alerts).
+
+Login Page: Clean form (email/password, "Login" button in gold). Error handling (invalid creds alert). Post-login, persist session (mock token).
+Overall Best Practices:
+
+Build section-by-section: Hero/login first, then dashboard, then each nav page.
+Use screenshots/references if attached for layout (e.g., attach dashboard inspo).
+Define logic: If task complete, update score; if not certified, disable features.
+Edge cases: Empty states ("No tasks today"), loading spinners, mobile responsive.
+Integrations: Mock APIs (JSON placeholders for data).
+Animations: Subtle (e.g., task checkmark fade-in).
+Trust/Security: Badges (e.g., "Secure Agent Portal"), disclaimers.
+Light/dark toggle persists across pages.
+Generate full app now—start in planning mode, propose plan, then build. I'll refine section-by-section.

@@ -1,0 +1,124 @@
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+file: 'postgres.c',
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at uc._handleErrorEvent (/home/runner/workspace/dist/index.cjs:64:8566)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at Readable.push (node:internal/streams/readable:392:5)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+Emitted 'error' event on instance at:
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at uc._handleErrorMessage (/home/runner/workspace/dist/index.cjs:64:8703)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at addChunk (node:internal/streams/readable:561:12) {
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+dataType: undefined,
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+internalQuery: undefined,
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at uf.parse (/home/runner/workspace/dist/index.cjs:63:42497)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+where: undefined,
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+options: undefined,
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+code: '57P01',
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+ssl: {},
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+schema: undefined,
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at df.emit (node:events:524:28)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at TLSSocket. (/home/runner/workspace/dist/index.cjs:63:47921)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at /home/runner/workspace/dist/index.cjs:63:50560
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at TLSSocket. (/home/runner/workspace/dist/index.cjs:63:47921)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+_types: Yo {
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at addChunk (node:internal/streams/readable:561:12)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+position: undefined,
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+error: terminating connection due to administrator command
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at TLSSocket.emit (node:events:524:28)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+at uc.r (/home/runner/workspace/dist/index.cjs:64:13559)
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+throw er; // Unhandled 'error' event
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+host: 'ep-small-mountain-af56d58v.c-2.us-west-2.aws.neon.tech',
+2025-12-31 18:43:55.43
+c1c4cbd0
+User
+_eventsCount: 1,
+2025-12-31 18:45:48.13
+c1c4cbd0
+User
+12:45:45 AM [express] serving on port 5000
+2025-12-31 18:47:13.30
+c1c4cbd0
+User
+12:47:13 AM [express] POST /api/contact-messages 201 in 9121ms :: {"id":3,"firstName":"Gaetano","lastName":"Carbonara","email":"guy4carbs@gmail.com","phone":"6304781835","message":"yoooooooooooo","createdAt":"2026-01-01T00:47:12.826Z"}
+2025-12-31 18:47:36.57
+d39ca622
+System
+system: received signal terminated
+2025-12-31 18:47:36.58
+d39ca622
+System
+command finished with error [node ./dist/index.cjs]: signal: terminated
