@@ -23,6 +23,15 @@ import ExecLogin from "@/pages/ExecLogin";
 import ExecPortal from "@/pages/ExecPortal";
 import ExecTasks from "@/pages/ExecTasks";
 import ExecCalendar from "@/pages/ExecCalendar";
+import Heritage from "@/pages/Heritage";
+import HeritageAbout from "@/pages/heritage/HeritageAbout";
+import HeritageProducts from "@/pages/heritage/HeritageProducts";
+import HeritageResources from "@/pages/heritage/HeritageResources";
+import HeritageContact from "@/pages/heritage/HeritageContact";
+import HeritageCalculator from "@/pages/heritage/HeritageCalculator";
+import HeritageGetQuote from "@/pages/heritage/HeritageGetQuote";
+import HeritageArticle from "@/pages/heritage/HeritageArticle";
+import HeritagePrivacy from "@/pages/heritage/HeritagePrivacy";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -57,6 +66,15 @@ function Router() {
         <Route path="/exec" component={ExecPortal} />
         <Route path="/exec/tasks" component={ExecTasks} />
         <Route path="/exec/calendar" component={ExecCalendar} />
+        <Route path="/heritage" component={Heritage} />
+        <Route path="/heritage/about" component={HeritageAbout} />
+        <Route path="/heritage/products" component={HeritageProducts} />
+        <Route path="/heritage/resources" component={HeritageResources} />
+        <Route path="/heritage/resources/:slug" component={HeritageArticle} />
+        <Route path="/heritage/calculator" component={HeritageCalculator} />
+        <Route path="/heritage/contact" component={HeritageContact} />
+        <Route path="/heritage/get-quote" component={HeritageGetQuote} />
+        <Route path="/heritage/privacy" component={HeritagePrivacy} />
         <Route component={NotFound} />
       </Switch>
     </>
