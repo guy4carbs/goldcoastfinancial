@@ -32,6 +32,10 @@ import HeritageCalculator from "@/pages/heritage/HeritageCalculator";
 import HeritageGetQuote from "@/pages/heritage/HeritageGetQuote";
 import HeritageArticle from "@/pages/heritage/HeritageArticle";
 import HeritagePrivacy from "@/pages/heritage/HeritagePrivacy";
+import InstitutionalHome from "@/pages/institutional/InstitutionalHome";
+import InstitutionalAbout from "@/pages/institutional/InstitutionalAbout";
+import InstitutionalPortfolio from "@/pages/institutional/InstitutionalPortfolio";
+import InstitutionalContact from "@/pages/institutional/InstitutionalContact";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -75,6 +79,10 @@ function Router() {
         <Route path="/heritage/contact" component={HeritageContact} />
         <Route path="/heritage/get-quote" component={HeritageGetQuote} />
         <Route path="/heritage/privacy" component={HeritagePrivacy} />
+        <Route path="/goldcoastfinancial2" component={InstitutionalHome} />
+        <Route path="/goldcoastfinancial2/about" component={InstitutionalAbout} />
+        <Route path="/goldcoastfinancial2/portfolio" component={InstitutionalPortfolio} />
+        <Route path="/goldcoastfinancial2/contact" component={InstitutionalContact} />
         <Route component={NotFound} />
       </Switch>
     </>
