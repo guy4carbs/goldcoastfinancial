@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import Header from "@/components/Header";
+import QuoteCalculator from "@/components/QuoteCalculator";
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -132,22 +133,17 @@ export default function Home() {
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="bg-gray-50 py-32">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-20 items-center">
-            <div className="bg-gray-200 rounded-2xl h-[600px] flex items-center justify-center">
-              <span className="text-gray-400 text-lg">Phone mockup placeholder</span>
-            </div>
-            <div>
-              <div className="mb-8">
-                <p className="text-lg text-gray-600 mb-4">How it works:</p>
-                <h2 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
-                  We calculate your rate in real time, so you can get covered in 10 minutes
-                </h2>
-              </div>
-              <button className="bg-heritage-accent hover:bg-heritage-accent/80 text-white px-12 py-5 rounded-xl font-semibold text-xl mt-8">
-                Get $3 million online instantly for under $20/month
-              </button>
-            </div>
+          <div className="text-center mb-16">
+            <p className="text-lg text-gray-600 mb-4">How it works:</p>
+            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-4">
+              We calculate your rate in real time, so you can get covered in 10 minutes
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Answer a few simple questions and get your personalized quote instantly. No medical exam required.
+            </p>
           </div>
+
+          <QuoteCalculator />
         </div>
       </section>
 

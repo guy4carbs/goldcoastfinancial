@@ -11,6 +11,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { Pool } from "pg";
 import adminProductsRouter from "./routes/admin-products";
+import quotesRouter from "./routes/quotes";
 
 declare module "express-session" {
   interface SessionData {
@@ -806,6 +807,9 @@ export async function registerRoutes(
 
   // Admin: Products management
   app.use("/api/admin/products", adminProductsRouter);
+
+  // Quotes and estimates
+  app.use("/api/quotes", quotesRouter);
 
   return httpServer;
 }
