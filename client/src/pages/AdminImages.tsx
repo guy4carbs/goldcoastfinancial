@@ -1,31 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { Upload, Trash2, Copy, Check, FolderOpen, LogOut, User } from "lucide-react";
+import { Upload, Trash2, Copy, Check, FolderOpen } from "lucide-react";
 import { uploadImage, listImages, deleteImage, UploadedImage } from "@/lib/storageUtils";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import AdminNav from "@/components/AdminNav";
 
 export default function AdminImages() {
-  const { user, signOut } = useAuth();
-  const [, navigate] = useLocation();
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState("images");
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success("Logged out successfully");
-      navigate("/admin/login");
-    } catch (error) {
-      toast.error("Failed to log out");
-      console.error(error);
-    }
-  };
 
   const folders = [
     { value: "images", label: "General Images" },
@@ -103,30 +88,16 @@ export default function AdminImages() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
-          <div>
+    <div className="flex min-h-screen bg-gray-50">
+      <AdminNav />
+
+      <div className="flex-1 py-8">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Header */}
+          <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Image CDN Manager</h1>
             <p className="text-gray-600">Upload and manage images for Heritage website</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User className="w-4 h-4" />
-              <span>{user?.email}</span>
-            </div>
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
 
         {/* Folder Selector */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -255,6 +226,7 @@ export default function AdminImages() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

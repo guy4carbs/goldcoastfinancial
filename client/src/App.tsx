@@ -6,7 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import AdminDashboard from "@/pages/AdminDashboard";
 import AdminImages from "@/pages/AdminImages";
+import AdminProducts from "@/pages/AdminProducts";
 import AdminLogin from "@/pages/AdminLogin";
 import RiskStrategy from "@/pages/RiskStrategy";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -30,9 +32,19 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/risk-strategy" component={RiskStrategy} />
         <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin">
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        </Route>
         <Route path="/admin/images">
           <ProtectedRoute>
             <AdminImages />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/products">
+          <ProtectedRoute>
+            <AdminProducts />
           </ProtectedRoute>
         </Route>
         <Route component={NotFound} />
