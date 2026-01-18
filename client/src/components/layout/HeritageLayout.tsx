@@ -35,6 +35,7 @@ export function HeritageLayout({ children }: { children: React.ReactNode }) {
     { href: "/heritage/about", label: "About Us" },
     { href: "/heritage/products", label: "Insurance Products" },
     { href: "/heritage/resources", label: "Resources" },
+    { href: "/heritage/careers", label: "Careers" },
     { href: "/heritage/contact", label: "Contact" },
   ];
 
@@ -179,6 +180,7 @@ export function HeritageLayout({ children }: { children: React.ReactNode }) {
                 <li><Link href="/heritage/resources" className="hover:text-white transition-colors cursor-pointer">Resources</Link></li>
                 <li><Link href="/heritage/calculator" className="hover:text-white transition-colors cursor-pointer">Coverage Calculator</Link></li>
                 <li><Link href="/heritage/contact" className="hover:text-white transition-colors cursor-pointer">Contact</Link></li>
+                <li><Link href="/heritage/careers" className="hover:text-white transition-colors cursor-pointer">Careers</Link></li>
                 <li><Link href="/client-login" className="hover:text-white transition-colors cursor-pointer">Client Portal</Link></li>
               </ul>
             </div>

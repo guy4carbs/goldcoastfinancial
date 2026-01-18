@@ -1,68 +1,48 @@
 import { google } from 'googleapis';
 
-let connectionSettings: any;
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'http://localhost:3000/api/auth/google/callback'
+);
 
-async function getAccessToken() {
-  // Always fetch fresh credentials to ensure we use the currently connected account
-  connectionSettings = null;
-  
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  
-  if (!hostname) {
-    console.log('Gmail integration: REPLIT_CONNECTORS_HOSTNAME not available');
-    throw new Error('Gmail connector not available in this environment');
-  }
-  
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    console.log('Gmail integration: Neither REPL_IDENTITY nor WEB_REPL_RENEWAL available');
-    console.log('Available env vars:', Object.keys(process.env).filter(k => k.includes('REPL')).join(', '));
-    throw new Error('Gmail connector token not found - ensure connector is linked to deployment');
-  }
-
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-mail',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
-
-  if (!connectionSettings || !accessToken) {
-    throw new Error('Gmail not connected');
-  }
-  return accessToken;
+// Set credentials if refresh token is available
+if (process.env.GOOGLE_REFRESH_TOKEN) {
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+  });
 }
 
-async function getUncachableGmailClient() {
-  const accessToken = await getAccessToken();
+async function getGmailClient() {
+  if (!process.env.GOOGLE_REFRESH_TOKEN) {
+    throw new Error('Gmail not configured: GOOGLE_REFRESH_TOKEN is not set. Run the auth script first.');
+  }
 
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
+  // Refresh access token if needed
+  const { credentials } = await oauth2Client.refreshAccessToken();
+  oauth2Client.setCredentials(credentials);
 
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
+export function getAuthUrl() {
+  const scopes = [
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/spreadsheets',
+  ];
 
-function generateMessageId(domain: string): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  return `<${timestamp}.${random}@${domain}>`;
+  return oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+    prompt: 'consent', // Force to get refresh token
+  });
 }
 
-function formatRFC2822Date(): string {
-  return new Date().toUTCString().replace('GMT', '+0000');
+export async function getTokensFromCode(code: string) {
+  const { tokens } = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(tokens);
+  return tokens;
 }
 
 export async function sendContactNotification(data: {
@@ -72,8 +52,9 @@ export async function sendContactNotification(data: {
   phone?: string;
   message: string;
 }) {
-  const gmail = await getUncachableGmailClient();
-  
+  const gmail = await getGmailClient();
+  const toEmail = process.env.GMAIL_FROM_EMAIL || 'contact@goldcoastfnl.com';
+
   const subject = `New Contact Form Submission from ${data.firstName} ${data.lastName}`;
   const body = `
 New contact form submission from Gold Coast Financial website:
@@ -93,7 +74,7 @@ This message was sent from the Gold Coast Financial website contact form.
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: contact@goldcoastfnl.com`,
+    `To: ${toEmail}`,
     `Reply-To: ${data.email}`,
     `Subject: ${subject}`,
     '',
@@ -123,8 +104,8 @@ export async function sendPortalMessage(data: {
   message: string;
   priority?: 'normal' | 'high';
 }) {
-  const gmail = await getUncachableGmailClient();
-  
+  const gmail = await getGmailClient();
+
   const priorityPrefix = data.priority === 'high' ? '[URGENT] ' : '';
   const fullSubject = `${priorityPrefix}Portal Message: ${data.subject}`;
   const body = `
@@ -147,7 +128,6 @@ This message was sent securely through the Gold Coast Financial Client Portal.
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `From: Gold Coast Financial Client Portal <client@goldcoastfnl.com>`,
     `To: ${data.recipientEmail}`,
     `Reply-To: ${data.senderEmail}`,
     `Subject: ${fullSubject}`,
@@ -186,8 +166,9 @@ export async function sendQuoteNotification(data: {
   birthDate: string;
   medicalBackground: string;
 }) {
-  const gmail = await getUncachableGmailClient();
-  
+  const gmail = await getGmailClient();
+  const toEmail = process.env.GMAIL_FROM_EMAIL || 'contact@goldcoastfnl.com';
+
   const subject = `New Quote Request from ${data.firstName} ${data.lastName} - ${data.coverageType}`;
   const body = `
 New quote request from Gold Coast Financial website:
@@ -221,7 +202,7 @@ This quote request was submitted from the Gold Coast Financial website.
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: contact@goldcoastfnl.com`,
+    `To: ${toEmail}`,
     `Reply-To: ${data.email}`,
     `Subject: ${subject}`,
     '',
@@ -252,14 +233,15 @@ export async function sendMeetingNotification(data: {
   topic: string;
   message?: string;
 }) {
-  const gmail = await getUncachableGmailClient();
-  
+  const gmail = await getGmailClient();
+  const toEmail = process.env.GMAIL_FROM_EMAIL || 'meetings@goldcoastfnl.com';
+
   const meetingTypeLabels: Record<string, string> = {
     'video': 'Video Call (Google Meet or Zoom)',
     'phone': 'Phone Call',
     'inperson': 'In-Person at Naperville Office'
   };
-  
+
   const topicLabels: Record<string, string> = {
     'new-policy': 'Start a new policy',
     'review-coverage': 'Review my current coverage',
@@ -274,7 +256,7 @@ export async function sendMeetingNotification(data: {
     'partnership': 'Partnership or business opportunity',
     'other': 'Other'
   };
-  
+
   const subject = `New Meeting Request from ${data.name} - ${new Date(data.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at ${data.time}`;
   const body = `
 New meeting request from Gold Coast Financial website:
@@ -300,7 +282,7 @@ This meeting request was submitted from the Gold Coast Financial website.
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: meetings@goldcoastfnl.com`,
+    `To: ${toEmail}`,
     `Reply-To: ${data.email}`,
     `Subject: ${subject}`,
     '',
@@ -333,8 +315,9 @@ export async function sendJobApplicationNotification(data: {
   hasLicense?: string;
   resumeFileName?: string;
 }) {
-  const gmail = await getUncachableGmailClient();
-  
+  const gmail = await getGmailClient();
+  const toEmail = process.env.GMAIL_FROM_EMAIL || 'applications@goldcoastfnl.com';
+
   const subject = `New Job Application: ${data.position} - ${data.firstName} ${data.lastName}`;
   const body = `
 New job application submitted on Gold Coast Financial website:
@@ -362,8 +345,234 @@ This application was submitted from the Gold Coast Financial careers page.
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: applications@goldcoastfnl.com`,
+    `To: ${toEmail}`,
     `Reply-To: ${data.email}`,
+    `Subject: ${subject}`,
+    '',
+    body
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(emailMessage)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+}
+
+export async function sendPartnershipQuizNotification(data: {
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone?: string;
+  companyType: string;
+  annualRevenue?: string;
+  employeeCount?: string;
+  partnershipInterest: string;
+  timeline?: string;
+  additionalInfo?: string;
+  score: number;
+  qualification: string;
+}) {
+  const gmail = await getGmailClient();
+  const toEmail = 'partnership@goldcoastfnl.com';
+
+  const qualificationLabels: Record<string, string> = {
+    'highly_qualified': 'HIGHLY QUALIFIED - Priority Review',
+    'qualified': 'QUALIFIED - Standard Review',
+    'potential': 'POTENTIAL - Exploratory'
+  };
+
+  const companyTypeLabels: Record<string, string> = {
+    'insurance_agency': 'Insurance Agency/Brokerage',
+    'financial_services': 'Financial Services Firm',
+    'technology': 'InsurTech / FinTech',
+    'other': 'Other'
+  };
+
+  const interestLabels: Record<string, string> = {
+    'acquisition': 'Full Acquisition',
+    'strategic_partnership': 'Strategic Partnership',
+    'investment': 'Capital Investment',
+    'exploring': 'Just Exploring'
+  };
+
+  const timelineLabels: Record<string, string> = {
+    'immediate': 'Immediate (0-3 months)',
+    '3_6_months': 'Near-term (3-6 months)',
+    '6_12_months': 'Medium-term (6-12 months)',
+    '12_plus_months': 'Long-term (12+ months)'
+  };
+
+  const revenueLabels: Record<string, string> = {
+    'under_1m': 'Under $1M',
+    '1m_5m': '$1M - $5M',
+    '5m_10m': '$5M - $10M',
+    '10m_plus': '$10M+'
+  };
+
+  const subject = `[${qualificationLabels[data.qualification] || data.qualification}] Partnership Inquiry - ${data.companyName} (Score: ${data.score}/100)`;
+  const body = `
+New Partnership Assessment Submission
+
+QUALIFICATION STATUS
+Score: ${data.score}/100
+Status: ${qualificationLabels[data.qualification] || data.qualification}
+
+CONTACT INFORMATION
+Company: ${data.companyName}
+Contact: ${data.contactName}
+Email: ${data.email}
+Phone: ${data.phone || 'Not provided'}
+
+COMPANY PROFILE
+Type: ${companyTypeLabels[data.companyType] || data.companyType}
+Annual Revenue: ${revenueLabels[data.annualRevenue || ''] || data.annualRevenue || 'Not provided'}
+Employees: ${data.employeeCount || 'Not provided'}
+
+PARTNERSHIP GOALS
+Interest: ${interestLabels[data.partnershipInterest] || data.partnershipInterest}
+Timeline: ${timelineLabels[data.timeline || ''] || data.timeline || 'Not provided'}
+
+ADDITIONAL INFORMATION
+${data.additionalInfo || 'None provided'}
+
+---
+This partnership assessment was submitted from the Gold Coast Financial website.
+Respond within ${data.qualification === 'highly_qualified' ? '24-48 hours' : '3-5 business days'}.
+  `.trim();
+
+  const emailMessage = [
+    'Content-Type: text/plain; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: 7bit',
+    `To: ${toEmail}`,
+    `Reply-To: ${data.email}`,
+    `Subject: ${subject}`,
+    '',
+    body
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(emailMessage)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+}
+
+export async function sendNewsletterNotification(data: {
+  email: string;
+  name?: string;
+  subscriptionType: string;
+}) {
+  const gmail = await getGmailClient();
+  const toEmail = 'insights@goldcoastfnl.com';
+
+  const subject = `New Newsletter Subscription - ${data.subscriptionType === 'institutional' ? 'Institutional' : 'General'}`;
+  const body = `
+New newsletter subscription from Gold Coast Financial website:
+
+SUBSCRIBER INFORMATION
+Email: ${data.email}
+Name: ${data.name || 'Not provided'}
+Type: ${data.subscriptionType === 'institutional' ? 'Institutional / The Gold Coast Perspective' : 'General Newsletter'}
+Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+
+---
+This subscription was submitted from the Gold Coast Financial website.
+  `.trim();
+
+  const emailMessage = [
+    'Content-Type: text/plain; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: 7bit',
+    `To: ${toEmail}`,
+    `Subject: ${subject}`,
+    '',
+    body
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(emailMessage)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+}
+
+export async function sendNewsletterWelcome(data: {
+  email: string;
+  name?: string;
+  subscriptionType: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const subscriberName = data.name ? data.name.split(' ')[0] : '';
+  const greeting = subscriberName ? `Dear ${subscriberName}` : 'Thank you';
+
+  const subject = 'Welcome to The Gold Coast Perspective';
+  const body = `
+${greeting},
+
+Thank you for subscribing to The Gold Coast Perspective, our quarterly newsletter from Gold Coast Financial.
+
+WHAT TO EXPECT
+
+You'll receive thoughtful insights on:
+
+- Financial services industry trends and analysis
+- Market dynamics and strategic perspectives
+- Portfolio company updates and developments
+- Thought leadership from our executive team
+
+We publish quarterly, focusing on quality over quantity. Each edition is crafted to provide genuine value to institutional partners, investors, and industry professionals.
+
+STAY CONNECTED
+
+Visit our website: goldcoastfnl.com/goldcoastfinancial2
+Read our latest insights: goldcoastfnl.com/goldcoastfinancial2/blog
+Contact us: goldcoastfnl.com/goldcoastfinancial2/contact
+
+If you have questions or would like to discuss partnership opportunities, please don't hesitate to reach out to our team.
+
+We look forward to sharing our perspectives with you.
+
+Warm regards,
+
+The Gold Coast Financial Team
+Gold Coast Financial
+Naperville, Illinois
+
+---
+You're receiving this email because you subscribed to The Gold Coast Perspective newsletter.
+To unsubscribe, visit goldcoastfnl.com/goldcoastfinancial2 or reply to this email.
+  `.trim();
+
+  const emailMessage = [
+    'Content-Type: text/plain; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: 7bit',
+    `To: ${data.email}`,
+    `From: Gold Coast Financial <${process.env.GMAIL_FROM_EMAIL || 'insights@goldcoastfnl.com'}>`,
     `Subject: ${subject}`,
     '',
     body

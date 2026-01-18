@@ -1,0 +1,18 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Gold Coast Financial sitemap
+Sitemap: https://goldcoastfnl.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1
+
+# Disallow sensitive paths
+Disallow: /api/
+Disallow: /exec/
+Disallow: /exec-login
+Disallow: /agent/
+Disallow: /agent-login
+Disallow: /client-portal
+Disallow: /client-login

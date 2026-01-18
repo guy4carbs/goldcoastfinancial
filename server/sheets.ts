@@ -1,48 +1,26 @@
 import { google } from 'googleapis';
 
-let connectionSettings: any;
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'http://localhost:3000/api/auth/google/callback'
+);
 
-async function getAccessToken() {
-  if (connectionSettings && connectionSettings.settings.expires_at && new Date(connectionSettings.settings.expires_at).getTime() > Date.now()) {
-    return connectionSettings.settings.access_token;
-  }
-  
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
-  }
-
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-sheet',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
-
-  if (!connectionSettings || !accessToken) {
-    throw new Error('Google Sheet not connected');
-  }
-  return accessToken;
+// Set credentials if refresh token is available
+if (process.env.GOOGLE_REFRESH_TOKEN) {
+  oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+  });
 }
 
-export async function getUncachableGoogleSheetClient() {
-  const accessToken = await getAccessToken();
+async function getSheetsClient() {
+  if (!process.env.GOOGLE_REFRESH_TOKEN) {
+    throw new Error('Google Sheets not configured: GOOGLE_REFRESH_TOKEN is not set. Run the auth script first.');
+  }
 
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
+  // Refresh access token if needed
+  const { credentials } = await oauth2Client.refreshAccessToken();
+  oauth2Client.setCredentials(credentials);
 
   return google.sheets({ version: 'v4', auth: oauth2Client });
 }
@@ -73,8 +51,8 @@ export async function addLeadToSheet(data: {
   }
 
   try {
-    const sheets = await getUncachableGoogleSheetClient();
-    
+    const sheets = await getSheetsClient();
+
     const timestamp = new Date().toLocaleString('en-US', {
       timeZone: 'America/Chicago',
       year: 'numeric',
@@ -126,8 +104,8 @@ export async function initializeSheetHeaders() {
   }
 
   try {
-    const sheets = await getUncachableGoogleSheetClient();
-    
+    const sheets = await getSheetsClient();
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_NAME}!A1:P1`,

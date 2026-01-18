@@ -95,3 +95,98 @@ export const insertJobApplicationSchema = createInsertSchema(jobApplications).om
 
 export type JobApplication = typeof jobApplications.$inferSelect;
 export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
+
+// Institutional Contact Messages
+export const institutionalContacts = pgTable("institutional_contacts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title"),
+  organization: text("organization"),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  inquiryType: text("inquiry_type").notNull(),
+  message: text("message").notNull(),
+  source: text("source").default("contact_form"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertInstitutionalContactSchema = createInsertSchema(institutionalContacts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InstitutionalContact = typeof institutionalContacts.$inferSelect;
+export type InsertInstitutionalContact = z.infer<typeof insertInstitutionalContactSchema>;
+
+// Newsletter Subscriptions
+export const newsletterSubscriptions = pgTable("newsletter_subscriptions", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  subscriptionType: text("subscription_type").default("institutional"),
+  status: text("status").default("active"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  unsubscribedAt: timestamp("unsubscribed_at"),
+});
+
+export const insertNewsletterSchema = createInsertSchema(newsletterSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  unsubscribedAt: true,
+  status: true,
+});
+
+export type NewsletterSubscription = typeof newsletterSubscriptions.$inferSelect;
+export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
+
+// Partnership Quiz Submissions
+export const partnershipQuizSubmissions = pgTable("partnership_quiz_submissions", {
+  id: serial("id").primaryKey(),
+  companyName: text("company_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  companyType: text("company_type").notNull(),
+  annualRevenue: text("annual_revenue"),
+  employeeCount: text("employee_count"),
+  partnershipInterest: text("partnership_interest").notNull(),
+  timeline: text("timeline"),
+  additionalInfo: text("additional_info"),
+  score: text("score"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPartnershipQuizSchema = createInsertSchema(partnershipQuizSubmissions).omit({
+  id: true,
+  createdAt: true,
+  score: true,
+});
+
+export type PartnershipQuizSubmission = typeof partnershipQuizSubmissions.$inferSelect;
+export type InsertPartnershipQuiz = z.infer<typeof insertPartnershipQuizSchema>;
+
+// Institutional Meeting Requests
+export const institutionalMeetings = pgTable("institutional_meetings", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  title: text("title"),
+  organization: text("organization"),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  meetingType: text("meeting_type").notNull(),
+  topic: text("topic"),
+  message: text("message"),
+  status: text("status").default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertInstitutionalMeetingSchema = createInsertSchema(institutionalMeetings).omit({
+  id: true,
+  createdAt: true,
+  status: true,
+});
+
+export type InstitutionalMeeting = typeof institutionalMeetings.$inferSelect;
+export type InsertInstitutionalMeeting = z.infer<typeof insertInstitutionalMeetingSchema>;

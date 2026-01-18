@@ -15,27 +15,27 @@ export default function InstitutionalAbout() {
   return (
     <InstitutionalLayout>
       {/* Hero */}
-      <section className="py-20 md:py-28">
+      <section className="hero-gradient py-24 md:py-32">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="max-w-3xl"
           >
-            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary mb-4">
               About
             </h2>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium leading-tight text-primary mb-8">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif display-text text-white mb-10">
               Building enduring financial institutions through disciplined governance and principled leadership.
             </h1>
-            <div className="w-16 h-px bg-secondary" />
+            <div className="accent-line-animated" />
           </motion.div>
         </div>
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Company Overview */}
       <section className="py-20 md:py-28">
@@ -73,7 +73,7 @@ export default function InstitutionalAbout() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Governance Principles */}
       <section className="py-20 md:py-28 bg-muted/30">
@@ -132,7 +132,8 @@ export default function InstitutionalAbout() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="space-y-4"
+                whileHover={{ y: -4 }}
+                className="space-y-4 p-5 rounded-sm transition-colors hover:bg-white/50 cursor-default"
               >
                 <item.icon className="w-6 h-6 text-primary" strokeWidth={1.5} />
                 <h3 className="text-base font-medium text-primary">{item.title}</h3>
@@ -146,9 +147,138 @@ export default function InstitutionalAbout() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Leadership */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-6 lg:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-16"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+              Leadership
+            </h2>
+            <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl">
+              Experienced leadership with a commitment to integrity, regulatory excellence, and long-term value creation.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Jack Cook - Founder & CEO */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="team-card p-8 rounded-lg"
+            >
+              <div className="flex items-start gap-5 mb-4">
+                <div className="initials-avatar w-14 h-14 rounded-full text-lg shrink-0">
+                  JC
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-primary">Jack Cook</h3>
+                  <p className="text-sm text-secondary">Founder & Chief Executive Officer</p>
+                  <p className="text-xs text-muted-foreground mt-1">Naperville, Illinois</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                Mr. Cook founded Gold Coast Financial with the conviction that financial services require patient capital and principled leadership. As Chief Executive Officer, he establishes the firm's strategic vision, oversees capital allocation, and maintains relationships with carrier partners and institutional stakeholders.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                His leadership approach emphasizes long-term value creation over short-term metrics, disciplined underwriting standards, and organizational structures designed for permanence. Mr. Cook's background in competitive athletics instilled a commitment to preparation, accountability, and performance under pressure that informs the firm's operating culture.
+              </p>
+            </motion.div>
+
+            {/* Frank Carbonara - Executive Chairman */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="team-card p-8 rounded-lg"
+            >
+              <div className="flex items-start gap-5 mb-4">
+                <div className="initials-avatar w-14 h-14 rounded-full text-lg shrink-0">
+                  FC
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-primary">Frank Carbonara</h3>
+                  <p className="text-sm text-secondary">Executive Chairman & Risk Strategist</p>
+                  <p className="text-xs text-muted-foreground mt-1">Elmwood Park, Illinois</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                Mr. Carbonara provides senior governance oversight and strategic counsel to the executive team. His career spans multiple decades across financial services, real estate, and enterprise operations, with particular expertise in risk assessment and capital markets.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Prior experience includes commodities trading through the Dubai Mercantile Exchange, securities licensing (Series 3, Series 6), real estate brokerage, and public adjusting. This diverse background enables a multi-dimensional perspective on risk management, regulatory compliance, and strategic opportunity evaluation across Gold Coast Financial's portfolio companies.
+              </p>
+            </motion.div>
+
+            {/* Gaetano Carbonara - COO */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="team-card p-8 rounded-lg"
+            >
+              <div className="flex items-start gap-5 mb-4">
+                <div className="initials-avatar w-14 h-14 rounded-full text-lg shrink-0">
+                  GC
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-primary">Gaetano Carbonara</h3>
+                  <p className="text-sm text-secondary">Chief Operating Officer | Head of Systems & Culture</p>
+                  <p className="text-xs text-muted-foreground mt-1">Oak Brook, Illinois</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                Mr. Carbonara oversees the operational infrastructure that translates executive strategy into consistent, scalable execution. His portfolio encompasses organizational design, compliance frameworks, performance management systems, and leadership development across all operating companies.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                His leadership philosophy emphasizes systematic processes, clear accountability structures, and a culture of operational excellence. Mr. Carbonara ensures that growth never compromises quality, compliance, or the institutional standards that define Gold Coast Financial's approach to financial services.
+              </p>
+            </motion.div>
+
+            {/* Nick Gallagher - Head of Strategy */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="team-card p-8 rounded-lg"
+            >
+              <div className="flex items-start gap-5 mb-4">
+                <div className="initials-avatar w-14 h-14 rounded-full text-lg shrink-0">
+                  NG
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-primary">Nick Gallagher</h3>
+                  <p className="text-sm text-secondary">Head of Strategy & Negotiation</p>
+                  <p className="text-xs text-muted-foreground mt-1">Naperville, Illinois</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                Mr. Gallagher leads corporate development initiatives, including partnership evaluation, strategic planning, and negotiation of commercial agreements. He coordinates with external stakeholders and supports the executive team in identifying and structuring growth opportunities aligned with the firm's long-term objectives.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                His approach to strategy emphasizes thorough preparation, disciplined evaluation criteria, and communication clarity. Mr. Gallagher contributes to Gold Coast Financial's measured expansion by ensuring that potential opportunities meet the firm's standards for regulatory standing, management quality, and strategic fit.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-border/60" />
+
+      {/* Board & Advisory */}
       <section className="py-20 md:py-28">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
@@ -159,7 +289,7 @@ export default function InstitutionalAbout() {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                Leadership
+                Advisory & Oversight
               </h2>
             </motion.div>
             <motion.div
@@ -170,37 +300,32 @@ export default function InstitutionalAbout() {
               className="lg:col-span-2"
             >
               <p className="text-lg text-primary leading-relaxed mb-8">
-                Gold Coast Financial's leadership team brings decades of combined experience in insurance distribution, financial services regulation, and institutional management.
+                Gold Coast Financial maintains relationships with external advisors and counsel to ensure independent perspective on governance and strategic matters.
               </p>
 
-              <div className="space-y-12">
-                {/* Executive Leadership */}
-                <div className="border-l-2 border-secondary pl-6">
-                  <h3 className="text-base font-medium text-primary mb-1">Executive Leadership</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Gaetano Carbonara — Founder & Chief Executive Officer
-                  </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="border-l-2 border-border pl-6">
+                  <h3 className="text-base font-medium text-primary mb-2">Legal & Compliance Counsel</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Responsible for overall corporate strategy, capital allocation, and stakeholder relations. Oversees governance framework and regulatory relationships across all operating companies.
+                    External legal counsel provides guidance on regulatory matters, contract review, and compliance across all operating jurisdictions. Maintains relationships with state insurance departments.
                   </p>
                 </div>
-
-                {/* Operations */}
                 <div className="border-l-2 border-border pl-6">
-                  <h3 className="text-base font-medium text-primary mb-1">Operations</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Frank Carbonara — Chief Operating Officer
-                  </p>
+                  <h3 className="text-base font-medium text-primary mb-2">Financial Advisory</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Oversees day-to-day operations, subsidiary coordination, and operational efficiency initiatives. Ensures consistent execution of corporate standards across portfolio companies.
+                    Independent financial advisors assist with capital planning, risk assessment, and strategic evaluation of growth opportunities.
                   </p>
                 </div>
-
-                {/* Compliance */}
                 <div className="border-l-2 border-border pl-6">
-                  <h3 className="text-base font-medium text-primary mb-1">Compliance & Legal</h3>
+                  <h3 className="text-base font-medium text-primary mb-2">Insurance Industry Advisors</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Centralized compliance function ensuring regulatory adherence across all jurisdictions. Works with external counsel and state insurance departments to maintain exemplary standing.
+                    Seasoned insurance industry professionals provide perspective on market trends, carrier relationships, and distribution strategies.
+                  </p>
+                </div>
+                <div className="border-l-2 border-border pl-6">
+                  <h3 className="text-base font-medium text-primary mb-2">Technology Partners</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Strategic technology partners support digital infrastructure, data security, and operational efficiency initiatives.
                   </p>
                 </div>
               </div>
@@ -210,10 +335,85 @@ export default function InstitutionalAbout() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
-      {/* History */}
-      <section className="py-20 md:py-28 bg-primary text-primary-foreground">
+      {/* Timeline / History */}
+      <section className="py-20 md:py-28 bg-muted/30">
+        <div className="container mx-auto px-6 lg:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-16"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+              Our Journey
+            </h2>
+            <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl">
+              Building methodically since 2025, with each step reflecting our commitment to sustainable growth.
+            </p>
+          </motion.div>
+
+          <div className="space-y-0">
+            {[
+              {
+                year: "Jan 2025",
+                title: "Foundation",
+                description: "Gold Coast Financial established in Naperville, Illinois with a focus on life insurance distribution and financial services."
+              },
+              {
+                year: "Mar 2025",
+                title: "Heritage Life Solutions",
+                description: "Launched Heritage Life Solutions as a consumer-facing brand, creating clear separation between holding company and operating entity."
+              },
+              {
+                year: "May 2025",
+                title: "National Expansion",
+                description: "Achieved licensing across all 50 states. Expanded agent network and formalized compliance infrastructure."
+              },
+              {
+                year: "Sep 2025",
+                title: "Carrier Growth",
+                description: "Expanded carrier partnerships to 30+ highly-rated insurers. Implemented advanced quoting and policy management systems."
+              },
+              {
+                year: "Nov 2025",
+                title: "Institutional Development",
+                description: "Formalized holding company structure. Enhanced governance framework and began evaluating complementary business opportunities."
+              },
+              {
+                year: "2026",
+                title: "Continued Growth",
+                description: "Focus on operational excellence, technology investment, and disciplined evaluation of expansion opportunities."
+              }
+            ].map((milestone, index) => (
+              <motion.div
+                key={milestone.year}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="timeline-item flex gap-8 pb-8"
+              >
+                <div className="w-16 shrink-0">
+                  <span className="text-lg font-serif font-medium text-secondary">{milestone.year}</span>
+                </div>
+                <div className="pl-8">
+                  <h3 className="text-base font-medium text-primary mb-2">{milestone.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{milestone.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-border/60" />
+
+      {/* History - Vision Statement */}
+      <section className="py-20 md:py-28 dark-gradient text-primary-foreground relative overflow-hidden">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <motion.div

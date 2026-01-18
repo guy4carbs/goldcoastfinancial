@@ -1,9 +1,9 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
+import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema, insertInstitutionalContactSchema, insertNewsletterSchema, insertPartnershipQuizSchema, insertInstitutionalMeetingSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification } from "./gmail";
+import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPartnershipQuizNotification, sendNewsletterNotification, sendNewsletterWelcome } from "./gmail";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -780,15 +780,15 @@ export async function registerRoutes(
         storage.getUnreadNotificationCount(userId),
         storage.getBillingHistoryByUserId(userId),
       ]);
-      
+
       const totalCoverage = policies.reduce((sum, p) => sum + p.coverageAmount, 0);
       const monthlyPremium = policies.reduce((sum, p) => sum + parseFloat(p.monthlyPremium || "0"), 0);
       const activePolicies = policies.filter(p => p.status === "active").length;
-      
+
       const nextPayment = policies
         .filter(p => p.nextPaymentDate)
         .sort((a, b) => new Date(a.nextPaymentDate!).getTime() - new Date(b.nextPaymentDate!).getTime())[0];
-      
+
       res.json({
         totalCoverage,
         monthlyPremium: monthlyPremium.toFixed(2),
@@ -800,6 +800,205 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching dashboard:", error);
       res.status(500).json({ error: "Failed to fetch dashboard data" });
+    }
+  });
+
+  // ============================================
+  // INSTITUTIONAL API ENDPOINTS
+  // ============================================
+
+  // Institutional Contact Form Submission
+  app.post("/api/institutional/contact", async (req, res) => {
+    try {
+      const validatedData = insertInstitutionalContactSchema.parse(req.body);
+      const contact = await storage.createInstitutionalContact(validatedData);
+
+      // Send email notification
+      try {
+        await sendContactNotification({
+          firstName: validatedData.name.split(' ')[0] || validatedData.name,
+          lastName: validatedData.name.split(' ').slice(1).join(' ') || '',
+          email: validatedData.email,
+          phone: validatedData.phone || 'Not provided',
+          message: `[INSTITUTIONAL INQUIRY - ${validatedData.inquiryType}]\n\nOrganization: ${validatedData.organization || 'Not provided'}\nTitle: ${validatedData.title || 'Not provided'}\n\n${validatedData.message}`,
+        });
+      } catch (emailError: any) {
+        console.error("Error sending institutional contact email:", emailError?.message);
+      }
+
+      res.status(201).json({ success: true, id: contact.id });
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: fromZodError(error).toString() });
+      }
+      console.error("Error creating institutional contact:", error);
+      res.status(500).json({ error: "Failed to submit contact form" });
+    }
+  });
+
+  // Institutional Meeting Request
+  app.post("/api/institutional/meetings", async (req, res) => {
+    try {
+      const validatedData = insertInstitutionalMeetingSchema.parse(req.body);
+      const meeting = await storage.createInstitutionalMeeting(validatedData);
+
+      // Send email notification
+      try {
+        await sendMeetingNotification({
+          name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone || 'Not provided',
+          date: validatedData.date,
+          time: validatedData.time,
+          meetingType: validatedData.meetingType,
+          topic: validatedData.topic || 'General Discussion',
+          message: `[INSTITUTIONAL MEETING REQUEST]\n\nOrganization: ${validatedData.organization || 'Not provided'}\nTitle: ${validatedData.title || 'Not provided'}\n\n${validatedData.message || 'No additional message'}`,
+        });
+      } catch (emailError: any) {
+        console.error("Error sending institutional meeting email:", emailError?.message);
+      }
+
+      res.status(201).json({ success: true, id: meeting.id });
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: fromZodError(error).toString() });
+      }
+      console.error("Error creating institutional meeting:", error);
+      res.status(500).json({ error: "Failed to submit meeting request" });
+    }
+  });
+
+  // Newsletter Subscription
+  app.post("/api/newsletter/subscribe", async (req, res) => {
+    try {
+      const validatedData = insertNewsletterSchema.parse(req.body);
+
+      // Check if already subscribed
+      const existing = await storage.getNewsletterByEmail(validatedData.email);
+      if (existing) {
+        if (existing.status === 'active') {
+          return res.status(200).json({ success: true, message: "Already subscribed" });
+        }
+        // Reactivate subscription
+        await storage.updateNewsletterStatus(existing.id, 'active');
+        return res.status(200).json({ success: true, message: "Subscription reactivated" });
+      }
+
+      const subscription = await storage.createNewsletterSubscription(validatedData);
+
+      // Send notification email to insights@goldcoastfnl.com
+      try {
+        await sendNewsletterNotification({
+          email: validatedData.email,
+          name: validatedData.name,
+          subscriptionType: validatedData.subscriptionType || 'general',
+        });
+      } catch (emailError) {
+        console.error("Error sending newsletter notification:", emailError);
+      }
+
+      // Send welcome email to subscriber
+      try {
+        await sendNewsletterWelcome({
+          email: validatedData.email,
+          name: validatedData.name,
+          subscriptionType: validatedData.subscriptionType || 'general',
+        });
+      } catch (emailError) {
+        console.error("Error sending newsletter welcome:", emailError);
+      }
+
+      res.status(201).json({ success: true, id: subscription.id });
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: fromZodError(error).toString() });
+      }
+      console.error("Error creating newsletter subscription:", error);
+      res.status(500).json({ error: "Failed to subscribe" });
+    }
+  });
+
+  // Newsletter Unsubscribe
+  app.post("/api/newsletter/unsubscribe", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const existing = await storage.getNewsletterByEmail(email);
+      if (!existing) {
+        return res.status(404).json({ error: "Subscription not found" });
+      }
+
+      await storage.updateNewsletterStatus(existing.id, 'unsubscribed');
+      res.json({ success: true, message: "Unsubscribed successfully" });
+    } catch (error) {
+      console.error("Error unsubscribing:", error);
+      res.status(500).json({ error: "Failed to unsubscribe" });
+    }
+  });
+
+  // Partnership Quiz Submission
+  app.post("/api/institutional/partnership-quiz", async (req, res) => {
+    try {
+      const validatedData = insertPartnershipQuizSchema.parse(req.body);
+
+      // Calculate partnership score
+      let score = 0;
+      if (validatedData.companyType === 'insurance_agency') score += 30;
+      else if (validatedData.companyType === 'financial_services') score += 25;
+      else if (validatedData.companyType === 'technology') score += 20;
+      else score += 10;
+
+      if (validatedData.annualRevenue === '10m_plus') score += 30;
+      else if (validatedData.annualRevenue === '5m_10m') score += 25;
+      else if (validatedData.annualRevenue === '1m_5m') score += 20;
+      else score += 10;
+
+      if (validatedData.partnershipInterest === 'acquisition') score += 20;
+      else if (validatedData.partnershipInterest === 'strategic_partnership') score += 15;
+      else score += 10;
+
+      if (validatedData.timeline === 'immediate') score += 20;
+      else if (validatedData.timeline === '3_6_months') score += 15;
+      else score += 10;
+
+      const submission = await storage.createPartnershipQuiz({ ...validatedData, score: score.toString() });
+
+      // Send notification to partnership@goldcoastfnl.com
+      const qualification = score >= 70 ? 'highly_qualified' : score >= 50 ? 'qualified' : 'potential';
+      try {
+        await sendPartnershipQuizNotification({
+          companyName: validatedData.companyName,
+          contactName: validatedData.contactName,
+          email: validatedData.email,
+          phone: validatedData.phone || undefined,
+          companyType: validatedData.companyType,
+          annualRevenue: validatedData.annualRevenue || undefined,
+          employeeCount: validatedData.employeeCount || undefined,
+          partnershipInterest: validatedData.partnershipInterest,
+          timeline: validatedData.timeline || undefined,
+          additionalInfo: validatedData.additionalInfo || undefined,
+          score,
+          qualification,
+        });
+      } catch (emailError: any) {
+        console.error("Error sending partnership quiz notification:", emailError?.message);
+      }
+
+      res.status(201).json({
+        success: true,
+        id: submission.id,
+        score,
+        qualification: score >= 70 ? 'highly_qualified' : score >= 50 ? 'qualified' : 'potential'
+      });
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: fromZodError(error).toString() });
+      }
+      console.error("Error creating partnership quiz submission:", error);
+      res.status(500).json({ error: "Failed to submit quiz" });
     }
   });
 

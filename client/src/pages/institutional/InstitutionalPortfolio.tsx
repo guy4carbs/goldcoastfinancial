@@ -1,6 +1,7 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { ArrowRight, Leaf, Shield, Building2, Cpu } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 
 /**
  * Gold Coast Financial - Portfolio Companies Page
@@ -11,31 +12,65 @@ import { ArrowRight, Leaf, Shield, Building2, Cpu } from "lucide-react";
  * - No product explanations or sales language
  */
 
+// Animated number component with institutional pacing
+function AnimatedNumber({ end, suffix = "", duration = 2500 }: { end: number; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+
+      const easeOutQuint = 1 - Math.pow(1 - progress, 5);
+      setCount(Math.floor(easeOutQuint * end));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+    };
+  }, [end, duration, isInView]);
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+}
+
 export default function InstitutionalPortfolio() {
   return (
     <InstitutionalLayout>
       {/* Hero */}
-      <section className="py-20 md:py-28">
+      <section className="hero-gradient py-24 md:py-32">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="max-w-3xl"
           >
-            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary mb-4">
               Portfolio
             </h2>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium leading-tight text-primary mb-8">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif display-text text-white mb-10">
               Operating companies serving distinct markets with shared commitment to excellence.
             </h1>
-            <div className="w-16 h-px bg-secondary" />
+            <div className="accent-line-animated" />
           </motion.div>
         </div>
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Portfolio Philosophy */}
       <section className="py-20 md:py-28">
@@ -73,7 +108,7 @@ export default function InstitutionalPortfolio() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Active Portfolio Company - Heritage Life Solutions */}
       <section className="py-20 md:py-28 bg-muted/30">
@@ -107,12 +142,15 @@ export default function InstitutionalPortfolio() {
                 </div>
                 <h3 className="text-2xl font-serif text-primary">Heritage Life Solutions</h3>
               </div>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                Heritage Life Solutions serves as the primary consumer-facing operating company within the Gold Coast Financial portfolio. Established in 2022, the company operates as an independent life insurance brokerage providing coverage solutions to individuals and families throughout the United States.
+              </p>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                Heritage Life Solutions operates as an independent life insurance brokerage under Gold Coast Financial governance. The company provides personalized life insurance solutions to individuals and families across all 50 states, working with a curated network of highly-rated carriers.
+                The organization maintains carrier relationships with over 30 highly-rated insurance providers, enabling access to a comprehensive range of products tailored to diverse client needs. Heritage operates under rigorous compliance standards established by the holding company, with full regulatory standing across all 50 states.
               </p>
               <a
                 href="/heritage"
-                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Visit Heritage Life Solutions
                 <ArrowRight className="w-4 h-4" />
@@ -126,6 +164,29 @@ export default function InstitutionalPortfolio() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="space-y-8"
             >
+              {/* Key Metrics Grid with animated counting */}
+              <div className="grid grid-cols-2 gap-6 pb-8 border-b border-border/60">
+                {[
+                  { value: 2025, label: "Established", suffix: "", isYear: true },
+                  { value: 50, label: "States Licensed", suffix: "" },
+                  { value: 30, label: "Carrier Partners", suffix: "+" },
+                  { value: 1000, label: "Families Served", suffix: "+" },
+                ].map((metric) => (
+                  <div key={metric.label}>
+                    <p className="text-2xl font-serif font-medium text-primary mb-1">
+                      {metric.isYear ? (
+                        metric.value
+                      ) : (
+                        <AnimatedNumber end={metric.value} suffix={metric.suffix} duration={2500} />
+                      )}
+                    </p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {metric.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
               <div>
                 <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
                   Market Focus
@@ -156,7 +217,7 @@ export default function InstitutionalPortfolio() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Future Portfolio Opportunities */}
       <section className="py-20 md:py-28">
@@ -183,14 +244,15 @@ export default function InstitutionalPortfolio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="border border-border/40 p-8 bg-white"
+              whileHover={{ y: -4 }}
+              className="institutional-card border border-border/60 p-8 bg-white"
             >
               <Shield className="w-6 h-6 text-muted-foreground mb-6" strokeWidth={1.5} />
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-medium text-primary">Property & Casualty</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Personal and commercial property/casualty insurance distribution represents a natural complement to our existing life insurance operations. We evaluate opportunities that meet our standards for regulatory standing and operational quality.
+                Property and casualty insurance distribution represents a natural adjacency to existing life insurance operations. Gold Coast Financial evaluates opportunities in personal lines, commercial lines, and specialty coverages that demonstrate strong regulatory standing, experienced management, and alignment with our long-term investment horizon.
               </p>
             </motion.div>
 
@@ -200,14 +262,15 @@ export default function InstitutionalPortfolio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="border border-border/40 p-8 bg-white"
+              whileHover={{ y: -4 }}
+              className="institutional-card border border-border/60 p-8 bg-white"
             >
               <Building2 className="w-6 h-6 text-muted-foreground mb-6" strokeWidth={1.5} />
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-medium text-primary">Advisory Services</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Strategic consulting for insurance agencies, financial planning practices, and related businesses. Leveraging institutional knowledge to help other organizations improve operations and compliance.
+                Strategic advisory services for insurance agencies, financial planning practices, and distribution organizations represent potential areas for capability development. Such services would leverage institutional expertise in compliance, operations, and growth strategy to assist businesses seeking operational improvement.
               </p>
             </motion.div>
 
@@ -217,14 +280,15 @@ export default function InstitutionalPortfolio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="border border-border/40 p-8 bg-white"
+              whileHover={{ y: -4 }}
+              className="institutional-card border border-border/60 p-8 bg-white"
             >
               <Cpu className="w-6 h-6 text-muted-foreground mb-6" strokeWidth={1.5} />
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-medium text-primary">Technology & Data</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Insurance technology platforms and data analytics capabilities that enhance underwriting efficiency, customer experience, and operational effectiveness across portfolio companies.
+                Insurance technology infrastructure—including quoting platforms, policy administration systems, and data analytics capabilities—remains an area of strategic interest. Investments in this sector would enhance underwriting efficiency, client experience, and operational scalability across portfolio companies.
               </p>
             </motion.div>
           </div>
@@ -232,10 +296,10 @@ export default function InstitutionalPortfolio() {
       </section>
 
       {/* Divider */}
-      <div className="border-t border-border/40" />
+      <div className="border-t border-border/60" />
 
       {/* Acquisition Criteria */}
-      <section className="py-20 md:py-28 bg-primary text-primary-foreground">
+      <section className="py-20 md:py-28 dark-gradient text-primary-foreground relative overflow-hidden">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <motion.div
@@ -307,7 +371,7 @@ export default function InstitutionalPortfolio() {
             </p>
             <a
               href="/goldcoastfinancial2/contact"
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors"
             >
               Contact corporate development
               <ArrowRight className="w-4 h-4" />

@@ -32,10 +32,19 @@ import HeritageCalculator from "@/pages/heritage/HeritageCalculator";
 import HeritageGetQuote from "@/pages/heritage/HeritageGetQuote";
 import HeritageArticle from "@/pages/heritage/HeritageArticle";
 import HeritagePrivacy from "@/pages/heritage/HeritagePrivacy";
+import HeritageCareers from "@/pages/heritage/HeritageCareers";
 import InstitutionalHome from "@/pages/institutional/InstitutionalHome";
 import InstitutionalAbout from "@/pages/institutional/InstitutionalAbout";
 import InstitutionalPortfolio from "@/pages/institutional/InstitutionalPortfolio";
 import InstitutionalContact from "@/pages/institutional/InstitutionalContact";
+import InstitutionalNews from "@/pages/institutional/InstitutionalNews";
+import InstitutionalTerms from "@/pages/institutional/InstitutionalTerms";
+import InstitutionalPrivacy from "@/pages/institutional/InstitutionalPrivacy";
+import InstitutionalInvestors from "@/pages/institutional/InstitutionalInvestors";
+import InstitutionalCareers from "@/pages/institutional/InstitutionalCareers";
+import InstitutionalBlog from "@/pages/institutional/InstitutionalBlog";
+import InstitutionalBlogArticle from "@/pages/institutional/InstitutionalBlogArticle";
+import InstitutionalMedia from "@/pages/institutional/InstitutionalMedia";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -79,10 +88,19 @@ function Router() {
         <Route path="/heritage/contact" component={HeritageContact} />
         <Route path="/heritage/get-quote" component={HeritageGetQuote} />
         <Route path="/heritage/privacy" component={HeritagePrivacy} />
+        <Route path="/heritage/careers" component={HeritageCareers} />
         <Route path="/goldcoastfinancial2" component={InstitutionalHome} />
         <Route path="/goldcoastfinancial2/about" component={InstitutionalAbout} />
         <Route path="/goldcoastfinancial2/portfolio" component={InstitutionalPortfolio} />
         <Route path="/goldcoastfinancial2/contact" component={InstitutionalContact} />
+        <Route path="/goldcoastfinancial2/news" component={InstitutionalNews} />
+        <Route path="/goldcoastfinancial2/terms" component={InstitutionalTerms} />
+        <Route path="/goldcoastfinancial2/privacy" component={InstitutionalPrivacy} />
+        <Route path="/goldcoastfinancial2/investors" component={InstitutionalInvestors} />
+        <Route path="/goldcoastfinancial2/careers" component={InstitutionalCareers} />
+        <Route path="/goldcoastfinancial2/blog" component={InstitutionalBlog} />
+        <Route path="/goldcoastfinancial2/blog/:slug" component={InstitutionalBlogArticle} />
+        <Route path="/goldcoastfinancial2/media" component={InstitutionalMedia} />
         <Route component={NotFound} />
       </Switch>
     </>

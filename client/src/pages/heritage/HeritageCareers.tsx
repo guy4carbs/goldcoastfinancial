@@ -161,6 +161,34 @@ const positions = [
       "No prior insurance experience required",
       "In-office preferred; remote options available via Zoom"
     ]
+  },
+  {
+    id: "media-content-specialist",
+    title: "Media & Content Specialist",
+    type: "Full-time / Part-time",
+    location: "Naperville, IL / Remote",
+    description: "Create compelling content across video, photography, and written formats. Manage our content calendar, produce educational materials, and tell stories that connect families with the protection they need.",
+    requirements: [
+      "Experience with video production and editing (Adobe Premiere, Final Cut, or similar)",
+      "Strong writing and storytelling abilities",
+      "Photography skills a plus",
+      "Comfortable being on-camera and conducting interviews",
+      "In-office preferred; remote options available via Zoom"
+    ]
+  },
+  {
+    id: "administrative-assistant",
+    title: "Administrative Assistant",
+    type: "Full-time / Part-time",
+    location: "Naperville, IL / Remote",
+    description: "Support our team with day-to-day operations including scheduling, client communications, document management, and office coordination. Be the organizational backbone that keeps our agency running smoothly.",
+    requirements: [
+      "Strong organizational and time management skills",
+      "Proficiency with Microsoft Office and Google Workspace",
+      "Excellent written and verbal communication",
+      "Ability to handle confidential information with discretion",
+      "In-office preferred; remote options available via Zoom"
+    ]
   }
 ];
 
@@ -475,7 +503,7 @@ export default function HeritageCareers() {
       </section>
 
       {/* Application Process */}
-      <section className="py-16 md:py-24 text-white" style={{ backgroundColor: c.primary }}>
+      <section className="py-16 md:py-24" style={{ backgroundColor: c.background }}>
         <div className="container mx-auto px-4">
           <motion.div
             className="text-center mb-12"
@@ -484,10 +512,10 @@ export default function HeritageCareers() {
             viewport={{ once: true }}
           >
             <span className="font-medium tracking-wide uppercase text-sm" style={{ color: c.secondary }}>Application Process</span>
-            <h2 className="text-3xl md:text-4xl font-bold font-serif mt-2">
+            <h2 className="text-3xl md:text-4xl font-bold font-serif mt-2" style={{ color: c.primary }}>
               What to Expect
             </h2>
-            <p className="text-white/80 mt-4 max-w-xl mx-auto">
+            <p className="mt-4 max-w-xl mx-auto" style={{ color: c.textSecondary }}>
               We value your time. Our process is quick, transparent, and respectful.
             </p>
           </motion.div>
@@ -503,15 +531,15 @@ export default function HeritageCareers() {
                 transition={{ delay: index * 0.2 }}
               >
                 <div className="relative inline-block mb-4">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: c.secondary }}>
-                    <step.icon className="w-8 h-8 text-black" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: c.primary }}>
+                    <step.icon className="w-8 h-8" style={{ color: c.secondary }} />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold" style={{ color: c.primary }}>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: c.secondary, color: c.textPrimary }}>
                     {step.number}
                   </div>
                 </div>
-                <h3 className="font-serif font-bold text-xl mb-2">{step.title}</h3>
-                <p className="text-white/70 text-sm">{step.description}</p>
+                <h3 className="font-serif font-bold text-xl mb-2" style={{ color: c.primary }}>{step.title}</h3>
+                <p className="text-sm" style={{ color: c.textSecondary }}>{step.description}</p>
               </motion.div>
             ))}
           </div>

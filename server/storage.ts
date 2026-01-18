@@ -1,4 +1,4 @@
-import { 
+import {
   type QuoteRequest,
   type InsertQuoteRequest,
   type ContactMessage,
@@ -23,6 +23,14 @@ import {
   type InsertChatParticipant,
   type ChatMessage,
   type InsertChatMessage,
+  type InstitutionalContact,
+  type InsertInstitutionalContact,
+  type NewsletterSubscription,
+  type InsertNewsletter,
+  type PartnershipQuizSubmission,
+  type InsertPartnershipQuiz,
+  type InstitutionalMeeting,
+  type InsertInstitutionalMeeting,
   quoteRequests,
   contactMessages,
   users,
@@ -35,6 +43,10 @@ import {
   chatConversations,
   chatParticipants,
   chatMessages,
+  institutionalContacts,
+  newsletterSubscriptions,
+  partnershipQuizSubmissions,
+  institutionalMeetings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, asc } from "drizzle-orm";
@@ -294,6 +306,59 @@ export class DatabaseStorage implements IStorage {
 
   async getAllAgentUsers(): Promise<User[]> {
     return db.select().from(users);
+  }
+
+  // Institutional Contact Methods
+  async createInstitutionalContact(contact: InsertInstitutionalContact): Promise<InstitutionalContact> {
+    const [newContact] = await db.insert(institutionalContacts).values(contact).returning();
+    return newContact;
+  }
+
+  async getInstitutionalContacts(): Promise<InstitutionalContact[]> {
+    return db.select().from(institutionalContacts).orderBy(desc(institutionalContacts.createdAt));
+  }
+
+  // Newsletter Methods
+  async createNewsletterSubscription(subscription: InsertNewsletter): Promise<NewsletterSubscription> {
+    const [newSubscription] = await db.insert(newsletterSubscriptions).values(subscription).returning();
+    return newSubscription;
+  }
+
+  async getNewsletterByEmail(email: string): Promise<NewsletterSubscription | null> {
+    const [subscription] = await db.select().from(newsletterSubscriptions).where(eq(newsletterSubscriptions.email, email));
+    return subscription || null;
+  }
+
+  async updateNewsletterStatus(id: number, status: string): Promise<void> {
+    const updateData: any = { status };
+    if (status === 'unsubscribed') {
+      updateData.unsubscribedAt = new Date();
+    }
+    await db.update(newsletterSubscriptions).set(updateData).where(eq(newsletterSubscriptions.id, id));
+  }
+
+  // Partnership Quiz Methods
+  async createPartnershipQuiz(quiz: InsertPartnershipQuiz & { score: string }): Promise<PartnershipQuizSubmission> {
+    const [newQuiz] = await db.insert(partnershipQuizSubmissions).values(quiz).returning();
+    return newQuiz;
+  }
+
+  async getPartnershipQuizzes(): Promise<PartnershipQuizSubmission[]> {
+    return db.select().from(partnershipQuizSubmissions).orderBy(desc(partnershipQuizSubmissions.createdAt));
+  }
+
+  // Institutional Meeting Methods
+  async createInstitutionalMeeting(meeting: InsertInstitutionalMeeting): Promise<InstitutionalMeeting> {
+    const [newMeeting] = await db.insert(institutionalMeetings).values(meeting).returning();
+    return newMeeting;
+  }
+
+  async getInstitutionalMeetings(): Promise<InstitutionalMeeting[]> {
+    return db.select().from(institutionalMeetings).orderBy(desc(institutionalMeetings.createdAt));
+  }
+
+  async updateInstitutionalMeetingStatus(id: number, status: string): Promise<void> {
+    await db.update(institutionalMeetings).set({ status }).where(eq(institutionalMeetings.id, id));
   }
 
   async initializeDemoUser(): Promise<void> {
