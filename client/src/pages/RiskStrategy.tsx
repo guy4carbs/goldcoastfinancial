@@ -153,10 +153,13 @@ export default function RiskStrategy() {
       <section className="bg-gray-50 py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="bg-heritage-primary rounded-3xl overflow-hidden">
-            {/* Horizontal Image Placeholder */}
-            <div className="h-[400px] relative bg-heritage-primary">
-              <div className="absolute inset-0 bg-gradient-to-b from-heritage-primary/60 to-heritage-primary"></div>
-              {/* Image will go here */}
+            {/* Horizontal Image */}
+            <div className="relative bg-heritage-primary h-[550px] overflow-hidden">
+              <img
+                src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1768770792872-strategy-man-heritage-insurance.png?alt=media&token=497977f7-59ff-453a-b7f4-6d36d21e7e57"
+                alt="Heritage Life Solutions Strategy"
+                className="w-full h-full object-cover object-top"
+              />
             </div>
 
             {/* Content Below Image */}
