@@ -62,18 +62,18 @@
   --secondary: 42 60% 55%; 
   --secondary-foreground: 0 0% 100%;
 
-  /* White/Black Backgrounds */
-  --background: 0 0% 100%;
+  /* Warm Cream/Beige Backgrounds */
+  --background: 36 33% 94%;
   --foreground: 0 0% 10%; /* Black text */
 
-  --card: 0 0% 100%;
+  --card: 39 50% 97%;
   --card-foreground: 0 0% 10%;
 
-  --popover: 0 0% 100%;
+  --popover: 39 50% 97%;
   --popover-foreground: 0 0% 10%;
 
   /* Soft accents */
-  --muted: 0 0% 96%;
+  --muted: 36 20% 90%;
   --muted-foreground: 0 0% 40%;
 
   --accent: 42 60% 95%; /* Very light gold for hovers */
@@ -202,12 +202,12 @@
 
 .partner-carousel-wrapper::before {
   left: 0;
-  background: linear-gradient(to right, white 0%, transparent 100%);
+  background: linear-gradient(to right, #f5f0e8 0%, transparent 100%);
 }
 
 .partner-carousel-wrapper::after {
   right: 0;
-  background: linear-gradient(to left, white 0%, transparent 100%);
+  background: linear-gradient(to left, #f5f0e8 0%, transparent 100%);
 }
 
 .animate-partner-marquee {
@@ -215,4 +215,15 @@
   flex-shrink: 0;
   animation: scroll-left 30s linear infinite;
   will-change: transform;
+}
+
+.animate-marquee-slow {
+  display: flex;
+  flex-shrink: 0;
+  animation: scroll-left 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-slow:hover {
+  animation-play-state: paused;
 }
