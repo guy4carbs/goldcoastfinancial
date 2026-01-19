@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function RiskStrategy() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -269,72 +270,7 @@ export default function RiskStrategy() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-white border-t border-gray-200 py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-            {/* Contact Us */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Contact Us</h3>
-              <div className="space-y-4 text-sm text-gray-600">
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Mailing Address</p>
-                  <p>1240 Iroquois Ave</p>
-                  <p>Suite 506</p>
-                  <p>Naperville, IL 60563</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Phone</p>
-                  <p>(630) 778-0800</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Email</p>
-                  <a href="mailto:info@heritagels.com" className="hover:text-heritage-primary">info@heritagels.com</a>
-                </div>
-              </div>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Resources</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="/" className="hover:text-heritage-primary">Home</a></li>
-                <li><a href="/risk-strategy" className="hover:text-heritage-primary">Risk Strategy</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Our Approach</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Case Studies</a></li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Company</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-heritage-primary">About Us</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Our Philosophy</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Careers</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Contact</a></li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Legal</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-heritage-primary">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Terms of Use</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Licenses</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200 pt-8">
-            <p className="text-xs text-gray-500">
-              © 2026 Heritage Life Solutions. Risk strategy and continuity planning firm. Licensed in all 50 states.
-              We architect protection—we don't sell life insurance.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, X, Clock, Shield, FileText, DollarSign, MessageCircle, Send, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
-import QuoteCalculator from "@/components/QuoteCalculator";
+import Footer from "@/components/Footer";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -88,9 +88,9 @@ export default function Home() {
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-16">
-                  <button className="bg-heritage-accent hover:bg-heritage-accent/80 text-white px-8 py-4 rounded-lg font-semibold text-lg">
+                  <a href="/quote" className="bg-heritage-accent hover:bg-heritage-accent/80 text-white px-8 py-4 rounded-lg font-semibold text-lg text-center">
                     Check my price
-                  </button>
+                  </a>
                   <button className="border-2 border-white hover:bg-[#fffaf3]/10 text-white px-8 py-4 rounded-lg font-semibold text-lg">
                     Which insurance policy do I need?
                   </button>
@@ -207,27 +207,35 @@ export default function Home() {
           </motion.div>
 
           <div className="mt-16">
-            <button className="bg-heritage-accent hover:bg-heritage-accent/80 text-white px-12 py-5 rounded-xl font-semibold text-xl">
+            <a href="/quote" className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-12 py-5 rounded-xl font-semibold text-xl">
               Check my price
-            </button>
+            </a>
           </div>
         </div>
       </motion.section>
 
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="bg-[#f5f0e8] py-32">
+      {/* PROTECT WHAT MATTERS PROMO */}
+      <section className="bg-[#f5f0e8] py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <p className="text-lg text-gray-600 mb-4">How it works:</p>
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-4">
-              We calculate your rate in real time, so you can get covered in 10 minutes
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Answer a few simple questions and get your personalized quote instantly. No medical exam required.
-            </p>
-          </div>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Image Placeholder */}
+            <div className="hidden lg:block h-[500px] bg-[#e8e0d5] rounded-3xl">
+              {/* Image will be added here later */}
+            </div>
 
-          <QuoteCalculator />
+            {/* Right Content */}
+            <div className="lg:pl-8">
+              <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Protect what matters most
+              </h2>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Life insurance isn't just about money—it's about making sure your family is taken care of no matter what. We make it simple to get the coverage you need.
+              </p>
+              <a href="/quote" className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-10 py-4 rounded-xl font-semibold text-lg">
+                Get started
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -327,9 +335,9 @@ export default function Home() {
 
           {/* CTA Button */}
           <div className="text-center mt-12">
-            <button className="bg-heritage-accent hover:bg-heritage-accent/80 text-white px-12 py-5 rounded-xl font-semibold text-xl">
+            <a href="/quote" className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-12 py-5 rounded-xl font-semibold text-xl">
               Check my price
-            </button>
+            </a>
           </div>
         </div>
 
@@ -536,107 +544,68 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* FOOTER */}
-      <footer className="bg-[#fffaf3] border-t border-gray-200 py-16">
+      {/* FROM OUR LEADERSHIP */}
+      <section className="bg-[#fffaf3] py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-            {/* Contact Us */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Contact Us</h3>
-              <div className="space-y-4 text-sm text-gray-600">
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Mailing Address</p>
-                  <p>1240 Iroquois Ave</p>
-                  <p>Suite 506</p>
-                  <p>Naperville, IL 60563</p>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <p className="text-lg text-gray-600 mb-4">
+                From Our Leadership
+              </p>
+
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                "We build relationships meant to endure for generations, not transactions designed for commissions."
+              </h2>
+
+              <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+                Heritage Life Solutions was founded on the belief that financial protection requires patient guidance,
+                principled leadership, and an unwavering commitment to doing what is right for families and partners alike.
+              </p>
+
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-heritage-primary rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">JC</span>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Phone</p>
-                  <p>(630) 778-0800</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">Email</p>
-                  <a href="mailto:info@heritagels.com" className="hover:text-heritage-primary">info@heritagels.com</a>
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <a href="#" className="w-8 h-8 bg-[#e8e0d5] hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center transition-colors">
-                    <span className="text-xs font-bold">f</span>
-                  </a>
-                  <a href="#" className="w-8 h-8 bg-[#e8e0d5] hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center transition-colors">
-                    <span className="text-xs font-bold">X</span>
-                  </a>
-                  <a href="#" className="w-8 h-8 bg-[#e8e0d5] hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center transition-colors">
-                    <span className="text-xs font-bold">in</span>
-                  </a>
+                <div className="text-left">
+                  <p className="font-semibold text-gray-900">Jack Cook</p>
+                  <p className="text-sm text-gray-500">Founder & Chief Executive Officer</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Resources */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Resources</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-heritage-primary">Our Policies</a></li>
-                <li><a href="#faqs" className="hover:text-heritage-primary">FAQs</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Blog</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Life Insurance 101</a></li>
-                <li><a href="#how-it-works" className="hover:text-heritage-primary">How It Works</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Account Login</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Get a Quote</a></li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Company</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-heritage-primary">About Us</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Our Carriers</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Reviews</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Careers</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Contact</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">For Agents</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Agent Login</a></li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Legal</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-heritage-primary">Terms of Use</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Data Security</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Accessibility</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Licenses</a></li>
-                <li><a href="#" className="hover:text-heritage-primary">Do Not Sell My Info</a></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Section */}
-          <div className="border-t border-gray-200 pt-8">
-            <div className="text-xs text-gray-500 leading-relaxed space-y-4">
-              <p>
-                © 2026 Heritage Life Solutions. Heritage operates as an independent insurance agency. Licensed in all 50 states.
-                IL License #1001234567. Heritage offers policies issued by multiple carriers listed at heritagels.com/carriers.
-                Products and their features may not be available in all states.
-              </p>
-              <p>
-                To help avoid requiring a medical exam, our application asks certain health and lifestyle questions.
-                No medical exam means online health questions are required. Customers can get approved in as little as 10 minutes.
-                You can purchase instantly or do it anytime in the next 30 days as long as no information provided to us has changed.
-              </p>
-              <p>
-                For people ages 40 and over, the average rate increase is 10% every 6 months. Once you purchase, your rate stays the same for your whole term.
-              </p>
-              <p className="text-gray-400 text-[10px]">
-                Trustpilot rating as of January 2026. Best no-exam life insurance according to independent reviews.
-              </p>
-            </div>
+            {/* Right Video Placeholder */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="hidden lg:block"
+            >
+              <div className="relative aspect-video bg-[#e8e0d5] rounded-2xl overflow-hidden">
+                {/* Video placeholder with play button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-20 h-20 bg-heritage-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-heritage-primary/90 transition-colors shadow-lg">
+                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-heritage-primary/5 to-transparent" />
+              </div>
+              <p className="text-center text-sm text-gray-500 mt-4">Watch our story</p>
+            </motion.div>
           </div>
         </div>
-      </footer>
+      </section>
+
+      <Footer />
 
       {/* LIVE CHAT WIDGET */}
       <div className="fixed bottom-6 right-6 z-50">

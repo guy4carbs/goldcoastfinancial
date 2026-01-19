@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { Search, User, ChevronDown, Leaf, Phone, Menu, X } from "lucide-react";
 
+type DropdownKey = "life" | "annuities" | "about" | "resources" | "agents" | null;
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<DropdownKey>(null);
+
+  const handleMouseEnter = (key: DropdownKey) => {
+    setActiveDropdown(key);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveDropdown(null);
+  };
 
   return (
     <header className="bg-[#fffaf3] sticky top-0 z-50 border-b border-[#e8e0d5]/50 backdrop-blur-sm">
@@ -20,21 +31,194 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-8">
-          <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors">
-            Life insurance <ChevronDown className="w-4 h-4" />
-          </button>
+          {/* Life Insurance Mega Menu */}
+          <div
+            className="relative"
+            onMouseEnter={() => handleMouseEnter("life")}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors py-2">
+              Life insurance <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === "life" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`absolute top-full -left-4 pt-2 transition-all duration-200 ${activeDropdown === "life" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"}`}>
+              <div className="bg-white rounded-xl shadow-xl border border-[#e8e0d5] p-6 w-[800px]">
+                {/* Get a Quote CTA */}
+                <a href="/quote" className="block mb-4 p-4 bg-heritage-primary rounded-lg text-white hover:bg-heritage-primary/90 transition-colors">
+                  <span className="font-semibold">Get a Free Quote</span>
+                  <span className="text-white/80 text-sm ml-2">Compare rates in minutes</span>
+                </a>
+
+                {/* Product Columns */}
+                <div className="grid grid-cols-5 gap-6">
+                  {/* Term Life */}
+                  <div>
+                    <a href="/life-insurance/term" className="font-semibold text-heritage-primary hover:underline block mb-2">Term Life</a>
+                    <div className="space-y-1">
+                      <a href="/life-insurance/term/coverage-calculator" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Coverage Calculator</a>
+                      <a href="/life-insurance/term/term-lengths" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Term Lengths Explained</a>
+                      <a href="/life-insurance/term/no-exam" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">No-Exam Options</a>
+                      <a href="/life-insurance/term/conversion" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Converting to Permanent</a>
+                      <a href="/life-insurance/term/return-of-premium" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
+                    </div>
+                  </div>
+
+                  {/* Whole Life */}
+                  <div>
+                    <a href="/life-insurance/whole" className="font-semibold text-heritage-primary hover:underline block mb-2">Whole Life</a>
+                    <div className="space-y-1">
+                      <a href="/life-insurance/whole/cash-value" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Cash Value Explained</a>
+                      <a href="/life-insurance/whole/dividends" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Dividends & Participating</a>
+                      <a href="/life-insurance/whole/policy-loans" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Policy Loans</a>
+                      <a href="/life-insurance/whole/estate-planning" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Estate Planning</a>
+                      <a href="/life-insurance/whole/paid-up-additions" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Paid-Up Additions</a>
+                    </div>
+                  </div>
+
+                  {/* Final Expense */}
+                  <div>
+                    <a href="/life-insurance/final-expense" className="font-semibold text-heritage-primary hover:underline block mb-2">Final Expense</a>
+                    <div className="space-y-1">
+                      <a href="/life-insurance/final-expense/guaranteed-issue" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Guaranteed Issue</a>
+                      <a href="/life-insurance/final-expense/simplified-issue" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Simplified Issue</a>
+                      <a href="/life-insurance/final-expense/graded-benefits" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Graded vs. Immediate</a>
+                      <a href="/life-insurance/final-expense/pre-planning" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Pre-Planning Guide</a>
+                      <a href="/life-insurance/final-expense/seniors" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Coverage for Seniors</a>
+                    </div>
+                  </div>
+
+                  {/* Mortgage Protection */}
+                  <div>
+                    <a href="/life-insurance/mortgage-protection" className="font-semibold text-heritage-primary hover:underline block mb-2">Mortgage Protection</a>
+                    <div className="space-y-1">
+                      <a href="/life-insurance/mortgage-protection/decreasing-vs-level" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Decreasing vs. Level</a>
+                      <a href="/life-insurance/mortgage-protection/return-of-premium" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
+                      <a href="/life-insurance/mortgage-protection/living-benefits" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Living Benefits</a>
+                      <a href="/life-insurance/mortgage-protection/joint-coverage" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Joint Coverage</a>
+                      <a href="/life-insurance/mortgage-protection/new-homeowners" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">New Homeowners</a>
+                    </div>
+                  </div>
+
+                  {/* IUL */}
+                  <div>
+                    <a href="/life-insurance/iul" className="font-semibold text-heritage-primary hover:underline block mb-2">IUL</a>
+                    <div className="space-y-1">
+                      <a href="/life-insurance/iul/index-crediting" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Index Crediting</a>
+                      <a href="/life-insurance/iul/caps-and-floors" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Caps, Floors & Rates</a>
+                      <a href="/life-insurance/iul/retirement-income" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">IUL for Retirement</a>
+                      <a href="/life-insurance/iul/max-funding" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Max Funding Strategies</a>
+                      <a href="/life-insurance/iul/index-options" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Index Options</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <a href="/risk-strategy" className="text-gray-700 hover:text-heritage-primary transition-colors">
             Risk Strategy
           </a>
-          <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors">
-            Wills & Trusts <ChevronDown className="w-4 h-4" />
-          </button>
-          <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors">
-            About us <ChevronDown className="w-4 h-4" />
-          </button>
-          <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors">
-            Resources <ChevronDown className="w-4 h-4" />
-          </button>
+
+          {/* Annuities Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => handleMouseEnter("annuities")}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors py-2">
+              Annuities <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === "annuities" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`absolute top-full left-0 pt-2 transition-all duration-200 ${activeDropdown === "annuities" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"}`}>
+              <div className="w-56 bg-white rounded-xl shadow-lg border border-[#e8e0d5] py-2">
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Fixed Annuities
+                </a>
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Indexed Annuities
+                </a>
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Retirement Income
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* About Us Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => handleMouseEnter("about")}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors py-2">
+              About us <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === "about" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`absolute top-full left-0 pt-2 transition-all duration-200 ${activeDropdown === "about" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"}`}>
+              <div className="w-56 bg-white rounded-xl shadow-lg border border-[#e8e0d5] py-2">
+                <a href="/about" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  About Heritage
+                </a>
+                <a href="/about/founders" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Meet the Team
+                </a>
+                <a href="/careers" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Careers
+                </a>
+                <a href="/contact" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Contact Us
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Resources Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => handleMouseEnter("resources")}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors py-2">
+              Resources <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === "resources" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`absolute top-full left-0 pt-2 transition-all duration-200 ${activeDropdown === "resources" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"}`}>
+              <div className="w-56 bg-white rounded-xl shadow-lg border border-[#e8e0d5] py-2">
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Blog
+                </a>
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Life Insurance 101
+                </a>
+                <a href="/#faqs" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  FAQs
+                </a>
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Calculators
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* For Agents Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => handleMouseEnter("agents")}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className="flex items-center gap-1 text-gray-700 hover:text-heritage-primary transition-colors py-2">
+              For Agents <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === "agents" ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`absolute top-full right-0 pt-2 transition-all duration-200 ${activeDropdown === "agents" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"}`}>
+              <div className="w-56 bg-white rounded-xl shadow-lg border border-[#e8e0d5] py-2">
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Agent Login
+                </a>
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Become an Agent
+                </a>
+                <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-[#f5f0e8] hover:text-heritage-primary transition-colors">
+                  Agent Resources
+                </a>
+              </div>
+            </div>
+          </div>
         </nav>
 
         {/* Right side */}
@@ -50,9 +234,9 @@ export default function Header() {
             <button className="p-2 hover:bg-[#e8e0d5] rounded-full transition-colors">
               <Search className="w-5 h-5 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-[#e8e0d5] rounded-full transition-colors">
+            <a href="#" className="p-2 hover:bg-[#e8e0d5] rounded-full transition-colors" title="Client Portal">
               <User className="w-5 h-5 text-gray-600" />
-            </button>
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -67,13 +251,121 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#fffaf3] border-t border-[#e8e0d5] px-6 py-4 space-y-4">
-          <a href="#" className="block text-gray-700 hover:text-heritage-primary py-2 font-medium">Life Insurance</a>
+        <div className="lg:hidden bg-[#fffaf3] border-t border-[#e8e0d5] px-6 py-4 space-y-1 max-h-[80vh] overflow-y-auto">
+          {/* Get a Quote CTA */}
+          <a href="/quote" className="block p-3 bg-heritage-primary rounded-lg text-white text-center font-semibold mb-4">
+            Get a Free Quote
+          </a>
+
+          {/* Term Life */}
+          <div className="py-2">
+            <a href="/life-insurance/term" className="font-semibold text-heritage-primary block mb-2">Term Life Insurance</a>
+            <div className="pl-4 space-y-1 text-sm">
+              <a href="/life-insurance/term/coverage-calculator" className="block text-gray-600 hover:text-heritage-primary py-1">Coverage Calculator</a>
+              <a href="/life-insurance/term/term-lengths" className="block text-gray-600 hover:text-heritage-primary py-1">Term Lengths Explained</a>
+              <a href="/life-insurance/term/no-exam" className="block text-gray-600 hover:text-heritage-primary py-1">No-Exam Options</a>
+              <a href="/life-insurance/term/conversion" className="block text-gray-600 hover:text-heritage-primary py-1">Converting to Permanent</a>
+              <a href="/life-insurance/term/return-of-premium" className="block text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
+            </div>
+          </div>
+
+          {/* Whole Life */}
+          <div className="py-2">
+            <a href="/life-insurance/whole" className="font-semibold text-heritage-primary block mb-2">Whole Life Insurance</a>
+            <div className="pl-4 space-y-1 text-sm">
+              <a href="/life-insurance/whole/cash-value" className="block text-gray-600 hover:text-heritage-primary py-1">Cash Value Explained</a>
+              <a href="/life-insurance/whole/dividends" className="block text-gray-600 hover:text-heritage-primary py-1">Dividends & Participating</a>
+              <a href="/life-insurance/whole/policy-loans" className="block text-gray-600 hover:text-heritage-primary py-1">Policy Loans</a>
+              <a href="/life-insurance/whole/estate-planning" className="block text-gray-600 hover:text-heritage-primary py-1">Estate Planning</a>
+              <a href="/life-insurance/whole/paid-up-additions" className="block text-gray-600 hover:text-heritage-primary py-1">Paid-Up Additions</a>
+            </div>
+          </div>
+
+          {/* Final Expense */}
+          <div className="py-2">
+            <a href="/life-insurance/final-expense" className="font-semibold text-heritage-primary block mb-2">Final Expense</a>
+            <div className="pl-4 space-y-1 text-sm">
+              <a href="/life-insurance/final-expense/guaranteed-issue" className="block text-gray-600 hover:text-heritage-primary py-1">Guaranteed Issue</a>
+              <a href="/life-insurance/final-expense/simplified-issue" className="block text-gray-600 hover:text-heritage-primary py-1">Simplified Issue</a>
+              <a href="/life-insurance/final-expense/graded-benefits" className="block text-gray-600 hover:text-heritage-primary py-1">Graded vs. Immediate</a>
+              <a href="/life-insurance/final-expense/pre-planning" className="block text-gray-600 hover:text-heritage-primary py-1">Pre-Planning Guide</a>
+              <a href="/life-insurance/final-expense/seniors" className="block text-gray-600 hover:text-heritage-primary py-1">Coverage for Seniors</a>
+            </div>
+          </div>
+
+          {/* Mortgage Protection */}
+          <div className="py-2">
+            <a href="/life-insurance/mortgage-protection" className="font-semibold text-heritage-primary block mb-2">Mortgage Protection</a>
+            <div className="pl-4 space-y-1 text-sm">
+              <a href="/life-insurance/mortgage-protection/decreasing-vs-level" className="block text-gray-600 hover:text-heritage-primary py-1">Decreasing vs. Level</a>
+              <a href="/life-insurance/mortgage-protection/return-of-premium" className="block text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
+              <a href="/life-insurance/mortgage-protection/living-benefits" className="block text-gray-600 hover:text-heritage-primary py-1">Living Benefits</a>
+              <a href="/life-insurance/mortgage-protection/joint-coverage" className="block text-gray-600 hover:text-heritage-primary py-1">Joint Coverage</a>
+              <a href="/life-insurance/mortgage-protection/new-homeowners" className="block text-gray-600 hover:text-heritage-primary py-1">New Homeowners</a>
+            </div>
+          </div>
+
+          {/* IUL */}
+          <div className="py-2">
+            <a href="/life-insurance/iul" className="font-semibold text-heritage-primary block mb-2">IUL (Indexed Universal Life)</a>
+            <div className="pl-4 space-y-1 text-sm">
+              <a href="/life-insurance/iul/index-crediting" className="block text-gray-600 hover:text-heritage-primary py-1">Index Crediting</a>
+              <a href="/life-insurance/iul/caps-and-floors" className="block text-gray-600 hover:text-heritage-primary py-1">Caps, Floors & Rates</a>
+              <a href="/life-insurance/iul/retirement-income" className="block text-gray-600 hover:text-heritage-primary py-1">IUL for Retirement</a>
+              <a href="/life-insurance/iul/max-funding" className="block text-gray-600 hover:text-heritage-primary py-1">Max Funding Strategies</a>
+              <a href="/life-insurance/iul/index-options" className="block text-gray-600 hover:text-heritage-primary py-1">Index Options</a>
+            </div>
+          </div>
+
+          <div className="border-t border-[#e8e0d5] my-4"></div>
+
           <a href="/risk-strategy" className="block text-gray-700 hover:text-heritage-primary py-2 font-medium">Risk Strategy</a>
-          <a href="#" className="block text-gray-700 hover:text-heritage-primary py-2 font-medium">Wills & Trusts</a>
-          <a href="#" className="block text-gray-700 hover:text-heritage-primary py-2 font-medium">About Us</a>
-          <a href="#" className="block text-gray-700 hover:text-heritage-primary py-2 font-medium">Resources</a>
-          <div className="pt-4 border-t border-[#e8e0d5] flex items-center gap-4">
+
+          {/* Annuities */}
+          <div className="py-2">
+            <p className="font-semibold text-gray-900 mb-2">Annuities</p>
+            <div className="pl-4 space-y-2">
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Fixed Annuities</a>
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Indexed Annuities</a>
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Retirement Income</a>
+            </div>
+          </div>
+
+          {/* About Us */}
+          <div className="py-2">
+            <p className="font-semibold text-gray-900 mb-2">About Us</p>
+            <div className="pl-4 space-y-2">
+              <a href="/about" className="block text-gray-600 hover:text-heritage-primary py-1">About Heritage</a>
+              <a href="/about/founders" className="block text-gray-600 hover:text-heritage-primary py-1">Meet the Team</a>
+              <a href="/careers" className="block text-gray-600 hover:text-heritage-primary py-1">Careers</a>
+              <a href="/contact" className="block text-gray-600 hover:text-heritage-primary py-1">Contact</a>
+            </div>
+          </div>
+
+          {/* Resources */}
+          <div className="py-2">
+            <p className="font-semibold text-gray-900 mb-2">Resources</p>
+            <div className="pl-4 space-y-2">
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Blog</a>
+              <a href="/#faqs" className="block text-gray-600 hover:text-heritage-primary py-1">FAQs</a>
+            </div>
+          </div>
+
+          {/* For Agents */}
+          <div className="py-2">
+            <p className="font-semibold text-gray-900 mb-2">For Agents</p>
+            <div className="pl-4 space-y-2">
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Agent Login</a>
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Become an Agent</a>
+              <a href="#" className="block text-gray-600 hover:text-heritage-primary py-1">Agent Resources</a>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#e8e0d5] space-y-3">
+            <a href="#" className="flex items-center gap-2 text-heritage-primary font-medium">
+              <User className="w-4 h-4" />
+              Client Portal
+            </a>
             <a href="tel:6307780800" className="flex items-center gap-2 text-heritage-primary font-medium">
               <Phone className="w-4 h-4" />
               (630) 778-0800
