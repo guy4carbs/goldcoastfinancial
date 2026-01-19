@@ -174,6 +174,46 @@ export async function initializeDatabase() {
       );
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        product_type VARCHAR NOT NULL,
+        persona_name VARCHAR NOT NULL,
+        persona_ethnicity VARCHAR NOT NULL,
+        age_range_min INTEGER NOT NULL,
+        age_range_max INTEGER NOT NULL,
+        income_min INTEGER NOT NULL,
+        income_max INTEGER NOT NULL,
+        family_status VARCHAR NOT NULL,
+        core_pain TEXT NOT NULL,
+        primary_trigger TEXT NOT NULL,
+        description TEXT,
+        features JSONB DEFAULT '[]',
+        coverage_amounts JSONB DEFAULT '[]',
+        term_lengths JSONB DEFAULT '[]',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS quote_estimates (
+        id SERIAL PRIMARY KEY,
+        product_type VARCHAR NOT NULL,
+        age_min INTEGER NOT NULL,
+        age_max INTEGER NOT NULL,
+        coverage_amount INTEGER NOT NULL,
+        term_length VARCHAR,
+        gender VARCHAR,
+        smoker BOOLEAN DEFAULT FALSE,
+        health_rating VARCHAR NOT NULL,
+        monthly_rate DECIMAL(10, 2) NOT NULL,
+        annual_rate DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     console.log("Database tables initialized successfully.");
   } catch (error) {
     console.error("Error initializing database:", error);

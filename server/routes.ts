@@ -10,6 +10,8 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { Pool } from "pg";
+import adminProductsRouter from "./routes/admin-products";
+import quotesRouter from "./routes/quotes";
 
 declare module "express-session" {
   interface SessionData {
@@ -780,15 +782,15 @@ export async function registerRoutes(
         storage.getUnreadNotificationCount(userId),
         storage.getBillingHistoryByUserId(userId),
       ]);
-      
+
       const totalCoverage = policies.reduce((sum, p) => sum + p.coverageAmount, 0);
       const monthlyPremium = policies.reduce((sum, p) => sum + parseFloat(p.monthlyPremium || "0"), 0);
       const activePolicies = policies.filter(p => p.status === "active").length;
-      
+
       const nextPayment = policies
         .filter(p => p.nextPaymentDate)
         .sort((a, b) => new Date(a.nextPaymentDate!).getTime() - new Date(b.nextPaymentDate!).getTime())[0];
-      
+
       res.json({
         totalCoverage,
         monthlyPremium: monthlyPremium.toFixed(2),
@@ -802,6 +804,12 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch dashboard data" });
     }
   });
+
+  // Admin: Products management
+  app.use("/api/admin/products", adminProductsRouter);
+
+  // Quotes and estimates
+  app.use("/api/quotes", quotesRouter);
 
   return httpServer;
 }

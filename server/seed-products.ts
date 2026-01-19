@@ -1,0 +1,246 @@
+import "dotenv/config";
+import { pool } from "./db";
+
+const products = [
+  // Term Life
+  {
+    productType: "Term Life",
+    personaName: "New Father Protector",
+    personaEthnicity: "White",
+    ageRangeMin: 25,
+    ageRangeMax: 35,
+    incomeMin: 50000,
+    incomeMax: 100000,
+    familyStatus: "Married, 1 child",
+    corePain: "Fear of leaving family unprotected",
+    primaryTrigger: "Birth of first child",
+    description: "Young fathers seeking to protect their growing family with affordable term coverage.",
+    features: ["Income replacement for family", "Affordable premiums", "Flexible coverage amounts", "Convertible to permanent insurance"],
+    coverageAmounts: [250000, 500000, 750000, 1000000],
+    termLengths: ["10 years", "20 years", "30 years"],
+  },
+  {
+    productType: "Term Life",
+    personaName: "Family Provider",
+    personaEthnicity: "Asian",
+    ageRangeMin: 35,
+    ageRangeMax: 50,
+    incomeMin: 75000,
+    incomeMax: 150000,
+    familyStatus: "Married, 2-3 kids",
+    corePain: "Income replacement risk",
+    primaryTrigger: "Mortgage / kids aging",
+    description: "Mid-career professionals protecting their family's lifestyle and future education needs.",
+    features: ["Covers mortgage and debts", "Education funding protection", "Income replacement", "Family lifestyle maintenance"],
+    coverageAmounts: [500000, 750000, 1000000, 1500000],
+    termLengths: ["15 years", "20 years", "25 years", "30 years"],
+  },
+  {
+    productType: "Term Life",
+    personaName: "Financial Planner Mindset",
+    personaEthnicity: "White",
+    ageRangeMin: 30,
+    ageRangeMax: 45,
+    incomeMin: 100000,
+    incomeMax: 500000,
+    familyStatus: "Married",
+    corePain: "Long-term financial planning",
+    primaryTrigger: "Reviewing finances",
+    description: "Financially savvy individuals integrating life insurance into their comprehensive wealth plan.",
+    features: ["Strategic financial planning", "Estate planning integration", "Tax-advantaged protection", "Convertible options"],
+    coverageAmounts: [750000, 1000000, 2000000, 3000000],
+    termLengths: ["20 years", "25 years", "30 years"],
+  },
+
+  // Final Expense
+  {
+    productType: "Final Expense",
+    personaName: "Elder Worried About Burden",
+    personaEthnicity: "Hispanic/Latino",
+    ageRangeMin: 65,
+    ageRangeMax: 85,
+    incomeMin: 25000,
+    incomeMax: 50000,
+    familyStatus: "Retired, children",
+    corePain: "Fear of leaving funeral costs",
+    primaryTrigger: "Friend/family death",
+    description: "Seniors on fixed income wanting to spare their children from funeral expenses.",
+    features: ["No medical exam required", "Guaranteed acceptance", "Affordable monthly premiums", "Immediate coverage"],
+    coverageAmounts: [5000, 10000, 15000, 25000],
+    termLengths: ["Whole Life"],
+  },
+  {
+    productType: "Final Expense",
+    personaName: "Adult Child Planning for Parent",
+    personaEthnicity: "White",
+    ageRangeMin: 40,
+    ageRangeMax: 60,
+    incomeMin: 60000,
+    incomeMax: 120000,
+    familyStatus: "Caring for parent",
+    corePain: "Financial + emotional burden",
+    primaryTrigger: "Parent's health decline",
+    description: "Adult children securing final expense coverage for aging parents.",
+    features: ["Third-party ownership allowed", "Quick approval process", "Flexible payment options", "Coverage up to age 85"],
+    coverageAmounts: [10000, 15000, 25000, 35000],
+    termLengths: ["Whole Life"],
+  },
+  {
+    productType: "Final Expense",
+    personaName: "Fixed-Income Retiree (Social Security)",
+    personaEthnicity: "Black",
+    ageRangeMin: 60,
+    ageRangeMax: 85,
+    incomeMin: 15000,
+    incomeMax: 40000,
+    familyStatus: "Retired",
+    corePain: "Affordability anxiety",
+    primaryTrigger: "Budget review",
+    description: "Budget-conscious seniors on Social Security seeking affordable final expense coverage.",
+    features: ["Low monthly payments", "No medical exam", "Guaranteed issue options", "Immediate family benefits"],
+    coverageAmounts: [3000, 5000, 7500, 10000],
+    termLengths: ["Whole Life"],
+  },
+
+  // IUL (Indexed Universal Life)
+  {
+    productType: "IUL",
+    personaName: "High-Income Tax Minimizer",
+    personaEthnicity: "Asian",
+    ageRangeMin: 30,
+    ageRangeMax: 50,
+    incomeMin: 150000,
+    incomeMax: 1000000,
+    familyStatus: "Married",
+    corePain: "Overexposed to taxes",
+    primaryTrigger: "CPA/tax review",
+    description: "High earners seeking tax-advantaged wealth accumulation and protection strategies.",
+    features: ["Tax-deferred cash value growth", "Tax-free retirement income", "Market-linked growth potential", "Downside protection"],
+    coverageAmounts: [1000000, 2000000, 3000000, 5000000],
+    termLengths: ["Permanent"],
+  },
+  {
+    productType: "IUL",
+    personaName: "Legacy Builder",
+    personaEthnicity: "Indian",
+    ageRangeMin: 35,
+    ageRangeMax: 60,
+    incomeMin: 100000,
+    incomeMax: 500000,
+    familyStatus: "Married, children",
+    corePain: "Desire to leave assets",
+    primaryTrigger: "Estate planning",
+    description: "Wealth-focused families building multi-generational legacy and tax-free inheritance.",
+    features: ["Estate tax reduction", "Wealth transfer to heirs", "Living benefits access", "Tax-free death benefit"],
+    coverageAmounts: [500000, 1000000, 2000000, 5000000],
+    termLengths: ["Permanent"],
+  },
+  {
+    productType: "IUL",
+    personaName: "Business Owner",
+    personaEthnicity: "White",
+    ageRangeMin: 25,
+    ageRangeMax: 35,
+    incomeMin: 100000,
+    incomeMax: 1000000,
+    familyStatus: "Owner",
+    corePain: "No exit / protection plan",
+    primaryTrigger: "Business growth",
+    description: "Entrepreneurs protecting their business value and planning for succession.",
+    features: ["Key person protection", "Buy-sell funding", "Business continuity", "Cash value for opportunities"],
+    coverageAmounts: [500000, 1000000, 2000000, 5000000],
+    termLengths: ["Permanent"],
+  },
+
+  // Mortgage Protection
+  {
+    productType: "Mortgage Protection",
+    personaName: "New Homeowner",
+    personaEthnicity: "White",
+    ageRangeMin: 21,
+    ageRangeMax: 28,
+    incomeMin: 70000,
+    incomeMax: 150000,
+    familyStatus: "Married",
+    corePain: "Risk of losing home",
+    primaryTrigger: "Closing on home",
+    description: "First-time homebuyers protecting their new home and family from mortgage default.",
+    features: ["Mortgage payoff guarantee", "Declining balance options", "Affordable for new buyers", "Quick approval"],
+    coverageAmounts: [250000, 350000, 500000, 750000],
+    termLengths: ["15 years", "20 years", "30 years"],
+  },
+  {
+    productType: "Mortgage Protection",
+    personaName: "Refinance Buyer",
+    personaEthnicity: "Black",
+    ageRangeMin: 30,
+    ageRangeMax: 55,
+    incomeMin: 80000,
+    incomeMax: 180000,
+    familyStatus: "Married",
+    corePain: "Reset financial risk",
+    primaryTrigger: "Loan refinance",
+    description: "Homeowners refinancing who need to update their mortgage protection coverage.",
+    features: ["Match new loan amount", "Flexible term options", "Convertible coverage", "No new medical exam (in some cases)"],
+    coverageAmounts: [300000, 400000, 500000, 750000],
+    termLengths: ["15 years", "20 years", "25 years", "30 years"],
+  },
+  {
+    productType: "Mortgage Protection",
+    personaName: "Single-Income Household",
+    personaEthnicity: "Hispanic/Latino",
+    ageRangeMin: 30,
+    ageRangeMax: 55,
+    incomeMin: 60000,
+    incomeMax: 120000,
+    familyStatus: "One income family",
+    corePain: "Total income dependency",
+    primaryTrigger: "Financial review",
+    description: "Single-earner families needing mortgage protection if primary breadwinner is lost.",
+    features: ["Income replacement", "Mortgage elimination", "Family security", "Affordable premiums"],
+    coverageAmounts: [200000, 300000, 400000, 500000],
+    termLengths: ["15 years", "20 years", "25 years", "30 years"],
+  },
+];
+
+async function seedProducts() {
+  console.log("Starting product seeding...");
+
+  try {
+    for (const product of products) {
+      await pool.query(
+        `INSERT INTO products (
+          product_type, persona_name, persona_ethnicity,
+          age_range_min, age_range_max, income_min, income_max,
+          family_status, core_pain, primary_trigger, description,
+          features, coverage_amounts, term_lengths
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [
+          product.productType,
+          product.personaName,
+          product.personaEthnicity,
+          product.ageRangeMin,
+          product.ageRangeMax,
+          product.incomeMin,
+          product.incomeMax,
+          product.familyStatus,
+          product.corePain,
+          product.primaryTrigger,
+          product.description,
+          JSON.stringify(product.features),
+          JSON.stringify(product.coverageAmounts),
+          JSON.stringify(product.termLengths),
+        ]
+      );
+      console.log(`✓ Added: ${product.productType} - ${product.personaName}`);
+    }
+
+    console.log(`\n✅ Successfully seeded ${products.length} products!`);
+    process.exit(0);
+  } catch (error) {
+    console.error("❌ Error seeding products:", error);
+    process.exit(1);
+  }
+}
+
+seedProducts();
