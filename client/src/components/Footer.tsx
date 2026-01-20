@@ -1,3 +1,6 @@
+import { Facebook, Twitter, Linkedin } from "lucide-react";
+import MapSelector from "./MapSelector";
+
 export default function Footer() {
   return (
     <footer className="bg-[#fffaf3] border-t border-gray-200 py-16">
@@ -9,27 +12,47 @@ export default function Footer() {
             <div className="space-y-4 text-sm text-gray-600">
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Mailing Address</p>
-                <p>1240 Iroquois Ave</p>
-                <p>Suite 506</p>
-                <p>Naperville, IL 60563</p>
+                <MapSelector>
+                  <span className="block">1240 Iroquois Ave</span>
+                  <span className="block">Suite 506</span>
+                  <span className="block">Naperville, IL 60563</span>
+                </MapSelector>
               </div>
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Phone</p>
-                <p>(630) 778-0800</p>
+                <a href="tel:6307780800" className="hover:text-heritage-primary">(630) 778-0800</a>
               </div>
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Email</p>
                 <a href="mailto:info@heritagels.com" className="hover:text-heritage-primary">info@heritagels.com</a>
               </div>
               <div className="flex gap-3 pt-2">
-                <a href="#" className="w-8 h-8 bg-[#e8e0d5] hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center transition-colors">
-                  <span className="text-xs font-bold">f</span>
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-[#e8e0d5] hover:bg-[#1877F2] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-4 h-4" />
                 </a>
-                <a href="#" className="w-8 h-8 bg-[#e8e0d5] hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center transition-colors">
-                  <span className="text-xs font-bold">X</span>
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-[#e8e0d5] hover:bg-black hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+                  aria-label="X (Twitter)"
+                >
+                  <Twitter className="w-4 h-4" />
                 </a>
-                <a href="#" className="w-8 h-8 bg-[#e8e0d5] hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center transition-colors">
-                  <span className="text-xs font-bold">in</span>
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-[#e8e0d5] hover:bg-[#0A66C2] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
                 </a>
               </div>
             </div>
@@ -39,12 +62,11 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-6">Resources</h3>
             <ul className="space-y-3 text-sm text-gray-600">
-              <li><a href="#" className="hover:text-heritage-primary">Our Policies</a></li>
-              <li><a href="/#faqs" className="hover:text-heritage-primary">FAQs</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Blog</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Life Insurance 101</a></li>
-              <li><a href="/quote" className="hover:text-heritage-primary">How It Works</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Account Login</a></li>
+              <li><a href="/products" className="hover:text-heritage-primary">Our Products</a></li>
+              <li><a href="/resources/faqs" className="hover:text-heritage-primary">FAQs</a></li>
+              <li><a href="/resources/blog" className="hover:text-heritage-primary">Blog</a></li>
+              <li><a href="/resources/life-insurance-101" className="hover:text-heritage-primary">Life Insurance 101</a></li>
+              <li><a href="/resources/calculators" className="hover:text-heritage-primary">Calculators</a></li>
               <li><a href="/quote" className="hover:text-heritage-primary">Get a Quote</a></li>
             </ul>
           </div>
@@ -54,12 +76,11 @@ export default function Footer() {
             <h3 className="text-lg font-bold text-gray-900 mb-6">Company</h3>
             <ul className="space-y-3 text-sm text-gray-600">
               <li><a href="/about" className="hover:text-heritage-primary">About Us</a></li>
-              <li><a href="/about/founders" className="hover:text-heritage-primary">Our Team</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Our Carriers</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Reviews</a></li>
+              <li><a href="/about/founders" className="hover:text-heritage-primary">Meet the Founders</a></li>
+              <li><a href="/risk-strategy" className="hover:text-heritage-primary">Risk Strategy</a></li>
               <li><a href="/careers" className="hover:text-heritage-primary">Careers</a></li>
               <li><a href="/contact" className="hover:text-heritage-primary">Contact</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">For Agents</a></li>
+              <li><a href="/agents/become-an-agent" className="hover:text-heritage-primary">Become an Agent</a></li>
             </ul>
           </div>
 
@@ -67,12 +88,12 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-6">Legal</h3>
             <ul className="space-y-3 text-sm text-gray-600">
-              <li><a href="#" className="hover:text-heritage-primary">Terms of Use</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Data Security</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Accessibility</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Licenses</a></li>
-              <li><a href="#" className="hover:text-heritage-primary">Do Not Sell My Info</a></li>
+              <li><a href="/legal/terms" className="hover:text-heritage-primary">Terms of Use</a></li>
+              <li><a href="/legal/privacy" className="hover:text-heritage-primary">Privacy Policy</a></li>
+              <li><a href="/legal/data-security" className="hover:text-heritage-primary">Data Security</a></li>
+              <li><a href="/legal/accessibility" className="hover:text-heritage-primary">Accessibility</a></li>
+              <li><a href="/legal/licenses" className="hover:text-heritage-primary">Licenses</a></li>
+              <li><a href="/legal/do-not-sell" className="hover:text-heritage-primary">Do Not Sell My Info</a></li>
             </ul>
           </div>
         </div>
@@ -81,20 +102,23 @@ export default function Footer() {
         <div className="border-t border-gray-200 pt-8">
           <div className="text-xs text-gray-500 leading-relaxed space-y-4">
             <p>
-              © 2026 Heritage Life Solutions. Heritage operates as an independent insurance agency. Licensed in all 50 states.
-              IL License #1001234567. Heritage offers policies issued by multiple carriers listed at heritagels.com/carriers.
-              Products and their features may not be available in all states.
+              © 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group.
+              We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567.
+              Policies are issued by our carrier partners and product availability may vary by state.
             </p>
             <p>
-              To help avoid requiring a medical exam, our application asks certain health and lifestyle questions.
-              No medical exam means online health questions are required. Customers can get approved in as little as 10 minutes.
-              You can purchase instantly or do it anytime in the next 30 days as long as no information provided to us has changed.
+              At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process
+              connects you with coverage options from top-rated carriers, often without the need for medical exams.
+              Most applications take just minutes to complete, and approvals can happen within 24-48 hours.
             </p>
             <p>
-              For people ages 40 and over, the average rate increase is 10% every 6 months. Once you purchase, your rate stays the same for your whole term.
+              Life insurance premiums are based on factors including age, health, and coverage amount.
+              Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium
+              remains fixed for the duration of your term.
             </p>
             <p className="text-gray-400 text-[10px]">
-              Trustpilot rating as of January 2026. Best no-exam life insurance according to independent reviews.
+              Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options.
+              All quotes are subject to underwriting approval by the issuing carrier.
             </p>
           </div>
         </div>

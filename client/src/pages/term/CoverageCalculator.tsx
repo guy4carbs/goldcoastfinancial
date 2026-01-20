@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "wouter";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import {
   Calculator,
   Shield,
-  CheckCircle2,
-  ArrowRight,
-  Phone,
+  CheckCircle,
+  ChevronRight,
   ChevronDown,
-  Star,
+  Phone,
   Home,
   GraduationCap,
   CreditCard,
@@ -19,26 +21,29 @@ import {
   AlertCircle,
   TrendingUp,
   Target,
-  Heart
+  Heart,
+  Award
 } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
 };
 
 const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
   }
 };
 
 export default function CoverageCalculator() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [simpleIncome, setSimpleIncome] = useState(75000);
+  const [multiplier, setMultiplier] = useState(10);
+  const [calculatorMode, setCalculatorMode] = useState<'simple' | 'dime'>('simple');
 
   // DIME Calculator State
   const [debts, setDebts] = useState(25000);
@@ -49,459 +54,396 @@ export default function CoverageCalculator() {
   const [existingCoverage, setExistingCoverage] = useState(0);
   const [savings, setSavings] = useState(50000);
 
-  // Simple Calculator State
-  const [simpleIncome, setSimpleIncome] = useState(75000);
-  const [multiplier, setMultiplier] = useState(10);
-  const [calculatorMode, setCalculatorMode] = useState<'simple' | 'dime'>('simple');
+  // Animated result reveal state
+  const [showDetailedResult, setShowDetailedResult] = useState(false);
+  const [detailedCalculation, setDetailedCalculation] = useState<{
+    total: number;
+    breakdown: { label: string; value: number }[];
+    recommendation: string;
+  } | null>(null);
 
   const calculateDIME = () => {
-    const d = debts;
-    const i = annualIncome * yearsToReplace;
-    const m = mortgageBalance;
-    const e = educationCosts;
-    const total = d + i + m + e;
-    const adjusted = total - existingCoverage - savings;
-    return Math.max(0, adjusted);
+    const total = debts + (annualIncome * yearsToReplace) + mortgageBalance + educationCosts;
+    return Math.max(0, total - existingCoverage - savings);
   };
 
-  const calculateSimple = () => {
-    return simpleIncome * multiplier;
-  };
+  const calculateSimple = () => simpleIncome * multiplier;
 
   const formatCurrency = (amount: number) => {
-    if (amount >= 1000000) {
-      return `$${(amount / 1000000).toFixed(1)}M`;
-    }
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
     return `$${(amount / 1000).toFixed(0)}K`;
   };
 
-  const trustStats = [
-    { value: "10-12x", label: "Income Rule of Thumb" },
-    { value: "DIME", label: "Expert Method" },
-    { value: "42%", label: "Americans Underinsured" },
-    { value: "$500K", label: "Average Coverage Need" }
-  ];
+  // Calculate detailed result for animated reveal
+  const calculateDetailedResult = () => {
+    const incomeReplacement = annualIncome * yearsToReplace;
+    const total = debts + incomeReplacement + mortgageBalance + educationCosts;
+    const adjustedTotal = Math.max(0, total - existingCoverage - savings);
 
-  const bigStats = [
-    { value: "10x", label: "Minimum Coverage", sublabel: "Times your annual income" },
-    { value: "42%", label: "Coverage Gap", sublabel: "Americans are underinsured" },
-    { value: "$200K", label: "Average Shortfall", sublabel: "Per underinsured family" }
-  ];
+    const breakdown = [
+      { label: "Debts (D)", value: debts },
+      { label: `Income Replacement (I) - ${yearsToReplace} years`, value: incomeReplacement },
+      { label: "Mortgage Balance (M)", value: mortgageBalance },
+      { label: "Education Costs (E)", value: educationCosts },
+      { label: "Less: Existing Coverage", value: -existingCoverage },
+      { label: "Less: Savings", value: -savings },
+    ];
+
+    let recommendation = "";
+    if (adjustedTotal < 500000) {
+      recommendation = "Consider a 20-year term policy for optimal coverage.";
+    } else if (adjustedTotal < 1000000) {
+      recommendation = "A $500K-$1M policy would provide solid protection for your family.";
+    } else {
+      recommendation = "Consider laddering policies or a 30-year term for comprehensive coverage.";
+    }
+
+    setDetailedCalculation({ total: adjustedTotal, breakdown, recommendation });
+    setShowDetailedResult(true);
+  };
 
   const calculationMethods = [
     {
       icon: Calculator,
       title: "10x Income Rule",
-      description: "The simplest method: multiply your annual salary by 10. If you earn $75,000, you'd need $750,000 in coverage. Quick but doesn't account for specific needs.",
-      pros: ["Easy to calculate", "Good starting point", "Works for many situations"],
-      cons: ["Doesn't consider debts", "Ignores savings", "One-size-fits-all"]
+      description: "Multiply your annual salary by 10. Quick and easy starting point."
     },
     {
       icon: Target,
       title: "DIME Method",
-      description: "A comprehensive approach that adds Debt + Income replacement + Mortgage + Education costs. More accurate but requires gathering financial details.",
-      pros: ["More accurate", "Considers all obligations", "Customized to your situation"],
-      cons: ["More complex", "Requires detailed info", "May overestimate"]
+      description: "Debt + Income replacement + Mortgage + Education. More accurate."
     },
     {
       icon: TrendingUp,
       title: "Human Life Value",
-      description: "Calculates the present value of your future earnings until retirement. Used by financial professionals for precise planning.",
-      pros: ["Most precise", "Accounts for earning growth", "Professional method"],
-      cons: ["Complex calculations", "Requires assumptions", "May be overwhelming"]
+      description: "Present value of future earnings until retirement."
     },
     {
       icon: PiggyBank,
       title: "Needs Analysis",
-      description: "Subtracts your assets from your obligations. Accounts for savings, investments, and existing coverage you already have.",
-      pros: ["Accounts for assets", "Most personalized", "Avoids over-insurance"],
-      cons: ["Requires full financial picture", "Time-consuming", "Assets may change"]
+      description: "Subtracts assets from obligations for personalized results."
     }
   ];
 
   const lifeStageCoverage = [
-    {
-      icon: Baby,
-      stage: "Young Parents (25-35)",
-      recommendation: "15-20x income",
-      coverage: "$750K - $1.5M",
-      reason: "Maximum protection needed with young children, mortgage, and decades of income to replace.",
-      termLength: "30-year term"
-    },
-    {
-      icon: Users,
-      stage: "Established Families (35-45)",
-      recommendation: "10-15x income",
-      coverage: "$500K - $1M",
-      reason: "Kids approaching college, mortgage partially paid. Balance protection with growing savings.",
-      termLength: "20-year term"
-    },
-    {
-      icon: GraduationCap,
-      stage: "Pre-Retirement (45-55)",
-      recommendation: "8-10x income",
-      coverage: "$400K - $750K",
-      reason: "Kids independent soon, retirement savings growing. Focus on debt elimination and income bridge.",
-      termLength: "15-20 year term"
-    },
-    {
-      icon: Heart,
-      stage: "Near Retirement (55-65)",
-      recommendation: "5-8x income",
-      coverage: "$200K - $500K",
-      reason: "Minimal debts, substantial savings. Coverage for final expenses, estate planning, spousal support.",
-      termLength: "10-15 year term"
-    }
+    { icon: Baby, stage: "Young Parents (25-35)", recommendation: "15-20x income", coverage: "$750K - $1.5M", termLength: "30-year term" },
+    { icon: Users, stage: "Established (35-45)", recommendation: "10-15x income", coverage: "$500K - $1M", termLength: "20-year term" },
+    { icon: GraduationCap, stage: "Pre-Retirement (45-55)", recommendation: "8-10x income", coverage: "$400K - $750K", termLength: "15-20 year term" },
+    { icon: Heart, stage: "Near Retirement (55-65)", recommendation: "5-8x income", coverage: "$200K - $500K", termLength: "10-15 year term" }
   ];
 
   const coverageFactors = [
-    {
-      icon: Home,
-      title: "Mortgage Balance",
-      description: "Include your full mortgage payoff amount so your family can keep the home without payments.",
-      typical: "$200K - $500K"
-    },
-    {
-      icon: GraduationCap,
-      title: "Education Costs",
-      description: "Average 4-year public college: $104,000. Private: $223,000. Multiply by number of children.",
-      typical: "$100K - $450K"
-    },
-    {
-      icon: CreditCard,
-      title: "Outstanding Debts",
-      description: "Car loans, credit cards, student loans, personal loans. Don't leave debt to your family.",
-      typical: "$20K - $100K"
-    },
-    {
-      icon: DollarSign,
-      title: "Income Replacement",
-      description: "10 years of income is standard. Consider your spouse's earning potential and needs.",
-      typical: "$500K - $1.5M"
-    },
-    {
-      icon: Briefcase,
-      title: "Final Expenses",
-      description: "Funeral costs average $12,000-$15,000. Include legal fees, estate settlement costs.",
-      typical: "$15K - $25K"
-    },
-    {
-      icon: Heart,
-      title: "Emergency Fund",
-      description: "Leave 6-12 months of expenses for your family to adjust without financial pressure.",
-      typical: "$30K - $75K"
-    }
+    { icon: Home, title: "Mortgage Balance", description: "Full payoff so your family keeps the home.", typical: "$200K - $500K" },
+    { icon: GraduationCap, title: "Education Costs", description: "~$104K public, ~$223K private per child.", typical: "$100K - $450K" },
+    { icon: CreditCard, title: "Outstanding Debts", description: "Car loans, credit cards, student loans.", typical: "$20K - $100K" },
+    { icon: DollarSign, title: "Income Replacement", description: "10 years of income is standard.", typical: "$500K - $1.5M" },
+    { icon: Briefcase, title: "Final Expenses", description: "Funeral costs average $12-15K.", typical: "$15K - $25K" },
+    { icon: Heart, title: "Emergency Fund", description: "6-12 months for family to adjust.", typical: "$30K - $75K" }
   ];
 
   const faqs = [
-    {
-      question: "How much life insurance do I really need?",
-      answer: "Most financial experts recommend 10-12 times your annual income as a starting point. However, the DIME method (Debt + Income + Mortgage + Education) provides a more accurate calculation. For a family with a $75,000 income, $300,000 mortgage, and two kids heading to college, coverage of $1-1.5 million is often appropriate."
-    },
-    {
-      question: "What's the difference between the 10x rule and DIME method?",
-      answer: "The 10x rule is simple: multiply your income by 10. It's quick but generic. The DIME method adds up your specific Debts, Income replacement needs (income × years), Mortgage balance, and Education costs. DIME is more accurate because it considers your actual financial obligations rather than just your income."
-    },
-    {
-      question: "Should I include my spouse's income in the calculation?",
-      answer: "Yes, if your spouse works, their income affects how much coverage you need. If they earn enough to cover basic expenses, you may need less coverage. However, consider: would they need to reduce hours to care for children? Would they lose your benefits? Many families insure both spouses."
-    },
-    {
-      question: "How often should I recalculate my coverage needs?",
-      answer: "Review your coverage every 3-5 years, or after major life events: marriage, divorce, new baby, home purchase, salary increase, paying off debt, or children becoming independent. Your coverage needs typically decrease as you age and build wealth."
-    },
-    {
-      question: "Is it possible to have too much life insurance?",
-      answer: "While more coverage provides greater security, you shouldn't over-insure at the expense of other financial goals like retirement savings. The goal is to replace your economic contribution, not create a windfall. Balance coverage with premiums you can comfortably afford long-term."
-    },
-    {
-      question: "What if I can't afford the coverage I need?",
-      answer: "If the ideal coverage is too expensive, prioritize the most critical needs: mortgage and income replacement for young children. Consider a shorter term (20 vs 30 years), or 'ladder' multiple smaller policies. Some coverage is always better than none."
-    }
+    { question: "How much life insurance do I really need?", answer: "Start with 10-12x your annual income. For a more precise number, use the DIME method (Debt + Income + Mortgage + Education). A family earning $75K with a $300K mortgage and two college-bound kids typically needs $1-1.5M." },
+    { question: "What's the difference between 10x rule and DIME?", answer: "The 10x rule is quick: income × 10. DIME is more accurate: it adds your actual Debts, Income replacement needs, Mortgage balance, and Education costs." },
+    { question: "Should I include my spouse's income?", answer: "Yes. If your spouse earns enough to cover basics, you may need less. But consider: would they reduce work hours for childcare? Would they lose your benefits?" },
+    { question: "How often should I recalculate?", answer: "Every 3-5 years, or after major life events: marriage, divorce, new baby, home purchase, salary change, paying off debt, or kids becoming independent." },
+    { question: "Is it possible to have too much?", answer: "Yes. Don't over-insure at the expense of retirement savings. The goal is replacing your economic contribution, not creating a windfall." }
   ];
 
   return (
-    <div className="min-h-screen bg-[#fffaf3]">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-heritage-primary py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">
-                Life Insurance Coverage Calculator
-              </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <Calculator className="w-4 h-4" />
+                Coverage Calculator
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
                 How Much Coverage
-                <span className="text-heritage-accent"> Do You Need?</span>
-              </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-white/80 mb-8 leading-relaxed">
-                42% of American families would face financial hardship within 6 months of losing a breadwinner.
-                Use our calculator to find the right coverage amount for your family.
-              </motion.p>
-              <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
-                <a
-                  href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
-                >
-                  Get Your Free Quote <ArrowRight className="w-5 h-5" />
+                <span className="block text-heritage-accent">Do You Need?</span>
+              </h1>
+
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                42% of families would struggle within 6 months of losing a breadwinner. Find the right coverage amount for your family.
+              </p>
+
+              <div className="space-y-3 mb-8">
+                {["10-12x income is the starting point", "DIME method for precise calculation", "Factor in debts, mortgage, and education"].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex items-center gap-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                  >
+                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <span className="text-gray-700">{item}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/quote">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    Get Your Quote
+                    <ChevronRight className="w-5 h-5" />
+                  </motion.button>
+                </Link>
+                <a href="tel:+1234567890">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Phone className="w-5 h-5" />
+                    Speak to an Advisor
+                  </motion.button>
                 </a>
-                <a
-                  href="tel:6307780800"
-                  className="inline-flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 transition-colors"
-                >
-                  <Phone className="w-5 h-5" /> Speak to an Advisor
-                </a>
-              </motion.div>
+              </div>
             </motion.div>
 
-            {/* Interactive Calculator Card */}
+            {/* Calculator Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="hidden lg:block"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
-              <div className="bg-white rounded-3xl p-8 shadow-xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-heritage-accent/20 rounded-xl">
-                    <Calculator className="w-8 h-8 text-heritage-primary" />
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Quick Calculator</h3>
+                <p className="text-gray-600 text-sm">Estimate your coverage needs</p>
+              </div>
+
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={() => setCalculatorMode('simple')}
+                  className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    calculatorMode === 'simple'
+                      ? 'bg-heritage-accent text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  10x Rule
+                </button>
+                <button
+                  onClick={() => setCalculatorMode('dime')}
+                  className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    calculatorMode === 'dime'
+                      ? 'bg-heritage-accent text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  DIME Method
+                </button>
+              </div>
+
+              {calculatorMode === 'simple' ? (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Annual Income: <span className="text-heritage-accent font-bold">${simpleIncome.toLocaleString()}</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="30000"
+                      max="300000"
+                      step="5000"
+                      value={simpleIncome}
+                      onChange={(e) => setSimpleIncome(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Quick Calculator</h3>
-                    <p className="text-gray-500">Estimate your coverage needs</p>
-                  </div>
-                </div>
-
-                {/* Calculator Mode Toggle */}
-                <div className="flex gap-2 mb-6">
-                  <button
-                    onClick={() => setCalculatorMode('simple')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                      calculatorMode === 'simple'
-                        ? 'bg-heritage-primary text-white'
-                        : 'bg-[#f5f0e8] text-gray-700 hover:bg-heritage-primary/10'
-                    }`}
-                  >
-                    10x Rule
-                  </button>
-                  <button
-                    onClick={() => setCalculatorMode('dime')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                      calculatorMode === 'dime'
-                        ? 'bg-heritage-primary text-white'
-                        : 'bg-[#f5f0e8] text-gray-700 hover:bg-heritage-primary/10'
-                    }`}
-                  >
-                    DIME Method
-                  </button>
-                </div>
-
-                {calculatorMode === 'simple' ? (
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Annual Income: <span className="text-heritage-primary font-bold">${simpleIncome.toLocaleString()}</span>
-                      </label>
-                      <input
-                        type="range"
-                        min="30000"
-                        max="300000"
-                        step="5000"
-                        value={simpleIncome}
-                        onChange={(e) => setSimpleIncome(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Multiplier</label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[8, 10, 12, 15].map((mult) => (
-                          <button
-                            key={mult}
-                            onClick={() => setMultiplier(mult)}
-                            className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                              multiplier === mult
-                                ? 'bg-heritage-primary text-white shadow-lg scale-105'
-                                : 'bg-[#f5f0e8] text-gray-700 hover:bg-heritage-primary/10'
-                            }`}
-                          >
-                            {mult}x
-                          </button>
-                        ))}
-                      </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Multiplier</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[8, 10, 12, 15].map((mult) => (
+                        <button
+                          key={mult}
+                          onClick={() => setMultiplier(mult)}
+                          className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                            multiplier === mult
+                              ? 'bg-heritage-primary text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {mult}x
+                        </button>
+                      ))}
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-3 mb-6 text-sm">
-                    <div className="flex justify-between items-center p-2 bg-[#f5f0e8] rounded-lg">
-                      <span className="text-gray-600">D - Debts</span>
-                      <span className="font-bold text-heritage-primary">${debts.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 bg-[#f5f0e8] rounded-lg">
-                      <span className="text-gray-600">I - Income ({yearsToReplace}yr)</span>
-                      <span className="font-bold text-heritage-primary">${(annualIncome * yearsToReplace).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 bg-[#f5f0e8] rounded-lg">
-                      <span className="text-gray-600">M - Mortgage</span>
-                      <span className="font-bold text-heritage-primary">${mortgageBalance.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 bg-[#f5f0e8] rounded-lg">
-                      <span className="text-gray-600">E - Education</span>
-                      <span className="font-bold text-heritage-primary">${educationCosts.toLocaleString()}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="p-6 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-2xl text-center">
-                  <p className="text-white/80 text-sm mb-1">Recommended Coverage</p>
-                  <p className="text-5xl font-bold text-white mb-1">
-                    {formatCurrency(calculatorMode === 'simple' ? calculateSimple() : calculateDIME())}
-                  </p>
-                  <p className="text-heritage-accent text-sm font-medium">
-                    {calculatorMode === 'simple' ? `${multiplier}x your income` : 'Based on DIME method'}
-                  </p>
                 </div>
+              ) : (
+                <div className="space-y-3 text-sm">
+                  {[
+                    { label: "D - Debts", value: debts },
+                    { label: `I - Income (${yearsToReplace}yr)`, value: annualIncome * yearsToReplace },
+                    { label: "M - Mortgage", value: mortgageBalance },
+                    { label: "E - Education", value: educationCosts }
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="text-gray-600">{item.label}</span>
+                      <span className="font-bold text-heritage-primary">${item.value.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+                <p className="text-sm opacity-90 mb-1">Recommended Coverage</p>
+                <p className="text-4xl font-bold">
+                  {formatCurrency(calculatorMode === 'simple' ? calculateSimple() : calculateDIME())}
+                </p>
+                <p className="text-xs opacity-75 mt-2">
+                  {calculatorMode === 'simple' ? `${multiplier}x your income` : 'Based on DIME method'}
+                </p>
               </div>
+
+              <Link href="/quote">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full mt-6 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                >
+                  Get Quote for This Amount
+                </motion.button>
+              </Link>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Trust Indicators Bar */}
-      <section className="bg-white border-b border-[#e8e0d5]">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Trust Stats */}
+      <section className="bg-heritage-primary py-8">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {trustStats.map((stat, index) => (
+            {[
+              { value: "10-12x", label: "Income Rule of Thumb" },
+              { value: "DIME", label: "Expert Method" },
+              { value: "42%", label: "Americans Underinsured" },
+              { value: "$500K", label: "Average Need" }
+            ].map((stat, i) => (
               <motion.div
-                key={index}
+                key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center"
+                transition={{ delay: i * 0.1 }}
+                className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-primary">{stat.value}</p>
-                <p className="text-gray-600 text-sm">{stat.label}</p>
+                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Full DIME Calculator Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              The DIME Method Calculator
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
-              The most comprehensive way to calculate your coverage needs. Add up your Debts, Income replacement,
-              Mortgage, and Education costs, then subtract existing resources.
-            </motion.p>
-          </motion.div>
-
+      {/* Interactive DIME Calculator with Animated Result Reveal */}
+      <section className="py-20 bg-[#fffaf3]">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-lg border border-[#e8e0d5] max-w-4xl mx-auto"
+            className="text-center mb-12"
           >
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Left Column - Inputs */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <span className="w-8 h-8 bg-heritage-primary text-white rounded-full flex items-center justify-center text-sm font-bold">D</span>
-                  Debts (excluding mortgage)
-                </h3>
+            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+              Detailed DIME Calculator
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Input your specific numbers for a personalized coverage recommendation with breakdown.
+            </p>
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
+            >
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Debts: <span className="text-heritage-primary font-bold">${debts.toLocaleString()}</span>
+                    Outstanding Debts: <span className="text-heritage-accent font-bold">${debts.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
                     min="0"
-                    max="200000"
+                    max="100000"
                     step="5000"
                     value={debts}
-                    onChange={(e) => setDebts(parseInt(e.target.value))}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => { setDebts(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Car loans, credit cards, student loans, personal loans</p>
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2 pt-4">
-                  <span className="w-8 h-8 bg-heritage-primary text-white rounded-full flex items-center justify-center text-sm font-bold">I</span>
-                  Income Replacement
-                </h3>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Annual Income: <span className="text-heritage-primary font-bold">${annualIncome.toLocaleString()}</span>
+                    Annual Income: <span className="text-heritage-accent font-bold">${annualIncome.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
                     min="30000"
-                    max="500000"
+                    max="300000"
                     step="5000"
                     value={annualIncome}
-                    onChange={(e) => setAnnualIncome(parseInt(e.target.value))}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => { setAnnualIncome(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Years to Replace: <span className="text-heritage-primary font-bold">{yearsToReplace} years</span>
+                    Years to Replace Income: <span className="text-heritage-accent font-bold">{yearsToReplace} years</span>
                   </label>
                   <input
                     type="range"
                     min="5"
-                    max="25"
+                    max="20"
                     step="1"
                     value={yearsToReplace}
-                    onChange={(e) => setYearsToReplace(parseInt(e.target.value))}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => { setYearsToReplace(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">How many years until your youngest is independent?</p>
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2 pt-4">
-                  <span className="w-8 h-8 bg-heritage-primary text-white rounded-full flex items-center justify-center text-sm font-bold">M</span>
-                  Mortgage Balance
-                </h3>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mortgage: <span className="text-heritage-primary font-bold">${mortgageBalance.toLocaleString()}</span>
+                    Mortgage Balance: <span className="text-heritage-accent font-bold">${mortgageBalance.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
                     min="0"
-                    max="1000000"
-                    step="10000"
+                    max="750000"
+                    step="25000"
                     value={mortgageBalance}
-                    onChange={(e) => setMortgageBalance(parseInt(e.target.value))}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => { setMortgageBalance(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
                   />
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2 pt-4">
-                  <span className="w-8 h-8 bg-heritage-primary text-white rounded-full flex items-center justify-center text-sm font-bold">E</span>
-                  Education Costs
-                </h3>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Education: <span className="text-heritage-primary font-bold">${educationCosts.toLocaleString()}</span>
+                    Education Costs: <span className="text-heritage-accent font-bold">${educationCosts.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -509,316 +451,287 @@ export default function CoverageCalculator() {
                     max="500000"
                     step="10000"
                     value={educationCosts}
-                    onChange={(e) => setEducationCosts(parseInt(e.target.value))}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => { setEducationCosts(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">~$100K per child for public, ~$220K for private college</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Existing Life Insurance: <span className="text-heritage-accent font-bold">${existingCoverage.toLocaleString()}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="500000"
+                    step="25000"
+                    value={existingCoverage}
+                    onChange={(e) => { setExistingCoverage(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Savings: <span className="text-heritage-accent font-bold">${savings.toLocaleString()}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="200000"
+                    step="10000"
+                    value={savings}
+                    onChange={(e) => { setSavings(Number(e.target.value)); setShowDetailedResult(false); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                  />
                 </div>
               </div>
 
-              {/* Right Column - Subtractions & Results */}
-              <div className="space-y-6">
-                <div className="p-6 bg-[#f5f0e8] rounded-2xl">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Subtract Existing Resources</h3>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={calculateDetailedResult}
+                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+              >
+                <Calculator className="w-5 h-5" />
+                Calculate My Coverage Need
+              </motion.button>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Existing Life Insurance: <span className="text-heritage-primary font-bold">${existingCoverage.toLocaleString()}</span>
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="1000000"
-                        step="25000"
-                        value={existingCoverage}
-                        onChange={(e) => setExistingCoverage(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Savings & Investments: <span className="text-heritage-primary font-bold">${savings.toLocaleString()}</span>
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="500000"
-                        step="10000"
-                        value={savings}
-                        onChange={(e) => setSavings(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calculation Breakdown */}
-                <div className="p-6 bg-white border-2 border-heritage-primary/20 rounded-2xl">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Your Calculation</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">D - Debts</span>
-                      <span className="font-semibold">${debts.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">I - Income ({yearsToReplace} years)</span>
-                      <span className="font-semibold">${(annualIncome * yearsToReplace).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">M - Mortgage</span>
-                      <span className="font-semibold">${mortgageBalance.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">E - Education</span>
-                      <span className="font-semibold">${educationCosts.toLocaleString()}</span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-2 flex justify-between">
-                      <span className="text-gray-900 font-semibold">Total Needs</span>
-                      <span className="font-bold text-heritage-primary">${(debts + annualIncome * yearsToReplace + mortgageBalance + educationCosts).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-red-600">
-                      <span>- Existing Coverage</span>
-                      <span>-${existingCoverage.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-red-600">
-                      <span>- Savings</span>
-                      <span>-${savings.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Final Result */}
-                <div className="p-6 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-2xl text-center">
-                  <p className="text-white/80 text-sm mb-1">Coverage You Need</p>
-                  <p className="text-5xl font-bold text-white mb-2">{formatCurrency(calculateDIME())}</p>
-                  <p className="text-heritage-accent text-sm font-medium">Based on DIME analysis</p>
-                  <a
-                    href="/quote"
-                    className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-6 py-3 rounded-full font-semibold hover:bg-white transition-colors mt-4"
+              {/* Animated Result Reveal */}
+              <AnimatePresence>
+                {showDetailedResult && detailedCalculation && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: "auto", marginTop: 24 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="overflow-hidden"
                   >
-                    Get Quote for This Amount <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+                    <div className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-center mb-6"
+                      >
+                        <p className="text-white/80 text-sm mb-1">Your Recommended Coverage</p>
+                        <motion.p
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                          className="text-5xl font-bold text-heritage-accent"
+                        >
+                          {formatCurrency(detailedCalculation.total)}
+                        </motion.p>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                        className="space-y-2 mb-6"
+                      >
+                        {detailedCalculation.breakdown.map((item, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5 + i * 0.1 }}
+                            className="flex justify-between items-center p-2 bg-white/10 rounded-lg"
+                          >
+                            <span className="text-sm text-white/90">{item.label}</span>
+                            <span className={`font-semibold ${item.value < 0 ? 'text-red-300' : 'text-white'}`}>
+                              {item.value < 0 ? '-' : ''}${Math.abs(item.value).toLocaleString()}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.1 }}
+                        className="p-4 bg-heritage-accent/20 rounded-lg border border-heritage-accent/30"
+                      >
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-white/90">{detailedCalculation.recommendation}</p>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.3 }}
+                      >
+                        <Link href="/quote">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full mt-4 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold"
+                          >
+                            Get Quote for {formatCurrency(detailedCalculation.total)} Coverage
+                          </motion.button>
+                        </Link>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Calculation Methods Grid */}
+      {/* Calculation Methods */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              4 Ways to Calculate Coverage
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Different methods work for different situations. Here's how each approach calculates your needs.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-8"
-          >
-            {calculationMethods.map((method, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-[#fffaf3] rounded-2xl p-8 hover:shadow-lg transition-all hover:-translate-y-1 border border-[#e8e0d5]"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="p-4 bg-heritage-primary/10 rounded-xl">
-                    <method.icon className="w-8 h-8 text-heritage-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{method.title}</h3>
-                    <p className="text-gray-600 mt-2">{method.description}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                  <div>
-                    <p className="text-sm font-semibold text-green-600 mb-2">Pros</p>
-                    <ul className="space-y-1">
-                      {method.pros.map((pro, i) => (
-                        <li key={i} className="text-sm text-gray-600 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          {pro}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-orange-600 mb-2">Cons</p>
-                    <ul className="space-y-1">
-                      {method.cons.map((con, i) => (
-                        <li key={i} className="text-sm text-gray-600 flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                          {con}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Life Stage Coverage Recommendations */}
-      <section className="py-20 bg-heritage-primary">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Coverage by Life Stage
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-white/80 max-w-3xl mx-auto">
-              Your coverage needs change as you move through life. Here's what experts recommend at each stage.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {lifeStageCoverage.map((stage, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-white rounded-2xl p-8 text-center hover:shadow-xl transition-all hover:-translate-y-1"
-              >
-                <div className="p-4 bg-heritage-primary/10 rounded-full w-fit mx-auto mb-4">
-                  <stage.icon className="w-8 h-8 text-heritage-primary" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{stage.stage}</h3>
-                <p className="text-3xl font-bold text-heritage-primary mb-1">{stage.recommendation}</p>
-                <p className="text-gray-600 text-sm mb-4">{stage.coverage}</p>
-                <p className="text-gray-500 text-sm">{stage.reason}</p>
-                <p className="mt-4 text-heritage-primary font-semibold text-sm">{stage.termLength}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Coverage Factors */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              What to Include in Your Calculation
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Don't overlook these important factors when determining how much coverage you need.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {coverageFactors.map((factor, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-[#e8e0d5] hover:shadow-xl transition-all hover:-translate-y-1"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-heritage-primary/10 rounded-xl">
-                    <factor.icon className="w-6 h-6 text-heritage-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">{factor.title}</h3>
-                    <p className="text-heritage-primary font-semibold">{factor.typical}</p>
-                  </div>
-                </div>
-                <p className="text-gray-600">{factor.description}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Big Stats Section */}
-      <section className="py-20 bg-[#f5f0e8]">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-8"
-          >
-            {bigStats.map((stat, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-white rounded-2xl p-8 text-center shadow-lg border border-[#e8e0d5] hover:shadow-xl transition-shadow"
-              >
-                <p className="text-5xl md:text-6xl font-bold text-heritage-primary mb-2">{stat.value}</p>
-                <p className="text-xl font-semibold text-gray-900 mb-1">{stat.label}</p>
-                <p className="text-gray-500">{stat.sublabel}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Testimonial */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-lg text-center border border-[#e8e0d5]"
+            className="text-center mb-12"
           >
-            <div className="flex justify-center gap-1 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+              4 Ways to Calculate Coverage
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Different methods for different situations. Choose what fits your needs.
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {calculationMethods.map((method, i) => (
+              <motion.div
+                key={i}
+                variants={fadeInUp}
+                className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
+              >
+                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <method.icon className="w-7 h-7 text-heritage-accent" />
+                </div>
+                <h3 className="text-lg font-bold text-heritage-primary mb-2">{method.title}</h3>
+                <p className="text-gray-600 text-sm">{method.description}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Life Stage Coverage */}
+      <section className="py-20 bg-[#f5f0e8]">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+              Coverage by Life Stage
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Your needs change as you age. Here's what experts recommend.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {lifeStageCoverage.map((stage, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
+              >
+                <div className="w-14 h-14 bg-heritage-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <stage.icon className="w-7 h-7 text-heritage-primary" />
+                </div>
+                <h3 className="text-sm font-bold text-heritage-primary mb-2">{stage.stage}</h3>
+                <p className="text-2xl font-bold text-heritage-accent mb-1">{stage.recommendation}</p>
+                <p className="text-gray-600 text-sm mb-2">{stage.coverage}</p>
+                <p className="text-heritage-primary text-xs font-medium">{stage.termLength}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Coverage Factors */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+              What to Include in Your Calculation
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {coverageFactors.map((factor, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-[#fffaf3] rounded-xl p-6 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 bg-heritage-accent/10 rounded-full flex items-center justify-center">
+                    <factor.icon className="w-6 h-6 text-heritage-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-heritage-primary">{factor.title}</h3>
+                    <p className="text-heritage-accent text-sm font-semibold">{factor.typical}</p>
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm">{factor.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonial */}
+      <section className="py-20 bg-heritage-primary">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-heritage-accent" />
               ))}
             </div>
-            <blockquote className="text-xl md:text-2xl text-gray-700 mb-6 italic leading-relaxed">
-              "I thought $250,000 was enough until I used the DIME calculator. Between our mortgage,
-              two kids' college funds, and income replacement, we actually needed $1.2 million.
-              Heritage found us a policy for just $65/month. That peace of mind is priceless."
+            <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
+              "I thought $250K was enough until I used the DIME calculator. We actually needed $1.2M. Heritage found us a policy for just $65/month."
             </blockquote>
             <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 bg-heritage-primary/10 rounded-full flex items-center justify-center">
-                <span className="text-2xl font-bold text-heritage-primary">JT</span>
+              <div className="w-16 h-16 rounded-full overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80"
+                  alt="Testimonial"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-900">Jennifer T.</p>
-                <p className="text-gray-500">Mother of 2, Denver CO</p>
+                <p className="text-white font-semibold">Jennifer T.</p>
+                <p className="text-white/70 text-sm">Mother of 2, Denver CO</p>
               </div>
             </div>
           </motion.div>
@@ -827,94 +740,91 @@ export default function CoverageCalculator() {
 
       {/* FAQ Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600">
-              Get answers to common questions about calculating life insurance coverage.
-            </motion.p>
+            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+              Common Questions
+            </h2>
           </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="space-y-4"
-          >
-            {faqs.map((faq, index) => (
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, i) => (
               <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="bg-[#fffaf3] rounded-2xl shadow-sm overflow-hidden border border-[#e8e0d5]"
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="border border-gray-200 rounded-xl overflow-hidden"
               >
                 <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-[#f5f0e8] transition-colors"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
-                  <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
-                      openFaq === index ? "rotate-180" : ""
-                    }`}
-                  />
+                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
-                  {openFaq === index && (
+                  {openFaq === i && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
                     >
-                      <p className="px-6 pb-6 text-gray-600 leading-relaxed">{faq.answer}</p>
+                      <p className="p-6 pt-0 text-gray-600">{faq.answer}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-heritage-primary">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+      <section className="py-20 bg-gradient-to-br from-[#fffaf3] to-[#f5f0e8]">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            variants={staggerContainer}
+            className="max-w-3xl mx-auto text-center"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
               Know Your Number. Get Protected.
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-              Now that you know how much coverage you need, let's find the right policy at the best price.
-              Get a free quote in minutes.
-            </motion.p>
-            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
-              <a
-                href="/quote"
-                className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
-              >
-                Get Your Free Quote <ArrowRight className="w-5 h-5" />
+            </h2>
+            <p className="text-gray-600 mb-8">
+              Now find the right policy at the best price. Free quote in minutes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/quote">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                >
+                  Get Your Free Quote
+                  <ChevronRight className="w-5 h-5" />
+                </motion.button>
+              </Link>
+              <a href="tel:+1234567890">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-5 h-5" />
+                  Call (555) 123-4567
+                </motion.button>
               </a>
-              <a
-                href="tel:6307780800"
-                className="inline-flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 transition-colors"
-              >
-                <Phone className="w-5 h-5" /> Speak to an Advisor
-              </a>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>

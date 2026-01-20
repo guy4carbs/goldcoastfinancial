@@ -304,13 +304,18 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Heritage Life Solutions</h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <a
+                      href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-600 leading-relaxed hover:text-heritage-primary transition-colors block"
+                    >
                       1240 Iroquois Ave<br />
                       Suite 506<br />
                       Naperville, IL 60563
-                    </p>
+                    </a>
                     <a
-                      href="https://maps.google.com/?q=1240+Iroquois+Ave+Suite+506+Naperville+IL+60563"
+                      href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block mt-4 text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"

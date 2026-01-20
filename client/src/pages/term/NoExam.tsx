@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap,
@@ -10,29 +11,27 @@ import {
   Star,
   Clock,
   FileText,
-  Stethoscope,
   AlertCircle,
   Users,
   DollarSign,
-  Heart,
   Activity,
   Clipboard,
   Timer,
   ThumbsUp,
   XCircle,
-  Scale
+  Award
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.5 } }
 };
 
 const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
+  initial: { opacity: 0 },
+  animate: {
     opacity: 1,
     transition: { staggerChildren: 0.1 }
   }
@@ -41,6 +40,98 @@ const staggerContainer = {
 export default function NoExam() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [selectedType, setSelectedType] = useState<'accelerated' | 'simplified' | 'guaranteed'>('accelerated');
+
+  // Eligibility Checker State
+  const [eligibilityAge, setEligibilityAge] = useState(40);
+  const [isTobaccoUser, setIsTobaccoUser] = useState(false);
+  const [hasDiabetes, setHasDiabetes] = useState(false);
+  const [hasHeartCondition, setHasHeartCondition] = useState(false);
+  const [hasBeenHospitalized, setHasBeenHospitalized] = useState(false);
+  const [takesMedication, setTakesMedication] = useState(false);
+  const [hasCancer, setHasCancer] = useState(false);
+  const [showEligibilityResult, setShowEligibilityResult] = useState(false);
+  const [eligibilityResult, setEligibilityResult] = useState<{
+    recommendedType: 'accelerated' | 'simplified' | 'guaranteed';
+    maxCoverage: string;
+    likelihood: 'high' | 'medium' | 'low';
+    reason: string;
+    tips: string[];
+  } | null>(null);
+
+  // Calculate eligibility
+  const checkEligibility = () => {
+    let riskScore = 0;
+    const tips: string[] = [];
+
+    // Age factor
+    if (eligibilityAge > 60) riskScore += 2;
+    else if (eligibilityAge > 50) riskScore += 1;
+
+    // Health factors
+    if (isTobaccoUser) {
+      riskScore += 2;
+      tips.push("Tobacco use limits your options to simplified or guaranteed issue.");
+    }
+    if (hasDiabetes) {
+      riskScore += 2;
+      tips.push("Controlled diabetes may qualify for simplified issue.");
+    }
+    if (hasHeartCondition) {
+      riskScore += 3;
+      tips.push("Heart conditions typically require simplified or guaranteed issue.");
+    }
+    if (hasBeenHospitalized) {
+      riskScore += 2;
+      tips.push("Recent hospitalizations may affect accelerated underwriting eligibility.");
+    }
+    if (hasCancer) {
+      riskScore += 4;
+      tips.push("Cancer history usually requires simplified or guaranteed issue.");
+    }
+    if (takesMedication && !hasDiabetes && !hasHeartCondition) {
+      riskScore += 1;
+    }
+
+    // Determine recommendation
+    let recommendedType: 'accelerated' | 'simplified' | 'guaranteed';
+    let maxCoverage: string;
+    let likelihood: 'high' | 'medium' | 'low';
+    let reason: string;
+
+    if (riskScore <= 1) {
+      recommendedType = 'accelerated';
+      maxCoverage = '$2M - $5M';
+      likelihood = 'high';
+      reason = "You appear to be a great candidate for accelerated underwriting. Expect quick approval with competitive rates.";
+      if (tips.length === 0) tips.push("Apply online for fastest approval.");
+    } else if (riskScore <= 4) {
+      recommendedType = 'simplified';
+      maxCoverage = '$250K - $500K';
+      likelihood = 'medium';
+      reason = "Based on your health profile, simplified issue is likely your best option for quick coverage without a medical exam.";
+      tips.push("Answer health questions honestly for best results.");
+    } else {
+      recommendedType = 'guaranteed';
+      maxCoverage = '$5K - $25K';
+      likelihood = 'low';
+      reason = "Guaranteed issue ensures you can get coverage regardless of health conditions. No health questions required.";
+      tips.push("Consider supplementing with other coverage if possible.");
+    }
+
+    setEligibilityResult({
+      recommendedType,
+      maxCoverage,
+      likelihood,
+      reason,
+      tips
+    });
+    setShowEligibilityResult(true);
+  };
+
+  const resetEligibilityChecker = () => {
+    setShowEligibilityResult(false);
+    setEligibilityResult(null);
+  };
 
   const trustStats = [
     { value: "24hrs", label: "Approval Time" },
@@ -65,27 +156,27 @@ export default function NoExam() {
       maxCoverage: "$2M - $5M",
       healthQuestions: "Yes (detailed)",
       medicalRecords: "Electronic review",
-      bestFor: "Healthy individuals wanting full coverage fast",
+      bestFor: "Healthy individuals wanting coverage fast",
       costVsTraditional: "Same or slightly higher",
       process: [
         "Complete online application (15-20 min)",
-        "Electronic health data pulled automatically",
-        "Algorithm analyzes prescription history, MIB, MVR",
-        "Instant decision or short review period",
+        "Health data pulled electronically",
+        "Algorithm analyzes Rx history, MIB, MVR",
+        "Instant decision or short review",
         "Policy issued within days"
       ],
       pros: [
-        "Highest coverage amounts available",
-        "Rates similar to traditional policies",
-        "No blood draw or urine sample",
-        "Quick approval for healthy applicants",
+        "Highest coverage available",
+        "Rates similar to traditional",
+        "No blood draw or urine",
+        "Quick approval if healthy",
         "Full underwriting accuracy"
       ],
       cons: [
-        "May be referred to full underwriting",
-        "Health records are reviewed",
-        "Not available to all applicants",
-        "Some conditions may require exam anyway"
+        "May require full underwriting",
+        "Health records reviewed",
+        "Not available to all",
+        "Some conditions need exam"
       ]
     },
     {
@@ -97,27 +188,27 @@ export default function NoExam() {
       maxCoverage: "$250K - $500K",
       healthQuestions: "Yes (5-15 questions)",
       medicalRecords: "Usually not reviewed",
-      bestFor: "Minor health issues, need coverage quickly",
+      bestFor: "Minor health issues, need coverage fast",
       costVsTraditional: "10-30% higher",
       process: [
         "Answer health questionnaire (5-15 questions)",
-        "No medical exam required",
+        "No medical exam",
         "Basic background check",
-        "Decision based on answers alone",
+        "Decision based on answers",
         "Coverage begins quickly"
       ],
       pros: [
-        "Very fast approval process",
-        "No medical exam or lab work",
-        "Good for minor health conditions",
-        "Simple yes/no health questions",
+        "Fast approval process",
+        "No exam or lab work",
+        "Good for minor conditions",
+        "Simple yes/no questions",
         "Predictable qualification"
       ],
       cons: [
         "Lower coverage limits",
-        "Higher premiums than traditional",
-        "Health questions can disqualify",
-        "Less coverage for your money"
+        "Higher premiums",
+        "Answers can disqualify",
+        "Less coverage per dollar"
       ]
     },
     {
@@ -129,24 +220,24 @@ export default function NoExam() {
       maxCoverage: "$5K - $25K",
       healthQuestions: "None",
       medicalRecords: "Not reviewed",
-      bestFor: "Serious health conditions, guaranteed acceptance",
+      bestFor: "Serious health conditions",
       costVsTraditional: "200-500% higher",
       process: [
         "Provide basic information only",
-        "No health questions asked",
+        "No health questions",
         "Automatic approval guaranteed",
-        "Graded death benefit (2-3 year waiting period)",
-        "Full benefit after waiting period"
+        "Graded benefit (2-3 year wait)",
+        "Full benefit after wait period"
       ],
       pros: [
-        "Cannot be denied coverage",
-        "No health questions whatsoever",
+        "Cannot be denied",
+        "No health questions",
         "Perfect for serious conditions",
         "Guaranteed acceptance",
-        "Simple application process"
+        "Simple application"
       ],
       cons: [
-        "Very limited coverage amounts",
+        "Very limited coverage",
         "Highest premiums",
         "Graded benefit waiting period",
         "Not cost-effective if healthy"
@@ -211,137 +302,119 @@ export default function NoExam() {
     {
       step: 1,
       title: "Online Application",
-      description: "Complete a simple online form with your basic information and coverage needs.",
+      description: "Simple online form with basic info and coverage needs.",
       time: "10-20 minutes",
       icon: FileText
     },
     {
       step: 2,
       title: "Health Questionnaire",
-      description: "Answer questions about your health history. For accelerated underwriting, this is more detailed.",
+      description: "Answer health questions. More detailed for accelerated underwriting.",
       time: "5-15 minutes",
       icon: Clipboard
     },
     {
       step: 3,
       title: "Electronic Data Review",
-      description: "For accelerated underwriting, systems pull prescription history, MIB data, and driving records automatically.",
+      description: "Systems pull Rx history, MIB data, and driving records automatically.",
       time: "Instant",
       icon: Activity
     },
     {
       step: 4,
       title: "Decision & Approval",
-      description: "Receive instant approval, or a decision within days. Some cases may be referred for additional review.",
+      description: "Instant approval or decision within days. Some cases need additional review.",
       time: "Minutes to Days",
       icon: ThumbsUp
     },
     {
       step: 5,
       title: "Policy Issued",
-      description: "Once approved, your policy is issued and coverage begins. Pay your first premium to activate.",
+      description: "Policy issued, coverage begins. Pay first premium to activate.",
       time: "Same Day",
       icon: Shield
-    }
-  ];
-
-  const topCarriers = [
-    {
-      name: "Ethos",
-      maxCoverage: "$2M",
-      approvalTime: "10 minutes",
-      ages: "20-65",
-      highlight: "Best overall no-exam experience"
-    },
-    {
-      name: "Bestow",
-      maxCoverage: "$1.5M",
-      approvalTime: "5 minutes",
-      ages: "21-55",
-      highlight: "Fastest instant decisions"
-    },
-    {
-      name: "Haven Life",
-      maxCoverage: "$3M",
-      approvalTime: "20 minutes",
-      ages: "18-64",
-      highlight: "Highest coverage amounts"
-    },
-    {
-      name: "Ladder",
-      maxCoverage: "$8M",
-      approvalTime: "Minutes",
-      ages: "20-60",
-      highlight: "Flexible coverage adjustments"
     }
   ];
 
   const faqs = [
     {
       question: "Is no-exam life insurance more expensive?",
-      answer: "It depends on the type. Accelerated underwriting policies are often priced similarly to traditional policies if you're healthy. Simplified issue policies typically cost 10-30% more. Guaranteed issue policies can cost 2-5 times more than traditional coverage because the insurer takes on more risk without health information."
+      answer: "Depends on type. Accelerated underwriting is priced similarly to traditional if you're healthy. Simplified issue costs 10-30% more. Guaranteed issue costs 2-5x more due to higher insurer risk."
     },
     {
       question: "How do insurers evaluate me without a medical exam?",
-      answer: "Accelerated underwriting uses electronic health databases, prescription histories (from pharmacy benefit managers), MIB (Medical Information Bureau) records, motor vehicle records, and public records. Algorithms analyze this data to assess risk. For simplified issue, they rely solely on your answers to health questions."
+      answer: "Accelerated underwriting uses electronic health databases, prescription histories, MIB records, motor vehicle records, and algorithms. Simplified issue relies solely on your answers to health questions."
     },
     {
       question: "Can I be denied no-exam life insurance?",
-      answer: "Yes, for accelerated and simplified issue policies. If your health history or answers indicate high risk, you may be declined or offered a policy with an exam instead. Only guaranteed issue policies cannot deny you - that's why they're called 'guaranteed' - but they come with much higher costs and limited coverage."
+      answer: "Yes, for accelerated and simplified issue. High-risk indicators may decline you or require an exam. Only guaranteed issue can't deny you - that's why it costs more with limited coverage."
     },
     {
       question: "What is the MIB and how does it affect my application?",
-      answer: "The MIB (Medical Information Bureau) is a database shared by insurance companies containing coded health information from previous applications. If you've applied for life or health insurance before, your conditions may be on file. Discrepancies between your application and MIB records can trigger additional underwriting."
+      answer: "MIB is a database of coded health info from previous insurance applications. If you've applied before, your conditions may be on file. Discrepancies can trigger additional underwriting."
     },
     {
       question: "Should I get no-exam insurance if I'm healthy?",
-      answer: "If you're healthy and qualify for accelerated underwriting, absolutely - you'll get similar rates without the hassle of an exam. However, if you're very healthy (excellent BMI, no medications, no family history), a traditional exam might get you the absolute best rates. For most healthy people, the convenience of no-exam outweighs the small potential savings."
+      answer: "If you qualify for accelerated underwriting, yes - similar rates without the exam hassle. Very healthy people might get slightly better rates with an exam, but convenience usually outweighs small savings."
     },
     {
       question: "What happens if I lie on my health questions?",
-      answer: "This is considered material misrepresentation and can void your policy. If you die within the contestability period (usually 2 years) and the insurer discovers misrepresentation, they can deny the claim and only return premiums paid. Always answer honestly - there are options for most health conditions."
+      answer: "Material misrepresentation can void your policy. If discovered within the contestability period (usually 2 years), claims can be denied. Always answer honestly - there are options for most conditions."
     }
   ];
 
   const selectedExamType = examTypes.find(t => t.id === selectedType)!;
 
   return (
-    <div className="min-h-screen bg-[#fffaf3]">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-heritage-primary py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] py-20 md:py-28 overflow-hidden">
+        {/* Decorative blur circles */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/10 rounded-full blur-3xl" />
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
-              initial="hidden"
-              animate="visible"
+              initial="initial"
+              animate="animate"
               variants={staggerContainer}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">
+              <motion.p variants={fadeInUp} className="text-heritage-primary font-semibold mb-4 tracking-wide uppercase text-sm">
                 No-Exam Term Life Insurance
               </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Skip the Exam.
-                <span className="text-heritage-accent"> Keep the Coverage.</span>
+                <span className="text-heritage-primary"> Keep the Coverage.</span>
               </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-white/80 mb-8 leading-relaxed">
-                Get up to $3 million in life insurance coverage without needles, lab work, or waiting weeks.
-                Approved in as little as 10 minutes.
+              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Up to $3M coverage without needles, labs, or waiting weeks. Approved in as little as 10 minutes.
               </motion.p>
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
-                <a
-                  href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Get Instant Quote <ArrowRight className="w-5 h-5" />
-                </a>
-                <a
-                  href="tel:6307780800"
-                  className="inline-flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 transition-colors"
+                  <Link
+                    href="/quote"
+                    className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                  >
+                    Get Instant Quote <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Phone className="w-5 h-5" /> Speak to an Advisor
-                </a>
+                  <a
+                    href="tel:6307780800"
+                    className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                  >
+                    <Phone className="w-5 h-5" /> Speak to an Advisor
+                  </a>
+                </motion.div>
               </motion.div>
             </motion.div>
 
@@ -352,7 +425,7 @@ export default function NoExam() {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="hidden lg:block"
             >
-              <div className="bg-white rounded-3xl p-8 shadow-xl">
+              <div className="bg-white rounded-xl p-8 shadow-xl border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 bg-heritage-accent/20 rounded-xl">
                     <Zap className="w-8 h-8 text-heritage-primary" />
@@ -406,8 +479,8 @@ export default function NoExam() {
       </section>
 
       {/* Trust Indicators Bar */}
-      <section className="bg-white border-b border-[#e8e0d5]">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+      <section className="bg-heritage-primary py-8">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {trustStats.map((stat, index) => (
               <motion.div
@@ -418,20 +491,240 @@ export default function NoExam() {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-primary">{stat.value}</p>
-                <p className="text-gray-600 text-sm">{stat.label}</p>
+                <p className="text-3xl md:text-4xl font-bold text-white">{stat.value}</p>
+                <p className="text-white/80 text-sm">{stat.label}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Types of No-Exam Insurance */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* Interactive Eligibility Checker */}
+      <section className="py-20 bg-[#fffaf3]">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              No-Exam Eligibility Checker
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Answer a few quick questions to see which no-exam option is right for you.
+            </p>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
+            >
+              <div className="space-y-6 mb-8">
+                {/* Age Slider */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Age: <span className="text-heritage-primary font-bold">{eligibilityAge}</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="18"
+                    max="75"
+                    value={eligibilityAge}
+                    onChange={(e) => { setEligibilityAge(Number(e.target.value)); resetEligibilityChecker(); }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>18</span>
+                    <span>75</span>
+                  </div>
+                </div>
+
+                {/* Health Questions */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  {[
+                    { state: isTobaccoUser, setter: setIsTobaccoUser, label: "Do you use tobacco products?", icon: "cigarette" },
+                    { state: hasDiabetes, setter: setHasDiabetes, label: "Have you been diagnosed with diabetes?", icon: "diabetes" },
+                    { state: hasHeartCondition, setter: setHasHeartCondition, label: "Do you have a heart condition?", icon: "heart" },
+                    { state: hasBeenHospitalized, setter: setHasBeenHospitalized, label: "Hospitalized in the last 2 years?", icon: "hospital" },
+                    { state: hasCancer, setter: setHasCancer, label: "History of cancer?", icon: "cancer" },
+                    { state: takesMedication, setter: setTakesMedication, label: "Taking prescription medications?", icon: "medication" },
+                  ].map((question, i) => (
+                    <motion.button
+                      key={i}
+                      onClick={() => { question.setter(!question.state); resetEligibilityChecker(); }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        question.state
+                          ? 'border-heritage-primary bg-heritage-primary/10'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                          question.state
+                            ? 'border-heritage-primary bg-heritage-primary'
+                            : 'border-gray-300'
+                        }`}>
+                          {question.state && (
+                            <CheckCircle2 className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        <span className={`text-sm ${question.state ? 'text-heritage-primary font-medium' : 'text-gray-700'}`}>
+                          {question.label}
+                        </span>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={checkEligibility}
+                className="w-full bg-heritage-primary hover:bg-heritage-primary/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+              >
+                <Zap className="w-5 h-5" />
+                Check My Eligibility
+              </motion.button>
+
+              {/* Animated Eligibility Result */}
+              <AnimatePresence>
+                {showEligibilityResult && eligibilityResult && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: "auto", marginTop: 24 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className={`rounded-xl p-6 ${
+                      eligibilityResult.likelihood === 'high'
+                        ? 'bg-gradient-to-br from-green-600 to-green-700'
+                        : eligibilityResult.likelihood === 'medium'
+                        ? 'bg-gradient-to-br from-heritage-primary to-heritage-primary/90'
+                        : 'bg-gradient-to-br from-amber-600 to-amber-700'
+                    } text-white`}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-center mb-6"
+                      >
+                        <p className="text-white/80 text-sm mb-1">Recommended Option</p>
+                        <motion.p
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                          className="text-3xl font-bold capitalize"
+                        >
+                          {eligibilityResult.recommendedType === 'accelerated' ? 'Accelerated Underwriting' :
+                           eligibilityResult.recommendedType === 'simplified' ? 'Simplified Issue' : 'Guaranteed Issue'}
+                        </motion.p>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                          className={`inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-full ${
+                            eligibilityResult.likelihood === 'high'
+                              ? 'bg-white/20'
+                              : eligibilityResult.likelihood === 'medium'
+                              ? 'bg-heritage-accent/30'
+                              : 'bg-white/20'
+                          }`}
+                        >
+                          <span className="text-sm font-medium">
+                            {eligibilityResult.likelihood === 'high' ? 'Approval Likelihood: High' :
+                             eligibilityResult.likelihood === 'medium' ? 'Approval Likelihood: Medium' : 'Guaranteed Acceptance'}
+                          </span>
+                        </motion.div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="grid grid-cols-2 gap-4 mb-6"
+                      >
+                        <div className="bg-white/10 rounded-lg p-4 text-center">
+                          <p className="text-white/70 text-xs mb-1">Max Coverage Available</p>
+                          <p className="text-xl font-bold text-white">{eligibilityResult.maxCoverage}</p>
+                        </div>
+                        <div className="bg-white/10 rounded-lg p-4 text-center">
+                          <p className="text-white/70 text-xs mb-1">Typical Approval Time</p>
+                          <p className="text-xl font-bold text-white">
+                            {eligibilityResult.recommendedType === 'accelerated' ? 'Minutes-Days' :
+                             eligibilityResult.recommendedType === 'simplified' ? '1-5 Days' : 'Instant'}
+                          </p>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="p-4 bg-white/10 rounded-lg mb-4"
+                      >
+                        <p className="text-sm text-white/90">{eligibilityResult.reason}</p>
+                      </motion.div>
+
+                      {eligibilityResult.tips.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.9 }}
+                          className="space-y-2 mb-4"
+                        >
+                          {eligibilityResult.tips.map((tip, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 1.0 + i * 0.1 }}
+                              className="flex items-start gap-2"
+                            >
+                              <AlertCircle className="w-4 h-4 text-white/70 flex-shrink-0 mt-0.5" />
+                              <span className="text-xs text-white/80">{tip}</span>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      )}
+
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.2 }}
+                      >
+                        <Link href="/quote">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="w-full bg-white hover:bg-white/90 text-heritage-primary py-3 rounded-lg font-semibold"
+                          >
+                            Get My No-Exam Quote
+                          </motion.button>
+                        </Link>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Types of No-Exam Insurance */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="text-center mb-16"
@@ -440,25 +733,27 @@ export default function NoExam() {
               3 Types of No-Exam Life Insurance
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Not all no-exam policies are created equal. Understanding the differences helps you choose the right one.
+              Not all no-exam policies are equal. Know the differences to choose right.
             </motion.p>
           </motion.div>
 
           {/* Type Selector */}
-          <div className="flex justify-center gap-4 mb-12">
+          <div className="flex justify-center gap-4 mb-12 flex-wrap">
             {examTypes.map((type) => (
-              <button
+              <motion.button
                 key={type.id}
                 onClick={() => setSelectedType(type.id as any)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
                   selectedType === type.id
                     ? 'bg-heritage-primary text-white shadow-lg'
-                    : 'bg-white text-gray-700 border border-[#e8e0d5] hover:border-heritage-primary'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:border-heritage-primary'
                 }`}
               >
                 <type.icon className="w-5 h-5" />
                 {type.title}
-              </button>
+              </motion.button>
             ))}
           </div>
 
@@ -468,13 +763,13 @@ export default function NoExam() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-lg border border-[#e8e0d5]"
+            className="bg-white rounded-xl p-8 md:p-12 shadow-lg border border-gray-200"
           >
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Header & Overview */}
               <div className="lg:col-span-1">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="p-4 bg-heritage-primary/10 rounded-2xl">
+                  <div className="p-4 bg-heritage-primary/10 rounded-xl">
                     <selectedExamType.icon className="w-10 h-10 text-heritage-primary" />
                   </div>
                   <div>
@@ -484,15 +779,15 @@ export default function NoExam() {
                 </div>
 
                 <div className="space-y-4 mb-6">
-                  <div className="p-4 bg-[#f5f0e8] rounded-xl">
+                  <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="text-sm text-gray-500">Approval Time</p>
                     <p className="font-bold text-heritage-primary text-lg">{selectedExamType.approvalTime}</p>
                   </div>
-                  <div className="p-4 bg-[#f5f0e8] rounded-xl">
+                  <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="text-sm text-gray-500">Max Coverage</p>
                     <p className="font-bold text-heritage-primary text-lg">{selectedExamType.maxCoverage}</p>
                   </div>
-                  <div className="p-4 bg-[#f5f0e8] rounded-xl">
+                  <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="text-sm text-gray-500">Cost vs Traditional</p>
                     <p className="font-bold text-heritage-primary text-lg">{selectedExamType.costVsTraditional}</p>
                   </div>
@@ -548,11 +843,11 @@ export default function NoExam() {
       </section>
 
       {/* Comparison Table */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="text-center mb-16"
@@ -561,7 +856,7 @@ export default function NoExam() {
               No-Exam vs. Traditional: Full Comparison
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
-              See how each type of no-exam insurance compares to traditional underwriting.
+              See how each type compares at a glance.
             </motion.p>
           </motion.div>
 
@@ -569,7 +864,7 @@ export default function NoExam() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-2xl shadow-lg overflow-x-auto border border-[#e8e0d5]"
+            className="bg-white rounded-xl shadow-lg overflow-x-auto border border-gray-200"
           >
             <table className="w-full min-w-[800px]">
               <thead>
@@ -585,7 +880,7 @@ export default function NoExam() {
                 {comparisonData.map((row, index) => (
                   <tr
                     key={index}
-                    className={index % 2 === 0 ? 'bg-[#f5f0e8]' : 'bg-white'}
+                    className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                   >
                     <td className="p-4 font-medium text-gray-900">{row.feature}</td>
                     <td className="p-4 text-center text-heritage-primary font-semibold bg-heritage-primary/5">{row.accelerated}</td>
@@ -601,26 +896,26 @@ export default function NoExam() {
       </section>
 
       {/* Who Qualifies */}
-      <section className="py-20 bg-heritage-primary">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Do You Qualify?
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-white/80 max-w-3xl mx-auto">
-              Your health history determines which type of no-exam coverage you can get.
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Your health history determines which type you can get.
             </motion.p>
           </motion.div>
 
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="grid md:grid-cols-2 gap-8"
@@ -629,7 +924,7 @@ export default function NoExam() {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-white rounded-2xl p-8 hover:shadow-xl transition-all"
+                className="bg-white rounded-xl p-8 hover:shadow-lg transition-shadow border border-gray-200"
               >
                 <div className="flex items-center gap-4 mb-6">
                   <div className="p-3 bg-heritage-primary/10 rounded-xl">
@@ -674,9 +969,9 @@ export default function NoExam() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-8 p-6 bg-white/10 rounded-2xl text-center"
+            className="mt-8 p-6 bg-gray-50 rounded-xl text-center border border-gray-200"
           >
-            <p className="text-white text-lg">
+            <p className="text-gray-700 text-lg">
               <span className="font-semibold">Not sure which you qualify for?</span> Our advisors can review your situation
               and find the best option - even if you have health conditions.
             </p>
@@ -685,11 +980,11 @@ export default function NoExam() {
       </section>
 
       {/* The Process */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="text-center mb-16"
@@ -698,13 +993,13 @@ export default function NoExam() {
               How the No-Exam Process Works
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
-              From application to approval in 5 simple steps - often completed in a single sitting.
+              5 steps - often completed in a single sitting.
             </motion.p>
           </motion.div>
 
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="grid md:grid-cols-5 gap-6"
@@ -715,7 +1010,7 @@ export default function NoExam() {
                 variants={fadeInUp}
                 className="relative"
               >
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-[#e8e0d5] hover:shadow-xl transition-all hover:-translate-y-1 h-full">
+                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-lg transition-shadow h-full">
                   <div className="w-12 h-12 bg-heritage-primary text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
                     {step.step}
                   </div>
@@ -738,11 +1033,11 @@ export default function NoExam() {
       </section>
 
       {/* Big Stats Section */}
-      <section className="py-20 bg-[#f5f0e8]">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="grid md:grid-cols-3 gap-8"
@@ -751,7 +1046,7 @@ export default function NoExam() {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-white rounded-2xl p-8 text-center shadow-lg border border-[#e8e0d5] hover:shadow-xl transition-shadow"
+                className="bg-white rounded-xl p-8 text-center shadow-lg border border-gray-200 hover:shadow-lg transition-shadow"
               >
                 <p className="text-5xl md:text-6xl font-bold text-heritage-primary mb-2">{stat.value}</p>
                 <p className="text-xl font-semibold text-gray-900 mb-1">{stat.label}</p>
@@ -763,31 +1058,40 @@ export default function NoExam() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-6">
+      <section className="py-20 bg-heritage-primary">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-3xl p-8 md:p-12 shadow-lg text-center border border-[#e8e0d5]"
+            className="max-w-4xl mx-auto"
           >
-            <div className="flex justify-center gap-1 mb-6">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
-              ))}
-            </div>
-            <blockquote className="text-xl md:text-2xl text-gray-700 mb-6 italic leading-relaxed">
-              "I hate needles and kept putting off life insurance for years. When I found out I could get
-              a $500,000 policy without any medical exam, I applied during my lunch break. Approved in
-              15 minutes. I wish I'd known about this option years ago."
-            </blockquote>
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 bg-heritage-primary/10 rounded-full flex items-center justify-center">
-                <span className="text-2xl font-bold text-heritage-primary">SK</span>
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="flex-shrink-0">
+                <img
+                  src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face"
+                  alt="Sarah K."
+                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                />
               </div>
-              <div className="text-left">
-                <p className="font-semibold text-gray-900">Sarah K.</p>
-                <p className="text-gray-500">Marketing Manager, Seattle WA</p>
+              <div className="text-center md:text-left">
+                <div className="flex justify-center md:justify-start gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
+                  <Award className="w-5 h-5 text-heritage-accent" />
+                  <span className="text-heritage-accent font-semibold text-sm">Verified Customer</span>
+                </div>
+                <blockquote className="text-xl md:text-2xl text-white mb-6 italic leading-relaxed">
+                  "I hate needles and kept putting off life insurance. Applied for a $500K policy during lunch - no exam.
+                  Approved in 15 minutes. Wish I'd known about this years ago."
+                </blockquote>
+                <div>
+                  <p className="font-semibold text-white text-lg">Sarah K.</p>
+                  <p className="text-white/80">Marketing Manager, Seattle WA</p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -796,10 +1100,10 @@ export default function NoExam() {
 
       {/* FAQ Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="container mx-auto px-4">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="text-center mb-16"
@@ -808,26 +1112,26 @@ export default function NoExam() {
               Frequently Asked Questions
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-lg text-gray-600">
-              Get answers to common questions about no-exam life insurance.
+              Common questions about no-exam coverage.
             </motion.p>
           </motion.div>
 
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="space-y-4"
+            className="max-w-4xl mx-auto space-y-4"
           >
             {faqs.map((faq, index) => (
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-[#fffaf3] rounded-2xl shadow-sm overflow-hidden border border-[#e8e0d5]"
+                className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200"
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-[#f5f0e8] transition-colors"
+                  className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
@@ -855,34 +1159,43 @@ export default function NoExam() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-heritage-primary">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+      <section className="py-20 bg-gradient-to-br from-[#fffaf3] to-[#f5f0e8]">
+        <div className="container mx-auto px-4 text-center">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial="initial"
+            whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white mb-6">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               Get Covered Without the Hassle
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-              Apply in minutes, get approved without needles, and protect your family today.
-              No scheduling. No waiting. No excuses.
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Apply in minutes. No needles. No waiting. No excuses.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
-              <a
-                href="/quote"
-                className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Get Instant Quote <ArrowRight className="w-5 h-5" />
-              </a>
-              <a
-                href="tel:6307780800"
-                className="inline-flex items-center gap-2 bg-white/10 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/20 transition-colors"
+                <Link
+                  href="/quote"
+                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                >
+                  Get Instant Quote <ArrowRight className="w-5 h-5" />
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Phone className="w-5 h-5" /> Speak to an Advisor
-              </a>
+                <a
+                  href="tel:6307780800"
+                  className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                >
+                  <Phone className="w-5 h-5" /> Speak to an Advisor
+                </a>
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
