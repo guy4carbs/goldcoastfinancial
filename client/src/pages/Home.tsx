@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Check, X, Clock, Shield, FileText, DollarSign, MessageCircle, Send, Quote } from "lucide-react";
+import { useLocation } from "wouter";
+import { Check, X, Clock, Shield, FileText, DollarSign, MessageCircle, Send, Quote, ArrowRight, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWidget";
+import TrustIndicators from "@/components/TrustIndicators";
+import Testimonials from "@/components/Testimonials";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -39,9 +43,27 @@ const testimonials = [
 ];
 
 export default function Home() {
+  const [, setLocation] = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
+
+  // Handle widget completion - redirect to quote page with data
+  const handleQuickQuoteComplete = (data: QuickQuoteData) => {
+    // Build URL params for the quote page
+    const params = new URLSearchParams({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      age: data.age.toString(),
+      gender: data.gender,
+      tobacco: data.tobacco.toString(),
+      zipCode: data.zipCode,
+      heightFeet: data.heightFeet.toString(),
+      heightInches: data.heightInches.toString(),
+      weight: data.weight.toString(),
+    });
+    setLocation(`/quote?${params.toString()}`);
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -141,6 +163,80 @@ export default function Home() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* QUICK QUOTE SECTION */}
+      <section className="py-20 bg-gradient-to-b from-[#fffaf3] to-[#f5f0e8]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                  ))}
+                </div>
+                <span className="text-gray-600 font-medium">4.9/5 from 2,500+ reviews</span>
+              </div>
+
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                Get your rate in <span className="text-heritage-primary">30 seconds</span>
+              </h2>
+
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Answer 3 quick questions and see your estimated rate instantly.
+                No contact info required until you're ready.
+              </p>
+
+              <div className="space-y-4 mb-8">
+                {[
+                  "Instant estimates - no waiting",
+                  "Compare multiple term lengths",
+                  "No medical exam for most applicants",
+                  "30-day money-back guarantee",
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Check className="w-4 h-4 text-green-600" />
+                    </div>
+                    <span className="text-gray-700">{item}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              <a
+                href="/quote"
+                className="inline-flex items-center gap-2 text-heritage-primary font-medium hover:underline"
+              >
+                Or start full application
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </motion.div>
+
+            {/* Right: Quick Quote Widget */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <QuickQuoteWidget variant="hero" onGetFullQuote={handleQuickQuoteComplete} />
+            </motion.div>
           </div>
         </div>
       </section>
@@ -505,44 +601,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <motion.section
-        className="bg-[#f5f0e8] py-24"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={fadeInUp}
-      >
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">What Our Clients Say</h2>
-            <p className="text-lg text-gray-600">Real stories from families we've helped protect.</p>
-          </div>
+      {/* TESTIMONIALS - New Enhanced Version */}
+      <Testimonials variant="carousel" />
 
-          <motion.div
-            className="grid md:grid-cols-3 gap-8"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {testimonials.map((testimonial, i) => (
-              <motion.div
-                key={i}
-                variants={fadeInUp}
-                className="bg-[#fffaf3] rounded-2xl p-8 shadow-sm border border-[#e8e0d5]"
-              >
-                <Quote className="w-10 h-10 text-heritage-accent mb-4" />
-                <p className="text-gray-700 mb-6 leading-relaxed">{testimonial.quote}</p>
-                <div>
-                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-sm text-gray-500">{testimonial.location}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </motion.section>
+      {/* TRUST INDICATORS */}
+      <TrustIndicators variant="full" />
 
       {/* FROM OUR LEADERSHIP */}
       <section className="bg-[#fffaf3] py-24">
