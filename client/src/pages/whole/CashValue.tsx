@@ -125,22 +125,9 @@ export default function CashValue() {
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-heritage-primary rounded-xl text-center mb-4">
-                  <p className="text-white/80 text-sm">Projected Cash Value</p>
+                <div className="mt-6 p-4 bg-heritage-primary rounded-xl text-center">
+                  <p className="text-white/80 text-sm">Projected Cash Value at Year {years}</p>
                   <p className="text-4xl font-bold text-white">${calculateCashValue(years).toLocaleString()}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-100 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-500">Total Premiums Paid</p>
-                    <p className="text-lg font-bold text-gray-700">${(monthlyPremium * 12 * years).toLocaleString()}</p>
-                  </div>
-                  <div className="bg-gray-100 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-500">Cash Value %</p>
-                    <p className="text-lg font-bold text-heritage-accent">
-                      {Math.round((calculateCashValue(years) / (monthlyPremium * 12 * years)) * 100)}%
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
