@@ -41,9 +41,9 @@ const trustBadges = [
 
 // Stats
 const stats = [
-  { value: "50,000+", label: "Families Protected" },
+  { value: "1,000+", label: "Families Protected" },
   { value: "4.9/5", label: "Customer Rating" },
-  { value: "$2B+", label: "Coverage Issued" },
+  { value: "$1M+", label: "Coverage Issued" },
   { value: "10 min", label: "Avg. Approval Time" },
 ];
 

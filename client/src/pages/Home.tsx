@@ -524,7 +524,7 @@ export default function Home() {
           </div>
       </section>
 
-      {/* ANNUITIES PROMO 1 - Before FAQs */}
+      {/* ANNUITIES PROMO 1 */}
       <section className="bg-[#f5f0e8] py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="bg-heritage-primary rounded-3xl overflow-hidden">
@@ -547,56 +547,6 @@ export default function Home() {
                 {/* Image will be added here later */}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faqs" className="bg-[#fffaf3] py-32">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-16 text-center">FAQs</h2>
-          <div className="space-y-2">
-            {[
-              {
-                question: "What is Heritage?",
-                answer: "Heritage is a simple way to get clarity and direction when life gets complicated—especially when policies, paperwork, or decisions feel unclear."
-              },
-              {
-                question: "Is this legal advice or financial advice?",
-                answer: "Heritage gives practical guidance and decision structure. If your situation requires legal or tax counsel, we'll tell you what to ask and when to bring in a professional."
-              },
-              {
-                question: "What kinds of situations do you help with?",
-                answer: "Marriage, family changes, business decisions, job changes, moving, planning, protection, and anything involving \"what applies to me?\""
-              },
-              {
-                question: "How long does it take?",
-                answer: "Most people get clarity in minutes—and a plan they can follow right away."
-              },
-              {
-                question: "Do I have to talk to someone?",
-                answer: "No. You can do everything digitally. If you want help from a real person, that option is available."
-              },
-              {
-                question: "Is this private?",
-                answer: "Yes. Your situation stays yours."
-              }
-            ].map((faq, index) => (
-              <div key={index} className="border-b border-gray-200">
-                <button
-                  onClick={() => toggleFaq(index)}
-                  className="w-full text-left py-6 flex items-center justify-between hover:opacity-70 transition-opacity"
-                >
-                  <span className="text-xl font-semibold text-gray-900 pr-8">{faq.question}</span>
-                  <span className="text-3xl text-gray-400 flex-shrink-0">{openFaq === index ? '−' : '+'}</span>
-                </button>
-                {openFaq === index && (
-                  <div className="pb-6">
-                    <p className="text-lg text-gray-600 leading-relaxed">{faq.answer}</p>
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -664,6 +614,56 @@ export default function Home() {
               </div>
               <p className="text-center text-sm text-gray-500 mt-4">Watch our story</p>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faqs" className="bg-[#fffaf3] py-32">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-16 text-center">FAQs</h2>
+          <div className="space-y-2">
+            {[
+              {
+                question: "What is Heritage?",
+                answer: "Heritage is a life insurance agency that makes it easy to protect your family. We help you find the right coverage at the best price—no confusing jargon, no pushy sales tactics."
+              },
+              {
+                question: "Do I need a medical exam?",
+                answer: "Most of our policies don't require one. Answer a few health questions online and you could be approved the same day."
+              },
+              {
+                question: "How much coverage do I need?",
+                answer: "A good rule of thumb is 10-12x your annual income. Our quote tool helps you figure out the right amount based on your situation."
+              },
+              {
+                question: "How long does it take to get covered?",
+                answer: "Most people complete the application in about 10 minutes. Many get approved instantly or within 24 hours."
+              },
+              {
+                question: "Can I talk to a real person?",
+                answer: "Absolutely. You can do everything online, but our licensed agents are available by phone if you have questions or want guidance."
+              },
+              {
+                question: "What if I change my mind?",
+                answer: "No problem. You have 30 days to cancel for a full refund, no questions asked."
+              }
+            ].map((faq, index) => (
+              <div key={index} className="border-b border-gray-200">
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className="w-full text-left py-6 flex items-center justify-between hover:opacity-70 transition-opacity"
+                >
+                  <span className="text-xl font-semibold text-gray-900 pr-8">{faq.question}</span>
+                  <span className="text-3xl text-gray-400 flex-shrink-0">{openFaq === index ? '−' : '+'}</span>
+                </button>
+                {openFaq === index && (
+                  <div className="pb-6">
+                    <p className="text-lg text-gray-600 leading-relaxed">{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>

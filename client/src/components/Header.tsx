@@ -59,10 +59,7 @@ export default function Header() {
                     <a href="/life-insurance/term" className="font-semibold text-heritage-primary hover:underline block mb-2">Term Life</a>
                     <div className="space-y-1">
                       <a href="/life-insurance/term/coverage-calculator" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Coverage Calculator</a>
-                      <a href="/life-insurance/term/term-lengths" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Term Lengths Explained</a>
                       <a href="/life-insurance/term/no-exam" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">No-Exam Options</a>
-                      <a href="/life-insurance/term/conversion" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Converting to Permanent</a>
-                      <a href="/life-insurance/term/return-of-premium" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
                     </div>
                   </div>
 
@@ -71,10 +68,6 @@ export default function Header() {
                     <a href="/life-insurance/whole" className="font-semibold text-heritage-primary hover:underline block mb-2">Whole Life</a>
                     <div className="space-y-1">
                       <a href="/life-insurance/whole/cash-value" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Cash Value Explained</a>
-                      <a href="/life-insurance/whole/dividends" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Dividends & Participating</a>
-                      <a href="/life-insurance/whole/policy-loans" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Policy Loans</a>
-                      <a href="/life-insurance/whole/estate-planning" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Estate Planning</a>
-                      <a href="/life-insurance/whole/paid-up-additions" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Paid-Up Additions</a>
                     </div>
                   </div>
 
@@ -82,10 +75,7 @@ export default function Header() {
                   <div>
                     <a href="/life-insurance/final-expense" className="font-semibold text-heritage-primary hover:underline block mb-2">Final Expense</a>
                     <div className="space-y-1">
-                      <a href="/life-insurance/final-expense/guaranteed-issue" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Guaranteed Issue</a>
-                      <a href="/life-insurance/final-expense/simplified-issue" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Simplified Issue</a>
-                      <a href="/life-insurance/final-expense/graded-benefits" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Graded vs. Immediate</a>
-                      <a href="/life-insurance/final-expense/pre-planning" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Pre-Planning Guide</a>
+                      <a href="/life-insurance/final-expense/guaranteed-issue" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Guaranteed Acceptance</a>
                       <a href="/life-insurance/final-expense/seniors" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Coverage for Seniors</a>
                     </div>
                   </div>
@@ -94,10 +84,7 @@ export default function Header() {
                   <div>
                     <a href="/life-insurance/mortgage-protection" className="font-semibold text-heritage-primary hover:underline block mb-2">Mortgage Protection</a>
                     <div className="space-y-1">
-                      <a href="/life-insurance/mortgage-protection/decreasing-vs-level" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Decreasing vs. Level</a>
-                      <a href="/life-insurance/mortgage-protection/return-of-premium" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
                       <a href="/life-insurance/mortgage-protection/living-benefits" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Living Benefits</a>
-                      <a href="/life-insurance/mortgage-protection/joint-coverage" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Joint Coverage</a>
                       <a href="/life-insurance/mortgage-protection/new-homeowners" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">New Homeowners</a>
                     </div>
                   </div>
@@ -106,11 +93,7 @@ export default function Header() {
                   <div>
                     <a href="/life-insurance/iul" className="font-semibold text-heritage-primary hover:underline block mb-2">IUL</a>
                     <div className="space-y-1">
-                      <a href="/life-insurance/iul/index-crediting" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Index Crediting</a>
-                      <a href="/life-insurance/iul/caps-and-floors" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Caps, Floors & Rates</a>
                       <a href="/life-insurance/iul/retirement-income" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">IUL for Retirement</a>
-                      <a href="/life-insurance/iul/max-funding" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Max Funding Strategies</a>
-                      <a href="/life-insurance/iul/index-options" className="block text-sm text-gray-600 hover:text-heritage-primary py-1">Index Options</a>
                     </div>
                   </div>
                 </div>
@@ -274,10 +257,7 @@ export default function Header() {
             <a href="/life-insurance/term" className="font-semibold text-heritage-primary block mb-2">Term Life Insurance</a>
             <div className="pl-4 space-y-1 text-sm">
               <a href="/life-insurance/term/coverage-calculator" className="block text-gray-600 hover:text-heritage-primary py-1">Coverage Calculator</a>
-              <a href="/life-insurance/term/term-lengths" className="block text-gray-600 hover:text-heritage-primary py-1">Term Lengths Explained</a>
               <a href="/life-insurance/term/no-exam" className="block text-gray-600 hover:text-heritage-primary py-1">No-Exam Options</a>
-              <a href="/life-insurance/term/conversion" className="block text-gray-600 hover:text-heritage-primary py-1">Converting to Permanent</a>
-              <a href="/life-insurance/term/return-of-premium" className="block text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
             </div>
           </div>
 
@@ -286,10 +266,6 @@ export default function Header() {
             <a href="/life-insurance/whole" className="font-semibold text-heritage-primary block mb-2">Whole Life Insurance</a>
             <div className="pl-4 space-y-1 text-sm">
               <a href="/life-insurance/whole/cash-value" className="block text-gray-600 hover:text-heritage-primary py-1">Cash Value Explained</a>
-              <a href="/life-insurance/whole/dividends" className="block text-gray-600 hover:text-heritage-primary py-1">Dividends & Participating</a>
-              <a href="/life-insurance/whole/policy-loans" className="block text-gray-600 hover:text-heritage-primary py-1">Policy Loans</a>
-              <a href="/life-insurance/whole/estate-planning" className="block text-gray-600 hover:text-heritage-primary py-1">Estate Planning</a>
-              <a href="/life-insurance/whole/paid-up-additions" className="block text-gray-600 hover:text-heritage-primary py-1">Paid-Up Additions</a>
             </div>
           </div>
 
@@ -297,10 +273,7 @@ export default function Header() {
           <div className="py-2">
             <a href="/life-insurance/final-expense" className="font-semibold text-heritage-primary block mb-2">Final Expense</a>
             <div className="pl-4 space-y-1 text-sm">
-              <a href="/life-insurance/final-expense/guaranteed-issue" className="block text-gray-600 hover:text-heritage-primary py-1">Guaranteed Issue</a>
-              <a href="/life-insurance/final-expense/simplified-issue" className="block text-gray-600 hover:text-heritage-primary py-1">Simplified Issue</a>
-              <a href="/life-insurance/final-expense/graded-benefits" className="block text-gray-600 hover:text-heritage-primary py-1">Graded vs. Immediate</a>
-              <a href="/life-insurance/final-expense/pre-planning" className="block text-gray-600 hover:text-heritage-primary py-1">Pre-Planning Guide</a>
+              <a href="/life-insurance/final-expense/guaranteed-issue" className="block text-gray-600 hover:text-heritage-primary py-1">Guaranteed Acceptance</a>
               <a href="/life-insurance/final-expense/seniors" className="block text-gray-600 hover:text-heritage-primary py-1">Coverage for Seniors</a>
             </div>
           </div>
@@ -309,10 +282,7 @@ export default function Header() {
           <div className="py-2">
             <a href="/life-insurance/mortgage-protection" className="font-semibold text-heritage-primary block mb-2">Mortgage Protection</a>
             <div className="pl-4 space-y-1 text-sm">
-              <a href="/life-insurance/mortgage-protection/decreasing-vs-level" className="block text-gray-600 hover:text-heritage-primary py-1">Decreasing vs. Level</a>
-              <a href="/life-insurance/mortgage-protection/return-of-premium" className="block text-gray-600 hover:text-heritage-primary py-1">Return of Premium</a>
               <a href="/life-insurance/mortgage-protection/living-benefits" className="block text-gray-600 hover:text-heritage-primary py-1">Living Benefits</a>
-              <a href="/life-insurance/mortgage-protection/joint-coverage" className="block text-gray-600 hover:text-heritage-primary py-1">Joint Coverage</a>
               <a href="/life-insurance/mortgage-protection/new-homeowners" className="block text-gray-600 hover:text-heritage-primary py-1">New Homeowners</a>
             </div>
           </div>
@@ -321,11 +291,7 @@ export default function Header() {
           <div className="py-2">
             <a href="/life-insurance/iul" className="font-semibold text-heritage-primary block mb-2">IUL (Indexed Universal Life)</a>
             <div className="pl-4 space-y-1 text-sm">
-              <a href="/life-insurance/iul/index-crediting" className="block text-gray-600 hover:text-heritage-primary py-1">Index Crediting</a>
-              <a href="/life-insurance/iul/caps-and-floors" className="block text-gray-600 hover:text-heritage-primary py-1">Caps, Floors & Rates</a>
               <a href="/life-insurance/iul/retirement-income" className="block text-gray-600 hover:text-heritage-primary py-1">IUL for Retirement</a>
-              <a href="/life-insurance/iul/max-funding" className="block text-gray-600 hover:text-heritage-primary py-1">Max Funding Strategies</a>
-              <a href="/life-insurance/iul/index-options" className="block text-gray-600 hover:text-heritage-primary py-1">Index Options</a>
             </div>
           </div>
 
