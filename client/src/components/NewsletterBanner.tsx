@@ -17,16 +17,18 @@ export default function NewsletterBanner() {
   });
 
   useEffect(() => {
-    const dismissed = localStorage.getItem("newsletter-dismissed");
-    const subscribed = localStorage.getItem("newsletter-subscribed");
-    if (!dismissed && !subscribed) {
-      setIsVisible(true);
-    }
+    // Temporarily force visible for testing - remove localStorage check
+    setIsVisible(true);
+    // const dismissed = localStorage.getItem("newsletter-dismissed");
+    // const subscribed = localStorage.getItem("newsletter-subscribed");
+    // if (!dismissed && !subscribed) {
+    //   setIsVisible(true);
+    // }
   }, []);
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem("newsletter-dismissed", "true");
+    // localStorage.setItem("newsletter-dismissed", "true"); // Disabled for testing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
