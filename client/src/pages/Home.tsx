@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWidget";
 import TrustIndicators from "@/components/TrustIndicators";
 import Testimonials from "@/components/Testimonials";
+import NewsletterBanner from "@/components/NewsletterBanner";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -71,6 +72,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#fffaf3]">
+      <NewsletterBanner />
       <Header />
 
       {/* HERO SECTION - Ethos Style with Rounded Container */}
