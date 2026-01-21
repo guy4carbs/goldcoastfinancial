@@ -12,13 +12,13 @@ import Footer from "@/components/Footer";
 export default function CashValue() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [monthlyPremium, setMonthlyPremium] = useState(300);
-  const [years, setYears] = useState(20);
+  const [age, setAge] = useState(35);
 
-  const calculateCashValue = (yr: number) => {
+  const calculateCashValue = (years: number) => {
     const annualPremium = monthlyPremium * 12;
-    const totalPremiums = annualPremium * yr;
-    const efficiency = yr < 10 ? 0.35 + (yr * 0.04) : 0.6 + ((yr - 10) * 0.025);
-    const growthMultiplier = Math.pow(1.045, yr);
+    const totalPremiums = annualPremium * years;
+    const efficiency = years < 10 ? 0.35 + (years * 0.04) : 0.6 + ((years - 10) * 0.025);
+    const growthMultiplier = Math.pow(1.045, years);
     return Math.round(totalPremiums * efficiency * growthMultiplier);
   };
 
@@ -84,50 +84,60 @@ export default function CashValue() {
                     <Calculator className="w-6 h-6 text-heritage-primary" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Cash Value Calculator</h3>
-                    <p className="text-sm text-gray-500">See your potential growth</p>
+                    <h3 className="font-bold text-gray-900">See Your Cash Value Grow</h3>
+                    <p className="text-sm text-gray-500">Estimate your policy value</p>
                   </div>
                 </div>
 
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Monthly Premium: <span className="text-heritage-primary font-bold">${monthlyPremium}</span>
+                      Age: <span className="text-heritage-primary font-bold">{age}</span>
                     </label>
                     <input
                       type="range"
-                      min="100"
-                      max="1000"
-                      step="50"
-                      value={monthlyPremium}
-                      onChange={(e) => setMonthlyPremium(parseInt(e.target.value))}
+                      min="25"
+                      max="60"
+                      value={age}
+                      onChange={(e) => setAge(parseInt(e.target.value))}
                       className="w-full accent-heritage-primary"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Time Horizon</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[10, 15, 20, 25].map((yr) => (
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Premium</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[200, 300, 500].map((amount) => (
                         <button
-                          key={yr}
-                          onClick={() => setYears(yr)}
+                          key={amount}
+                          onClick={() => setMonthlyPremium(amount)}
                           className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                            years === yr
+                            monthlyPremium === amount
                               ? 'bg-heritage-primary text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                         >
-                          {yr} yrs
+                          ${amount}/mo
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-heritage-primary rounded-xl text-center">
-                  <p className="text-white/80 text-sm">Projected Cash Value at Year {years}</p>
-                  <p className="text-4xl font-bold text-white">${calculateCashValue(years).toLocaleString()}</p>
+                <div className="mt-6 p-4 bg-heritage-primary rounded-xl text-center mb-4">
+                  <p className="text-white/80 text-sm">Projected Cash Value at Age 65</p>
+                  <p className="text-4xl font-bold text-white">${calculateCashValue(65 - age).toLocaleString()}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-100 rounded-lg p-3 text-center">
+                    <p className="text-xs text-gray-500">Cash Value Year 10</p>
+                    <p className="text-lg font-bold text-heritage-primary">${calculateCashValue(10).toLocaleString()}</p>
+                  </div>
+                  <div className="bg-gray-100 rounded-lg p-3 text-center">
+                    <p className="text-xs text-gray-500">Cash Value Year 20</p>
+                    <p className="text-lg font-bold text-heritage-accent">${calculateCashValue(20).toLocaleString()}</p>
+                  </div>
                 </div>
               </div>
             </div>
