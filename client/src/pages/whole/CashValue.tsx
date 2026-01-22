@@ -11,13 +11,10 @@ import {
   Phone,
   Shield,
   TrendingUp,
-  PiggyBank,
   CreditCard,
   Lock,
   DollarSign,
-  Award,
-  Clock,
-  ArrowRight
+  Award
 } from "lucide-react";
 
 const fadeInUp = {
@@ -410,8 +407,13 @@ export default function CashValue() {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-heritage-primary/10 to-heritage-accent/10 flex items-center justify-center">
-                <PiggyBank className="w-32 h-32 text-heritage-primary/30" />
+              <div className="aspect-video rounded-2xl overflow-hidden shadow-xl bg-gray-900">
+                <video
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769052278309-Cash%20Value%20Video.mp4?alt=media&token=f008c5b1-6686-46a6-a927-e426217a9047"
+                  controls
+                  className="w-full h-full object-cover"
+                  poster=""
+                />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
