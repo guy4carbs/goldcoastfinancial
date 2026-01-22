@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
+import { Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MapSelector from "@/components/MapSelector";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -286,44 +287,35 @@ export default function Contact() {
                 Stop by our headquarters in Naperville. We'd love to meet you in person.
               </p>
 
-              {/* Map Placeholder */}
-              <div className="h-64 bg-[#e8e0d5] rounded-2xl mb-8 overflow-hidden relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="w-12 h-12 text-[#d4ccc0] mx-auto mb-2" />
-                    <p className="text-[#b8b0a4] font-medium">Map Placeholder</p>
-                  </div>
-                </div>
+              {/* Google Map Embed */}
+              <div className="h-64 rounded-2xl mb-8 overflow-hidden shadow-lg">
+                <iframe
+                  src="https://maps.google.com/maps?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Heritage Life Solutions Office Location"
+                />
               </div>
 
               {/* Address Card */}
               <div className="bg-white rounded-2xl p-8 border border-[#e8e0d5]">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-heritage-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-heritage-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Heritage Life Solutions</h3>
-                    <a
-                      href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 leading-relaxed hover:text-heritage-primary transition-colors block"
-                    >
-                      1240 Iroquois Ave<br />
-                      Suite 506<br />
-                      Naperville, IL 60563
-                    </a>
-                    <a
-                      href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-4 text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"
-                    >
-                      Get Directions →
-                    </a>
-                  </div>
-                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Heritage Life Solutions</h3>
+                <MapSelector className="block mb-4">
+                  <span className="text-gray-600 leading-relaxed hover:text-heritage-primary transition-colors cursor-pointer">
+                    1240 Iroquois Ave<br />
+                    Suite 506<br />
+                    Naperville, IL 60563
+                  </span>
+                </MapSelector>
+                <MapSelector>
+                  <span className="text-heritage-primary font-semibold hover:text-heritage-accent transition-colors cursor-pointer">
+                    Get Directions →
+                  </span>
+                </MapSelector>
               </div>
             </motion.div>
           </div>
