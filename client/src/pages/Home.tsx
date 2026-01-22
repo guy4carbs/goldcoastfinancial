@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { Check, X, Clock, Shield, FileText, DollarSign, MessageCircle, Send, Quote, ArrowRight, Star } from "lucide-react";
+import { Check, X, Clock, Shield, FileText, DollarSign, MessageCircle, Send, ArrowRight, Star, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -48,6 +48,16 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayVideo = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.play();
+      setIsVideoPlaying(true);
+    }
+  };
 
   // Handle widget completion - redirect to quote page with data
   const handleQuickQuoteComplete = (data: QuickQuoteData) => {
@@ -316,9 +326,26 @@ export default function Home() {
       <section className="bg-[#f5f0e8] py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Image Placeholder */}
-            <div className="hidden lg:block h-[500px] bg-[#e8e0d5] rounded-3xl">
-              {/* Image will be added here later */}
+            {/* Left Video */}
+            <div className="hidden lg:block h-[500px] bg-gray-900 rounded-3xl overflow-hidden relative">
+              <video
+                ref={videoRef}
+                src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769056902708-Family%20Future%20Protected.mp4?alt=media&token=1b984fa6-f024-4f9d-b26b-9f096ee01454"
+                controls={isVideoPlaying}
+                playsInline
+                className="w-full h-full object-cover"
+                onEnded={() => setIsVideoPlaying(false)}
+              />
+              {!isVideoPlaying && (
+                <button
+                  onClick={handlePlayVideo}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors cursor-pointer group"
+                >
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Play className="w-8 h-8 text-heritage-primary ml-1" fill="currentColor" />
+                  </div>
+                </button>
+              )}
             </div>
 
             {/* Right Content */}
