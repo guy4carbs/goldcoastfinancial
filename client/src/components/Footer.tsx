@@ -24,7 +24,7 @@ export default function Footer() {
               </div>
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Email</p>
-                <a href="mailto:info@heritagels.com" className="hover:text-heritage-primary">info@heritagels.com</a>
+                <a href="mailto:contact@heritagels.org" className="hover:text-heritage-primary">contact@heritagels.org</a>
               </div>
               <div className="flex gap-3 pt-2">
                 <a
