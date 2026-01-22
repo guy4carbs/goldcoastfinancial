@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
@@ -14,7 +14,8 @@ import {
   CreditCard,
   Lock,
   DollarSign,
-  Award
+  Award,
+  Play
 } from "lucide-react";
 
 const fadeInUp = {
@@ -35,32 +36,16 @@ export default function CashValue() {
   const [monthlyPremium, setMonthlyPremium] = useState(300);
   const [years, setYears] = useState(20);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Autoplay video when 50% comes into view
-  useEffect(() => {
+  const handlePlayVideo = () => {
     const video = videoRef.current;
-    if (!video) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            video.play().catch(() => {
-              // Autoplay was prevented, user will need to click
-            });
-          } else {
-            video.pause();
-          }
-        });
-      },
-      { threshold: 0.5 } // Trigger when 50% visible
-    );
-
-    observer.observe(video);
-
-    return () => observer.disconnect();
-  }, []);
+    if (video) {
+      video.play();
+      setIsPlaying(true);
+    }
+  };
 
   const calculateCashValue = (yr: number) => {
     const annualPremium = monthlyPremium * 12;
@@ -433,15 +418,25 @@ export default function CashValue() {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="aspect-video rounded-2xl overflow-hidden shadow-xl bg-gray-900">
+              <div className="aspect-video rounded-2xl overflow-hidden shadow-xl bg-gray-900 relative">
                 <video
                   ref={videoRef}
                   src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769052278309-Cash%20Value%20Video.mp4?alt=media&token=f008c5b1-6686-46a6-a927-e426217a9047"
-                  controls
-                  muted
+                  controls={isPlaying}
                   playsInline
                   className="w-full h-full object-cover"
+                  onEnded={() => setIsPlaying(false)}
                 />
+                {!isPlaying && (
+                  <button
+                    onClick={handlePlayVideo}
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors cursor-pointer group"
+                  >
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="w-8 h-8 text-heritage-primary ml-1" fill="currentColor" />
+                    </div>
+                  </button>
+                )}
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
