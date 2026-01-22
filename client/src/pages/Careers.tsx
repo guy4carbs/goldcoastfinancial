@@ -264,12 +264,36 @@ export default function Careers() {
               className="hidden lg:grid grid-cols-2 gap-4"
             >
               <div className="space-y-4">
-                <div className="h-48 bg-[#e8e0d5] rounded-2xl"></div>
-                <div className="h-64 bg-[#e8e0d5] rounded-2xl"></div>
+                <div className="h-48 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769123483407-diverse-professional-group-stockcake.webp?alt=media&token=671e517e-235b-41dd-a0e3-f3a5afd12a5e"
+                    alt="Diverse professional team"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="h-64 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769123487684-professional-team-portrait-stockcake.webp?alt=media&token=0969c578-7e21-4d1e-9d1d-853359851c2e"
+                    alt="Professional team portrait"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
               <div className="space-y-4 pt-8">
-                <div className="h-64 bg-[#e8e0d5] rounded-2xl"></div>
-                <div className="h-48 bg-[#e8e0d5] rounded-2xl"></div>
+                <div className="h-64 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769123491729-istockphoto-171303489-612x612.jpg?alt=media&token=244f2892-560f-4676-9185-fcb7adc77224"
+                    alt="Team collaboration"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="h-48 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769123495841-corporate-team-march-stockcake.webp?alt=media&token=aa088542-af93-4491-8ca1-d86e7ec0385b"
+                    alt="Corporate team"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             </motion.div>
           </div>
