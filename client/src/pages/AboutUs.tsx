@@ -74,8 +74,12 @@ export default function AboutUs() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="hidden lg:block"
             >
-              <div className="h-[500px] bg-white/10 rounded-3xl overflow-hidden">
-                {/* Image placeholder - team or office photo */}
+              <div className="h-[500px] rounded-3xl overflow-hidden">
+                <img
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769118677833-cozy-family-moment-stockcake.webp?alt=media&token=0ab78a73-d3ed-44d3-ad5c-1f80e78695a3"
+                  alt="Family moment"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </motion.div>
           </div>
