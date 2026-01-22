@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminImages from "@/pages/AdminImages";
+import AdminVideos from "@/pages/AdminVideos";
 import AdminProducts from "@/pages/AdminProducts";
 import AdminLogin from "@/pages/AdminLogin";
 import RiskStrategy from "@/pages/RiskStrategy";
@@ -170,6 +171,11 @@ function Router() {
         <Route path="/admin/images">
           <ProtectedRoute>
             <AdminImages />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/videos">
+          <ProtectedRoute>
+            <AdminVideos />
           </ProtectedRoute>
         </Route>
         <Route path="/admin/products">

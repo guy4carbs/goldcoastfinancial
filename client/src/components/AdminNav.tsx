@@ -1,4 +1,4 @@
-import { Image, Package, LogOut, LayoutDashboard } from "lucide-react";
+import { Image, Video, Package, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -16,6 +16,11 @@ export default function AdminNav() {
       label: "Images",
       path: "/admin/images",
       icon: Image,
+    },
+    {
+      label: "Videos",
+      path: "/admin/videos",
+      icon: Video,
     },
     {
       label: "Products",
