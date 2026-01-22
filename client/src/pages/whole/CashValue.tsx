@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
@@ -35,6 +35,32 @@ export default function CashValue() {
   const [monthlyPremium, setMonthlyPremium] = useState(300);
   const [years, setYears] = useState(20);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Autoplay video when 50% comes into view
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {
+              // Autoplay was prevented, user will need to click
+            });
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 } // Trigger when 50% visible
+    );
+
+    observer.observe(video);
+
+    return () => observer.disconnect();
+  }, []);
 
   const calculateCashValue = (yr: number) => {
     const annualPremium = monthlyPremium * 12;
@@ -409,10 +435,12 @@ export default function CashValue() {
             >
               <div className="aspect-video rounded-2xl overflow-hidden shadow-xl bg-gray-900">
                 <video
+                  ref={videoRef}
                   src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769052278309-Cash%20Value%20Video.mp4?alt=media&token=f008c5b1-6686-46a6-a927-e426217a9047"
                   controls
+                  muted
+                  playsInline
                   className="w-full h-full object-cover"
-                  poster=""
                 />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
