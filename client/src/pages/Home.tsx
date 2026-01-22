@@ -20,9 +20,9 @@ const staggerContainer = {
 };
 
 const carriers = [
-  "Mutual of Omaha", "Prudential", "Lincoln Financial", "Nationwide",
-  "Principal", "Transamerica", "John Hancock", "Protective",
-  "American General", "Pacific Life", "Securian", "Ameritas"
+  "Americo", "Athene", "Baltimore Life", "Corebridge",
+  "Mutual of Omaha", "Ethos", "Royal Neighbors", "Transamerica",
+  "American Home Life", "Polish Falcons", "Ladder", "Lincoln Financial"
 ];
 
 const testimonials = [
