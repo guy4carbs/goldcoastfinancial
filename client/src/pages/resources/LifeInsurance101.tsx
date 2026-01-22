@@ -151,7 +151,7 @@ export default function LifeInsurance101() {
       id: 4,
       title: "Understanding Premiums",
       icon: CircleDollarSign,
-      duration: "5 min"
+      duration: "4 min"
     },
     {
       id: 5,
@@ -795,7 +795,37 @@ export default function LifeInsurance101() {
       case 4:
         return (
           <>
-            <VideoPlaceholder title="How Life Insurance Premiums Are Calculated" />
+            {/* Understanding Premiums Video */}
+            <div className="relative bg-gray-900 rounded-2xl overflow-hidden mb-8 aspect-video">
+              <video
+                ref={videoRef}
+                src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769112336022-Decoding%20Life%20Insurance%20Premiums.mp4?alt=media&token=e2b8f9dd-773e-4b2e-bb8f-21424b0e5257"
+                controls={isVideoPlaying}
+                playsInline
+                className="w-full h-full object-cover"
+                onEnded={() => setIsVideoPlaying(false)}
+              />
+              {!isVideoPlaying && (
+                <button
+                  onClick={handlePlayVideo}
+                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-black/20" />
+                  <div className="relative z-10 text-center">
+                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <Play className="w-10 h-10 text-white ml-1" />
+                    </div>
+                    <p className="text-white font-semibold text-lg">How Life Insurance Premiums Are Calculated</p>
+                    <p className="text-white/70 text-sm mt-1">Click to play video</p>
+                  </div>
+                  <div className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                    <span className="text-white text-sm flex items-center gap-1">
+                      <Video className="w-4 h-4" /> 2:29
+                    </span>
+                  </div>
+                </button>
+              )}
+            </div>
 
             <div className="prose max-w-none">
               <p className="text-lg text-gray-700 leading-relaxed mb-6">
