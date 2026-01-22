@@ -221,12 +221,36 @@ export default function MeetFounders() {
               className="hidden lg:grid grid-cols-2 gap-4"
             >
               <div className="space-y-4">
-                <div className="h-48 bg-[#e8e0d5] rounded-2xl"></div>
-                <div className="h-64 bg-[#e8e0d5] rounded-2xl"></div>
+                <div className="h-48 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122237030-professional-team-engaging-business-meeting-modern-office-natural-lighting-formal-boardroom-setting-diverse-389420977.webp?alt=media&token=92dc80e1-264b-4845-b18c-5ce6188584b7"
+                    alt="Team meeting"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="h-64 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122242731-teamwork-in-office-stockcake.webp?alt=media&token=55283b53-edf9-47c6-bb6d-4179f5651bfa"
+                    alt="Teamwork in office"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
               <div className="space-y-4 pt-8">
-                <div className="h-64 bg-[#e8e0d5] rounded-2xl"></div>
-                <div className="h-48 bg-[#e8e0d5] rounded-2xl"></div>
+                <div className="h-64 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122249768-team-meeting-discussion-stockcake.webp?alt=media&token=5e7a7f50-8cc3-43df-91bc-038c97c2205b"
+                    alt="Team discussion"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="h-48 rounded-2xl overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122253257-diverse-office-team-engaging-discussions-using-computer-equipment-collaborating-bright-contemporary-workspace-359424668.webp?alt=media&token=556b33fd-2231-4171-884a-c1274587e1d2"
+                    alt="Diverse team collaborating"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             </motion.div>
           </div>
