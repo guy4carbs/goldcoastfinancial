@@ -567,7 +567,7 @@ export default function GuaranteedIssue() {
             >
               <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
                 <img
-                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80"
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769116290684-caretech-26.jpg?alt=media&token=efa35480-86c0-4696-86c3-3c6dc788cdb3"
                   alt="Senior couple at peace"
                   className="w-full h-full object-cover"
                 />
