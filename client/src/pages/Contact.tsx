@@ -304,15 +304,13 @@ export default function Contact() {
               {/* Address Card */}
               <div className="bg-white rounded-2xl p-8 border border-[#e8e0d5]">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Heritage Life Solutions</h3>
-                <MapSelector className="block mb-4">
-                  <span className="text-gray-600 leading-relaxed hover:text-heritage-primary transition-colors cursor-pointer">
+                <MapSelector className="block">
+                  <span className="text-gray-600 leading-relaxed hover:text-heritage-primary transition-colors cursor-pointer block">
                     1240 Iroquois Ave<br />
                     Suite 506<br />
                     Naperville, IL 60563
                   </span>
-                </MapSelector>
-                <MapSelector>
-                  <span className="text-heritage-primary font-semibold hover:text-heritage-accent transition-colors cursor-pointer">
+                  <span className="text-heritage-primary font-semibold hover:text-heritage-accent transition-colors cursor-pointer inline-block mt-4">
                     Get Directions →
                   </span>
                 </MapSelector>
