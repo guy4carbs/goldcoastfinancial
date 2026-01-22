@@ -571,9 +571,13 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Right Image Placeholder */}
-              <div className="hidden lg:block h-[500px] bg-[#fffaf3]/5">
-                {/* Image will be added here later */}
+              {/* Right Image */}
+              <div className="hidden lg:block h-[500px] overflow-hidden">
+                <img
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769115619375-7.17.24-2024-pension-research-council-symposium-retirement-GettyImages-1453972025-900x612.avif?alt=media&token=cbedfb8a-13e2-4905-926d-10cb77857375"
+                  alt="Retirement planning"
+                  className="w-full h-full object-cover object-center"
+                />
               </div>
             </div>
           </div>
