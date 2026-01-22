@@ -300,16 +300,6 @@ export default function GuaranteedIssue() {
                   <p className="text-xs opacity-75 mt-2">*Actual rates may vary by state and carrier</p>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <div className="flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-amber-800">Graded Benefit Period</p>
-                      <p className="text-xs text-amber-700 mt-1">Full death benefit available after 2-3 year waiting period</p>
-                    </div>
-                  </div>
-                </div>
-
                 <Link href="/quote">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
