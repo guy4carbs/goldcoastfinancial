@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
@@ -10,17 +10,14 @@ import {
   ChevronDown,
   Award,
   ArrowRight,
-  Calculator,
   TrendingUp,
   Banknote,
   Receipt,
-  PiggyBank,
   Calendar,
   CheckCircle,
   Phone,
   DollarSign,
-  Users,
-  Clock
+  Play
 } from "lucide-react";
 
 const fadeInUp = {
@@ -42,6 +39,16 @@ export default function RetirementIncome() {
   const [currentAge, setCurrentAge] = useState(40);
   const [retirementAge, setRetirementAge] = useState(65);
   const [annualContribution, setAnnualContribution] = useState(20000);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayVideo = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.play();
+      setIsPlaying(true);
+    }
+  };
 
   const yearsToRetirement = retirementAge - currentAge;
   const yearsOfIncome = 25;
@@ -467,12 +474,25 @@ export default function RetirementIncome() {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80"
-                  alt="Professional planning retirement"
+              <div className="aspect-video rounded-2xl overflow-hidden shadow-xl bg-gray-900 relative">
+                <video
+                  ref={videoRef}
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769052699418-IUL%20Video.mp4?alt=media&token=36f881d5-41fb-409d-8f0f-cb23fada786f"
+                  controls={isPlaying}
+                  playsInline
                   className="w-full h-full object-cover"
+                  onEnded={() => setIsPlaying(false)}
                 />
+                {!isPlaying && (
+                  <button
+                    onClick={handlePlayVideo}
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors cursor-pointer group"
+                  >
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="w-8 h-8 text-heritage-primary ml-1" fill="currentColor" />
+                    </div>
+                  </button>
+                )}
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
