@@ -122,7 +122,7 @@ export default function LifeInsurance101() {
       id: 0,
       title: "What Is Life Insurance?",
       icon: Shield,
-      duration: "5 min"
+      duration: "3 min"
     },
     {
       id: 1,
@@ -264,7 +264,7 @@ export default function LifeInsurance101() {
                   </div>
                   <div className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
                     <span className="text-white text-sm flex items-center gap-1">
-                      <Video className="w-4 h-4" /> 1:45
+                      <Video className="w-4 h-4" /> 2:33
                     </span>
                   </div>
                 </button>
