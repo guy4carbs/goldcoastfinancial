@@ -722,7 +722,7 @@ export default function Seniors() {
             >
               <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
                 <img
-                  src="https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?auto=format&fit=crop&w=800&q=80"
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769116558696-istockphoto-1980166648-612x612.jpg?alt=media&token=ab5c2ab3-c0d9-46a2-9b29-db9dc20bd608"
                   alt="Senior couple"
                   className="w-full h-full object-cover"
                 />
