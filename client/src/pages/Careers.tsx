@@ -398,7 +398,7 @@ export default function Careers() {
               We're always looking for talented people. Send us your resume and tell us how you can contribute to our mission.
             </p>
             <a
-              href="mailto:careers@heritagels.com"
+              href="mailto:careers@heritagels.org"
               className="inline-block bg-heritage-primary hover:bg-heritage-dark text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               Send Your Resume

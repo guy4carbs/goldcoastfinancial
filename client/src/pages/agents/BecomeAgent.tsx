@@ -436,10 +436,10 @@ export default function BecomeAgent() {
               </a>
               <span className="hidden sm:block text-gray-300">|</span>
               <a
-                href="mailto:careers@heritagels.com"
+                href="mailto:careers@heritagels.org"
                 className="flex items-center justify-center gap-2 text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"
               >
-                <Mail className="w-5 h-5" /> careers@heritagels.com
+                <Mail className="w-5 h-5" /> careers@heritagels.org
               </a>
             </div>
           </motion.div>
