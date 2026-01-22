@@ -206,8 +206,12 @@ export default function AboutUs() {
               transition={{ duration: 0.6 }}
               className="hidden lg:block"
             >
-              <div className="h-[450px] bg-[#e8e0d5] rounded-3xl overflow-hidden">
-                {/* Image placeholder - advisor with family */}
+              <div className="h-[450px] rounded-3xl overflow-hidden">
+                <img
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769121863109-Springbok-Website-Photos-43-2.png?alt=media&token=120c4164-321e-4572-b672-76b77154d4cc"
+                  alt="Heritage advisor with family"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </motion.div>
 
