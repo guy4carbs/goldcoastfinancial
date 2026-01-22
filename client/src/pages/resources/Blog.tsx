@@ -17,7 +17,10 @@ import {
   User,
   ChevronRight,
   Sparkles,
-  History
+  History,
+  Mail,
+  Send,
+  CheckCircle
 } from "lucide-react";
 
 const fadeInUp = {
@@ -1780,41 +1783,64 @@ export default function Blog() {
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-16 bg-heritage-primary">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-heritage-primary to-heritage-primary/90 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-heritage-accent/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="max-w-2xl mx-auto text-center"
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Stay Informed
+            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Mail className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Get Smarter About Insurance
             </h2>
-            <p className="text-white/80 mb-8">
-              Get the latest insurance tips and guides delivered to your inbox.
+            <p className="text-xl text-white/80 mb-8">
+              Join thousands of families receiving weekly tips, guides, and insights to protect what matters most.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-heritage-accent"
-              />
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+              <div className="flex-1 relative">
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-5 py-4 rounded-xl outline-none focus:ring-2 focus:ring-heritage-accent text-gray-900 placeholder-gray-500"
+                />
+              </div>
               <motion.button
                 type="submit"
                 disabled={isSubscribing}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-heritage-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-heritage-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-heritage-accent text-white px-8 py-4 rounded-xl font-semibold hover:bg-heritage-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isSubscribing ? "Subscribing..." : "Subscribe"}
+                {isSubscribing ? "Subscribing..." : (
+                  <>
+                    Subscribe <Send className="w-4 h-4" />
+                  </>
+                )}
               </motion.button>
             </form>
-            <p className="text-white/60 text-sm mt-4">
-              No spam, ever. Unsubscribe anytime.
-            </p>
+            <div className="flex items-center justify-center gap-6 mt-6 text-white/60 text-sm">
+              <span className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" /> Free forever
+              </span>
+              <span className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" /> No spam
+              </span>
+              <span className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" /> Unsubscribe anytime
+              </span>
+            </div>
           </motion.div>
         </div>
       </section>
