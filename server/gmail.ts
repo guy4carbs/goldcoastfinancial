@@ -1,55 +1,23 @@
 import { google } from 'googleapis';
 
-let connectionSettings: any;
+// Create OAuth2 client using environment variables
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'https://developers.google.com/oauthplayground'
+);
 
-async function getAccessToken() {
-  // Always fetch fresh credentials to ensure we use the currently connected account
-  connectionSettings = null;
-  
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  
-  if (!hostname) {
-    console.log('Gmail integration: REPLIT_CONNECTORS_HOSTNAME not available');
-    throw new Error('Gmail connector not available in this environment');
+// Set the refresh token from environment
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+});
+
+async function getGmailClient() {
+  // Check if credentials are configured
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
+    console.log('Gmail integration: Missing Google OAuth credentials in environment');
+    throw new Error('Gmail not configured - missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
   }
-  
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    console.log('Gmail integration: Neither REPL_IDENTITY nor WEB_REPL_RENEWAL available');
-    console.log('Available env vars:', Object.keys(process.env).filter(k => k.includes('REPL')).join(', '));
-    throw new Error('Gmail connector token not found - ensure connector is linked to deployment');
-  }
-
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-mail',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
-
-  if (!connectionSettings || !accessToken) {
-    throw new Error('Gmail not connected');
-  }
-  return accessToken;
-}
-
-async function getUncachableGmailClient() {
-  const accessToken = await getAccessToken();
-
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({
-    access_token: accessToken
-  });
 
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
@@ -72,11 +40,11 @@ export async function sendContactNotification(data: {
   phone?: string;
   message: string;
 }) {
-  const gmail = await getUncachableGmailClient();
+  const gmail = await getGmailClient();
   
   const subject = `New Contact Form Submission from ${data.firstName} ${data.lastName}`;
   const body = `
-New contact form submission from Gold Coast Financial website:
+New contact form submission from Heritage Life Solutions website:
 
 Name: ${data.firstName} ${data.lastName}
 Email: ${data.email}
@@ -86,14 +54,15 @@ Message:
 ${data.message}
 
 ---
-This message was sent from the Gold Coast Financial website contact form.
+This message was sent from the Heritage Life Solutions website contact form.
   `.trim();
 
   const message = [
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: contact@goldcoastfnl.com`,
+    `From: Heritage Life Solutions <contact@heritagels.org>`,
+    `To: contact@heritagels.org`,
     `Reply-To: ${data.email}`,
     `Subject: ${subject}`,
     '',
@@ -123,7 +92,7 @@ export async function sendPortalMessage(data: {
   message: string;
   priority?: 'normal' | 'high';
 }) {
-  const gmail = await getUncachableGmailClient();
+  const gmail = await getGmailClient();
   
   const priorityPrefix = data.priority === 'high' ? '[URGENT] ' : '';
   const fullSubject = `${priorityPrefix}Portal Message: ${data.subject}`;
@@ -186,42 +155,48 @@ export async function sendQuoteNotification(data: {
   birthDate: string;
   medicalBackground: string;
 }) {
-  const gmail = await getUncachableGmailClient();
+  const gmail = await getGmailClient();
   
-  const subject = `New Quote Request from ${data.firstName} ${data.lastName} - ${data.coverageType}`;
+  const subject = `New Quote Request: ${data.coverageType} - ${data.firstName} ${data.lastName}`;
   const body = `
-New quote request from Gold Coast Financial website:
+NEW QUOTE REQUEST
+Heritage Life Solutions Website
 
-CONTACT INFORMATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONTACT INFORMATION
 Name: ${data.firstName} ${data.lastName}
 Email: ${data.email}
 Phone: ${data.phone}
 
-ADDRESS:
+ADDRESS
 ${data.streetAddress}${data.addressLine2 ? `\n${data.addressLine2}` : ''}
 ${data.city}, ${data.state} ${data.zipCode}
 
-INSURANCE DETAILS:
-Type: ${data.coverageType}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COVERAGE REQUEST
+Product Type: ${data.coverageType}
 Coverage Amount: ${data.coverageAmount}
 
-HEALTH INFORMATION:
+CLIENT PROFILE
+Date of Birth: ${data.birthDate}
 Height: ${data.height}
 Weight: ${data.weight}
-Date of Birth: ${data.birthDate}
 
-MEDICAL & PRESCRIPTION BACKGROUND:
+MEDICAL & PRESCRIPTION BACKGROUND
 ${data.medicalBackground}
 
----
-This quote request was submitted from the Gold Coast Financial website.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Submitted via Heritage Life Solutions website
   `.trim();
 
   const message = [
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: contact@goldcoastfnl.com`,
+    `From: Heritage Life Solutions <contact@heritagels.org>`,
+    `To: contact@heritagels.org`,
     `Reply-To: ${data.email}`,
     `Subject: ${subject}`,
     '',
@@ -252,7 +227,7 @@ export async function sendMeetingNotification(data: {
   topic: string;
   message?: string;
 }) {
-  const gmail = await getUncachableGmailClient();
+  const gmail = await getGmailClient();
   
   const meetingTypeLabels: Record<string, string> = {
     'video': 'Video Call (Google Meet or Zoom)',
@@ -333,11 +308,11 @@ export async function sendJobApplicationNotification(data: {
   hasLicense?: string;
   resumeFileName?: string;
 }) {
-  const gmail = await getUncachableGmailClient();
+  const gmail = await getGmailClient();
   
   const subject = `New Job Application: ${data.position} - ${data.firstName} ${data.lastName}`;
   const body = `
-New job application submitted on Gold Coast Financial website:
+New job application submitted on Heritage Life Solutions website:
 
 APPLICANT INFORMATION:
 Name: ${data.firstName} ${data.lastName}
@@ -351,18 +326,19 @@ Resume: ${data.resumeFileName || 'Not uploaded'}
 EXPERIENCE:
 ${data.experience}
 
-WHY GOLD COAST FINANCIAL:
+WHY HERITAGE LIFE SOLUTIONS:
 ${data.whyJoinUs}
 
 ---
-This application was submitted from the Gold Coast Financial careers page.
+This application was submitted from the Heritage Life Solutions careers page.
   `.trim();
 
   const emailMessage = [
     'Content-Type: text/plain; charset="UTF-8"',
     'MIME-Version: 1.0',
     'Content-Transfer-Encoding: 7bit',
-    `To: applications@goldcoastfnl.com`,
+    `From: Heritage Life Solutions Careers <careers@heritagels.org>`,
+    `To: careers@heritagels.org`,
     `Reply-To: ${data.email}`,
     `Subject: ${subject}`,
     '',

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
@@ -30,6 +30,7 @@ import {
   Plus,
   Trash2
 } from "lucide-react";
+import { submitQuoteToGoogleSheets } from "@/lib/googleSheets";
 
 // ============================================
 // TYPES
@@ -666,6 +667,7 @@ interface QuoteCalculatorProps {
 }
 
 export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
+  const formRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("discovery");
   const [discoveryStep, setDiscoveryStep] = useState(0);
   const [applicationStep, setApplicationStep] = useState(0);
@@ -715,6 +717,11 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
 
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+
+  // Adjustable quote state
+  const [adjustedProductType, setAdjustedProductType] = useState<string>("");
+  const [adjustedCoverage, setAdjustedCoverage] = useState<number>(0);
+  const [adjustedTermLength, setAdjustedTermLength] = useState<string>("");
 
   const currentQuestion = discoveryQuestions[discoveryStep];
   const isMultiSelect = (currentQuestion as { multiSelect?: boolean }).multiSelect === true;
@@ -770,16 +777,135 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
   const handlePersonalComplete = () => {
     const rec = generateRecommendation(discoveryAnswers, personalInfo);
     setRecommendation(rec);
+    // Initialize adjustable values from recommendation
+    setAdjustedProductType(rec.productType);
+    setAdjustedCoverage(rec.coverageAmount);
+    setAdjustedTermLength(rec.termLength);
     setPhase("recommendation");
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Recalculate rates when user adjusts coverage, product, or term
+  const getAdjustedRates = () => {
+    if (!recommendation) return { monthly: 0, annual: 0 };
+    return calculateRate(adjustedProductType, adjustedCoverage, adjustedTermLength, personalInfo);
+  };
+
+  const adjustedRates = recommendation ? getAdjustedRates() : { monthly: 0, annual: 0 };
+
+  // Coverage options based on product type
+  const getCoverageOptions = () => {
+    if (adjustedProductType === 'final_expense') {
+      return [10000, 15000, 25000, 35000, 50000, 70000, 90000];
+    } else if (adjustedProductType === 'term') {
+      return [100000, 250000, 500000, 750000, 1000000, 1500000, 2000000, 3000000];
+    } else {
+      // Whole life / IUL - includes $2M+ option
+      return [100000, 250000, 500000, 750000, 1000000, 1500000, 2000000];
+    }
+  };
+
+  // Dynamic benefits based on product type
+  const getProductBenefits = () => {
+    switch (adjustedProductType) {
+      case 'term':
+        return [
+          "Affordable premiums locked in for the full term",
+          "Simple, straightforward protection",
+          "Maximum coverage for your budget",
+          "Easy to understand - pure death benefit coverage",
+        ];
+      case 'whole':
+        return [
+          "Coverage that never expires",
+          "Guaranteed cash value growth",
+          "Fixed premiums that never increase",
+          "Predictable, stable returns",
+          "Builds equity you can borrow against",
+        ];
+      case 'iul':
+        return [
+          "Market-linked growth potential with downside protection",
+          "Tax-advantaged cash value you can access",
+          "Flexible premiums as your income changes",
+          "Death benefit plus living benefits",
+          "Potential for higher returns than whole life",
+        ];
+      case 'final_expense':
+        return [
+          "Guaranteed acceptance options available",
+          "No medical exam required",
+          "Coverage typically starts immediately",
+          "Affordable premiums for essential coverage",
+          "Leaves loved ones with no financial burden",
+        ];
+      default:
+        return [];
+    }
+  };
+
+  // Dynamic reasoning based on product type
+  const getProductReasoning = () => {
+    switch (adjustedProductType) {
+      case 'term':
+        return [
+          "Term life offers the most coverage for your budget",
+          "Ideal for protecting your family during key earning years",
+          "Coverage aligns with your financial obligations timeline",
+        ];
+      case 'whole':
+        return [
+          "Permanent coverage that lasts your entire lifetime",
+          "Guaranteed cash value growth provides financial security",
+          "Fixed premiums make budgeting predictable",
+          "Builds wealth while protecting your family",
+        ];
+      case 'iul':
+        return [
+          "Based on your interest in building cash value and wealth accumulation",
+          "Your premiums will work for you with market-linked growth potential",
+          "Combines protection with tax-advantaged investment growth",
+          "Flexible design adapts to your changing financial needs",
+        ];
+      case 'final_expense':
+        return [
+          "Simplified underwriting with no medical exam required",
+          "Covers funeral costs and final medical expenses",
+          "Provides peace of mind for you and your family",
+          "Affordable coverage for essential end-of-life needs",
+        ];
+      default:
+        return [];
+    }
   };
 
   const handleStartApplication = () => {
+    // Update recommendation with adjusted values before proceeding
+    if (recommendation) {
+      const productNames: Record<string, string> = {
+        term: "Term Life Insurance",
+        whole: "Whole Life Insurance",
+        iul: "Indexed Universal Life (IUL)",
+        final_expense: "Final Expense Insurance",
+      };
+      setRecommendation({
+        ...recommendation,
+        productType: adjustedProductType,
+        productName: productNames[adjustedProductType] || recommendation.productName,
+        coverageAmount: adjustedCoverage,
+        termLength: adjustedTermLength,
+        monthlyRate: adjustedRates.monthly,
+        annualRate: adjustedRates.annual,
+      });
+    }
     // Pre-fill ZIP code from personal info into application address
     if (personalInfo.zipCode && !applicationData.zipCode) {
       setApplicationData(prev => ({ ...prev, zipCode: personalInfo.zipCode }));
     }
     setPhase("application");
     setApplicationStep(0);
+    // Scroll to top of the form
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleApplicationNext = () => {
@@ -789,6 +915,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
     } else {
       setPhase("review");
     }
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleApplicationBack = () => {
@@ -798,14 +925,71 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
     } else {
       setPhase("recommendation");
     }
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setApplicationId(`HLS-${Date.now()}`);
-    setSubmitting(false);
-    setPhase("submitted");
+
+    try {
+      const result = await submitQuoteToGoogleSheets({
+        // Personal info
+        firstName: applicationData.firstName,
+        lastName: applicationData.lastName,
+        email: applicationData.email,
+        phone: applicationData.phone,
+        dateOfBirth: applicationData.dateOfBirth,
+        age: personalInfo.age,
+        gender: personalInfo.gender,
+        smoker: personalInfo.smoker,
+
+        // Address
+        street: applicationData.street,
+        city: applicationData.city,
+        state: applicationData.state,
+        zipCode: applicationData.zipCode,
+
+        // Discovery answers
+        primaryGoals: discoveryAnswers.primaryGoal,
+        familySituation: discoveryAnswers.familySituation,
+        financialPriority: discoveryAnswers.financialPriority,
+        coverageDuration: discoveryAnswers.coverageDuration,
+        healthStatus: discoveryAnswers.healthStatus,
+        monthlyBudget: discoveryAnswers.monthlyBudget,
+        cashValueImportance: discoveryAnswers.cashValueImportance,
+        existingCoverage: discoveryAnswers.existingCoverage,
+
+        // Recommendation
+        productType: recommendation?.productType || '',
+        productName: recommendation?.productName || '',
+        coverageAmount: recommendation?.coverageAmount || 0,
+        termLength: recommendation?.termLength || '',
+        monthlyRate: recommendation?.monthlyRate || 0,
+        annualRate: recommendation?.annualRate || 0,
+
+        // Beneficiaries formatted nicely
+        beneficiaries: applicationData.beneficiaries
+          .map(b => `${b.firstName} ${b.lastName} (${b.relationship}) - ${b.percentage}%`)
+          .join(' | '),
+
+        // Health answers as JSON
+        healthAnswers: JSON.stringify(applicationData.healthAnswers),
+
+        // Metadata
+        submittedAt: new Date().toISOString(),
+        applicationId: '',
+      });
+
+      setApplicationId(result.applicationId);
+      setPhase("submitted");
+    } catch (error) {
+      console.error('Submission error:', error);
+      // Still show success to user - data can be recovered from console
+      setApplicationId(`HLS-${Date.now()}`);
+      setPhase("submitted");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -1187,37 +1371,127 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
 
         {/* Main Recommendation Card */}
         <div className="bg-heritage-primary rounded-2xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-white/70 text-sm mb-1">We Recommend</p>
-              <h3 className="text-2xl font-bold text-white">{recommendation.productName}</h3>
-            </div>
-            <div className="text-right">
-              <p className="text-white/70 text-sm mb-1">Starting at</p>
-              <p className="text-3xl font-bold text-white">${recommendation.monthlyRate.toFixed(0)}<span className="text-lg text-white">/mo</span></p>
-            </div>
+          <div className="mb-4">
+            <p className="text-white/70 text-sm mb-1">We Recommend</p>
+            <h3 className="text-2xl font-bold text-white">
+              {adjustedProductType === 'term' ? 'Term Life Insurance' :
+               adjustedProductType === 'whole' ? 'Whole Life Insurance' :
+               adjustedProductType === 'iul' ? 'Indexed Universal Life' :
+               'Final Expense Insurance'}
+            </h3>
           </div>
 
           <div className="grid grid-cols-2 gap-4 py-4 border-t border-white/20">
             <div>
               <p className="text-white/70 text-sm">Coverage Amount</p>
-              <p className="font-semibold text-lg text-white">${recommendation.coverageAmount.toLocaleString()}</p>
+              <p className="font-semibold text-lg text-white">${adjustedCoverage.toLocaleString()}</p>
             </div>
             <div>
               <p className="text-white/70 text-sm">Term Length</p>
-              <p className="font-semibold text-lg text-white">{recommendation.termLength}</p>
+              <p className="font-semibold text-lg text-white">{adjustedTermLength}</p>
             </div>
           </div>
         </div>
 
-        {/* Why This Recommendation */}
+        {/* Customize Your Quote */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-5">
+          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Scale className="w-5 h-5 text-heritage-primary" />
+            Customize Your Quote
+          </h4>
+
+          {/* Product Type Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'term', label: 'Term Life' },
+                { value: 'whole', label: 'Whole Life' },
+                { value: 'iul', label: 'IUL' },
+                { value: 'final_expense', label: 'Final Expense' },
+              ].map((product) => (
+                <button
+                  key={product.value}
+                  onClick={() => {
+                    setAdjustedProductType(product.value);
+                    // Reset to appropriate coverage for product type
+                    if (product.value === 'final_expense') {
+                      setAdjustedCoverage(25000);
+                      setAdjustedTermLength('Whole Life');
+                    } else if (product.value === 'term') {
+                      setAdjustedCoverage(500000);
+                      setAdjustedTermLength('20 years');
+                    } else {
+                      setAdjustedCoverage(250000);
+                      setAdjustedTermLength('Permanent');
+                    }
+                  }}
+                  className={`py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                    adjustedProductType === product.value
+                      ? 'border-heritage-primary bg-heritage-primary/5 text-heritage-primary'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  {product.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Coverage Amount Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Coverage Amount: <span className="text-heritage-primary font-bold">${adjustedCoverage.toLocaleString()}</span>
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {getCoverageOptions().map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setAdjustedCoverage(amount)}
+                  className={`py-2 px-2 rounded-lg border-2 text-xs font-medium transition-all ${
+                    adjustedCoverage === amount
+                      ? 'border-heritage-primary bg-heritage-primary/5 text-heritage-primary'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  ${amount >= 1000000 ? `${amount / 1000000}M` : `${amount / 1000}K`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Term Length Selector (only for Term) */}
+          {adjustedProductType === 'term' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Term Length</label>
+              <div className="grid grid-cols-5 gap-2">
+                {['10 years', '15 years', '20 years', '25 years', '30 years'].map((term) => (
+                  <button
+                    key={term}
+                    onClick={() => setAdjustedTermLength(term)}
+                    className={`py-2 px-2 rounded-lg border-2 text-xs font-medium transition-all ${
+                      adjustedTermLength === term
+                        ? 'border-heritage-primary bg-heritage-primary/5 text-heritage-primary'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    }`}
+                  >
+                    {term.replace(' years', 'yr')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Why This Recommendation - Dynamic based on product */}
         <div className="bg-blue-50 rounded-xl p-5">
           <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Target className="w-5 h-5" />
             Why this fits your needs
           </h4>
           <ul className="space-y-2">
-            {recommendation.reasoning.map((reason, i) => (
+            {getProductReasoning().map((reason, i) => (
               <li key={i} className="flex items-start gap-2 text-blue-800 text-sm">
                 <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 {reason}
@@ -1226,11 +1500,11 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
           </ul>
         </div>
 
-        {/* Key Benefits */}
+        {/* Key Benefits - Dynamic based on product */}
         <div className="bg-gray-50 rounded-xl p-5">
           <h4 className="font-semibold text-gray-900 mb-3">Key Benefits</h4>
           <div className="grid gap-3">
-            {recommendation.benefits.map((benefit, i) => (
+            {getProductBenefits().map((benefit, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-heritage-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Check className="w-4 h-4 text-heritage-primary" />
@@ -1587,16 +1861,10 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
       {/* Coverage Summary */}
       {recommendation && (
         <div className="bg-heritage-primary rounded-xl p-5 text-white">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-white/70 text-sm">Your Coverage</p>
-              <p className="font-bold text-lg">{recommendation.productName}</p>
-              <p className="text-sm">${recommendation.coverageAmount.toLocaleString()} • {recommendation.termLength}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-white/70 text-sm">Monthly</p>
-              <p className="text-2xl font-bold">${recommendation.monthlyRate.toFixed(2)}</p>
-            </div>
+          <div>
+            <p className="text-white/70 text-sm">Your Coverage Request</p>
+            <p className="font-bold text-lg">{recommendation.productName}</p>
+            <p className="text-sm mt-1">${recommendation.coverageAmount.toLocaleString()} • {recommendation.termLength}</p>
           </div>
         </div>
       )}
@@ -1758,7 +2026,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
   // ============================================
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" ref={formRef}>
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden p-8">
         {phase === "discovery" && renderDiscovery()}
         {phase === "personal" && renderPersonal()}

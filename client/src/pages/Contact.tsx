@@ -22,8 +22,8 @@ const contactMethods = [
     icon: Mail,
     title: "Email Us",
     description: "We'll respond within 24 hours",
-    value: "info@heritagels.com",
-    link: "mailto:info@heritagels.com"
+    value: "contact@heritagels.org",
+    link: "mailto:contact@heritagels.org"
   },
   {
     icon: Clock,
@@ -57,11 +57,37 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Include subject in message for the API
+      const messageWithSubject = formData.subject
+        ? `[${formData.subject.toUpperCase()}]\n\n${formData.message}`
+        : formData.message;
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const response = await fetch('/api/contact-messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone || '',
+          message: messageWithSubject,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      alert('There was an error sending your message. Please try again or call us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

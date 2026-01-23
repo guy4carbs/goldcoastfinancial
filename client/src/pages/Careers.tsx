@@ -151,11 +151,36 @@ export default function Careers() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch('/api/job-applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          position: selectedPosition?.title || 'General Application',
+          linkedIn: formData.linkedin || null,
+          experience: formData.message,
+          whyJoinUs: formData.message,
+          hasLicense: false,
+        }),
+      });
 
-    setIsSubmitting(false);
-    setModalStep("book");
+      if (!response.ok) {
+        throw new Error('Failed to submit application');
+      }
+
+      setModalStep("book");
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      alert('There was an error submitting your application. Please try again or email us directly at careers@heritagels.org');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -634,7 +659,7 @@ export default function Careers() {
                     </p>
 
                     <a
-                      href="https://calendly.com/heritagels"
+                      href="https://calendly.com/careers-heritagels/30min"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-3 w-full bg-heritage-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors mb-6"
@@ -647,8 +672,8 @@ export default function Careers() {
                       <Mail className="w-4 h-4" />
                       <span className="text-sm">
                         Questions? Email us at{" "}
-                        <a href="mailto:applications@heritagels.com" className="text-heritage-primary hover:underline">
-                          applications@heritagels.com
+                        <a href="mailto:careers@heritagels.org" className="text-heritage-primary hover:underline">
+                          careers@heritagels.org
                         </a>
                       </span>
                     </div>

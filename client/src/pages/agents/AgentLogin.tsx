@@ -21,15 +21,12 @@ export default function AgentLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user, login } = useAuth();
+  const { user, login, logout } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      setLocation("/agents/lounge");
-    }
-  }, [user, setLocation]);
+  const handleSignOut = async () => {
+    await logout();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +72,32 @@ export default function AgentLogin() {
               transition={{ delay: 0.1 }}
               className="bg-white rounded-2xl p-8 shadow-xl"
             >
+              {user ? (
+                <div className="text-center space-y-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <Lock className="w-8 h-8 text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">You're already signed in</h2>
+                    <p className="text-gray-600 text-sm">{user.email}</p>
+                  </div>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => setLocation("/agents/lounge")}
+                      className="w-full bg-heritage-primary hover:bg-heritage-primary/90 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
+                    >
+                      Go to Agent Lounge <ArrowRight className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 rounded-xl font-semibold"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+              <>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
                   <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
@@ -165,6 +188,8 @@ export default function AgentLogin() {
                   </Link>
                 </p>
               </div>
+              </>
+              )}
             </motion.div>
 
             {/* Help Section */}
@@ -187,11 +212,11 @@ export default function AgentLogin() {
                   <span className="text-sm font-medium">(630) 778-0800</span>
                 </a>
                 <a
-                  href="mailto:support@heritagels.com"
+                  href="mailto:support@heritagels.org"
                   className="flex items-center justify-center gap-2 text-heritage-primary hover:text-heritage-accent transition-colors"
                 >
                   <Mail className="w-4 h-4" />
-                  <span className="text-sm font-medium">support@heritagels.com</span>
+                  <span className="text-sm font-medium">support@heritagels.org</span>
                 </a>
               </div>
             </motion.div>

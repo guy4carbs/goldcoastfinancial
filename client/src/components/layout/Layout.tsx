@@ -156,7 +156,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <li><Link href="/client-login" className="hover:text-white transition-colors cursor-pointer">Client Portal</Link></li>
                 <li><Link href="/careers" className="hover:text-white transition-colors cursor-pointer">Careers</Link></li>
                 <li><Link href="/heritage" className="hover:text-white transition-colors cursor-pointer">Heritage Life Solutions</Link></li>
-                <li><Link href="/agent-login" className="hover:text-white transition-colors cursor-pointer">Agent Lounge</Link></li>
+                <li><Link href="/agents/login" className="hover:text-white transition-colors cursor-pointer">Agent Lounge</Link></li>
                 <li><Link href="/exec-login" className="hover:text-white transition-colors cursor-pointer">Executive Dashboard</Link></li>
               </ul>
             </div>

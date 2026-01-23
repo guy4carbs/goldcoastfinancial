@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -17,7 +17,9 @@ import {
   Zap,
   Heart,
   Phone,
-  Mail
+  Mail,
+  Calendar,
+  X
 } from "lucide-react";
 
 export default function BecomeAgent() {
@@ -30,11 +32,52 @@ export default function BecomeAgent() {
     licensed: "",
     message: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted:", formData);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/job-applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          position: 'Insurance Agent',
+          linkedIn: null,
+          experience: formData.experience || 'Not specified',
+          whyJoinUs: formData.message || 'Agent application from Become an Agent page',
+          hasLicense: formData.licensed === 'yes',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit application');
+      }
+
+      setShowSuccessModal(true);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        experience: "",
+        licensed: "",
+        message: ""
+      });
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      alert('There was an error submitting your application. Please try again or email us directly at careers@heritagels.org');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const benefits = [
@@ -397,11 +440,21 @@ export default function BecomeAgent() {
 
               <motion.button
                 type="submit"
+                disabled={isSubmitting}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
+                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 disabled:bg-heritage-accent/50 text-white py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
               >
-                Submit Application <ArrowRight className="w-5 h-5" />
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit Application <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </motion.button>
 
               <p className="text-center text-sm text-gray-500 mt-4">
@@ -447,6 +500,67 @@ export default function BecomeAgent() {
       </section>
 
       <Footer />
+
+      {/* Success Modal with Calendly */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl max-w-md w-full p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="text-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="w-10 h-10 text-green-500" />
+                </div>
+
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Received!</h3>
+                <p className="text-gray-600 mb-8 leading-relaxed">
+                  Thank you for your interest in joining Heritage. Complete your application by scheduling a call with our recruiting team.
+                </p>
+
+                <a
+                  href="https://calendly.com/careers-heritagels/30min"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-3 w-full bg-heritage-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors mb-6"
+                >
+                  <Calendar className="w-5 h-5" />
+                  Book Your 30-Minute Call
+                </a>
+
+                <div className="flex items-center justify-center gap-2 text-gray-500">
+                  <Mail className="w-4 h-4" />
+                  <span className="text-sm">
+                    Questions? Email us at{" "}
+                    <a href="mailto:careers@heritagels.org" className="text-heritage-primary hover:underline">
+                      careers@heritagels.org
+                    </a>
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
