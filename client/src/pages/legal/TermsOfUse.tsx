@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MapSelector from "@/components/MapSelector";
 import {
   FileText,
   ChevronRight,
@@ -360,20 +361,17 @@ export default function TermsOfUse() {
                   </p>
                   <div className="bg-gray-50 rounded-xl p-6">
                     <p className="font-semibold text-heritage-primary mb-2">Heritage Life Solutions, LLC</p>
-                    <a
-                      href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 text-sm hover:text-heritage-primary transition-colors block"
-                    >
-                      <p>1240 Iroquois Ave, Suite 506</p>
-                      <p>Naperville, IL 60563</p>
-                    </a>
+                    <MapSelector>
+                      <div className="text-gray-600 text-sm hover:text-heritage-primary transition-colors cursor-pointer">
+                        <p>1240 Iroquois Ave, Suite 506</p>
+                        <p>Naperville, IL 60563</p>
+                      </div>
+                    </MapSelector>
                     <p className="text-gray-600 text-sm mt-2">
                       Phone: <a href="tel:6307780800" className="text-heritage-primary hover:text-heritage-accent">(630) 778-0800</a>
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Email: <a href="mailto:legal@heritagels.com" className="text-heritage-primary hover:text-heritage-accent">legal@heritagels.com</a>
+                      Email: <a href="mailto:contact@heritagels.org" className="text-heritage-primary hover:text-heritage-accent">contact@heritagels.org</a>
                     </p>
                   </div>
                 </section>

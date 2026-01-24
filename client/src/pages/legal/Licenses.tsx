@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MapSelector from "@/components/MapSelector";
 import {
   Award,
   ChevronRight,
@@ -21,7 +22,7 @@ const companyInfo = {
   name: "Heritage Life Solutions, LLC",
   address: "1240 Iroquois Ave, Suite 506, Naperville, IL 60563",
   phone: "(630) 778-0800",
-  email: "info@heritagels.com",
+  email: "contact@heritagels.org",
   nationalProducerNumber: "12345678",
   homeState: "Illinois"
 };
@@ -158,14 +159,11 @@ export default function Licenses() {
                     <MapPin className="w-5 h-5 text-heritage-accent mt-0.5" />
                     <div>
                       <p className="font-medium text-heritage-primary">Business Address</p>
-                      <a
-                        href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 text-sm hover:text-heritage-primary transition-colors"
-                      >
-                        {companyInfo.address}
-                      </a>
+                      <MapSelector>
+                        <span className="text-gray-600 text-sm hover:text-heritage-primary transition-colors cursor-pointer">
+                          {companyInfo.address}
+                        </span>
+                      </MapSelector>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -387,11 +385,11 @@ export default function Licenses() {
                   (630) 778-0800
                 </a>
                 <a
-                  href="mailto:compliance@heritagels.com"
+                  href="mailto:contact@heritagels.org"
                   className="inline-flex items-center gap-2 text-heritage-primary hover:text-heritage-accent"
                 >
                   <Mail className="w-4 h-4" />
-                  compliance@heritagels.com
+                  contact@heritagels.org
                 </a>
               </div>
             </motion.div>

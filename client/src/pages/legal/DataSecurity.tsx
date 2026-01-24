@@ -340,7 +340,7 @@ export default function DataSecurity() {
                   <div className="bg-gray-50 rounded-xl p-6">
                     <p className="font-semibold text-heritage-primary mb-2">Heritage Life Solutions Security Team</p>
                     <p className="text-gray-600 text-sm">
-                      Email: <a href="mailto:security@heritagels.com" className="text-heritage-primary hover:text-heritage-accent">security@heritagels.com</a>
+                      Email: <a href="mailto:contact@heritagels.org" className="text-heritage-primary hover:text-heritage-accent">contact@heritagels.org</a>
                     </p>
                     <p className="text-gray-600 text-sm">
                       Phone: <a href="tel:6307780800" className="text-heritage-primary hover:text-heritage-accent">(630) 778-0800</a>

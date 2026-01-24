@@ -335,14 +335,14 @@ export default function Accessibility() {
                       </div>
                     </a>
                     <a
-                      href="mailto:accessibility@heritagels.com"
+                      href="mailto:contact@heritagels.org"
                       className="flex items-center gap-3 text-gray-600 hover:text-heritage-primary transition-colors"
                     >
                       <div className="w-10 h-10 bg-heritage-primary/10 rounded-lg flex items-center justify-center">
                         <Mail className="w-5 h-5 text-heritage-primary" />
                       </div>
                       <div>
-                        <p className="font-medium">accessibility@heritagels.com</p>
+                        <p className="font-medium">contact@heritagels.org</p>
                         <p className="text-sm text-gray-500">We respond within 2 business days</p>
                       </div>
                     </a>

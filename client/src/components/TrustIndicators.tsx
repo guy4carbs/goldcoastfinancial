@@ -7,12 +7,12 @@ interface TrustIndicatorsProps {
 
 // Carrier partner data
 const carrierPartners = [
-  { name: "Protective Life", rating: "A+" },
-  { name: "North American", rating: "A+" },
+  { name: "Royal Neighbors", rating: "A" },
+  { name: "Baltimore Life", rating: "A" },
+  { name: "Americo", rating: "A" },
   { name: "Transamerica", rating: "A" },
-  { name: "Lincoln Financial", rating: "A+" },
-  { name: "Pacific Life", rating: "A+" },
-  { name: "Nationwide", rating: "A+" },
+  { name: "Polish Falcons", rating: "A" },
+  { name: "Ethos", rating: "A" },
 ];
 
 // Trust badges

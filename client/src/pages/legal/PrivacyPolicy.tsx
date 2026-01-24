@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MapSelector from "@/components/MapSelector";
 import {
   Lock,
   ChevronRight,
@@ -282,8 +283,8 @@ export default function PrivacyPolicy() {
                   </ul>
                   <p className="text-gray-600">
                     To exercise your rights, contact us at{" "}
-                    <a href="mailto:privacy@heritagels.com" className="text-heritage-primary hover:text-heritage-accent">
-                      privacy@heritagels.com
+                    <a href="mailto:contact@heritagels.org" className="text-heritage-primary hover:text-heritage-accent">
+                      contact@heritagels.org
                     </a>{" "}
                     or visit our <Link href="/legal/do-not-sell" className="text-heritage-primary hover:text-heritage-accent">Do Not Sell My Info</Link> page.
                   </p>
@@ -298,8 +299,8 @@ export default function PrivacyPolicy() {
                     Our services are not directed to children under 18 years of age. We do not knowingly collect
                     personal information from children. If you believe we have collected information from a child,
                     please contact us immediately at{" "}
-                    <a href="mailto:privacy@heritagels.com" className="text-heritage-primary hover:text-heritage-accent">
-                      privacy@heritagels.com
+                    <a href="mailto:contact@heritagels.org" className="text-heritage-primary hover:text-heritage-accent">
+                      contact@heritagels.org
                     </a>.
                   </p>
                 </section>
@@ -340,20 +341,17 @@ export default function PrivacyPolicy() {
                   <div className="bg-gray-50 rounded-xl p-6">
                     <p className="font-semibold text-heritage-primary mb-2">Heritage Life Solutions, LLC</p>
                     <p className="text-gray-600 text-sm">Privacy Officer</p>
-                    <a
-                      href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 text-sm hover:text-heritage-primary transition-colors block"
-                    >
-                      <p>1240 Iroquois Ave, Suite 506</p>
-                      <p>Naperville, IL 60563</p>
-                    </a>
+                    <MapSelector>
+                      <div className="text-gray-600 text-sm hover:text-heritage-primary transition-colors cursor-pointer">
+                        <p>1240 Iroquois Ave, Suite 506</p>
+                        <p>Naperville, IL 60563</p>
+                      </div>
+                    </MapSelector>
                     <p className="text-gray-600 text-sm mt-2">
                       Phone: <a href="tel:6307780800" className="text-heritage-primary hover:text-heritage-accent">(630) 778-0800</a>
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Email: <a href="mailto:privacy@heritagels.com" className="text-heritage-primary hover:text-heritage-accent">privacy@heritagels.com</a>
+                      Email: <a href="mailto:contact@heritagels.org" className="text-heritage-primary hover:text-heritage-accent">contact@heritagels.org</a>
                     </p>
                   </div>
                 </section>

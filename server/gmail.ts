@@ -358,3 +358,60 @@ This application was submitted from the Heritage Life Solutions careers page.
     }
   });
 }
+
+export async function sendPrivacyRequestNotification(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  requestType: string;
+  message: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const requestTypeLabels: Record<string, string> = {
+    'do-not-sell': 'Do Not Sell',
+    'delete': 'Data Deletion',
+    'access': 'Data Access',
+    'correct': 'Data Correction'
+  };
+
+  const subject = `Privacy Request: ${requestTypeLabels[data.requestType] || data.requestType} - ${data.firstName} ${data.lastName}`;
+  const body = `
+PRIVACY REQUEST
+Heritage Life Solutions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${data.message}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Submitted via Heritage Life Solutions website
+Please respond within 45 days as required by law.
+  `.trim();
+
+  const privacyMessage = [
+    'Content-Type: text/plain; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: 7bit',
+    `From: Heritage Life Solutions Privacy <privacy@heritagels.org>`,
+    `To: privacy@heritagels.org`,
+    `Reply-To: ${data.email}`,
+    `Subject: ${subject}`,
+    '',
+    body
+  ].join('\n');
+
+  const encodedPrivacyMessage = Buffer.from(privacyMessage)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedPrivacyMessage
+    }
+  });
+}

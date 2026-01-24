@@ -37,8 +37,7 @@ const values = [
 ];
 
 const stats = [
-  { number: "15+", label: "Years of Experience" },
-  { number: "10,000+", label: "Families Protected" },
+  { number: "1,000+", label: "Families Protected" },
   { number: "40+", label: "Carrier Partners" },
   { number: "4.8", label: "Average Rating" }
 ];
@@ -105,7 +104,7 @@ export default function AboutUs() {
                 Our founders experienced this firsthand when trying to protect their own families. They knew there had to be a better way—a way that respected people's time, offered honest guidance, and made coverage accessible to everyone.
               </p>
               <p>
-                So in 2019, Heritage was born in Naperville, Illinois. We partnered with over 40 A-rated insurance carriers to offer real choices, built technology that delivers quotes in minutes instead of weeks, and assembled a team of licensed advisors who genuinely care about finding the right fit for each family.
+                So in 2025, Heritage was born in Naperville, Illinois. We partnered with over 40 A-rated insurance carriers to offer real choices, built technology that delivers quotes in minutes instead of weeks, and assembled a team of licensed advisors who genuinely care about finding the right fit for each family.
               </p>
               <p className="font-semibold text-gray-900">
                 Today, we've helped over 10,000 families secure their futures. But we're just getting started.
@@ -174,7 +173,7 @@ export default function AboutUs() {
       <section className="bg-[#f5f0e8] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="flex flex-wrap justify-center gap-12 md:gap-20"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"

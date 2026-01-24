@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MapSelector from "@/components/MapSelector";
 import {
   ShieldOff,
   ChevronRight,
@@ -37,11 +38,52 @@ export default function DoNotSell() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const requestTypeLabels: Record<string, string> = {
+        'do-not-sell': 'Do Not Sell My Personal Information',
+        'delete': 'Delete My Personal Information',
+        'access': 'Access My Personal Information',
+        'correct': 'Correct My Personal Information'
+      };
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const message = `PRIVACY REQUEST: ${requestTypeLabels[formData.requestType]}
+
+Reference: DNR-${Date.now().toString().slice(-8)}
+
+REQUESTOR INFORMATION:
+Name: ${formData.firstName} ${formData.lastName}
+Email: ${formData.email}
+Phone: ${formData.phone || 'Not provided'}
+
+Address: ${formData.address || 'Not provided'}
+${formData.city ? `${formData.city}, ` : ''}${formData.state || ''} ${formData.zip || ''}
+
+State of Residence: ${formData.state}
+
+Additional Information:
+${formData.additionalInfo || 'None provided'}`;
+
+      const response = await fetch('/api/privacy-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          requestType: formData.requestType,
+          message: message
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit request');
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting privacy request:', error);
+      alert('There was an error submitting your request. Please try again or email privacy@heritagels.org directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -449,8 +491,8 @@ export default function DoNotSell() {
                 </div>
                 <h3 className="font-bold text-heritage-primary mb-2">By Email</h3>
                 <p className="text-gray-600 text-sm mb-3">Email our privacy team</p>
-                <a href="mailto:privacy@heritagels.com" className="text-heritage-primary font-medium hover:text-heritage-accent">
-                  privacy@heritagels.com
+                <a href="mailto:privacy@heritagels.org" className="text-heritage-primary font-medium hover:text-heritage-accent">
+                  privacy@heritagels.org
                 </a>
               </motion.div>
 
@@ -466,15 +508,12 @@ export default function DoNotSell() {
                 </div>
                 <h3 className="font-bold text-heritage-primary mb-2">By Mail</h3>
                 <p className="text-gray-600 text-sm mb-3">Send written request to:</p>
-                <a
-                  href="https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-heritage-primary transition-colors block"
-                >
-                  1240 Iroquois Ave, Suite 506<br />
-                  Naperville, IL 60563
-                </a>
+                <MapSelector>
+                  <span className="text-sm text-gray-600 hover:text-heritage-primary transition-colors block cursor-pointer">
+                    1240 Iroquois Ave, Suite 506<br />
+                    Naperville, IL 60563
+                  </span>
+                </MapSelector>
               </motion.div>
             </div>
 

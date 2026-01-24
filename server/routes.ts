@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification } from "./gmail";
+import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification } from "./gmail";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -331,6 +331,38 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error creating job application:", error);
       res.status(500).json({ error: "Failed to submit application" });
+    }
+  });
+
+  // Privacy request submission
+  app.post("/api/privacy-requests", async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, requestType, message } = req.body;
+
+      if (!firstName || !lastName || !email || !requestType || !message) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Send email notification
+      try {
+        console.log("Attempting to send privacy request notification email...");
+        await sendPrivacyRequestNotification({
+          firstName,
+          lastName,
+          email,
+          phone: phone || undefined,
+          requestType,
+          message
+        });
+        console.log("Privacy request notification email sent successfully");
+      } catch (emailError: any) {
+        console.error("Error sending privacy request notification email:", emailError?.message || emailError);
+      }
+
+      res.status(201).json({ success: true, message: "Privacy request submitted" });
+    } catch (error: any) {
+      console.error("Error submitting privacy request:", error);
+      res.status(500).json({ error: "Failed to submit privacy request" });
     }
   });
 

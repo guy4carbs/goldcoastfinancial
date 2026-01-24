@@ -220,8 +220,17 @@
 .animate-marquee-slow {
   display: flex;
   flex-shrink: 0;
-  animation: scroll-left 40s linear infinite;
+  animation: marquee-scroll 55s linear infinite;
   will-change: transform;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }
 
 .animate-marquee-slow:hover {

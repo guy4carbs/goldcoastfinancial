@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Linkedin } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Youtube, Instagram } from "lucide-react";
 import MapSelector from "./MapSelector";
 
 export default function Footer() {
@@ -53,6 +53,24 @@ export default function Footer() {
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-[#e8e0d5] hover:bg-[#FF0000] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+                  aria-label="YouTube"
+                >
+                  <Youtube className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-[#e8e0d5] hover:bg-gradient-to-tr hover:from-[#FCAF45] hover:via-[#E1306C] hover:to-[#833AB4] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
                 </a>
               </div>
             </div>
