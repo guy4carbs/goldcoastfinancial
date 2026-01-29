@@ -64,12 +64,12 @@ export default function NewsletterBanner() {
   return (
     <>
       {/* Banner */}
-      <div className="bg-heritage-primary text-white">
+      <div className="bg-primary text-white">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-2 md:gap-4">
             {/* Left side - Message */}
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-heritage-accent flex-shrink-0" />
+              <Mail className="w-4 h-4 text-violet-500 flex-shrink-0" />
               <span className="text-white/90 hidden sm:inline">Get weekly tips on life insurance & retirement planning</span>
               <span className="text-white/90 sm:hidden">Get weekly insurance tips</span>
             </div>
@@ -78,7 +78,7 @@ export default function NewsletterBanner() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-1 px-4 py-1.5 text-sm font-medium bg-heritage-accent text-heritage-primary rounded-lg hover:bg-white transition-colors"
+                className="flex items-center gap-1 px-4 py-2 md:py-1.5 text-sm font-medium bg-violet-500 text-primary rounded-lg hover:bg-white transition-colors"
               >
                 Subscribe
                 <ChevronRight className="w-4 h-4" />
@@ -115,15 +115,15 @@ export default function NewsletterBanner() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md mx-auto p-4 z-50"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md mx-2 sm:mx-auto p-4 z-50"
             >
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                 {/* Header */}
-                <div className="bg-heritage-primary px-6 py-5">
+                <div className="bg-primary px-6 py-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-heritage-accent/20 rounded-lg">
-                        <Mail className="w-5 h-5 text-heritage-accent" />
+                      <div className="p-2 bg-violet-500/20 rounded-lg">
+                        <Mail className="w-5 h-5 text-violet-500" />
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white">Stay Informed</h3>
@@ -152,7 +152,7 @@ export default function NewsletterBanner() {
                       <p className="text-gray-600">Thanks for joining. Check your inbox soon.</p>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -164,7 +164,7 @@ export default function NewsletterBanner() {
                             value={formData.firstName}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-heritage-accent focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                             placeholder="John"
                           />
                         </div>
@@ -178,7 +178,7 @@ export default function NewsletterBanner() {
                             value={formData.lastName}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-heritage-accent focus:border-transparent"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                             placeholder="Smith"
                           />
                         </div>
@@ -194,7 +194,7 @@ export default function NewsletterBanner() {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-heritage-accent focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                           placeholder="john@example.com"
                         />
                       </div>
@@ -208,7 +208,7 @@ export default function NewsletterBanner() {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-heritage-accent focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                           placeholder="(555) 123-4567"
                         />
                       </div>
@@ -221,20 +221,20 @@ export default function NewsletterBanner() {
                           checked={formData.agreedToTerms}
                           onChange={handleChange}
                           required
-                          className="mt-1 w-4 h-4 text-heritage-accent border-gray-300 rounded focus:ring-heritage-accent"
+                          className="mt-1 w-4 h-4 text-violet-500 border-gray-300 rounded focus:ring-violet-500"
                         />
                         <label htmlFor="agreedToTerms" className="text-sm text-gray-600">
                           I agree to receive emails from Heritage Life Solutions. I understand I can unsubscribe at any time. View our{" "}
-                          <a href="/privacy" className="text-heritage-accent hover:underline">Privacy Policy</a>
+                          <a href="/privacy" className="text-violet-500 hover:underline">Privacy Policy</a>
                           {" "}and{" "}
-                          <a href="/terms" className="text-heritage-accent hover:underline">Terms of Service</a>.
+                          <a href="/terms" className="text-violet-500 hover:underline">Terms of Service</a>.
                         </label>
                       </div>
 
                       <button
                         type="submit"
                         disabled={isLoading || !formData.agreedToTerms}
-                        className="w-full py-3 bg-heritage-accent text-heritage-primary font-semibold rounded-lg hover:bg-heritage-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3 bg-violet-500 text-primary font-semibold rounded-lg hover:bg-violet-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoading ? "Subscribing..." : "Subscribe to Newsletter"}
                       </button>

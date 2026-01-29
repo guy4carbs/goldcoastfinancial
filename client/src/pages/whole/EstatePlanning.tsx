@@ -225,24 +225,24 @@ export default function EstatePlanning() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] py-20 md:py-28 overflow-hidden">
         {/* Decorative blur circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial="initial"
               animate="animate"
               variants={staggerContainer}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-primary font-semibold mb-4 tracking-wide uppercase text-sm">
+              <motion.p variants={fadeInUp} className="text-primary font-semibold mb-4 tracking-wide uppercase text-sm">
                 Whole Life Insurance
               </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight text-balance">
                 Estate Planning
-                <span className="text-heritage-primary"> with Life Insurance</span>
+                <span className="text-primary"> with Life Insurance</span>
               </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
                 Preserve wealth, pay estate taxes, and create a lasting legacy with tax-free death benefits.
               </motion.p>
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
@@ -252,7 +252,7 @@ export default function EstatePlanning() {
                 >
                   <Link
                     href="/quote"
-                    className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                    className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                   >
                     Get Your Free Quote <ArrowRight className="w-5 h-5" />
                   </Link>
@@ -263,7 +263,7 @@ export default function EstatePlanning() {
                 >
                   <a
                     href="tel:6307780800"
-                    className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                    className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                   >
                     <Phone className="w-5 h-5" /> Speak to an Advisor
                   </a>
@@ -280,8 +280,8 @@ export default function EstatePlanning() {
             >
               <div className="bg-white rounded-xl p-8 shadow-xl border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-heritage-accent/20 rounded-xl">
-                    <Calculator className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-3 bg-violet-500/20 rounded-xl">
+                    <Calculator className="w-8 h-8 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">Estate Tax Estimator</h3>
@@ -291,7 +291,7 @@ export default function EstatePlanning() {
 
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Estimated Estate Value: <span className="text-heritage-primary font-bold">${(estateValue / 1000000).toFixed(1)}M</span>
+                    Estimated Estate Value: <span className="text-primary font-bold">${(estateValue / 1000000).toFixed(1)}M</span>
                   </label>
                   <input
                     type="range"
@@ -300,7 +300,7 @@ export default function EstatePlanning() {
                     step="500000"
                     value={estateValue}
                     onChange={(e) => setEstateValue(parseInt(e.target.value))}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
                   <div className="flex justify-between text-xs text-gray-400 mt-1">
                     <span>$1M</span>
@@ -315,14 +315,14 @@ export default function EstatePlanning() {
                   </div>
                   <div className="flex justify-between p-3 bg-gray-50 rounded-xl">
                     <span className="text-gray-600">Taxable Amount</span>
-                    <span className="font-semibold text-heritage-primary">${(taxableEstate / 1000000).toFixed(2)}M</span>
+                    <span className="font-semibold text-primary">${(taxableEstate / 1000000).toFixed(2)}M</span>
                   </div>
                 </div>
 
-                <div className="p-6 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl">
+                <div className="p-6 bg-gradient-to-r from-primary to-primary/90 rounded-xl">
                   <p className="text-white/80 text-sm mb-1">Estimated Estate Tax</p>
                   <p className="text-4xl font-bold text-white mb-2">${(estateTax / 1000000).toFixed(2)}M</p>
-                  <p className="text-heritage-accent text-sm">Effective rate: {effectiveRate}% of estate</p>
+                  <p className="text-violet-500 text-sm">Effective rate: {effectiveRate}% of estate</p>
                 </div>
 
                 {estateTax > 0 && (
@@ -337,9 +337,9 @@ export default function EstatePlanning() {
       </section>
 
       {/* Trust Stats Bar */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {trustStats.map((stat, index) => (
               <motion.div
                 key={index}
@@ -360,20 +360,20 @@ export default function EstatePlanning() {
       {/* Why Life Insurance for Estates */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
             <motion.div
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               variants={staggerContainer}
             >
-              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
                 Why Life Insurance for Estate Planning?
               </motion.h2>
-              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-6 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-6 leading-relaxed text-pretty">
                 Estate taxes are due 9 months after death - in cash. Without liquidity, heirs may be forced to sell assets at fire-sale prices.
               </motion.p>
-              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Life insurance solves this. The death benefit arrives tax-free, exactly when heirs need it.
               </motion.p>
 
@@ -386,7 +386,7 @@ export default function EstatePlanning() {
                   "Guaranteed death benefit regardless of market conditions"
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-heritage-primary flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </div>
                 ))}
@@ -419,10 +419,10 @@ export default function EstatePlanning() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               How Life Insurance Fits Your Estate Plan
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Four primary uses for estate planning.
             </motion.p>
           </motion.div>
@@ -432,7 +432,7 @@ export default function EstatePlanning() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
           >
             {estatePlanningUses.map((use, index) => (
               <motion.div
@@ -440,8 +440,8 @@ export default function EstatePlanning() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-8 border border-gray-200 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="p-4 bg-heritage-primary/10 rounded-full w-fit mx-auto mb-6">
-                  <use.icon className="w-8 h-8 text-heritage-primary" />
+                <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto mb-6">
+                  <use.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{use.title}</h3>
                 <p className="text-gray-600">{use.description}</p>
@@ -452,7 +452,7 @@ export default function EstatePlanning() {
       </section>
 
       {/* ILIT Section */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial="initial"
@@ -461,15 +461,15 @@ export default function EstatePlanning() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">
               The ILIT Advantage
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-white/80 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-white/80 max-w-3xl mx-auto text-pretty">
               Irrevocable Life Insurance Trust - the gold standard for estate tax efficiency.
             </motion.p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -479,19 +479,19 @@ export default function EstatePlanning() {
                 <h3 className="text-2xl font-bold text-white mb-6">How an ILIT Works</h3>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-heritage-accent rounded-full flex items-center justify-center text-heritage-primary font-bold flex-shrink-0">1</div>
+                    <div className="w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-primary font-bold flex-shrink-0">1</div>
                     <p className="text-white/90">You create an irrevocable trust with an estate attorney.</p>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-heritage-accent rounded-full flex items-center justify-center text-heritage-primary font-bold flex-shrink-0">2</div>
+                    <div className="w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-primary font-bold flex-shrink-0">2</div>
                     <p className="text-white/90">The trust applies for and owns the life insurance policy.</p>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-heritage-accent rounded-full flex items-center justify-center text-heritage-primary font-bold flex-shrink-0">3</div>
+                    <div className="w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-primary font-bold flex-shrink-0">3</div>
                     <p className="text-white/90">You gift premiums to the trust annually.</p>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-heritage-accent rounded-full flex items-center justify-center text-heritage-primary font-bold flex-shrink-0">4</div>
+                    <div className="w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-primary font-bold flex-shrink-0">4</div>
                     <p className="text-white/90">At death, proceeds go to trust beneficiaries - outside your estate.</p>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ export default function EstatePlanning() {
               whileInView="animate"
               viewport={{ once: true }}
               variants={staggerContainer}
-              className="grid grid-cols-2 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
               {irlitBenefits.map((benefit, index) => (
                 <motion.div
@@ -530,10 +530,10 @@ export default function EstatePlanning() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Policy Ownership Options
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Who owns the policy matters for estate taxes.
             </motion.p>
           </motion.div>
@@ -543,7 +543,7 @@ export default function EstatePlanning() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {ownershipOptions.map((option, index) => (
               <motion.div
@@ -564,7 +564,7 @@ export default function EstatePlanning() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Best For</span>
-                    <span className="font-medium text-heritage-primary">{option.bestFor}</span>
+                    <span className="font-medium text-primary">{option.bestFor}</span>
                   </div>
                 </div>
 
@@ -608,10 +608,10 @@ export default function EstatePlanning() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Advanced Strategies
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Sophisticated techniques for high-net-worth estate planning.
             </motion.p>
           </motion.div>
@@ -621,7 +621,7 @@ export default function EstatePlanning() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8"
           >
             {strategies.map((strategy, index) => (
               <motion.div
@@ -630,13 +630,13 @@ export default function EstatePlanning() {
                 className="bg-white rounded-xl p-8 shadow-lg border border-gray-200 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="p-4 bg-heritage-primary/10 rounded-xl">
-                    <strategy.icon className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-4 bg-primary/10 rounded-xl">
+                    <strategy.icon className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">{strategy.title}</h3>
                 </div>
                 <p className="text-gray-600 mb-4">{strategy.description}</p>
-                <p className="text-sm text-heritage-primary font-medium">
+                <p className="text-sm text-primary font-medium">
                   Best for: {strategy.bestFor}
                 </p>
               </motion.div>
@@ -646,7 +646,7 @@ export default function EstatePlanning() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -665,12 +665,12 @@ export default function EstatePlanning() {
               <div className="text-center md:text-left">
                 <div className="flex justify-center md:justify-start gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                    <Star key={i} className="w-6 h-6 text-violet-500 fill-violet-500" />
                   ))}
                 </div>
                 <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                  <Award className="w-5 h-5 text-heritage-accent" />
-                  <span className="text-heritage-accent font-semibold text-sm">Verified Customer</span>
+                  <Award className="w-5 h-5 text-violet-500" />
+                  <span className="text-violet-500 font-semibold text-sm">Verified Customer</span>
                 </div>
                 <blockquote className="text-xl md:text-2xl text-white mb-6 italic leading-relaxed">
                   "Our estate attorney said we faced $2.4M in estate taxes. With an ILIT-owned policy, our heirs will receive that amount tax-free. The family business stays intact."
@@ -694,10 +694,10 @@ export default function EstatePlanning() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Estate Tax Planning Tool
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8 text-pretty">
               See how life insurance can offset estate taxes and protect your legacy.
             </p>
 
@@ -705,7 +705,7 @@ export default function EstatePlanning() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowEstateTool(!showEstateTool)}
-              className="bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
             >
               <Calculator className="w-5 h-5" />
               {showEstateTool ? 'Hide Calculator' : 'Calculate Estate Tax Impact'}
@@ -723,14 +723,14 @@ export default function EstatePlanning() {
               >
                 <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
                   {/* Input Controls */}
-                  <div className="grid md:grid-cols-2 gap-8 mb-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10">
                     {/* Left Column - Estate Details */}
                     <div className="space-y-6">
-                      <h4 className="font-semibold text-heritage-primary text-lg">Your Estate</h4>
+                      <h4 className="font-semibold text-primary text-lg">Your Estate</h4>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Estimated Estate Value: <span className="text-heritage-primary font-bold">${(estateValue / 1000000).toFixed(1)}M</span>
+                          Estimated Estate Value: <span className="text-primary font-bold">${(estateValue / 1000000).toFixed(1)}M</span>
                         </label>
                         <input
                           type="range"
@@ -739,7 +739,7 @@ export default function EstatePlanning() {
                           step="500000"
                           value={estateValue}
                           onChange={(e) => setEstateValue(parseInt(e.target.value))}
-                          className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                          className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                           <span>$1M</span>
@@ -753,7 +753,7 @@ export default function EstatePlanning() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setHasSpouse(!hasSpouse)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${hasSpouse ? 'bg-heritage-primary text-white' : 'bg-gray-100 text-gray-600'}`}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${hasSpouse ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}`}
                         >
                           Yes
                         </motion.button>
@@ -761,7 +761,7 @@ export default function EstatePlanning() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setHasSpouse(!hasSpouse)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${!hasSpouse ? 'bg-heritage-primary text-white' : 'bg-gray-100 text-gray-600'}`}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${!hasSpouse ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}`}
                         >
                           No
                         </motion.button>
@@ -769,7 +769,7 @@ export default function EstatePlanning() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          State Estate Tax Rate: <span className="text-heritage-accent font-bold">{stateTaxRate}%</span>
+                          State Estate Tax Rate: <span className="text-violet-500 font-bold">{stateTaxRate}%</span>
                         </label>
                         <input
                           type="range"
@@ -778,7 +778,7 @@ export default function EstatePlanning() {
                           step="1"
                           value={stateTaxRate}
                           onChange={(e) => setStateTaxRate(parseInt(e.target.value))}
-                          className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                          className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                         />
                         <p className="text-xs text-gray-500 mt-1">States like MA, OR, WA have estate taxes (0% if your state doesn't)</p>
                       </div>
@@ -786,7 +786,7 @@ export default function EstatePlanning() {
 
                     {/* Right Column - Insurance */}
                     <div className="space-y-6">
-                      <h4 className="font-semibold text-heritage-primary text-lg">Life Insurance Coverage</h4>
+                      <h4 className="font-semibold text-primary text-lg">Life Insurance Coverage</h4>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -817,9 +817,9 @@ export default function EstatePlanning() {
 
                   {/* Results Visualization */}
                   <div className="mb-8">
-                    <h4 className="text-lg font-semibold text-heritage-primary mb-6">Estate Tax Analysis</h4>
+                    <h4 className="text-lg font-semibold text-primary mb-6">Estate Tax Analysis</h4>
 
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
                       {/* Tax Breakdown */}
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -863,7 +863,7 @@ export default function EstatePlanning() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-heritage-primary rounded-xl p-6 text-white"
+                        className="bg-primary rounded-xl p-6 text-white"
                       >
                         <h5 className="font-medium text-white/80 mb-4">Insurance Coverage Analysis</h5>
                         <div className="space-y-3">
@@ -873,11 +873,11 @@ export default function EstatePlanning() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-white/70">Insurance Coverage</span>
-                            <span className="font-semibold text-heritage-accent">${(insuranceCoverage / 1000000).toFixed(2)}M</span>
+                            <span className="font-semibold text-violet-500">${(insuranceCoverage / 1000000).toFixed(2)}M</span>
                           </div>
                           <div className="border-t border-white/20 pt-2 flex justify-between">
                             <span className="text-white/70">Taxes Covered</span>
-                            <span className="font-semibold text-heritage-accent">${(estateAnalysis.taxCoveredByInsurance / 1000000).toFixed(2)}M</span>
+                            <span className="font-semibold text-violet-500">${(estateAnalysis.taxCoveredByInsurance / 1000000).toFixed(2)}M</span>
                           </div>
                           <div className="flex justify-between text-lg">
                             <span className="font-bold">Remaining Burden</span>
@@ -895,7 +895,7 @@ export default function EstatePlanning() {
                           </div>
                           <div className="h-4 bg-white/20 rounded-full overflow-hidden">
                             <motion.div
-                              className={`h-full rounded-full ${estateAnalysis.percentCovered >= 100 ? 'bg-green-400' : 'bg-heritage-accent'}`}
+                              className={`h-full rounded-full ${estateAnalysis.percentCovered >= 100 ? 'bg-green-400' : 'bg-violet-500'}`}
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(estateAnalysis.percentCovered, 100)}%` }}
                               transition={{ duration: 0.8 }}
@@ -974,10 +974,10 @@ export default function EstatePlanning() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Frequently Asked Questions
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 text-pretty">
               Common questions about estate planning with life insurance.
             </motion.p>
           </motion.div>
@@ -1001,7 +1001,7 @@ export default function EstatePlanning() {
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-6 h-6 text-primary flex-shrink-0 transition-transform duration-200 ${
                       openFaq === index ? "rotate-180" : ""
                     }`}
                   />
@@ -1033,10 +1033,10 @@ export default function EstatePlanning() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
               Protect Your Legacy
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
               Ensure your wealth passes to your heirs - not the IRS. Start planning with a free consultation.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
@@ -1046,7 +1046,7 @@ export default function EstatePlanning() {
               >
                 <Link
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -1057,7 +1057,7 @@ export default function EstatePlanning() {
               >
                 <a
                   href="tel:6307780800"
-                  className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                  className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                 >
                   <Phone className="w-5 h-5" /> Call (630) 778-0800
                 </a>

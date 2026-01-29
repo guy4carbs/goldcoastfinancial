@@ -87,7 +87,7 @@ export function LeaderboardModal({
             className={cn(
               "flex items-center gap-4 p-4 rounded-lg border transition-all",
               isCurrentUser 
-                ? "bg-secondary/10 border-secondary/30 ring-2 ring-secondary/20" 
+                ? "bg-violet-50 border-violet-300/30 ring-2 ring-secondary/20" 
                 : "hover:bg-muted/50"
             )}
           >
@@ -115,7 +115,7 @@ export function LeaderboardModal({
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-secondary" />
+                  <Zap className="w-3 h-3 text-violet-600" />
                   Level {entry.level}
                 </span>
                 <span className="flex items-center gap-1">
@@ -126,7 +126,7 @@ export function LeaderboardModal({
             </div>
             
             <div className="text-right">
-              <p className="font-bold text-lg text-secondary">{formatCurrency(entry.ap[period])}</p>
+              <p className="font-bold text-lg text-violet-600">{formatCurrency(entry.ap[period])}</p>
               <p className="text-xs text-muted-foreground">Annual Premium</p>
             </div>
             
@@ -192,7 +192,7 @@ export function LeaderboardModal({
                     </div>
                   </div>
                   <p className="font-semibold text-sm">{entry.name.split(' ')[0]}</p>
-                  <p className="text-secondary font-bold">{formatCurrency(entry.ap[timePeriod])}</p>
+                  <p className="text-violet-600 font-bold">{formatCurrency(entry.ap[timePeriod])}</p>
                 </motion.div>
               );
             })}
@@ -240,7 +240,7 @@ export function LeaderboardModal({
 
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <DollarSign className="w-4 h-4 text-secondary" />
+              <DollarSign className="w-4 h-4 text-violet-600" />
               <span>AP = Annual Premium written. Rankings update in real-time.</span>
             </div>
           </div>

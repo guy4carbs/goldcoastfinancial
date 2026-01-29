@@ -152,11 +152,11 @@ Questions? Call us at (630) 778-0800
               </div>
 
               {/* Quote Summary */}
-              <div className="p-4 bg-heritage-primary/5 border-b border-heritage-primary/10">
+              <div className="p-4 bg-primary/5 border-b border-primary/10">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">Your Estimated Rate</p>
-                    <p className="text-2xl font-bold text-heritage-primary">
+                    <p className="text-2xl font-bold text-primary">
                       ${quoteDetails.monthlyRate.toFixed(2)}/mo
                     </p>
                   </div>
@@ -184,12 +184,12 @@ Questions? Call us at (630) 778-0800
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="your@email.com"
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                         <button
                           onClick={handleEmailQuote}
                           disabled={sending}
-                          className="px-4 py-2 bg-heritage-primary text-white rounded-lg font-medium hover:bg-heritage-dark disabled:opacity-50 transition-colors flex items-center gap-2"
+                          className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-heritage-dark disabled:opacity-50 transition-colors flex items-center gap-2"
                         >
                           {sending ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -250,7 +250,7 @@ Questions? Call us at (630) 778-0800
                     </p>
                     <button
                       onClick={resetModal}
-                      className="px-6 py-2 bg-heritage-primary text-white rounded-lg font-medium hover:bg-heritage-dark transition-colors"
+                      className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-heritage-dark transition-colors"
                     >
                       Done
                     </button>

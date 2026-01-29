@@ -56,11 +56,11 @@ export default function TrustIndicators({ variant = "full" }: TrustIndicatorsPro
           <span className="text-sm font-medium">SSL Secured</span>
         </div>
         <div className="flex items-center gap-2 text-gray-600">
-          <Award className="w-4 h-4 text-heritage-primary" />
+          <Award className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium">A-Rated Carriers</span>
         </div>
         <div className="flex items-center gap-2 text-gray-600">
-          <Clock className="w-4 h-4 text-heritage-accent" />
+          <Clock className="w-4 h-4 text-violet-500" />
           <span className="text-sm font-medium">30-Day Guarantee</span>
         </div>
         <div className="flex items-center gap-2 text-gray-600">
@@ -83,8 +83,8 @@ export default function TrustIndicators({ variant = "full" }: TrustIndicatorsPro
             viewport={{ once: true }}
             className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100"
           >
-            <div className="w-12 h-12 bg-heritage-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <badge.icon className="w-6 h-6 text-heritage-primary" />
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <badge.icon className="w-6 h-6 text-primary" />
             </div>
             <h4 className="font-semibold text-gray-900 text-sm mb-1">{badge.title}</h4>
             <p className="text-xs text-gray-500">{badge.description}</p>
@@ -100,7 +100,7 @@ export default function TrustIndicators({ variant = "full" }: TrustIndicatorsPro
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
           {stats.map((stat, index) => (
             <div key={stat.label} className="text-center">
-              <p className="text-2xl font-bold text-heritage-primary">{stat.value}</p>
+              <p className="text-2xl font-bold text-primary">{stat.value}</p>
               <p className="text-sm text-gray-500">{stat.label}</p>
             </div>
           ))}
@@ -124,7 +124,7 @@ export default function TrustIndicators({ variant = "full" }: TrustIndicatorsPro
               viewport={{ once: true }}
               className="text-center"
             >
-              <p className="text-4xl font-bold text-heritage-primary mb-2">{stat.value}</p>
+              <p className="text-4xl font-bold text-primary mb-2">{stat.value}</p>
               <p className="text-gray-600">{stat.label}</p>
             </motion.div>
           ))}
@@ -141,8 +141,8 @@ export default function TrustIndicators({ variant = "full" }: TrustIndicatorsPro
               viewport={{ once: true }}
               className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl"
             >
-              <div className="w-12 h-12 bg-heritage-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <badge.icon className="w-6 h-6 text-heritage-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <badge.icon className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-1">{badge.title}</h4>
@@ -181,11 +181,11 @@ export default function TrustIndicators({ variant = "full" }: TrustIndicatorsPro
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-12 bg-gradient-to-r from-heritage-primary/10 to-heritage-accent/10 rounded-2xl p-8 text-center"
+          className="mt-12 bg-gradient-to-r from-primary/10 to-violet-500/10 rounded-2xl p-8 text-center"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
-              <Shield className="w-8 h-8 text-heritage-primary" />
+              <Shield className="w-8 h-8 text-primary" />
             </div>
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -215,7 +215,7 @@ export function CarrierStrip() {
               key={carrier.name}
               className="flex items-center gap-1.5 text-gray-600"
             >
-              <Star className="w-4 h-4 text-heritage-accent" />
+              <Star className="w-4 h-4 text-violet-500" />
               <span className="font-medium text-sm">{carrier.name}</span>
             </div>
           ))}

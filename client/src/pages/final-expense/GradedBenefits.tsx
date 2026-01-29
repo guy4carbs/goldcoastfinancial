@@ -109,28 +109,28 @@ export default function GradedBenefits() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Clock className="w-4 h-4" />
                 Understand Your Options
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Graded vs. Immediate
-                <span className="block text-heritage-accent">Death Benefits</span>
+                <span className="block text-violet-500">Death Benefits</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Understand the difference between immediate full coverage and graded benefit policies to choose the right protection for your situation.
               </p>
 
@@ -143,7 +143,7 @@ export default function GradedBenefits() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -154,7 +154,7 @@ export default function GradedBenefits() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Find Your Best Option
                     <ChevronRight className="w-5 h-5" />
@@ -164,7 +164,7 @@ export default function GradedBenefits() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Talk to an Expert
@@ -181,7 +181,7 @@ export default function GradedBenefits() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Compare Benefits</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Compare Benefits</h3>
                 <p className="text-gray-600 text-sm">Select to see details</p>
               </div>
 
@@ -190,7 +190,7 @@ export default function GradedBenefits() {
                   onClick={() => setSelectedType('immediate')}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
                     selectedType === 'immediate'
-                      ? 'bg-heritage-accent text-white'
+                      ? 'bg-violet-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -201,7 +201,7 @@ export default function GradedBenefits() {
                   onClick={() => setSelectedType('graded')}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
                     selectedType === 'graded'
-                      ? 'bg-heritage-accent text-white'
+                      ? 'bg-violet-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -227,7 +227,7 @@ export default function GradedBenefits() {
                       }`}
                     >
                       <span className="text-gray-700 font-medium">{feature.label}</span>
-                      <span className={`font-semibold ${feature.highlight ? 'text-green-600' : 'text-heritage-primary'}`}>
+                      <span className={`font-semibold ${feature.highlight ? 'text-green-600' : 'text-primary'}`}>
                         {feature.value}
                       </span>
                     </div>
@@ -259,7 +259,7 @@ export default function GradedBenefits() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full mt-6 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                  className="w-full mt-6 bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                 >
                   Get Personalized Quote
                 </motion.button>
@@ -270,17 +270,17 @@ export default function GradedBenefits() {
       </section>
 
       {/* Key Difference */}
-      <section className="bg-heritage-primary py-12">
+      <section className="bg-primary py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="bg-white/10 backdrop-blur rounded-xl p-6 text-center"
             >
-              <Zap className="w-10 h-10 text-heritage-accent mx-auto mb-3" />
-              <h3 className="text-xl font-bold text-white mb-2">Immediate Benefit</h3>
+              <Zap className="w-10 h-10 text-violet-500 mx-auto mb-3" />
+              <h3 className="text-xl font-bold text-white mb-2 text-balance">Immediate Benefit</h3>
               <p className="text-white/80 text-sm">Full death benefit paid from day one. Requires answering health questions.</p>
             </motion.div>
             <motion.div
@@ -290,8 +290,8 @@ export default function GradedBenefits() {
               transition={{ delay: 0.1 }}
               className="bg-white/10 backdrop-blur rounded-xl p-6 text-center"
             >
-              <Clock className="w-10 h-10 text-heritage-accent mx-auto mb-3" />
-              <h3 className="text-xl font-bold text-white mb-2">Graded Benefit</h3>
+              <Clock className="w-10 h-10 text-violet-500 mx-auto mb-3" />
+              <h3 className="text-xl font-bold text-white mb-2 text-balance">Graded Benefit</h3>
               <p className="text-white/80 text-sm">Full benefit after 2-3 years. No health questions—guaranteed acceptance.</p>
             </motion.div>
           </div>
@@ -307,10 +307,10 @@ export default function GradedBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Interactive Graded Benefit Timeline
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See exactly what your beneficiaries would receive at each stage of the graded benefit period.
             </p>
           </motion.div>
@@ -326,7 +326,7 @@ export default function GradedBenefits() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-accent font-bold">${coverageAmount.toLocaleString()}</span>
+                    Coverage Amount: <span className="text-violet-500 font-bold">${coverageAmount.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -335,12 +335,12 @@ export default function GradedBenefits() {
                     step="1000"
                     value={coverageAmount}
                     onChange={(e) => setCoverageAmount(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Annual Premiums Paid: <span className="text-heritage-accent font-bold">${premiumsPaid.toLocaleString()}</span>
+                    Annual Premiums Paid: <span className="text-violet-500 font-bold">${premiumsPaid.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -349,7 +349,7 @@ export default function GradedBenefits() {
                     step="100"
                     value={premiumsPaid}
                     onChange={(e) => setPremiumsPaid(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
               </div>
@@ -376,7 +376,7 @@ export default function GradedBenefits() {
                       }}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                         activeTimelineYear === year
-                          ? year === 2 ? "bg-green-500 text-white" : "bg-heritage-accent text-white"
+                          ? year === 2 ? "bg-green-500 text-white" : "bg-violet-500 text-white"
                           : "bg-white text-gray-600 hover:bg-gray-100"
                       }`}
                     >
@@ -389,7 +389,7 @@ export default function GradedBenefits() {
                     animate={{ width: `${((activeTimelineYear + 1) / 3) * 100}%` }}
                     transition={{ duration: 0.5 }}
                     className={`h-full rounded-full ${
-                      activeTimelineYear === 2 ? "bg-green-500" : "bg-heritage-accent"
+                      activeTimelineYear === 2 ? "bg-green-500" : "bg-violet-500"
                     }`}
                   />
                 </div>
@@ -413,12 +413,12 @@ export default function GradedBenefits() {
                     <div>
                       <div className="flex items-center gap-3 mb-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          activeTimelineYear === 2 ? "bg-green-500" : "bg-heritage-accent"
+                          activeTimelineYear === 2 ? "bg-green-500" : "bg-violet-500"
                         }`}>
                           <Calendar className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-bold text-heritage-primary">
+                          <p className="font-bold text-primary">
                             {activeTimelineYear === 0 ? "Year 1" : activeTimelineYear === 1 ? "Year 2" : "Year 3+"}
                           </p>
                           <p className={`text-sm ${
@@ -461,7 +461,7 @@ export default function GradedBenefits() {
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.3 }}
                           className={`text-3xl font-bold ${
-                            activeTimelineYear === 2 ? "text-green-600" : "text-heritage-accent"
+                            activeTimelineYear === 2 ? "text-green-600" : "text-violet-500"
                           }`}
                         >
                           ${activeTimelineYear === 0
@@ -498,7 +498,7 @@ export default function GradedBenefits() {
                 className={`w-full mt-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
                   isTimelinePlaying
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-heritage-primary hover:bg-heritage-primary/90 text-white"
+                    : "bg-primary hover:bg-primary/90 text-white"
                 }`}
               >
                 <TrendingUp className="w-5 h-5" />
@@ -517,7 +517,7 @@ export default function GradedBenefits() {
                 <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
                 <div>
                   <p className="font-semibold text-amber-800 mb-2">Important Exception: Accidental Death</p>
-                  <p className="text-amber-700 text-sm">
+                  <p className="text-amber-700 text-sm text-pretty">
                     Many graded benefit policies pay the <strong>full death benefit</strong> for accidental death even during years 1 and 2. This provides additional peace of mind during the initial waiting period.
                   </p>
                 </div>
@@ -536,7 +536,7 @@ export default function GradedBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Which Is Right for You?
             </h2>
           </motion.div>
@@ -552,7 +552,7 @@ export default function GradedBenefits() {
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <Zap className="w-6 h-6 text-green-600" />
                 </div>
-                <h3 className="text-xl font-bold text-heritage-primary">Choose Immediate If...</h3>
+                <h3 className="text-xl font-bold text-primary text-balance">Choose Immediate If...</h3>
               </div>
               <div className="space-y-3">
                 {whenToChoose.immediate.map((item, i) => (
@@ -574,7 +574,7 @@ export default function GradedBenefits() {
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
                   <Clock className="w-6 h-6 text-amber-600" />
                 </div>
-                <h3 className="text-xl font-bold text-heritage-primary">Choose Graded If...</h3>
+                <h3 className="text-xl font-bold text-primary text-balance">Choose Graded If...</h3>
               </div>
               <div className="space-y-3">
                 {whenToChoose.graded.map((item, i) => (
@@ -598,7 +598,7 @@ export default function GradedBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Coverage Over Time
             </h2>
           </motion.div>
@@ -609,7 +609,7 @@ export default function GradedBenefits() {
             viewport={{ once: true }}
             className="max-w-4xl mx-auto bg-[#fffaf3] rounded-2xl p-8"
           >
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center">
                 <p className="text-sm text-gray-500 mb-2">Day 1</p>
               </div>
@@ -628,7 +628,7 @@ export default function GradedBenefits() {
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
                 <Zap className="w-5 h-5 text-green-500" />
-                <span className="font-semibold text-heritage-primary">Immediate Benefit</span>
+                <span className="font-semibold text-primary">Immediate Benefit</span>
               </div>
               <div className="h-8 bg-green-500 rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-medium">100% Death Benefit</span>
@@ -639,7 +639,7 @@ export default function GradedBenefits() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Clock className="w-5 h-5 text-amber-500" />
-                <span className="font-semibold text-heritage-primary">Graded Benefit</span>
+                <span className="font-semibold text-primary">Graded Benefit</span>
               </div>
               <div className="h-8 rounded-lg flex overflow-hidden">
                 <div className="w-1/4 bg-amber-300 flex items-center justify-center">
@@ -658,7 +658,7 @@ export default function GradedBenefits() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -668,7 +668,7 @@ export default function GradedBenefits() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -700,7 +700,7 @@ export default function GradedBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -719,8 +719,8 @@ export default function GradedBenefits() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -750,10 +750,10 @@ export default function GradedBenefits() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Let Us Help You Decide
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               We'll review your options and find the best coverage type for your situation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -761,7 +761,7 @@ export default function GradedBenefits() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Compare Your Options
                   <ChevronRight className="w-5 h-5" />
@@ -771,7 +771,7 @@ export default function GradedBenefits() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

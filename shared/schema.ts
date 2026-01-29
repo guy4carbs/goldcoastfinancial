@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 export * from "./models/auth";
 export * from "./models/portal";
 export * from "./models/chat";
+export * from "./models/training";
 
 export const guideRequests = pgTable("guide_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

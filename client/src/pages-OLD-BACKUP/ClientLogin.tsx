@@ -70,7 +70,7 @@ export default function ClientLogin() {
       <section className="bg-primary relative overflow-hidden py-16 md:py-24">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
         <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-12 transform translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full -translate-x-1/2 translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-50 rounded-full -translate-x-1/2 translate-y-1/2" />
         <motion.div 
           className="container mx-auto px-4 text-center relative z-10"
           initial={{ opacity: 0, y: 20 }}
@@ -322,7 +322,7 @@ export default function ClientLogin() {
                       transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
                     >
                       <div className="shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                           <CheckCircle className="w-5 h-5 text-secondary" />
                         </div>
                       </div>

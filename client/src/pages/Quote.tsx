@@ -4,7 +4,22 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import QuoteCalculator, { type QuoteCalculatorPrefillData } from "@/components/QuoteCalculator";
 import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWidget";
-import TrustIndicators, { CarrierStrip, RatingBadge } from "@/components/TrustIndicators";
+import TrustIndicators, { RatingBadge } from "@/components/TrustIndicators";
+
+const carriers = [
+  { name: "Americo", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba" },
+  { name: "Athene", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643" },
+  { name: "Baltimore Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277409363-logo%402x.png?alt=media&token=cdd3c6d0-e497-4a4c-a357-6e3b548dd95c" },
+  { name: "Corebridge", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2" },
+  { name: "Mutual of Omaha", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277474666-Mutual-of-Omaha-logo.png?alt=media&token=0382cf9c-c262-4931-8155-688210c1c173", size: "large" },
+  { name: "Ethos", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277532663-6341f9fa-fd59-42aa-b238-d23e46658048.png?alt=media&token=ea3d4914-d65e-4817-9a81-1ea709064e52" },
+  { name: "Royal Neighbors", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277589538-330-3309455_royal-neighbors-of-america-life-insurance-royal-neighbors.png?alt=media&token=d700619b-ad2d-4071-bd2b-a57eb5a12b56" },
+  { name: "Transamerica", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769278248208-transamerica-logo.png?alt=media&token=9d6fb91f-9c8e-432b-96e4-c4ed8971cc6d", size: "large" },
+  { name: "American Home Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277674404-Carrier-Logo-Web-270x200-American-Home-Life-1080x608.webp?alt=media&token=0546ea66-443d-44bc-b2f1-d561bd1f713b", size: "large" },
+  { name: "Polish Falcons", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238" },
+  { name: "Ladder", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733" },
+  { name: "Lincoln Financial", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b" },
+];
 import Testimonials, { MiniTestimonial } from "@/components/Testimonials";
 import { Phone, ArrowRight, Check } from "lucide-react";
 import { motion } from "framer-motion";
@@ -81,7 +96,7 @@ export default function Quote() {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-8 pb-12 md:pt-12 md:pb-16 bg-gradient-to-b from-heritage-primary/5 to-transparent">
+      <section className="pt-8 pb-12 md:pt-12 md:pb-16 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Messaging */}
@@ -101,7 +116,7 @@ export default function Quote() {
                 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6"
               >
                 Find the right coverage{" "}
-                <span className="text-heritage-primary">for your life</span>
+                <span className="text-primary">for your life</span>
               </motion.h1>
 
               <motion.p
@@ -145,7 +160,7 @@ export default function Quote() {
               >
                 <button
                   onClick={handleStartQuote}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark transition-colors text-lg"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark transition-colors text-lg"
                 >
                   Get My Recommendation
                   <ArrowRight className="w-5 h-5" />
@@ -174,8 +189,8 @@ export default function Quote() {
                     <p className="text-gray-600 text-sm mb-4">
                       Complete the questions below to get your personalized recommendation. It only takes a few minutes.
                     </p>
-                    <div className="flex items-center gap-2 text-sm text-heritage-primary">
-                      <div className="w-2 h-2 bg-heritage-primary rounded-full animate-pulse" />
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                       Your application is in progress
                     </div>
                   </div>
@@ -186,11 +201,41 @@ export default function Quote() {
         </div>
       </section>
 
-      {/* Carrier Strip */}
-      <CarrierStrip />
+      {/* Carrier Logos */}
+      <section className="py-12 bg-[#fffaf3] border-y border-[#e8e0d5]">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center text-sm text-gray-500 mb-8">Trusted by families nationwide. We partner with 40+ A-rated carriers.</p>
+          <div className="relative overflow-hidden">
+            <div className="flex items-center">
+              <div className="flex animate-marquee-slow gap-12 items-center">
+                {carriers.map((carrier, i) => (
+                  <div key={i} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex animate-marquee-slow gap-12 items-center" aria-hidden="true">
+                {carriers.map((carrier, i) => (
+                  <div key={`dup-${i}`} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Main Content Area */}
-      <section className="py-12 md:py-16">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-6">
           {!showQuoter ? (
             <>
@@ -200,7 +245,7 @@ export default function Quote() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center mb-12"
               >
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
                   Why Choose Heritage?
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto">
@@ -209,7 +254,7 @@ export default function Quote() {
               </motion.div>
 
               {/* How It Works */}
-              <div className="grid md:grid-cols-3 gap-8 mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-16">
                 {[
                   {
                     step: "1",
@@ -233,10 +278,10 @@ export default function Quote() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="bg-white rounded-xl p-6 text-center"
+                    className="bg-white rounded-xl p-4 md:p-6 text-center"
                   >
-                    <div className="w-12 h-12 bg-heritage-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-xl font-bold text-heritage-primary">{item.step}</span>
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-xl font-bold text-primary">{item.step}</span>
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
                     <p className="text-gray-600 text-sm">{item.description}</p>
@@ -248,7 +293,7 @@ export default function Quote() {
               <div className="text-center">
                 <button
                   onClick={handleStartQuote}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark transition-colors text-lg"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark transition-colors text-lg"
                 >
                   Start My Free Quote
                   <ArrowRight className="w-5 h-5" />
@@ -267,7 +312,7 @@ export default function Quote() {
             /* Full Quoter */
             <div ref={applicationRef}>
               <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 text-balance">
                   Let's Find Your Perfect Coverage
                 </h2>
                 <p className="text-gray-600">
@@ -287,17 +332,17 @@ export default function Quote() {
       {!showQuoter && <TrustIndicators variant="full" />}
 
       {/* Help Section */}
-      <section className="py-12 bg-white border-t border-gray-100">
+      <section className="py-20 bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Need Help?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">Need Help?</h2>
             <p className="text-gray-600 mb-6">
               Our licensed insurance specialists are here to answer your questions and help you find the right coverage.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="tel:+16307780800"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-heritage-primary text-white rounded-lg font-semibold hover:bg-heritage-dark transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-heritage-dark transition-colors"
               >
                 <Phone className="w-5 h-5" />
                 Call (630) 778-0800
@@ -317,38 +362,38 @@ export default function Quote() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-12 bg-[#f5f0e8]">
+      <section className="py-20 bg-[#f5f0e8]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Common Questions</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center text-balance">Common Questions</h2>
             <div className="space-y-4">
-              <div className="bg-white rounded-xl p-6">
+              <div className="bg-white rounded-xl p-4 md:p-6">
                 <h3 className="font-semibold text-gray-900 mb-2">How does the recommendation work?</h3>
                 <p className="text-gray-600 text-sm">
                   We ask about your goals, family situation, budget, and timeline. Our algorithm then matches you with the right type of policy (term, whole life, etc.) and suggests appropriate coverage amounts based on your specific needs.
                 </p>
               </div>
-              <div className="bg-white rounded-xl p-6">
+              <div className="bg-white rounded-xl p-4 md:p-6">
                 <h3 className="font-semibold text-gray-900 mb-2">Do I need a medical exam?</h3>
                 <p className="text-gray-600 text-sm">
                   Many of our policies don't require a medical exam. Based on your health profile and coverage amount,
                   you may qualify for instant approval without any medical tests.
                 </p>
               </div>
-              <div className="bg-white rounded-xl p-6">
+              <div className="bg-white rounded-xl p-4 md:p-6">
                 <h3 className="font-semibold text-gray-900 mb-2">How long does approval take?</h3>
                 <p className="text-gray-600 text-sm">
                   Many applicants receive instant or same-day approval. If additional review is needed,
                   our team typically processes applications within 24-48 hours.
                 </p>
               </div>
-              <div className="bg-white rounded-xl p-6">
+              <div className="bg-white rounded-xl p-4 md:p-6">
                 <h3 className="font-semibold text-gray-900 mb-2">What if I don't agree with the recommendation?</h3>
                 <p className="text-gray-600 text-sm">
                   No problem! Our recommendation is a starting point. You can adjust coverage amounts, explore alternatives, or speak with one of our specialists to find exactly what works for you.
                 </p>
               </div>
-              <div className="bg-white rounded-xl p-6">
+              <div className="bg-white rounded-xl p-4 md:p-6">
                 <h3 className="font-semibold text-gray-900 mb-2">What's the 30-day money-back guarantee?</h3>
                 <p className="text-gray-600 text-sm">
                   If you're not completely satisfied with your policy, you can cancel within 30 days of issuance

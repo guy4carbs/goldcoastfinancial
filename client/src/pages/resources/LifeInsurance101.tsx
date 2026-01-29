@@ -163,7 +163,7 @@ export default function LifeInsurance101() {
 
   // Video placeholder component
   const VideoPlaceholder = ({ title }: { title: string }) => (
-    <div className="relative bg-gradient-to-br from-heritage-primary to-heritage-primary/80 rounded-2xl overflow-hidden mb-8 aspect-video flex items-center justify-center group cursor-pointer hover:shadow-xl transition-shadow">
+    <div className="relative bg-gradient-to-br from-primary to-primary/80 rounded-2xl overflow-hidden mb-8 aspect-video flex items-center justify-center group cursor-pointer hover:shadow-xl transition-shadow">
       <div className="absolute inset-0 bg-black/20" />
       <div className="relative z-10 text-center">
         <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -214,8 +214,8 @@ export default function LifeInsurance101() {
   // Stat card component
   const StatCard = ({ value, label, icon: Icon }: { value: string; label: string; icon: any }) => (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-      <Icon className="w-8 h-8 text-heritage-accent mx-auto mb-2" />
-      <p className="text-2xl font-bold text-heritage-primary">{value}</p>
+      <Icon className="w-8 h-8 text-violet-500 mx-auto mb-2" />
+      <p className="text-2xl font-bold text-primary">{value}</p>
       <p className="text-gray-600 text-sm">{label}</p>
     </div>
   );
@@ -224,13 +224,13 @@ export default function LifeInsurance101() {
   const StepCard = ({ number, title, description, icon: Icon }: { number: number; title: string; description: string; icon: any }) => (
     <div className="flex gap-4">
       <div className="flex-shrink-0">
-        <div className="w-10 h-10 bg-heritage-accent text-white rounded-full flex items-center justify-center font-bold">
+        <div className="w-10 h-10 bg-violet-500 text-white rounded-full flex items-center justify-center font-bold">
           {number}
         </div>
       </div>
       <div className="flex-1 pb-8 border-l-2 border-dashed border-gray-200 pl-6 -ml-5">
         <div className="flex items-center gap-2 mb-2">
-          <Icon className="w-5 h-5 text-heritage-primary" />
+          <Icon className="w-5 h-5 text-primary" />
           <h4 className="font-semibold text-gray-900">{title}</h4>
         </div>
         <p className="text-gray-600">{description}</p>
@@ -257,7 +257,7 @@ export default function LifeInsurance101() {
               {!isVideoPlaying && (
                 <button
                   onClick={handlePlayVideo}
-                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center group cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 text-center">
@@ -282,7 +282,7 @@ export default function LifeInsurance101() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 my-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
               <StatCard value="$500K" label="Average family coverage" icon={Shield} />
               <StatCard value="Tax-Free" label="Beneficiary payout" icon={Banknote} />
               <StatCard value="1-2 Weeks" label="Claim payout time" icon={Clock} />
@@ -290,10 +290,10 @@ export default function LifeInsurance101() {
 
             <div className="bg-[#fffaf3] rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-heritage-accent" />
+                <HelpCircle className="w-5 h-5 text-violet-500" />
                 Who Needs It?
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   { icon: Users, text: "Parents with kids" },
                   { icon: Home, text: "Homeowners with a mortgage" },
@@ -303,7 +303,7 @@ export default function LifeInsurance101() {
                   { icon: UserCheck, text: "Co-signers on loans" }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 bg-white rounded-lg p-3">
-                    <item.icon className="w-5 h-5 text-heritage-primary flex-shrink-0" />
+                    <item.icon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-700">{item.text}</span>
                   </div>
                 ))}
@@ -316,10 +316,10 @@ export default function LifeInsurance101() {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-heritage-accent" />
+                <Zap className="w-5 h-5 text-violet-500" />
                 Quick Example
               </h3>
-              <div className="bg-heritage-primary/5 rounded-xl p-5">
+              <div className="bg-primary/5 rounded-xl p-5">
                 <p className="text-gray-700 mb-4">
                   <strong>Sarah, 35, buys $500K coverage:</strong>
                 </p>
@@ -366,7 +366,7 @@ export default function LifeInsurance101() {
               {!isVideoPlaying && (
                 <button
                   onClick={handlePlayVideo}
-                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center group cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 text-center">
@@ -393,7 +393,7 @@ export default function LifeInsurance101() {
 
             {/* Comparison Table */}
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden my-8">
-              <div className="grid grid-cols-3 gap-4 p-4 bg-heritage-primary text-white">
+              <div className="grid grid-cols-3 gap-4 p-4 bg-primary text-white">
                 <div className="font-semibold">Feature</div>
                 <div className="text-center font-semibold">Term Life</div>
                 <div className="text-center font-semibold">Whole Life</div>
@@ -406,7 +406,7 @@ export default function LifeInsurance101() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 my-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 my-8">
               {/* Term Life Card */}
               <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -502,7 +502,7 @@ export default function LifeInsurance101() {
               {!isVideoPlaying && (
                 <button
                   onClick={handlePlayVideo}
-                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center group cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 text-center">
@@ -527,12 +527,12 @@ export default function LifeInsurance101() {
               </p>
             </div>
 
-            <div className="bg-heritage-primary rounded-2xl p-6 my-8">
+            <div className="bg-primary rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-white">
                 <Calculator className="w-5 h-5" />
                 The DIME Method
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   { letter: "D", word: "Debt", desc: "All debts except mortgage" },
                   { letter: "I", word: "Income", desc: "10-15 years of salary" },
@@ -541,7 +541,7 @@ export default function LifeInsurance101() {
                 ].map((item, i) => (
                   <div key={i} className="bg-white/10 rounded-xl p-4">
                     <div className="flex items-center gap-3 mb-1">
-                      <span className="w-10 h-10 bg-heritage-accent rounded-full flex items-center justify-center font-bold text-xl text-white">{item.letter}</span>
+                      <span className="w-10 h-10 bg-violet-500 rounded-full flex items-center justify-center font-bold text-xl text-white">{item.letter}</span>
                       <span className="font-semibold text-lg text-white">{item.word}</span>
                     </div>
                     <p className="text-white/80 text-sm">{item.desc}</p>
@@ -552,10 +552,10 @@ export default function LifeInsurance101() {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-heritage-accent" />
+                <Zap className="w-5 h-5 text-violet-500" />
                 Example: Maria, 38, $85K income, 2 kids
               </h3>
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div>
                   <p className="text-gray-500 text-sm mb-3 font-medium">Add up needs:</p>
                   <div className="space-y-2">
@@ -577,7 +577,7 @@ export default function LifeInsurance101() {
                     </div>
                     <div className="flex justify-between py-2 font-bold">
                       <span>Total Need</span>
-                      <span className="text-heritage-primary">$1,905,000</span>
+                      <span className="text-primary">$1,905,000</span>
                     </div>
                   </div>
                 </div>
@@ -616,17 +616,17 @@ export default function LifeInsurance101() {
 
             <div className="bg-[#fffaf3] rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4">Quick Rules</h3>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-xl p-4 text-center">
-                  <p className="text-3xl font-bold text-heritage-primary">10-12x</p>
+                  <p className="text-3xl font-bold text-primary">10-12x</p>
                   <p className="text-gray-600 text-sm">Annual income</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 text-center">
-                  <p className="text-3xl font-bold text-heritage-primary">$100K+</p>
+                  <p className="text-3xl font-bold text-primary">$100K+</p>
                   <p className="text-gray-600 text-sm">Per child (college)</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 text-center">
-                  <p className="text-3xl font-bold text-heritage-primary">100%</p>
+                  <p className="text-3xl font-bold text-primary">100%</p>
                   <p className="text-gray-600 text-sm">Mortgage balance</p>
                 </div>
               </div>
@@ -654,7 +654,7 @@ export default function LifeInsurance101() {
               {!isVideoPlaying && (
                 <button
                   onClick={handlePlayVideo}
-                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center group cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 text-center">
@@ -681,7 +681,7 @@ export default function LifeInsurance101() {
 
             <div className="my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
-                <ClipboardCheck className="w-5 h-5 text-heritage-accent" />
+                <ClipboardCheck className="w-5 h-5 text-violet-500" />
                 5 Steps to Coverage
               </h3>
               <div className="space-y-2">
@@ -718,8 +718,8 @@ export default function LifeInsurance101() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 my-8">
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 my-8">
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-4 md:p-6">
                 <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-green-600" />
                   No-Exam Options
@@ -740,7 +740,7 @@ export default function LifeInsurance101() {
                 </ul>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 md:p-6">
                 <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-blue-600" />
                   Timelines
@@ -768,10 +768,10 @@ export default function LifeInsurance101() {
 
             <div className="bg-[#fffaf3] rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-heritage-accent" />
+                <Lightbulb className="w-5 h-5 text-violet-500" />
                 Exam Day Tips
               </h3>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
                   { icon: Calendar, text: "Schedule morning (lower vitals)" },
                   { icon: Dumbbell, text: "No exercise 24 hours before" },
@@ -779,7 +779,7 @@ export default function LifeInsurance101() {
                   { icon: Receipt, text: "Have medication list ready" }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 bg-white rounded-lg p-3">
-                    <item.icon className="w-5 h-5 text-heritage-primary flex-shrink-0" />
+                    <item.icon className="w-5 h-5 text-primary flex-shrink-0" />
                     <span className="text-gray-700 text-sm">{item.text}</span>
                   </div>
                 ))}
@@ -808,7 +808,7 @@ export default function LifeInsurance101() {
               {!isVideoPlaying && (
                 <button
                   onClick={handlePlayVideo}
-                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center group cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 text-center">
@@ -835,7 +835,7 @@ export default function LifeInsurance101() {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
-                <TrendingDown className="w-5 h-5 text-heritage-accent" />
+                <TrendingDown className="w-5 h-5 text-violet-500" />
                 Rate Factors
               </h3>
               <div className="space-y-3">
@@ -864,7 +864,7 @@ export default function LifeInsurance101() {
               </div>
             </div>
 
-            <div className="bg-heritage-primary rounded-2xl p-6 my-8">
+            <div className="bg-primary rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-white">
                 <CircleDollarSign className="w-5 h-5" />
                 Sample Rates: $500K 20-Year Term
@@ -892,7 +892,7 @@ export default function LifeInsurance101() {
 
             <div className="bg-[#fffaf3] rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <Percent className="w-5 h-5 text-heritage-accent" />
+                <Percent className="w-5 h-5 text-violet-500" />
                 Rate Classes
               </h3>
               <div className="space-y-2">
@@ -907,7 +907,7 @@ export default function LifeInsurance101() {
                       <p className="font-semibold text-gray-900 text-sm">{item.class}</p>
                       <p className="text-gray-600 text-xs">{item.desc}</p>
                     </div>
-                    <span className="text-heritage-primary font-medium text-sm">{item.pct}</span>
+                    <span className="text-primary font-medium text-sm">{item.pct}</span>
                   </div>
                 ))}
               </div>
@@ -935,7 +935,7 @@ export default function LifeInsurance101() {
               {!isVideoPlaying && (
                 <button
                   onClick={handlePlayVideo}
-                  className="absolute inset-0 bg-gradient-to-br from-heritage-primary to-heritage-primary/80 flex items-center justify-center group cursor-pointer"
+                  className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center group cursor-pointer"
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="relative z-10 text-center">
@@ -960,27 +960,27 @@ export default function LifeInsurance101() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 my-8">
-              <div className="bg-white border border-gray-200 rounded-2xl p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 my-8">
+              <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5">
                 <h3 className="font-bold text-lg text-gray-900 mb-3 flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-heritage-primary" />
+                  <UserCheck className="w-5 h-5 text-primary" />
                   Primary Beneficiary
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">First in line. Can name multiple with percentages.</p>
-                <div className="bg-heritage-primary/5 rounded-xl p-3">
+                <div className="bg-primary/5 rounded-xl p-3">
                   <p className="text-xs text-gray-600">
                     <strong>Example:</strong> Spouse: 100% <em>or</em> Spouse: 60%, Kids: 40%
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-5">
+              <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5">
                 <h3 className="font-bold text-lg text-gray-900 mb-3 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-heritage-primary" />
+                  <Users className="w-5 h-5 text-primary" />
                   Contingent Beneficiary
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">Backup if primary is deceased.</p>
-                <div className="bg-heritage-primary/5 rounded-xl p-3">
+                <div className="bg-primary/5 rounded-xl p-3">
                   <p className="text-xs text-gray-600">
                     <strong>Example:</strong> Children split equally if spouse predeceases.
                   </p>
@@ -994,17 +994,17 @@ export default function LifeInsurance101() {
 
             <div className="bg-[#fffaf3] rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <HeartHandshake className="w-5 h-5 text-heritage-accent" />
+                <HeartHandshake className="w-5 h-5 text-violet-500" />
                 Who Can Be a Beneficiary?
               </h3>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   { type: "Individuals", examples: "Spouse, kids, parents, friends", icon: Users },
                   { type: "Trusts", examples: "Revocable, irrevocable, special needs", icon: FileText },
                   { type: "Organizations", examples: "Charities, churches, nonprofits", icon: Building }
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-xl p-4">
-                    <item.icon className="w-6 h-6 text-heritage-primary mb-2" />
+                    <item.icon className="w-6 h-6 text-primary mb-2" />
                     <h4 className="font-semibold text-gray-900 text-sm mb-1">{item.type}</h4>
                     <p className="text-gray-600 text-xs">{item.examples}</p>
                   </div>
@@ -1014,7 +1014,7 @@ export default function LifeInsurance101() {
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 my-8">
               <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-                <CircleCheck className="w-5 h-5 text-heritage-accent" />
+                <CircleCheck className="w-5 h-5 text-violet-500" />
                 Claim Process
               </h3>
               <div className="space-y-3">
@@ -1025,7 +1025,7 @@ export default function LifeInsurance101() {
                   { step: "4", title: "Payout", desc: "1-2 weeks, lump sum or installments" }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 items-center">
-                    <div className="w-7 h-7 bg-heritage-accent text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <div className="w-7 h-7 bg-violet-500 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
                       {item.step}
                     </div>
                     <div>
@@ -1037,7 +1037,7 @@ export default function LifeInsurance101() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 my-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
               <StatCard value="Tax-Free" label="Beneficiary payout" icon={Banknote} />
               <StatCard value="1-2 Weeks" label="Claim payout time" icon={Clock} />
               <StatCard value="99%+" label="Approval rate" icon={CheckCircle2} />
@@ -1052,7 +1052,7 @@ export default function LifeInsurance101() {
                 <AlertCircle className="w-5 h-5 text-red-600" />
                 Claims Can Be Denied For:
               </h3>
-              <div className="grid md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {[
                   "Lying on application",
                   "Fraud in first 2 years",
@@ -1079,7 +1079,7 @@ export default function LifeInsurance101() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center gap-2"
+                  className="bg-violet-500 hover:bg-violet-500/90 text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center gap-2"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </motion.button>
@@ -1161,8 +1161,8 @@ export default function LifeInsurance101() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -1172,17 +1172,17 @@ export default function LifeInsurance101() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <GraduationCap className="w-4 h-4" />
                 Free Learning Center
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Life Insurance 101
-                <span className="block text-heritage-accent">Learn the Basics</span>
+                <span className="block text-violet-500">Learn the Basics</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Everything you need to know about life insurance in simple, jargon-free language. Complete all modules in under 20 minutes.
               </p>
 
@@ -1195,7 +1195,7 @@ export default function LifeInsurance101() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -1208,7 +1208,7 @@ export default function LifeInsurance101() {
                   setActiveModule(0);
                   scrollToContent();
                 }}
-                className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2 shadow-lg"
+                className="bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2 shadow-lg"
               >
                 <Play className="w-5 h-5" /> {completedModules.length > 0 ? "Continue Learning" : "Start Learning"}
               </motion.button>
@@ -1222,7 +1222,7 @@ export default function LifeInsurance101() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-heritage-primary">Your Progress</h3>
+                <h3 className="text-xl font-bold text-primary">Your Progress</h3>
                 <div className="flex items-center gap-3">
                   {completedModules.length > 0 && (
                     <button
@@ -1233,7 +1233,7 @@ export default function LifeInsurance101() {
                       <RotateCcw className="w-4 h-4" />
                     </button>
                   )}
-                  <span className={`text-2xl font-bold ${progress === 100 ? 'text-green-500' : 'text-heritage-accent'}`}>
+                  <span className={`text-2xl font-bold ${progress === 100 ? 'text-green-500' : 'text-violet-500'}`}>
                     {progress}%
                   </span>
                 </div>
@@ -1251,7 +1251,7 @@ export default function LifeInsurance101() {
 
               <div className="h-3 bg-gray-200 rounded-full mb-8 overflow-hidden">
                 <motion.div
-                  className="h-full bg-heritage-accent rounded-full"
+                  className="h-full bg-violet-500 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.5 }}
@@ -1267,7 +1267,7 @@ export default function LifeInsurance101() {
                     onClick={() => handleModuleSelect(module.id)}
                     className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${
                       activeModule === module.id
-                        ? 'bg-heritage-primary text-white'
+                        ? 'bg-primary text-white'
                         : completedModules.includes(module.id)
                           ? 'bg-green-50 text-gray-900'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
@@ -1302,7 +1302,7 @@ export default function LifeInsurance101() {
       </section>
 
       {/* Quick Facts */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {quickFacts.map((fact, i) => (
@@ -1323,7 +1323,7 @@ export default function LifeInsurance101() {
       </section>
 
       {/* Active Module Content */}
-      <section ref={contentRef} className="py-16 bg-white scroll-mt-8">
+      <section ref={contentRef} className="py-20 bg-white scroll-mt-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <AnimatePresence mode="wait">
@@ -1336,14 +1336,14 @@ export default function LifeInsurance101() {
               >
                 {/* Module Header */}
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="p-4 bg-heritage-primary/10 rounded-full">
+                  <div className="p-4 bg-primary/10 rounded-full">
                     {(() => {
                       const Icon = modules[activeModule].icon;
-                      return <Icon className="w-8 h-8 text-heritage-primary" />;
+                      return <Icon className="w-8 h-8 text-primary" />;
                     })()}
                   </div>
                   <div>
-                    <p className="text-heritage-accent font-medium">Module {activeModule + 1} of {modules.length}</p>
+                    <p className="text-violet-500 font-medium">Module {activeModule + 1} of {modules.length}</p>
                     <h2 className="text-3xl font-bold text-gray-900">{modules[activeModule].title}</h2>
                   </div>
                   <div className="ml-auto hidden sm:flex items-center gap-2 text-gray-500">
@@ -1366,7 +1366,7 @@ export default function LifeInsurance101() {
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
                       activeModule === 0
                         ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-heritage-primary hover:bg-heritage-primary/5'
+                        : 'text-primary hover:bg-primary/5'
                     }`}
                   >
                     <ChevronRight className="w-5 h-5 rotate-180" /> Previous Module
@@ -1376,7 +1376,7 @@ export default function LifeInsurance101() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleModuleComplete(activeModule)}
-                    className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2"
+                    className="bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2"
                   >
                     {activeModule === modules.length - 1 ? 'Complete Course' : 'Next Module'}
                     <ArrowRight className="w-5 h-5" />
@@ -1389,7 +1389,7 @@ export default function LifeInsurance101() {
       </section>
 
       {/* Glossary */}
-      <section className="py-16 bg-[#fffaf3]">
+      <section className="py-20 bg-[#fffaf3]">
         <div className="container mx-auto px-4">
           <motion.div
             initial="initial"
@@ -1398,10 +1398,10 @@ export default function LifeInsurance101() {
             variants={staggerContainer}
             className="text-center mb-12"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Glossary of Terms
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-gray-600">
+            <motion.p variants={fadeInUp} className="text-gray-600 text-pretty">
               Quick reference for common life insurance terminology.
             </motion.p>
           </motion.div>
@@ -1411,7 +1411,7 @@ export default function LifeInsurance101() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto"
           >
             {glossary.map((item, index) => (
               <motion.div
@@ -1419,7 +1419,7 @@ export default function LifeInsurance101() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-5 shadow-sm border border-gray-100"
               >
-                <h3 className="font-bold text-heritage-primary mb-2">{item.term}</h3>
+                <h3 className="font-bold text-primary mb-2">{item.term}</h3>
                 <p className="text-gray-600 text-sm">{item.definition}</p>
               </motion.div>
             ))}
@@ -1428,17 +1428,17 @@ export default function LifeInsurance101() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">
               Ready to Get Covered?
             </h2>
-            <p className="text-white/80 mb-8 max-w-xl mx-auto">
+            <p className="text-white/80 mb-8 max-w-xl mx-auto text-pretty">
               Now that you understand the basics, let us help you find the right policy for your needs.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
@@ -1446,7 +1446,7 @@ export default function LifeInsurance101() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-heritage-accent text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2"
+                  className="bg-violet-500 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </motion.button>
@@ -1489,11 +1489,11 @@ export default function LifeInsurance101() {
                 <X className="w-6 h-6" />
               </button>
 
-              <div className="w-20 h-20 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <PartyPopper className="w-10 h-10 text-heritage-accent" />
+              <div className="w-20 h-20 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <PartyPopper className="w-10 h-10 text-violet-500" />
               </div>
 
-              <h3 className="text-2xl font-bold text-heritage-primary mb-2">
+              <h3 className="text-2xl font-bold text-primary mb-2">
                 Congratulations!
               </h3>
               <p className="text-gray-600 mb-6">
@@ -1512,14 +1512,14 @@ export default function LifeInsurance101() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
                   >
                     Get Your Free Quote <ArrowRight className="w-5 h-5" />
                   </motion.button>
                 </Link>
                 <button
                   onClick={() => setShowCompletionModal(false)}
-                  className="w-full text-heritage-primary hover:bg-heritage-primary/5 px-6 py-3 rounded-lg font-medium transition-colors"
+                  className="w-full text-primary hover:bg-primary/5 px-6 py-3 rounded-lg font-medium transition-colors"
                 >
                   Review Modules
                 </button>

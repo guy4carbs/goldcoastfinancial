@@ -130,28 +130,28 @@ export default function MortgageROP() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <RefreshCcw className="w-4 h-4" />
                 Return of Premium
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Get Your Premiums
-                <span className="block text-heritage-accent">Back—Guaranteed</span>
+                <span className="block text-violet-500">Back—Guaranteed</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Protect your mortgage and get every dollar back if you outlive your policy. The only coverage where you can't lose.
               </p>
 
@@ -164,7 +164,7 @@ export default function MortgageROP() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -175,7 +175,7 @@ export default function MortgageROP() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get ROP Quote
                     <ChevronRight className="w-5 h-5" />
@@ -185,7 +185,7 @@ export default function MortgageROP() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -202,14 +202,14 @@ export default function MortgageROP() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">ROP Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">ROP Calculator</h3>
                 <p className="text-gray-600 text-sm">See your potential refund</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-accent font-bold">${coverage.toLocaleString()}</span>
+                    Coverage Amount: <span className="text-violet-500 font-bold">${coverage.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -218,13 +218,13 @@ export default function MortgageROP() {
                     step="25000"
                     value={coverage}
                     onChange={(e) => setCoverage(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Term Length: <span className="text-heritage-accent font-bold">{term} years</span>
+                    Term Length: <span className="text-violet-500 font-bold">{term} years</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[15, 20, 30].map((t) => (
@@ -233,7 +233,7 @@ export default function MortgageROP() {
                         onClick={() => setTerm(t)}
                         className={`py-2 rounded-lg text-sm font-medium transition-all ${
                           term === t
-                            ? 'bg-heritage-accent text-white'
+                            ? 'bg-violet-500 text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
@@ -245,7 +245,7 @@ export default function MortgageROP() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-accent font-bold">{age}</span>
+                    Your Age: <span className="text-violet-500 font-bold">{age}</span>
                   </label>
                   <input
                     type="range"
@@ -253,7 +253,7 @@ export default function MortgageROP() {
                     max="55"
                     value={age}
                     onChange={(e) => setAge(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
@@ -262,7 +262,7 @@ export default function MortgageROP() {
                   onClick={() => setShowRefund(!showRefund)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-heritage-primary to-heritage-primary/90 text-white py-4 rounded-xl font-semibold"
+                  className="w-full bg-gradient-to-r from-primary to-primary/90 text-white py-4 rounded-xl font-semibold"
                 >
                   {showRefund ? 'Hide Details' : 'Calculate My Refund'}
                 </motion.button>
@@ -279,7 +279,7 @@ export default function MortgageROP() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-gray-50 rounded-lg p-4 text-center">
                             <p className="text-xs text-gray-500 mb-1">ROP Monthly Premium</p>
-                            <p className="text-2xl font-bold text-heritage-primary">${ropPremium}</p>
+                            <p className="text-2xl font-bold text-primary">${ropPremium}</p>
                           </div>
                           <div className="bg-gray-50 rounded-lg p-4 text-center">
                             <p className="text-xs text-gray-500 mb-1">Standard Monthly</p>
@@ -314,7 +314,7 @@ export default function MortgageROP() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get My ROP Quote
                   </motion.button>
@@ -326,9 +326,9 @@ export default function MortgageROP() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "100%", label: "Premium Refund" },
               { value: "25-40%", label: "Higher Premium" },
@@ -343,7 +343,7 @@ export default function MortgageROP() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -360,10 +360,10 @@ export default function MortgageROP() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Return of Premium?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               The peace of mind knowing your money isn't "wasted" if you outlive your policy.
             </p>
           </motion.div>
@@ -373,7 +373,7 @@ export default function MortgageROP() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -381,10 +381,10 @@ export default function MortgageROP() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -401,7 +401,7 @@ export default function MortgageROP() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Standard vs. ROP
             </h2>
             <p className="text-gray-600">Based on ${coverage.toLocaleString()} coverage, {term}-year term, age {age}</p>
@@ -415,10 +415,10 @@ export default function MortgageROP() {
           >
             <table className="w-full">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="text-left p-4 font-semibold">Feature</th>
                   <th className="text-center p-4 font-semibold">Standard Term</th>
-                  <th className="text-center p-4 font-semibold bg-heritage-accent">Return of Premium</th>
+                  <th className="text-center p-4 font-semibold bg-violet-500">Return of Premium</th>
                 </tr>
               </thead>
               <tbody>
@@ -426,7 +426,7 @@ export default function MortgageROP() {
                   <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                     <td className="p-4 text-gray-700 font-medium">{row.feature}</td>
                     <td className="p-4 text-center text-gray-600">{row.standard}</td>
-                    <td className="p-4 text-center text-heritage-accent font-semibold bg-green-50">{row.rop}</td>
+                    <td className="p-4 text-center text-violet-500 font-semibold bg-green-50">{row.rop}</td>
                   </tr>
                 ))}
               </tbody>
@@ -444,12 +444,12 @@ export default function MortgageROP() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               What Happens When...
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
             {scenarios.map((scenario, i) => (
               <motion.div
                 key={i}
@@ -459,7 +459,7 @@ export default function MortgageROP() {
                 transition={{ delay: i * 0.1 }}
                 className="bg-[#fffaf3] rounded-xl p-6"
               >
-                <h3 className="text-lg font-bold text-heritage-primary mb-4">{scenario.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-4">{scenario.title}</h3>
                 <div className="space-y-3">
                   <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-xs text-gray-500 mb-1">Standard Term</p>
@@ -477,7 +477,7 @@ export default function MortgageROP() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -487,7 +487,7 @@ export default function MortgageROP() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -519,7 +519,7 @@ export default function MortgageROP() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -538,8 +538,8 @@ export default function MortgageROP() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -569,10 +569,10 @@ export default function MortgageROP() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Get Your Money Back—Guaranteed
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               See how much you could get back with a return of premium policy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -580,7 +580,7 @@ export default function MortgageROP() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your ROP Quote
                   <ChevronRight className="w-5 h-5" />
@@ -590,7 +590,7 @@ export default function MortgageROP() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

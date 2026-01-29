@@ -212,28 +212,28 @@ export default function PrePlanning() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <ListChecks className="w-4 h-4" />
                 Plan Ahead with Confidence
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Final Expense
-                <span className="block text-heritage-accent">Pre-Planning Guide</span>
+                <span className="block text-violet-500">Pre-Planning Guide</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Give your family the gift of preparation. Pre-planning removes financial burden and ensures your wishes are honored.
               </p>
 
@@ -246,7 +246,7 @@ export default function PrePlanning() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -257,7 +257,7 @@ export default function PrePlanning() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Coverage Quote
                     <ChevronRight className="w-5 h-5" />
@@ -267,7 +267,7 @@ export default function PrePlanning() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -284,7 +284,7 @@ export default function PrePlanning() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Cost Estimator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Cost Estimator</h3>
                 <p className="text-gray-600 text-sm">Click each category to see range</p>
               </div>
 
@@ -295,15 +295,15 @@ export default function PrePlanning() {
                     onClick={() => setSelectedExpense(selectedExpense === expense.id ? null : expense.id)}
                     className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${
                       selectedExpense === expense.id
-                        ? 'bg-heritage-accent/10 border-2 border-heritage-accent'
+                        ? 'bg-violet-500/10 border-2 border-violet-500'
                         : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <expense.icon className={`w-5 h-5 ${selectedExpense === expense.id ? 'text-heritage-accent' : 'text-gray-400'}`} />
-                      <span className="font-medium text-heritage-primary">{expense.label}</span>
+                      <expense.icon className={`w-5 h-5 ${selectedExpense === expense.id ? 'text-violet-500' : 'text-gray-400'}`} />
+                      <span className="font-medium text-primary">{expense.label}</span>
                     </div>
-                    <span className="font-bold text-heritage-accent">${expense.avg.toLocaleString()}</span>
+                    <span className="font-bold text-violet-500">${expense.avg.toLocaleString()}</span>
                   </button>
                 ))}
               </div>
@@ -321,10 +321,10 @@ export default function PrePlanning() {
                         {expenses.find(e => e.id === selectedExpense)?.label} Range:
                       </p>
                       <div className="flex justify-between">
-                        <span className="text-heritage-primary">
+                        <span className="text-primary">
                           Low: ${expenses.find(e => e.id === selectedExpense)?.min.toLocaleString()}
                         </span>
-                        <span className="text-heritage-primary">
+                        <span className="text-primary">
                           High: ${expenses.find(e => e.id === selectedExpense)?.max.toLocaleString()}
                         </span>
                       </div>
@@ -333,7 +333,7 @@ export default function PrePlanning() {
                 )}
               </AnimatePresence>
 
-              <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+              <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                 <p className="text-sm opacity-90 mb-1">Estimated Total Range</p>
                 <p className="text-3xl font-bold">
                   ${totalMin.toLocaleString()} - ${totalMax.toLocaleString()}
@@ -345,7 +345,7 @@ export default function PrePlanning() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full mt-6 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                  className="w-full mt-6 bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                 >
                   Get Coverage for Your Needs
                 </motion.button>
@@ -356,9 +356,9 @@ export default function PrePlanning() {
       </section>
 
       {/* Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "$9,420", label: "Avg. Funeral Cost" },
               { value: "70%", label: "Families Unprepared" },
@@ -373,7 +373,7 @@ export default function PrePlanning() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -390,10 +390,10 @@ export default function PrePlanning() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Regional Funeral Cost Calculator
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Funeral costs vary significantly by region. Customize your estimate based on your location and service preferences.
             </p>
           </motion.div>
@@ -418,7 +418,7 @@ export default function PrePlanning() {
                     }}
                     className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                       serviceType === "burial"
-                        ? "bg-heritage-accent text-white"
+                        ? "bg-violet-500 text-white"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
@@ -433,7 +433,7 @@ export default function PrePlanning() {
                     }}
                     className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                       serviceType === "cremation"
-                        ? "bg-heritage-accent text-white"
+                        ? "bg-violet-500 text-white"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
@@ -448,7 +448,7 @@ export default function PrePlanning() {
                   <MapPin className="w-4 h-4 inline mr-1" />
                   Select Your Region
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {Object.entries(regionData).map(([key, data]) => (
                     <motion.button
                       key={key}
@@ -460,7 +460,7 @@ export default function PrePlanning() {
                       }}
                       className={`p-3 rounded-lg text-sm font-medium transition-all ${
                         selectedRegion === key
-                          ? "bg-heritage-primary text-white"
+                          ? "bg-primary text-white"
                           : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -476,7 +476,7 @@ export default function PrePlanning() {
                   <Calculator className="w-4 h-4 inline mr-1" />
                   Select Expenses to Include
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   {(serviceType === "burial" ? expenseCategories.burial : expenseCategories.cremation).map((cat) => (
                     <motion.button
                       key={cat.id}
@@ -504,7 +504,7 @@ export default function PrePlanning() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowCalculatorResult(true)}
-                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold mb-6"
+                className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold mb-6"
               >
                 Calculate My Estimated Costs
               </motion.button>
@@ -523,11 +523,11 @@ export default function PrePlanning() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="bg-[#fffaf3] rounded-xl p-6 border-2 border-heritage-accent/20"
+                      className="bg-[#fffaf3] rounded-xl p-6 border-2 border-violet-500/20"
                     >
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div>
-                          <h4 className="text-lg font-bold text-heritage-primary mb-4">Your Expense Breakdown</h4>
+                          <h4 className="text-lg font-bold text-primary mb-4">Your Expense Breakdown</h4>
                           <div className="space-y-2">
                             {(serviceType === "burial" ? expenseCategories.burial : expenseCategories.cremation)
                               .filter(cat => selectedCategories[cat.id] !== false)
@@ -540,7 +540,7 @@ export default function PrePlanning() {
                                   className="flex justify-between items-center bg-white rounded-lg p-2"
                                 >
                                   <span className="text-sm text-gray-700">{cat.label}</span>
-                                  <span className="font-semibold text-heritage-primary">
+                                  <span className="font-semibold text-primary">
                                     ${Math.round(cat.base * regionData[selectedRegion].multiplier).toLocaleString()}
                                   </span>
                                 </motion.div>
@@ -549,7 +549,7 @@ export default function PrePlanning() {
                         </div>
 
                         <div className="flex flex-col justify-center">
-                          <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+                          <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                             <p className="text-sm opacity-90 mb-1">Estimated Total Cost</p>
                             <motion.p
                               key={`total-${calculateTotalCost()}`}
@@ -580,7 +580,7 @@ export default function PrePlanning() {
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-full mt-6 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                          className="w-full mt-6 bg-violet-500 hover:bg-violet-500/90 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
                         >
                           Get a Quote for This Coverage
                           <ChevronRight className="w-5 h-5" />
@@ -599,17 +599,17 @@ export default function PrePlanning() {
               viewport={{ once: true }}
               className="mt-8 bg-[#f5f0e8] rounded-xl p-6"
             >
-              <h4 className="font-bold text-heritage-primary mb-4">Regional Cost Comparison (Burial)</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h4 className="font-bold text-primary mb-4">Regional Cost Comparison (Burial)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(regionData).map(([key, data]) => (
                   <div
                     key={key}
                     className={`p-3 rounded-lg ${
-                      selectedRegion === key ? "bg-heritage-accent/10 border-2 border-heritage-accent" : "bg-white"
+                      selectedRegion === key ? "bg-violet-500/10 border-2 border-violet-500" : "bg-white"
                     }`}
                   >
                     <p className="text-xs text-gray-500">{data.name}</p>
-                    <p className="font-bold text-heritage-primary">${data.avgCost.toLocaleString()}</p>
+                    <p className="font-bold text-primary">${data.avgCost.toLocaleString()}</p>
                     <p className="text-xs text-gray-400">
                       {data.multiplier > 1 ? `+${Math.round((data.multiplier - 1) * 100)}%` :
                        data.multiplier < 1 ? `-${Math.round((1 - data.multiplier) * 100)}%` : "Avg"}
@@ -631,10 +631,10 @@ export default function PrePlanning() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               4 Steps to Pre-Plan
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               A simple roadmap to protect your family and document your wishes.
             </p>
           </motion.div>
@@ -644,7 +644,7 @@ export default function PrePlanning() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {planningSteps.map((step, i) => (
               <motion.div
@@ -652,13 +652,13 @@ export default function PrePlanning() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow relative"
               >
-                <div className="absolute -top-3 -right-3 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="absolute -top-3 -right-3 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {step.step}
                 </div>
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <step.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <step.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{step.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{step.title}</h3>
                 <p className="text-gray-600 text-sm">{step.description}</p>
               </motion.div>
             ))}
@@ -669,13 +669,13 @@ export default function PrePlanning() {
       {/* Document Checklist */}
       <section className="py-20 bg-[#f5f0e8]">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 What to Document
               </h2>
               <p className="text-gray-600 mb-6">
@@ -691,7 +691,7 @@ export default function PrePlanning() {
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm"
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700 text-sm">{item}</span>
                   </motion.div>
                 ))}
@@ -713,11 +713,11 @@ export default function PrePlanning() {
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-heritage-accent" />
+                  <div className="w-10 h-10 bg-violet-500/10 rounded-full flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-violet-500" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary text-sm">Your Wishes</p>
+                    <p className="font-bold text-primary text-sm">Your Wishes</p>
                     <p className="text-xs text-gray-500">Documented & Shared</p>
                   </div>
                 </div>
@@ -736,10 +736,10 @@ export default function PrePlanning() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Pre-Planning Matters
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               The greatest gift you can give your family is preparation.
             </p>
           </motion.div>
@@ -749,7 +749,7 @@ export default function PrePlanning() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {familyBenefits.map((benefit, i) => (
               <motion.div
@@ -757,10 +757,10 @@ export default function PrePlanning() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -778,7 +778,7 @@ export default function PrePlanning() {
             className="max-w-4xl mx-auto"
           >
             <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
                 Starting the Conversation
               </h2>
               <p className="text-gray-600">
@@ -786,7 +786,7 @@ export default function PrePlanning() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {[
                 {
                   opener: "I've been thinking about...",
@@ -814,9 +814,9 @@ export default function PrePlanning() {
                   className="bg-white rounded-xl p-6 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
-                    <MessageCircle className="w-5 h-5 text-heritage-accent flex-shrink-0 mt-1" />
+                    <MessageCircle className="w-5 h-5 text-violet-500 flex-shrink-0 mt-1" />
                     <div>
-                      <p className="font-semibold text-heritage-primary mb-2">"{convo.opener}"</p>
+                      <p className="font-semibold text-primary mb-2">"{convo.opener}"</p>
                       <p className="text-gray-600 text-sm italic">"{convo.example}"</p>
                     </div>
                   </div>
@@ -828,7 +828,7 @@ export default function PrePlanning() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -838,7 +838,7 @@ export default function PrePlanning() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -870,7 +870,7 @@ export default function PrePlanning() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -889,8 +889,8 @@ export default function PrePlanning() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -920,10 +920,10 @@ export default function PrePlanning() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Start Your Pre-Planning Today
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get a quote and take the first step toward protecting your family.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -931,7 +931,7 @@ export default function PrePlanning() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -941,7 +941,7 @@ export default function PrePlanning() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

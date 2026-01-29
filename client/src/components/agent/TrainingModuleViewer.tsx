@@ -76,7 +76,7 @@ export function TrainingModuleViewer({
                   {course.modules.length} modules
                 </div>
                 {course.required && (
-                  <Badge variant="outline" className="text-secondary border-secondary/50 text-xs">
+                  <Badge variant="outline" className="text-violet-600 border-violet-300/50 text-xs">
                     Required
                   </Badge>
                 )}
@@ -105,7 +105,7 @@ export function TrainingModuleViewer({
                     className={cn(
                       "w-full text-left p-3 rounded-lg transition-all flex items-center gap-3",
                       activeModuleIndex === idx 
-                        ? "bg-secondary/10 border border-secondary/30" 
+                        ? "bg-violet-50 border border-violet-300/30" 
                         : "hover:bg-muted"
                     )}
                   >
@@ -168,9 +168,9 @@ export function TrainingModuleViewer({
                           animate={{ scale: 1 }}
                           transition={{ type: "spring", stiffness: 300 }}
                         >
-                          <CheckCircle2 className="w-16 h-16 text-secondary mx-auto mb-3" />
+                          <CheckCircle2 className="w-16 h-16 text-violet-600 mx-auto mb-3" />
                         </motion.div>
-                        <p className="font-medium text-secondary">Module Completed!</p>
+                        <p className="font-medium text-violet-600">Module Completed!</p>
                         <p className="text-sm text-muted-foreground mt-1">
                           You've earned +50 XP
                         </p>
@@ -198,10 +198,10 @@ export function TrainingModuleViewer({
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-4 p-4 rounded-lg bg-gradient-to-r from-secondary/10 to-yellow-500/10 border border-secondary/30 text-center"
+                      className="mt-4 p-4 rounded-lg bg-gradient-to-r from-secondary/10 to-yellow-500/10 border border-violet-300/30 text-center"
                     >
-                      <Trophy className="w-8 h-8 text-secondary mx-auto mb-2" />
-                      <p className="font-semibold text-secondary">Course Complete!</p>
+                      <Trophy className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+                      <p className="font-semibold text-violet-600">Course Complete!</p>
                       <p className="text-sm text-muted-foreground">You've earned a certificate</p>
                       <Button variant="outline" className="mt-3 gap-2">
                         <Award className="w-4 h-4" />
@@ -244,7 +244,7 @@ export function TrainingModuleViewer({
               {!isCompleted ? (
                 <Button 
                   onClick={handleComplete}
-                  className="gap-2 bg-secondary hover:bg-secondary/90"
+                  className="gap-2 bg-primary hover:bg-primary/90"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Mark Complete

@@ -119,28 +119,28 @@ export default function CashValue() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Wallet className="w-4 h-4" />
                 Cash Value
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Build Wealth
-                <span className="block text-heritage-accent">Inside Your Policy</span>
+                <span className="block text-violet-500">Inside Your Policy</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Whole life insurance does more than protect—it builds tax-deferred savings you can access anytime. No credit checks, no approval process, no questions asked.
               </p>
 
@@ -153,7 +153,7 @@ export default function CashValue() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -164,7 +164,7 @@ export default function CashValue() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your Quote
                     <ChevronRight className="w-5 h-5" />
@@ -174,7 +174,7 @@ export default function CashValue() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     (630) 778-0800
@@ -191,14 +191,14 @@ export default function CashValue() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Cash Value Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Cash Value Calculator</h3>
                 <p className="text-gray-600 text-sm">See how your savings could grow</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Monthly Premium: <span className="text-heritage-accent font-bold">${monthlyPremium}</span>
+                    Monthly Premium: <span className="text-violet-500 font-bold">${monthlyPremium}</span>
                   </label>
                   <input
                     type="range"
@@ -207,7 +207,7 @@ export default function CashValue() {
                     step="50"
                     value={monthlyPremium}
                     onChange={(e) => setMonthlyPremium(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$100</span>
@@ -217,7 +217,7 @@ export default function CashValue() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Years: <span className="text-heritage-accent font-bold">{years}</span>
+                    Years: <span className="text-violet-500 font-bold">{years}</span>
                   </label>
                   <input
                     type="range"
@@ -226,7 +226,7 @@ export default function CashValue() {
                     step="5"
                     value={years}
                     onChange={(e) => setYears(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>5 years</span>
@@ -234,20 +234,20 @@ export default function CashValue() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                   <p className="text-sm opacity-90 mb-1">Projected Cash Value</p>
                   <p className="text-4xl font-bold">${calculateCashValue(years).toLocaleString()}</p>
                   <p className="text-xs opacity-75 mt-2">After {years} years at ${monthlyPremium}/month</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-500">Total Premiums</p>
-                    <p className="text-lg font-bold text-heritage-primary">${(monthlyPremium * 12 * years).toLocaleString()}</p>
+                    <p className="text-lg font-bold text-primary">${(monthlyPremium * 12 * years).toLocaleString()}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-500">Cash Value Ratio</p>
-                    <p className="text-lg font-bold text-heritage-accent">
+                    <p className="text-lg font-bold text-violet-500">
                       {Math.round((calculateCashValue(years) / (monthlyPremium * 12 * years)) * 100)}%
                     </p>
                   </div>
@@ -257,7 +257,7 @@ export default function CashValue() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Personalized Illustration
                   </motion.button>
@@ -269,9 +269,9 @@ export default function CashValue() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "4-5%", label: "Typical Growth Rate" },
               { value: "Tax-Free", label: "Policy Loans" },
@@ -286,7 +286,7 @@ export default function CashValue() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -303,10 +303,10 @@ export default function CashValue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Cash Value Matters
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Your whole life policy is more than protection—it's a financial asset that grows every year.
             </p>
           </motion.div>
@@ -316,7 +316,7 @@ export default function CashValue() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -324,10 +324,10 @@ export default function CashValue() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -344,12 +344,12 @@ export default function CashValue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Cash Value Works
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", title: "Pay Premiums", description: "Part of each payment builds cash value", icon: DollarSign },
               { step: "2", title: "Value Grows", description: "Guaranteed growth rate every year", icon: TrendingUp },
@@ -365,14 +365,14 @@ export default function CashValue() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
               </motion.div>
             ))}
@@ -383,19 +383,19 @@ export default function CashValue() {
       {/* Common Uses */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Use Your Cash Value for Anything
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-pretty">
                 Unlike retirement accounts with penalties and restrictions, your cash value is accessible anytime for any purpose.
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {commonUses.map((use, i) => (
                   <motion.div
                     key={i}
@@ -405,7 +405,7 @@ export default function CashValue() {
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-2"
                   >
-                    <CheckCircle className="w-4 h-4 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-violet-500 flex-shrink-0" />
                     <span className="text-sm text-gray-700">{use}</span>
                   </motion.div>
                 ))}
@@ -433,7 +433,7 @@ export default function CashValue() {
                     className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors cursor-pointer group"
                   >
                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <Play className="w-8 h-8 text-heritage-primary ml-1" fill="currentColor" />
+                      <Play className="w-8 h-8 text-primary ml-1" fill="currentColor" />
                     </div>
                   </button>
                 )}
@@ -444,7 +444,7 @@ export default function CashValue() {
                     <DollarSign className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary text-sm">No Restrictions</p>
+                    <p className="font-bold text-primary text-sm">No Restrictions</p>
                     <p className="text-xs text-gray-500">Your money, your choice</p>
                   </div>
                 </div>
@@ -455,7 +455,7 @@ export default function CashValue() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -465,14 +465,14 @@ export default function CashValue() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
               "When I needed $30,000 for my daughter's wedding, I borrowed against my policy in 3 days. No bank, no credit check, no hassle. The money was just there."
             </blockquote>
             <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-heritage-accent/20 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center">
                 <span className="text-2xl font-bold text-white">TM</span>
               </div>
               <div className="text-left">
@@ -493,7 +493,7 @@ export default function CashValue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -512,8 +512,8 @@ export default function CashValue() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -543,10 +543,10 @@ export default function CashValue() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Start Building Cash Value Today
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get a personalized illustration showing how cash value could work for you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -554,7 +554,7 @@ export default function CashValue() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -564,7 +564,7 @@ export default function CashValue() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   (630) 778-0800

@@ -262,7 +262,7 @@ export default function Home() {
           >
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-secondary/20 rounded-full flex items-center justify-center">
+                <div className="w-14 h-14 bg-violet-100 rounded-full flex items-center justify-center">
                   <Calculator className="w-7 h-7 text-secondary" />
                 </div>
                 <div>

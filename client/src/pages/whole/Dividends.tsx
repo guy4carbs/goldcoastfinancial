@@ -223,31 +223,31 @@ export default function Dividends() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] py-20 md:py-28 overflow-hidden">
         {/* Decorative blur circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial="initial"
               animate="animate"
               variants={staggerContainer}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">
+              <motion.p variants={fadeInUp} className="text-violet-500 font-semibold mb-4 tracking-wide uppercase text-sm">
                 Whole Life Insurance
               </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight text-balance">
                 Dividends &
-                <span className="text-heritage-primary"> Participating Policies</span>
+                <span className="text-primary"> Participating Policies</span>
               </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
                 Share in your insurer's profits. Dividends can boost cash value, reduce premiums, or put cash in your pocket.
               </motion.p>
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     href="/quote"
-                    className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-dark transition-colors"
+                    className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-dark transition-colors"
                   >
                     Get Your Free Quote <ArrowRight className="w-5 h-5" />
                   </Link>
@@ -255,7 +255,7 @@ export default function Dividends() {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <a
                     href="tel:6307780800"
-                    className="inline-flex items-center gap-2 border-2 border-heritage-primary text-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                    className="inline-flex items-center gap-2 border-2 border-primary text-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                   >
                     <Phone className="w-5 h-5" /> Speak to an Advisor
                   </a>
@@ -272,8 +272,8 @@ export default function Dividends() {
             >
               <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-heritage-accent/20 rounded-xl">
-                    <Gift className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-3 bg-violet-500/20 rounded-xl">
+                    <Gift className="w-8 h-8 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">Dividend Options</h3>
@@ -290,21 +290,21 @@ export default function Dividends() {
                       whileTap={{ scale: 0.98 }}
                       className={`p-3 rounded-xl text-left transition-all ${
                         selectedOption === option.id
-                          ? 'bg-heritage-primary text-white shadow-lg'
+                          ? 'bg-primary text-white shadow-lg'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <option.icon className={`w-5 h-5 mb-1 ${selectedOption === option.id ? 'text-heritage-accent' : 'text-heritage-primary'}`} />
+                      <option.icon className={`w-5 h-5 mb-1 ${selectedOption === option.id ? 'text-violet-500' : 'text-primary'}`} />
                       <p className="text-sm font-medium">{option.title}</p>
                     </motion.button>
                   ))}
                 </div>
 
-                <div className="p-6 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl">
+                <div className="p-6 bg-gradient-to-r from-primary to-primary/90 rounded-xl">
                   <p className="text-white/80 text-sm mb-2">{selectedDividendOption.tagline}</p>
                   <p className="text-white mb-4">{selectedDividendOption.description}</p>
                   <div className="bg-white/20 rounded-lg p-3">
-                    <p className="text-heritage-accent text-sm font-medium">Example:</p>
+                    <p className="text-violet-500 text-sm font-medium">Example:</p>
                     <p className="text-white text-sm">{selectedDividendOption.example}</p>
                   </div>
                 </div>
@@ -315,9 +315,9 @@ export default function Dividends() {
       </section>
 
       {/* Trust Stats Bar */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {trustStats.map((stat, index) => (
               <motion.div
                 key={index}
@@ -339,20 +339,20 @@ export default function Dividends() {
       {/* What Are Dividends */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
             <motion.div
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               variants={staggerContainer}
             >
-              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
                 What Are Policy Dividends?
               </motion.h2>
-              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-6 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-6 leading-relaxed text-pretty">
                 Participating whole life policies share in the insurance company's profits. When the company performs well, you receive a dividend—essentially a return of excess premiums.
               </motion.p>
-              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Only mutual insurance companies (owned by policyholders) offer true participating policies. Top mutual insurers have paid dividends for over 150 consecutive years.
               </motion.p>
 
@@ -365,7 +365,7 @@ export default function Dividends() {
                   "Potentially tax-free in most situations"
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </div>
                 ))}
@@ -378,9 +378,9 @@ export default function Dividends() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <div className="h-[500px] bg-gradient-to-br from-heritage-primary/10 to-heritage-accent/10 rounded-xl flex items-center justify-center">
+              <div className="h-[500px] bg-gradient-to-br from-primary/10 to-violet-500/10 rounded-xl flex items-center justify-center">
                 <div className="text-center p-8">
-                  <Gift className="w-24 h-24 text-heritage-primary/30 mx-auto mb-4" />
+                  <Gift className="w-24 h-24 text-primary/30 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">Dividend Growth Image</p>
                 </div>
               </div>
@@ -399,10 +399,10 @@ export default function Dividends() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               How Dividends Work
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               From company profits to your policy benefits.
             </motion.p>
           </motion.div>
@@ -412,7 +412,7 @@ export default function Dividends() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
           >
             {howDividendsWork.map((step, index) => (
               <motion.div
@@ -421,15 +421,15 @@ export default function Dividends() {
                 className="relative"
               >
                 <div className="bg-white rounded-xl p-8 border border-gray-200 h-full text-center hover:shadow-lg transition-shadow">
-                  <div className="p-4 bg-heritage-primary/10 rounded-full w-fit mx-auto mb-4">
-                    <step.icon className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto mb-4">
+                    <step.icon className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
                 {index < howDividendsWork.length - 1 && (
                   <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-heritage-primary/30" />
+                    <ArrowRight className="w-8 h-8 text-primary/30" />
                   </div>
                 )}
               </motion.div>
@@ -448,10 +448,10 @@ export default function Dividends() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               4 Ways to Use Your Dividends
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Your choice, your strategy. Each option serves different goals.
             </motion.p>
           </motion.div>
@@ -461,7 +461,7 @@ export default function Dividends() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8"
           >
             {dividendOptions.map((option, index) => (
               <motion.div
@@ -470,18 +470,18 @@ export default function Dividends() {
                 className="bg-white rounded-xl p-8 border border-gray-200 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="p-4 bg-heritage-primary/10 rounded-xl">
-                    <option.icon className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-4 bg-primary/10 rounded-xl">
+                    <option.icon className="w-8 h-8 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">{option.title}</h3>
-                    <p className="text-heritage-accent text-sm font-medium">{option.tagline}</p>
+                    <p className="text-violet-500 text-sm font-medium">{option.tagline}</p>
                   </div>
                 </div>
                 <p className="text-gray-600 mb-4">{option.description}</p>
                 <div className="p-4 bg-gray-50 rounded-xl">
                   <p className="text-sm text-gray-500 mb-1">Benefit</p>
-                  <p className="font-semibold text-heritage-primary">{option.benefit}</p>
+                  <p className="font-semibold text-primary">{option.benefit}</p>
                 </div>
               </motion.div>
             ))}
@@ -499,10 +499,10 @@ export default function Dividends() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Participating vs. Non-Participating
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Not all whole life policies pay dividends.
             </motion.p>
           </motion.div>
@@ -513,7 +513,7 @@ export default function Dividends() {
             viewport={{ once: true }}
             className="bg-white rounded-xl shadow-lg overflow-hidden max-w-4xl mx-auto border border-gray-200"
           >
-            <div className="grid grid-cols-3 bg-heritage-primary text-white p-4 font-semibold">
+            <div className="grid grid-cols-3 bg-primary text-white p-4 font-semibold">
               <div>Feature</div>
               <div className="text-center">Participating</div>
               <div className="text-center">Non-Participating</div>
@@ -524,7 +524,7 @@ export default function Dividends() {
                 className={`grid grid-cols-3 p-4 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
               >
                 <div className="font-medium text-gray-900">{row.feature}</div>
-                <div className="text-center text-heritage-primary font-semibold">{row.participating}</div>
+                <div className="text-center text-primary font-semibold">{row.participating}</div>
                 <div className="text-center text-gray-600">{row.nonParticipating}</div>
               </div>
             ))}
@@ -542,10 +542,10 @@ export default function Dividends() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Top Dividend-Paying Insurers
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Mutual companies with century-plus dividend streaks.
             </motion.p>
           </motion.div>
@@ -555,7 +555,7 @@ export default function Dividends() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-3 lg:grid-cols-5 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6"
           >
             {topMutualCompanies.map((company, index) => (
               <motion.div
@@ -563,9 +563,9 @@ export default function Dividends() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-6 border border-gray-200 text-center hover:shadow-lg transition-shadow"
               >
-                <Award className="w-10 h-10 text-heritage-accent mx-auto mb-3" />
+                <Award className="w-10 h-10 text-violet-500 mx-auto mb-3" />
                 <h3 className="font-bold text-gray-900 mb-2">{company.name}</h3>
-                <p className="text-2xl font-bold text-heritage-primary mb-1">{company.dividendRate}</p>
+                <p className="text-2xl font-bold text-primary mb-1">{company.dividendRate}</p>
                 <p className="text-xs text-gray-500">{company.streak}</p>
               </motion.div>
             ))}
@@ -583,7 +583,7 @@ export default function Dividends() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -593,7 +593,7 @@ export default function Dividends() {
           >
             <div className="flex justify-center gap-1 mb-6">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                <Star key={i} className="w-6 h-6 text-violet-500 fill-violet-500" />
               ))}
             </div>
             <blockquote className="text-xl md:text-2xl text-white mb-8 italic leading-relaxed">
@@ -623,10 +623,10 @@ export default function Dividends() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Dividend Options Comparison Tool
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8 text-pretty">
               See how different dividend choices affect your policy over time. Adjust the values to match your situation.
             </p>
 
@@ -634,7 +634,7 @@ export default function Dividends() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowComparison(!showComparison)}
-              className="bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
             >
               <BarChart3 className="w-5 h-5" />
               {showComparison ? 'Hide Comparison' : 'Compare Dividend Options'}
@@ -652,10 +652,10 @@ export default function Dividends() {
               >
                 <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
                   {/* Slider Controls */}
-                  <div className="grid md:grid-cols-2 gap-8 mb-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Annual Dividend: <span className="text-heritage-primary font-bold text-lg">${annualDividend.toLocaleString()}</span>
+                        Annual Dividend: <span className="text-primary font-bold text-lg">${annualDividend.toLocaleString()}</span>
                       </label>
                       <input
                         type="range"
@@ -664,7 +664,7 @@ export default function Dividends() {
                         step="250"
                         value={annualDividend}
                         onChange={(e) => setAnnualDividend(parseInt(e.target.value))}
-                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-2">
                         <span>$500/yr</span>
@@ -674,7 +674,7 @@ export default function Dividends() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Time Period: <span className="text-heritage-primary font-bold text-lg">{yearsHeld} Years</span>
+                        Time Period: <span className="text-primary font-bold text-lg">{yearsHeld} Years</span>
                       </label>
                       <input
                         type="range"
@@ -683,7 +683,7 @@ export default function Dividends() {
                         step="5"
                         value={yearsHeld}
                         onChange={(e) => setYearsHeld(parseInt(e.target.value))}
-                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-2">
                         <span>5 years</span>
@@ -693,22 +693,22 @@ export default function Dividends() {
                   </div>
 
                   {/* Comparison Cards */}
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     {/* Paid-Up Additions */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white"
+                      className="bg-gradient-to-br from-primary to-primary/90 rounded-xl p-6 text-white"
                     >
                       <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp className="w-6 h-6 text-heritage-accent" />
+                        <TrendingUp className="w-6 h-6 text-violet-500" />
                         <h4 className="font-bold">Paid-Up Additions</h4>
                       </div>
                       <div className="space-y-3">
                         <div>
                           <p className="text-white/70 text-xs">Death Benefit Increase</p>
-                          <p className="text-xl font-bold text-heritage-accent">
+                          <p className="text-xl font-bold text-violet-500">
                             +${Math.round(dividendOutcomes.pua.totalDeathBenefitIncrease).toLocaleString()}
                           </p>
                         </div>
@@ -732,7 +732,7 @@ export default function Dividends() {
                       className="bg-white border-2 border-gray-200 rounded-xl p-6"
                     >
                       <div className="flex items-center gap-2 mb-4">
-                        <Wallet className="w-6 h-6 text-heritage-primary" />
+                        <Wallet className="w-6 h-6 text-primary" />
                         <h4 className="font-bold text-gray-900">Cash Payment</h4>
                       </div>
                       <div className="space-y-3">
@@ -762,13 +762,13 @@ export default function Dividends() {
                       className="bg-white border-2 border-gray-200 rounded-xl p-6"
                     >
                       <div className="flex items-center gap-2 mb-4">
-                        <DollarSign className="w-6 h-6 text-heritage-primary" />
+                        <DollarSign className="w-6 h-6 text-primary" />
                         <h4 className="font-bold text-gray-900">Premium Reduction</h4>
                       </div>
                       <div className="space-y-3">
                         <div>
                           <p className="text-gray-500 text-xs">Total Premium Savings</p>
-                          <p className="text-xl font-bold text-heritage-primary">
+                          <p className="text-xl font-bold text-primary">
                             ${Math.round(dividendOutcomes.premium.premiumSavings).toLocaleString()}
                           </p>
                         </div>
@@ -792,13 +792,13 @@ export default function Dividends() {
                       className="bg-white border-2 border-gray-200 rounded-xl p-6"
                     >
                       <div className="flex items-center gap-2 mb-4">
-                        <PiggyBank className="w-6 h-6 text-heritage-primary" />
+                        <PiggyBank className="w-6 h-6 text-primary" />
                         <h4 className="font-bold text-gray-900">Accumulate</h4>
                       </div>
                       <div className="space-y-3">
                         <div>
                           <p className="text-gray-500 text-xs">Account Value</p>
-                          <p className="text-xl font-bold text-heritage-accent">
+                          <p className="text-xl font-bold text-violet-500">
                             ${Math.round(dividendOutcomes.accumulate.totalCashValueIncrease).toLocaleString()}
                           </p>
                         </div>
@@ -820,10 +820,10 @@ export default function Dividends() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-heritage-accent/10 border border-heritage-accent/30 rounded-xl p-6 text-center"
+                    className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-6 text-center"
                   >
-                    <p className="text-heritage-primary font-medium mb-2">For Maximum Long-Term Value</p>
-                    <p className="text-2xl font-bold text-heritage-accent">
+                    <p className="text-primary font-medium mb-2">For Maximum Long-Term Value</p>
+                    <p className="text-2xl font-bold text-violet-500">
                       Paid-Up Additions adds ${Math.round(dividendOutcomes.pua.totalDeathBenefitIncrease + dividendOutcomes.pua.totalCashValueIncrease - dividendOutcomes.cash.cashReceived).toLocaleString()} more value than taking cash
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
@@ -851,10 +851,10 @@ export default function Dividends() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Frequently Asked Questions
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 text-pretty">
               Common questions about dividends.
             </motion.p>
           </motion.div>
@@ -878,7 +878,7 @@ export default function Dividends() {
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-6 h-6 text-primary flex-shrink-0 transition-transform duration-200 ${
                       openFaq === index ? "rotate-180" : ""
                     }`}
                   />
@@ -910,17 +910,17 @@ export default function Dividends() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
               Earn Dividends on Your Policy
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
               See how a participating whole life policy can work for you. Get a personalized illustration.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-dark transition-colors"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-dark transition-colors"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -928,7 +928,7 @@ export default function Dividends() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <a
                   href="tel:6307780800"
-                  className="inline-flex items-center gap-2 border-2 border-heritage-primary text-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                  className="inline-flex items-center gap-2 border-2 border-primary text-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                 >
                   <Phone className="w-5 h-5" /> Call (630) 778-0800
                 </a>

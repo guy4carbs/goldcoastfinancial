@@ -125,28 +125,28 @@ export default function NewHomeowners() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-start pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start pt-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Home className="w-4 h-4" />
                 New Homeowner Protection
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Protect Your
-                <span className="block text-heritage-accent">New Home From Day One</span>
+                <span className="block text-violet-500">New Home From Day One</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 You worked hard to buy your first home. Don't let the unexpected take it away from your family. The sooner you apply, the lower your premiums—rates are based on age and health.
               </p>
 
@@ -159,7 +159,7 @@ export default function NewHomeowners() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -170,7 +170,7 @@ export default function NewHomeowners() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Protected Now
                     <ChevronRight className="w-5 h-5" />
@@ -180,7 +180,7 @@ export default function NewHomeowners() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -197,14 +197,14 @@ export default function NewHomeowners() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Protection Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Protection Calculator</h3>
                 <p className="text-gray-600 text-sm">See how affordable it is to protect your new home</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Home Purchase Price: <span className="text-heritage-accent font-bold">${homePrice.toLocaleString()}</span>
+                    Home Purchase Price: <span className="text-violet-500 font-bold">${homePrice.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -213,7 +213,7 @@ export default function NewHomeowners() {
                     step="25000"
                     value={homePrice}
                     onChange={(e) => setHomePrice(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$150K</span>
@@ -224,7 +224,7 @@ export default function NewHomeowners() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Down Payment: <span className="text-heritage-accent font-bold">{downPayment}%</span>
+                      Down Payment: <span className="text-violet-500 font-bold">{downPayment}%</span>
                     </label>
                     <input
                       type="range"
@@ -233,12 +233,12 @@ export default function NewHomeowners() {
                       step="1"
                       value={downPayment}
                       onChange={(e) => setDownPayment(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Age: <span className="text-heritage-accent font-bold">{buyerAge}</span>
+                      Your Age: <span className="text-violet-500 font-bold">{buyerAge}</span>
                     </label>
                     <input
                       type="range"
@@ -246,12 +246,12 @@ export default function NewHomeowners() {
                       max="60"
                       value={buyerAge}
                       onChange={(e) => setBuyerAge(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                     />
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="text-center">
                       <p className="text-xs opacity-75 mb-1">Mortgage to Protect</p>
@@ -282,7 +282,7 @@ export default function NewHomeowners() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Your Exact Quote
                   </motion.button>
@@ -294,9 +294,9 @@ export default function NewHomeowners() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "Younger", label: "Age = Lower Rates" },
               { value: "85%", label: "Qualify Easily" },
@@ -311,7 +311,7 @@ export default function NewHomeowners() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -328,10 +328,10 @@ export default function NewHomeowners() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why New Homeowners Need Protection
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               You've just made the biggest purchase of your life. Make sure it's protected.
             </p>
           </motion.div>
@@ -341,7 +341,7 @@ export default function NewHomeowners() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -349,10 +349,10 @@ export default function NewHomeowners() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -369,10 +369,10 @@ export default function NewHomeowners() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               What's at Stake for Your Family
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See the difference protection makes when the unexpected happens.
             </p>
           </motion.div>
@@ -408,13 +408,13 @@ export default function NewHomeowners() {
                 </div>
 
                 {/* With Protection */}
-                <div className="p-6 rounded-xl border-2 border-heritage-accent bg-heritage-accent/5">
+                <div className="p-6 rounded-xl border-2 border-violet-500 bg-violet-500/5">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Shield className="w-6 h-6 text-heritage-accent" />
-                      <h3 className="font-bold text-lg text-heritage-primary">With Protection</h3>
+                      <Shield className="w-6 h-6 text-violet-500" />
+                      <h3 className="font-bold text-lg text-primary">With Protection</h3>
                     </div>
-                    <span className="bg-heritage-accent text-white text-xs px-3 py-1 rounded-full">Peace of Mind</span>
+                    <span className="bg-violet-500 text-white text-xs px-3 py-1 rounded-full">Peace of Mind</span>
                   </div>
                   <ul className="space-y-3">
                     {[
@@ -425,7 +425,7 @@ export default function NewHomeowners() {
                       "Focus on healing, not bills"
                     ].map((item, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-heritage-accent mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700 text-sm">{item}</span>
                       </li>
                     ))}
@@ -438,7 +438,7 @@ export default function NewHomeowners() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2"
+                    className="bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2"
                   >
                     Protect Your Family Today
                     <ChevronRight className="w-5 h-5" />
@@ -453,13 +453,13 @@ export default function NewHomeowners() {
       {/* Who Is This For */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Ideal For New Homeowners Who...
               </h2>
               <div className="space-y-4">
@@ -472,7 +472,7 @@ export default function NewHomeowners() {
                     transition={{ delay: i * 0.1 }}
                     className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm"
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -498,7 +498,7 @@ export default function NewHomeowners() {
                     <Key className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary">Just Closed?</p>
+                    <p className="font-bold text-primary">Just Closed?</p>
                     <p className="text-xs text-gray-500">30-day window for best rates</p>
                   </div>
                 </div>
@@ -517,15 +517,15 @@ export default function NewHomeowners() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Important to Know
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Key considerations for new homeowner mortgage protection.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto">
             {considerations.map((item, i) => (
               <motion.div
                 key={i}
@@ -536,7 +536,7 @@ export default function NewHomeowners() {
                 className="bg-amber-50 border border-amber-100 rounded-xl p-6"
               >
                 <AlertCircle className="w-8 h-8 text-amber-600 mb-4" />
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
               </motion.div>
             ))}
@@ -553,12 +553,12 @@ export default function NewHomeowners() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Your Path to Protection
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", title: "Close on Home", description: "You receive the keys to your new home", icon: Key },
               { step: "2", title: "Apply for Coverage", description: "Complete a simple application process", icon: FileText },
@@ -574,17 +574,17 @@ export default function NewHomeowners() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
                 {i < 3 && (
-                  <ArrowRight className="w-6 h-6 text-heritage-accent/30 mx-auto mt-4 hidden md:block" />
+                  <ArrowRight className="w-6 h-6 text-violet-500/30 mx-auto mt-4 hidden md:block" />
                 )}
               </motion.div>
             ))}
@@ -593,7 +593,7 @@ export default function NewHomeowners() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -603,7 +603,7 @@ export default function NewHomeowners() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -635,7 +635,7 @@ export default function NewHomeowners() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               New Homeowner Questions
             </h2>
           </motion.div>
@@ -654,8 +654,8 @@ export default function NewHomeowners() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -685,10 +685,10 @@ export default function NewHomeowners() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Ready to Protect Your New Home?
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               The best time to get protection is within 30 days of closing. Don't wait—your family's security depends on it.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -696,7 +696,7 @@ export default function NewHomeowners() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -706,7 +706,7 @@ export default function NewHomeowners() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

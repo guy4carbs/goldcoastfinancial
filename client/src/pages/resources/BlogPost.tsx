@@ -57,7 +57,7 @@ export default function BlogPost() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-heritage-primary text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center gap-2"
+              className="bg-primary text-white px-6 py-3 rounded-lg font-semibold inline-flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" /> Back to Blog
             </motion.button>
@@ -134,8 +134,8 @@ export default function BlogPost() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-12 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -146,21 +146,21 @@ export default function BlogPost() {
           >
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-              <Link href="/resources/blog" className="hover:text-heritage-primary transition-colors">
+              <Link href="/resources/blog" className="hover:text-primary transition-colors">
                 Blog
               </Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-heritage-primary">{getCategoryName(post.category)}</span>
+              <span className="text-primary">{getCategoryName(post.category)}</span>
             </nav>
 
             {/* Category Badge */}
-            <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
               <BookOpen className="w-4 h-4" />
               {getCategoryName(post.category)}
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
               {post.title}
             </h1>
 
@@ -195,7 +195,7 @@ export default function BlogPost() {
             <img
               src={post.image.replace('w=400&h=250', 'w=1200&h=600').replace('w=800&h=400', 'w=1200&h=600')}
               alt={post.title}
-              className="w-full h-[300px] md:h-[400px] object-cover rounded-2xl shadow-xl"
+              className="w-full h-[250px] md:h-[400px] object-cover rounded-2xl shadow-xl"
             />
           </motion.div>
         </div>
@@ -292,11 +292,11 @@ export default function BlogPost() {
                   <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                     <button
                       onClick={handleNativeShare}
-                      className="font-semibold text-heritage-primary mb-4 flex items-center gap-2 hover:text-heritage-accent transition-colors w-full text-left group"
+                      className="font-semibold text-primary mb-4 flex items-center gap-2 hover:text-violet-500 transition-colors w-full text-left group"
                     >
                       <Share2 className="w-4 h-4" />
                       <span>Share Article</span>
-                      <span className="ml-auto text-xs text-gray-400 group-hover:text-heritage-accent">Click to share</span>
+                      <span className="ml-auto text-xs text-gray-400 group-hover:text-violet-500">Click to share</span>
                     </button>
                     <div className="flex flex-col gap-2">
                       <button
@@ -325,7 +325,7 @@ export default function BlogPost() {
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
                           copied
                             ? 'text-green-600 bg-green-50'
-                            : 'text-gray-600 hover:text-heritage-primary hover:bg-heritage-primary/10'
+                            : 'text-gray-600 hover:text-primary hover:bg-primary/10'
                         }`}
                       >
                         <LinkIcon className="w-5 h-5" />
@@ -335,14 +335,14 @@ export default function BlogPost() {
                   </div>
 
                   {/* CTA */}
-                  <div className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 shadow-lg">
+                  <div className="bg-gradient-to-br from-primary to-primary/90 rounded-xl p-6 shadow-lg">
                     <h4 className="font-bold text-white text-lg mb-2">Need Help?</h4>
                     <p className="text-white/90 text-sm mb-4 leading-relaxed">
                       Our experts are here to answer your questions.
                     </p>
                     <a
                       href="tel:6307780800"
-                      className="inline-flex items-center gap-2 bg-white text-heritage-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-heritage-accent hover:text-white transition-all"
+                      className="inline-flex items-center gap-2 bg-white text-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-violet-500 hover:text-white transition-all"
                     >
                       <Phone className="w-4 h-4" />
                       (630) 778-0800
@@ -356,7 +356,7 @@ export default function BlogPost() {
             <div className="lg:hidden mt-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
               <button
                 onClick={handleNativeShare}
-                className="font-semibold text-heritage-primary mb-4 flex items-center gap-2 hover:text-heritage-accent transition-colors w-full text-left"
+                className="font-semibold text-primary mb-4 flex items-center gap-2 hover:text-violet-500 transition-colors w-full text-left"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share This Article</span>
@@ -385,7 +385,7 @@ export default function BlogPost() {
                   className={`flex-1 p-3 rounded-lg transition-all flex items-center justify-center ${
                     copied
                       ? 'bg-green-50 text-green-600'
-                      : 'bg-gray-50 text-gray-600 hover:text-heritage-primary hover:bg-heritage-primary/10'
+                      : 'bg-gray-50 text-gray-600 hover:text-primary hover:bg-primary/10'
                   }`}
                 >
                   <LinkIcon className="w-5 h-5" />
@@ -397,14 +397,14 @@ export default function BlogPost() {
             </div>
 
             {/* Mobile Need Help CTA */}
-            <div className="lg:hidden mt-6 p-6 bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl shadow-lg">
+            <div className="lg:hidden mt-6 p-6 bg-gradient-to-br from-primary to-primary/90 rounded-xl shadow-lg">
               <h4 className="font-bold text-white text-lg mb-2">Need Help?</h4>
               <p className="text-white/90 text-sm mb-4 leading-relaxed">
                 Our experts are here to answer your questions.
               </p>
               <a
                 href="tel:6307780800"
-                className="inline-flex items-center gap-2 bg-white text-heritage-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-heritage-accent hover:text-white transition-all"
+                className="inline-flex items-center gap-2 bg-white text-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-violet-500 hover:text-white transition-all"
               >
                 <Phone className="w-4 h-4" />
                 (630) 778-0800
@@ -417,7 +417,7 @@ export default function BlogPost() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-2 text-heritage-primary font-semibold hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back to All Articles
                 </motion.button>
@@ -429,7 +429,7 @@ export default function BlogPost() {
 
       {/* Related Articles */}
       {displayPosts.length > 0 && (
-        <section className="py-16 bg-[#fffaf3]">
+        <section className="py-20 bg-[#fffaf3]">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -437,15 +437,15 @@ export default function BlogPost() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
                 {relatedPosts.length > 0 ? "Related Articles" : "More to Read"}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-pretty">
                 Continue learning about life insurance.
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto">
               {displayPosts.map((relatedPost, index) => (
                 <Link key={relatedPost.id} href={`/resources/blog/${relatedPost.slug}`}>
                   <motion.article
@@ -462,12 +462,12 @@ export default function BlogPost() {
                         alt={relatedPost.title}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-4 left-4 bg-white/90 text-heritage-primary px-3 py-1 rounded-full text-xs font-medium">
+                      <span className="absolute top-4 left-4 bg-white/90 text-primary px-3 py-1 rounded-full text-xs font-medium">
                         {getCategoryName(relatedPost.category)}
                       </span>
                     </div>
-                    <div className="p-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-heritage-primary transition-colors">
+                    <div className="p-4 md:p-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                         {relatedPost.title}
                       </h3>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -477,7 +477,7 @@ export default function BlogPost() {
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" /> {relatedPost.readTime}
                         </span>
-                        <span className="text-heritage-primary font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                        <span className="text-primary font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                           Read <ChevronRight className="w-4 h-4" />
                         </span>
                       </div>
@@ -491,7 +491,7 @@ export default function BlogPost() {
       )}
 
       {/* CTA Section */}
-      <section className="py-16 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -499,10 +499,10 @@ export default function BlogPost() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">
               Ready to Protect Your Family?
             </h2>
-            <p className="text-white/80 mb-8">
+            <p className="text-white/80 mb-8 text-pretty">
               Get a free quote in minutes and see how affordable life insurance can be.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -510,7 +510,7 @@ export default function BlogPost() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white text-heritage-primary px-8 py-3 rounded-lg font-semibold inline-flex items-center gap-2 hover:bg-gray-100 transition-colors"
+                  className="bg-white text-primary px-8 py-3 rounded-lg font-semibold inline-flex items-center gap-2 hover:bg-gray-100 transition-colors"
                 >
                   Get a Free Quote <ArrowRight className="w-4 h-4" />
                 </motion.button>

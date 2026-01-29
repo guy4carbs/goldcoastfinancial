@@ -33,16 +33,16 @@ interface AddTaskModalProps {
 }
 
 const CATEGORIES = [
-  { value: 'calls', label: 'Calls', icon: Phone, color: 'text-primary' },
-  { value: 'followup', label: 'Follow-up', icon: UserPlus, color: 'text-secondary' },
-  { value: 'training', label: 'Training', icon: GraduationCap, color: 'text-primary' },
-  { value: 'admin', label: 'Admin', icon: FileText, color: 'text-muted-foreground' },
+  { value: 'calls', label: 'Calls', icon: Phone, color: 'text-blue-600' },
+  { value: 'followup', label: 'Follow-up', icon: UserPlus, color: 'text-violet-600' },
+  { value: 'training', label: 'Training', icon: GraduationCap, color: 'text-emerald-600' },
+  { value: 'admin', label: 'Admin', icon: FileText, color: 'text-gray-600' },
 ];
 
 const PRIORITIES = [
   { value: 'high', label: 'High', color: 'text-red-500', xp: 15 },
-  { value: 'medium', label: 'Medium', color: 'text-secondary', xp: 10 },
-  { value: 'low', label: 'Low', color: 'text-muted-foreground', xp: 5 },
+  { value: 'medium', label: 'Medium', color: 'text-amber-500', xp: 10 },
+  { value: 'low', label: 'Low', color: 'text-gray-500', xp: 5 },
 ];
 
 export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProps) {
@@ -97,8 +97,8 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-serif">
-            <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-              <CheckSquare className="w-5 h-5 text-secondary" />
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+              <CheckSquare className="w-5 h-5 text-emerald-600" />
             </div>
             Add New Task
           </DialogTitle>
@@ -144,7 +144,7 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
                     className={cn(
                       "p-3 rounded-lg border-2 transition-all text-center",
                       formData.category === cat.value
-                        ? "border-secondary bg-secondary/10"
+                        ? "border-primary bg-primary/10"
                         : "border-transparent bg-muted/50 hover:bg-muted"
                     )}
                   >
@@ -175,7 +175,7 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
                     className={cn(
                       "flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all",
                       formData.priority === priority.value
-                        ? "border-secondary bg-secondary/10"
+                        ? "border-primary bg-primary/10"
                         : "border-transparent bg-muted/50 hover:bg-muted"
                     )}
                   >
@@ -217,7 +217,7 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="gap-2 bg-secondary hover:bg-secondary/90">
+          <Button onClick={handleSubmit} className="gap-2 bg-primary hover:bg-primary/90">
             <CheckSquare className="w-4 h-4" />
             Create Task
           </Button>

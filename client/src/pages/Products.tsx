@@ -3,6 +3,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+const carriers = [
+  { name: "Americo", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba" },
+  { name: "Athene", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643" },
+  { name: "Baltimore Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277409363-logo%402x.png?alt=media&token=cdd3c6d0-e497-4a4c-a357-6e3b548dd95c" },
+  { name: "Corebridge", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2" },
+  { name: "Mutual of Omaha", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277474666-Mutual-of-Omaha-logo.png?alt=media&token=0382cf9c-c262-4931-8155-688210c1c173", size: "large" },
+  { name: "Ethos", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277532663-6341f9fa-fd59-42aa-b238-d23e46658048.png?alt=media&token=ea3d4914-d65e-4817-9a81-1ea709064e52" },
+  { name: "Royal Neighbors", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277589538-330-3309455_royal-neighbors-of-america-life-insurance-royal-neighbors.png?alt=media&token=d700619b-ad2d-4071-bd2b-a57eb5a12b56" },
+  { name: "Transamerica", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769278248208-transamerica-logo.png?alt=media&token=9d6fb91f-9c8e-432b-96e4-c4ed8971cc6d", size: "large" },
+  { name: "American Home Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277674404-Carrier-Logo-Web-270x200-American-Home-Life-1080x608.webp?alt=media&token=0546ea66-443d-44bc-b2f1-d561bd1f713b", size: "large" },
+  { name: "Polish Falcons", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238" },
+  { name: "Ladder", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733" },
+  { name: "Lincoln Financial", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b" },
+];
 import {
   Shield,
   Heart,
@@ -177,9 +191,9 @@ export default function Products() {
       {/* Hero Section */}
       <section className="relative pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/5 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-heritage-accent/5 to-transparent rounded-full" />
+          <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-violet-500/5 to-transparent rounded-full" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -192,12 +206,12 @@ export default function Products() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6"
+              className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6"
             >
               <Umbrella className="w-4 h-4" />
               Protection for Every Stage of Life
             </motion.div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-heritage-primary mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 text-balance">
               Our{" "}
               <span className="relative">
                 Products
@@ -205,11 +219,11 @@ export default function Products() {
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ delay: 0.5, duration: 0.6 }}
-                  className="absolute -bottom-2 left-0 right-0 h-3 bg-heritage-accent/30 -z-10 origin-left"
+                  className="absolute -bottom-2 left-0 right-0 h-3 bg-violet-500/30 -z-10 origin-left"
                 />
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
               From term life to retirement annuities, we offer comprehensive coverage
               solutions tailored to protect what matters most to you.
             </p>
@@ -217,7 +231,7 @@ export default function Products() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-heritage-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -225,7 +239,7 @@ export default function Products() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <a
                   href="tel:6307780800"
-                  className="inline-flex items-center gap-2 bg-white text-heritage-primary px-8 py-4 rounded-xl font-semibold border-2 border-heritage-primary/20 hover:border-heritage-primary/40 transition-colors"
+                  className="inline-flex items-center gap-2 bg-white text-primary px-8 py-4 rounded-xl font-semibold border-2 border-primary/20 hover:border-primary/40 transition-colors"
                 >
                   <Phone className="w-5 h-5" /> Speak with an Advisor
                 </a>
@@ -247,7 +261,7 @@ export default function Products() {
                 whileTap={{ scale: 0.98 }}
                 className={`px-6 py-3 rounded-xl font-medium transition-all ${
                   activeCategory === category.id
-                    ? "bg-heritage-primary text-white shadow-lg"
+                    ? "bg-primary text-white shadow-lg"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -259,7 +273,7 @@ export default function Products() {
       </section>
 
       {/* Products Grid */}
-      <section className="py-16">
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <AnimatePresence mode="wait">
             <motion.div
@@ -270,10 +284,10 @@ export default function Products() {
               transition={{ duration: 0.3 }}
             >
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-heritage-primary mb-3">
+                <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3 text-balance">
                   {currentCategory?.title}
                 </h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
+                <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
                   {currentCategory?.description}
                 </p>
               </div>
@@ -289,7 +303,7 @@ export default function Products() {
                   >
                     <div
                       className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 ${
-                        expandedProduct === product.id ? "ring-2 ring-heritage-primary" : ""
+                        expandedProduct === product.id ? "ring-2 ring-primary" : ""
                       }`}
                     >
                       {/* Card Header */}
@@ -308,8 +322,8 @@ export default function Products() {
                       </div>
 
                       {/* Card Body */}
-                      <div className="p-6">
-                        <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                      <div className="p-4 md:p-6">
+                        <p className="text-gray-600 text-sm mb-4 leading-relaxed text-pretty">
                           {product.description}
                         </p>
 
@@ -317,7 +331,7 @@ export default function Products() {
                           onClick={() => setExpandedProduct(
                             expandedProduct === product.id ? null : product.id
                           )}
-                          className="flex items-center gap-2 text-heritage-primary font-medium text-sm mb-4 hover:text-heritage-accent transition-colors"
+                          className="flex items-center gap-2 text-primary font-medium text-sm mb-4 hover:text-violet-500 transition-colors"
                         >
                           {expandedProduct === product.id ? "Show Less" : "View Features"}
                           <ChevronDown
@@ -363,7 +377,7 @@ export default function Products() {
 
                         <Link
                           href={product.href}
-                          className="block w-full text-center bg-heritage-primary/10 hover:bg-heritage-primary hover:text-white text-heritage-primary py-3 rounded-xl font-semibold transition-all group-hover:bg-heritage-primary group-hover:text-white"
+                          className="block w-full text-center bg-primary/10 hover:bg-primary hover:text-white text-primary py-3 rounded-xl font-semibold transition-all group-hover:bg-primary group-hover:text-white"
                         >
                           Learn More <ArrowRight className="w-4 h-4 inline ml-1" />
                         </Link>
@@ -378,7 +392,7 @@ export default function Products() {
       </section>
 
       {/* Product Comparison */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -386,15 +400,15 @@ export default function Products() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <h2 className="text-3xl font-bold text-heritage-primary mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3 text-balance">
               Compare Life Insurance Options
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+            <p className="text-gray-600 max-w-2xl mx-auto mb-6 text-pretty">
               Not sure which product is right for you? Compare features side-by-side to find your perfect fit.
             </p>
             <button
               onClick={() => setShowComparison(!showComparison)}
-              className="inline-flex items-center gap-2 text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"
+              className="inline-flex items-center gap-2 text-primary font-semibold hover:text-violet-500 transition-colors"
             >
               {showComparison ? "Hide Comparison" : "Show Comparison Table"}
               <ChevronDown className={`w-5 h-5 transition-transform ${showComparison ? "rotate-180" : ""}`} />
@@ -413,13 +427,13 @@ export default function Products() {
                 <div className="overflow-x-auto">
                   <table className="w-full max-w-4xl mx-auto">
                     <thead>
-                      <tr className="border-b-2 border-heritage-primary/20">
-                        <th className="text-left py-4 px-4 text-heritage-primary font-semibold">Feature</th>
-                        <th className="text-center py-4 px-3 text-heritage-primary font-semibold">Term</th>
-                        <th className="text-center py-4 px-3 text-heritage-primary font-semibold">Whole</th>
-                        <th className="text-center py-4 px-3 text-heritage-primary font-semibold">IUL</th>
-                        <th className="text-center py-4 px-3 text-heritage-primary font-semibold">Final Expense</th>
-                        <th className="text-center py-4 px-3 text-heritage-primary font-semibold">Mortgage</th>
+                      <tr className="border-b-2 border-primary/20">
+                        <th className="text-left py-4 px-4 text-primary font-semibold">Feature</th>
+                        <th className="text-center py-4 px-3 text-primary font-semibold">Term</th>
+                        <th className="text-center py-4 px-3 text-primary font-semibold">Whole</th>
+                        <th className="text-center py-4 px-3 text-primary font-semibold">IUL</th>
+                        <th className="text-center py-4 px-3 text-primary font-semibold">Final Expense</th>
+                        <th className="text-center py-4 px-3 text-primary font-semibold">Mortgage</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -487,15 +501,15 @@ export default function Products() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold text-heritage-primary mb-3">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3 text-balance">
               How It Works
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Getting protected is simple. Here's how to get started in four easy steps.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8 max-w-5xl mx-auto">
             {processSteps.map((step, index) => (
               <motion.div
                 key={step.step}
@@ -506,17 +520,17 @@ export default function Products() {
                 className="relative"
               >
                 {index < processSteps.length - 1 && (
-                  <div className="hidden lg:block absolute top-12 left-[60%] w-full h-0.5 bg-heritage-accent/30" />
+                  <div className="hidden lg:block absolute top-12 left-[60%] w-full h-0.5 bg-violet-500/30" />
                 )}
-                <div className="bg-white rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-shadow relative z-10">
-                  <div className="w-16 h-16 bg-heritage-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <step.icon className="w-8 h-8 text-heritage-accent" />
+                <div className="bg-white rounded-2xl p-4 md:p-6 text-center shadow-sm hover:shadow-md transition-shadow relative z-10">
+                  <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <step.icon className="w-8 h-8 text-violet-500" />
                   </div>
-                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-heritage-accent rounded-full flex items-center justify-center text-heritage-primary font-bold text-sm">
+                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-primary font-bold text-sm">
                     {step.step}
                   </div>
-                  <h3 className="font-bold text-heritage-primary mb-2">{step.title}</h3>
-                  <p className="text-sm text-gray-600">{step.description}</p>
+                  <h3 className="font-bold text-primary mb-2 text-balance">{step.title}</h3>
+                  <p className="text-sm text-gray-600 text-pretty">{step.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -525,9 +539,9 @@ export default function Products() {
       </section>
 
       {/* Trust Indicators */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 max-w-4xl mx-auto">
             {[
               { icon: Shield, value: "50+", label: "Carrier Partners" },
               { icon: Users, value: "10,000+", label: "Families Protected" },
@@ -542,10 +556,10 @@ export default function Products() {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className="w-14 h-14 bg-heritage-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <p className="text-2xl font-bold text-heritage-primary">{stat.value}</p>
+                <p className="text-2xl font-bold text-primary">{stat.value}</p>
                 <p className="text-sm text-gray-600">{stat.label}</p>
               </motion.div>
             ))}
@@ -553,10 +567,43 @@ export default function Products() {
         </div>
       </section>
 
+      {/* Carrier Logos */}
+      <section className="py-12 bg-[#fffaf3] border-y border-[#e8e0d5]">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center text-sm text-gray-500 mb-8">Trusted by families nationwide. We partner with 40+ A-rated carriers.</p>
+          <div className="relative overflow-hidden">
+            <div className="flex items-center">
+              <div className="flex animate-marquee-slow gap-12 items-center">
+                {carriers.map((carrier, i) => (
+                  <div key={i} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex animate-marquee-slow gap-12 items-center" aria-hidden="true">
+                {carriers.map((carrier, i) => (
+                  <div key={`dup-${i}`} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 bg-heritage-primary relative overflow-hidden">
+      <section className="py-20 bg-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-heritage-accent/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
         </div>
 
@@ -567,11 +614,11 @@ export default function Products() {
             viewport={{ once: true }}
             className="text-center max-w-3xl mx-auto"
           >
-            <Sparkles className="w-12 h-12 text-heritage-accent mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <Sparkles className="w-12 h-12 text-violet-500 mx-auto mb-6" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">
               Ready to Protect What Matters Most?
             </h2>
-            <p className="text-white/80 text-lg mb-8">
+            <p className="text-white/80 text-lg mb-8 text-pretty">
               Get a personalized quote in minutes. Our licensed advisors are here to help
               you find the perfect coverage for your unique situation.
             </p>
@@ -579,7 +626,7 @@ export default function Products() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-xl font-semibold hover:bg-heritage-accent/90 transition-colors"
+                  className="inline-flex items-center gap-2 bg-violet-500 text-primary px-8 py-4 rounded-xl font-semibold hover:bg-violet-500/90 transition-colors"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </Link>

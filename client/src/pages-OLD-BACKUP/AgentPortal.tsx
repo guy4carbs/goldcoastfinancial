@@ -285,7 +285,7 @@ export default function AgentPortal() {
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   activeTab === item.id 
-                    ? "bg-secondary/10 text-secondary" 
+                    ? "bg-violet-50 text-secondary" 
                     : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 )}
                 data-testid={`nav-${item.id}`}
@@ -301,7 +301,7 @@ export default function AgentPortal() {
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                 <span className="font-bold text-secondary">{currentUser.name.split(' ').map(n => n[0]).join('')}</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -578,7 +578,7 @@ export default function AgentPortal() {
                             key={entry.id}
                             className={cn(
                               "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                              entry.id === currentUser.id ? "bg-secondary/20 ring-1 ring-secondary" : "hover:bg-white/5"
+                              entry.id === currentUser.id ? "bg-violet-100 ring-1 ring-secondary" : "hover:bg-white/5"
                             )}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -758,7 +758,7 @@ export default function AgentPortal() {
                           {announcements.map(ann => (
                             <div key={ann.id} className={cn(
                               "p-3 rounded-lg",
-                              ann.type === 'recognition' ? 'bg-secondary/10 border border-secondary/20' : 
+                              ann.type === 'recognition' ? 'bg-violet-50 border border-secondary/20' : 
                               ann.type === 'warning' ? 'bg-orange-500/10 border border-orange-500/20' :
                               'bg-muted/50'
                             )}>
@@ -911,7 +911,7 @@ export default function AgentPortal() {
                     <p className="text-muted-foreground text-sm">Complete tasks to earn XP and maintain your streak</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-secondary/10 rounded-lg border border-secondary/20">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 rounded-lg border border-secondary/20">
                       <Flame className="w-4 h-4 text-secondary" />
                       <span className="font-bold text-secondary">{performance.currentStreak}</span>
                       <span className="text-xs text-muted-foreground">day streak</span>
@@ -1031,7 +1031,7 @@ export default function AgentPortal() {
                                   </div>
                                 </div>
                                 <div className="text-right shrink-0">
-                                  <Badge className="bg-secondary/10 text-secondary border-0 text-xs">
+                                  <Badge className="bg-violet-50 text-secondary border-0 text-xs">
                                     +{task.performanceImpact} XP
                                   </Badge>
                                 </div>
@@ -1048,7 +1048,7 @@ export default function AgentPortal() {
                       <CardTitle className="flex items-center gap-2 text-base">
                         <CheckSquare className="w-5 h-5 text-secondary" />
                         Completed
-                        <Badge variant="secondary" className="ml-auto bg-secondary/10 text-secondary">{completedTasks.length}</Badge>
+                        <Badge variant="secondary" className="ml-auto bg-violet-50 text-secondary">{completedTasks.length}</Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -1062,7 +1062,7 @@ export default function AgentPortal() {
                           {completedTasks.map((task, idx) => (
                             <motion.div 
                               key={task.id} 
-                              className="p-3 rounded-lg bg-secondary/5 dark:bg-secondary/10 border border-secondary/10 dark:border-secondary/20"
+                              className="p-3 rounded-lg bg-secondary/5 dark:bg-violet-50 border border-secondary/10 dark:border-secondary/20"
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: idx * 0.03 }}
@@ -1072,7 +1072,7 @@ export default function AgentPortal() {
                                   <Check className="w-4 h-4 text-white" />
                                 </div>
                                 <p className="text-sm line-through opacity-70 flex-1">{task.title}</p>
-                                <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20 text-[10px]">
+                                <Badge variant="outline" className="bg-violet-50 text-secondary border-secondary/20 text-[10px]">
                                   +{task.performanceImpact} XP
                                 </Badge>
                               </div>
@@ -1189,7 +1189,7 @@ export default function AgentPortal() {
                                 {...provided.droppableProps}
                                 className={cn(
                                   "bg-muted/30 rounded-b-lg p-1.5 min-h-[180px] max-h-[350px] overflow-y-auto space-y-1.5 transition-colors",
-                                  snapshot.isDraggingOver && "bg-secondary/10 ring-2 ring-secondary/30"
+                                  snapshot.isDraggingOver && "bg-violet-50 ring-2 ring-secondary/30"
                                 )}
                               >
                                 {statusLeads.map((lead, lidx) => (
@@ -1432,7 +1432,7 @@ export default function AgentPortal() {
                         case 'purple': return 'bg-purple-500/10 text-purple-600';
                         case 'orange': return 'bg-orange-500/10 text-orange-600';
                         case 'red': return 'bg-red-500/10 text-red-600';
-                        case 'secondary': return 'bg-secondary/10 text-secondary';
+                        case 'secondary': return 'bg-violet-50 text-secondary';
                         default: return 'bg-muted text-muted-foreground';
                       }
                     };
@@ -1775,7 +1775,7 @@ export default function AgentPortal() {
                   <CardContent className="p-4">
                     <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
                           <TrendingUp className="w-6 h-6 text-secondary" />
                         </div>
                         <div>
@@ -1785,7 +1785,7 @@ export default function AgentPortal() {
                       </div>
                       <Separator orientation="vertical" className="h-10 hidden sm:block" />
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
                           <Flame className="w-6 h-6 text-secondary" />
                         </div>
                         <div>
@@ -1841,7 +1841,7 @@ export default function AgentPortal() {
                           <p className="text-xs text-muted-foreground">Monthly AP</p>
                           <p className="text-xl font-bold">${(leaderboard.find(e => e.id === currentUser?.id)?.ap.monthly || 0).toLocaleString()}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center">
                           <TrendingUp className="w-5 h-5 text-secondary" />
                         </div>
                       </div>
@@ -1931,7 +1931,7 @@ export default function AgentPortal() {
                           <p className="text-xs text-muted-foreground">Pending</p>
                           <p className="text-2xl font-bold text-secondary">${pendingEarnings.toLocaleString()}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center">
                           <Clock className="w-5 h-5 text-secondary" />
                         </div>
                       </div>
@@ -2084,7 +2084,7 @@ export default function AgentPortal() {
                                 <Badge className={cn(
                                   "gap-1",
                                   entry.status === 'paid' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                                  'bg-secondary/10 text-secondary border-secondary/20'
+                                  'bg-violet-50 text-secondary border-secondary/20'
                                 )}>
                                   {entry.status === 'paid' ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                                   {entry.status}
@@ -2101,7 +2101,7 @@ export default function AgentPortal() {
                 <Card className="bg-gradient-to-r from-secondary/5 to-primary/5 border-0">
                   <CardContent className="p-4">
                     <div className="flex flex-col sm:flex-row items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
                         <Sparkles className="w-6 h-6 text-secondary" />
                       </div>
                       <div className="text-center sm:text-left flex-1">
@@ -2421,7 +2421,7 @@ export default function AgentPortal() {
                         category.color === 'purple' && "bg-purple-500/10",
                         category.color === 'orange' && "bg-orange-500/10",
                         category.color === 'red' && "bg-red-500/10",
-                        category.color === 'secondary' && "bg-secondary/10",
+                        category.color === 'secondary' && "bg-violet-50",
                       )}>
                         <div className="flex items-center gap-3">
                           <div className={cn(
@@ -2574,7 +2574,7 @@ export default function AgentPortal() {
                     <div className="flex flex-col md:flex-row md:items-center gap-6">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                             <Calendar className="w-5 h-5 text-secondary" />
                           </div>
                           <div>
@@ -2829,7 +2829,7 @@ export default function AgentPortal() {
                   <Card className="border-secondary/20">
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                           <GraduationCap className="w-5 h-5 text-secondary" />
                         </div>
                         <div>
@@ -2843,35 +2843,35 @@ export default function AgentPortal() {
                         <h4 className="font-semibold text-sm">Standard Method (Most States)</h4>
                         <ol className="space-y-2 text-sm">
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">1</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">1</span>
                             <div>
                               <p className="font-medium">Complete Pre-Licensing Course</p>
                               <p className="text-muted-foreground text-xs">20-hour state-approved course (online or in-person)</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">2</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">2</span>
                             <div>
                               <p className="font-medium">Schedule State Exam</p>
                               <p className="text-muted-foreground text-xs">Register through Pearson VUE testing center</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">3</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">3</span>
                             <div>
                               <p className="font-medium">Pass the Exam</p>
                               <p className="text-muted-foreground text-xs">Score 70% or higher on Life & Health exam</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">4</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">4</span>
                             <div>
                               <p className="font-medium">Submit License Application</p>
                               <p className="text-muted-foreground text-xs">Apply through NIPR or state DOI website</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">5</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">5</span>
                             <div>
                               <p className="font-medium">Complete Background Check</p>
                               <p className="text-muted-foreground text-xs">Fingerprinting may be required in some states</p>
@@ -2930,7 +2930,7 @@ export default function AgentPortal() {
                   <Card className="border-secondary/20">
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                           <FileText className="w-5 h-5 text-secondary" />
                         </div>
                         <div>
@@ -2942,35 +2942,35 @@ export default function AgentPortal() {
                     <CardContent className="space-y-4">
                       <ol className="space-y-3 text-sm">
                         <li className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">1</span>
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">1</span>
                           <div>
                             <p className="font-medium">Join Our Discord Community</p>
                             <p className="text-muted-foreground text-xs">Get instant access to training, support, and team chat</p>
                           </div>
                         </li>
                         <li className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">2</span>
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">2</span>
                           <div>
                             <p className="font-medium">Submit Contracting Paperwork</p>
                             <p className="text-muted-foreground text-xs">Complete W-9, direct deposit, and E&O insurance forms</p>
                           </div>
                         </li>
                         <li className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">3</span>
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">3</span>
                           <div>
                             <p className="font-medium">Get Appointed with Carriers</p>
                             <p className="text-muted-foreground text-xs">We'll submit appointments to our carrier partners</p>
                           </div>
                         </li>
                         <li className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">4</span>
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">4</span>
                           <div>
                             <p className="font-medium">Complete Product Training</p>
                             <p className="text-muted-foreground text-xs">Finish required certifications for each carrier</p>
                           </div>
                         </li>
                         <li className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">5</span>
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">5</span>
                           <div>
                             <p className="font-medium">Start Writing Business!</p>
                             <p className="text-muted-foreground text-xs">You're ready to help families and earn commissions</p>
@@ -2991,7 +2991,7 @@ export default function AgentPortal() {
                 <Card>
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                         <BookOpen className="w-5 h-5 text-secondary" />
                       </div>
                       <div>
@@ -3502,35 +3502,35 @@ export default function AgentPortal() {
                         <h4 className="font-semibold text-sm">The 5-Step Referral System</h4>
                         <ol className="space-y-3 text-sm">
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">1</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">1</span>
                             <div>
                               <p className="font-medium">Deliver Exceptional Service</p>
                               <p className="text-muted-foreground text-xs">Wow them at every touchpoint</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">2</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">2</span>
                             <div>
                               <p className="font-medium">Set Expectations Early</p>
                               <p className="text-muted-foreground text-xs">"If you're happy, I'd love referrals"</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">3</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">3</span>
                             <div>
                               <p className="font-medium">Ask at the Right Time</p>
                               <p className="text-muted-foreground text-xs">After policy delivery, claims, or anniversaries</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">4</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">4</span>
                             <div>
                               <p className="font-medium">Make It Easy</p>
                               <p className="text-muted-foreground text-xs">"Who else needs protection like this?"</p>
                             </div>
                           </li>
                           <li className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary/20 text-secondary text-xs flex items-center justify-center font-bold">5</span>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-100 text-secondary text-xs flex items-center justify-center font-bold">5</span>
                             <div>
                               <p className="font-medium">Show Appreciation</p>
                               <p className="text-muted-foreground text-xs">Thank them and keep them updated</p>
@@ -3590,7 +3590,7 @@ export default function AgentPortal() {
                   <Card className="border-secondary/30">
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                           <Crown className="w-5 h-5 text-secondary" />
                         </div>
                         <div>
@@ -3609,7 +3609,7 @@ export default function AgentPortal() {
                             { level: 'Team Lead', requirement: '30+ policies/month + 7 recruits', override: '8-15%', color: 'bg-green-100 dark:bg-green-900/30' },
                             { level: 'Manager', requirement: '$250K+/mo team AP + 15 recruits', override: '13-20%', color: 'bg-yellow-100 dark:bg-yellow-900/30' },
                             { level: 'Director', requirement: '4+ teams + $1M+/month combined', override: '15-25%', color: 'bg-orange-100 dark:bg-orange-900/30' },
-                            { level: 'Executive', requirement: 'Full branch owned', override: '21-30%', color: 'bg-secondary/20' },
+                            { level: 'Executive', requirement: 'Full branch owned', override: '21-30%', color: 'bg-violet-100' },
                           ].map((item, idx) => (
                             <div key={idx} className={cn("flex items-center justify-between p-3 rounded-lg", item.color)}>
                               <div>
@@ -3628,7 +3628,7 @@ export default function AgentPortal() {
                           When you recruit agents to your team, you earn a percentage of their commission on every policy they write. 
                           This is <span className="font-medium text-foreground">passive income</span> that continues as long as they remain on your team.
                         </p>
-                        <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                        <div className="p-3 rounded-lg bg-violet-50 border border-secondary/20">
                           <p className="text-sm font-medium text-secondary">Example:</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             If your downline agent earns $1,000 commission and you're at 10% override, you earn $100 extra — without doing any additional work.

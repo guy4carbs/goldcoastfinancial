@@ -43,14 +43,14 @@ export function CarrierPartners() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
-              className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-100 hover:shadow-lg hover:border-secondary/30 transition-all duration-300 group"
+              className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-100 hover:shadow-lg hover:border-violet-200/30 transition-all duration-300 group"
               data-testid={`card-carrier-${carrier.name.toLowerCase().replace(/\s+/g, '-')}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Shield className="w-5 h-5 text-primary" />
                 </div>
-                <div className="bg-secondary/20 text-xs font-bold px-2 py-1 rounded-full text-primary flex items-center gap-1">
+                <div className="bg-violet-100 text-xs font-bold px-2 py-1 rounded-full text-primary flex items-center gap-1">
                   <Award className="w-3 h-3" />
                   {carrier.rating}
                 </div>

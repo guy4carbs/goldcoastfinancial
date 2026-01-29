@@ -137,28 +137,28 @@ export default function JointCoverage() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Users className="w-4 h-4" />
                 Joint Mortgage Protection
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 One Policy,
-                <span className="block text-heritage-accent">Two Lives Protected</span>
+                <span className="block text-violet-500">Two Lives Protected</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Joint mortgage protection covers both spouses under a single policy, saving you money while ensuring your home stays in the family.
               </p>
 
@@ -171,7 +171,7 @@ export default function JointCoverage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -182,7 +182,7 @@ export default function JointCoverage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Joint Quote
                     <ChevronRight className="w-5 h-5" />
@@ -192,7 +192,7 @@ export default function JointCoverage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -209,14 +209,14 @@ export default function JointCoverage() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Joint vs Separate Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Joint vs Separate Calculator</h3>
                 <p className="text-gray-600 text-sm">See how much you could save together</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mortgage Amount: <span className="text-heritage-accent font-bold">${mortgageAmount.toLocaleString()}</span>
+                    Mortgage Amount: <span className="text-violet-500 font-bold">${mortgageAmount.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -225,7 +225,7 @@ export default function JointCoverage() {
                     step="25000"
                     value={mortgageAmount}
                     onChange={(e) => setMortgageAmount(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$100K</span>
@@ -236,7 +236,7 @@ export default function JointCoverage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Spouse 1 Age: <span className="text-heritage-accent font-bold">{spouse1Age}</span>
+                      Spouse 1 Age: <span className="text-violet-500 font-bold">{spouse1Age}</span>
                     </label>
                     <input
                       type="range"
@@ -244,12 +244,12 @@ export default function JointCoverage() {
                       max="65"
                       value={spouse1Age}
                       onChange={(e) => setSpouse1Age(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Spouse 2 Age: <span className="text-heritage-accent font-bold">{spouse2Age}</span>
+                      Spouse 2 Age: <span className="text-violet-500 font-bold">{spouse2Age}</span>
                     </label>
                     <input
                       type="range"
@@ -257,12 +257,12 @@ export default function JointCoverage() {
                       max="65"
                       value={spouse2Age}
                       onChange={(e) => setSpouse2Age(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                     />
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="text-center">
                       <p className="text-xs opacity-75 mb-1">Joint Policy</p>
@@ -294,7 +294,7 @@ export default function JointCoverage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Your Joint Quote
                   </motion.button>
@@ -306,9 +306,9 @@ export default function JointCoverage() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "25-40%", label: "Premium Savings" },
               { value: "100%", label: "Mortgage Payoff" },
@@ -323,7 +323,7 @@ export default function JointCoverage() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -340,10 +340,10 @@ export default function JointCoverage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Couples Choose Joint Coverage
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Protect your home and each other with streamlined, affordable coverage.
             </p>
           </motion.div>
@@ -353,7 +353,7 @@ export default function JointCoverage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -361,10 +361,10 @@ export default function JointCoverage() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -381,10 +381,10 @@ export default function JointCoverage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Joint vs Separate: Side by Side
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See exactly how joint coverage compares to maintaining two separate policies.
             </p>
           </motion.div>
@@ -396,35 +396,35 @@ export default function JointCoverage() {
             className="max-w-4xl mx-auto"
           >
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 {/* Joint Policy Card */}
-                <div className="p-6 rounded-xl border-2 border-heritage-accent bg-heritage-accent/5">
+                <div className="p-6 rounded-xl border-2 border-violet-500 bg-violet-500/5">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Users className="w-6 h-6 text-heritage-accent" />
-                      <h3 className="font-bold text-lg text-heritage-primary">Joint Policy</h3>
+                      <Users className="w-6 h-6 text-violet-500" />
+                      <h3 className="font-bold text-lg text-primary">Joint Policy</h3>
                     </div>
-                    <span className="bg-heritage-accent text-white text-xs px-3 py-1 rounded-full">Recommended</span>
+                    <span className="bg-violet-500 text-white text-xs px-3 py-1 rounded-full">Recommended</span>
                   </div>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-heritage-accent" />
+                      <CheckCircle className="w-4 h-4 text-violet-500" />
                       <span className="text-gray-700">One simple application</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-heritage-accent" />
+                      <CheckCircle className="w-4 h-4 text-violet-500" />
                       <span className="text-gray-700">Single monthly payment</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-heritage-accent" />
+                      <CheckCircle className="w-4 h-4 text-violet-500" />
                       <span className="text-gray-700">25-40% lower premiums</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-heritage-accent" />
+                      <CheckCircle className="w-4 h-4 text-violet-500" />
                       <span className="text-gray-700">Full mortgage coverage</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-heritage-accent" />
+                      <CheckCircle className="w-4 h-4 text-violet-500" />
                       <span className="text-gray-700">Easier to manage</span>
                     </li>
                   </ul>
@@ -434,7 +434,7 @@ export default function JointCoverage() {
                 <div className="p-6 rounded-xl border-2 border-gray-200">
                   <div className="flex items-center gap-2 mb-4">
                     <Shield className="w-6 h-6 text-gray-500" />
-                    <h3 className="font-bold text-lg text-heritage-primary">Separate Policies</h3>
+                    <h3 className="font-bold text-lg text-primary">Separate Policies</h3>
                   </div>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-2">
@@ -466,7 +466,7 @@ export default function JointCoverage() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2"
+                    className="bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2"
                   >
                     Compare Your Exact Rates
                     <ChevronRight className="w-5 h-5" />
@@ -481,13 +481,13 @@ export default function JointCoverage() {
       {/* Who Is This For */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Ideal For Couples Who...
               </h2>
               <div className="space-y-4">
@@ -500,7 +500,7 @@ export default function JointCoverage() {
                     transition={{ delay: i * 0.1 }}
                     className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm"
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -522,11 +522,11 @@ export default function JointCoverage() {
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-heritage-accent" />
+                  <div className="w-10 h-10 bg-violet-500/10 rounded-full flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-violet-500" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary">Save 25-40%</p>
+                    <p className="font-bold text-primary">Save 25-40%</p>
                     <p className="text-xs text-gray-500">vs separate policies</p>
                   </div>
                 </div>
@@ -545,15 +545,15 @@ export default function JointCoverage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Important to Know
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Understand the key aspects of joint mortgage protection coverage.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto">
             {considerations.map((item, i) => (
               <motion.div
                 key={i}
@@ -564,7 +564,7 @@ export default function JointCoverage() {
                 className="bg-amber-50 border border-amber-100 rounded-xl p-6"
               >
                 <AlertCircle className="w-8 h-8 text-amber-600 mb-4" />
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
               </motion.div>
             ))}
@@ -581,12 +581,12 @@ export default function JointCoverage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Joint Coverage Works
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", title: "Apply Together", description: "Both spouses complete one joint application", icon: FileText },
               { step: "2", title: "Get Approved", description: "Underwriting considers both applicants", icon: CheckCircle },
@@ -602,17 +602,17 @@ export default function JointCoverage() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
                 {i < 3 && (
-                  <ArrowRight className="w-6 h-6 text-heritage-accent/30 mx-auto mt-4 hidden md:block" />
+                  <ArrowRight className="w-6 h-6 text-violet-500/30 mx-auto mt-4 hidden md:block" />
                 )}
               </motion.div>
             ))}
@@ -621,7 +621,7 @@ export default function JointCoverage() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -631,7 +631,7 @@ export default function JointCoverage() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -663,7 +663,7 @@ export default function JointCoverage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -682,8 +682,8 @@ export default function JointCoverage() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -713,10 +713,10 @@ export default function JointCoverage() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Protect Your Home Together
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get a joint quote in minutes and see how much you can save as a couple.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -724,7 +724,7 @@ export default function JointCoverage() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Joint Quote
                   <ChevronRight className="w-5 h-5" />
@@ -734,7 +734,7 @@ export default function JointCoverage() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

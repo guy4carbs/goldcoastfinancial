@@ -372,24 +372,24 @@ export default function NoExam() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] py-20 md:py-28 overflow-hidden">
         {/* Decorative blur circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial="initial"
               animate="animate"
               variants={staggerContainer}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-primary font-semibold mb-4 tracking-wide uppercase text-sm">
+              <motion.p variants={fadeInUp} className="text-primary font-semibold mb-4 tracking-wide uppercase text-sm">
                 No-Exam Term Life Insurance
               </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight text-balance">
                 Skip the Exam.
-                <span className="text-heritage-primary"> Keep the Coverage.</span>
+                <span className="text-primary"> Keep the Coverage.</span>
               </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
                 Up to $3M coverage without needles, labs, or waiting weeks. Approved in as little as 10 minutes.
               </motion.p>
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
@@ -399,7 +399,7 @@ export default function NoExam() {
                 >
                   <Link
                     href="/quote"
-                    className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                    className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                   >
                     Get Instant Quote <ArrowRight className="w-5 h-5" />
                   </Link>
@@ -410,7 +410,7 @@ export default function NoExam() {
                 >
                   <a
                     href="tel:6307780800"
-                    className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                    className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                   >
                     <Phone className="w-5 h-5" /> Speak to an Advisor
                   </a>
@@ -427,8 +427,8 @@ export default function NoExam() {
             >
               <div className="bg-white rounded-xl p-8 shadow-xl border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-heritage-accent/20 rounded-xl">
-                    <Zap className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-3 bg-violet-500/20 rounded-xl">
+                    <Zap className="w-8 h-8 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">No-Exam Benefits</h3>
@@ -467,7 +467,7 @@ export default function NoExam() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-heritage-primary/10 rounded-xl text-center">
+                <div className="p-4 bg-primary/10 rounded-xl text-center">
                   <p className="text-sm text-gray-700">
                     <span className="font-semibold">70% of applicants</span> qualify for instant approval
                   </p>
@@ -479,7 +479,7 @@ export default function NoExam() {
       </section>
 
       {/* Trust Indicators Bar */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {trustStats.map((stat, index) => (
@@ -508,10 +508,10 @@ export default function NoExam() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               No-Exam Eligibility Checker
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Answer a few quick questions to see which no-exam option is right for you.
             </p>
           </motion.div>
@@ -527,7 +527,7 @@ export default function NoExam() {
                 {/* Age Slider */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-primary font-bold">{eligibilityAge}</span>
+                    Your Age: <span className="text-primary font-bold">{eligibilityAge}</span>
                   </label>
                   <input
                     type="range"
@@ -535,7 +535,7 @@ export default function NoExam() {
                     max="75"
                     value={eligibilityAge}
                     onChange={(e) => { setEligibilityAge(Number(e.target.value)); resetEligibilityChecker(); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>18</span>
@@ -544,7 +544,7 @@ export default function NoExam() {
                 </div>
 
                 {/* Health Questions */}
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   {[
                     { state: isTobaccoUser, setter: setIsTobaccoUser, label: "Do you use tobacco products?", icon: "cigarette" },
                     { state: hasDiabetes, setter: setHasDiabetes, label: "Have you been diagnosed with diabetes?", icon: "diabetes" },
@@ -560,21 +560,21 @@ export default function NoExam() {
                       whileTap={{ scale: 0.98 }}
                       className={`p-4 rounded-xl border-2 text-left transition-all ${
                         question.state
-                          ? 'border-heritage-primary bg-heritage-primary/10'
+                          ? 'border-primary bg-primary/10'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                           question.state
-                            ? 'border-heritage-primary bg-heritage-primary'
+                            ? 'border-primary bg-primary'
                             : 'border-gray-300'
                         }`}>
                           {question.state && (
                             <CheckCircle2 className="w-4 h-4 text-white" />
                           )}
                         </div>
-                        <span className={`text-sm ${question.state ? 'text-heritage-primary font-medium' : 'text-gray-700'}`}>
+                        <span className={`text-sm ${question.state ? 'text-primary font-medium' : 'text-gray-700'}`}>
                           {question.label}
                         </span>
                       </div>
@@ -587,7 +587,7 @@ export default function NoExam() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={checkEligibility}
-                className="w-full bg-heritage-primary hover:bg-heritage-primary/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <Zap className="w-5 h-5" />
                 Check My Eligibility
@@ -607,7 +607,7 @@ export default function NoExam() {
                       eligibilityResult.likelihood === 'high'
                         ? 'bg-gradient-to-br from-green-600 to-green-700'
                         : eligibilityResult.likelihood === 'medium'
-                        ? 'bg-gradient-to-br from-heritage-primary to-heritage-primary/90'
+                        ? 'bg-gradient-to-br from-primary to-primary/90'
                         : 'bg-gradient-to-br from-amber-600 to-amber-700'
                     } text-white`}>
                       <motion.div
@@ -634,7 +634,7 @@ export default function NoExam() {
                             eligibilityResult.likelihood === 'high'
                               ? 'bg-white/20'
                               : eligibilityResult.likelihood === 'medium'
-                              ? 'bg-heritage-accent/30'
+                              ? 'bg-violet-500/30'
                               : 'bg-white/20'
                           }`}
                         >
@@ -704,7 +704,7 @@ export default function NoExam() {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-white hover:bg-white/90 text-heritage-primary py-3 rounded-lg font-semibold"
+                            className="w-full bg-white hover:bg-white/90 text-primary py-3 rounded-lg font-semibold"
                           >
                             Get My No-Exam Quote
                           </motion.button>
@@ -729,10 +729,10 @@ export default function NoExam() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               3 Types of No-Exam Life Insurance
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Not all no-exam policies are equal. Know the differences to choose right.
             </motion.p>
           </motion.div>
@@ -747,8 +747,8 @@ export default function NoExam() {
                 whileTap={{ scale: 0.98 }}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
                   selectedType === type.id
-                    ? 'bg-heritage-primary text-white shadow-lg'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-heritage-primary'
+                    ? 'bg-primary text-white shadow-lg'
+                    : 'bg-white text-gray-700 border border-gray-200 hover:border-primary'
                 }`}
               >
                 <type.icon className="w-5 h-5" />
@@ -769,27 +769,27 @@ export default function NoExam() {
               {/* Header & Overview */}
               <div className="lg:col-span-1">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="p-4 bg-heritage-primary/10 rounded-xl">
-                    <selectedExamType.icon className="w-10 h-10 text-heritage-primary" />
+                  <div className="p-4 bg-primary/10 rounded-xl">
+                    <selectedExamType.icon className="w-10 h-10 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">{selectedExamType.title}</h3>
-                    <p className="text-heritage-primary font-semibold">{selectedExamType.tagline}</p>
+                    <p className="text-primary font-semibold">{selectedExamType.tagline}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4 mb-6">
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="text-sm text-gray-500">Approval Time</p>
-                    <p className="font-bold text-heritage-primary text-lg">{selectedExamType.approvalTime}</p>
+                    <p className="font-bold text-primary text-lg">{selectedExamType.approvalTime}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="text-sm text-gray-500">Max Coverage</p>
-                    <p className="font-bold text-heritage-primary text-lg">{selectedExamType.maxCoverage}</p>
+                    <p className="font-bold text-primary text-lg">{selectedExamType.maxCoverage}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="text-sm text-gray-500">Cost vs Traditional</p>
-                    <p className="font-bold text-heritage-primary text-lg">{selectedExamType.costVsTraditional}</p>
+                    <p className="font-bold text-primary text-lg">{selectedExamType.costVsTraditional}</p>
                   </div>
                 </div>
 
@@ -802,7 +802,7 @@ export default function NoExam() {
                 <div className="space-y-3">
                   {selectedExamType.process.map((step, index) => (
                     <div key={index} className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-heritage-primary text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                         {index + 1}
                       </div>
                       <p className="text-gray-600 text-sm">{step}</p>
@@ -852,10 +852,10 @@ export default function NoExam() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               No-Exam vs. Traditional: Full Comparison
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               See how each type compares at a glance.
             </motion.p>
           </motion.div>
@@ -868,9 +868,9 @@ export default function NoExam() {
           >
             <table className="w-full min-w-[800px]">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="p-4 text-left font-semibold">Feature</th>
-                  <th className="p-4 text-center font-semibold bg-heritage-accent/20">Accelerated</th>
+                  <th className="p-4 text-center font-semibold bg-violet-500/20">Accelerated</th>
                   <th className="p-4 text-center font-semibold">Simplified</th>
                   <th className="p-4 text-center font-semibold">Guaranteed</th>
                   <th className="p-4 text-center font-semibold">Traditional</th>
@@ -883,7 +883,7 @@ export default function NoExam() {
                     className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
                   >
                     <td className="p-4 font-medium text-gray-900">{row.feature}</td>
-                    <td className="p-4 text-center text-heritage-primary font-semibold bg-heritage-primary/5">{row.accelerated}</td>
+                    <td className="p-4 text-center text-primary font-semibold bg-primary/5">{row.accelerated}</td>
                     <td className="p-4 text-center text-gray-700">{row.simplified}</td>
                     <td className="p-4 text-center text-gray-700">{row.guaranteed}</td>
                     <td className="p-4 text-center text-gray-600">{row.traditional}</td>
@@ -905,10 +905,10 @@ export default function NoExam() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Do You Qualify?
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Your health history determines which type you can get.
             </motion.p>
           </motion.div>
@@ -918,7 +918,7 @@ export default function NoExam() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8"
           >
             {whoQualifies.map((qual, index) => (
               <motion.div
@@ -927,8 +927,8 @@ export default function NoExam() {
                 className="bg-white rounded-xl p-8 hover:shadow-lg transition-shadow border border-gray-200"
               >
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="p-3 bg-heritage-primary/10 rounded-xl">
-                    <qual.icon className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <qual.icon className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">{qual.type}</h3>
                 </div>
@@ -989,10 +989,10 @@ export default function NoExam() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               How the No-Exam Process Works
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               5 steps - often completed in a single sitting.
             </motion.p>
           </motion.div>
@@ -1002,7 +1002,7 @@ export default function NoExam() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-5 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 md:gap-6"
           >
             {processSteps.map((step, index) => (
               <motion.div
@@ -1011,19 +1011,19 @@ export default function NoExam() {
                 className="relative"
               >
                 <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-lg transition-shadow h-full">
-                  <div className="w-12 h-12 bg-heritage-primary text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
+                  <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-xl font-bold mb-4">
                     {step.step}
                   </div>
-                  <div className="p-2 bg-heritage-primary/10 rounded-lg w-fit mb-3">
-                    <step.icon className="w-5 h-5 text-heritage-primary" />
+                  <div className="p-2 bg-primary/10 rounded-lg w-fit mb-3">
+                    <step.icon className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
                   <p className="text-gray-600 text-sm mb-3">{step.description}</p>
-                  <p className="text-heritage-primary font-semibold text-sm">{step.time}</p>
+                  <p className="text-primary font-semibold text-sm">{step.time}</p>
                 </div>
                 {index < processSteps.length - 1 && (
                   <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                    <ArrowRight className="w-6 h-6 text-heritage-accent" />
+                    <ArrowRight className="w-6 h-6 text-violet-500" />
                   </div>
                 )}
               </motion.div>
@@ -1040,7 +1040,7 @@ export default function NoExam() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {bigStats.map((stat, index) => (
               <motion.div
@@ -1048,7 +1048,7 @@ export default function NoExam() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-8 text-center shadow-lg border border-gray-200 hover:shadow-lg transition-shadow"
               >
-                <p className="text-5xl md:text-6xl font-bold text-heritage-primary mb-2">{stat.value}</p>
+                <p className="text-5xl md:text-6xl font-bold text-primary mb-2">{stat.value}</p>
                 <p className="text-xl font-semibold text-gray-900 mb-1">{stat.label}</p>
                 <p className="text-gray-500">{stat.sublabel}</p>
               </motion.div>
@@ -1058,7 +1058,7 @@ export default function NoExam() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1077,12 +1077,12 @@ export default function NoExam() {
               <div className="text-center md:text-left">
                 <div className="flex justify-center md:justify-start gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                    <Star key={i} className="w-6 h-6 text-violet-500 fill-violet-500" />
                   ))}
                 </div>
                 <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                  <Award className="w-5 h-5 text-heritage-accent" />
-                  <span className="text-heritage-accent font-semibold text-sm">Verified Customer</span>
+                  <Award className="w-5 h-5 text-violet-500" />
+                  <span className="text-violet-500 font-semibold text-sm">Verified Customer</span>
                 </div>
                 <blockquote className="text-xl md:text-2xl text-white mb-6 italic leading-relaxed">
                   "I hate needles and kept putting off life insurance. Applied for a $500K policy during lunch - no exam.
@@ -1108,10 +1108,10 @@ export default function NoExam() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Frequently Asked Questions
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 text-pretty">
               Common questions about no-exam coverage.
             </motion.p>
           </motion.div>
@@ -1135,7 +1135,7 @@ export default function NoExam() {
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-6 h-6 text-primary flex-shrink-0 transition-transform duration-200 ${
                       openFaq === index ? "rotate-180" : ""
                     }`}
                   />
@@ -1167,10 +1167,10 @@ export default function NoExam() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
               Get Covered Without the Hassle
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
               Apply in minutes. No needles. No waiting. No excuses.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
@@ -1180,7 +1180,7 @@ export default function NoExam() {
               >
                 <Link
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                 >
                   Get Instant Quote <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -1191,7 +1191,7 @@ export default function NoExam() {
               >
                 <a
                   href="tel:6307780800"
-                  className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                  className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                 >
                   <Phone className="w-5 h-5" /> Speak to an Advisor
                 </a>

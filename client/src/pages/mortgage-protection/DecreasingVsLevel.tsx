@@ -121,28 +121,28 @@ export default function DecreasingVsLevel() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-start pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start pt-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <TrendingDown className="w-4 h-4" />
                 Mortgage Protection
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Decreasing vs. Level
-                <span className="block text-heritage-accent">Term Coverage</span>
+                <span className="block text-violet-500">Term Coverage</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Should your coverage shrink with your mortgage or stay level? See the difference and choose what's right for your family.
               </p>
 
@@ -155,7 +155,7 @@ export default function DecreasingVsLevel() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -166,7 +166,7 @@ export default function DecreasingVsLevel() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your Quote
                     <ChevronRight className="w-5 h-5" />
@@ -176,7 +176,7 @@ export default function DecreasingVsLevel() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -193,14 +193,14 @@ export default function DecreasingVsLevel() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Coverage Comparison</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Coverage Comparison</h3>
                 <p className="text-gray-600 text-sm">See how coverage changes over time</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mortgage Amount: <span className="text-heritage-accent font-bold">${mortgageAmount.toLocaleString()}</span>
+                    Mortgage Amount: <span className="text-violet-500 font-bold">${mortgageAmount.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -209,13 +209,13 @@ export default function DecreasingVsLevel() {
                     step="25000"
                     value={mortgageAmount}
                     onChange={(e) => setMortgageAmount(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year: <span className="text-heritage-accent font-bold">{currentYear} of {termYears}</span>
+                    Year: <span className="text-violet-500 font-bold">{currentYear} of {termYears}</span>
                   </label>
                   <input
                     type="range"
@@ -223,7 +223,7 @@ export default function DecreasingVsLevel() {
                     max={termYears}
                     value={currentYear}
                     onChange={(e) => setCurrentYear(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
@@ -231,17 +231,17 @@ export default function DecreasingVsLevel() {
                 <div className="grid grid-cols-2 gap-4">
                   <motion.div
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedType === 'decreasing' ? 'border-heritage-accent bg-heritage-accent/5' : 'border-gray-200'
+                      selectedType === 'decreasing' ? 'border-violet-500 bg-violet-500/5' : 'border-gray-200'
                     }`}
                     onClick={() => setSelectedType('decreasing')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingDown className="w-5 h-5 text-heritage-accent" />
-                      <span className="font-semibold text-heritage-primary">Decreasing</span>
+                      <TrendingDown className="w-5 h-5 text-violet-500" />
+                      <span className="font-semibold text-primary">Decreasing</span>
                     </div>
-                    <p className="text-2xl font-bold text-heritage-primary">
+                    <p className="text-2xl font-bold text-primary">
                       ${getDecreasingCoverage(currentYear).toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-500">~${decreasingPremium}/mo</p>
@@ -249,17 +249,17 @@ export default function DecreasingVsLevel() {
 
                   <motion.div
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedType === 'level' ? 'border-heritage-accent bg-heritage-accent/5' : 'border-gray-200'
+                      selectedType === 'level' ? 'border-violet-500 bg-violet-500/5' : 'border-gray-200'
                     }`}
                     onClick={() => setSelectedType('level')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Minus className="w-5 h-5 text-heritage-accent" />
-                      <span className="font-semibold text-heritage-primary">Level</span>
+                      <Minus className="w-5 h-5 text-violet-500" />
+                      <span className="font-semibold text-primary">Level</span>
                     </div>
-                    <p className="text-2xl font-bold text-heritage-primary">
+                    <p className="text-2xl font-bold text-primary">
                       ${getLevelCoverage().toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-500">~${levelPremium}/mo</p>
@@ -306,7 +306,7 @@ export default function DecreasingVsLevel() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Compare Quotes for Both
                   </motion.button>
@@ -318,9 +318,9 @@ export default function DecreasingVsLevel() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "70%", label: "Choose Level Term" },
               { value: "20-40%", label: "Savings with Decreasing" },
@@ -335,7 +335,7 @@ export default function DecreasingVsLevel() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -352,10 +352,10 @@ export default function DecreasingVsLevel() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Coverage Over Time
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See how each type of coverage changes throughout your mortgage term.
             </p>
           </motion.div>
@@ -407,7 +407,7 @@ export default function DecreasingVsLevel() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full" />
@@ -436,7 +436,7 @@ export default function DecreasingVsLevel() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Side-by-Side Comparison
             </h2>
           </motion.div>
@@ -449,7 +449,7 @@ export default function DecreasingVsLevel() {
           >
             <table className="w-full">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="text-left p-4 font-semibold">Feature</th>
                   <th className="text-center p-4 font-semibold">
                     <div className="flex items-center justify-center gap-2">
@@ -470,7 +470,7 @@ export default function DecreasingVsLevel() {
                   <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                     <td className="p-4 text-gray-700 font-medium">{row.feature}</td>
                     <td className="p-4 text-center text-gray-600">{row.decreasing}</td>
-                    <td className="p-4 text-center text-heritage-accent font-semibold">{row.level}</td>
+                    <td className="p-4 text-center text-violet-500 font-semibold">{row.level}</td>
                   </tr>
                 ))}
               </tbody>
@@ -488,12 +488,12 @@ export default function DecreasingVsLevel() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Pros & Cons
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-5xl mx-auto">
             {/* Decreasing Term */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -505,7 +505,7 @@ export default function DecreasingVsLevel() {
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
                   <TrendingDown className="w-6 h-6 text-amber-600" />
                 </div>
-                <h3 className="text-xl font-bold text-heritage-primary">Decreasing Term</h3>
+                <h3 className="text-xl font-bold text-primary">Decreasing Term</h3>
               </div>
               <div className="space-y-4">
                 <div>
@@ -541,7 +541,7 @@ export default function DecreasingVsLevel() {
                   <Minus className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-heritage-primary">Level Term</h3>
+                  <h3 className="text-xl font-bold text-primary">Level Term</h3>
                   <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded">Recommended</span>
                 </div>
               </div>
@@ -571,7 +571,7 @@ export default function DecreasingVsLevel() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -581,7 +581,7 @@ export default function DecreasingVsLevel() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -613,7 +613,7 @@ export default function DecreasingVsLevel() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -632,8 +632,8 @@ export default function DecreasingVsLevel() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -663,10 +663,10 @@ export default function DecreasingVsLevel() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Compare Your Options
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get quotes for both decreasing and level term. See exactly what you'd pay.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -674,7 +674,7 @@ export default function DecreasingVsLevel() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -684,7 +684,7 @@ export default function DecreasingVsLevel() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

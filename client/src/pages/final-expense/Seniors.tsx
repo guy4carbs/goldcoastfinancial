@@ -204,28 +204,28 @@ export default function Seniors() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Users className="w-4 h-4" />
                 Coverage for Ages 50-85
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Final Expense
-                <span className="block text-heritage-accent">Coverage for Seniors</span>
+                <span className="block text-violet-500">Coverage for Seniors</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 It's never too late to protect your family. Affordable coverage designed specifically for seniors, with options for every health situation.
               </p>
 
@@ -238,7 +238,7 @@ export default function Seniors() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -249,7 +249,7 @@ export default function Seniors() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your Quote
                     <ChevronRight className="w-5 h-5" />
@@ -259,7 +259,7 @@ export default function Seniors() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Call for Senior Rates
@@ -276,14 +276,14 @@ export default function Seniors() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Senior Rate Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Senior Rate Calculator</h3>
                 <p className="text-gray-600 text-sm">See rates for your age</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-accent font-bold">{age}</span>
+                    Your Age: <span className="text-violet-500 font-bold">{age}</span>
                   </label>
                   <input
                     type="range"
@@ -291,7 +291,7 @@ export default function Seniors() {
                     max="85"
                     value={age}
                     onChange={(e) => setAge(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>50</span>
@@ -303,7 +303,7 @@ export default function Seniors() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-accent font-bold">${coverage.toLocaleString()}</span>
+                    Coverage Amount: <span className="text-violet-500 font-bold">${coverage.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -312,7 +312,7 @@ export default function Seniors() {
                     step="1000"
                     value={coverage}
                     onChange={(e) => setCoverage(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$5,000</span>
@@ -321,7 +321,7 @@ export default function Seniors() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                   <p className="text-sm opacity-90 mb-1">Estimated Monthly Premium</p>
                   <p className="text-4xl font-bold">${estimatedPremium}</p>
                   <p className="text-xs opacity-75 mt-2">*Rate locked in for life</p>
@@ -341,7 +341,7 @@ export default function Seniors() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Exact Quote
                   </motion.button>
@@ -353,9 +353,9 @@ export default function Seniors() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "50-85", label: "Age Range" },
               { value: "$20+", label: "Starting Monthly" },
@@ -370,7 +370,7 @@ export default function Seniors() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -387,10 +387,10 @@ export default function Seniors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Coverage by Age Group
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Options exist for every age. Here's what to expect.
             </p>
           </motion.div>
@@ -409,18 +409,18 @@ export default function Seniors() {
                 className="bg-[#fffaf3] rounded-xl p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-14 h-14 bg-heritage-accent rounded-full flex items-center justify-center">
+                  <div className="w-14 h-14 bg-violet-500 rounded-full flex items-center justify-center">
                     <span className="text-white font-bold">{group.range}</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-heritage-primary">{group.title}</h3>
+                    <h3 className="text-lg font-bold text-primary">{group.title}</h3>
                     <p className="text-gray-600 text-sm">{group.description}</p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {group.benefits.map((benefit, j) => (
                     <div key={j} className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-heritage-accent flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-violet-500 flex-shrink-0" />
                       <span className="text-gray-700 text-sm">{benefit}</span>
                     </div>
                   ))}
@@ -440,10 +440,10 @@ export default function Seniors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Find Your Best Coverage Option
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Click your age bracket to see the best coverage options, typical premiums, and recommendations for your situation.
             </p>
           </motion.div>
@@ -467,7 +467,7 @@ export default function Seniors() {
                       ? bracket.color === "green"
                         ? "bg-green-500 text-white shadow-lg"
                         : "bg-amber-500 text-white shadow-lg"
-                      : "bg-white text-heritage-primary hover:shadow-md"
+                      : "bg-white text-primary hover:shadow-md"
                   }`}
                 >
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 ${
@@ -524,7 +524,7 @@ export default function Seniors() {
                               Ages {bracket.range}
                             </div>
 
-                            <h3 className="text-2xl font-bold text-heritage-primary mb-3">
+                            <h3 className="text-2xl font-bold text-primary mb-3">
                               {bracket.title}
                             </h3>
 
@@ -535,11 +535,11 @@ export default function Seniors() {
                             <div className="space-y-3">
                               <div className="flex items-center justify-between p-3 bg-[#fffaf3] rounded-lg">
                                 <span className="text-sm text-gray-600">Typical Premiums</span>
-                                <span className="font-bold text-heritage-accent">{bracket.premiumRange}</span>
+                                <span className="font-bold text-violet-500">{bracket.premiumRange}</span>
                               </div>
                               <div className="flex items-center justify-between p-3 bg-[#fffaf3] rounded-lg">
                                 <span className="text-sm text-gray-600">Coverage Range</span>
-                                <span className="font-bold text-heritage-primary">{bracket.coverageRange}</span>
+                                <span className="font-bold text-primary">{bracket.coverageRange}</span>
                               </div>
                               <div className="flex items-center justify-between p-3 bg-[#fffaf3] rounded-lg">
                                 <span className="text-sm text-gray-600">Health Impact</span>
@@ -550,7 +550,7 @@ export default function Seniors() {
 
                           {/* Right Column - Best Options */}
                           <div>
-                            <h4 className="font-bold text-heritage-primary mb-4">Best Coverage Options</h4>
+                            <h4 className="font-bold text-primary mb-4">Best Coverage Options</h4>
                             <div className="space-y-3">
                               {bracket.bestOptions.map((option, i) => (
                                 <motion.div
@@ -613,7 +613,7 @@ export default function Seniors() {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full mt-8 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                            className="w-full mt-8 bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                           >
                             Get a Quote for Ages {bracket.range}
                             <ChevronRight className="w-5 h-5" />
@@ -633,7 +633,7 @@ export default function Seniors() {
                 animate={{ opacity: 1 }}
                 className="text-center p-8 bg-white rounded-xl shadow-sm"
               >
-                <Users className="w-12 h-12 text-heritage-accent mx-auto mb-4" />
+                <Users className="w-12 h-12 text-violet-500 mx-auto mb-4" />
                 <p className="text-gray-600">Click your age bracket above to see personalized coverage recommendations</p>
               </motion.div>
             )}
@@ -650,7 +650,7 @@ export default function Seniors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Seniors Choose Final Expense
             </h2>
           </motion.div>
@@ -660,7 +660,7 @@ export default function Seniors() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {seniorBenefits.map((benefit, i) => (
               <motion.div
@@ -668,10 +668,10 @@ export default function Seniors() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -682,13 +682,13 @@ export default function Seniors() {
       {/* Health Conditions */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Coverage with Health Conditions
               </h2>
               <p className="text-gray-600 mb-6">
@@ -733,7 +733,7 @@ export default function Seniors() {
                     <Stethoscope className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary text-sm">No Exam</p>
+                    <p className="font-bold text-primary text-sm">No Exam</p>
                     <p className="text-xs text-gray-500">Ever Required</p>
                   </div>
                 </div>
@@ -752,12 +752,12 @@ export default function Seniors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Addressing Common Concerns
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
             {concerns.map((item, i) => (
               <motion.div
                 key={i}
@@ -769,7 +769,7 @@ export default function Seniors() {
               >
                 <div className="flex items-start gap-3 mb-3">
                   <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-1" />
-                  <p className="font-semibold text-heritage-primary">"{item.concern}"</p>
+                  <p className="font-semibold text-primary">"{item.concern}"</p>
                 </div>
                 <div className="flex items-start gap-3 pl-8">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -782,7 +782,7 @@ export default function Seniors() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -792,7 +792,7 @@ export default function Seniors() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -824,7 +824,7 @@ export default function Seniors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Senior Coverage Questions
             </h2>
           </motion.div>
@@ -843,8 +843,8 @@ export default function Seniors() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -874,10 +874,10 @@ export default function Seniors() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Get Senior-Friendly Coverage
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               No medical exam. No health questions (guaranteed issue). Approval in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -885,7 +885,7 @@ export default function Seniors() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -895,7 +895,7 @@ export default function Seniors() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

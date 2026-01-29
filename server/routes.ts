@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification } from "./gmail";
+import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification } from "./gmail";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -178,7 +178,7 @@ export async function registerRoutes(
         addressLine2: validatedData.addressLine2 ?? undefined,
       };
       
-      // Send email notification
+      // Send email notification to Heritage team
       try {
         console.log("Attempting to send quote notification email...");
         await sendQuoteNotification(dataWithOptionalFields);
@@ -186,7 +186,22 @@ export async function registerRoutes(
       } catch (emailError: any) {
         console.error("Error sending quote notification email:", emailError?.message || emailError);
       }
-      
+
+      // Send confirmation email to applicant
+      try {
+        console.log("Attempting to send quote confirmation to applicant...");
+        await sendQuoteConfirmationToApplicant({
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
+          email: validatedData.email,
+          coverageType: validatedData.coverageType,
+          coverageAmount: validatedData.coverageAmount,
+        });
+        console.log("Quote confirmation email sent to applicant successfully");
+      } catch (emailError: any) {
+        console.error("Error sending quote confirmation to applicant:", emailError?.message || emailError);
+      }
+
       // Add lead to Google Sheet
       try {
         await addLeadToSheet(dataWithOptionalFields);
@@ -252,6 +267,17 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching contact messages:", error);
       res.status(500).json({ error: "Failed to fetch contact messages" });
+    }
+  });
+
+  // Get all job applications
+  app.get("/api/job-applications", async (req, res) => {
+    try {
+      const applications = await storage.getJobApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching job applications:", error);
+      res.status(500).json({ error: "Failed to fetch job applications" });
     }
   });
 
@@ -842,6 +868,346 @@ export async function registerRoutes(
 
   // Quotes and estimates
   app.use("/api/quotes", quotesRouter);
+
+  // ===== Training API Routes =====
+
+  // Training Progress: Get all progress for current user
+  app.get("/api/training/progress", requireAuth, async (req, res) => {
+    try {
+      const progress = await storage.getTrainingProgress(req.session.userId!);
+      res.json(progress);
+    } catch (error) {
+      console.error("Error fetching training progress:", error);
+      res.status(500).json({ error: "Failed to fetch training progress" });
+    }
+  });
+
+  // Training Progress: Get specific module progress
+  app.get("/api/training/progress/:moduleId", requireAuth, async (req, res) => {
+    try {
+      const progress = await storage.getModuleProgress(req.session.userId!, req.params.moduleId);
+      res.json(progress);
+    } catch (error) {
+      console.error("Error fetching module progress:", error);
+      res.status(500).json({ error: "Failed to fetch module progress" });
+    }
+  });
+
+  // Training Progress: Save/update module progress
+  app.post("/api/training/progress", requireAuth, async (req, res) => {
+    try {
+      const { moduleId, status, progressPercent, lastPosition, timeSpentMinutes } = req.body;
+
+      if (!moduleId) {
+        return res.status(400).json({ error: "moduleId is required" });
+      }
+
+      const progressData: any = {
+        userId: req.session.userId!,
+        moduleId,
+      };
+
+      if (status) progressData.status = status;
+      if (progressPercent !== undefined) progressData.progressPercent = progressPercent;
+      if (lastPosition) progressData.lastPosition = lastPosition;
+      if (timeSpentMinutes !== undefined) progressData.timeSpentMinutes = timeSpentMinutes;
+
+      // Set timestamps based on status
+      if (status === "in_progress" && !progressData.startedAt) {
+        progressData.startedAt = new Date();
+      }
+      if (status === "completed") {
+        progressData.completedAt = new Date();
+        progressData.progressPercent = 100;
+      }
+
+      const progress = await storage.upsertTrainingProgress(progressData);
+      res.json(progress);
+    } catch (error) {
+      console.error("Error saving training progress:", error);
+      res.status(500).json({ error: "Failed to save training progress" });
+    }
+  });
+
+  // Assessments: Get assessment history
+  app.get("/api/training/assessments/history", requireAuth, async (req, res) => {
+    try {
+      const history = await storage.getAssessmentHistory(req.session.userId!);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching assessment history:", error);
+      res.status(500).json({ error: "Failed to fetch assessment history" });
+    }
+  });
+
+  // Assessments: Get attempts for specific assessment
+  app.get("/api/training/assessments/:assessmentId/attempts", requireAuth, async (req, res) => {
+    try {
+      const attempts = await storage.getAssessmentAttempts(req.session.userId!, req.params.assessmentId);
+      res.json(attempts);
+    } catch (error) {
+      console.error("Error fetching assessment attempts:", error);
+      res.status(500).json({ error: "Failed to fetch assessment attempts" });
+    }
+  });
+
+  // Assessments: Submit assessment result
+  app.post("/api/training/assessments/submit", requireAuth, async (req, res) => {
+    try {
+      const { assessmentId, score, passed, autoFailed, autoFailReason, timeSpentMinutes, answers } = req.body;
+
+      if (!assessmentId || score === undefined || passed === undefined) {
+        return res.status(400).json({ error: "assessmentId, score, and passed are required" });
+      }
+
+      const result = await storage.createAssessmentResult({
+        userId: req.session.userId!,
+        assessmentId,
+        score,
+        passed,
+        autoFailed: autoFailed || false,
+        autoFailReason: autoFailReason || null,
+        timeSpentMinutes: timeSpentMinutes || null,
+        answers: answers || null,
+      });
+
+      // Award XP for passed assessments
+      if (passed && !autoFailed) {
+        const xpAmount = score >= 90 ? 100 : score >= 80 ? 75 : 50;
+        await storage.createXpTransaction({
+          userId: req.session.userId!,
+          amount: xpAmount,
+          reason: `Passed assessment: ${assessmentId}`,
+          sourceType: "assessment",
+          sourceId: assessmentId,
+        });
+      }
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      res.status(500).json({ error: "Failed to submit assessment" });
+    }
+  });
+
+  // Simulations: Get simulation history
+  app.get("/api/training/simulations/history", requireAuth, async (req, res) => {
+    try {
+      const history = await storage.getSimulationHistory(req.session.userId!);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching simulation history:", error);
+      res.status(500).json({ error: "Failed to fetch simulation history" });
+    }
+  });
+
+  // Simulations: Submit simulation result
+  app.post("/api/training/simulations/submit", requireAuth, async (req, res) => {
+    try {
+      const { scenarioId, scoreBreakdown, totalScore, passed, pathTaken, feedback, audioUrl } = req.body;
+
+      if (!scenarioId) {
+        return res.status(400).json({ error: "scenarioId is required" });
+      }
+
+      const result = await storage.createSimulationResult({
+        userId: req.session.userId!,
+        scenarioId,
+        scoreBreakdown: scoreBreakdown || null,
+        totalScore: totalScore || null,
+        passed: passed || null,
+        pathTaken: pathTaken || null,
+        feedback: feedback || null,
+        audioUrl: audioUrl || null,
+      });
+
+      // Award XP for simulations
+      if (passed && totalScore) {
+        const xpAmount = totalScore >= 90 ? 150 : totalScore >= 70 ? 100 : 50;
+        await storage.createXpTransaction({
+          userId: req.session.userId!,
+          amount: xpAmount,
+          reason: `Completed simulation: ${scenarioId}`,
+          sourceType: "simulation",
+          sourceId: scenarioId,
+        });
+      }
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error submitting simulation:", error);
+      res.status(500).json({ error: "Failed to submit simulation" });
+    }
+  });
+
+  // Certificates: Get user's certificates
+  app.get("/api/training/certificates", requireAuth, async (req, res) => {
+    try {
+      const certificates = await storage.getCertificates(req.session.userId!);
+      res.json(certificates);
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+      res.status(500).json({ error: "Failed to fetch certificates" });
+    }
+  });
+
+  // Certificates: Verify certificate by number (public endpoint)
+  app.get("/api/training/certificates/verify/:certificateNumber", async (req, res) => {
+    try {
+      const certificate = await storage.getCertificateByNumber(req.params.certificateNumber);
+      if (!certificate) {
+        return res.status(404).json({ valid: false, error: "Certificate not found" });
+      }
+
+      const user = await storage.getUserById(certificate.userId);
+      res.json({
+        valid: true,
+        certificate: {
+          certificationId: certificate.certificationId,
+          issuedAt: certificate.issuedAt,
+          expiresAt: certificate.expiresAt,
+          holderName: user ? `${user.firstName} ${user.lastName}` : "Unknown",
+        },
+      });
+    } catch (error) {
+      console.error("Error verifying certificate:", error);
+      res.status(500).json({ error: "Failed to verify certificate" });
+    }
+  });
+
+  // Certificates: Generate certificate (after completing certification requirements)
+  app.post("/api/training/certificates/generate", requireAuth, async (req, res) => {
+    try {
+      const { certificationId, expiresAt } = req.body;
+
+      if (!certificationId) {
+        return res.status(400).json({ error: "certificationId is required" });
+      }
+
+      // Check if user already has this certificate
+      const existingCerts = await storage.getCertificates(req.session.userId!);
+      const existing = existingCerts.find(c => c.certificationId === certificationId);
+      if (existing) {
+        return res.status(400).json({ error: "Certificate already issued for this certification" });
+      }
+
+      const certificate = await storage.createCertificate({
+        userId: req.session.userId!,
+        certificationId,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+      });
+
+      // Award XP for earning a certificate
+      await storage.createXpTransaction({
+        userId: req.session.userId!,
+        amount: 250,
+        reason: `Earned certificate: ${certificationId}`,
+        sourceType: "achievement",
+        sourceId: certificationId,
+      });
+
+      res.status(201).json(certificate);
+    } catch (error) {
+      console.error("Error generating certificate:", error);
+      res.status(500).json({ error: "Failed to generate certificate" });
+    }
+  });
+
+  // XP: Get user's XP history
+  app.get("/api/training/xp/history", requireAuth, async (req, res) => {
+    try {
+      const history = await storage.getXpHistory(req.session.userId!);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching XP history:", error);
+      res.status(500).json({ error: "Failed to fetch XP history" });
+    }
+  });
+
+  // XP: Get user's total XP
+  app.get("/api/training/xp/total", requireAuth, async (req, res) => {
+    try {
+      const totalXp = await storage.getTotalXp(req.session.userId!);
+      res.json({ totalXp });
+    } catch (error) {
+      console.error("Error fetching total XP:", error);
+      res.status(500).json({ error: "Failed to fetch total XP" });
+    }
+  });
+
+  // Leaderboard: Get top agents by XP
+  app.get("/api/training/leaderboard", requireAuth, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const leaderboard = await storage.getLeaderboard(limit);
+
+      // Find current user's rank
+      const allRankings = await storage.getLeaderboard(1000);
+      const userRank = allRankings.findIndex(r => r.userId === req.session.userId!) + 1;
+      const userEntry = allRankings.find(r => r.userId === req.session.userId!);
+
+      res.json({
+        leaderboard: leaderboard.map((entry, idx) => ({
+          rank: idx + 1,
+          userId: entry.userId,
+          firstName: entry.user.firstName,
+          lastName: entry.user.lastName,
+          totalXp: entry.totalXp,
+          isCurrentUser: entry.userId === req.session.userId!,
+        })),
+        currentUser: {
+          rank: userRank || null,
+          totalXp: userEntry?.totalXp || 0,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({ error: "Failed to fetch leaderboard" });
+    }
+  });
+
+  // Training Summary: Get comprehensive training stats
+  app.get("/api/training/summary", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const [progress, assessments, simulations, certificates, totalXp] = await Promise.all([
+        storage.getTrainingProgress(userId),
+        storage.getAssessmentHistory(userId),
+        storage.getSimulationHistory(userId),
+        storage.getCertificates(userId),
+        storage.getTotalXp(userId),
+      ]);
+
+      const completedModules = progress.filter(p => p.status === "completed").length;
+      const inProgressModules = progress.filter(p => p.status === "in_progress").length;
+      const passedAssessments = assessments.filter(a => a.passed && !a.autoFailed).length;
+      const passedSimulations = simulations.filter(s => s.passed).length;
+
+      res.json({
+        modules: {
+          completed: completedModules,
+          inProgress: inProgressModules,
+          total: progress.length,
+        },
+        assessments: {
+          passed: passedAssessments,
+          total: assessments.length,
+          averageScore: assessments.length > 0
+            ? Math.round(assessments.reduce((sum, a) => sum + a.score, 0) / assessments.length)
+            : 0,
+        },
+        simulations: {
+          passed: passedSimulations,
+          total: simulations.length,
+        },
+        certificates: certificates.length,
+        totalXp,
+      });
+    } catch (error) {
+      console.error("Error fetching training summary:", error);
+      res.status(500).json({ error: "Failed to fetch training summary" });
+    }
+  });
 
   return httpServer;
 }

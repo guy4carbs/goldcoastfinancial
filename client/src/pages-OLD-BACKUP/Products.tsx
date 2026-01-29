@@ -16,7 +16,7 @@ export default function Products() {
       <section className="bg-primary relative overflow-hidden py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
         <div className="absolute top-0 left-0 w-1/2 h-full bg-white/5 -skew-x-12 transform -translate-x-1/4" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/10 rounded-full translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-50 rounded-full translate-x-1/2 -translate-y-1/2" />
         <motion.div 
           className="container mx-auto px-4 text-center relative z-10"
           initial={{ opacity: 0, y: 20 }}
@@ -62,7 +62,7 @@ export default function Products() {
                       "Convertible to permanent insurance later"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-primary shrink-0">
                           <Check className="w-4 h-4" />
                         </div>
                         <span className="text-foreground">{item}</span>
@@ -107,7 +107,7 @@ export default function Products() {
                       "Dividend potential from mutual companies"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-primary shrink-0">
                           <Check className="w-4 h-4" />
                         </div>
                         <span className="text-foreground">{item}</span>
@@ -146,7 +146,7 @@ export default function Products() {
                       "Tax-advantaged cash value accumulation"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-primary shrink-0">
                           <Check className="w-4 h-4" />
                         </div>
                         <span className="text-foreground">{item}</span>
@@ -191,7 +191,7 @@ export default function Products() {
                       "Fixed premiums that never increase"
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-primary shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-primary shrink-0">
                           <Check className="w-4 h-4" />
                         </div>
                         <span className="text-foreground">{item}</span>

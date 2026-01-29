@@ -10,11 +10,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { 
-  LayoutDashboard, CheckSquare, Users, GraduationCap, FileText, 
+import {
+  LayoutDashboard, CheckSquare, Users, GraduationCap, FileText,
   TrendingUp, DollarSign, ScrollText, Phone, UserPlus, Calendar,
   Search, Settings, Moon, Sun, LogOut, Bell, Trophy, Zap,
-  Rocket, Play, Building2, BookOpen, ClipboardCheck, MessageSquare
+  Rocket, Play, Building2, BookOpen, ClipboardCheck, MessageSquare, Mail
 } from "lucide-react";
 
 interface CommandPaletteProps {
@@ -47,7 +47,7 @@ export function CommandPalette({ open, onOpenChange, onNavigate, onAction, theme
               </kbd>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onNavigate('getting-started'))}>
-              <Rocket className="mr-2 h-4 w-4 text-secondary" />
+              <Rocket className="mr-2 h-4 w-4 text-violet-600" />
               <span>Getting Started</span>
               <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
                 G
@@ -65,6 +65,13 @@ export function CommandPalette({ open, onOpenChange, onNavigate, onAction, theme
               <span>CRM / Deal Room</span>
               <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
                 C
+              </kbd>
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => onNavigate('email'))}>
+              <Mail className="mr-2 h-4 w-4 text-blue-600" />
+              <span>Email Inbox</span>
+              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                M
               </kbd>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onNavigate('chat'))}>
@@ -133,7 +140,7 @@ export function CommandPalette({ open, onOpenChange, onNavigate, onAction, theme
               <span>Log a Call</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onAction('add-lead'))}>
-              <UserPlus className="mr-2 h-4 w-4 text-secondary" />
+              <UserPlus className="mr-2 h-4 w-4 text-violet-600" />
               <span>Add New Lead</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onAction('schedule'))}>
@@ -146,11 +153,11 @@ export function CommandPalette({ open, onOpenChange, onNavigate, onAction, theme
           
           <CommandGroup heading="Views">
             <CommandItem onSelect={() => runCommand(() => onAction('leaderboard'))}>
-              <Trophy className="mr-2 h-4 w-4 text-secondary" />
+              <Trophy className="mr-2 h-4 w-4 text-violet-600" />
               <span>View Full Leaderboard</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onAction('achievements'))}>
-              <Zap className="mr-2 h-4 w-4 text-secondary" />
+              <Zap className="mr-2 h-4 w-4 text-violet-600" />
               <span>View All Achievements</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onAction('notifications'))}>

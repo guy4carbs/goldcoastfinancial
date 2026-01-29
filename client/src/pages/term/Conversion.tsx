@@ -325,28 +325,28 @@ export default function Conversion() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <RefreshCw className="w-4 h-4" />
                 Term Life Conversion
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Convert Your Term.
-                <span className="block text-heritage-accent">Keep Your Health Class.</span>
+                <span className="block text-violet-500">Keep Your Health Class.</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Your term policy may include a hidden gem: the right to convert to permanent coverage without an exam—even if your health changed.
               </p>
 
@@ -359,7 +359,7 @@ export default function Conversion() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -370,7 +370,7 @@ export default function Conversion() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Check Conversion Options
                     <ChevronRight className="w-5 h-5" />
@@ -380,7 +380,7 @@ export default function Conversion() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Advisor
@@ -397,14 +397,14 @@ export default function Conversion() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Should You Convert?</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Should You Convert?</h3>
                 <p className="text-gray-600 text-sm">Quick assessment tool</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Age When You Got Term: <span className="text-heritage-accent font-bold">{termAge}</span>
+                    Age When You Got Term: <span className="text-violet-500 font-bold">{termAge}</span>
                   </label>
                   <input
                     type="range"
@@ -412,7 +412,7 @@ export default function Conversion() {
                     max="55"
                     value={termAge}
                     onChange={(e) => setTermAge(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>25</span>
@@ -422,7 +422,7 @@ export default function Conversion() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Current Age: <span className="text-heritage-accent font-bold">{currentAge}</span>
+                    Your Current Age: <span className="text-violet-500 font-bold">{currentAge}</span>
                   </label>
                   <input
                     type="range"
@@ -430,7 +430,7 @@ export default function Conversion() {
                     max="70"
                     value={currentAge}
                     onChange={(e) => setCurrentAge(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>{termAge}</span>
@@ -447,7 +447,7 @@ export default function Conversion() {
                         onClick={() => setHealthStatus(status)}
                         className={`py-2 rounded-lg text-sm font-medium capitalize transition-all ${
                           healthStatus === status
-                            ? 'bg-heritage-primary text-white shadow-lg'
+                            ? 'bg-primary text-white shadow-lg'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -486,7 +486,7 @@ export default function Conversion() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {trustStats.map((stat, i) => (
@@ -498,7 +498,7 @@ export default function Conversion() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -515,10 +515,10 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Conversion Calculator
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See how converting your term policy to permanent coverage would look with estimated premiums and cash value projections.
             </p>
           </motion.div>
@@ -530,10 +530,10 @@ export default function Conversion() {
               viewport={{ once: true }}
               className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
             >
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Term Coverage: <span className="text-heritage-accent font-bold">{formatCurrency(termCoverage)}</span>
+                    Current Term Coverage: <span className="text-violet-500 font-bold">{formatCurrency(termCoverage)}</span>
                   </label>
                   <input
                     type="range"
@@ -542,13 +542,13 @@ export default function Conversion() {
                     step="50000"
                     value={termCoverage}
                     onChange={(e) => { setTermCoverage(Number(e.target.value)); setShowConversionResult(false); setConvertAmount(Math.min(convertAmount, Number(e.target.value))); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amount to Convert: <span className="text-heritage-accent font-bold">{formatCurrency(convertAmount)}</span>
+                    Amount to Convert: <span className="text-violet-500 font-bold">{formatCurrency(convertAmount)}</span>
                   </label>
                   <input
                     type="range"
@@ -557,7 +557,7 @@ export default function Conversion() {
                     step="25000"
                     value={convertAmount}
                     onChange={(e) => { setConvertAmount(Number(e.target.value)); setShowConversionResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Remaining term: {formatCurrency(termCoverage - convertAmount)}
@@ -566,7 +566,7 @@ export default function Conversion() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age at Conversion: <span className="text-heritage-accent font-bold">{conversionAge}</span>
+                    Your Age at Conversion: <span className="text-violet-500 font-bold">{conversionAge}</span>
                   </label>
                   <input
                     type="range"
@@ -574,7 +574,7 @@ export default function Conversion() {
                     max="65"
                     value={conversionAge}
                     onChange={(e) => { setConversionAge(Number(e.target.value)); setShowConversionResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
@@ -593,7 +593,7 @@ export default function Conversion() {
                         whileTap={{ scale: 0.98 }}
                         className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                           policyType === type.id
-                            ? 'bg-heritage-primary text-white shadow-lg'
+                            ? 'bg-primary text-white shadow-lg'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -608,7 +608,7 @@ export default function Conversion() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={calculateConversion}
-                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-5 h-5" />
                 Calculate Conversion
@@ -624,7 +624,7 @@ export default function Conversion() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-primary to-primary/90 rounded-xl p-6 text-white">
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -636,7 +636,7 @@ export default function Conversion() {
                           initial={{ scale: 0.5, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                          className="text-5xl font-bold text-heritage-accent"
+                          className="text-5xl font-bold text-violet-500"
                         >
                           ${conversionResult.monthlyPremium}
                           <span className="text-xl">/mo</span>
@@ -650,7 +650,7 @@ export default function Conversion() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6"
                       >
                         <div className="bg-white/10 rounded-lg p-4 text-center">
                           <p className="text-white/70 text-xs mb-1">Converting</p>
@@ -662,11 +662,11 @@ export default function Conversion() {
                         </div>
                         <div className="bg-white/10 rounded-lg p-4 text-center">
                           <p className="text-white/70 text-xs mb-1">Cash Value (Year 10)</p>
-                          <p className="text-lg font-bold text-heritage-accent">{formatCurrency(conversionResult.cashValueYear10)}</p>
+                          <p className="text-lg font-bold text-violet-500">{formatCurrency(conversionResult.cashValueYear10)}</p>
                         </div>
                         <div className="bg-white/10 rounded-lg p-4 text-center">
                           <p className="text-white/70 text-xs mb-1">Cash Value (Year 20)</p>
-                          <p className="text-lg font-bold text-heritage-accent">{formatCurrency(conversionResult.cashValueYear20)}</p>
+                          <p className="text-lg font-bold text-violet-500">{formatCurrency(conversionResult.cashValueYear20)}</p>
                         </div>
                       </motion.div>
 
@@ -674,10 +674,10 @@ export default function Conversion() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 }}
-                        className="p-4 bg-heritage-accent/20 rounded-lg border border-heritage-accent/30 mb-4"
+                        className="p-4 bg-violet-500/20 rounded-lg border border-violet-500/30 mb-4"
                       >
                         <div className="flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0 mt-0.5" />
+                          <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0 mt-0.5" />
                           <p className="text-sm text-white/90">{conversionResult.recommendation}</p>
                         </div>
                       </motion.div>
@@ -700,7 +700,7 @@ export default function Conversion() {
                             transition={{ delay: 1.0 + i * 0.1 }}
                             className="flex items-center gap-2 p-2 bg-white/10 rounded-lg"
                           >
-                            <benefit.icon className="w-4 h-4 text-heritage-accent" />
+                            <benefit.icon className="w-4 h-4 text-violet-500" />
                             <span className="text-xs text-white/80">{benefit.label}</span>
                           </motion.div>
                         ))}
@@ -715,7 +715,7 @@ export default function Conversion() {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold"
+                            className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-3 rounded-lg font-semibold"
                           >
                             Explore Conversion Options
                           </motion.button>
@@ -739,13 +739,13 @@ export default function Conversion() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 What is the Conversion Privilege?
               </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed text-pretty">
                 The conversion privilege lets you convert some or all of your term coverage to permanent insurance—no exam, no health questions.
               </p>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Even with serious health conditions, you can get permanent coverage at standard rates based on your current age. The insurer must accept you—it's your contractual right.
               </p>
 
@@ -768,9 +768,9 @@ export default function Conversion() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <div className="h-[400px] bg-gradient-to-br from-heritage-primary/10 to-heritage-accent/10 rounded-xl flex items-center justify-center">
+              <div className="h-[400px] bg-gradient-to-br from-primary/10 to-violet-500/10 rounded-xl flex items-center justify-center">
                 <div className="text-center p-8">
-                  <RefreshCw className="w-24 h-24 text-heritage-primary/30 mx-auto mb-4" />
+                  <RefreshCw className="w-24 h-24 text-primary/30 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">Conversion Process</p>
                 </div>
               </div>
@@ -788,10 +788,10 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Conversion is So Valuable
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Can be worth hundreds of thousands if your health changes.
             </p>
           </motion.div>
@@ -801,7 +801,7 @@ export default function Conversion() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
           >
             {conversionBenefits.map((benefit, i) => (
               <motion.div
@@ -809,10 +809,10 @@ export default function Conversion() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-6 hover:shadow-lg transition-shadow border border-gray-100"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -821,7 +821,7 @@ export default function Conversion() {
       </section>
 
       {/* Conversion Timeline */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -829,15 +829,15 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">
               Don't Miss Your Window
             </h2>
-            <p className="text-white/80 max-w-2xl mx-auto">
+            <p className="text-white/80 max-w-2xl mx-auto text-pretty">
               Limited time to convert. Know where you stand.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {conversionTimeline.map((period, i) => (
               <motion.div
                 key={i}
@@ -877,10 +877,10 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               When Should You Convert?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Common triggers that make conversion the right move.
             </p>
           </motion.div>
@@ -890,7 +890,7 @@ export default function Conversion() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
           >
             {whenToConvert.map((scenario, i) => (
               <motion.div
@@ -899,8 +899,8 @@ export default function Conversion() {
                 className="bg-white rounded-xl p-6 hover:shadow-lg transition-shadow border border-gray-200"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-heritage-primary/10 rounded-xl flex items-center justify-center">
-                    <scenario.icon className="w-6 h-6 text-heritage-primary" />
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <scenario.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">{scenario.title}</h3>
@@ -929,15 +929,15 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               What Can You Convert To?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Multiple permanent policy options available.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {conversionOptions.map((option, i) => (
               <motion.div
                 key={i}
@@ -947,7 +947,7 @@ export default function Conversion() {
                 transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-xl p-6 hover:shadow-lg transition-shadow"
               >
-                <h3 className="text-xl font-bold text-heritage-primary mb-4">{option.type}</h3>
+                <h3 className="text-xl font-bold text-primary mb-4">{option.type}</h3>
                 <p className="text-gray-600 mb-6 text-sm">{option.description}</p>
 
                 <div className="space-y-3">
@@ -979,17 +979,17 @@ export default function Conversion() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Partial Conversion: The Smart Middle Ground
               </h2>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 {partialConversion.description}
               </p>
 
               <div className="space-y-4">
                 {["More affordable than full conversion", "Keep term for temporary needs", "Permanent for lifetime goals", "Can convert more later"].map((benefit, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{benefit}</span>
                   </div>
                 ))}
@@ -1010,19 +1010,19 @@ export default function Conversion() {
                     <p className="text-2xl font-bold text-gray-900">{partialConversion.example.original}</p>
                   </div>
                   <div className="flex items-center justify-center">
-                    <ArrowRight className="w-6 h-6 text-heritage-primary" />
+                    <ArrowRight className="w-6 h-6 text-primary" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-heritage-primary/10 rounded-xl border border-heritage-primary/20">
+                    <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
                       <p className="text-sm text-gray-500">Converted to Permanent</p>
-                      <p className="text-xl font-bold text-heritage-primary">{partialConversion.example.converted}</p>
+                      <p className="text-xl font-bold text-primary">{partialConversion.example.converted}</p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-xl">
                       <p className="text-sm text-gray-500">Remaining Term</p>
                       <p className="text-xl font-bold text-gray-900">{partialConversion.example.remaining}</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-heritage-accent/10 rounded-xl">
+                  <div className="p-4 bg-violet-500/10 rounded-xl">
                     <p className="text-sm text-gray-700"><span className="font-semibold">Strategy:</span> {partialConversion.example.strategy}</p>
                   </div>
                 </div>
@@ -1033,7 +1033,7 @@ export default function Conversion() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1043,7 +1043,7 @@ export default function Conversion() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -1075,7 +1075,7 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -1094,8 +1094,8 @@ export default function Conversion() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -1125,10 +1125,10 @@ export default function Conversion() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Don't Let Your Window Close
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Find your deadline and explore options. We'll help you decide if conversion is right for you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1136,7 +1136,7 @@ export default function Conversion() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Check My Options
                   <ChevronRight className="w-5 h-5" />
@@ -1146,7 +1146,7 @@ export default function Conversion() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Speak to an Advisor

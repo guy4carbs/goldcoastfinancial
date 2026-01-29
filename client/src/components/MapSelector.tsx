@@ -42,7 +42,7 @@ export default function MapSelector({ children, address = HERITAGE_ADDRESS, clas
     <div className={`relative inline-block ${className}`} ref={popupRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="text-left cursor-pointer hover:text-heritage-primary transition-colors"
+        className="text-left cursor-pointer hover:text-primary transition-colors"
       >
         {children}
       </button>
@@ -57,7 +57,7 @@ export default function MapSelector({ children, address = HERITAGE_ADDRESS, clas
             className="absolute z-50 mt-2 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-4 min-w-[220px]"
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-heritage-primary">Open in Maps</p>
+              <p className="text-sm font-semibold text-primary">Open in Maps</p>
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"

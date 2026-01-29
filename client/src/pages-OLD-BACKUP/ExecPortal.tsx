@@ -552,7 +552,7 @@ export default function ExecPortal() {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeTab === item.id 
-                      ? "bg-secondary/10 text-secondary" 
+                      ? "bg-violet-50 text-secondary" 
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   )}
                   data-testid={`nav-${item.id}`}
@@ -569,7 +569,7 @@ export default function ExecPortal() {
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                 <span className="font-bold text-secondary">{user.name?.charAt(0) || 'E'}</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -731,7 +731,7 @@ export default function ExecPortal() {
                   }}
                   className={cn(
                     "flex flex-col items-center justify-center gap-0.5 min-w-[64px] py-2 px-3 rounded-xl touch-manipulation transition-colors",
-                    isActive && (theme === 'dark' ? 'bg-secondary/20' : 'bg-secondary/10')
+                    isActive && (theme === 'dark' ? 'bg-violet-100' : 'bg-violet-50')
                   )}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -817,7 +817,7 @@ function EnhancedMetricCard({
         <div className="flex items-start justify-between mb-3">
           <div className={cn(
             'w-10 h-10 rounded-lg flex items-center justify-center',
-            theme === 'dark' ? 'bg-secondary/20' : 'bg-secondary/10'
+            theme === 'dark' ? 'bg-violet-100' : 'bg-violet-50'
           )}>
             <Icon className="w-5 h-5 text-secondary" />
           </div>
@@ -911,7 +911,7 @@ function MetricCard({ title, value, change, changeType, icon: Icon, subtitle, th
       <div className="flex items-start justify-between mb-2">
         <div className={cn(
           'w-10 h-10 rounded-lg flex items-center justify-center',
-          theme === 'dark' ? 'bg-secondary/20' : 'bg-secondary/10'
+          theme === 'dark' ? 'bg-violet-100' : 'bg-violet-50'
         )}>
           <Icon className="w-5 h-5 text-secondary" />
         </div>
@@ -962,13 +962,13 @@ function ActivityStream({ theme }: { theme: string }) {
                 transition={{ delay: idx * 0.05 }}
                 className={cn(
                   'flex items-start gap-3 p-3 rounded-lg transition-all',
-                  activity.highlight ? (theme === 'dark' ? 'bg-secondary/10 border border-secondary/20' : 'bg-secondary/5 border border-secondary/10') : (theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50')
+                  activity.highlight ? (theme === 'dark' ? 'bg-violet-50 border border-secondary/20' : 'bg-secondary/5 border border-secondary/10') : (theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50')
                 )}
               >
                 <div className={cn(
                   'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
                   activity.type === 'deal' && 'bg-emerald-500/20 text-emerald-500',
-                  activity.type === 'milestone' && 'bg-secondary/20 text-secondary',
+                  activity.type === 'milestone' && 'bg-violet-100 text-secondary',
                   activity.type === 'call' && 'bg-blue-500/20 text-blue-500',
                   activity.type === 'alert' && 'bg-amber-500/20 text-amber-500',
                   activity.type === 'achievement' && 'bg-purple-500/20 text-purple-500'
@@ -1087,7 +1087,7 @@ function AgentPerformanceGrid({ theme }: { theme: string }) {
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold',
-                        agent.status === 'top' && 'bg-secondary/20 text-secondary',
+                        agent.status === 'top' && 'bg-violet-100 text-secondary',
                         agent.status === 'consistent' && 'bg-blue-500/20 text-blue-500',
                         agent.status === 'developing' && 'bg-amber-500/20 text-amber-500',
                         agent.status === 'at_risk' && 'bg-red-500/20 text-red-500'
@@ -1750,7 +1750,7 @@ function ExecutiveCalendarSection({ theme }: { theme: string }) {
                       'min-h-[72px] p-1 transition-colors cursor-pointer',
                       theme === 'dark' ? 'bg-gray-800' : 'bg-white',
                       !day.isCurrentMonth && 'opacity-40',
-                      isToday && (theme === 'dark' ? 'bg-secondary/10' : 'bg-secondary/5'),
+                      isToday && (theme === 'dark' ? 'bg-violet-50' : 'bg-secondary/5'),
                       'hover:bg-secondary/5'
                     )}
                   >
@@ -2781,7 +2781,7 @@ function DashboardView({ theme, alerts, acknowledgeAlert, marketingAllocation, s
         <Card className={cn("cursor-pointer hover:border-secondary transition-colors", theme === 'dark' ? 'bg-gray-800 border-gray-700' : '')}>
           <Link href="/exec/tasks">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center">
                 <ListTodo className="w-5 h-5 text-secondary" />
               </div>
               <div>
@@ -3770,7 +3770,7 @@ function ForecastsView({ theme }: { theme: string }) {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className={cn("p-2 rounded-lg", activeScenario === 'optimistic' ? 'bg-emerald-500/10' : activeScenario === 'defensive' ? 'bg-amber-500/10' : 'bg-secondary/10')}>
+              <div className={cn("p-2 rounded-lg", activeScenario === 'optimistic' ? 'bg-emerald-500/10' : activeScenario === 'defensive' ? 'bg-amber-500/10' : 'bg-violet-50')}>
                 <Sparkles className={cn("w-5 h-5", activeScenario === 'optimistic' ? 'text-emerald-500' : activeScenario === 'defensive' ? 'text-amber-500' : 'text-secondary')} />
               </div>
               <div>
@@ -3937,7 +3937,7 @@ function ForecastsView({ theme }: { theme: string }) {
               <div key={forecast.horizon} className={cn('p-4 rounded-lg border-2', theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200')}>
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold">{forecast.horizon}</p>
-                  <Badge className="bg-secondary/10 text-secondary">{forecast.confidence} conf.</Badge>
+                  <Badge className="bg-violet-50 text-secondary">{forecast.confidence} conf.</Badge>
                 </div>
                 <p className="text-2xl font-bold">{forecast.projected}</p>
                 <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
@@ -4036,7 +4036,7 @@ function ForecastsView({ theme }: { theme: string }) {
             {[
               { cluster: 'Core Performers', count: 8, avgProduction: '$52K', growth: '+12%', consistency: 94, borderClass: 'border-emerald-500', badgeClass: 'bg-emerald-500/10 text-emerald-500', action: 'Retain & develop to leadership' },
               { cluster: 'Rising Stars', count: 12, avgProduction: '$28K', growth: '+35%', consistency: 78, borderClass: 'border-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500', action: 'Accelerated training path' },
-              { cluster: 'Steady Contributors', count: 15, avgProduction: '$18K', growth: '+5%', consistency: 85, borderClass: 'border-secondary', badgeClass: 'bg-secondary/10 text-secondary', action: 'Maintain support' },
+              { cluster: 'Steady Contributors', count: 15, avgProduction: '$18K', growth: '+5%', consistency: 85, borderClass: 'border-secondary', badgeClass: 'bg-violet-50 text-secondary', action: 'Maintain support' },
               { cluster: 'At-Risk Performers', count: 5, avgProduction: '$8K', growth: '-15%', consistency: 45, borderClass: 'border-red-500', badgeClass: 'bg-red-500/10 text-red-500', action: 'Immediate coaching intervention' },
             ].map((segment) => (
               <div key={segment.cluster} className={cn('p-3 rounded-lg border-l-4', segment.borderClass, theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50')}>
@@ -4334,7 +4334,7 @@ function LeadershipView({ theme }: { theme: string }) {
                   <tr key={member.id} className="text-sm">
                     <td className="py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-secondary font-bold text-xs">
                           {member.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <span className="font-medium">{member.name}</span>
@@ -4577,14 +4577,14 @@ function LeadershipView({ theme }: { theme: string }) {
           <CardContent>
             <div className={cn('p-4 rounded-lg border-2 border-secondary/30', theme === 'dark' ? 'bg-gray-700' : 'bg-secondary/5')}>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-xl">
+                <div className="w-16 h-16 rounded-full bg-violet-100 flex items-center justify-center text-secondary font-bold text-xl">
                   SM
                 </div>
                 <div>
                   <p className="font-semibold text-lg">Sarah Mitchell</p>
                   <p className="text-sm text-muted-foreground">Sales Director • 3.5 years with company</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge className="bg-secondary/20 text-secondary">Top Performer</Badge>
+                    <Badge className="bg-violet-100 text-secondary">Top Performer</Badge>
                     <Badge variant="outline">Leadership Ready</Badge>
                   </div>
                 </div>
@@ -4665,7 +4665,7 @@ function LeadershipView({ theme }: { theme: string }) {
             ].map((pair, i) => (
               <div key={i} className={cn('p-3 rounded-lg', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100')}>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-xs">
+                  <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-secondary font-bold text-xs">
                     {pair.mentor.split(' ').map(n => n[0]).join('')}
                   </div>
                   <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -4771,7 +4771,7 @@ function LeadershipView({ theme }: { theme: string }) {
               <div key={candidate.name} className={cn('p-4 rounded-lg', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100')}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-secondary font-bold text-sm">
                       {candidate.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
@@ -4828,7 +4828,7 @@ function LeadershipView({ theme }: { theme: string }) {
                     <p className="font-medium text-sm">{idp.name}</p>
                     <p className="text-xs text-muted-foreground">{idp.plan}</p>
                   </div>
-                  <Badge className="bg-secondary/10 text-secondary">{idp.completed}/{idp.milestones} milestones</Badge>
+                  <Badge className="bg-violet-50 text-secondary">{idp.completed}/{idp.milestones} milestones</Badge>
                 </div>
                 <Progress value={(idp.completed / idp.milestones) * 100} className="h-2 mb-2" />
                 <div className="flex flex-wrap gap-1 mb-2">
@@ -5213,7 +5213,7 @@ function PartnershipsView({ theme }: { theme: string }) {
                 {carrierROI.map((carrier, i) => (
                   <div key={carrier.carrier} className={cn('flex items-center justify-between p-3 rounded-lg', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100')}>
                     <div className="flex items-center gap-3">
-                      <div className={cn('w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm', i < 3 ? 'bg-secondary/20 text-secondary' : 'bg-gray-200 text-gray-600')}>
+                      <div className={cn('w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm', i < 3 ? 'bg-violet-100 text-secondary' : 'bg-gray-200 text-gray-600')}>
                         #{i + 1}
                       </div>
                       <div>
@@ -6250,7 +6250,7 @@ function AccessControlView({ theme }: { theme: string }) {
                             className={cn(
                               'flex items-center gap-1 px-2 py-1 rounded text-xs transition-all',
                               user.access.includes(opt.id)
-                                ? 'bg-secondary/20 text-secondary border border-secondary/30'
+                                ? 'bg-violet-100 text-secondary border border-secondary/30'
                                 : theme === 'dark' ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-100 text-gray-500 border border-gray-200'
                             )}
                             data-testid={`toggle-access-${user.id}-${opt.id}`}
@@ -6324,7 +6324,7 @@ function AccessControlView({ theme }: { theme: string }) {
                     className={cn(
                       'flex items-center gap-1 px-2 py-1 rounded text-xs transition-all',
                       selectedAccess.includes(opt.id)
-                        ? 'bg-secondary/20 text-secondary border border-secondary/30'
+                        ? 'bg-violet-100 text-secondary border border-secondary/30'
                         : theme === 'dark' ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-100 text-gray-500 border border-gray-200'
                     )}
                     data-testid={`toggle-new-access-${opt.id}`}

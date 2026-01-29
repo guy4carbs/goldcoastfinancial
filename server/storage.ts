@@ -1,4 +1,4 @@
-import { 
+import {
   type QuoteRequest,
   type InsertQuoteRequest,
   type ContactMessage,
@@ -23,6 +23,16 @@ import {
   type InsertChatParticipant,
   type ChatMessage,
   type InsertChatMessage,
+  type AgentTrainingProgress,
+  type InsertAgentTrainingProgress,
+  type AgentAssessmentResult,
+  type InsertAgentAssessmentResult,
+  type AgentSimulationResult,
+  type InsertAgentSimulationResult,
+  type AgentCertificate,
+  type InsertAgentCertificate,
+  type AgentXpTransaction,
+  type InsertAgentXpTransaction,
   quoteRequests,
   contactMessages,
   users,
@@ -35,9 +45,14 @@ import {
   chatConversations,
   chatParticipants,
   chatMessages,
+  agentTrainingProgress,
+  agentAssessmentResults,
+  agentSimulationResults,
+  agentCertificates,
+  agentXpTransactions,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, inArray, asc } from "drizzle-orm";
+import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export interface IStorage {
@@ -74,6 +89,7 @@ export interface IStorage {
   createBillingHistory(billing: InsertBillingHistory): Promise<BillingHistory>;
   
   createJobApplication(application: InsertJobApplication): Promise<JobApplication>;
+  getJobApplications(): Promise<JobApplication[]>;
   
   createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
   getChatConversationById(id: string): Promise<ChatConversation | null>;
@@ -88,8 +104,35 @@ export interface IStorage {
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessages(conversationId: string, limit?: number): Promise<ChatMessage[]>;
   getUnreadChatCount(userId: string): Promise<number>;
-  
+
   getAllAgentUsers(): Promise<User[]>;
+
+  // Training Progress
+  getTrainingProgress(userId: string): Promise<AgentTrainingProgress[]>;
+  getModuleProgress(userId: string, moduleId: string): Promise<AgentTrainingProgress | null>;
+  upsertTrainingProgress(progress: InsertAgentTrainingProgress): Promise<AgentTrainingProgress>;
+
+  // Assessment Results
+  getAssessmentHistory(userId: string): Promise<AgentAssessmentResult[]>;
+  getAssessmentAttempts(userId: string, assessmentId: string): Promise<AgentAssessmentResult[]>;
+  createAssessmentResult(result: InsertAgentAssessmentResult): Promise<AgentAssessmentResult>;
+
+  // Simulation Results
+  getSimulationHistory(userId: string): Promise<AgentSimulationResult[]>;
+  createSimulationResult(result: InsertAgentSimulationResult): Promise<AgentSimulationResult>;
+
+  // Certificates
+  getCertificates(userId: string): Promise<AgentCertificate[]>;
+  createCertificate(certificate: InsertAgentCertificate): Promise<AgentCertificate>;
+  getCertificateByNumber(certificateNumber: string): Promise<AgentCertificate | null>;
+
+  // XP Transactions
+  getXpHistory(userId: string): Promise<AgentXpTransaction[]>;
+  createXpTransaction(transaction: InsertAgentXpTransaction): Promise<AgentXpTransaction>;
+  getTotalXp(userId: string): Promise<number>;
+
+  // Leaderboard
+  getLeaderboard(limit?: number): Promise<{ userId: string; totalXp: number; user: User }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -99,7 +142,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getQuoteRequests(): Promise<QuoteRequest[]> {
-    return db.select().from(quoteRequests).orderBy(quoteRequests.createdAt);
+    return db.select().from(quoteRequests).orderBy(desc(quoteRequests.createdAt));
   }
 
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
@@ -108,7 +151,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getContactMessages(): Promise<ContactMessage[]> {
-    return db.select().from(contactMessages).orderBy(contactMessages.createdAt);
+    return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
   }
 
   async createUser(user: InsertUser): Promise<User> {
@@ -213,6 +256,10 @@ export class DatabaseStorage implements IStorage {
     return newApplication;
   }
 
+  async getJobApplications(): Promise<JobApplication[]> {
+    return db.select().from(jobApplications).orderBy(desc(jobApplications.createdAt));
+  }
+
   async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
     const [newConversation] = await db.insert(chatConversations).values(conversation).returning();
     return newConversation;
@@ -294,6 +341,146 @@ export class DatabaseStorage implements IStorage {
 
   async getAllAgentUsers(): Promise<User[]> {
     return db.select().from(users);
+  }
+
+  // Training Progress Methods
+  async getTrainingProgress(userId: string): Promise<AgentTrainingProgress[]> {
+    return db.select().from(agentTrainingProgress)
+      .where(eq(agentTrainingProgress.userId, userId))
+      .orderBy(desc(agentTrainingProgress.updatedAt));
+  }
+
+  async getModuleProgress(userId: string, moduleId: string): Promise<AgentTrainingProgress | null> {
+    const [progress] = await db.select().from(agentTrainingProgress)
+      .where(and(
+        eq(agentTrainingProgress.userId, userId),
+        eq(agentTrainingProgress.moduleId, moduleId)
+      ));
+    return progress || null;
+  }
+
+  async upsertTrainingProgress(progress: InsertAgentTrainingProgress): Promise<AgentTrainingProgress> {
+    const existing = await this.getModuleProgress(progress.userId, progress.moduleId);
+
+    if (existing) {
+      const [updated] = await db.update(agentTrainingProgress)
+        .set({ ...progress, updatedAt: new Date() })
+        .where(eq(agentTrainingProgress.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db.insert(agentTrainingProgress).values(progress).returning();
+    return created;
+  }
+
+  // Assessment Results Methods
+  async getAssessmentHistory(userId: string): Promise<AgentAssessmentResult[]> {
+    return db.select().from(agentAssessmentResults)
+      .where(eq(agentAssessmentResults.userId, userId))
+      .orderBy(desc(agentAssessmentResults.completedAt));
+  }
+
+  async getAssessmentAttempts(userId: string, assessmentId: string): Promise<AgentAssessmentResult[]> {
+    return db.select().from(agentAssessmentResults)
+      .where(and(
+        eq(agentAssessmentResults.userId, userId),
+        eq(agentAssessmentResults.assessmentId, assessmentId)
+      ))
+      .orderBy(desc(agentAssessmentResults.completedAt));
+  }
+
+  async createAssessmentResult(result: InsertAgentAssessmentResult): Promise<AgentAssessmentResult> {
+    // Calculate attempt number
+    const previousAttempts = await this.getAssessmentAttempts(result.userId, result.assessmentId);
+    const attemptNumber = previousAttempts.length + 1;
+
+    const [created] = await db.insert(agentAssessmentResults)
+      .values({ ...result, attemptNumber })
+      .returning();
+    return created;
+  }
+
+  // Simulation Results Methods
+  async getSimulationHistory(userId: string): Promise<AgentSimulationResult[]> {
+    return db.select().from(agentSimulationResults)
+      .where(eq(agentSimulationResults.userId, userId))
+      .orderBy(desc(agentSimulationResults.completedAt));
+  }
+
+  async createSimulationResult(result: InsertAgentSimulationResult): Promise<AgentSimulationResult> {
+    const [created] = await db.insert(agentSimulationResults).values(result).returning();
+    return created;
+  }
+
+  // Certificate Methods
+  async getCertificates(userId: string): Promise<AgentCertificate[]> {
+    return db.select().from(agentCertificates)
+      .where(eq(agentCertificates.userId, userId))
+      .orderBy(desc(agentCertificates.issuedAt));
+  }
+
+  async createCertificate(certificate: InsertAgentCertificate): Promise<AgentCertificate> {
+    // Generate unique certificate number if not provided
+    const certNumber = certificate.certificateNumber ||
+      `GCF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    const [created] = await db.insert(agentCertificates)
+      .values({ ...certificate, certificateNumber: certNumber })
+      .returning();
+    return created;
+  }
+
+  async getCertificateByNumber(certificateNumber: string): Promise<AgentCertificate | null> {
+    const [certificate] = await db.select().from(agentCertificates)
+      .where(eq(agentCertificates.certificateNumber, certificateNumber));
+    return certificate || null;
+  }
+
+  // XP Transaction Methods
+  async getXpHistory(userId: string): Promise<AgentXpTransaction[]> {
+    return db.select().from(agentXpTransactions)
+      .where(eq(agentXpTransactions.userId, userId))
+      .orderBy(desc(agentXpTransactions.createdAt));
+  }
+
+  async createXpTransaction(transaction: InsertAgentXpTransaction): Promise<AgentXpTransaction> {
+    const [created] = await db.insert(agentXpTransactions).values(transaction).returning();
+    return created;
+  }
+
+  async getTotalXp(userId: string): Promise<number> {
+    const result = await db.select({
+      total: sql<number>`COALESCE(SUM(${agentXpTransactions.amount}), 0)`
+    })
+      .from(agentXpTransactions)
+      .where(eq(agentXpTransactions.userId, userId));
+    return Number(result[0]?.total) || 0;
+  }
+
+  // Leaderboard
+  async getLeaderboard(limit: number = 10): Promise<{ userId: string; totalXp: number; user: User }[]> {
+    const xpTotals = await db.select({
+      userId: agentXpTransactions.userId,
+      totalXp: sql<number>`SUM(${agentXpTransactions.amount})`
+    })
+      .from(agentXpTransactions)
+      .groupBy(agentXpTransactions.userId)
+      .orderBy(sql`SUM(${agentXpTransactions.amount}) DESC`)
+      .limit(limit);
+
+    const results = await Promise.all(
+      xpTotals.map(async (entry) => {
+        const user = await this.getUserById(entry.userId);
+        return {
+          userId: entry.userId,
+          totalXp: Number(entry.totalXp) || 0,
+          user: user!
+        };
+      })
+    );
+
+    return results.filter(r => r.user !== null);
   }
 
   async initializeDemoUser(): Promise<void> {

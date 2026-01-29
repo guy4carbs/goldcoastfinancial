@@ -486,7 +486,7 @@ export function CoverageCalculator() {
                     className="space-y-6"
                   >
                     <div className="text-center mb-6">
-                      <div className="w-16 h-16 bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Shield className="w-8 h-8 text-secondary" />
                       </div>
                       <h3 className="text-xl font-bold font-serif text-primary mb-2">Your Personalized Recommendation</h3>

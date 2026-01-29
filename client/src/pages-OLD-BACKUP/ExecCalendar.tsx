@@ -215,7 +215,7 @@ function CalendarContent() {
           <div className="flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                   <CalendarDays className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
@@ -345,7 +345,7 @@ function CalendarContent() {
                   const isCurrentMonth = isSameMonth(day, currentDate);
                   
                   return (
-                    <div key={idx} className={cn("min-h-[80px] p-1 border rounded cursor-pointer transition-colors", isCurrentMonth ? '' : 'opacity-40', isToday(day) && 'ring-2 ring-secondary', isSelected && 'bg-secondary/10', theme === 'dark' ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50')} onClick={() => setSelectedDate(day)} data-testid={`calendar-day-${format(day, 'yyyy-MM-dd')}`}>
+                    <div key={idx} className={cn("min-h-[80px] p-1 border rounded cursor-pointer transition-colors", isCurrentMonth ? '' : 'opacity-40', isToday(day) && 'ring-2 ring-secondary', isSelected && 'bg-violet-50', theme === 'dark' ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50')} onClick={() => setSelectedDate(day)} data-testid={`calendar-day-${format(day, 'yyyy-MM-dd')}`}>
                       <div className={cn("text-xs font-medium mb-1", isToday(day) && 'text-secondary font-bold')}>{format(day, 'd')}</div>
                       <div className="space-y-0.5">
                         {dayEvents.slice(0, 2).map(event => {

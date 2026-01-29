@@ -8,6 +8,13 @@
       "when": 1767997661526,
       "tag": "0000_fat_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769400992303,
+      "tag": "0001_dry_kylun",
+      "breakpoints": true
     }
   ]
 }

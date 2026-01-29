@@ -51,7 +51,7 @@ export default function About() {
       <section className="bg-primary relative overflow-hidden py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
         <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-12 transform translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full -translate-x-1/2 translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-50 rounded-full -translate-x-1/2 translate-y-1/2" />
         <motion.div 
           className="container mx-auto px-4 text-center relative z-10"
           initial={{ opacity: 0, y: 20 }}
@@ -75,7 +75,7 @@ export default function About() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="relative">
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-secondary/20 rounded-tl-3xl -z-10" />
+              <div className="absolute -top-4 -left-4 w-24 h-24 bg-violet-100 rounded-tl-3xl -z-10" />
               <img 
                 src={teamImage} 
                 alt="Gold Coast Financial Team" 
@@ -99,7 +99,7 @@ export default function About() {
                   "Nationwide Coverage, All 50 States"
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center text-primary">
+                    <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center text-primary">
                       <Check className="w-3 h-3" />
                     </div>
                     <span className="font-medium text-sm">{item}</span>

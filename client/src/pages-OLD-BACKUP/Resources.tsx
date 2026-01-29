@@ -3257,7 +3257,7 @@ export default function Resources() {
       <section className="bg-primary relative overflow-hidden py-20 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
         <div className="absolute top-0 left-0 w-1/3 h-full bg-white/5 -skew-x-12 transform -translate-x-1/4" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full translate-x-1/2 translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-50 rounded-full translate-x-1/2 translate-y-1/2" />
         <motion.div 
           className="container mx-auto px-4 text-center relative z-10"
           initial={{ opacity: 0, y: 20 }}
@@ -3331,7 +3331,7 @@ export default function Resources() {
             >
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-violet-50 flex items-center justify-center mb-4">
                     <GraduationCap className="w-6 h-6 text-secondary" />
                   </div>
                   <h3 className="font-bold text-lg text-primary mb-2">How Much Do I Need?</h3>
@@ -3354,7 +3354,7 @@ export default function Resources() {
             >
               <Card className="h-full hover:shadow-lg transition-shadow border-secondary/50 bg-gradient-to-br from-white to-secondary/5">
                 <CardContent className="p-6">
-                  <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center mb-4">
                     <span className="text-secondary font-bold text-lg">?</span>
                   </div>
                   <h3 className="font-bold text-lg text-primary mb-2">Not Sure Where to Start?</h3>

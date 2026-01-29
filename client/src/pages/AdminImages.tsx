@@ -88,19 +88,19 @@ export default function AdminImages() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <AdminNav />
 
-      <div className="flex-1 py-8">
-        <div className="max-w-7xl mx-auto px-6">
+      <div className="flex-1 py-4 md:py-6 lg:py-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Image CDN Manager</h1>
-            <p className="text-gray-600">Upload and manage images for Heritage website</p>
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Image CDN Manager</h1>
+            <p className="text-sm md:text-base text-gray-600">Upload and manage images for Heritage website</p>
           </div>
 
         {/* Folder Selector */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Select Folder
           </label>
@@ -126,7 +126,7 @@ export default function AdminImages() {
         <div
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
-          className="bg-white rounded-lg shadow-sm p-12 mb-6 border-2 border-dashed border-gray-300 hover:border-[#292966] transition-colors"
+          className="bg-white rounded-lg shadow-sm p-6 md:p-12 mb-4 md:mb-6 border-2 border-dashed border-gray-300 hover:border-[#292966] transition-colors"
         >
           <div className="text-center">
             <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -155,8 +155,8 @@ export default function AdminImages() {
         </div>
 
         {/* Image Grid */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
             Images in {folders.find((f) => f.value === selectedFolder)?.label}
             <span className="text-gray-500 text-sm ml-2">({images.length})</span>
           </h2>
@@ -170,7 +170,7 @@ export default function AdminImages() {
               <p className="text-gray-500">No images in this folder yet</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {images.map((image) => (
                 <div
                   key={image.path}

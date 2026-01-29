@@ -353,24 +353,24 @@ export default function ReturnOfPremium() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] py-20 md:py-28 overflow-hidden">
         {/* Decorative blur circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial="initial"
               animate="animate"
               variants={staggerContainer}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-primary font-semibold mb-4 tracking-wide uppercase text-sm">
+              <motion.p variants={fadeInUp} className="text-primary font-semibold mb-4 tracking-wide uppercase text-sm">
                 Return of Premium Term Life
               </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight text-balance">
                 Get Every Dollar
-                <span className="text-heritage-primary"> Back</span>
+                <span className="text-primary"> Back</span>
               </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
                 Win either way. Family gets the death benefit, or you get 100% of premiums back tax-free.
               </motion.p>
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
@@ -378,7 +378,7 @@ export default function ReturnOfPremium() {
                   <motion.span
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
                   >
                     Get ROP Quote <ArrowRight className="w-5 h-5" />
                   </motion.span>
@@ -387,7 +387,7 @@ export default function ReturnOfPremium() {
                   href="tel:6307780800"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                  className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                 >
                   <Phone className="w-5 h-5" /> Speak to an Advisor
                 </motion.a>
@@ -403,8 +403,8 @@ export default function ReturnOfPremium() {
             >
               <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-heritage-primary/10 rounded-xl">
-                    <Calculator className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <Calculator className="w-8 h-8 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">ROP Cost Comparison</h3>
@@ -415,7 +415,7 @@ export default function ReturnOfPremium() {
                 <div className="space-y-4 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Coverage Amount: <span className="text-heritage-primary font-bold">{formatCurrency(coverageAmount)}</span>
+                      Coverage Amount: <span className="text-primary font-bold">{formatCurrency(coverageAmount)}</span>
                     </label>
                     <input
                       type="range"
@@ -424,12 +424,12 @@ export default function ReturnOfPremium() {
                       step="50000"
                       value={coverageAmount}
                       onChange={(e) => setCoverageAmount(parseInt(e.target.value))}
-                      className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Term Length: <span className="text-heritage-primary font-bold">{termLength} years</span>
+                      Term Length: <span className="text-primary font-bold">{termLength} years</span>
                     </label>
                     <div className="grid grid-cols-4 gap-2">
                       {[15, 20, 25, 30].map((term) => (
@@ -440,7 +440,7 @@ export default function ReturnOfPremium() {
                           whileTap={{ scale: 0.98 }}
                           className={`py-2 rounded-lg text-sm font-medium transition-all ${
                             termLength === term
-                              ? 'bg-heritage-primary text-white shadow-lg'
+                              ? 'bg-primary text-white shadow-lg'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                         >
@@ -451,7 +451,7 @@ export default function ReturnOfPremium() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Age: <span className="text-heritage-primary font-bold">{age}</span>
+                      Your Age: <span className="text-primary font-bold">{age}</span>
                     </label>
                     <input
                       type="range"
@@ -460,7 +460,7 @@ export default function ReturnOfPremium() {
                       step="1"
                       value={age}
                       onChange={(e) => setAge(parseInt(e.target.value))}
-                      className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
                 </div>
@@ -470,16 +470,16 @@ export default function ReturnOfPremium() {
                     <span className="text-gray-600">Traditional Term</span>
                     <span className="font-bold text-gray-700">${premiums.traditionalMonthly}/mo</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-heritage-primary/10 rounded-lg border-2 border-heritage-primary">
-                    <span className="text-heritage-primary font-medium">Return of Premium</span>
-                    <span className="font-bold text-heritage-primary">${premiums.ropMonthly}/mo</span>
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border-2 border-primary">
+                    <span className="text-primary font-medium">Return of Premium</span>
+                    <span className="font-bold text-primary">${premiums.ropMonthly}/mo</span>
                   </div>
                 </div>
 
-                <div className="p-6 bg-heritage-primary rounded-xl text-center">
+                <div className="p-6 bg-primary rounded-xl text-center">
                   <p className="text-white/80 text-sm mb-1">Your Guaranteed Refund</p>
                   <p className="text-5xl font-bold text-white mb-1">{formatCurrency(premiums.ropTotal)}</p>
-                  <p className="text-heritage-accent text-sm font-medium">If you outlive the policy</p>
+                  <p className="text-violet-500 text-sm font-medium">If you outlive the policy</p>
                 </div>
               </div>
             </motion.div>
@@ -488,7 +488,7 @@ export default function ReturnOfPremium() {
       </section>
 
       {/* Trust Stats Bar */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {trustStats.map((stat, index) => (
@@ -517,10 +517,10 @@ export default function ReturnOfPremium() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               ROP Refund Calculator
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See exactly how much you would pay and get back with a Return of Premium policy.
             </p>
           </motion.div>
@@ -532,10 +532,10 @@ export default function ReturnOfPremium() {
               viewport={{ once: true }}
               className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
             >
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-primary font-bold">{formatCurrency(coverageAmount)}</span>
+                    Coverage Amount: <span className="text-primary font-bold">{formatCurrency(coverageAmount)}</span>
                   </label>
                   <input
                     type="range"
@@ -544,13 +544,13 @@ export default function ReturnOfPremium() {
                     step="50000"
                     value={coverageAmount}
                     onChange={(e) => { setCoverageAmount(parseInt(e.target.value)); setShowRopResult(false); }}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Term Length: <span className="text-heritage-primary font-bold">{termLength} years</span>
+                    Term Length: <span className="text-primary font-bold">{termLength} years</span>
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {[15, 20, 25, 30].map((term) => (
@@ -561,7 +561,7 @@ export default function ReturnOfPremium() {
                         whileTap={{ scale: 0.98 }}
                         className={`py-2 rounded-lg text-sm font-medium transition-all ${
                           termLength === term
-                            ? 'bg-heritage-primary text-white shadow-lg'
+                            ? 'bg-primary text-white shadow-lg'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -573,7 +573,7 @@ export default function ReturnOfPremium() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-primary font-bold">{age}</span>
+                    Your Age: <span className="text-primary font-bold">{age}</span>
                   </label>
                   <input
                     type="range"
@@ -582,7 +582,7 @@ export default function ReturnOfPremium() {
                     step="1"
                     value={age}
                     onChange={(e) => { setAge(parseInt(e.target.value)); setShowRopResult(false); }}
-                    className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
 
@@ -600,7 +600,7 @@ export default function ReturnOfPremium() {
                         whileTap={{ scale: 0.98 }}
                         className={`py-2 rounded-lg text-sm font-medium transition-all ${
                           gender === g.id
-                            ? 'bg-heritage-primary text-white shadow-lg'
+                            ? 'bg-primary text-white shadow-lg'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -615,7 +615,7 @@ export default function ReturnOfPremium() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={calculateRopResult}
-                className="w-full bg-heritage-primary hover:bg-heritage-primary/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <RefreshCcw className="w-5 h-5" />
                 Calculate My Refund
@@ -631,7 +631,7 @@ export default function ReturnOfPremium() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-primary to-primary/90 rounded-xl p-6 text-white">
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -643,7 +643,7 @@ export default function ReturnOfPremium() {
                           initial={{ scale: 0.5, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                          className="text-6xl font-bold text-heritage-accent"
+                          className="text-6xl font-bold text-violet-500"
                         >
                           {formatCurrency(ropResult.refundAmount)}
                         </motion.p>
@@ -661,7 +661,7 @@ export default function ReturnOfPremium() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6"
                       >
                         <div className="bg-white/10 rounded-lg p-4 text-center">
                           <p className="text-white/70 text-xs mb-1">ROP Monthly</p>
@@ -677,7 +677,7 @@ export default function ReturnOfPremium() {
                         </div>
                         <div className="bg-white/10 rounded-lg p-4 text-center">
                           <p className="text-white/70 text-xs mb-1">Effective Cost</p>
-                          <p className="text-xl font-bold text-heritage-accent">$0</p>
+                          <p className="text-xl font-bold text-violet-500">$0</p>
                         </div>
                       </motion.div>
 
@@ -685,10 +685,10 @@ export default function ReturnOfPremium() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8 }}
-                        className="p-4 bg-heritage-accent/20 rounded-lg border border-heritage-accent/30 mb-4"
+                        className="p-4 bg-violet-500/20 rounded-lg border border-violet-500/30 mb-4"
                       >
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-heritage-accent flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-5 h-5 text-violet-500 flex-shrink-0 mt-0.5" />
                           <div>
                             <p className="text-sm font-semibold text-white mb-1">Win-Win Scenario</p>
                             <p className="text-sm text-white/90">
@@ -724,7 +724,7 @@ export default function ReturnOfPremium() {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold"
+                            className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-3 rounded-lg font-semibold"
                           >
                             Get My ROP Quote
                           </motion.button>
@@ -749,10 +749,10 @@ export default function ReturnOfPremium() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               How Return of Premium Works
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Pay higher premiums now, get them all back if you outlive the policy.
             </motion.p>
           </motion.div>
@@ -762,7 +762,7 @@ export default function ReturnOfPremium() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
           >
             {howItWorks.map((step, index) => (
               <motion.div
@@ -771,18 +771,18 @@ export default function ReturnOfPremium() {
                 className="relative"
               >
                 <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-200 hover:shadow-lg transition-shadow h-full">
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-heritage-primary text-white rounded-full flex items-center justify-center font-bold">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold">
                     {step.step}
                   </div>
-                  <div className="p-4 bg-heritage-primary/10 rounded-full w-fit mx-auto mb-4 mt-4">
-                    <step.icon className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto mb-4 mt-4">
+                    <step.icon className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
                 {index < 3 && (
                   <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-heritage-primary/30" />
+                    <ArrowRight className="w-8 h-8 text-primary/30" />
                   </div>
                 )}
               </motion.div>
@@ -804,7 +804,7 @@ export default function ReturnOfPremium() {
             <motion.span variants={fadeInUp} className="inline-block px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold mb-4">
               The Benefits
             </motion.span>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Why Consider Return of Premium
             </motion.h2>
           </motion.div>
@@ -814,7 +814,7 @@ export default function ReturnOfPremium() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {pros.map((pro, index) => (
               <motion.div
@@ -850,7 +850,7 @@ export default function ReturnOfPremium() {
             <motion.span variants={fadeInUp} className="inline-block px-4 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold mb-4">
               The Drawbacks
             </motion.span>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               What to Consider Before Buying ROP
             </motion.h2>
           </motion.div>
@@ -860,7 +860,7 @@ export default function ReturnOfPremium() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {cons.map((con, index) => (
               <motion.div
@@ -893,7 +893,7 @@ export default function ReturnOfPremium() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Traditional Term vs. Return of Premium
             </motion.h2>
           </motion.div>
@@ -903,7 +903,7 @@ export default function ReturnOfPremium() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto"
           >
             {comparisonScenarios.map((scenario, index) => (
               <motion.div
@@ -911,7 +911,7 @@ export default function ReturnOfPremium() {
                 variants={fadeInUp}
                 className={`rounded-xl p-8 ${
                   index === 1
-                    ? 'bg-heritage-primary text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-white border border-gray-200'
                 }`}
               >
@@ -925,7 +925,7 @@ export default function ReturnOfPremium() {
                 <div className="space-y-4 mb-6">
                   <div className={`p-4 rounded-xl ${index === 1 ? 'bg-white/10' : 'bg-gray-50'}`}>
                     <p className={`text-sm ${index === 1 ? 'text-white/70' : 'text-gray-500'}`}>Monthly Premium</p>
-                    <p className={`text-3xl font-bold ${index === 1 ? 'text-white' : 'text-heritage-primary'}`}>
+                    <p className={`text-3xl font-bold ${index === 1 ? 'text-white' : 'text-primary'}`}>
                       ${scenario.monthlyPremium}
                     </p>
                   </div>
@@ -939,14 +939,14 @@ export default function ReturnOfPremium() {
 
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${index === 1 ? 'text-heritage-accent' : 'text-green-500'}`} />
+                    <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${index === 1 ? 'text-violet-500' : 'text-green-500'}`} />
                     <div>
                       <p className={`text-sm font-medium ${index === 1 ? 'text-white/70' : 'text-gray-500'}`}>If You Pass Away</p>
                       <p className={`font-semibold ${index === 1 ? 'text-white' : 'text-gray-900'}`}>{scenario.ifYouDie}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${index === 1 ? 'text-heritage-accent' : 'text-green-500'}`} />
+                    <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${index === 1 ? 'text-violet-500' : 'text-green-500'}`} />
                     <div>
                       <p className={`text-sm font-medium ${index === 1 ? 'text-white/70' : 'text-gray-500'}`}>If You Outlive Policy</p>
                       <p className={`font-semibold ${index === 1 ? 'text-white' : 'text-gray-900'}`}>{scenario.ifYouLive}</p>
@@ -963,8 +963,8 @@ export default function ReturnOfPremium() {
                   )}
                 </div>
 
-                <div className={`mt-6 p-4 rounded-xl ${index === 1 ? 'bg-heritage-accent/20' : 'bg-heritage-primary/10'}`}>
-                  <p className={`text-sm font-medium ${index === 1 ? 'text-heritage-accent' : 'text-heritage-primary'}`}>
+                <div className={`mt-6 p-4 rounded-xl ${index === 1 ? 'bg-violet-500/20' : 'bg-primary/10'}`}>
+                  <p className={`text-sm font-medium ${index === 1 ? 'text-violet-500' : 'text-primary'}`}>
                     {scenario.verdict}
                   </p>
                 </div>
@@ -984,10 +984,10 @@ export default function ReturnOfPremium() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Is ROP Right for You?
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Works best for certain profiles.
             </motion.p>
           </motion.div>
@@ -997,7 +997,7 @@ export default function ReturnOfPremium() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {idealCandidates.map((candidate, index) => (
               <motion.div
@@ -1005,8 +1005,8 @@ export default function ReturnOfPremium() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-6 hover:shadow-lg transition-shadow border border-gray-200"
               >
-                <div className="p-3 bg-heritage-primary/10 rounded-xl w-fit mb-4">
-                  <candidate.icon className="w-6 h-6 text-heritage-primary" />
+                <div className="p-3 bg-primary/10 rounded-xl w-fit mb-4">
+                  <candidate.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{candidate.title}</h3>
                 <p className="text-gray-600">{candidate.description}</p>
@@ -1026,7 +1026,7 @@ export default function ReturnOfPremium() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               When Traditional Term Might Be Better
             </motion.h2>
           </motion.div>
@@ -1067,7 +1067,7 @@ export default function ReturnOfPremium() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {bigStats.map((stat, index) => (
               <motion.div
@@ -1075,7 +1075,7 @@ export default function ReturnOfPremium() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-200 hover:shadow-lg transition-shadow"
               >
-                <p className="text-5xl md:text-6xl font-bold text-heritage-primary mb-2">{stat.value}</p>
+                <p className="text-5xl md:text-6xl font-bold text-primary mb-2">{stat.value}</p>
                 <p className="text-xl font-semibold text-gray-900 mb-1">{stat.label}</p>
                 <p className="text-gray-500">{stat.sublabel}</p>
               </motion.div>
@@ -1085,7 +1085,7 @@ export default function ReturnOfPremium() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1095,12 +1095,12 @@ export default function ReturnOfPremium() {
           >
             <div className="flex justify-center gap-1 mb-6">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                <Star key={i} className="w-6 h-6 text-violet-500 fill-violet-500" />
               ))}
             </div>
             <div className="flex items-center gap-2 justify-center mb-6">
-              <Award className="w-5 h-5 text-heritage-accent" />
-              <span className="text-heritage-accent font-semibold">Verified Customer</span>
+              <Award className="w-5 h-5 text-violet-500" />
+              <span className="text-violet-500 font-semibold">Verified Customer</span>
             </div>
             <blockquote className="text-xl md:text-2xl text-white mb-8 italic leading-relaxed">
               "I knew I wouldn't invest the difference. After 20 years, I got back $34K - paid for our trip to Europe and went toward grandkids' college. Best insurance decision I ever made."
@@ -1109,7 +1109,7 @@ export default function ReturnOfPremium() {
               <img
                 src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
                 alt="Robert D."
-                className="w-16 h-16 rounded-full object-cover border-2 border-heritage-accent"
+                className="w-16 h-16 rounded-full object-cover border-2 border-violet-500"
               />
               <div className="text-left">
                 <p className="font-semibold text-white">Robert D.</p>
@@ -1130,7 +1130,7 @@ export default function ReturnOfPremium() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Frequently Asked Questions
             </motion.h2>
           </motion.div>
@@ -1154,7 +1154,7 @@ export default function ReturnOfPremium() {
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-6 h-6 text-primary flex-shrink-0 transition-transform duration-200 ${
                       openFaq === index ? "rotate-180" : ""
                     }`}
                   />
@@ -1186,10 +1186,10 @@ export default function ReturnOfPremium() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
               Protection That Pays You Back
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
               See exactly what you'd pay and get back. We'll help you decide if ROP is right for you.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
@@ -1197,7 +1197,7 @@ export default function ReturnOfPremium() {
                 <motion.span
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   Get Your ROP Quote <ArrowRight className="w-5 h-5" />
                 </motion.span>
@@ -1206,7 +1206,7 @@ export default function ReturnOfPremium() {
                 href="tel:6307780800"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
               >
                 <Phone className="w-5 h-5" /> Speak to an Advisor
               </motion.a>

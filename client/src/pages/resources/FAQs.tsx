@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TrustIndicators, { CarrierStrip } from "@/components/TrustIndicators";
 import {
   HelpCircle,
   Search,
@@ -492,8 +493,8 @@ export default function FAQs() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-24 overflow-visible">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -502,11 +503,11 @@ export default function FAQs() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
               <HelpCircle className="w-4 h-4" />
               Help Center
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 text-balance">
               Frequently Asked Questions
             </h1>
             <p className="text-lg text-gray-600 mb-8">
@@ -514,7 +515,7 @@ export default function FAQs() {
             </p>
 
             {/* Search Bar with Suggestions */}
-            <div ref={searchRef} className="relative max-w-xl mx-auto z-[100]">
+            <div ref={searchRef} className="relative w-full max-w-xl mx-auto z-[100]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
               <input
                 ref={inputRef}
@@ -527,7 +528,7 @@ export default function FAQs() {
                 }}
                 onFocus={() => setIsSearchFocused(true)}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:border-heritage-primary focus:ring-2 focus:ring-heritage-primary/20 outline-none transition-all"
+                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
 
               {/* Search Suggestions Dropdown */}
@@ -566,14 +567,14 @@ export default function FAQs() {
                           onMouseEnter={() => setHighlightedIndex(index)}
                           className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors ${
                             highlightedIndex === index
-                              ? "bg-heritage-primary/5"
+                              ? "bg-primary/5"
                               : "hover:bg-gray-50"
                           }`}
                         >
                           {suggestion.type === "faq" ? (
                             <>
-                              <div className="p-2 bg-heritage-primary/10 rounded-lg flex-shrink-0">
-                                <HelpCircle className="w-4 h-4 text-heritage-primary" />
+                              <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                                <HelpCircle className="w-4 h-4 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 truncate">
@@ -624,10 +625,13 @@ export default function FAQs() {
         </div>
       </section>
 
+      {/* Trust Indicators */}
+      <TrustIndicators variant="inline" />
+
       {/* Categories */}
       <section className="py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {categories.map((category) => (
               <motion.button
                 key={category.id}
@@ -636,7 +640,7 @@ export default function FAQs() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-colors ${
                   selectedCategory === category.id
-                    ? 'bg-heritage-primary text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -649,7 +653,7 @@ export default function FAQs() {
       </section>
 
       {/* FAQ List */}
-      <section className="py-16 bg-[#fffaf3]">
+      <section className="py-20 bg-[#fffaf3]">
         <div className="container mx-auto px-4">
           <motion.div
             key={`${selectedCategory}-${searchQuery}`}
@@ -670,7 +674,7 @@ export default function FAQs() {
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-6 h-6 text-primary flex-shrink-0 transition-transform duration-200 ${
                       openFaq === faq.id ? "rotate-180" : ""
                     }`}
                   />
@@ -700,8 +704,11 @@ export default function FAQs() {
         </div>
       </section>
 
+      {/* Carrier Partners */}
+      <CarrierStrip />
+
       {/* Still Have Questions CTA */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -709,7 +716,7 @@ export default function FAQs() {
             viewport={{ once: true }}
             className="max-w-4xl mx-auto"
           >
-            <div className="bg-heritage-primary rounded-2xl p-8 md:p-12">
+            <div className="bg-primary rounded-2xl p-8 md:p-12">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
                   <h2 className="text-3xl font-bold text-white mb-4">
@@ -723,7 +730,7 @@ export default function FAQs() {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="w-full sm:w-auto bg-white text-heritage-primary px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto bg-white text-primary px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
                       >
                         <Phone className="w-5 h-5" /> (630) 778-0800
                       </motion.button>
@@ -741,10 +748,10 @@ export default function FAQs() {
                 </div>
                 <div className="hidden md:flex justify-center">
                   <div className="relative">
-                    <div className="w-32 h-32 bg-heritage-accent/20 rounded-full flex items-center justify-center">
+                    <div className="w-32 h-32 bg-violet-500/20 rounded-full flex items-center justify-center">
                       <MessageCircle className="w-16 h-16 text-white" />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-accent rounded-full flex items-center justify-center">
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-sm">?</span>
                     </div>
                   </div>
@@ -756,7 +763,7 @@ export default function FAQs() {
       </section>
 
       {/* Quick Links */}
-      <section className="py-16 bg-[#fffaf3]">
+      <section className="py-20 bg-[#fffaf3]">
         <div className="container mx-auto px-4">
           <motion.div
             initial="initial"
@@ -765,7 +772,7 @@ export default function FAQs() {
             variants={staggerContainer}
             className="text-center mb-12"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Helpful Resources
             </motion.h2>
             <motion.p variants={fadeInUp} className="text-gray-600">
@@ -778,7 +785,7 @@ export default function FAQs() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto"
           >
             {[
               { title: "Life Insurance 101", description: "Complete beginner's guide", href: "/resources/life-insurance-101", icon: FileText },
@@ -791,8 +798,8 @@ export default function FAQs() {
                     whileHover={{ y: -5 }}
                     className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all cursor-pointer"
                   >
-                    <div className="p-3 bg-heritage-primary/10 rounded-full w-fit mb-4">
-                      <link.icon className="w-6 h-6 text-heritage-primary" />
+                    <div className="p-3 bg-primary/10 rounded-full w-fit mb-4">
+                      <link.icon className="w-6 h-6 text-primary" />
                     </div>
                     <h3 className="font-bold text-gray-900 mb-2">{link.title}</h3>
                     <p className="text-gray-600 text-sm">{link.description}</p>

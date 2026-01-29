@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { useAuth } from "@/contexts/AuthContext";
+import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
+import { useAgentStore } from "@/lib/agentStore";
 import {
   BookOpen,
   GraduationCap,
@@ -17,7 +16,6 @@ import {
   Award,
   Clock,
   User,
-  LogOut,
   ChevronRight,
   Star,
   FileText,
@@ -109,57 +107,42 @@ const upcomingEvents = [
 ];
 
 export default function AgentLounge() {
-  const { user, logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
+  const { currentUser } = useAgentStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8]">
-      <Header />
-
+    <AgentLoungeLayout>
       {/* Welcome Banner */}
-      <section className="pt-24 pb-8 bg-heritage-primary">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-heritage-accent/20 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-heritage-accent" />
-                </div>
-                <div>
-                  <p className="text-heritage-accent/80 text-sm">Welcome back,</p>
-                  <h1 className="text-2xl font-bold text-white">
-                    {user?.email?.split('@')[0] || 'Agent'}
-                  </h1>
-                </div>
+      <section className="pb-8 -mx-4 lg:-mx-6 -mt-4 lg:-mt-6 px-4 lg:px-6 pt-6 bg-primary rounded-b-2xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-violet-500/20 rounded-full flex items-center justify-center">
+                <User className="w-6 h-6 text-violet-500" />
               </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-4"
+              <div>
+                <p className="text-violet-500/80 text-sm">Welcome back,</p>
+                <h1 className="text-2xl font-bold text-white">
+                  {currentUser?.name || 'Agent'}
+                </h1>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-4"
+          >
+            <Link
+              href="/agents/resources"
+              className="bg-violet-500 text-primary px-6 py-2.5 rounded-xl font-semibold hover:bg-violet-500/90 transition-colors flex items-center gap-2"
             >
-              <Link
-                href="/agents/resources"
-                className="bg-heritage-accent text-heritage-primary px-6 py-2.5 rounded-xl font-semibold hover:bg-heritage-accent/90 transition-colors flex items-center gap-2"
-              >
-                <BookOpen className="w-4 h-4" />
-                Agent Resources
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="text-white/80 hover:text-white transition-colors flex items-center gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
-            </motion.div>
-          </div>
+              <BookOpen className="w-4 h-4" />
+              Agent Resources
+            </Link>
+          </motion.div>
         </div>
       </section>
 
@@ -170,7 +153,7 @@ export default function AgentLounge() {
             {[
               { icon: TrendingUp, label: "YTD Production", value: "$125,450", color: "text-green-600" },
               { icon: FileText, label: "Pending Cases", value: "8", color: "text-blue-600" },
-              { icon: Award, label: "Agent Level", value: "Gold", color: "text-heritage-accent" },
+              { icon: Award, label: "Agent Level", value: "Gold", color: "text-violet-500" },
               { icon: Clock, label: "Last Login", value: "Today", color: "text-gray-600" }
             ].map((stat, index) => (
               <motion.div
@@ -200,7 +183,7 @@ export default function AgentLounge() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6"
               >
-                <h2 className="text-xl font-bold text-heritage-primary mb-1">Quick Access</h2>
+                <h2 className="text-xl font-bold text-primary mb-1">Quick Access</h2>
                 <p className="text-gray-600 text-sm">Jump directly to the resources you need</p>
               </motion.div>
 
@@ -219,11 +202,11 @@ export default function AgentLounge() {
                       <div className={`w-10 h-10 ${card.color} rounded-lg flex items-center justify-center mb-3`}>
                         <card.icon className="w-5 h-5 text-white" />
                       </div>
-                      <h3 className="font-semibold text-heritage-primary mb-1 group-hover:text-heritage-accent transition-colors">
+                      <h3 className="font-semibold text-primary mb-1 group-hover:text-violet-500 transition-colors">
                         {card.title}
                       </h3>
                       <p className="text-xs text-gray-500">{card.description}</p>
-                      <div className="mt-3 flex items-center text-heritage-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="mt-3 flex items-center text-violet-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                         Access <ChevronRight className="w-4 h-4 ml-1" />
                       </div>
                     </Link>
@@ -236,11 +219,11 @@ export default function AgentLounge() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-8 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-2xl p-6 text-white"
+                className="mt-8 bg-gradient-to-r from-primary to-primary/90 rounded-2xl p-6 text-white"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-heritage-accent/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Star className="w-6 h-6 text-heritage-accent" />
+                  <div className="w-12 h-12 bg-violet-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Star className="w-6 h-6 text-violet-500" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-lg mb-1">Featured: New IUL Training Series</h3>
@@ -250,7 +233,7 @@ export default function AgentLounge() {
                     </p>
                     <Link
                       href="/agents/resources?tab=training"
-                      className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-4 py-2 rounded-lg font-semibold text-sm hover:bg-heritage-accent/90 transition-colors"
+                      className="inline-flex items-center gap-2 bg-violet-500 text-primary px-4 py-2 rounded-lg font-semibold text-sm hover:bg-violet-500/90 transition-colors"
                     >
                       Start Training <ArrowRight className="w-4 h-4" />
                     </Link>
@@ -269,8 +252,8 @@ export default function AgentLounge() {
                 className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <Bell className="w-5 h-5 text-heritage-accent" />
-                  <h3 className="font-bold text-heritage-primary">Announcements</h3>
+                  <Bell className="w-5 h-5 text-violet-500" />
+                  <h3 className="font-bold text-primary">Announcements</h3>
                 </div>
                 <div className="space-y-4">
                   {announcements.map((announcement, index) => (
@@ -284,7 +267,7 @@ export default function AgentLounge() {
                         )}
                         <div>
                           <p className="text-xs text-gray-400 mb-1">{announcement.date}</p>
-                          <h4 className="font-semibold text-heritage-primary text-sm mb-1">
+                          <h4 className="font-semibold text-primary text-sm mb-1">
                             {announcement.title}
                           </h4>
                           <p className="text-xs text-gray-600">{announcement.description}</p>
@@ -303,8 +286,8 @@ export default function AgentLounge() {
                 className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <Calendar className="w-5 h-5 text-heritage-accent" />
-                  <h3 className="font-bold text-heritage-primary">Upcoming Events</h3>
+                  <Calendar className="w-5 h-5 text-violet-500" />
+                  <h3 className="font-bold text-primary">Upcoming Events</h3>
                 </div>
                 <div className="space-y-3">
                   {upcomingEvents.map((event, index) => (
@@ -314,10 +297,10 @@ export default function AgentLounge() {
                     >
                       <div className="text-center min-w-[50px]">
                         <p className="text-xs text-gray-500">{event.date.split(' ')[0]}</p>
-                        <p className="font-bold text-heritage-primary">{event.date.split(' ')[1]}</p>
+                        <p className="font-bold text-primary">{event.date.split(' ')[1]}</p>
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-heritage-primary text-sm">{event.title}</p>
+                        <p className="font-medium text-primary text-sm">{event.title}</p>
                         <p className="text-xs text-gray-500">{event.time}</p>
                       </div>
                     </div>
@@ -330,11 +313,11 @@ export default function AgentLounge() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-heritage-accent/10 rounded-2xl p-6"
+                className="bg-violet-500/10 rounded-2xl p-6"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Phone className="w-5 h-5 text-heritage-accent" />
-                  <h3 className="font-bold text-heritage-primary">Need Help?</h3>
+                  <Phone className="w-5 h-5 text-violet-500" />
+                  <h3 className="font-bold text-primary">Need Help?</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
                   Our agent support team is here to help you succeed.
@@ -342,15 +325,15 @@ export default function AgentLounge() {
                 <div className="space-y-2">
                   <a
                     href="tel:6307780800"
-                    className="block text-sm font-medium text-heritage-primary hover:text-heritage-accent transition-colors"
+                    className="block text-sm font-medium text-primary hover:text-violet-500 transition-colors"
                   >
                     (630) 778-0800
                   </a>
                   <a
-                    href="mailto:agents@heritagels.com"
-                    className="block text-sm font-medium text-heritage-primary hover:text-heritage-accent transition-colors"
+                    href="mailto:agents@heritagels.org"
+                    className="block text-sm font-medium text-primary hover:text-violet-500 transition-colors"
                   >
-                    agents@heritagels.com
+                    agents@heritagels.org
                   </a>
                 </div>
               </motion.div>
@@ -359,7 +342,6 @@ export default function AgentLounge() {
         </div>
       </section>
 
-      <Footer />
-    </div>
+    </AgentLoungeLayout>
   );
 }

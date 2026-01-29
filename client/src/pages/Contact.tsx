@@ -4,6 +4,7 @@ import { Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MapSelector from "@/components/MapSelector";
+import TrustIndicators from "@/components/TrustIndicators";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -95,18 +96,18 @@ export default function Contact() {
       <Header />
 
       {/* HERO SECTION */}
-      <section className="bg-heritage-primary py-20 md:py-28">
+      <section className="bg-primary py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
           >
-            <p className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">Contact</p>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <p className="text-violet-500 font-semibold mb-4 tracking-wide uppercase text-sm">Contact</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
               Let's talk
             </h1>
-            <p className="text-xl text-white/80 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xl text-white/80 leading-relaxed max-w-2xl mx-auto text-pretty">
               Have questions about life insurance? Ready to get a quote? We're here to help—reach out anytime.
             </p>
           </motion.div>
@@ -114,10 +115,10 @@ export default function Contact() {
       </section>
 
       {/* CONTACT METHODS */}
-      <section className="bg-[#fffaf3] py-16">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-5xl mx-auto px-6">
           <motion.div
-            className="grid md:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
@@ -130,22 +131,22 @@ export default function Contact() {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-white rounded-2xl p-8 border border-[#e8e0d5] text-center hover:shadow-lg transition-shadow"
+                className="bg-white rounded-2xl p-4 md:p-6 lg:p-8 border border-[#e8e0d5] text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-primary/10 rounded-xl flex items-center justify-center mb-5 mx-auto">
-                  <method.icon className="w-7 h-7 text-heritage-primary" />
+                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-5 mx-auto">
+                  <method.icon className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{method.title}</h3>
                 <p className="text-gray-500 text-sm mb-3">{method.description}</p>
                 {method.link ? (
                   <a
                     href={method.link}
-                    className="text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"
+                    className="text-primary font-semibold hover:text-violet-500 transition-colors"
                   >
                     {method.value}
                   </a>
                 ) : (
-                  <p className="text-heritage-primary font-semibold">{method.value}</p>
+                  <p className="text-primary font-semibold">{method.value}</p>
                 )}
               </motion.div>
             ))}
@@ -153,8 +154,11 @@ export default function Contact() {
         </div>
       </section>
 
+      {/* Trust Indicators */}
+      <TrustIndicators variant="inline" />
+
       {/* CONTACT FORM & MAP */}
-      <section className="bg-[#fffaf3] py-16">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16">
             {/* Contact Form */}
@@ -164,8 +168,8 @@ export default function Contact() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Send us a message</h2>
-              <p className="text-gray-600 mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">Send us a message</h2>
+              <p className="text-gray-600 mb-8 text-pretty">
                 Fill out the form below and one of our team members will get back to you within 24 hours.
               </p>
 
@@ -176,14 +180,14 @@ export default function Contact() {
                   className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center"
                 >
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2 text-balance">Message Sent!</h3>
+                  <p className="text-gray-600 text-pretty">
                     Thank you for reaching out. We'll be in touch within 24 hours.
                   </p>
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         First Name *
@@ -194,7 +198,7 @@ export default function Contact() {
                         value={formData.firstName}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="John"
                       />
                     </div>
@@ -208,13 +212,13 @@ export default function Contact() {
                         value={formData.lastName}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="Smith"
                       />
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email Address *
@@ -225,7 +229,7 @@ export default function Contact() {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -238,7 +242,7 @@ export default function Contact() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="(555) 123-4567"
                       />
                     </div>
@@ -253,7 +257,7 @@ export default function Contact() {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all bg-white"
+                      className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white"
                     >
                       <option value="">Select a topic</option>
                       <option value="quote">Get a Quote</option>
@@ -275,7 +279,7 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       rows={5}
-                      className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all resize-none"
+                      className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                       placeholder="How can we help you?"
                     />
                   </div>
@@ -283,7 +287,7 @@ export default function Contact() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-heritage-primary hover:bg-heritage-dark disabled:bg-heritage-primary/50 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-primary hover:bg-heritage-dark disabled:bg-primary/50 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>
@@ -308,13 +312,13 @@ export default function Contact() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Visit our office</h2>
-              <p className="text-gray-600 mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">Visit our office</h2>
+              <p className="text-gray-600 mb-8 text-pretty">
                 Stop by our headquarters in Naperville. We'd love to meet you in person.
               </p>
 
               {/* Google Map Embed */}
-              <div className="h-64 rounded-2xl mb-8 overflow-hidden shadow-lg">
+              <div className="h-48 md:h-64 rounded-2xl mb-8 overflow-hidden shadow-lg">
                 <iframe
                   src="https://maps.google.com/maps?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563&t=&z=15&ie=UTF8&iwloc=&output=embed"
                   width="100%"
@@ -328,15 +332,15 @@ export default function Contact() {
               </div>
 
               {/* Address Card */}
-              <div className="bg-white rounded-2xl p-8 border border-[#e8e0d5]">
+              <div className="bg-white rounded-2xl p-4 md:p-6 lg:p-8 border border-[#e8e0d5]">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Heritage Life Solutions</h3>
                 <MapSelector className="block">
-                  <span className="text-gray-600 leading-relaxed hover:text-heritage-primary transition-colors cursor-pointer block">
+                  <span className="text-gray-600 leading-relaxed hover:text-primary transition-colors cursor-pointer block">
                     1240 Iroquois Ave<br />
                     Suite 506<br />
                     Naperville, IL 60563
                   </span>
-                  <span className="text-heritage-primary font-semibold hover:text-heritage-accent transition-colors cursor-pointer inline-block mt-4">
+                  <span className="text-primary font-semibold hover:text-violet-500 transition-colors cursor-pointer inline-block mt-4">
                     Get Directions →
                   </span>
                 </MapSelector>
@@ -347,7 +351,7 @@ export default function Contact() {
       </section>
 
       {/* CTA SECTION */}
-      <section className="bg-heritage-primary py-20">
+      <section className="bg-primary py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
@@ -355,15 +359,15 @@ export default function Contact() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 text-balance">
               Ready to get covered?
             </h2>
-            <p className="text-xl text-white/80 mb-10">
+            <p className="text-xl text-white/80 mb-10 text-pretty">
               Get a personalized quote in minutes. No medical exam required.
             </p>
             <a
               href="/quote"
-              className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               Check My Price
             </a>

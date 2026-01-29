@@ -59,7 +59,7 @@ function StatCard({ end, suffix = "", prefix = "", label, icon, duration = 2000 
       transition={{ duration: 0.5 }}
       className="text-center group"
     >
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform duration-300">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet-50 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform duration-300">
         {icon}
       </div>
       <div className="text-4xl md:text-5xl font-bold font-serif text-primary mb-2">

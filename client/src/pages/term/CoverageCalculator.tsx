@@ -156,28 +156,28 @@ export default function CoverageCalculator() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Calculator className="w-4 h-4" />
                 Coverage Calculator
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 How Much Coverage
-                <span className="block text-heritage-accent">Do You Need?</span>
+                <span className="block text-violet-500">Do You Need?</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 42% of families would struggle within 6 months of losing a breadwinner. Find the right coverage amount for your family.
               </p>
 
@@ -190,7 +190,7 @@ export default function CoverageCalculator() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -201,7 +201,7 @@ export default function CoverageCalculator() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your Quote
                     <ChevronRight className="w-5 h-5" />
@@ -211,7 +211,7 @@ export default function CoverageCalculator() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Advisor
@@ -228,7 +228,7 @@ export default function CoverageCalculator() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Quick Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Quick Calculator</h3>
                 <p className="text-gray-600 text-sm">Estimate your coverage needs</p>
               </div>
 
@@ -237,7 +237,7 @@ export default function CoverageCalculator() {
                   onClick={() => setCalculatorMode('simple')}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
                     calculatorMode === 'simple'
-                      ? 'bg-heritage-accent text-white'
+                      ? 'bg-violet-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -247,7 +247,7 @@ export default function CoverageCalculator() {
                   onClick={() => setCalculatorMode('dime')}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
                     calculatorMode === 'dime'
-                      ? 'bg-heritage-accent text-white'
+                      ? 'bg-violet-500 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -259,7 +259,7 @@ export default function CoverageCalculator() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Annual Income: <span className="text-heritage-accent font-bold">${simpleIncome.toLocaleString()}</span>
+                      Annual Income: <span className="text-violet-500 font-bold">${simpleIncome.toLocaleString()}</span>
                     </label>
                     <input
                       type="range"
@@ -268,7 +268,7 @@ export default function CoverageCalculator() {
                       step="5000"
                       value={simpleIncome}
                       onChange={(e) => setSimpleIncome(Number(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                     />
                   </div>
                   <div>
@@ -280,7 +280,7 @@ export default function CoverageCalculator() {
                           onClick={() => setMultiplier(mult)}
                           className={`py-2 rounded-lg text-sm font-medium transition-all ${
                             multiplier === mult
-                              ? 'bg-heritage-primary text-white'
+                              ? 'bg-primary text-white'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
@@ -300,13 +300,13 @@ export default function CoverageCalculator() {
                   ].map((item, i) => (
                     <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="text-gray-600">{item.label}</span>
-                      <span className="font-bold text-heritage-primary">${item.value.toLocaleString()}</span>
+                      <span className="font-bold text-primary">${item.value.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="mt-6 bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+              <div className="mt-6 bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                 <p className="text-sm opacity-90 mb-1">Recommended Coverage</p>
                 <p className="text-4xl font-bold">
                   {formatCurrency(calculatorMode === 'simple' ? calculateSimple() : calculateDIME())}
@@ -320,7 +320,7 @@ export default function CoverageCalculator() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full mt-6 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                  className="w-full mt-6 bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                 >
                   Get Quote for This Amount
                 </motion.button>
@@ -331,7 +331,7 @@ export default function CoverageCalculator() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
@@ -348,7 +348,7 @@ export default function CoverageCalculator() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -365,10 +365,10 @@ export default function CoverageCalculator() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Detailed DIME Calculator
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Input your specific numbers for a personalized coverage recommendation with breakdown.
             </p>
           </motion.div>
@@ -380,10 +380,10 @@ export default function CoverageCalculator() {
               viewport={{ once: true }}
               className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
             >
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Outstanding Debts: <span className="text-heritage-accent font-bold">${debts.toLocaleString()}</span>
+                    Outstanding Debts: <span className="text-violet-500 font-bold">${debts.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -392,13 +392,13 @@ export default function CoverageCalculator() {
                     step="5000"
                     value={debts}
                     onChange={(e) => { setDebts(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Annual Income: <span className="text-heritage-accent font-bold">${annualIncome.toLocaleString()}</span>
+                    Annual Income: <span className="text-violet-500 font-bold">${annualIncome.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -407,13 +407,13 @@ export default function CoverageCalculator() {
                     step="5000"
                     value={annualIncome}
                     onChange={(e) => { setAnnualIncome(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Years to Replace Income: <span className="text-heritage-accent font-bold">{yearsToReplace} years</span>
+                    Years to Replace Income: <span className="text-violet-500 font-bold">{yearsToReplace} years</span>
                   </label>
                   <input
                     type="range"
@@ -422,13 +422,13 @@ export default function CoverageCalculator() {
                     step="1"
                     value={yearsToReplace}
                     onChange={(e) => { setYearsToReplace(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mortgage Balance: <span className="text-heritage-accent font-bold">${mortgageBalance.toLocaleString()}</span>
+                    Mortgage Balance: <span className="text-violet-500 font-bold">${mortgageBalance.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -437,13 +437,13 @@ export default function CoverageCalculator() {
                     step="25000"
                     value={mortgageBalance}
                     onChange={(e) => { setMortgageBalance(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Education Costs: <span className="text-heritage-accent font-bold">${educationCosts.toLocaleString()}</span>
+                    Education Costs: <span className="text-violet-500 font-bold">${educationCosts.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -452,13 +452,13 @@ export default function CoverageCalculator() {
                     step="10000"
                     value={educationCosts}
                     onChange={(e) => { setEducationCosts(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Existing Life Insurance: <span className="text-heritage-accent font-bold">${existingCoverage.toLocaleString()}</span>
+                    Existing Life Insurance: <span className="text-violet-500 font-bold">${existingCoverage.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -467,13 +467,13 @@ export default function CoverageCalculator() {
                     step="25000"
                     value={existingCoverage}
                     onChange={(e) => { setExistingCoverage(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Current Savings: <span className="text-heritage-accent font-bold">${savings.toLocaleString()}</span>
+                    Current Savings: <span className="text-violet-500 font-bold">${savings.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -482,7 +482,7 @@ export default function CoverageCalculator() {
                     step="10000"
                     value={savings}
                     onChange={(e) => { setSavings(Number(e.target.value)); setShowDetailedResult(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
               </div>
@@ -491,7 +491,7 @@ export default function CoverageCalculator() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={calculateDetailedResult}
-                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <Calculator className="w-5 h-5" />
                 Calculate My Coverage Need
@@ -507,7 +507,7 @@ export default function CoverageCalculator() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-primary to-primary/90 rounded-xl p-6 text-white">
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -519,7 +519,7 @@ export default function CoverageCalculator() {
                           initial={{ scale: 0.5, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                          className="text-5xl font-bold text-heritage-accent"
+                          className="text-5xl font-bold text-violet-500"
                         >
                           {formatCurrency(detailedCalculation.total)}
                         </motion.p>
@@ -551,10 +551,10 @@ export default function CoverageCalculator() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.1 }}
-                        className="p-4 bg-heritage-accent/20 rounded-lg border border-heritage-accent/30"
+                        className="p-4 bg-violet-500/20 rounded-lg border border-violet-500/30"
                       >
                         <div className="flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0 mt-0.5" />
+                          <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0 mt-0.5" />
                           <p className="text-sm text-white/90">{detailedCalculation.recommendation}</p>
                         </div>
                       </motion.div>
@@ -568,7 +568,7 @@ export default function CoverageCalculator() {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full mt-4 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold"
+                            className="w-full mt-4 bg-violet-500 hover:bg-violet-500/90 text-white py-3 rounded-lg font-semibold"
                           >
                             Get Quote for {formatCurrency(detailedCalculation.total)} Coverage
                           </motion.button>
@@ -592,10 +592,10 @@ export default function CoverageCalculator() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               4 Ways to Calculate Coverage
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Different methods for different situations. Choose what fits your needs.
             </p>
           </motion.div>
@@ -605,7 +605,7 @@ export default function CoverageCalculator() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {calculationMethods.map((method, i) => (
               <motion.div
@@ -613,10 +613,10 @@ export default function CoverageCalculator() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <method.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <method.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{method.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{method.title}</h3>
                 <p className="text-gray-600 text-sm">{method.description}</p>
               </motion.div>
             ))}
@@ -633,15 +633,15 @@ export default function CoverageCalculator() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Coverage by Life Stage
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Your needs change as you age. Here's what experts recommend.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {lifeStageCoverage.map((stage, i) => (
               <motion.div
                 key={i}
@@ -651,13 +651,13 @@ export default function CoverageCalculator() {
                 transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <stage.icon className="w-7 h-7 text-heritage-primary" />
+                <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <stage.icon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="text-sm font-bold text-heritage-primary mb-2">{stage.stage}</h3>
-                <p className="text-2xl font-bold text-heritage-accent mb-1">{stage.recommendation}</p>
+                <h3 className="text-sm font-bold text-primary mb-2">{stage.stage}</h3>
+                <p className="text-2xl font-bold text-violet-500 mb-1">{stage.recommendation}</p>
                 <p className="text-gray-600 text-sm mb-2">{stage.coverage}</p>
-                <p className="text-heritage-primary text-xs font-medium">{stage.termLength}</p>
+                <p className="text-primary text-xs font-medium">{stage.termLength}</p>
               </motion.div>
             ))}
           </div>
@@ -673,12 +673,12 @@ export default function CoverageCalculator() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               What to Include in Your Calculation
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {coverageFactors.map((factor, i) => (
               <motion.div
                 key={i}
@@ -689,12 +689,12 @@ export default function CoverageCalculator() {
                 className="bg-[#fffaf3] rounded-xl p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="w-12 h-12 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                    <factor.icon className="w-6 h-6 text-heritage-accent" />
+                  <div className="w-12 h-12 bg-violet-500/10 rounded-full flex items-center justify-center">
+                    <factor.icon className="w-6 h-6 text-violet-500" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-heritage-primary">{factor.title}</h3>
-                    <p className="text-heritage-accent text-sm font-semibold">{factor.typical}</p>
+                    <h3 className="font-bold text-primary">{factor.title}</h3>
+                    <p className="text-violet-500 text-sm font-semibold">{factor.typical}</p>
                   </div>
                 </div>
                 <p className="text-gray-600 text-sm">{factor.description}</p>
@@ -705,7 +705,7 @@ export default function CoverageCalculator() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -715,7 +715,7 @@ export default function CoverageCalculator() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -747,7 +747,7 @@ export default function CoverageCalculator() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -766,8 +766,8 @@ export default function CoverageCalculator() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -797,10 +797,10 @@ export default function CoverageCalculator() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Know Your Number. Get Protected.
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Now find the right policy at the best price. Free quote in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -808,7 +808,7 @@ export default function CoverageCalculator() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -818,7 +818,7 @@ export default function CoverageCalculator() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

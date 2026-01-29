@@ -60,7 +60,7 @@ export function LevelUpCelebration({ open, onOpenChange, newLevel, rewards = [] 
                       top: `${50 + Math.random() * 50}%` 
                     }}
                   >
-                    <Sparkles className="w-4 h-4 text-secondary" />
+                    <Sparkles className="w-4 h-4 text-violet-600" />
                   </motion.div>
                 ))}
               </motion.div>
@@ -104,7 +104,7 @@ export function LevelUpCelebration({ open, onOpenChange, newLevel, rewards = [] 
                 >
                   <DialogTitle className="text-2xl font-serif">Level Up!</DialogTitle>
                   <DialogDescription className="text-lg">
-                    You've reached <span className="font-bold text-secondary">{levelInfo.title}</span>
+                    You've reached <span className="font-bold text-violet-600">{levelInfo.title}</span>
                   </DialogDescription>
                 </motion.div>
               </DialogHeader>
@@ -145,7 +145,7 @@ export function LevelUpCelebration({ open, onOpenChange, newLevel, rewards = [] 
               >
                 <Button 
                   onClick={() => onOpenChange(false)} 
-                  className="w-full bg-secondary hover:bg-secondary/90 gap-2"
+                  className="w-full bg-primary hover:bg-primary/90 gap-2"
                   data-testid="button-close-levelup"
                 >
                   <Sparkles className="w-4 h-4" />

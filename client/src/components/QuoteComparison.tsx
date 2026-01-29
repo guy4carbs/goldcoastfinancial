@@ -142,7 +142,7 @@ export default function QuoteComparison({
             <p className="text-sm text-gray-500">Adjust to see how it affects your rate</p>
           </div>
           <div className="text-right">
-            <span className="text-2xl font-bold text-heritage-primary">
+            <span className="text-2xl font-bold text-primary">
               ${coverage.toLocaleString()}
             </span>
           </div>
@@ -157,7 +157,7 @@ export default function QuoteComparison({
             step={50000}
             value={coverage}
             onChange={(e) => handleCoverageChange(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-2">
             <span>$100,000</span>
@@ -175,7 +175,7 @@ export default function QuoteComparison({
               onClick={() => handleCoverageChange(amt)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                 coverage === amt
-                  ? "bg-heritage-primary text-white"
+                  ? "bg-primary text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -196,8 +196,8 @@ export default function QuoteComparison({
             onClick={() => handleSelect(option)}
             className={`relative p-4 rounded-xl border-2 text-left transition-all ${
               selectedId === option.id
-                ? "border-heritage-primary bg-heritage-primary/5 shadow-lg"
-                : "border-gray-200 hover:border-heritage-primary/50 bg-white"
+                ? "border-primary bg-primary/5 shadow-lg"
+                : "border-gray-200 hover:border-primary/50 bg-white"
             }`}
           >
             {/* Badge */}
@@ -205,7 +205,7 @@ export default function QuoteComparison({
               <div
                 className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${
                   option.popular
-                    ? "bg-heritage-accent text-white"
+                    ? "bg-violet-500 text-white"
                     : "bg-green-100 text-green-700"
                 }`}
               >
@@ -217,13 +217,13 @@ export default function QuoteComparison({
             <div className="flex items-center justify-between mb-3">
               <span className="font-semibold text-gray-900">{option.termYears} Year</span>
               {selectedId === option.id && (
-                <Check className="w-5 h-5 text-heritage-primary" />
+                <Check className="w-5 h-5 text-primary" />
               )}
             </div>
 
             {/* Price */}
             <div className="mb-2">
-              <span className="text-2xl font-bold text-heritage-primary">
+              <span className="text-2xl font-bold text-primary">
                 ${option.monthlyRate.toFixed(0)}
               </span>
               <span className="text-gray-500 text-sm">/mo</span>
@@ -242,7 +242,7 @@ export default function QuoteComparison({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-heritage-primary to-heritage-dark rounded-2xl p-6 text-white"
+          className="bg-gradient-to-r from-primary to-heritage-dark rounded-2xl p-6 text-white"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -260,19 +260,19 @@ export default function QuoteComparison({
           {/* Benefits */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/20">
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-heritage-accent" />
+              <Shield className="w-4 h-4 text-violet-500" />
               <span className="text-sm">No Medical Exam</span>
             </div>
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-heritage-accent" />
+              <Check className="w-4 h-4 text-violet-500" />
               <span className="text-sm">Instant Decision</span>
             </div>
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-heritage-accent" />
+              <TrendingUp className="w-4 h-4 text-violet-500" />
               <span className="text-sm">Locked-in Rate</span>
             </div>
             <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-heritage-accent" />
+              <Star className="w-4 h-4 text-violet-500" />
               <span className="text-sm">A-Rated Carriers</span>
             </div>
           </div>

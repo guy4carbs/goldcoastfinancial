@@ -30,11 +30,11 @@ interface NotificationDropdownProps {
 
 const getNotificationIcon = (type: Notification['type']) => {
   switch (type) {
-    case 'achievement': return <Trophy className="w-4 h-4 text-secondary" />;
+    case 'achievement': return <Trophy className="w-4 h-4 text-violet-600" />;
     case 'message': return <MessageSquare className="w-4 h-4 text-primary" />;
     case 'alert': return <AlertTriangle className="w-4 h-4 text-orange-500" />;
     case 'reminder': return <Calendar className="w-4 h-4 text-primary" />;
-    case 'earning': return <DollarSign className="w-4 h-4 text-secondary" />;
+    case 'earning': return <DollarSign className="w-4 h-4 text-violet-600" />;
     case 'training': return <GraduationCap className="w-4 h-4 text-primary" />;
     default: return <Bell className="w-4 h-4" />;
   }
@@ -43,9 +43,9 @@ const getNotificationIcon = (type: Notification['type']) => {
 const getNotificationBg = (type: Notification['type'], read: boolean) => {
   if (read) return 'bg-muted/30';
   switch (type) {
-    case 'achievement': return 'bg-secondary/10';
+    case 'achievement': return 'bg-violet-50';
     case 'alert': return 'bg-orange-500/10';
-    case 'earning': return 'bg-secondary/10';
+    case 'earning': return 'bg-violet-50';
     default: return 'bg-primary/5';
   }
 };

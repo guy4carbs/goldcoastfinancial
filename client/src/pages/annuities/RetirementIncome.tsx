@@ -42,24 +42,24 @@ export default function RetirementIncome() {
       <Header />
 
       {/* Hero Section */}
-      <section className="bg-heritage-primary py-16 md:py-24">
+      <section className="bg-primary py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
-              <p className="text-heritage-accent font-semibold mb-4 uppercase text-sm tracking-wide">
+              <p className="text-violet-500 font-semibold mb-4 uppercase text-sm tracking-wide">
                 Retirement Income
               </p>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight text-balance">
                 Income for life.
-                <span className="text-heritage-accent"> Guaranteed.</span>
+                <span className="text-violet-500"> Guaranteed.</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
+              <p className="text-xl text-white/80 mb-8 text-pretty">
                 Turn savings into pension-like income you can't outlive. No matter how long you live, your check arrives every month.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
+                  className="inline-flex items-center gap-2 bg-violet-500 text-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
                 >
                   Get Income Quote <ArrowRight className="w-5 h-5" />
                 </a>
@@ -76,8 +76,8 @@ export default function RetirementIncome() {
             <div className="hidden lg:block">
               <div className="bg-white rounded-2xl p-6 shadow-xl">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-heritage-accent/20 rounded-lg">
-                    <Calculator className="w-6 h-6 text-heritage-primary" />
+                  <div className="p-2 bg-violet-500/20 rounded-lg">
+                    <Calculator className="w-6 h-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">Income Estimator</h3>
@@ -88,7 +88,7 @@ export default function RetirementIncome() {
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Premium: <span className="text-heritage-primary font-bold">${lumpSum.toLocaleString()}</span>
+                      Premium: <span className="text-primary font-bold">${lumpSum.toLocaleString()}</span>
                     </label>
                     <input
                       type="range"
@@ -97,13 +97,13 @@ export default function RetirementIncome() {
                       step="10000"
                       value={lumpSum}
                       onChange={(e) => setLumpSum(parseInt(e.target.value))}
-                      className="w-full accent-heritage-primary"
+                      className="w-full accent-primary"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Age: <span className="text-heritage-accent font-bold">{startAge}</span>
+                      Start Age: <span className="text-violet-500 font-bold">{startAge}</span>
                     </label>
                     <input
                       type="range"
@@ -112,15 +112,15 @@ export default function RetirementIncome() {
                       step="1"
                       value={startAge}
                       onChange={(e) => setStartAge(parseInt(e.target.value))}
-                      className="w-full accent-heritage-accent"
+                      className="w-full accent-violet-500"
                     />
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-heritage-primary rounded-xl text-center">
+                <div className="mt-6 p-4 bg-primary rounded-xl text-center">
                   <p className="text-white/80 text-sm">Estimated Monthly Income</p>
                   <p className="text-4xl font-bold text-white">${monthlyIncome.toLocaleString()}<span className="text-lg">/mo</span></p>
-                  <p className="text-heritage-accent text-sm mt-1">${annualIncome.toLocaleString()}/year • Guaranteed for life</p>
+                  <p className="text-violet-500 text-sm mt-1">${annualIncome.toLocaleString()}/year • Guaranteed for life</p>
                 </div>
               </div>
             </div>
@@ -129,15 +129,15 @@ export default function RetirementIncome() {
       </section>
 
       {/* What is Retirement Income Annuity */}
-      <section className="py-16">
+      <section className="py-20">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">What is a Retirement Income Annuity?</h2>
-          <p className="text-lg text-gray-600 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">What is a Retirement Income Annuity?</h2>
+          <p className="text-lg text-gray-600 mb-6 text-pretty">
             A retirement income annuity converts a lump sum into guaranteed monthly payments for life.
             It's like creating your own pension. The insurance company pools risk across many people,
             allowing them to pay you more than you could safely withdraw on your own.
           </p>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               "Guaranteed income for life",
               "Payments higher than 4% rule",
@@ -147,7 +147,7 @@ export default function RetirementIncome() {
               "Period certain for beneficiaries"
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-violet-500 flex-shrink-0" />
                 <span className="text-gray-700">{item}</span>
               </div>
             ))}
@@ -156,9 +156,9 @@ export default function RetirementIncome() {
       </section>
 
       {/* FAQs */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Common Questions</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center text-balance">Common Questions</h2>
           <div className="space-y-3">
             {faqs.map((faq, index) => (
               <div key={index} className="bg-[#fffaf3] rounded-xl border border-gray-200 overflow-hidden">
@@ -181,16 +181,16 @@ export default function RetirementIncome() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Create your guaranteed paycheck</h2>
-          <p className="text-xl text-white/80 mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">Create your guaranteed paycheck</h2>
+          <p className="text-xl text-white/80 mb-8 text-pretty">
             See exactly how much lifetime income you could receive. Free, personalized illustration.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
               href="/quote"
-              className="inline-flex items-center gap-2 bg-heritage-accent text-heritage-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
+              className="inline-flex items-center gap-2 bg-violet-500 text-primary px-8 py-4 rounded-full font-semibold hover:bg-white transition-colors"
             >
               Get Your Free Quote <ArrowRight className="w-5 h-5" />
             </a>

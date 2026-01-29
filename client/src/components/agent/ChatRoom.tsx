@@ -198,7 +198,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
         </div>
         <Dialog open={showNewChatModal} onOpenChange={setShowNewChatModal}>
           <DialogTrigger asChild>
-            <Button className="bg-secondary hover:bg-secondary/90 gap-2">
+            <Button className="bg-primary hover:bg-primary/90 gap-2">
               <Plus className="w-4 h-4" />
               New Chat
             </Button>
@@ -243,7 +243,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                         key={user.id}
                         className={cn(
                           "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
-                          selectedUsers.includes(user.id) && "bg-secondary/10"
+                          selectedUsers.includes(user.id) && "bg-violet-50"
                         )}
                         onClick={() => toggleUserSelection(user.id)}
                       >
@@ -251,7 +251,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                           checked={selectedUsers.includes(user.id)}
                           onCheckedChange={() => toggleUserSelection(user.id)}
                         />
-                        <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-xs font-medium">
+                        <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-xs font-medium">
                           {user.firstName[0]}{user.lastName[0]}
                         </div>
                         <div className="flex-1">
@@ -277,7 +277,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                 <Button
                   onClick={handleCreateChat}
                   disabled={selectedUsers.length === 0 || createConversationMutation.isPending}
-                  className="bg-secondary hover:bg-secondary/90"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {createConversationMutation.isPending ? "Creating..." : "Start Chat"}
                 </Button>
@@ -306,14 +306,14 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                     key={conv.id}
                     className={cn(
                       "flex items-center gap-3 p-3 cursor-pointer hover:bg-muted/50 transition-colors border-b",
-                      selectedConversation?.id === conv.id && "bg-secondary/10"
+                      selectedConversation?.id === conv.id && "bg-violet-50"
                     )}
                     onClick={() => setSelectedConversation(conv)}
                     data-testid={`chat-conversation-${conv.id}`}
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium",
-                      conv.type === "channel" ? "bg-primary/10 text-primary" : "bg-secondary/20 text-secondary"
+                      conv.type === "channel" ? "bg-primary/10 text-primary" : "bg-violet-100 text-violet-600"
                     )}>
                       {conv.type === "channel" ? <Hash className="w-5 h-5" /> : <MessageSquare className="w-4 h-4" />}
                     </div>
@@ -338,7 +338,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center font-medium",
-                  selectedConversation?.type === "channel" ? "bg-primary/10 text-primary" : "bg-secondary/20 text-secondary"
+                  selectedConversation?.type === "channel" ? "bg-primary/10 text-primary" : "bg-violet-100 text-violet-600"
                 )}>
                   {selectedConversation?.type === "channel" ? <Hash className="w-5 h-5" /> : <MessageSquare className="w-4 h-4" />}
                 </div>
@@ -366,7 +366,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                     </DialogHeader>
                     <div className="space-y-3 pt-4">
                       <Button 
-                        className="w-full gap-2 bg-secondary hover:bg-secondary/90" 
+                        className="w-full gap-2 bg-primary hover:bg-primary/90" 
                         onClick={() => {
                           window.open('https://meet.google.com/new', '_blank');
                           setShowCallModal(false);
@@ -410,7 +410,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                       <div className="space-y-2">
                         {availableUsers.map((user) => (
                           <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                            <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-xs font-medium">
+                            <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-xs font-medium">
                               {user.firstName[0]}{user.lastName[0]}
                             </div>
                             <div className="flex-1">
@@ -562,7 +562,7 @@ export default function ChatRoom({ currentUserId, currentUserName }: ChatRoomPro
                 <Button
                   onClick={handleSendMessage}
                   disabled={!selectedConversation || (!messageInput.trim() && !attachedFile) || sendMessageMutation.isPending}
-                  className="bg-secondary hover:bg-secondary/90"
+                  className="bg-primary hover:bg-primary/90"
                   data-testid="button-send-message"
                 >
                   <Send className="w-4 h-4" />

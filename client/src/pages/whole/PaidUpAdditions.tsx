@@ -204,28 +204,28 @@ export default function PaidUpAdditions() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Layers className="w-4 h-4" />
                 Whole Life Insurance
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Paid-Up Additions:
-                <span className="block text-heritage-accent">Supercharge Your Policy</span>
+                <span className="block text-violet-500">Supercharge Your Policy</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Add extra premium to accelerate cash value growth. More efficient than base premium.
               </p>
 
@@ -238,7 +238,7 @@ export default function PaidUpAdditions() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -249,7 +249,7 @@ export default function PaidUpAdditions() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your Free Quote
                     <ChevronRight className="w-5 h-5" />
@@ -259,7 +259,7 @@ export default function PaidUpAdditions() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Advisor
@@ -276,16 +276,16 @@ export default function PaidUpAdditions() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calculator className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calculator className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">PUA Impact Calculator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">PUA Impact Calculator</h3>
                 <p className="text-gray-600 text-sm">See the immediate effect</p>
               </div>
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Annual PUA Contribution: <span className="text-heritage-accent font-bold">${puaAmount.toLocaleString()}</span>
+                  Annual PUA Contribution: <span className="text-violet-500 font-bold">${puaAmount.toLocaleString()}</span>
                 </label>
                 <input
                   type="range"
@@ -294,7 +294,7 @@ export default function PaidUpAdditions() {
                   step="500"
                   value={puaAmount}
                   onChange={(e) => setPuaAmount(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>$1,000</span>
@@ -305,7 +305,7 @@ export default function PaidUpAdditions() {
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between p-4 bg-[#fffaf3] rounded-xl">
                   <span className="text-gray-600">Death Benefit Increase</span>
-                  <span className="font-bold text-heritage-primary">+${immediateDeathBenefit.toLocaleString()}</span>
+                  <span className="font-bold text-primary">+${immediateDeathBenefit.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between p-4 bg-[#fffaf3] rounded-xl">
                   <span className="text-gray-600">Year 1 Cash Value</span>
@@ -313,7 +313,7 @@ export default function PaidUpAdditions() {
                 </div>
                 <div className="flex justify-between p-4 bg-[#fffaf3] rounded-xl">
                   <span className="text-gray-600">Year 10 Cash Value</span>
-                  <span className="font-bold text-heritage-accent">~${tenYearCashValue.toLocaleString()}</span>
+                  <span className="font-bold text-violet-500">~${tenYearCashValue.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -321,7 +321,7 @@ export default function PaidUpAdditions() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                  className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                 >
                   Get Personalized Illustration
                 </motion.button>
@@ -336,9 +336,9 @@ export default function PaidUpAdditions() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {trustStats.map((stat, i) => (
               <motion.div
                 key={i}
@@ -348,7 +348,7 @@ export default function PaidUpAdditions() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -359,19 +359,19 @@ export default function PaidUpAdditions() {
       {/* What Are PUAs */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 What Are Paid-Up Additions?
               </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-6 leading-relaxed text-pretty">
                 Paid-up additions are mini whole life policies you buy inside your existing policy. Each PUA is "paid up"—no future premiums required—and comes with its own death benefit and cash value.
               </p>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 About 95% goes directly to cash value versus roughly 50% for base premium in early years.
               </p>
 
@@ -390,7 +390,7 @@ export default function PaidUpAdditions() {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -404,11 +404,11 @@ export default function PaidUpAdditions() {
               className="bg-[#fffaf3] rounded-xl p-8 border border-gray-200"
             >
               <div className="text-center">
-                <Layers className="w-20 h-20 text-heritage-primary/30 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-heritage-primary mb-4">PUA Efficiency</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <Layers className="w-20 h-20 text-primary/30 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-primary mb-4">PUA Efficiency</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 bg-white rounded-xl">
-                    <p className="text-3xl font-bold text-heritage-accent">~95%</p>
+                    <p className="text-3xl font-bold text-violet-500">~95%</p>
                     <p className="text-sm text-gray-600">PUA to Cash Value</p>
                   </div>
                   <div className="p-4 bg-white rounded-xl">
@@ -431,10 +431,10 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Paid-Up Additions Work
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Four steps to accelerated cash value growth.
             </p>
           </motion.div>
@@ -444,7 +444,7 @@ export default function PaidUpAdditions() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {howPuaWorks.map((step, index) => (
               <motion.div
@@ -454,17 +454,17 @@ export default function PaidUpAdditions() {
               >
                 <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow h-full">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
                       {step.step}
                     </div>
-                    <step.icon className="w-6 h-6 text-heritage-accent" />
+                    <step.icon className="w-6 h-6 text-violet-500" />
                   </div>
-                  <h3 className="text-lg font-bold text-heritage-primary mb-2">{step.title}</h3>
+                  <h3 className="text-lg font-bold text-primary mb-2">{step.title}</h3>
                   <p className="text-gray-600 text-sm">{step.description}</p>
                 </div>
                 {index < howPuaWorks.length - 1 && (
                   <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                    <ArrowRight className="w-6 h-6 text-heritage-primary/30" />
+                    <ArrowRight className="w-6 h-6 text-primary/30" />
                   </div>
                 )}
               </motion.div>
@@ -482,10 +482,10 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               PUA vs. Base Premium
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Why PUAs are more efficient for cash value growth.
             </p>
           </motion.div>
@@ -498,7 +498,7 @@ export default function PaidUpAdditions() {
           >
             <table className="w-full min-w-[500px]">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="p-4 text-left font-semibold">Feature</th>
                   <th className="p-4 text-center font-semibold">PUA Premium</th>
                   <th className="p-4 text-center font-semibold">Base Premium</th>
@@ -511,7 +511,7 @@ export default function PaidUpAdditions() {
                     className={index % 2 === 0 ? 'bg-[#fffaf3]' : 'bg-white'}
                   >
                     <td className="p-4 font-medium text-gray-900">{row.feature}</td>
-                    <td className="p-4 text-center text-heritage-primary font-semibold">{row.pua}</td>
+                    <td className="p-4 text-center text-primary font-semibold">{row.pua}</td>
                     <td className="p-4 text-center text-gray-600">{row.base}</td>
                   </tr>
                 ))}
@@ -530,10 +530,10 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               The Power of PUAs Over Time
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Same total premium, dramatically different results.
             </p>
           </motion.div>
@@ -546,7 +546,7 @@ export default function PaidUpAdditions() {
           >
             <table className="w-full min-w-[500px]">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="p-4 text-left font-semibold">Year</th>
                   <th className="p-4 text-center font-semibold">Base Only</th>
                   <th className="p-4 text-center font-semibold">With PUA Rider</th>
@@ -558,7 +558,7 @@ export default function PaidUpAdditions() {
                   <tr key={index} className={index % 2 === 0 ? 'bg-[#fffaf3]' : 'bg-white'}>
                     <td className="p-4 font-medium text-gray-900">Year {row.year}</td>
                     <td className="p-4 text-center text-gray-600">{row.baseOnly}</td>
-                    <td className="p-4 text-center font-bold text-heritage-primary">{row.withPua}</td>
+                    <td className="p-4 text-center font-bold text-primary">{row.withPua}</td>
                     <td className="p-4 text-center font-bold text-green-600">{row.difference}</td>
                   </tr>
                 ))}
@@ -586,10 +586,10 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Ways to Fund PUAs
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Three ways to add paid-up additions to your policy.
             </p>
           </motion.div>
@@ -599,7 +599,7 @@ export default function PaidUpAdditions() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto"
           >
             {puaSources.map((source, index) => (
               <motion.div
@@ -607,12 +607,12 @@ export default function PaidUpAdditions() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow text-center"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <source.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <source.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{source.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{source.title}</h3>
                 <p className="text-gray-600 text-sm mb-3">{source.description}</p>
-                <p className="text-xs font-medium text-heritage-accent">{source.efficiency}</p>
+                <p className="text-xs font-medium text-violet-500">{source.efficiency}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -644,7 +644,7 @@ export default function PaidUpAdditions() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -654,7 +654,7 @@ export default function PaidUpAdditions() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -686,10 +686,10 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               PUA Growth Calculator
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8 text-pretty">
               See exactly how paid-up additions accelerate your cash value growth compared to base premium only.
             </p>
 
@@ -697,7 +697,7 @@ export default function PaidUpAdditions() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowPuaCalculator(!showPuaCalculator)}
-              className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
+              className="bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
             >
               <Calculator className="w-5 h-5" />
               {showPuaCalculator ? 'Hide Calculator' : 'Calculate PUA Growth'}
@@ -715,12 +715,12 @@ export default function PaidUpAdditions() {
               >
                 <div className="max-w-5xl mx-auto bg-[#fffaf3] rounded-2xl shadow-xl p-8 border border-gray-200">
                   {/* Input Controls */}
-                  <div className="grid md:grid-cols-3 gap-6 mb-10">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Annual Base Premium
                       </label>
-                      <p className="text-2xl font-bold text-heritage-primary mb-2">${basePremium.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-primary mb-2">${basePremium.toLocaleString()}</p>
                       <input
                         type="range"
                         min="1200"
@@ -728,7 +728,7 @@ export default function PaidUpAdditions() {
                         step="200"
                         value={basePremium}
                         onChange={(e) => setBasePremium(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
                         <span>$1,200/yr</span>
@@ -740,7 +740,7 @@ export default function PaidUpAdditions() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Annual PUA Contribution
                       </label>
-                      <p className="text-2xl font-bold text-heritage-accent mb-2">${annualPua.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-violet-500 mb-2">${annualPua.toLocaleString()}</p>
                       <input
                         type="range"
                         min="1000"
@@ -748,7 +748,7 @@ export default function PaidUpAdditions() {
                         step="500"
                         value={annualPua}
                         onChange={(e) => setAnnualPua(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
                         <span>$1,000/yr</span>
@@ -778,7 +778,7 @@ export default function PaidUpAdditions() {
                   </div>
 
                   {/* Summary Cards */}
-                  <div className="grid md:grid-cols-4 gap-4 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -786,7 +786,7 @@ export default function PaidUpAdditions() {
                       className="bg-white rounded-xl p-5 text-center shadow-sm"
                     >
                       <p className="text-gray-500 text-xs mb-1">Total Annual Investment</p>
-                      <p className="text-xl font-bold text-heritage-primary">${(basePremium + annualPua).toLocaleString()}</p>
+                      <p className="text-xl font-bold text-primary">${(basePremium + annualPua).toLocaleString()}</p>
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -803,10 +803,10 @@ export default function PaidUpAdditions() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="bg-heritage-accent/20 rounded-xl p-5 text-center shadow-sm"
+                      className="bg-violet-500/20 rounded-xl p-5 text-center shadow-sm"
                     >
                       <p className="text-gray-500 text-xs mb-1">With PUA Cash Value</p>
-                      <p className="text-xl font-bold text-heritage-accent">
+                      <p className="text-xl font-bold text-violet-500">
                         ${puaProjections[puaProjections.length - 1]?.withPuaCashValue.toLocaleString() || 0}
                       </p>
                     </motion.div>
@@ -825,7 +825,7 @@ export default function PaidUpAdditions() {
 
                   {/* Visual Comparison Chart */}
                   <div className="mb-8">
-                    <h4 className="text-lg font-semibold text-heritage-primary mb-6">Cash Value Growth Comparison</h4>
+                    <h4 className="text-lg font-semibold text-primary mb-6">Cash Value Growth Comparison</h4>
                     <div className="space-y-3">
                       {puaProjections.filter((_, i) => (i + 1) % 5 === 0 || i === 0).map((data, index) => {
                         const maxValue = puaProjections[puaProjections.length - 1]?.withPuaCashValue || 1;
@@ -857,7 +857,7 @@ export default function PaidUpAdditions() {
                                 {/* With PUA Bar */}
                                 <div className="relative h-6">
                                   <motion.div
-                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-heritage-primary to-heritage-accent rounded"
+                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-violet-500 rounded"
                                     initial={{ width: 0 }}
                                     animate={{ width: `${puaWidth}%` }}
                                     transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
@@ -882,25 +882,25 @@ export default function PaidUpAdditions() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-heritage-primary rounded-xl p-6 text-white"
+                    className="bg-primary rounded-xl p-6 text-white"
                   >
                     <h4 className="font-semibold mb-4">Additional PUA Benefits After {projectionYears} Years</h4>
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="text-center">
                         <p className="text-white/70 text-sm mb-1">Extra Death Benefit</p>
-                        <p className="text-2xl font-bold text-heritage-accent">
+                        <p className="text-2xl font-bold text-violet-500">
                           +${puaProjections[puaProjections.length - 1]?.totalDeathBenefitIncrease.toLocaleString() || 0}
                         </p>
                       </div>
                       <div className="text-center">
                         <p className="text-white/70 text-sm mb-1">Extra Cash Value</p>
-                        <p className="text-2xl font-bold text-heritage-accent">
+                        <p className="text-2xl font-bold text-violet-500">
                           +${puaProjections[puaProjections.length - 1]?.difference.toLocaleString() || 0}
                         </p>
                       </div>
                       <div className="text-center">
                         <p className="text-white/70 text-sm mb-1">Growth Advantage</p>
-                        <p className="text-2xl font-bold text-heritage-accent">
+                        <p className="text-2xl font-bold text-violet-500">
                           +{puaProjections[puaProjections.length - 1]?.percentageGain || 0}%
                         </p>
                       </div>
@@ -914,7 +914,7 @@ export default function PaidUpAdditions() {
                       <span className="text-gray-600">Base Premium Only</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-heritage-primary to-heritage-accent rounded"></div>
+                      <div className="w-4 h-4 bg-gradient-to-r from-primary to-violet-500 rounded"></div>
                       <span className="text-gray-600">Base + PUA Contributions</span>
                     </div>
                   </div>
@@ -938,7 +938,7 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -957,8 +957,8 @@ export default function PaidUpAdditions() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -988,10 +988,10 @@ export default function PaidUpAdditions() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Accelerate Your Cash Value Growth
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               See how paid-up additions can supercharge your whole life policy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -999,7 +999,7 @@ export default function PaidUpAdditions() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -1009,7 +1009,7 @@ export default function PaidUpAdditions() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (630) 778-0800

@@ -114,20 +114,20 @@ export default function Licenses() {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-24 pb-12 bg-heritage-primary">
+      <section className="pt-24 pb-12 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-4xl mx-auto text-center"
           >
-            <div className="w-16 h-16 bg-heritage-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Award className="w-8 h-8 text-heritage-accent" />
+            <div className="w-16 h-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Award className="w-8 h-8 text-violet-500" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 text-balance">
               Licenses & Credentials
             </h1>
-            <p className="text-white/80 text-lg">
+            <p className="text-white/80 text-lg text-pretty">
               Heritage Life Solutions is licensed to conduct insurance business in all 50 states
             </p>
           </motion.div>
@@ -135,279 +135,271 @@ export default function Licenses() {
       </section>
 
       {/* Company Information */}
-      <section className="py-12 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-50 rounded-2xl p-8"
-            >
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-14 h-14 bg-heritage-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <Building className="w-7 h-7 text-heritage-accent" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-heritage-primary mb-1">{companyInfo.name}</h2>
-                  <p className="text-gray-600">Independent Insurance Agency</p>
-                </div>
+      <section className="py-8 md:py-12 bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gray-50 rounded-2xl p-5 md:p-8"
+          >
+            <div className="flex items-start gap-3 md:gap-4 mb-4 md:mb-6">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Building className="w-6 h-6 md:w-7 md:h-7 text-violet-500" />
               </div>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-primary mb-1 text-balance">{companyInfo.name}</h2>
+                <p className="text-gray-600 text-sm md:text-base">Independent Insurance Agency</p>
+              </div>
+            </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-heritage-accent mt-0.5" />
-                    <div>
-                      <p className="font-medium text-heritage-primary">Business Address</p>
-                      <MapSelector>
-                        <span className="text-gray-600 text-sm hover:text-heritage-primary transition-colors cursor-pointer">
-                          {companyInfo.address}
-                        </span>
-                      </MapSelector>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-heritage-accent mt-0.5" />
-                    <div>
-                      <p className="font-medium text-heritage-primary">Phone</p>
-                      <a href={`tel:${companyInfo.phone.replace(/\D/g, '')}`} className="text-gray-600 text-sm hover:text-heritage-primary">
-                        {companyInfo.phone}
-                      </a>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <MapPin className="w-4 h-4 md:w-5 md:h-5 text-violet-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-primary text-sm md:text-base">Business Address</p>
+                    <MapSelector>
+                      <span className="text-gray-600 text-xs md:text-sm hover:text-primary transition-colors cursor-pointer">
+                        {companyInfo.address}
+                      </span>
+                    </MapSelector>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <FileText className="w-5 h-5 text-heritage-accent mt-0.5" />
-                    <div>
-                      <p className="font-medium text-heritage-primary">National Producer Number (NPN)</p>
-                      <p className="text-gray-600 text-sm">{companyInfo.nationalProducerNumber}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-heritage-accent mt-0.5" />
-                    <div>
-                      <p className="font-medium text-heritage-primary">Home State</p>
-                      <p className="text-gray-600 text-sm">{companyInfo.homeState}</p>
-                    </div>
+                <div className="flex items-start gap-2 md:gap-3">
+                  <Phone className="w-4 h-4 md:w-5 md:h-5 text-violet-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-primary text-sm md:text-base">Phone</p>
+                    <a href={`tel:${companyInfo.phone.replace(/\D/g, '')}`} className="text-gray-600 text-xs md:text-sm hover:text-primary min-h-[44px] inline-flex items-center">
+                      {companyInfo.phone}
+                    </a>
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <FileText className="w-4 h-4 md:w-5 md:h-5 text-violet-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-primary text-sm md:text-base">National Producer Number (NPN)</p>
+                    <p className="text-gray-600 text-xs md:text-sm">{companyInfo.nationalProducerNumber}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 md:gap-3">
+                  <MapPin className="w-4 h-4 md:w-5 md:h-5 text-violet-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-primary text-sm md:text-base">Home State</p>
+                    <p className="text-gray-600 text-xs md:text-sm">{companyInfo.homeState}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* License Types */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-2xl font-bold text-heritage-primary mb-2">Lines of Authority</h2>
-              <p className="text-gray-600">We are licensed to offer the following insurance products</p>
-            </motion.div>
+      <section className="py-8 md:py-12">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-6 md:mb-8"
+          >
+            <h2 className="text-xl md:text-2xl font-bold text-primary mb-2 text-balance">Lines of Authority</h2>
+            <p className="text-sm md:text-base text-gray-600 text-pretty">We are licensed to offer the following insurance products</p>
+          </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              {licenseTypes.map((type, index) => (
-                <motion.div
-                  key={type.type}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center"
-                >
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <type.icon className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="font-bold text-heritage-primary mb-2">{type.type}</h3>
-                  <p className="text-sm text-gray-600">{type.description}</p>
-                  <div className="mt-4 flex items-center justify-center gap-1 text-green-600 text-sm font-medium">
-                    <CheckCircle className="w-4 h-4" />
-                    All 50 States
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            {licenseTypes.map((type, index) => (
+              <motion.div
+                key={type.type}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 text-center"
+              >
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <type.icon className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                </div>
+                <h3 className="font-bold text-primary mb-1 md:mb-2 text-sm md:text-base">{type.type}</h3>
+                <p className="text-xs md:text-sm text-gray-600">{type.description}</p>
+                <div className="mt-3 md:mt-4 flex items-center justify-center gap-1 text-green-600 text-xs md:text-sm font-medium">
+                  <CheckCircle className="w-3 h-3 md:w-4 md:h-4" />
+                  All 50 States
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* State Licenses */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-2xl font-bold text-heritage-primary mb-2">State Licenses</h2>
-              <p className="text-gray-600">Find our license information for your state</p>
-            </motion.div>
+      <section className="py-8 md:py-12 bg-white">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-6 md:mb-8"
+          >
+            <h2 className="text-xl md:text-2xl font-bold text-primary mb-2 text-balance">State Licenses</h2>
+            <p className="text-sm md:text-base text-gray-600 text-pretty">Find our license information for your state</p>
+          </motion.div>
 
-            {/* Search */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6"
-            >
-              <div className="relative max-w-md mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by state name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
-                />
-              </div>
-            </motion.div>
+          {/* Search */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-4 md:mb-6"
+          >
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by state name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base min-h-[44px]"
+              />
+            </div>
+          </motion.div>
 
-            {/* License Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
-            >
-              <AnimatePresence>
-                {displayedLicenses.map((license) => (
-                  <motion.div
-                    key={license.state}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-gray-50 rounded-xl p-4 border border-gray-100"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-heritage-primary">{license.state}</p>
-                      <span className="w-2 h-2 bg-green-500 rounded-full" title="Active" />
-                    </div>
-                    <p className="text-sm text-gray-600 font-mono">{license.license}</p>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-
-            {/* Show More Button */}
-            {filteredLicenses.length > 12 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center mt-6"
-              >
-                <button
-                  onClick={() => setShowAllStates(!showAllStates)}
-                  className="inline-flex items-center gap-2 text-heritage-primary font-medium hover:text-heritage-accent transition-colors"
+          {/* License Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3"
+          >
+            <AnimatePresence>
+              {displayedLicenses.map((license) => (
+                <motion.div
+                  key={license.state}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-100"
                 >
-                  {showAllStates ? "Show Less" : `Show All ${filteredLicenses.length} States`}
-                  <ChevronDown className={`w-5 h-5 transition-transform ${showAllStates ? "rotate-180" : ""}`} />
-                </button>
-              </motion.div>
-            )}
+                  <div className="flex items-center justify-between mb-1 md:mb-2">
+                    <p className="font-medium text-primary text-xs md:text-sm">{license.state}</p>
+                    <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Active" />
+                  </div>
+                  <p className="text-xs md:text-sm text-gray-600 font-mono truncate">{license.license}</p>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
 
-            {/* No Results */}
-            {filteredLicenses.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No states found matching "{searchQuery}"</p>
-              </div>
-            )}
-          </div>
+          {/* Show More Button */}
+          {filteredLicenses.length > 12 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center mt-4 md:mt-6"
+            >
+              <button
+                onClick={() => setShowAllStates(!showAllStates)}
+                className="inline-flex items-center gap-2 text-primary font-medium hover:text-violet-500 transition-colors text-sm md:text-base min-h-[44px]"
+              >
+                {showAllStates ? "Show Less" : `Show All ${filteredLicenses.length} States`}
+                <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${showAllStates ? "rotate-180" : ""}`} />
+              </button>
+            </motion.div>
+          )}
+
+          {/* No Results */}
+          {filteredLicenses.length === 0 && (
+            <div className="text-center py-8 md:py-12">
+              <p className="text-gray-600 text-sm md:text-base">No states found matching "{searchQuery}"</p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Verification */}
-      <section className="py-12 bg-gradient-to-br from-[#fffaf3] to-[#f5f0e8]">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
-            >
-              <h2 className="text-xl font-bold text-heritage-primary mb-4">Verify Our Licenses</h2>
-              <p className="text-gray-600 mb-6">
-                You can independently verify our licensing status through the following resources:
-              </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="font-medium text-heritage-primary mb-1">National Insurance Producer Registry (NIPR)</p>
-                  <p className="text-sm text-gray-600 mb-2">Search for producer license information nationwide</p>
-                  <a
-                    href="https://nipr.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-heritage-primary hover:text-heritage-accent inline-flex items-center gap-1"
-                  >
-                    Visit NIPR <ChevronRight className="w-4 h-4" />
-                  </a>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="font-medium text-heritage-primary mb-1">State Insurance Department</p>
-                  <p className="text-sm text-gray-600 mb-2">Contact your state's insurance department directly</p>
-                  <a
-                    href="https://content.naic.org/state-insurance-regulators"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-heritage-primary hover:text-heritage-accent inline-flex items-center gap-1"
-                  >
-                    Find Your State <ChevronRight className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Contact */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mt-8 text-center"
-            >
-              <p className="text-gray-600 mb-4">
-                Questions about our licensing? Contact our compliance department:
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
+      <section className="py-8 md:py-12 bg-gradient-to-br from-[#fffaf3] to-[#f5f0e8]">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white rounded-2xl p-5 md:p-8 shadow-sm border border-gray-100"
+          >
+            <h2 className="text-lg md:text-xl font-bold text-primary mb-3 md:mb-4 text-balance">Verify Our Licenses</h2>
+            <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 text-pretty">
+              You can independently verify our licensing status through the following resources:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="bg-gray-50 rounded-xl p-3 md:p-4">
+                <p className="font-medium text-primary mb-1 text-sm md:text-base">National Insurance Producer Registry (NIPR)</p>
+                <p className="text-xs md:text-sm text-gray-600 mb-2">Search for producer license information nationwide</p>
                 <a
-                  href="tel:6307780800"
-                  className="inline-flex items-center gap-2 text-heritage-primary hover:text-heritage-accent"
+                  href="https://nipr.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs md:text-sm text-primary hover:text-violet-500 inline-flex items-center gap-1 min-h-[44px]"
                 >
-                  <Phone className="w-4 h-4" />
-                  (630) 778-0800
-                </a>
-                <a
-                  href="mailto:contact@heritagels.org"
-                  className="inline-flex items-center gap-2 text-heritage-primary hover:text-heritage-accent"
-                >
-                  <Mail className="w-4 h-4" />
-                  contact@heritagels.org
+                  Visit NIPR <ChevronRight className="w-4 h-4" />
                 </a>
               </div>
-            </motion.div>
-
-            {/* Related Links */}
-            <div className="mt-8 text-center">
-              <h3 className="font-semibold text-heritage-primary mb-4">Related Pages</h3>
-              <div className="flex flex-wrap justify-center gap-3">
-                <Link href="/about" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-heritage-primary bg-white px-4 py-2 rounded-lg transition-colors shadow-sm">
-                  About Us <ChevronRight className="w-4 h-4" />
-                </Link>
-                <Link href="/legal/terms" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-heritage-primary bg-white px-4 py-2 rounded-lg transition-colors shadow-sm">
-                  Terms of Use <ChevronRight className="w-4 h-4" />
-                </Link>
-                <Link href="/contact" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-heritage-primary bg-white px-4 py-2 rounded-lg transition-colors shadow-sm">
-                  Contact Us <ChevronRight className="w-4 h-4" />
-                </Link>
+              <div className="bg-gray-50 rounded-xl p-3 md:p-4">
+                <p className="font-medium text-primary mb-1 text-sm md:text-base">State Insurance Department</p>
+                <p className="text-xs md:text-sm text-gray-600 mb-2">Contact your state's insurance department directly</p>
+                <a
+                  href="https://content.naic.org/state-insurance-regulators"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs md:text-sm text-primary hover:text-violet-500 inline-flex items-center gap-1 min-h-[44px]"
+                >
+                  Find Your State <ChevronRight className="w-4 h-4" />
+                </a>
               </div>
+            </div>
+          </motion.div>
+
+          {/* Contact */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-6 md:mt-8 text-center"
+          >
+            <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
+              Questions about our licensing? Contact our compliance department:
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+              <a
+                href="tel:6307780800"
+                className="inline-flex items-center gap-2 text-primary hover:text-violet-500 text-sm md:text-base min-h-[44px]"
+              >
+                <Phone className="w-4 h-4" />
+                (630) 778-0800
+              </a>
+              <a
+                href="mailto:contact@heritagels.org"
+                className="inline-flex items-center gap-2 text-primary hover:text-violet-500 text-sm md:text-base min-h-[44px]"
+              >
+                <Mail className="w-4 h-4" />
+                contact@heritagels.org
+              </a>
+            </div>
+          </motion.div>
+
+          {/* Related Links */}
+          <div className="mt-6 md:mt-8 text-center">
+            <h3 className="font-semibold text-primary mb-3 md:mb-4 text-sm md:text-base">Related Pages</h3>
+            <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+              <Link href="/about" className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-600 hover:text-primary bg-white px-3 md:px-4 py-2.5 md:py-2 rounded-lg transition-colors shadow-sm min-h-[44px]">
+                About Us <ChevronRight className="w-4 h-4" />
+              </Link>
+              <Link href="/legal/terms" className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-600 hover:text-primary bg-white px-3 md:px-4 py-2.5 md:py-2 rounded-lg transition-colors shadow-sm min-h-[44px]">
+                Terms of Use <ChevronRight className="w-4 h-4" />
+              </Link>
+              <Link href="/contact" className="inline-flex items-center gap-2 text-xs md:text-sm text-gray-600 hover:text-primary bg-white px-3 md:px-4 py-2.5 md:py-2 rounded-lg transition-colors shadow-sm min-h-[44px]">
+                Contact Us <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </div>

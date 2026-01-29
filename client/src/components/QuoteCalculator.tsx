@@ -931,7 +931,132 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
 
+    // Format coverage type for proper display
+    const formatCoverageTypeDisplay = (type: string): string => {
+      if (!type) return "Not Specified";
+      const normalizedType = type.toLowerCase().trim();
+      if (normalizedType === "iul" || normalizedType.includes("indexed universal")) {
+        return "IUL (Indexed Universal Life)";
+      }
+      if (normalizedType === "term" || normalizedType.includes("term life") || normalizedType === "term_life") {
+        return "Term Life Insurance";
+      }
+      if (normalizedType === "whole" || normalizedType.includes("whole life") || normalizedType === "whole_life") {
+        return "Whole Life Insurance";
+      }
+      if (normalizedType === "final" || normalizedType.includes("final expense") || normalizedType === "final_expense") {
+        return "Final Expense Insurance";
+      }
+      if (normalizedType === "mortgage" || normalizedType.includes("mortgage protection") || normalizedType === "mortgage_protection") {
+        return "Mortgage Protection Insurance";
+      }
+      if (normalizedType === "unsure" || normalizedType.includes("not sure")) {
+        return "Not Sure Yet - Needs Consultation";
+      }
+      return type.charAt(0).toUpperCase() + type.slice(1);
+    };
+
+    // Format goals for display
+    const goalLabels: Record<string, string> = {
+      protect_family: "Protect my family",
+      pay_debts: "Cover debts & mortgage",
+      leave_inheritance: "Leave an inheritance",
+      build_wealth: "Build cash value",
+    };
+    const formattedGoals = discoveryAnswers.primaryGoal.map(g => goalLabels[g] || g).join(", ");
+
+    // Format family situation
+    const familyLabels: Record<string, string> = {
+      single_no_dependents: "Single, no dependents",
+      married_no_kids: "Married or partnered",
+      young_children: "Have young children",
+      adult_children_elderly: "Adult children or caring for parents",
+    };
+
+    // Format beneficiaries
+    const beneficiaryInfo = applicationData.beneficiaries
+      .map(b => `${b.firstName} ${b.lastName} (${b.relationship}) - ${b.percentage}%`)
+      .join("; ");
+
+    // Format coverage duration
+    const durationLabels: Record<string, string> = {
+      "10-20 years": "10-20 Years",
+      "20-30 years": "20-30 Years",
+      "lifetime": "Lifetime Coverage",
+    };
+
+    // Format health status
+    const healthLabels: Record<string, string> = {
+      excellent: "Excellent",
+      good: "Good",
+      fair: "Fair",
+      poor: "Poor",
+    };
+
+    // Format budget
+    const budgetLabels: Record<string, string> = {
+      "$25-50": "$25-50/month",
+      "$50-100": "$50-100/month",
+      "$100-200": "$100-200/month",
+      "$200+": "$200+/month",
+    };
+
+    // Build comprehensive medical background with all info
+    const comprehensiveMedicalBackground = `
+APPLICANT PROFILE
+Age: ${personalInfo.age || 'Not specified'}
+Gender: ${personalInfo.gender ? personalInfo.gender.charAt(0).toUpperCase() + personalInfo.gender.slice(1) : 'Not specified'}
+Tobacco Use: ${personalInfo.smoker === true ? 'Yes' : personalInfo.smoker === false ? 'No' : 'Not specified'}
+
+GOALS & NEEDS
+Primary Goals: ${formattedGoals || 'Not specified'}
+Family Situation: ${familyLabels[discoveryAnswers.familySituation] || discoveryAnswers.familySituation || 'Not specified'}
+Coverage Duration Preference: ${durationLabels[discoveryAnswers.coverageDuration] || discoveryAnswers.coverageDuration || 'Not specified'}
+Monthly Budget: ${budgetLabels[discoveryAnswers.monthlyBudget] || discoveryAnswers.monthlyBudget || 'Not specified'}
+Cash Value Importance: ${discoveryAnswers.cashValueImportance ? discoveryAnswers.cashValueImportance.charAt(0).toUpperCase() + discoveryAnswers.cashValueImportance.slice(1) : 'Not specified'}
+Existing Coverage: ${discoveryAnswers.existingCoverage ? discoveryAnswers.existingCoverage.charAt(0).toUpperCase() + discoveryAnswers.existingCoverage.slice(1) : 'Not specified'}
+
+HEALTH STATUS
+Self-Reported Health: ${healthLabels[discoveryAnswers.healthStatus] || discoveryAnswers.healthStatus || 'Not specified'}
+
+BENEFICIARIES
+${beneficiaryInfo || 'Not specified'}
+
+RECOMMENDED COVERAGE
+Product: ${recommendation?.productName ? formatCoverageTypeDisplay(recommendation.productName) : 'Not specified'}
+Product Type: ${recommendation?.productType ? formatCoverageTypeDisplay(recommendation.productType) : 'Not specified'}
+Term: ${recommendation?.termLength || 'N/A'}
+Estimated Monthly Rate: $${recommendation?.monthlyRate?.toFixed(2) || 'N/A'}
+    `.trim();
+
     try {
+      // Submit to API for database storage and email notifications
+      const apiResponse = await fetch('/api/quote-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: applicationData.firstName,
+          lastName: applicationData.lastName,
+          email: applicationData.email,
+          phone: applicationData.phone,
+          streetAddress: applicationData.street,
+          city: applicationData.city,
+          state: applicationData.state,
+          zipCode: applicationData.zipCode,
+          coverageType: recommendation?.productType ? formatCoverageTypeDisplay(recommendation.productType) : 'Not Specified',
+          coverageAmount: recommendation?.coverageAmount ? `$${recommendation.coverageAmount.toLocaleString()}` : 'Not specified',
+          height: personalInfo.age ? `Age: ${personalInfo.age}` : 'Not specified',
+          weight: personalInfo.gender ? `Gender: ${personalInfo.gender.charAt(0).toUpperCase() + personalInfo.gender.slice(1)}` : 'Not specified',
+          birthDate: applicationData.dateOfBirth,
+          medicalBackground: comprehensiveMedicalBackground,
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        console.error('API submission failed:', await apiResponse.text());
+      }
+
+      // Also submit to Google Sheets for backup
       const result = await submitQuoteToGoogleSheets({
         // Personal info
         firstName: applicationData.firstName,
@@ -1106,13 +1231,13 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
           <span className="text-sm font-medium text-gray-600">
             Question {discoveryStep + 1} of {discoveryQuestions.length}
           </span>
-          <span className="text-sm font-medium text-heritage-primary">
+          <span className="text-sm font-medium text-primary">
             {Math.round(((discoveryStep + 1) / discoveryQuestions.length) * 100)}%
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <motion.div
-            className="bg-heritage-primary h-2 rounded-full"
+            className="bg-primary h-2 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${((discoveryStep + 1) / discoveryQuestions.length) * 100}%` }}
             transition={{ duration: 0.3 }}
@@ -1132,8 +1257,8 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         >
           {/* Question Header */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 bg-heritage-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-              <currentQuestion.icon className="w-6 h-6 text-heritage-primary" />
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <currentQuestion.icon className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">
@@ -1160,15 +1285,15 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   onClick={() => handleDiscoverySelect(option.value)}
                   className={`relative p-5 rounded-xl border-2 text-left transition-all ${
                     isSelected
-                      ? "border-heritage-primary bg-heritage-primary/5"
-                      : "border-gray-200 hover:border-heritage-primary/50 hover:bg-gray-50"
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-200 hover:border-primary/50 hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     {/* Checkbox style for multi-select */}
                     <div
                       className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? "bg-heritage-primary text-white" : "bg-gray-100 text-gray-500"
+                        isSelected ? "bg-primary text-white" : "bg-gray-100 text-gray-500"
                       }`}
                     >
                       {isMultiSelect && isSelected ? (
@@ -1185,7 +1310,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-6 h-6 bg-heritage-primary rounded-full flex items-center justify-center"
+                        className="w-6 h-6 bg-primary rounded-full flex items-center justify-center"
                       >
                         <Check className="w-4 h-4 text-white" />
                       </motion.div>
@@ -1207,7 +1332,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
               <button
                 onClick={handleDiscoveryContinue}
                 disabled={discoveryAnswers.primaryGoal.length === 0}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Continue
                 <ArrowRight className="w-5 h-5" />
@@ -1246,8 +1371,8 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
       className="space-y-6"
     >
       <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 bg-heritage-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-          <User className="w-6 h-6 text-heritage-primary" />
+        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+          <User className="w-6 h-6 text-primary" />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Almost there!</h2>
@@ -1265,7 +1390,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
               max="85"
               value={personalInfo.age || ""}
               onChange={(e) => setPersonalInfo({ ...personalInfo, age: parseInt(e.target.value) || null })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="35"
             />
           </div>
@@ -1275,7 +1400,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
               type="text"
               value={personalInfo.zipCode}
               onChange={(e) => setPersonalInfo({ ...personalInfo, zipCode: e.target.value.replace(/\D/g, "").slice(0, 5) })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="60601"
             />
           </div>
@@ -1290,7 +1415,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 onClick={() => setPersonalInfo({ ...personalInfo, gender: g })}
                 className={`py-3 px-4 rounded-xl border-2 font-medium transition-all capitalize ${
                   personalInfo.gender === g
-                    ? "border-heritage-primary bg-heritage-primary/5 text-heritage-primary"
+                    ? "border-primary bg-primary/5 text-primary"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -1309,7 +1434,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 onClick={() => setPersonalInfo({ ...personalInfo, smoker: opt.v })}
                 className={`py-3 px-4 rounded-xl border-2 font-medium transition-all ${
                   personalInfo.smoker === opt.v
-                    ? "border-heritage-primary bg-heritage-primary/5 text-heritage-primary"
+                    ? "border-primary bg-primary/5 text-primary"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -1331,7 +1456,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         <button
           onClick={handlePersonalComplete}
           disabled={!isPersonalValid()}
-          className="flex items-center gap-2 px-6 py-3 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           See My Recommendation
           <Sparkles className="w-5 h-5" />
@@ -1370,7 +1495,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         </div>
 
         {/* Main Recommendation Card */}
-        <div className="bg-heritage-primary rounded-2xl p-6">
+        <div className="bg-primary rounded-2xl p-6">
           <div className="mb-4">
             <p className="text-white/70 text-sm mb-1">We Recommend</p>
             <h3 className="text-2xl font-bold text-white">
@@ -1396,7 +1521,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         {/* Customize Your Quote */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-5">
           <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Scale className="w-5 h-5 text-heritage-primary" />
+            <Scale className="w-5 h-5 text-primary" />
             Customize Your Quote
           </h4>
 
@@ -1428,7 +1553,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   }}
                   className={`py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
                     adjustedProductType === product.value
-                      ? 'border-heritage-primary bg-heritage-primary/5 text-heritage-primary'
+                      ? 'border-primary bg-primary/5 text-primary'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -1441,7 +1566,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
           {/* Coverage Amount Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Coverage Amount: <span className="text-heritage-primary font-bold">${adjustedCoverage.toLocaleString()}</span>
+              Coverage Amount: <span className="text-primary font-bold">${adjustedCoverage.toLocaleString()}</span>
             </label>
             <div className="grid grid-cols-4 gap-2">
               {getCoverageOptions().map((amount) => (
@@ -1450,7 +1575,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   onClick={() => setAdjustedCoverage(amount)}
                   className={`py-2 px-2 rounded-lg border-2 text-xs font-medium transition-all ${
                     adjustedCoverage === amount
-                      ? 'border-heritage-primary bg-heritage-primary/5 text-heritage-primary'
+                      ? 'border-primary bg-primary/5 text-primary'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -1471,7 +1596,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                     onClick={() => setAdjustedTermLength(term)}
                     className={`py-2 px-2 rounded-lg border-2 text-xs font-medium transition-all ${
                       adjustedTermLength === term
-                        ? 'border-heritage-primary bg-heritage-primary/5 text-heritage-primary'
+                        ? 'border-primary bg-primary/5 text-primary'
                         : 'border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
@@ -1506,8 +1631,8 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
           <div className="grid gap-3">
             {getProductBenefits().map((benefit, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-heritage-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Check className="w-4 h-4 text-heritage-primary" />
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4 text-primary" />
                 </div>
                 <span className="text-gray-700">{benefit}</span>
               </div>
@@ -1535,7 +1660,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         <div className="space-y-3 pt-4">
           <button
             onClick={handleStartApplication}
-            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark transition-colors text-lg"
+            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark transition-colors text-lg"
           >
             Continue to Application
             <ArrowRight className="w-5 h-5" />
@@ -1578,7 +1703,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
         <div
-          className="bg-heritage-primary h-2 rounded-full transition-all"
+          className="bg-primary h-2 rounded-full transition-all"
           style={{ width: `${((applicationStep + 1) / 3) * 100}%` }}
         />
       </div>
@@ -1595,7 +1720,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
             className="space-y-4"
           >
             <div className="flex items-center gap-3 mb-4">
-              <User className="w-5 h-5 text-heritage-primary" />
+              <User className="w-5 h-5 text-primary" />
               <h3 className="text-xl font-bold text-gray-900">Contact Information</h3>
             </div>
 
@@ -1606,7 +1731,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   type="text"
                   value={applicationData.firstName}
                   onChange={(e) => setApplicationData({ ...applicationData, firstName: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               <div>
@@ -1615,7 +1740,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   type="text"
                   value={applicationData.lastName}
                   onChange={(e) => setApplicationData({ ...applicationData, lastName: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
             </div>
@@ -1626,7 +1751,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 type="email"
                 value={applicationData.email}
                 onChange={(e) => setApplicationData({ ...applicationData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
@@ -1636,7 +1761,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 type="tel"
                 value={applicationData.phone}
                 onChange={(e) => setApplicationData({ ...applicationData, phone: formatPhone(e.target.value) })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
@@ -1646,7 +1771,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 type="date"
                 value={applicationData.dateOfBirth}
                 onChange={(e) => setApplicationData({ ...applicationData, dateOfBirth: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </motion.div>
@@ -1663,7 +1788,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
             className="space-y-4"
           >
             <div className="flex items-center gap-3 mb-4">
-              <MapPin className="w-5 h-5 text-heritage-primary" />
+              <MapPin className="w-5 h-5 text-primary" />
               <h3 className="text-xl font-bold text-gray-900">Your Address</h3>
             </div>
 
@@ -1673,7 +1798,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 type="text"
                 value={applicationData.street}
                 onChange={(e) => setApplicationData({ ...applicationData, street: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
@@ -1684,7 +1809,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   type="text"
                   value={applicationData.city}
                   onChange={(e) => setApplicationData({ ...applicationData, city: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               <div className="col-span-2">
@@ -1692,7 +1817,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                 <select
                   value={applicationData.state}
                   onChange={(e) => setApplicationData({ ...applicationData, state: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
                   <option value="">Select</option>
                   {US_STATES.map((s) => (
@@ -1706,7 +1831,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                   type="text"
                   value={applicationData.zipCode}
                   onChange={(e) => setApplicationData({ ...applicationData, zipCode: e.target.value.replace(/\D/g, "").slice(0, 5) })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
             </div>
@@ -1725,13 +1850,13 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-heritage-primary" />
+                <Heart className="w-5 h-5 text-primary" />
                 <h3 className="text-xl font-bold text-gray-900">Beneficiary Information</h3>
               </div>
               {applicationData.beneficiaries.length < 4 && (
                 <button
                   onClick={addBeneficiary}
-                  className="flex items-center gap-1 text-sm text-heritage-primary hover:text-heritage-dark font-medium"
+                  className="flex items-center gap-1 text-sm text-primary hover:text-heritage-dark font-medium"
                 >
                   <Plus className="w-4 h-4" />
                   Add Beneficiary
@@ -1766,7 +1891,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                       type="text"
                       value={beneficiary.firstName}
                       onChange={(e) => updateBeneficiary(index, "firstName", e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1775,7 +1900,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                       type="text"
                       value={beneficiary.lastName}
                       onChange={(e) => updateBeneficiary(index, "lastName", e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1786,7 +1911,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                     <select
                       value={beneficiary.relationship}
                       onChange={(e) => updateBeneficiary(index, "relationship", e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                       <option value="">Select</option>
                       {RELATIONSHIPS.map((r) => (
@@ -1802,7 +1927,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
                       max="100"
                       value={beneficiary.percentage}
                       onChange={(e) => updateBeneficiary(index, "percentage", parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-heritage-primary focus:border-transparent"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -1835,7 +1960,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         <button
           onClick={handleApplicationNext}
           disabled={!isAppStepValid()}
-          className="flex items-center gap-2 px-6 py-3 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {applicationStep === 2 ? "Review Application" : "Continue"}
           <ChevronRight className="w-4 h-4" />
@@ -1851,7 +1976,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
   const renderReview = () => (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <FileText className="w-6 h-6 text-heritage-primary" />
+        <FileText className="w-6 h-6 text-primary" />
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Review Your Application</h2>
           <p className="text-gray-500">Please verify all information is correct</p>
@@ -1860,7 +1985,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
 
       {/* Coverage Summary */}
       {recommendation && (
-        <div className="bg-heritage-primary rounded-xl p-5 text-white">
+        <div className="bg-primary rounded-xl p-5 text-white">
           <div>
             <p className="text-white/70 text-sm">Your Coverage Request</p>
             <p className="font-bold text-lg">{recommendation.productName}</p>
@@ -1918,7 +2043,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="w-full flex items-center justify-center gap-2 py-4 bg-heritage-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-70 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-heritage-dark disabled:opacity-70 transition-colors"
         >
           {submitting ? (
             <>
@@ -1970,11 +2095,11 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
       {applicationId && (
         <div className="bg-gray-50 rounded-xl p-4 inline-block">
           <p className="text-sm text-gray-500">Reference Number</p>
-          <p className="text-xl font-mono font-bold text-heritage-primary">{applicationId}</p>
+          <p className="text-xl font-mono font-bold text-primary">{applicationId}</p>
         </div>
       )}
 
-      <div className="bg-heritage-primary/5 rounded-xl p-6 text-left">
+      <div className="bg-primary/5 rounded-xl p-6 text-left">
         <h3 className="font-semibold text-gray-900 mb-4">What happens next?</h3>
         <div className="space-y-4">
           {[
@@ -1983,7 +2108,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
             { step: "3", title: "Policy Issuance", desc: "Once approved, your policy documents will be sent" },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-heritage-primary text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+              <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                 {item.step}
               </div>
               <div>
@@ -2000,7 +2125,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         <div className="flex gap-3 justify-center">
           <a
             href="tel:+16307780800"
-            className="flex items-center gap-2 px-6 py-3 bg-heritage-primary text-white rounded-lg font-medium hover:bg-heritage-dark transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-heritage-dark transition-colors"
           >
             <Phone className="w-4 h-4" />
             (630) 778-0800
@@ -2015,7 +2140,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
         </div>
       </div>
 
-      <button onClick={resetForm} className="text-heritage-primary hover:underline font-medium">
+      <button onClick={resetForm} className="text-primary hover:underline font-medium">
         Start a new quote
       </button>
     </motion.div>

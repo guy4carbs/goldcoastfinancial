@@ -1,5 +1,45 @@
 import { google } from 'googleapis';
 
+// Format coverage type for proper display (e.g., "iul" -> "IUL")
+function formatCoverageType(type: string): string {
+  if (!type) return "Not Specified";
+
+  const normalizedType = type.toLowerCase().trim();
+
+  // Check for IUL first (most specific)
+  if (normalizedType === "iul" || normalizedType.includes("indexed universal")) {
+    return "IUL (Indexed Universal Life)";
+  }
+
+  // Term Life
+  if (normalizedType === "term" || normalizedType.includes("term life") || normalizedType === "term_life") {
+    return "Term Life Insurance";
+  }
+
+  // Whole Life
+  if (normalizedType === "whole" || normalizedType.includes("whole life") || normalizedType === "whole_life") {
+    return "Whole Life Insurance";
+  }
+
+  // Final Expense
+  if (normalizedType === "final" || normalizedType.includes("final expense") || normalizedType === "final_expense") {
+    return "Final Expense Insurance";
+  }
+
+  // Mortgage Protection
+  if (normalizedType === "mortgage" || normalizedType.includes("mortgage protection") || normalizedType === "mortgage_protection") {
+    return "Mortgage Protection Insurance";
+  }
+
+  // Unsure
+  if (normalizedType === "unsure" || normalizedType.includes("not sure")) {
+    return "Not Sure Yet - Needs Consultation";
+  }
+
+  // Return original with first letter capitalized if no match
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
 // Create OAuth2 client using environment variables
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -157,7 +197,8 @@ export async function sendQuoteNotification(data: {
 }) {
   const gmail = await getGmailClient();
   
-  const subject = `New Quote Request: ${data.coverageType} - ${data.firstName} ${data.lastName}`;
+  const formattedCoverageType = formatCoverageType(data.coverageType);
+  const subject = `New Quote Request: ${formattedCoverageType} - ${data.firstName} ${data.lastName}`;
   const body = `
 NEW QUOTE REQUEST
 Heritage Life Solutions Website
@@ -176,7 +217,7 @@ ${data.city}, ${data.state} ${data.zipCode}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 COVERAGE REQUEST
-Product Type: ${data.coverageType}
+Product Type: ${formattedCoverageType}
 Coverage Amount: ${data.coverageAmount}
 
 CLIENT PROFILE
@@ -198,6 +239,69 @@ Submitted via Heritage Life Solutions website
     `From: Heritage Life Solutions <contact@heritagels.org>`,
     `To: contact@heritagels.org`,
     `Reply-To: ${data.email}`,
+    `Subject: ${subject}`,
+    '',
+    body
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(message)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+}
+
+export async function sendQuoteConfirmationToApplicant(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  coverageType: string;
+  coverageAmount: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const formattedCoverageType = formatCoverageType(data.coverageType);
+  const subject = `We've Received Your Quote Request - Heritage Life Solutions`;
+  const body = `
+Hi ${data.firstName},
+
+Thank you for requesting a quote from Heritage Life Solutions!
+
+We've received your request for ${formattedCoverageType} coverage (${data.coverageAmount}) and one of our licensed insurance professionals will review your information and reach out to you within 1 business day.
+
+WHAT HAPPENS NEXT:
+• We'll review your information and find the best options for your needs
+• A licensed agent will contact you to discuss your coverage options
+• You'll receive a personalized quote with no obligation
+
+If you have any immediate questions, feel free to call us at (630) 778-0800 or reply to this email.
+
+We look forward to helping you protect what matters most.
+
+Best regards,
+The Heritage Life Solutions Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Heritage Life Solutions
+(630) 778-0800
+contact@heritagels.org
+www.heritagels.org
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  `.trim();
+
+  const message = [
+    'Content-Type: text/plain; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: 7bit',
+    `From: Heritage Life Solutions <contact@heritagels.org>`,
+    `To: ${data.email}`,
     `Subject: ${subject}`,
     '',
     body

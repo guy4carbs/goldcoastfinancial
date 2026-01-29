@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TrustIndicators from "@/components/TrustIndicators";
 import {
   TrendingUp,
   Users,
@@ -21,6 +22,21 @@ import {
   Calendar,
   X
 } from "lucide-react";
+
+const carriers = [
+  { name: "Americo", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba" },
+  { name: "Athene", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643" },
+  { name: "Baltimore Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277409363-logo%402x.png?alt=media&token=cdd3c6d0-e497-4a4c-a357-6e3b548dd95c" },
+  { name: "Corebridge", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2" },
+  { name: "Mutual of Omaha", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277474666-Mutual-of-Omaha-logo.png?alt=media&token=0382cf9c-c262-4931-8155-688210c1c173", size: "large" },
+  { name: "Ethos", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277532663-6341f9fa-fd59-42aa-b238-d23e46658048.png?alt=media&token=ea3d4914-d65e-4817-9a81-1ea709064e52" },
+  { name: "Royal Neighbors", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277589538-330-3309455_royal-neighbors-of-america-life-insurance-royal-neighbors.png?alt=media&token=d700619b-ad2d-4071-bd2b-a57eb5a12b56" },
+  { name: "Transamerica", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769278248208-transamerica-logo.png?alt=media&token=9d6fb91f-9c8e-432b-96e4-c4ed8971cc6d", size: "large" },
+  { name: "American Home Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277674404-Carrier-Logo-Web-270x200-American-Home-Life-1080x608.webp?alt=media&token=0546ea66-443d-44bc-b2f1-d561bd1f713b", size: "large" },
+  { name: "Polish Falcons", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238" },
+  { name: "Ladder", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733" },
+  { name: "Lincoln Financial", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b" },
+];
 
 export default function BecomeAgent() {
   const [formData, setFormData] = useState({
@@ -137,8 +153,8 @@ export default function BecomeAgent() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-20 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -148,11 +164,11 @@ export default function BecomeAgent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Users className="w-4 h-4" />
                 Join Our Team
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 leading-tight text-balance">
                 Build Your Career with Heritage
               </h1>
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -164,7 +180,7 @@ export default function BecomeAgent() {
                   href="#apply"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
+                  className="bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
                 >
                   Start Your Application <ArrowRight className="w-5 h-5" />
                 </motion.a>
@@ -172,7 +188,7 @@ export default function BecomeAgent() {
                   href="tel:6307780800"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary/5 px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
+                  className="border-2 border-primary text-primary hover:bg-primary/5 px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" /> Talk to Recruiting
                 </motion.a>
@@ -181,6 +197,9 @@ export default function BecomeAgent() {
           </div>
         </div>
       </section>
+
+      {/* Trust Indicators */}
+      <TrustIndicators variant="inline" />
 
       {/* Why Heritage Section */}
       <section className="py-20 bg-white">
@@ -209,8 +228,8 @@ export default function BecomeAgent() {
                 transition={{ delay: index * 0.1 }}
                 className="bg-[#fffaf3] rounded-2xl p-8 hover:shadow-lg transition-shadow"
               >
-                <div className="w-12 h-12 bg-heritage-primary/10 rounded-xl flex items-center justify-center mb-4">
-                  <benefit.icon className="w-6 h-6 text-heritage-primary" />
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                  <benefit.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{benefit.title}</h3>
                 <p className="text-gray-600">{benefit.description}</p>
@@ -247,7 +266,7 @@ export default function BecomeAgent() {
                       transition={{ delay: index * 0.05 }}
                       className="flex items-center gap-2"
                     >
-                      <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                       <span className="text-gray-700">{product}</span>
                     </motion.div>
                   ))}
@@ -258,10 +277,10 @@ export default function BecomeAgent() {
                 initial={{ opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="bg-heritage-primary rounded-2xl p-10 text-white"
+                className="bg-primary rounded-2xl p-10 text-white"
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <Building className="w-8 h-8 text-heritage-accent" />
+                  <Building className="w-8 h-8 text-violet-500" />
                   <h3 className="text-2xl font-bold text-white">30+ Carrier Partners</h3>
                 </div>
                 <p className="text-white/80 mb-8">
@@ -270,15 +289,15 @@ export default function BecomeAgent() {
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <Award className="w-5 h-5 text-heritage-accent" />
+                    <Award className="w-5 h-5 text-violet-500" />
                     <span className="text-white/90">All A-rated or better carriers</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Zap className="w-5 h-5 text-heritage-accent" />
+                    <Zap className="w-5 h-5 text-violet-500" />
                     <span className="text-white/90">Fast underwriting options</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Heart className="w-5 h-5 text-heritage-accent" />
+                    <Heart className="w-5 h-5 text-violet-500" />
                     <span className="text-white/90">Products for all health classes</span>
                   </div>
                 </div>
@@ -316,7 +335,7 @@ export default function BecomeAgent() {
                   transition={{ delay: index * 0.1 }}
                   className="text-center"
                 >
-                  <div className="text-5xl font-bold text-heritage-accent/30 mb-4">{step.number}</div>
+                  <div className="text-5xl font-bold text-violet-500/30 mb-4">{step.number}</div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </motion.div>
@@ -359,7 +378,7 @@ export default function BecomeAgent() {
                     required
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
                 <div>
@@ -369,7 +388,7 @@ export default function BecomeAgent() {
                     required
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -382,7 +401,7 @@ export default function BecomeAgent() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
                 <div>
@@ -392,7 +411,7 @@ export default function BecomeAgent() {
                     required
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -403,7 +422,7 @@ export default function BecomeAgent() {
                   <select
                     value={formData.experience}
                     onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   >
                     <option value="">Select experience level</option>
                     <option value="none">New to Insurance</option>
@@ -417,7 +436,7 @@ export default function BecomeAgent() {
                   <select
                     value={formData.licensed}
                     onChange={(e) => setFormData({ ...formData, licensed: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   >
                     <option value="">Select status</option>
                     <option value="yes">Yes, I'm Licensed</option>
@@ -434,7 +453,7 @@ export default function BecomeAgent() {
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Share your background, goals, or any questions you have..."
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                 />
               </div>
 
@@ -443,7 +462,7 @@ export default function BecomeAgent() {
                 disabled={isSubmitting}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 disabled:bg-heritage-accent/50 text-white py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
+                className="w-full bg-violet-500 hover:bg-violet-500/90 disabled:bg-violet-500/50 text-white py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -465,8 +484,41 @@ export default function BecomeAgent() {
         </div>
       </section>
 
+      {/* Carrier Logos */}
+      <section className="py-12 bg-[#fffaf3] border-y border-[#e8e0d5]">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center text-sm text-gray-500 mb-8">Trusted by families nationwide. We partner with 40+ A-rated carriers.</p>
+          <div className="relative overflow-hidden">
+            <div className="flex items-center">
+              <div className="flex animate-marquee-slow gap-12 items-center">
+                {carriers.map((carrier, i) => (
+                  <div key={i} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex animate-marquee-slow gap-12 items-center" aria-hidden="true">
+                {carriers.map((carrier, i) => (
+                  <div key={`dup-${i}`} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Contact CTA */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -474,7 +526,7 @@ export default function BecomeAgent() {
             viewport={{ once: true }}
             className="max-w-2xl mx-auto text-center"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Have Questions?
             </h2>
             <p className="text-gray-600 mb-8">
@@ -483,14 +535,14 @@ export default function BecomeAgent() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="tel:6307780800"
-                className="flex items-center justify-center gap-2 text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"
+                className="flex items-center justify-center gap-2 text-primary font-semibold hover:text-violet-500 transition-colors"
               >
                 <Phone className="w-5 h-5" /> (630) 778-0800
               </a>
               <span className="hidden sm:block text-gray-300">|</span>
               <a
                 href="mailto:careers@heritagels.org"
-                className="flex items-center justify-center gap-2 text-heritage-primary font-semibold hover:text-heritage-accent transition-colors"
+                className="flex items-center justify-center gap-2 text-primary font-semibold hover:text-violet-500 transition-colors"
               >
                 <Mail className="w-5 h-5" /> careers@heritagels.org
               </a>
@@ -541,7 +593,7 @@ export default function BecomeAgent() {
                   href="https://calendly.com/careers-heritagels/30min"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-3 w-full bg-heritage-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors mb-6"
+                  className="inline-flex items-center justify-center gap-3 w-full bg-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors mb-6"
                 >
                   <Calendar className="w-5 h-5" />
                   Book Your 30-Minute Call
@@ -551,7 +603,7 @@ export default function BecomeAgent() {
                   <Mail className="w-4 h-4" />
                   <span className="text-sm">
                     Questions? Email us at{" "}
-                    <a href="mailto:careers@heritagels.org" className="text-heritage-primary hover:underline">
+                    <a href="mailto:careers@heritagels.org" className="text-primary hover:underline">
                       careers@heritagels.org
                     </a>
                   </span>

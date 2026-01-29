@@ -203,7 +203,7 @@ export function MessageComposerDrawer({ open, onOpenChange, initialSubject, init
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader className="pb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
               <Send className="w-6 h-6 text-secondary" />
             </div>
             <div>

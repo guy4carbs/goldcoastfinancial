@@ -143,7 +143,7 @@ export default function AdminVideos() {
                   onClick={() => setSelectedFolder(folder.value)}
                   className={`px-4 py-2 rounded-md font-medium transition-colors ${
                     selectedFolder === folder.value
-                      ? "bg-heritage-primary text-white"
+                      ? "bg-primary text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -158,7 +158,7 @@ export default function AdminVideos() {
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="bg-white rounded-lg shadow-sm p-12 mb-6 border-2 border-dashed border-gray-300 hover:border-heritage-primary transition-colors"
+            className="bg-white rounded-lg shadow-sm p-12 mb-6 border-2 border-dashed border-gray-300 hover:border-primary transition-colors"
           >
             <div className="text-center">
               <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -176,7 +176,7 @@ export default function AdminVideos() {
                 <div className="w-full max-w-xs mx-auto mb-4">
                   <div className="bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-heritage-accent h-2 rounded-full transition-all duration-300"
+                      className="bg-violet-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -194,7 +194,7 @@ export default function AdminVideos() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="bg-heritage-primary hover:bg-heritage-primary/90 text-white px-6 py-3 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {uploading ? "Uploading..." : "Select Videos"}
               </button>

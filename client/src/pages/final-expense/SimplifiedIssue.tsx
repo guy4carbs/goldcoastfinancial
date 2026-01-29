@@ -185,28 +185,28 @@ export default function SimplifiedIssue() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Zap className="w-4 h-4" />
                 Immediate Full Coverage
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Simplified Issue
-                <span className="block text-heritage-accent">Final Expense</span>
+                <span className="block text-violet-500">Final Expense</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 No medical exam required. Just a few health questions for lower premiums and immediate full coverage from day one.
               </p>
 
@@ -219,7 +219,7 @@ export default function SimplifiedIssue() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -230,7 +230,7 @@ export default function SimplifiedIssue() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Check My Eligibility
                     <ChevronRight className="w-5 h-5" />
@@ -240,7 +240,7 @@ export default function SimplifiedIssue() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -257,14 +257,14 @@ export default function SimplifiedIssue() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Premium Estimator</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Premium Estimator</h3>
                 <p className="text-gray-600 text-sm">Simplified issue rates</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-accent font-bold">{age}</span>
+                    Your Age: <span className="text-violet-500 font-bold">{age}</span>
                   </label>
                   <input
                     type="range"
@@ -272,7 +272,7 @@ export default function SimplifiedIssue() {
                     max="85"
                     value={age}
                     onChange={(e) => setAge(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>45</span>
@@ -282,7 +282,7 @@ export default function SimplifiedIssue() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-accent font-bold">${coverage.toLocaleString()}</span>
+                    Coverage Amount: <span className="text-violet-500 font-bold">${coverage.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -291,7 +291,7 @@ export default function SimplifiedIssue() {
                     step="1000"
                     value={coverage}
                     onChange={(e) => setCoverage(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$5,000</span>
@@ -299,7 +299,7 @@ export default function SimplifiedIssue() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                   <p className="text-sm opacity-90 mb-1">Estimated Monthly Premium</p>
                   <p className="text-4xl font-bold">${estimatedPremium}</p>
                   <p className="text-xs opacity-75 mt-2">*Subject to health question answers</p>
@@ -319,7 +319,7 @@ export default function SimplifiedIssue() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Exact Quote
                   </motion.button>
@@ -331,9 +331,9 @@ export default function SimplifiedIssue() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "~80%", label: "Approval Rate" },
               { value: "Same Day", label: "Decisions" },
@@ -348,7 +348,7 @@ export default function SimplifiedIssue() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -365,10 +365,10 @@ export default function SimplifiedIssue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Choose Simplified Issue?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               The best balance of easy qualification and affordable coverage.
             </p>
           </motion.div>
@@ -378,7 +378,7 @@ export default function SimplifiedIssue() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -386,10 +386,10 @@ export default function SimplifiedIssue() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -406,10 +406,10 @@ export default function SimplifiedIssue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Pre-Qualification Health Screener
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Answer these sample questions to see your likelihood of qualifying for simplified issue coverage.
             </p>
           </motion.div>
@@ -478,7 +478,7 @@ export default function SimplifiedIssue() {
                   disabled={Object.keys(healthAnswers).length < sampleQuestions.length}
                   className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
                     Object.keys(healthAnswers).length === sampleQuestions.length
-                      ? "bg-heritage-accent hover:bg-heritage-accent/90 text-white"
+                      ? "bg-violet-500 hover:bg-violet-500/90 text-white"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
@@ -488,7 +488,7 @@ export default function SimplifiedIssue() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={resetQuiz}
-                  className="px-6 py-3 border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white rounded-lg font-semibold transition-colors"
+                  className="px-6 py-3 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-lg font-semibold transition-colors"
                 >
                   Reset
                 </motion.button>
@@ -560,7 +560,7 @@ export default function SimplifiedIssue() {
                             <motion.button
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                              className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
                             >
                               {result.recommendation === "guaranteed"
                                 ? "View Guaranteed Issue Options"
@@ -586,13 +586,13 @@ export default function SimplifiedIssue() {
       {/* Conditions That Qualify */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Conditions That Usually Qualify
               </h2>
               <p className="text-gray-600 mb-6">
@@ -630,7 +630,7 @@ export default function SimplifiedIssue() {
               viewport={{ once: true }}
               className="bg-[#fffaf3] rounded-2xl shadow-xl p-8"
             >
-              <h3 className="text-xl font-bold text-heritage-primary mb-6 text-center">
+              <h3 className="text-xl font-bold text-primary mb-6 text-center">
                 Sample Disqualifying Conditions
               </h3>
               <p className="text-gray-600 text-sm mb-4">
@@ -658,10 +658,10 @@ export default function SimplifiedIssue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Simplified vs. Guaranteed Issue
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See how simplified issue compares to guaranteed acceptance.
             </p>
           </motion.div>
@@ -674,7 +674,7 @@ export default function SimplifiedIssue() {
           >
             <table className="w-full">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="text-left p-4 font-semibold">Feature</th>
                   <th className="text-center p-4 font-semibold">Simplified Issue</th>
                   <th className="text-center p-4 font-semibold">Guaranteed Issue</th>
@@ -684,7 +684,7 @@ export default function SimplifiedIssue() {
                 {comparison.map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                     <td className="p-4 text-gray-700 font-medium">{row.feature}</td>
-                    <td className="p-4 text-center text-heritage-accent font-semibold">{row.simplified}</td>
+                    <td className="p-4 text-center text-violet-500 font-semibold">{row.simplified}</td>
                     <td className="p-4 text-center text-gray-600">{row.guaranteed}</td>
                   </tr>
                 ))}
@@ -703,12 +703,12 @@ export default function SimplifiedIssue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Simplified Issue Works
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", title: "Apply", description: "Complete short application online or by phone", icon: FileText },
               { step: "2", title: "Answer", description: "Respond to simple health questions", icon: Heart },
@@ -724,17 +724,17 @@ export default function SimplifiedIssue() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
                 {i < 3 && (
-                  <ArrowRight className="w-6 h-6 text-heritage-accent/30 mx-auto mt-4 hidden md:block" />
+                  <ArrowRight className="w-6 h-6 text-violet-500/30 mx-auto mt-4 hidden md:block" />
                 )}
               </motion.div>
             ))}
@@ -743,7 +743,7 @@ export default function SimplifiedIssue() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -753,7 +753,7 @@ export default function SimplifiedIssue() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -785,7 +785,7 @@ export default function SimplifiedIssue() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -804,8 +804,8 @@ export default function SimplifiedIssue() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -835,10 +835,10 @@ export default function SimplifiedIssue() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               See If You Qualify
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Check your eligibility in minutes. No obligation, no pressure.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -846,7 +846,7 @@ export default function SimplifiedIssue() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Check Eligibility
                   <ChevronRight className="w-5 h-5" />
@@ -856,7 +856,7 @@ export default function SimplifiedIssue() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

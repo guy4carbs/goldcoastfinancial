@@ -152,7 +152,7 @@ export default function Article() {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-white max-w-4xl leading-tight">{article.title}</h1>
             
             <div className="flex items-center gap-4 mt-8 pt-6 border-t border-white/10">
-              <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
                 <User className="w-6 h-6 text-secondary" />
               </div>
               <div>
@@ -271,7 +271,7 @@ export default function Article() {
               >
                 <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-8 md:p-10 text-center relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-50 rounded-full translate-y-1/2 -translate-x-1/2" />
                   <div className="relative z-10">
                     <h3 className="text-2xl md:text-3xl font-bold font-serif text-white mb-4">Ready to Protect Your Family?</h3>
                     <p className="text-white/80 mb-6 max-w-xl mx-auto leading-relaxed">

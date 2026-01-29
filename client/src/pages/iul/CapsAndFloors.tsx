@@ -148,28 +148,28 @@ export default function CapsAndFloors() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-start pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start pt-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Gauge className="w-4 h-4" />
                 Understanding IUL
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Caps, Floors
-                <span className="block text-heritage-accent">& Participation</span>
+                <span className="block text-violet-500">& Participation</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 The guardrails that define your IUL's growth potential and downside protection.
                 Master these concepts to maximize your policy's performance.
               </p>
@@ -183,7 +183,7 @@ export default function CapsAndFloors() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -194,7 +194,7 @@ export default function CapsAndFloors() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your IUL Quote
                     <ChevronRight className="w-5 h-5" />
@@ -204,7 +204,7 @@ export default function CapsAndFloors() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to a Specialist
@@ -221,7 +221,7 @@ export default function CapsAndFloors() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Cap & Floor Visualizer</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Cap & Floor Visualizer</h3>
                 <p className="text-gray-600 text-sm">See how caps and floors protect your returns</p>
               </div>
 
@@ -236,7 +236,7 @@ export default function CapsAndFloors() {
                     max="35"
                     value={marketReturn}
                     onChange={(e) => setMarketReturn(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>-30%</span>
@@ -246,7 +246,7 @@ export default function CapsAndFloors() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cap Rate: <span className="text-heritage-accent font-bold">{cap}%</span>
+                    Cap Rate: <span className="text-violet-500 font-bold">{cap}%</span>
                   </label>
                   <input
                     type="range"
@@ -254,7 +254,7 @@ export default function CapsAndFloors() {
                     max="14"
                     value={cap}
                     onChange={(e) => setCap(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>6%</span>
@@ -264,7 +264,7 @@ export default function CapsAndFloors() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Floor Rate: <span className="text-heritage-accent font-bold">{floor}%</span>
+                    Floor Rate: <span className="text-violet-500 font-bold">{floor}%</span>
                   </label>
                   <input
                     type="range"
@@ -273,7 +273,7 @@ export default function CapsAndFloors() {
                     step="0.5"
                     value={floor}
                     onChange={(e) => setFloor(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>0%</span>
@@ -281,9 +281,9 @@ export default function CapsAndFloors() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white text-center">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white text-center">
                   <p className="text-sm opacity-90 mb-1">Your Credited Rate</p>
-                  <p className="text-4xl font-bold text-heritage-accent">{creditedRate.toFixed(1)}%</p>
+                  <p className="text-4xl font-bold text-violet-500">{creditedRate.toFixed(1)}%</p>
                   <p className="text-xs opacity-75 mt-2">
                     {marketReturn < 0 ? (
                       <span className="flex items-center justify-center gap-1">
@@ -329,7 +329,7 @@ export default function CapsAndFloors() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Your Personalized Quote
                   </motion.button>
@@ -341,9 +341,9 @@ export default function CapsAndFloors() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "8-14%", label: "Typical Cap Range" },
               { value: "0%", label: "Common Floor" },
@@ -358,7 +358,7 @@ export default function CapsAndFloors() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -375,10 +375,10 @@ export default function CapsAndFloors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               The Power of Caps & Floors
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Understanding these key concepts helps you make the most of your IUL policy.
             </p>
           </motion.div>
@@ -388,7 +388,7 @@ export default function CapsAndFloors() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -396,10 +396,10 @@ export default function CapsAndFloors() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -416,10 +416,10 @@ export default function CapsAndFloors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               5-Year Real-World Comparison
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               See how a {cap}% cap with {floor}% floor would have performed vs. direct S&P 500 investment.
             </p>
           </motion.div>
@@ -431,7 +431,7 @@ export default function CapsAndFloors() {
             className="max-w-4xl mx-auto"
           >
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 {/* IUL Side */}
                 <div className="bg-green-50 rounded-xl p-6 border-2 border-green-200">
                   <div className="flex items-center gap-3 mb-4">
@@ -500,8 +500,8 @@ export default function CapsAndFloors() {
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-heritage-accent/10 rounded-lg">
-                <p className="text-center text-heritage-primary font-medium">
+              <div className="mt-6 p-4 bg-violet-500/10 rounded-lg">
+                <p className="text-center text-primary font-medium">
                   <span className="font-bold">Key Insight:</span> The IUL provided smoother, more predictable growth.
                   In 2022, when the market dropped 19.4%, IUL holders were protected while direct investors lost money.
                 </p>
@@ -514,13 +514,13 @@ export default function CapsAndFloors() {
       {/* Who Is This For */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Ideal For Those Who...
               </h2>
               <div className="space-y-4">
@@ -533,7 +533,7 @@ export default function CapsAndFloors() {
                     transition={{ delay: i * 0.1 }}
                     className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm"
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -559,7 +559,7 @@ export default function CapsAndFloors() {
                     <Shield className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary">Protected</p>
+                    <p className="font-bold text-primary">Protected</p>
                     <p className="text-xs text-gray-500">0% floor guarantee</p>
                   </div>
                 </div>
@@ -578,12 +578,12 @@ export default function CapsAndFloors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Caps & Floors Work
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {howItWorks.map((item, i) => (
               <motion.div
                 key={i}
@@ -594,17 +594,17 @@ export default function CapsAndFloors() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
                 {i < 3 && (
-                  <ArrowRight className="w-6 h-6 text-heritage-accent/30 mx-auto mt-4 hidden md:block" />
+                  <ArrowRight className="w-6 h-6 text-violet-500/30 mx-auto mt-4 hidden md:block" />
                 )}
               </motion.div>
             ))}
@@ -613,7 +613,7 @@ export default function CapsAndFloors() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -623,7 +623,7 @@ export default function CapsAndFloors() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -656,7 +656,7 @@ export default function CapsAndFloors() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -675,8 +675,8 @@ export default function CapsAndFloors() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -706,10 +706,10 @@ export default function CapsAndFloors() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Ready for Protected Growth?
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               See current cap rates and find the IUL that fits your goals. Get a personalized illustration today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -717,7 +717,7 @@ export default function CapsAndFloors() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free IUL Quote
                   <ChevronRight className="w-5 h-5" />
@@ -727,7 +727,7 @@ export default function CapsAndFloors() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

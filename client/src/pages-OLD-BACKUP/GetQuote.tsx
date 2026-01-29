@@ -135,7 +135,7 @@ export default function GetQuote() {
         <div className="bg-muted/30 min-h-screen py-12 flex items-center justify-center">
           <Card className="max-w-2xl w-full mx-4 text-center">
             <CardContent className="pt-12 pb-12">
-              <div className="w-20 h-20 bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Shield className="w-10 h-10 text-secondary" />
               </div>
               <h2 className="text-3xl font-bold font-serif text-primary mb-4">Thank You!</h2>

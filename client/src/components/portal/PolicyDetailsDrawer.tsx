@@ -204,7 +204,7 @@ export function PolicyDetailsDrawer({ open, onOpenChange, policy, onRequestChang
                 <p className="text-2xl font-bold">{policyDetails.deathBenefit}</p>
               </CardContent>
             </Card>
-            <Card className="bg-secondary/10 border-secondary/20">
+            <Card className="bg-violet-50 border-violet-200/20">
               <CardContent className="p-4">
                 <p className="text-muted-foreground text-xs mb-1">Monthly Premium</p>
                 <p className="text-2xl font-bold text-primary">{policy.premium}</p>

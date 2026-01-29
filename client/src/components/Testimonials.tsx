@@ -176,9 +176,9 @@ export default function Testimonials({ variant = "carousel" }: TestimonialsProps
   if (variant === "featured") {
     const featured = testimonials[0];
     return (
-      <div className="bg-heritage-primary/5 rounded-2xl p-8">
+      <div className="bg-primary/5 rounded-2xl p-8">
         <div className="flex items-start gap-4">
-          <Quote className="w-10 h-10 text-heritage-primary/30 flex-shrink-0" />
+          <Quote className="w-10 h-10 text-primary/30 flex-shrink-0" />
           <div>
             <p className="text-lg text-gray-700 mb-4">"{featured.text}"</p>
             <div className="flex items-center gap-3">
@@ -248,7 +248,7 @@ export default function Testimonials({ variant = "carousel" }: TestimonialsProps
               transition={{ duration: 0.3 }}
               className="bg-[#f5f0e8] rounded-2xl p-8 md:p-12"
             >
-              <Quote className="w-12 h-12 text-heritage-primary/20 mb-6" />
+              <Quote className="w-12 h-12 text-primary/20 mb-6" />
 
               <p className="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed">
                 "{testimonials[currentIndex].text}"
@@ -303,7 +303,7 @@ export default function Testimonials({ variant = "carousel" }: TestimonialsProps
                 }}
                 className={`w-2 h-2 rounded-full transition-all ${
                   index === currentIndex
-                    ? "bg-heritage-primary w-6"
+                    ? "bg-primary w-6"
                     : "bg-gray-300 hover:bg-gray-400"
                 }`}
               />
@@ -319,7 +319,7 @@ export default function Testimonials({ variant = "carousel" }: TestimonialsProps
 export function MiniTestimonial() {
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
-      <Quote className="w-8 h-8 text-heritage-primary/20 flex-shrink-0" />
+      <Quote className="w-8 h-8 text-primary/20 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-700 line-clamp-2">
           "Got approved in 10 minutes with no medical exam. The rate was better than quotes I got from local agents."

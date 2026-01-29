@@ -119,7 +119,8 @@ export default function Careers() {
     email: "",
     phone: "",
     linkedin: "",
-    message: ""
+    experience: "",
+    whyJoinUs: ""
   });
 
   const handleOpenModal = (position: typeof openPositions[0]) => {
@@ -131,7 +132,8 @@ export default function Careers() {
       email: "",
       phone: "",
       linkedin: "",
-      message: ""
+      experience: "",
+      whyJoinUs: ""
     });
   };
 
@@ -164,8 +166,8 @@ export default function Careers() {
           phone: formData.phone,
           position: selectedPosition?.title || 'General Application',
           linkedIn: formData.linkedin || null,
-          experience: formData.message,
-          whyJoinUs: formData.message,
+          experience: formData.experience,
+          whyJoinUs: formData.whyJoinUs,
           hasLicense: false,
         }),
       });
@@ -188,15 +190,15 @@ export default function Careers() {
       <Header />
 
       {/* HERO SECTION */}
-      <section className="bg-heritage-primary py-20 md:py-28">
+      <section className="bg-primary py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
           >
-            <p className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">Careers</p>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <p className="text-violet-500 font-semibold mb-4 tracking-wide uppercase text-sm">Careers</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
               Build your career protecting families
             </h1>
             <p className="text-xl text-white/80 leading-relaxed max-w-3xl mx-auto mb-10">
@@ -204,7 +206,7 @@ export default function Careers() {
             </p>
             <a
               href="#positions"
-              className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               View Open Positions
             </a>
@@ -213,7 +215,7 @@ export default function Careers() {
       </section>
 
       {/* WHY HERITAGE */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
             className="text-center mb-16"
@@ -222,14 +224,14 @@ export default function Careers() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Why Heritage?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">Why Heritage?</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               We've built a company where talented people can do meaningful work while advancing their careers.
             </p>
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -239,10 +241,10 @@ export default function Careers() {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-[#f5f0e8] rounded-2xl p-8 text-center hover:shadow-lg transition-shadow"
+                className="bg-[#f5f0e8] rounded-2xl p-4 md:p-6 lg:p-8 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-primary/10 rounded-xl flex items-center justify-center mb-5 mx-auto">
-                  <benefit.icon className="w-7 h-7 text-heritage-primary" />
+                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-5 mx-auto">
+                  <benefit.icon className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{benefit.description}</p>
@@ -253,7 +255,7 @@ export default function Careers() {
       </section>
 
       {/* OUR VALUES */}
-      <section className="bg-[#f5f0e8] py-24">
+      <section className="bg-[#f5f0e8] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
@@ -263,14 +265,14 @@ export default function Careers() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">What We Stand For</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">What We Stand For</h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-8">
                 Our culture isn't just words on a wall—it's how we operate every day. We're looking for people who align with these principles.
               </p>
               <div className="space-y-6">
                 {values.map((value, index) => (
                   <div key={index} className="flex gap-4">
-                    <div className="w-2 h-2 bg-heritage-accent rounded-full mt-3 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-violet-500 rounded-full mt-3 flex-shrink-0"></div>
                     <div>
                       <h3 className="text-lg font-bold text-gray-900 mb-1">{value.title}</h3>
                       <p className="text-gray-600">{value.description}</p>
@@ -326,7 +328,7 @@ export default function Careers() {
       </section>
 
       {/* APPLICATION PROCESS */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-5xl mx-auto px-6">
           <motion.div
             className="text-center mb-16"
@@ -335,7 +337,7 @@ export default function Careers() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Application Process</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">Application Process</h2>
             <p className="text-xl text-gray-600">What to Expect</p>
             <p className="text-gray-500 mt-4 max-w-2xl mx-auto">
               We value your time. Our process is quick, transparent, and respectful.
@@ -343,7 +345,7 @@ export default function Careers() {
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -355,7 +357,7 @@ export default function Careers() {
                 variants={fadeInUp}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-heritage-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                <div className="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
                   {step.number}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
@@ -376,7 +378,7 @@ export default function Careers() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Open Positions</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">Open Positions</h2>
             <p className="text-xl text-gray-600">
               Find the role that's right for you.
             </p>
@@ -394,16 +396,16 @@ export default function Careers() {
                 key={index}
                 variants={fadeInUp}
                 onClick={() => handleOpenModal(position)}
-                className="bg-white rounded-2xl p-6 border border-[#e8e0d5] hover:shadow-lg hover:border-heritage-primary/30 transition-all group cursor-pointer"
+                className="bg-white rounded-2xl p-6 border border-[#e8e0d5] hover:shadow-lg hover:border-primary/30 transition-all group cursor-pointer"
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xs font-semibold text-heritage-accent bg-heritage-accent/10 px-3 py-1 rounded-full">
+                      <span className="text-xs font-semibold text-violet-500 bg-violet-500/10 px-3 py-1 rounded-full">
                         {position.department}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-heritage-primary transition-colors">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
                       {position.title}
                     </h3>
                     <p className="text-gray-600 text-sm mb-3">{position.description}</p>
@@ -419,8 +421,8 @@ export default function Careers() {
                     </div>
                   </div>
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-heritage-primary/10 group-hover:bg-heritage-primary rounded-full flex items-center justify-center transition-colors">
-                      <ChevronRight className="w-5 h-5 text-heritage-primary group-hover:text-white transition-colors" />
+                    <div className="w-10 h-10 bg-primary/10 group-hover:bg-primary rounded-full flex items-center justify-center transition-colors">
+                      <ChevronRight className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
                     </div>
                   </div>
                 </div>
@@ -439,7 +441,7 @@ export default function Careers() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <Briefcase className="w-12 h-12 text-heritage-accent mx-auto mb-6" />
+            <Briefcase className="w-12 h-12 text-violet-500 mx-auto mb-6" />
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Don't see the right role?
             </h2>
@@ -448,7 +450,7 @@ export default function Careers() {
             </p>
             <a
               href="mailto:careers@heritagels.org"
-              className="inline-block bg-heritage-primary hover:bg-heritage-dark text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
+              className="inline-block bg-primary hover:bg-heritage-dark text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               Send Your Resume
             </a>
@@ -457,7 +459,7 @@ export default function Careers() {
       </section>
 
       {/* MEET THE TEAM CTA */}
-      <section className="bg-heritage-primary py-20">
+      <section className="bg-primary py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
@@ -465,7 +467,7 @@ export default function Careers() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 text-balance">
               Meet the team you'd be joining
             </h2>
             <p className="text-xl text-white/80 mb-10">
@@ -473,7 +475,7 @@ export default function Careers() {
             </p>
             <a
               href="/about/founders"
-              className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               Meet Our Team
             </a>
@@ -506,7 +508,7 @@ export default function Careers() {
                   <div className="p-6 border-b border-[#e8e0d5]">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-heritage-accent font-semibold text-sm mb-1">Step 1</p>
+                        <p className="text-violet-500 font-semibold text-sm mb-1">Step 1</p>
                         <h3 className="text-2xl font-bold text-gray-900">Apply for this position</h3>
                         <p className="text-gray-600 mt-1">{selectedPosition.title}</p>
                       </div>
@@ -521,7 +523,7 @@ export default function Careers() {
 
                   {/* Form Body */}
                   <form onSubmit={handleSubmitApplication} className="p-6 space-y-5">
-                    <div className="grid md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           First Name *
@@ -532,7 +534,7 @@ export default function Careers() {
                           value={formData.firstName}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                          className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                           placeholder="John"
                         />
                       </div>
@@ -546,7 +548,7 @@ export default function Careers() {
                           value={formData.lastName}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                          className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                           placeholder="Smith"
                         />
                       </div>
@@ -562,7 +564,7 @@ export default function Careers() {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -577,7 +579,7 @@ export default function Careers() {
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="(555) 123-4567"
                       />
                     </div>
@@ -591,8 +593,23 @@ export default function Careers() {
                         name="linkedin"
                         value={formData.linkedin}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="https://linkedin.com/in/yourprofile"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Relevant Experience *
+                      </label>
+                      <textarea
+                        name="experience"
+                        value={formData.experience}
+                        onChange={handleInputChange}
+                        required
+                        rows={3}
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                        placeholder="Briefly describe your relevant experience..."
                       />
                     </div>
 
@@ -601,20 +618,20 @@ export default function Careers() {
                         Why do you want to join Heritage? *
                       </label>
                       <textarea
-                        name="message"
-                        value={formData.message}
+                        name="whyJoinUs"
+                        value={formData.whyJoinUs}
                         onChange={handleInputChange}
                         required
-                        rows={4}
-                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all resize-none"
-                        placeholder="Tell us about yourself and why you'd be a great fit..."
+                        rows={3}
+                        className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                        placeholder="Tell us why you'd be a great fit..."
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-heritage-primary hover:bg-heritage-dark disabled:bg-heritage-primary/50 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+                      className="w-full bg-primary hover:bg-heritage-dark disabled:bg-primary/50 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? (
                         <>
@@ -636,7 +653,7 @@ export default function Careers() {
                   <div className="p-6 border-b border-[#e8e0d5]">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-heritage-accent font-semibold text-sm mb-1">Step 2</p>
+                        <p className="text-violet-500 font-semibold text-sm mb-1">Step 2</p>
                         <h3 className="text-2xl font-bold text-gray-900">Now Book Your Call</h3>
                       </div>
                       <button
@@ -662,7 +679,7 @@ export default function Careers() {
                       href="https://calendly.com/careers-heritagels/30min"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-3 w-full bg-heritage-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors mb-6"
+                      className="inline-flex items-center justify-center gap-3 w-full bg-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors mb-6"
                     >
                       <Calendar className="w-5 h-5" />
                       Book Your 30-Minute Call
@@ -672,7 +689,7 @@ export default function Careers() {
                       <Mail className="w-4 h-4" />
                       <span className="text-sm">
                         Questions? Email us at{" "}
-                        <a href="mailto:careers@heritagels.org" className="text-heritage-primary hover:underline">
+                        <a href="mailto:careers@heritagels.org" className="text-primary hover:underline">
                           careers@heritagels.org
                         </a>
                       </span>

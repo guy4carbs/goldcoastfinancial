@@ -239,31 +239,31 @@ export default function PolicyLoans() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] py-20 md:py-28 overflow-hidden">
         {/* Decorative blur circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-heritage-accent/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-heritage-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial="initial"
               animate="animate"
               variants={staggerContainer}
             >
-              <motion.p variants={fadeInUp} className="text-heritage-primary font-semibold mb-4 tracking-wide uppercase text-sm">
+              <motion.p variants={fadeInUp} className="text-primary font-semibold mb-4 tracking-wide uppercase text-sm">
                 Whole Life Insurance
               </motion.p>
-              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight text-balance">
                 Policy Loans:
-                <span className="text-heritage-primary"> Your Built-In Bank</span>
+                <span className="text-primary"> Your Built-In Bank</span>
               </motion.h1>
-              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
                 Borrow against your cash value anytime. No credit check, no approval, no fixed repayment schedule.
               </motion.p>
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     href="/quote"
-                    className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                    className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                   >
                     Get Your Free Quote <ArrowRight className="w-5 h-5" />
                   </Link>
@@ -271,7 +271,7 @@ export default function PolicyLoans() {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <a
                     href="tel:6307780800"
-                    className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                    className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                   >
                     <Phone className="w-5 h-5" /> Speak to an Advisor
                   </a>
@@ -288,8 +288,8 @@ export default function PolicyLoans() {
             >
               <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-heritage-primary/10 rounded-xl">
-                    <Calculator className="w-8 h-8 text-heritage-primary" />
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <Calculator className="w-8 h-8 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">Policy Loan Calculator</h3>
@@ -300,7 +300,7 @@ export default function PolicyLoans() {
                 <div className="space-y-6 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Cash Value: <span className="text-heritage-primary font-bold">${cashValue.toLocaleString()}</span>
+                      Your Cash Value: <span className="text-primary font-bold">${cashValue.toLocaleString()}</span>
                     </label>
                     <input
                       type="range"
@@ -315,13 +315,13 @@ export default function PolicyLoans() {
                           setLoanAmount(Math.floor(newCV * 0.9));
                         }
                       }}
-                      className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Loan Amount: <span className="text-heritage-primary font-bold">${loanAmount.toLocaleString()}</span>
+                      Loan Amount: <span className="text-primary font-bold">${loanAmount.toLocaleString()}</span>
                     </label>
                     <input
                       type="range"
@@ -330,16 +330,16 @@ export default function PolicyLoans() {
                       step="1000"
                       value={loanAmount}
                       onChange={(e) => setLoanAmount(parseInt(e.target.value))}
-                      className="w-full accent-heritage-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-primary h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
                     <p className="text-xs text-gray-500 mt-1">Max available: ${maxLoan.toLocaleString()}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div className="bg-gray-50 rounded-xl p-4 text-center">
                     <p className="text-gray-500 text-xs mb-1">Remaining Net Cash Value</p>
-                    <p className="text-xl font-bold text-heritage-primary">${remainingCashValue.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-primary">${remainingCashValue.toLocaleString()}</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4 text-center">
                     <p className="text-gray-500 text-xs mb-1">Year 1 Interest (6%)</p>
@@ -347,7 +347,7 @@ export default function PolicyLoans() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-heritage-primary/5 rounded-xl">
+                <div className="p-4 bg-primary/5 rounded-xl">
                   <p className="text-sm text-gray-600">
                     <strong>Note:</strong> If unpaid, death benefit reduced by ~${deathBenefitReduction.toLocaleString()} after year 1.
                   </p>
@@ -359,9 +359,9 @@ export default function PolicyLoans() {
       </section>
 
       {/* Trust Stats Bar */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {trustStats.map((stat, index) => (
               <motion.div
                 key={index}
@@ -383,20 +383,20 @@ export default function PolicyLoans() {
       {/* What is a Policy Loan */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
             <motion.div
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               variants={staggerContainer}
             >
-              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
                 What is a Policy Loan?
               </motion.h2>
-              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-6 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-6 leading-relaxed text-pretty">
                 A policy loan lets you borrow money from your life insurance company, using your cash value as collateral. It's not technically a withdrawal—you're borrowing against your own asset.
               </motion.p>
-              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <motion.p variants={fadeInUp} className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Unlike bank loans, there's no application, no credit check, and no set repayment schedule. Your cash value guarantees the loan, so approval is automatic.
               </motion.p>
 
@@ -410,7 +410,7 @@ export default function PolicyLoans() {
                   "Coverage remains in force"
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-heritage-primary flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </div>
                 ))}
@@ -443,10 +443,10 @@ export default function PolicyLoans() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               How Policy Loans Work
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Four simple steps to access your cash.
             </motion.p>
           </motion.div>
@@ -456,7 +456,7 @@ export default function PolicyLoans() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
           >
             {loanProcess.map((step, index) => (
               <motion.div
@@ -466,17 +466,17 @@ export default function PolicyLoans() {
               >
                 <div className="bg-white rounded-xl p-8 border border-gray-200 h-full hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
                       {step.step}
                     </div>
-                    <span className="text-sm font-medium text-heritage-primary">{step.time}</span>
+                    <span className="text-sm font-medium text-primary">{step.time}</span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
                 {index < loanProcess.length - 1 && (
                   <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-heritage-primary/30" />
+                    <ArrowRight className="w-8 h-8 text-primary/30" />
                   </div>
                 )}
               </motion.div>
@@ -488,7 +488,7 @@ export default function PolicyLoans() {
       {/* Advantages & Risks */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
             {/* Advantages */}
             <motion.div
               initial="initial"
@@ -578,10 +578,10 @@ export default function PolicyLoans() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Policy Loan vs. Withdrawal
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Two ways to access cash value—different trade-offs.
             </motion.p>
           </motion.div>
@@ -592,7 +592,7 @@ export default function PolicyLoans() {
             viewport={{ once: true }}
             className="bg-white rounded-xl shadow-lg overflow-hidden max-w-4xl mx-auto border border-gray-200"
           >
-            <div className="grid grid-cols-3 bg-heritage-primary text-white p-4 font-semibold">
+            <div className="grid grid-cols-3 bg-primary text-white p-4 font-semibold">
               <div>Feature</div>
               <div className="text-center">Policy Loan</div>
               <div className="text-center">Withdrawal</div>
@@ -603,7 +603,7 @@ export default function PolicyLoans() {
                 className={`grid grid-cols-3 p-4 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
               >
                 <div className="font-medium text-gray-900">{row.feature}</div>
-                <div className="text-center text-heritage-primary font-semibold">{row.loan}</div>
+                <div className="text-center text-primary font-semibold">{row.loan}</div>
                 <div className="text-center text-gray-600">{row.withdrawal}</div>
               </div>
             ))}
@@ -621,10 +621,10 @@ export default function PolicyLoans() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Common Uses for Policy Loans
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 max-w-3xl mx-auto text-pretty">
               Your money, your reasons. No questions asked.
             </motion.p>
           </motion.div>
@@ -634,7 +634,7 @@ export default function PolicyLoans() {
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
           >
             {commonUses.map((use, index) => (
               <motion.div
@@ -642,8 +642,8 @@ export default function PolicyLoans() {
                 variants={fadeInUp}
                 className="bg-white rounded-xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl transition-shadow"
               >
-                <div className="p-4 bg-heritage-primary/10 rounded-full w-fit mx-auto mb-6">
-                  <use.icon className="w-8 h-8 text-heritage-primary" />
+                <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto mb-6">
+                  <use.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{use.title}</h3>
                 <p className="text-gray-600">{use.description}</p>
@@ -654,7 +654,7 @@ export default function PolicyLoans() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -673,14 +673,14 @@ export default function PolicyLoans() {
               <div className="text-center md:text-left">
                 <div className="flex justify-center md:justify-start gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-6 h-6 text-heritage-accent fill-heritage-accent" />
+                    <Star key={i} className="w-6 h-6 text-violet-500 fill-violet-500" />
                   ))}
                 </div>
                 <blockquote className="text-xl md:text-2xl text-white mb-6 italic leading-relaxed">
                   "My furnace died in January. Banks wanted to run credit and take weeks. I called my insurer at 9am, and $8,000 was in my account by Friday. No forms, no hassle."
                 </blockquote>
                 <div className="flex items-center justify-center md:justify-start gap-3">
-                  <Award className="w-6 h-6 text-heritage-accent" />
+                  <Award className="w-6 h-6 text-violet-500" />
                   <div>
                     <p className="font-semibold text-white">James M.</p>
                     <p className="text-white/70">Policyholder Since 2015</p>
@@ -701,10 +701,10 @@ export default function PolicyLoans() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Loan Impact Calculator
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8 text-pretty">
               See exactly how a policy loan affects your death benefit over time if left unpaid.
             </p>
 
@@ -712,7 +712,7 @@ export default function PolicyLoans() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowLoanCalculator(!showLoanCalculator)}
-              className="bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold inline-flex items-center gap-2 shadow-lg"
             >
               <Calculator className="w-5 h-5" />
               {showLoanCalculator ? 'Hide Calculator' : 'Calculate Loan Impact'}
@@ -730,12 +730,12 @@ export default function PolicyLoans() {
               >
                 <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
                   {/* Input Controls */}
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Death Benefit
                       </label>
-                      <p className="text-2xl font-bold text-heritage-primary mb-2">${deathBenefit.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-primary mb-2">${deathBenefit.toLocaleString()}</p>
                       <input
                         type="range"
                         min="100000"
@@ -743,7 +743,7 @@ export default function PolicyLoans() {
                         step="25000"
                         value={deathBenefit}
                         onChange={(e) => setDeathBenefit(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-primary"
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                       />
                     </div>
 
@@ -751,7 +751,7 @@ export default function PolicyLoans() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Loan Amount
                       </label>
-                      <p className="text-2xl font-bold text-heritage-accent mb-2">${loanAmount.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-violet-500 mb-2">${loanAmount.toLocaleString()}</p>
                       <input
                         type="range"
                         min="5000"
@@ -759,7 +759,7 @@ export default function PolicyLoans() {
                         step="1000"
                         value={loanAmount}
                         onChange={(e) => setLoanAmount(parseInt(e.target.value))}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                       />
                     </div>
 
@@ -798,7 +798,7 @@ export default function PolicyLoans() {
 
                   {/* Visual Timeline */}
                   <div className="mb-8">
-                    <h4 className="text-lg font-semibold text-heritage-primary mb-6">Death Benefit Impact Over Time</h4>
+                    <h4 className="text-lg font-semibold text-primary mb-6">Death Benefit Impact Over Time</h4>
                     <div className="space-y-3">
                       {loanTimeline.map((data, index) => {
                         const benefitWidth = (data.netDeathBenefit / deathBenefit) * 100;
@@ -842,7 +842,7 @@ export default function PolicyLoans() {
                   </div>
 
                   {/* Summary Stats */}
-                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -850,7 +850,7 @@ export default function PolicyLoans() {
                       className="bg-gray-50 rounded-xl p-5 text-center"
                     >
                       <p className="text-gray-500 text-sm mb-1">Original Loan</p>
-                      <p className="text-2xl font-bold text-heritage-primary">${loanAmount.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-primary">${loanAmount.toLocaleString()}</p>
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -926,10 +926,10 @@ export default function PolicyLoans() {
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Frequently Asked Questions
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-gray-600">
+            <motion.p variants={fadeInUp} className="text-lg text-gray-600 text-pretty">
               Common questions about policy loans.
             </motion.p>
           </motion.div>
@@ -953,7 +953,7 @@ export default function PolicyLoans() {
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-6 h-6 text-heritage-primary flex-shrink-0 transition-transform duration-200 ${
+                    className={`w-6 h-6 text-primary flex-shrink-0 transition-transform duration-200 ${
                       openFaq === index ? "rotate-180" : ""
                     }`}
                   />
@@ -985,17 +985,17 @@ export default function PolicyLoans() {
             viewport={{ once: true }}
             variants={staggerContainer}
           >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
               Build Your Financial Safety Net
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
               Whole life gives you protection and access to cash when you need it.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href="/quote"
-                  className="inline-flex items-center gap-2 bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/90 transition-colors"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -1003,7 +1003,7 @@ export default function PolicyLoans() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <a
                   href="tel:6307780800"
-                  className="inline-flex items-center gap-2 bg-white text-heritage-primary border-2 border-heritage-primary px-8 py-4 rounded-lg font-semibold hover:bg-heritage-primary/5 transition-colors"
+                  className="inline-flex items-center gap-2 bg-white text-primary border-2 border-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary/5 transition-colors"
                 >
                   <Phone className="w-5 h-5" /> Call (630) 778-0800
                 </a>

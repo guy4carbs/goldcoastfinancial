@@ -380,28 +380,28 @@ export default function TermLengths() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Clock className="w-4 h-4" />
                 Term Length Guide
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 10, 15, 20, 25, or 30 Years?
-                <span className="block text-heritage-accent">Choose Wisely.</span>
+                <span className="block text-violet-500">Choose Wisely.</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 The right term protects your family when they need it—without overpaying.
               </p>
 
@@ -414,7 +414,7 @@ export default function TermLengths() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -425,7 +425,7 @@ export default function TermLengths() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Your Quote
                     <ChevronRight className="w-5 h-5" />
@@ -435,7 +435,7 @@ export default function TermLengths() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Advisor
@@ -452,14 +452,14 @@ export default function TermLengths() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Term Comparison</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Term Comparison</h3>
                 <p className="text-gray-600 text-sm">$500K coverage rates</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-accent font-bold">{age}</span>
+                    Your Age: <span className="text-violet-500 font-bold">{age}</span>
                   </label>
                   <input
                     type="range"
@@ -467,7 +467,7 @@ export default function TermLengths() {
                     max="55"
                     value={age}
                     onChange={(e) => setAge(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>25</span>
@@ -486,8 +486,8 @@ export default function TermLengths() {
                         whileTap={{ scale: 0.98 }}
                         className={`py-3 rounded-lg text-sm font-medium transition-all ${
                           selectedTerm === term
-                            ? 'bg-heritage-primary text-white shadow-lg'
-                            : 'bg-[#f5f0e8] text-gray-700 hover:bg-heritage-primary/10'
+                            ? 'bg-primary text-white shadow-lg'
+                            : 'bg-[#f5f0e8] text-gray-700 hover:bg-primary/10'
                         }`}
                       >
                         {term}yr
@@ -501,20 +501,20 @@ export default function TermLengths() {
                     <div
                       key={term}
                       className={`flex justify-between items-center p-3 rounded-xl transition-all ${
-                        selectedTerm === term ? 'bg-heritage-primary/10 border-2 border-heritage-primary' : 'bg-[#f5f0e8]'
+                        selectedTerm === term ? 'bg-primary/10 border-2 border-primary' : 'bg-[#f5f0e8]'
                       }`}
                     >
-                      <span className={`font-medium ${selectedTerm === term ? 'text-heritage-primary' : 'text-gray-700'}`}>
+                      <span className={`font-medium ${selectedTerm === term ? 'text-primary' : 'text-gray-700'}`}>
                         {term}-Year Term
                       </span>
-                      <span className={`font-bold text-lg ${selectedTerm === term ? 'text-heritage-primary' : 'text-gray-900'}`}>
+                      <span className={`font-bold text-lg ${selectedTerm === term ? 'text-primary' : 'text-gray-900'}`}>
                         ${getRateByTerm(term)}/mo
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-4 text-white text-center">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-4 text-white text-center">
                   <p className="text-sm opacity-90">Coverage ends at age</p>
                   <p className="text-3xl font-bold">{age + selectedTerm}</p>
                 </div>
@@ -523,7 +523,7 @@ export default function TermLengths() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Exact Quote
                   </motion.button>
@@ -535,7 +535,7 @@ export default function TermLengths() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {trustStats.map((stat, i) => (
@@ -547,7 +547,7 @@ export default function TermLengths() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -564,10 +564,10 @@ export default function TermLengths() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Find Your Ideal Term Length
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Answer a few questions and we'll recommend the best term length for your situation.
             </p>
           </motion.div>
@@ -579,10 +579,10 @@ export default function TermLengths() {
               viewport={{ once: true }}
               className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
             >
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Age: <span className="text-heritage-accent font-bold">{recAge}</span>
+                    Your Age: <span className="text-violet-500 font-bold">{recAge}</span>
                   </label>
                   <input
                     type="range"
@@ -590,7 +590,7 @@ export default function TermLengths() {
                     max="60"
                     value={recAge}
                     onChange={(e) => { setRecAge(Number(e.target.value)); setShowRecommendation(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>25</span>
@@ -600,7 +600,7 @@ export default function TermLengths() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-accent font-bold">{formatCurrency(recCoverage)}</span>
+                    Coverage Amount: <span className="text-violet-500 font-bold">{formatCurrency(recCoverage)}</span>
                   </label>
                   <input
                     type="range"
@@ -609,7 +609,7 @@ export default function TermLengths() {
                     step="50000"
                     value={recCoverage}
                     onChange={(e) => { setRecCoverage(Number(e.target.value)); setShowRecommendation(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$100K</span>
@@ -619,7 +619,7 @@ export default function TermLengths() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Years Left on Mortgage: <span className="text-heritage-accent font-bold">{mortgageYears} years</span>
+                    Years Left on Mortgage: <span className="text-violet-500 font-bold">{mortgageYears} years</span>
                   </label>
                   <input
                     type="range"
@@ -627,7 +627,7 @@ export default function TermLengths() {
                     max="30"
                     value={mortgageYears}
                     onChange={(e) => { setMortgageYears(Number(e.target.value)); setShowRecommendation(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>0 (paid off)</span>
@@ -637,7 +637,7 @@ export default function TermLengths() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Youngest Child's Age: <span className="text-heritage-accent font-bold">{youngestChildAge === 0 ? 'No children' : `${youngestChildAge} years`}</span>
+                    Youngest Child's Age: <span className="text-violet-500 font-bold">{youngestChildAge === 0 ? 'No children' : `${youngestChildAge} years`}</span>
                   </label>
                   <input
                     type="range"
@@ -645,7 +645,7 @@ export default function TermLengths() {
                     max="25"
                     value={youngestChildAge}
                     onChange={(e) => { setYoungestChildAge(Number(e.target.value)); setShowRecommendation(false); }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>None</span>
@@ -658,7 +658,7 @@ export default function TermLengths() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={calculateRecommendation}
-                className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <Target className="w-5 h-5" />
                 Get My Term Recommendation
@@ -674,7 +674,7 @@ export default function TermLengths() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-gradient-to-br from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                    <div className="bg-gradient-to-br from-primary to-primary/90 rounded-xl p-6 text-white">
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -686,7 +686,7 @@ export default function TermLengths() {
                           initial={{ scale: 0.5, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                          className="text-6xl font-bold text-heritage-accent"
+                          className="text-6xl font-bold text-violet-500"
                         >
                           {recommendation.primaryTerm}
                           <span className="text-3xl ml-1">years</span>
@@ -713,10 +713,10 @@ export default function TermLengths() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 }}
-                        className="p-4 bg-heritage-accent/20 rounded-lg border border-heritage-accent/30 mb-4"
+                        className="p-4 bg-violet-500/20 rounded-lg border border-violet-500/30 mb-4"
                       >
                         <div className="flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0 mt-0.5" />
+                          <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0 mt-0.5" />
                           <p className="text-sm text-white/90">{recommendation.reason}</p>
                         </div>
                       </motion.div>
@@ -741,7 +741,7 @@ export default function TermLengths() {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-3 rounded-lg font-semibold"
+                            className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-3 rounded-lg font-semibold"
                           >
                             Get Quote for {recommendation.primaryTerm}-Year Term
                           </motion.button>
@@ -765,10 +765,10 @@ export default function TermLengths() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Every Term Length Explained
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Each serves a specific purpose. Find the one that fits your life stage.
             </p>
           </motion.div>
@@ -786,22 +786,22 @@ export default function TermLengths() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-8 border border-gray-200 hover:shadow-lg transition-shadow"
               >
-                <div className="grid lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                   {/* Header */}
                   <div className="lg:col-span-1">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                        <term.icon className="w-7 h-7 text-heritage-accent" />
+                      <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center">
+                        <term.icon className="w-7 h-7 text-violet-500" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-heritage-primary">{term.title}</h3>
-                        <p className="text-heritage-accent font-semibold text-sm">{term.tagline}</p>
+                        <h3 className="text-xl font-bold text-primary">{term.title}</h3>
+                        <p className="text-violet-500 font-semibold text-sm">{term.tagline}</p>
                       </div>
                     </div>
-                    <div className="bg-heritage-primary rounded-xl p-4 text-center mb-4">
+                    <div className="bg-primary rounded-xl p-4 text-center mb-4">
                       <p className="text-white/80 text-sm">Starting at</p>
                       <p className="text-2xl font-bold text-white">{term.monthlyRate}<span className="text-sm">/mo</span></p>
-                      <p className="text-heritage-accent text-xs">$500K coverage, age 35</p>
+                      <p className="text-violet-500 text-xs">$500K coverage, age 35</p>
                     </div>
                     <p className="text-gray-600 text-sm">{term.coverage}</p>
                     <p className="mt-2 text-sm"><span className="font-semibold">Best ages:</span> {term.idealAge}</p>
@@ -809,7 +809,7 @@ export default function TermLengths() {
 
                   {/* Pros & Cons */}
                   <div className="lg:col-span-1">
-                    <h4 className="font-bold text-heritage-primary mb-3 flex items-center gap-2">
+                    <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500" /> Advantages
                     </h4>
                     <ul className="space-y-2 mb-6">
@@ -820,7 +820,7 @@ export default function TermLengths() {
                         </li>
                       ))}
                     </ul>
-                    <h4 className="font-bold text-heritage-primary mb-3 flex items-center gap-2">
+                    <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 text-orange-500" /> Considerations
                     </h4>
                     <ul className="space-y-2">
@@ -835,8 +835,8 @@ export default function TermLengths() {
 
                   {/* Ideal Scenarios */}
                   <div className="lg:col-span-1">
-                    <h4 className="font-bold text-heritage-primary mb-3 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-heritage-accent" /> Ideal Scenarios
+                    <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
+                      <Target className="w-5 h-5 text-violet-500" /> Ideal Scenarios
                     </h4>
                     <ul className="space-y-2">
                       {term.scenarios.map((scenario, i) => (
@@ -862,10 +862,10 @@ export default function TermLengths() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Side-by-Side Comparison
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Compare all term lengths at a glance.
             </p>
           </motion.div>
@@ -878,11 +878,11 @@ export default function TermLengths() {
           >
             <table className="w-full min-w-[800px]">
               <thead>
-                <tr className="bg-heritage-primary text-white">
+                <tr className="bg-primary text-white">
                   <th className="p-4 text-left font-semibold">Feature</th>
                   <th className="p-4 text-center font-semibold">10-Year</th>
                   <th className="p-4 text-center font-semibold">15-Year</th>
-                  <th className="p-4 text-center font-semibold bg-heritage-accent/20">20-Year</th>
+                  <th className="p-4 text-center font-semibold bg-violet-500/20">20-Year</th>
                   <th className="p-4 text-center font-semibold">25-Year</th>
                   <th className="p-4 text-center font-semibold">30-Year</th>
                 </tr>
@@ -896,7 +896,7 @@ export default function TermLengths() {
                     <td className="p-4 font-medium text-gray-900">{row.feature}</td>
                     <td className="p-4 text-center text-gray-700">{row.t10}</td>
                     <td className="p-4 text-center text-gray-700">{row.t15}</td>
-                    <td className="p-4 text-center text-heritage-primary font-semibold bg-heritage-primary/5">{row.t20}</td>
+                    <td className="p-4 text-center text-primary font-semibold bg-primary/5">{row.t20}</td>
                     <td className="p-4 text-center text-gray-700">{row.t25}</td>
                     <td className="p-4 text-center text-gray-700">{row.t30}</td>
                   </tr>
@@ -925,10 +925,10 @@ export default function TermLengths() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How to Choose Your Term Length
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Six factors to find the right fit.
             </p>
           </motion.div>
@@ -938,7 +938,7 @@ export default function TermLengths() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
           >
             {decisionFactors.map((factor, index) => (
               <motion.div
@@ -946,10 +946,10 @@ export default function TermLengths() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow"
               >
-                <div className="w-12 h-12 bg-heritage-accent/10 rounded-full flex items-center justify-center mb-4">
-                  <factor.icon className="w-6 h-6 text-heritage-accent" />
+                <div className="w-12 h-12 bg-violet-500/10 rounded-full flex items-center justify-center mb-4">
+                  <factor.icon className="w-6 h-6 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{factor.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{factor.title}</h3>
                 <p className="text-gray-600 text-sm">{factor.description}</p>
               </motion.div>
             ))}
@@ -960,24 +960,24 @@ export default function TermLengths() {
       {/* Laddering Strategy */}
       <section className="py-20 bg-[#fffaf3]">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                  <Layers className="w-6 h-6 text-heritage-accent" />
+                <div className="w-12 h-12 bg-violet-500/10 rounded-full flex items-center justify-center">
+                  <Layers className="w-6 h-6 text-violet-500" />
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary">
+                <h2 className="text-3xl md:text-4xl font-bold text-primary text-balance">
                   The Laddering Strategy
                 </h2>
               </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
+              <p className="text-gray-600 mb-6 leading-relaxed text-pretty">
                 Smart buyers don't always choose just one policy. Laddering means multiple policies with different lengths—coverage decreases as needs decrease.
               </p>
-              <p className="text-gray-600 mb-8 leading-relaxed">
+              <p className="text-gray-600 mb-8 leading-relaxed text-pretty">
                 Saves money while ensuring you're never under-insured.
               </p>
 
@@ -996,7 +996,7 @@ export default function TermLengths() {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -1009,12 +1009,12 @@ export default function TermLengths() {
               viewport={{ once: true }}
               className="bg-white rounded-xl p-8 shadow-lg border border-gray-200"
             >
-              <h3 className="text-xl font-bold text-heritage-primary mb-6">Example Ladder ($1M Total Coverage)</h3>
+              <h3 className="text-xl font-bold text-primary mb-6">Example Ladder ($1M Total Coverage)</h3>
               <div className="space-y-4">
                 {ladderingStrategy.map((policy, index) => (
                   <div key={index} className="p-4 bg-[#fffaf3] rounded-xl border border-gray-100">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-heritage-primary">{policy.policy}</span>
+                      <span className="font-bold text-primary">{policy.policy}</span>
                       <span className="font-bold text-gray-900">{policy.monthly}/mo</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -1025,10 +1025,10 @@ export default function TermLengths() {
                   </div>
                 ))}
               </div>
-              <div className="mt-6 p-4 bg-heritage-primary/10 rounded-xl">
+              <div className="mt-6 p-4 bg-primary/10 rounded-xl">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-900">Total Monthly Cost</span>
-                  <span className="text-2xl font-bold text-heritage-primary">$80/mo</span>
+                  <span className="text-2xl font-bold text-primary">$80/mo</span>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
                   vs. ~$95/mo for a single $1M 30-year policy
@@ -1040,7 +1040,7 @@ export default function TermLengths() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1050,7 +1050,7 @@ export default function TermLengths() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -1082,7 +1082,7 @@ export default function TermLengths() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -1101,8 +1101,8 @@ export default function TermLengths() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -1132,10 +1132,10 @@ export default function TermLengths() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Ready to Choose Your Term?
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get personalized quotes for any term length. We'll help you find the perfect fit.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1143,7 +1143,7 @@ export default function TermLengths() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Compare Term Lengths
                   <ChevronRight className="w-5 h-5" />
@@ -1153,7 +1153,7 @@ export default function TermLengths() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (630) 778-0800

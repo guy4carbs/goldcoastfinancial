@@ -124,8 +124,8 @@ export default function Calculators() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -134,14 +134,14 @@ export default function Calculators() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Calculator className="w-4 h-4" />
               Free Tools
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 text-balance">
               Insurance Calculators
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 text-pretty">
               Interactive tools to help you make informed decisions about your coverage.
             </p>
           </motion.div>
@@ -151,7 +151,7 @@ export default function Calculators() {
       {/* Calculator Tabs */}
       <section className="py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4">
             {calculators.map((calc) => (
               <motion.button
                 key={calc.id}
@@ -160,7 +160,7 @@ export default function Calculators() {
                 onClick={() => setActiveCalc(calc.id)}
                 className={`flex items-center gap-3 px-6 py-4 rounded-xl font-medium transition-all ${
                   activeCalc === calc.id
-                    ? 'bg-heritage-primary text-white shadow-lg'
+                    ? 'bg-primary text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -178,7 +178,7 @@ export default function Calculators() {
       </section>
 
       {/* Calculator Content */}
-      <section className="py-16 bg-[#fffaf3]">
+      <section className="py-20 bg-[#fffaf3]">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             {/* Coverage Needs Calculator */}
@@ -186,10 +186,10 @@ export default function Calculators() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="grid lg:grid-cols-2 gap-8"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8"
               >
-                <div className="bg-white rounded-2xl p-8 shadow-xl">
-                  <h2 className="text-2xl font-bold text-heritage-primary mb-6">Your Financial Picture</h2>
+                <div className="bg-white rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl">
+                  <h2 className="text-2xl font-bold text-primary mb-6">Your Financial Picture</h2>
 
                   <div className="space-y-6">
                     <div>
@@ -203,7 +203,7 @@ export default function Calculators() {
                         step="5000"
                         value={income}
                         onChange={(e) => setIncome(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -217,7 +217,7 @@ export default function Calculators() {
                         max="25"
                         value={yearsToReplace}
                         onChange={(e) => setYearsToReplace(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -232,7 +232,7 @@ export default function Calculators() {
                         step="10000"
                         value={mortgage}
                         onChange={(e) => setMortgage(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -247,7 +247,7 @@ export default function Calculators() {
                         step="5000"
                         value={otherDebts}
                         onChange={(e) => setOtherDebts(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -262,7 +262,7 @@ export default function Calculators() {
                         step="10000"
                         value={collegeFund}
                         onChange={(e) => setCollegeFund(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -277,7 +277,7 @@ export default function Calculators() {
                         step="10000"
                         value={existingSavings}
                         onChange={(e) => setExistingSavings(parseInt(e.target.value))}
-                        className="w-full accent-heritage-accent"
+                        className="w-full accent-violet-500"
                       />
                     </div>
 
@@ -292,20 +292,20 @@ export default function Calculators() {
                         step="25000"
                         value={existingCoverage}
                         onChange={(e) => setExistingCoverage(parseInt(e.target.value))}
-                        className="w-full accent-heritage-accent"
+                        className="w-full accent-violet-500"
                       />
                     </div>
                   </div>
 
                   <button
                     onClick={resetCoverage}
-                    className="mt-6 flex items-center gap-2 text-sm text-gray-500 hover:text-heritage-primary transition-colors"
+                    className="mt-6 flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" /> Reset to defaults
                   </button>
                 </div>
 
-                <div className="bg-heritage-primary rounded-2xl p-8 shadow-xl text-white">
+                <div className="bg-primary rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl text-white">
                   <h2 className="text-2xl font-bold text-white mb-6">Your Coverage Recommendation</h2>
 
                   <div className="space-y-4 mb-8">
@@ -327,21 +327,21 @@ export default function Calculators() {
                     </div>
                     <div className="flex justify-between py-3 border-b border-white/20">
                       <span className="text-white/80">Less: Savings</span>
-                      <span className="font-semibold text-heritage-accent">-${existingSavings.toLocaleString()}</span>
+                      <span className="font-semibold text-violet-500">-${existingSavings.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b border-white/20">
                       <span className="text-white/80">Less: Existing Coverage</span>
-                      <span className="font-semibold text-heritage-accent">-${existingCoverage.toLocaleString()}</span>
+                      <span className="font-semibold text-violet-500">-${existingCoverage.toLocaleString()}</span>
                     </div>
                   </div>
 
                   <div className="bg-white/10 rounded-xl p-6 mb-6">
                     <p className="text-white/80 text-sm mb-2">Recommended Coverage</p>
-                    <p className="text-4xl font-bold text-heritage-accent">${coverageNeeded.toLocaleString()}</p>
+                    <p className="text-4xl font-bold text-violet-500">${coverageNeeded.toLocaleString()}</p>
                   </div>
 
                   {coverageAtMax && (
-                    <div className="bg-heritage-accent/20 border border-heritage-accent/30 rounded-xl p-4 mb-6">
+                    <div className="bg-violet-500/20 border border-violet-500/30 rounded-xl p-4 mb-6">
                       <p className="text-white text-sm font-medium">Need higher coverage?</p>
                       <p className="text-white/70 text-xs mt-1">Our sliders have limits, but your needs don't. Get a personalized quote for any amount.</p>
                     </div>
@@ -351,7 +351,7 @@ export default function Calculators() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full bg-heritage-accent text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                      className="w-full bg-violet-500 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                     >
                       Get Quotes for This Amount <ArrowRight className="w-5 h-5" />
                     </motion.button>
@@ -365,10 +365,10 @@ export default function Calculators() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="grid lg:grid-cols-2 gap-8"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8"
               >
-                <div className="bg-white rounded-2xl p-8 shadow-xl">
-                  <h2 className="text-2xl font-bold text-heritage-primary mb-6">About You</h2>
+                <div className="bg-white rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl">
+                  <h2 className="text-2xl font-bold text-primary mb-6">About You</h2>
 
                   <div className="space-y-6">
                     <div>
@@ -381,7 +381,7 @@ export default function Calculators() {
                         max="70"
                         value={age}
                         onChange={(e) => setAge(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -391,7 +391,7 @@ export default function Calculators() {
                         <button
                           onClick={() => setGender('male')}
                           className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                            gender === 'male' ? 'bg-heritage-primary text-white' : 'bg-gray-100 text-gray-700'
+                            gender === 'male' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'
                           }`}
                         >
                           Male
@@ -399,7 +399,7 @@ export default function Calculators() {
                         <button
                           onClick={() => setGender('female')}
                           className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                            gender === 'female' ? 'bg-heritage-primary text-white' : 'bg-gray-100 text-gray-700'
+                            gender === 'female' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'
                           }`}
                         >
                           Female
@@ -413,7 +413,7 @@ export default function Calculators() {
                         <button
                           onClick={() => setSmoker(false)}
                           className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                            !smoker ? 'bg-heritage-primary text-white' : 'bg-gray-100 text-gray-700'
+                            !smoker ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'
                           }`}
                         >
                           Non-Smoker
@@ -421,7 +421,7 @@ export default function Calculators() {
                         <button
                           onClick={() => setSmoker(true)}
                           className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-                            smoker ? 'bg-heritage-primary text-white' : 'bg-gray-100 text-gray-700'
+                            smoker ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'
                           }`}
                         >
                           Smoker
@@ -440,7 +440,7 @@ export default function Calculators() {
                         step="50000"
                         value={coverageAmount}
                         onChange={(e) => setCoverageAmount(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -455,39 +455,39 @@ export default function Calculators() {
                         step="5"
                         value={termLength}
                         onChange={(e) => setTermLength(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
                   </div>
 
                   <button
                     onClick={resetPremium}
-                    className="mt-6 flex items-center gap-2 text-sm text-gray-500 hover:text-heritage-primary transition-colors"
+                    className="mt-6 flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" /> Reset to defaults
                   </button>
                 </div>
 
-                <div className="bg-heritage-primary rounded-2xl p-8 shadow-xl text-white">
+                <div className="bg-primary rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl text-white">
                   <h2 className="text-2xl font-bold text-white mb-6">Estimated Premium</h2>
 
                   <div className="bg-white/10 rounded-xl p-6 mb-6">
                     <p className="text-white/80 text-sm mb-2">Estimated Monthly Cost</p>
-                    <p className="text-5xl font-bold text-heritage-accent">${estimatedMonthly}</p>
+                    <p className="text-5xl font-bold text-violet-500">${estimatedMonthly}</p>
                     <p className="text-white/60 text-sm mt-2">For ${coverageAmount.toLocaleString()} • {termLength}-year term</p>
                   </div>
 
                   <div className="space-y-3 mb-8">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-heritage-accent" />
+                      <CheckCircle className="w-5 h-5 text-violet-500" />
                       <span className="text-white/90">Rate locked for {termLength} years</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-heritage-accent" />
+                      <CheckCircle className="w-5 h-5 text-violet-500" />
                       <span className="text-white/90">Tax-free death benefit</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-heritage-accent" />
+                      <CheckCircle className="w-5 h-5 text-violet-500" />
                       <span className="text-white/90">Coverage starts immediately</span>
                     </div>
                   </div>
@@ -497,7 +497,7 @@ export default function Calculators() {
                   </p>
 
                   {premiumAtMax && (
-                    <div className="bg-heritage-accent/20 border border-heritage-accent/30 rounded-xl p-4 mb-6">
+                    <div className="bg-violet-500/20 border border-violet-500/30 rounded-xl p-4 mb-6">
                       <p className="text-white text-sm font-medium">Need more coverage or different options?</p>
                       <p className="text-white/70 text-xs mt-1">We can quote higher amounts and special circumstances. Talk to an advisor.</p>
                     </div>
@@ -507,7 +507,7 @@ export default function Calculators() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full bg-heritage-accent text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                      className="w-full bg-violet-500 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                     >
                       Get Your Real Quote <ArrowRight className="w-5 h-5" />
                     </motion.button>
@@ -521,10 +521,10 @@ export default function Calculators() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="grid lg:grid-cols-2 gap-8"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8"
               >
-                <div className="bg-white rounded-2xl p-8 shadow-xl">
-                  <h2 className="text-2xl font-bold text-heritage-primary mb-6">Your Earning Potential</h2>
+                <div className="bg-white rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl">
+                  <h2 className="text-2xl font-bold text-primary mb-6">Your Earning Potential</h2>
 
                   <div className="space-y-6">
                     <div>
@@ -537,7 +537,7 @@ export default function Calculators() {
                         max="60"
                         value={currentAge}
                         onChange={(e) => setCurrentAge(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -551,7 +551,7 @@ export default function Calculators() {
                         max="75"
                         value={retirementAge}
                         onChange={(e) => setRetirementAge(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -566,7 +566,7 @@ export default function Calculators() {
                         step="5000"
                         value={annualIncome2}
                         onChange={(e) => setAnnualIncome2(parseInt(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
 
@@ -581,7 +581,7 @@ export default function Calculators() {
                         step="0.5"
                         value={incomeGrowth}
                         onChange={(e) => setIncomeGrowth(parseFloat(e.target.value))}
-                        className="w-full accent-heritage-primary"
+                        className="w-full accent-primary"
                       />
                     </div>
                   </div>
@@ -594,13 +594,13 @@ export default function Calculators() {
 
                   <button
                     onClick={resetHLV}
-                    className="mt-6 flex items-center gap-2 text-sm text-gray-500 hover:text-heritage-primary transition-colors"
+                    className="mt-6 flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" /> Reset to defaults
                   </button>
                 </div>
 
-                <div className="bg-heritage-primary rounded-2xl p-8 shadow-xl text-white">
+                <div className="bg-primary rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl text-white">
                   <h2 className="text-2xl font-bold text-white mb-6">Your Economic Value</h2>
 
                   <div className="space-y-4 mb-8">
@@ -620,7 +620,7 @@ export default function Calculators() {
 
                   <div className="bg-white/10 rounded-xl p-6 mb-6">
                     <p className="text-white/80 text-sm mb-2">Your Human Life Value</p>
-                    <p className="text-4xl font-bold text-heritage-accent">${humanLifeValue.toLocaleString()}</p>
+                    <p className="text-4xl font-bold text-violet-500">${humanLifeValue.toLocaleString()}</p>
                     <p className="text-white/60 text-sm mt-2">Total income until retirement</p>
                   </div>
 
@@ -629,7 +629,7 @@ export default function Calculators() {
                   </p>
 
                   {hlvAtMax && (
-                    <div className="bg-heritage-accent/20 border border-heritage-accent/30 rounded-xl p-4 mb-6">
+                    <div className="bg-violet-500/20 border border-violet-500/30 rounded-xl p-4 mb-6">
                       <p className="text-white text-sm font-medium">Earning more than $500K?</p>
                       <p className="text-white/70 text-xs mt-1">High earners need specialized coverage. Let us help you protect your full income.</p>
                     </div>
@@ -639,7 +639,7 @@ export default function Calculators() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full bg-heritage-accent text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                      className="w-full bg-violet-500 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                     >
                       Protect Your Value <ArrowRight className="w-5 h-5" />
                     </motion.button>
@@ -652,25 +652,25 @@ export default function Calculators() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">
               Need Help with Your Calculations?
             </h2>
-            <p className="text-gray-600 mb-8 max-w-xl mx-auto">
+            <p className="text-gray-600 mb-8 max-w-xl mx-auto text-pretty">
               Our licensed advisors can help you determine the right coverage for your unique situation.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <a href="tel:6307780800">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-heritage-primary text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2"
+                  className="bg-primary text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2"
                 >
                   <Phone className="w-5 h-5" /> (630) 778-0800
                 </motion.button>
@@ -679,7 +679,7 @@ export default function Calculators() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="border-2 border-heritage-primary text-heritage-primary px-8 py-4 rounded-lg font-semibold flex items-center gap-2 hover:bg-heritage-primary/5 transition-colors"
+                  className="border-2 border-primary text-primary px-8 py-4 rounded-lg font-semibold flex items-center gap-2 hover:bg-primary/5 transition-colors"
                 >
                   Get a Free Quote <ArrowRight className="w-5 h-5" />
                 </motion.button>

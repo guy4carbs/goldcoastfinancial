@@ -50,14 +50,14 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#292966] via-[#292966] to-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[#D4AF37] to-amber-600 shadow-lg mb-4">
-            <Shield className="w-8 h-8 text-[#292966]" />
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#D4AF37] to-amber-600 shadow-lg mb-4">
+            <Shield className="w-7 h-7 md:w-8 md:h-8 text-[#292966]" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
             Admin Access
           </h1>
-          <p className="text-white/60">
+          <p className="text-sm md:text-base text-white/60">
             Heritage Life Solutions
           </p>
         </div>

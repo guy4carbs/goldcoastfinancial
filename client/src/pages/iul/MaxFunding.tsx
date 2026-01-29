@@ -129,28 +129,28 @@ export default function MaxFunding() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-start pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start pt-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Rocket className="w-4 h-4" />
                 Advanced Wealth Strategy
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Max Funding
-                <span className="block text-heritage-accent">Strategies</span>
+                <span className="block text-violet-500">Strategies</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Supercharge your IUL's cash value growth by contributing the maximum premium allowed while maintaining all tax advantages.
               </p>
 
@@ -163,7 +163,7 @@ export default function MaxFunding() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -174,7 +174,7 @@ export default function MaxFunding() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Design My Policy
                     <ChevronRight className="w-5 h-5" />
@@ -184,7 +184,7 @@ export default function MaxFunding() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to a Specialist
@@ -201,14 +201,14 @@ export default function MaxFunding() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Funding Comparison</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Funding Comparison</h3>
                 <p className="text-gray-600 text-sm">See how funding level affects your cash value</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Base Annual Premium: <span className="text-heritage-accent font-bold">${annualPremium.toLocaleString()}</span>
+                    Base Annual Premium: <span className="text-violet-500 font-bold">${annualPremium.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -217,7 +217,7 @@ export default function MaxFunding() {
                     step="1000"
                     value={annualPremium}
                     onChange={(e) => setAnnualPremium(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>$5,000</span>
@@ -238,18 +238,18 @@ export default function MaxFunding() {
                         onClick={() => setFundingLevel(level.key)}
                         className={`p-3 rounded-lg text-center transition-all ${
                           fundingLevel === level.key
-                            ? 'bg-heritage-accent text-white'
+                            ? 'bg-violet-500 text-white'
                             : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                         }`}
                       >
-                        <level.icon className={`w-5 h-5 mx-auto mb-1 ${fundingLevel === level.key ? 'text-white' : 'text-heritage-primary'}`} />
+                        <level.icon className={`w-5 h-5 mx-auto mb-1 ${fundingLevel === level.key ? 'text-white' : 'text-primary'}`} />
                         <div className="text-xs font-medium">{level.label}</div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white">
                   <div className="text-center mb-4">
                     <p className="text-sm opacity-90 mb-1">Annual Premium at {fundingLevel.charAt(0).toUpperCase() + fundingLevel.slice(1)} Level</p>
                     <p className="text-4xl font-bold">${projection.premium.toLocaleString()}</p>
@@ -284,7 +284,7 @@ export default function MaxFunding() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Your Max Funding Quote
                   </motion.button>
@@ -296,9 +296,9 @@ export default function MaxFunding() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "2-3x", label: "More Cash Value" },
               { value: "Non-MEC", label: "Tax Advantages Preserved" },
@@ -313,7 +313,7 @@ export default function MaxFunding() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -330,10 +330,10 @@ export default function MaxFunding() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Max Fund Your IUL?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               The advantages of maximum funding compound significantly over time.
             </p>
           </motion.div>
@@ -343,7 +343,7 @@ export default function MaxFunding() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -351,10 +351,10 @@ export default function MaxFunding() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -371,10 +371,10 @@ export default function MaxFunding() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Three Funding Approaches
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Choose the strategy that matches your financial goals and see the difference.
             </p>
           </motion.div>
@@ -386,7 +386,7 @@ export default function MaxFunding() {
             className="max-w-5xl mx-auto"
           >
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
                 {[
                   {
                     key: 'minimum' as const,
@@ -421,27 +421,27 @@ export default function MaxFunding() {
                       transition={{ delay: index * 0.1 }}
                       className={`p-6 rounded-xl border-2 transition-all ${
                         level.recommended
-                          ? 'bg-heritage-primary/5 border-heritage-accent'
+                          ? 'bg-primary/5 border-violet-500'
                           : 'bg-gray-50 border-transparent'
                       }`}
                     >
                       {level.recommended && (
-                        <div className="text-xs text-heritage-accent font-semibold mb-2">RECOMMENDED FOR WEALTH BUILDING</div>
+                        <div className="text-xs text-violet-500 font-semibold mb-2">RECOMMENDED FOR WEALTH BUILDING</div>
                       )}
-                      <div className="w-12 h-12 bg-heritage-accent/10 rounded-xl flex items-center justify-center mb-4">
-                        <level.icon className="w-6 h-6 text-heritage-accent" />
+                      <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center mb-4">
+                        <level.icon className="w-6 h-6 text-violet-500" />
                       </div>
-                      <h3 className="text-lg font-bold text-heritage-primary mb-1">{level.title}</h3>
-                      <div className="text-sm text-heritage-accent font-medium mb-3">{level.subtitle}</div>
+                      <h3 className="text-lg font-bold text-primary mb-1">{level.title}</h3>
+                      <div className="text-sm text-violet-500 font-medium mb-3">{level.subtitle}</div>
                       <p className="text-gray-600 text-sm mb-4">{level.description}</p>
                       <div className="pt-4 border-t border-gray-200">
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-500">Premium</span>
-                          <span className="font-semibold text-heritage-primary">${proj.premium.toLocaleString()}/yr</span>
+                          <span className="font-semibold text-primary">${proj.premium.toLocaleString()}/yr</span>
                         </div>
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-500">Year 20 Value</span>
-                          <span className="font-semibold text-heritage-primary">${proj.cashValue20.toLocaleString()}</span>
+                          <span className="font-semibold text-primary">${proj.cashValue20.toLocaleString()}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -463,7 +463,7 @@ export default function MaxFunding() {
                       <div key={level}>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-gray-600">{labels[level]} Funded</span>
-                          <span className="font-semibold text-heritage-primary">
+                          <span className="font-semibold text-primary">
                             ${proj.cashValue20.toLocaleString()}
                           </span>
                         </div>
@@ -475,10 +475,10 @@ export default function MaxFunding() {
                             transition={{ duration: 0.8, delay: 0.3 }}
                             className={`h-full rounded-full ${
                               level === 'max'
-                                ? 'bg-heritage-accent'
+                                ? 'bg-violet-500'
                                 : level === 'target'
-                                ? 'bg-heritage-primary/60'
-                                : 'bg-heritage-primary/30'
+                                ? 'bg-primary/60'
+                                : 'bg-primary/30'
                             }`}
                           />
                         </div>
@@ -495,13 +495,13 @@ export default function MaxFunding() {
       {/* Who Is This For */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Ideal For Those Who...
               </h2>
               <div className="space-y-4">
@@ -514,7 +514,7 @@ export default function MaxFunding() {
                     transition={{ delay: i * 0.1 }}
                     className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm"
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -536,11 +536,11 @@ export default function MaxFunding() {
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                    <Rocket className="w-5 h-5 text-heritage-accent" />
+                  <div className="w-10 h-10 bg-violet-500/10 rounded-full flex items-center justify-center">
+                    <Rocket className="w-5 h-5 text-violet-500" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary">2-3x Growth</p>
+                    <p className="font-bold text-primary">2-3x Growth</p>
                     <p className="text-xs text-gray-500">vs minimum funding</p>
                   </div>
                 </div>
@@ -559,12 +559,12 @@ export default function MaxFunding() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Max Funding Works
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", title: "Design Policy", description: "Work with an advisor to set optimal death benefit", icon: Target },
               { step: "2", title: "Calculate MEC Limit", description: "Determine maximum premium using the 7-pay test", icon: Calculator },
@@ -580,17 +580,17 @@ export default function MaxFunding() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
                 {i < 3 && (
-                  <ArrowRight className="w-6 h-6 text-heritage-accent/30 mx-auto mt-4 hidden md:block" />
+                  <ArrowRight className="w-6 h-6 text-violet-500/30 mx-auto mt-4 hidden md:block" />
                 )}
               </motion.div>
             ))}
@@ -599,7 +599,7 @@ export default function MaxFunding() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -609,7 +609,7 @@ export default function MaxFunding() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -641,7 +641,7 @@ export default function MaxFunding() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -660,8 +660,8 @@ export default function MaxFunding() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -691,10 +691,10 @@ export default function MaxFunding() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Ready to Maximize Your IUL?
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get a custom illustration showing your max funding potential and projected cash value growth.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -702,7 +702,7 @@ export default function MaxFunding() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Max-Funded Quote
                   <ChevronRight className="w-5 h-5" />
@@ -712,7 +712,7 @@ export default function MaxFunding() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

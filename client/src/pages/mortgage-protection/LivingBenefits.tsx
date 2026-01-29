@@ -119,28 +119,28 @@ export default function LivingBenefits() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Heart className="w-4 h-4" />
                 Living Benefits
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Access Your Benefits
-                <span className="block text-heritage-accent">While You're Alive</span>
+                <span className="block text-violet-500">While You're Alive</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 Life insurance isn't just for after you're gone. Access your death benefit early if you face a serious illness—when you need it most.
               </p>
 
@@ -153,7 +153,7 @@ export default function LivingBenefits() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -164,7 +164,7 @@ export default function LivingBenefits() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get Coverage with Living Benefits
                     <ChevronRight className="w-5 h-5" />
@@ -174,7 +174,7 @@ export default function LivingBenefits() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to an Agent
@@ -191,14 +191,14 @@ export default function LivingBenefits() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Living Benefits Explorer</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Living Benefits Explorer</h3>
                 <p className="text-gray-600 text-sm">Click each benefit to learn more</p>
               </div>
 
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Coverage Amount: <span className="text-heritage-accent font-bold">${coverage.toLocaleString()}</span>
+                    Coverage Amount: <span className="text-violet-500 font-bold">${coverage.toLocaleString()}</span>
                   </label>
                   <input
                     type="range"
@@ -207,7 +207,7 @@ export default function LivingBenefits() {
                     step="25000"
                     value={coverage}
                     onChange={(e) => setCoverage(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heritage-accent"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-500"
                   />
                 </div>
 
@@ -221,12 +221,12 @@ export default function LivingBenefits() {
                       whileTap={{ scale: 0.98 }}
                       className={`p-3 rounded-xl border-2 transition-all text-center ${
                         selectedBenefit === benefit.id
-                          ? 'border-heritage-accent bg-heritage-accent/5'
+                          ? 'border-violet-500 bg-violet-500/5'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <benefit.icon className={`w-6 h-6 mx-auto mb-1 ${selectedBenefit === benefit.id ? 'text-heritage-accent' : 'text-gray-400'}`} />
-                      <p className="text-xs font-medium text-heritage-primary">{benefit.title}</p>
+                      <benefit.icon className={`w-6 h-6 mx-auto mb-1 ${selectedBenefit === benefit.id ? 'text-violet-500' : 'text-gray-400'}`} />
+                      <p className="text-xs font-medium text-primary">{benefit.title}</p>
                     </motion.button>
                   ))}
                 </div>
@@ -239,17 +239,17 @@ export default function LivingBenefits() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white"
+                      className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white"
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <selectedBenefitData.icon className="w-8 h-8 text-heritage-accent" />
+                        <selectedBenefitData.icon className="w-8 h-8 text-violet-500" />
                         <div>
                           <h4 className="font-bold text-lg">{selectedBenefitData.title}</h4>
                           <p className="text-white/70 text-sm">{selectedBenefitData.shortDesc}</p>
                         </div>
                       </div>
                       <div className="text-sm mb-3">
-                        <span className="text-heritage-accent font-semibold">Potential Payout: </span>
+                        <span className="text-violet-500 font-semibold">Potential Payout: </span>
                         {selectedBenefitData.payout} of death benefit
                       </div>
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -270,7 +270,7 @@ export default function LivingBenefits() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                    className="w-full bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                   >
                     Get Quote with Living Benefits
                   </motion.button>
@@ -282,9 +282,9 @@ export default function LivingBenefits() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "Up to 100%", label: "Early Access" },
               { value: "2-4 Weeks", label: "Claim Processing" },
@@ -299,7 +299,7 @@ export default function LivingBenefits() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -316,12 +316,12 @@ export default function LivingBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Living Benefits Work
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {howItWorks.map((step, i) => (
               <motion.div
                 key={i}
@@ -332,14 +332,14 @@ export default function LivingBenefits() {
                 className="text-center relative"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <step.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {step.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{step.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{step.title}</h3>
                 <p className="text-gray-600 text-sm">{step.description}</p>
               </motion.div>
             ))}
@@ -356,12 +356,12 @@ export default function LivingBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Three Types of Living Benefits
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
             {livingBenefits.map((benefit, i) => (
               <motion.div
                 key={benefit.id}
@@ -371,10 +371,10 @@ export default function LivingBenefits() {
                 transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-xl p-6 hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-xl font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm mb-4">{benefit.shortDesc}</p>
                 <div className="space-y-2">
                   {benefit.conditions.map((condition, j) => (
@@ -399,10 +399,10 @@ export default function LivingBenefits() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Use the Money for Anything
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-pretty">
                 Unlike health insurance claims, living benefit payouts come directly to you with no restrictions on use.
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -415,7 +415,7 @@ export default function LivingBenefits() {
                     transition={{ delay: i * 0.05 }}
                     className="flex items-center gap-2"
                   >
-                    <CheckCircle className="w-4 h-4 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 text-violet-500 flex-shrink-0" />
                     <span className="text-sm text-gray-700">{use}</span>
                   </motion.div>
                 ))}
@@ -441,7 +441,7 @@ export default function LivingBenefits() {
                     <DollarSign className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary text-sm">No Restrictions</p>
+                    <p className="font-bold text-primary text-sm">No Restrictions</p>
                     <p className="text-xs text-gray-500">Your money, your choice</p>
                   </div>
                 </div>
@@ -452,7 +452,7 @@ export default function LivingBenefits() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -462,7 +462,7 @@ export default function LivingBenefits() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -494,7 +494,7 @@ export default function LivingBenefits() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -513,8 +513,8 @@ export default function LivingBenefits() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -544,10 +544,10 @@ export default function LivingBenefits() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Get Coverage That Works While You Live
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Protect your family and yourself with living benefits included.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -555,7 +555,7 @@ export default function LivingBenefits() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your Free Quote
                   <ChevronRight className="w-5 h-5" />
@@ -565,7 +565,7 @@ export default function LivingBenefits() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

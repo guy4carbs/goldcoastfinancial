@@ -10,6 +10,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminImages from "@/pages/AdminImages";
 import AdminVideos from "@/pages/AdminVideos";
 import AdminProducts from "@/pages/AdminProducts";
+import AdminSubmissions from "@/pages/AdminSubmissions";
 import AdminLogin from "@/pages/AdminLogin";
 import RiskStrategy from "@/pages/RiskStrategy";
 import Products from "@/pages/Products";
@@ -68,6 +69,28 @@ import BecomeAgent from "@/pages/agents/BecomeAgent";
 import AgentLounge from "@/pages/agents/AgentLounge";
 import AgentResources from "@/pages/agents/AgentResources";
 import AgentLogin from "@/pages/agents/AgentLogin";
+import AgentDashboard from "@/pages/agents/AgentDashboard";
+import AgentLeads from "@/pages/agents/AgentLeads";
+import AgentPipeline from "@/pages/agents/AgentPipeline";
+import AgentEarnings from "@/pages/agents/AgentEarnings";
+import AgentTraining from "@/pages/agents/AgentTraining";
+import AgentChat from "@/pages/agents/AgentChat";
+import AgentQuotes from "@/pages/agents/AgentQuotes";
+import AgentScripts from "@/pages/agents/AgentScripts";
+import AgentLeaderboard from "@/pages/agents/AgentLeaderboard";
+import AgentAchievements from "@/pages/agents/AgentAchievements";
+import AgentAnnouncements from "@/pages/agents/AgentAnnouncements";
+import AgentSettings from "@/pages/agents/AgentSettings";
+import AgentCalendar from "@/pages/agents/AgentCalendar";
+import AgentHelp from "@/pages/agents/AgentHelp";
+import AgentGettingStarted from "@/pages/agents/AgentGettingStarted";
+import AgentGuidelines from "@/pages/agents/AgentGuidelines";
+import AgentEmail from "@/pages/agents/AgentEmail";
+// Study Resources
+import AgentStudyFundamentals from "@/pages/agents/study/AgentStudyFundamentals";
+import AgentStudyExamPrep from "@/pages/agents/study/AgentStudyExamPrep";
+import AgentStudyPracticeExam from "@/pages/agents/study/AgentStudyPracticeExam";
+import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
 // Legal Pages
 import TermsOfUse from "@/pages/legal/TermsOfUse";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
@@ -78,6 +101,8 @@ import DoNotSell from "@/pages/legal/DoNotSell";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AgentProtectedRoute } from "@/components/AgentProtectedRoute";
+import { CelebrationProvider } from "@/lib/celebrationContext";
+import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -157,15 +182,120 @@ function Router() {
             <AgentLounge />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/dashboard">
+          <AgentProtectedRoute>
+            <AgentDashboard />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/calendar">
+          <AgentProtectedRoute>
+            <AgentCalendar />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/leads">
+          <AgentProtectedRoute>
+            <AgentLeads />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/pipeline">
+          <AgentProtectedRoute>
+            <AgentPipeline />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/earnings">
+          <AgentProtectedRoute>
+            <AgentEarnings />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/training">
+          <AgentProtectedRoute>
+            <AgentTraining />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/chat">
+          <AgentProtectedRoute>
+            <AgentChat />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/quotes">
+          <AgentProtectedRoute>
+            <AgentQuotes />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/scripts">
+          <AgentProtectedRoute>
+            <AgentScripts />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/leaderboard">
+          <AgentProtectedRoute>
+            <AgentLeaderboard />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/achievements">
+          <AgentProtectedRoute>
+            <AgentAchievements />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/announcements">
+          <AgentProtectedRoute>
+            <AgentAnnouncements />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/settings">
+          <AgentProtectedRoute>
+            <AgentSettings />
+          </AgentProtectedRoute>
+        </Route>
         <Route path="/agents/resources">
           <AgentProtectedRoute>
             <AgentResources />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/help">
+          <AgentProtectedRoute>
+            <AgentHelp />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/getting-started">
+          <AgentProtectedRoute>
+            <AgentGettingStarted />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/guidelines">
+          <AgentProtectedRoute>
+            <AgentGuidelines />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/email">
+          <AgentProtectedRoute>
+            <AgentEmail />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/study/fundamentals">
+          <AgentProtectedRoute>
+            <AgentStudyFundamentals />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/study/exam-prep">
+          <AgentProtectedRoute>
+            <AgentStudyExamPrep />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/study/practice-exam">
+          <AgentProtectedRoute>
+            <AgentStudyPracticeExam />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/study/flashcards">
+          <AgentProtectedRoute>
+            <AgentStudyFlashcards />
+          </AgentProtectedRoute>
+        </Route>
         <Route path="/admin/login" component={AdminLogin} />
-        <Route path="/admin">
+        <Route path="/admin/submissions">
           <ProtectedRoute>
-            <AdminDashboard />
+            <AdminSubmissions />
           </ProtectedRoute>
         </Route>
         <Route path="/admin/images">
@@ -181,6 +311,11 @@ function Router() {
         <Route path="/admin/products">
           <ProtectedRoute>
             <AdminProducts />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin">
+          <ProtectedRoute>
+            <AdminDashboard />
           </ProtectedRoute>
         </Route>
         <Route path="/legal/terms" component={TermsOfUse} />
@@ -199,10 +334,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <CelebrationProvider>
+          <ConfirmProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </ConfirmProvider>
+        </CelebrationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

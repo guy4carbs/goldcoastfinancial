@@ -138,7 +138,7 @@ export default function ExecCommandLayout({
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                         isActive
-                          ? "bg-secondary/10 text-secondary" 
+                          ? "bg-violet-50 text-secondary" 
                           : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       )}
                       data-testid={`nav-${item.id}`}
@@ -160,7 +160,7 @@ export default function ExecCommandLayout({
             {/* User Section */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
                   <span className="font-bold text-secondary">{user.name?.charAt(0) || 'E'}</span>
                 </div>
                 <div className="flex-1 min-w-0">

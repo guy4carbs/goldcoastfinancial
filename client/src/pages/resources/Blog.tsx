@@ -1500,8 +1500,8 @@ export default function Blog() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-24 overflow-visible">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -1510,19 +1510,19 @@ export default function Blog() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
               <BookOpen className="w-4 h-4" />
               Knowledge Center
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 text-balance">
               Insurance Insights & Guides
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-gray-600 mb-8 text-pretty">
               Expert advice to help you make informed decisions about life insurance.
             </p>
 
             {/* Search Bar with Suggestions */}
-            <div ref={searchRef} className="relative max-w-xl mx-auto z-[100]">
+            <div ref={searchRef} className="relative w-full max-w-xl mx-auto z-[100]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
               <input
                 ref={inputRef}
@@ -1535,7 +1535,7 @@ export default function Blog() {
                 }}
                 onFocus={() => setIsSearchFocused(true)}
                 onKeyDown={handleKeyDown}
-                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:border-heritage-primary focus:ring-2 focus:ring-heritage-primary/20 outline-none transition-all"
+                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
               />
 
               {/* Search Suggestions Dropdown */}
@@ -1574,14 +1574,14 @@ export default function Blog() {
                           onMouseEnter={() => setHighlightedIndex(index)}
                           className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors ${
                             highlightedIndex === index
-                              ? "bg-heritage-primary/5"
+                              ? "bg-primary/5"
                               : "hover:bg-gray-50"
                           }`}
                         >
                           {suggestion.type === "article" ? (
                             <>
-                              <div className="p-2 bg-heritage-primary/10 rounded-lg flex-shrink-0">
-                                <BookOpen className="w-4 h-4 text-heritage-primary" />
+                              <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                                <BookOpen className="w-4 h-4 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 truncate">
@@ -1635,7 +1635,7 @@ export default function Blog() {
       {/* Categories */}
       <section className="py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {categories.map((category) => (
               <motion.button
                 key={category.id}
@@ -1644,7 +1644,7 @@ export default function Blog() {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-colors ${
                   selectedCategory === category.id
-                    ? 'bg-heritage-primary text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -1671,17 +1671,17 @@ export default function Blog() {
                 <img
                   src={featuredPost.image}
                   alt={featuredPost.title}
-                  className="w-full h-[400px] object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-[250px] md:h-[400px] object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="bg-heritage-accent text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-violet-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                       Featured
                     </span>
                     <span className="text-white/80 text-sm">{getCategoryName(featuredPost.category)}</span>
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 group-hover:text-heritage-accent transition-colors">
+                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 group-hover:text-violet-500 transition-colors">
                     {featuredPost.title}
                   </h2>
                   <p className="text-white/80 text-lg mb-4 max-w-2xl">
@@ -1697,7 +1697,7 @@ export default function Blog() {
                     <span className="text-white/60 text-sm flex items-center gap-2">
                       <Clock className="w-4 h-4" /> {featuredPost.readTime}
                     </span>
-                    <span className="bg-white text-heritage-primary px-6 py-2 rounded-lg font-semibold flex items-center gap-2 group-hover:bg-heritage-accent group-hover:text-white transition-colors">
+                    <span className="bg-white text-primary px-6 py-2 rounded-lg font-semibold flex items-center gap-2 group-hover:bg-violet-500 group-hover:text-white transition-colors">
                       Read Article <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </div>
@@ -1716,7 +1716,7 @@ export default function Blog() {
             initial="initial"
             animate="animate"
             variants={staggerContainer}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8"
           >
             {filteredPosts.map((post) => (
               <Link key={post.id} href={`/resources/blog/${post.slug}`}>
@@ -1731,12 +1731,12 @@ export default function Blog() {
                       alt={post.title}
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <span className="absolute top-4 left-4 bg-white/90 text-heritage-primary px-3 py-1 rounded-full text-xs font-medium">
+                    <span className="absolute top-4 left-4 bg-white/90 text-primary px-3 py-1 rounded-full text-xs font-medium">
                       {getCategoryName(post.category)}
                     </span>
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-heritage-primary transition-colors">
+                  <div className="p-4 md:p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {post.title}
                     </h3>
                     <p className="text-gray-600 mb-4 line-clamp-2">
@@ -1754,7 +1754,7 @@ export default function Blog() {
                       <span className="text-sm text-gray-500 flex items-center gap-1">
                         <Calendar className="w-4 h-4" /> {post.date}
                       </span>
-                      <span className="text-heritage-primary font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                      <span className="text-primary font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
                         Read More <ChevronRight className="w-4 h-4" />
                       </span>
                     </div>
@@ -1773,7 +1773,7 @@ export default function Blog() {
                   setSearchQuery("");
                   setSelectedCategory("all");
                 }}
-                className="text-heritage-primary font-medium hover:underline"
+                className="text-primary font-medium hover:underline"
               >
                 Clear filters
               </button>
@@ -1783,11 +1783,11 @@ export default function Blog() {
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-20 bg-gradient-to-br from-heritage-primary to-heritage-primary/90 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-primary to-primary/90 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-heritage-accent/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -1800,20 +1800,20 @@ export default function Blog() {
             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Mail className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-4xl font-bold text-white mb-4 text-balance">
               Get Smarter About Insurance
             </h2>
-            <p className="text-xl text-white/80 mb-8">
+            <p className="text-xl text-white/80 mb-8 text-pretty">
               Join thousands of families receiving weekly tips, guides, and insights to protect what matters most.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-lg mx-auto">
               <div className="flex-1 relative">
                 <input
                   type="email"
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-4 rounded-xl outline-none focus:ring-2 focus:ring-heritage-accent text-gray-900 placeholder-gray-500"
+                  className="w-full px-5 py-4 rounded-xl outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-500"
                 />
               </div>
               <motion.button
@@ -1821,7 +1821,7 @@ export default function Blog() {
                 disabled={isSubscribing}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-heritage-accent text-white px-8 py-4 rounded-xl font-semibold hover:bg-heritage-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="bg-violet-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-violet-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubscribing ? "Subscribing..." : (
                   <>

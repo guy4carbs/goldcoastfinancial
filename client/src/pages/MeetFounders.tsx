@@ -66,15 +66,15 @@ export default function MeetFounders() {
       <Header />
 
       {/* HERO SECTION */}
-      <section className="bg-heritage-primary py-20 md:py-28">
+      <section className="bg-primary py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
           >
-            <p className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">Leadership</p>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <p className="text-violet-500 font-semibold mb-4 tracking-wide uppercase text-sm">Leadership</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
               Meet Our Team
             </h1>
             <p className="text-xl text-white/80 leading-relaxed max-w-3xl mx-auto">
@@ -85,7 +85,7 @@ export default function MeetFounders() {
       </section>
 
       {/* FOUNDERS SECTION */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
             className="space-y-32"
@@ -117,7 +117,7 @@ export default function MeetFounders() {
                     <span className="text-sm">{founder.location}</span>
                   </div>
                   <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{founder.name}</h3>
-                  <p className="text-heritage-accent font-semibold text-lg mb-6">{founder.title}</p>
+                  <p className="text-violet-500 font-semibold text-lg mb-6">{founder.title}</p>
 
                   <div className="space-y-4 text-gray-600 leading-relaxed mb-8">
                     <p>{founder.bio}</p>
@@ -125,8 +125,8 @@ export default function MeetFounders() {
                   </div>
 
                   {/* Quote */}
-                  <div className="bg-[#f5f0e8] rounded-2xl p-6 mb-8">
-                    <Quote className="w-8 h-8 text-heritage-accent mb-3" />
+                  <div className="bg-[#f5f0e8] rounded-2xl p-4 md:p-6 mb-8">
+                    <Quote className="w-8 h-8 text-violet-500 mb-3" />
                     <p className="text-gray-700 italic text-lg leading-relaxed">"{founder.quote}"</p>
                   </div>
 
@@ -134,14 +134,14 @@ export default function MeetFounders() {
                   <div className="flex gap-4">
                     <a
                       href={founder.linkedin}
-                      className="w-12 h-12 bg-heritage-primary/10 hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center text-heritage-primary transition-colors"
+                      className="w-12 h-12 bg-primary/10 hover:bg-primary hover:text-white rounded-full flex items-center justify-center text-primary transition-colors"
                       aria-label={`${founder.name}'s LinkedIn`}
                     >
                       <Linkedin className="w-5 h-5" />
                     </a>
                     <a
                       href={`mailto:${founder.email}`}
-                      className="w-12 h-12 bg-heritage-primary/10 hover:bg-heritage-primary hover:text-white rounded-full flex items-center justify-center text-heritage-primary transition-colors"
+                      className="w-12 h-12 bg-primary/10 hover:bg-primary hover:text-white rounded-full flex items-center justify-center text-primary transition-colors"
                       aria-label={`Email ${founder.name}`}
                     >
                       <Mail className="w-5 h-5" />
@@ -155,7 +155,7 @@ export default function MeetFounders() {
       </section>
 
       {/* OUR PHILOSOPHY */}
-      <section className="bg-heritage-primary py-24">
+      <section className="bg-primary py-20">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
@@ -163,7 +163,7 @@ export default function MeetFounders() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">Our Philosophy</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 text-balance">Our Philosophy</h2>
             <p className="text-xl text-white/90 leading-relaxed max-w-3xl mx-auto">
               We believe that everyone deserves access to quality life insurance, regardless of their background or financial situation. That's why we've built a company that prioritizes education over sales tactics, transparency over fine print, and relationships over transactions.
             </p>
@@ -172,7 +172,7 @@ export default function MeetFounders() {
       </section>
 
       {/* CULTURE SECTION */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
@@ -182,31 +182,31 @@ export default function MeetFounders() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Life at Heritage</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">Life at Heritage</h2>
               <p className="text-xl text-gray-600 leading-relaxed mb-8">
                 We've built a culture rooted in accountability, excellence, and genuine care for the families we serve. Our team operates with clarity, ownership, and a shared commitment to raising the standard in everything we do.
               </p>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-heritage-accent rounded-full"></div>
+                  <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                   <span className="text-gray-700">High-performance, team-first environment</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-heritage-accent rounded-full"></div>
+                  <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                   <span className="text-gray-700">Clear accountability and growth pathways</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-heritage-accent rounded-full"></div>
+                  <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                   <span className="text-gray-700">Competitive compensation and benefits</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-heritage-accent rounded-full"></div>
+                  <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                   <span className="text-gray-700">Mission-driven work that matters</span>
                 </div>
               </div>
               <a
                 href="/careers"
-                className="inline-block bg-heritage-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors"
+                className="inline-block bg-primary hover:bg-heritage-dark text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors"
               >
                 View Open Positions
               </a>
@@ -221,14 +221,14 @@ export default function MeetFounders() {
               className="hidden lg:grid grid-cols-2 gap-4"
             >
               <div className="space-y-4">
-                <div className="h-48 rounded-2xl overflow-hidden">
+                <div className="h-32 md:h-48 rounded-2xl overflow-hidden">
                   <img
                     src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122237030-professional-team-engaging-business-meeting-modern-office-natural-lighting-formal-boardroom-setting-diverse-389420977.webp?alt=media&token=92dc80e1-264b-4845-b18c-5ce6188584b7"
                     alt="Team meeting"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="h-64 rounded-2xl overflow-hidden">
+                <div className="h-40 md:h-64 rounded-2xl overflow-hidden">
                   <img
                     src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122242731-teamwork-in-office-stockcake.webp?alt=media&token=55283b53-edf9-47c6-bb6d-4179f5651bfa"
                     alt="Teamwork in office"
@@ -236,15 +236,15 @@ export default function MeetFounders() {
                   />
                 </div>
               </div>
-              <div className="space-y-4 pt-8">
-                <div className="h-64 rounded-2xl overflow-hidden">
+              <div className="space-y-4 pt-4 md:pt-8">
+                <div className="h-40 md:h-64 rounded-2xl overflow-hidden">
                   <img
                     src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122249768-team-meeting-discussion-stockcake.webp?alt=media&token=5e7a7f50-8cc3-43df-91bc-038c97c2205b"
                     alt="Team discussion"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="h-48 rounded-2xl overflow-hidden">
+                <div className="h-32 md:h-48 rounded-2xl overflow-hidden">
                   <img
                     src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769122253257-diverse-office-team-engaging-discussions-using-computer-equipment-collaborating-bright-contemporary-workspace-359424668.webp?alt=media&token=556b33fd-2231-4171-884a-c1274587e1d2"
                     alt="Diverse team collaborating"
@@ -266,7 +266,7 @@ export default function MeetFounders() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-balance">
               Ready to protect your family?
             </h2>
             <p className="text-xl text-gray-600 mb-10">
@@ -274,7 +274,7 @@ export default function MeetFounders() {
             </p>
             <a
               href="/quote"
-              className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               Check My Price
             </a>

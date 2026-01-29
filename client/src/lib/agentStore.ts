@@ -34,6 +34,22 @@ export interface Task {
   priority?: 'low' | 'medium' | 'high';
 }
 
+export interface StatusChange {
+  id: string;
+  from: Lead['status'];
+  to: Lead['status'];
+  date: string;
+  agentId: string;
+}
+
+export interface LeadReminder {
+  id: string;
+  date: string;
+  time: string;
+  message: string;
+  completed: boolean;
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -47,6 +63,10 @@ export interface Lead {
   notes: ActivityLog[];
   product?: string;
   state?: string;
+  tags?: string[];
+  leadNotes?: string;
+  statusHistory?: StatusChange[];
+  reminders?: LeadReminder[];
 }
 
 export interface ActivityLog {
@@ -188,6 +208,16 @@ export interface Achievement {
   category: 'sales' | 'training' | 'streak' | 'milestone';
 }
 
+export interface QuoteVersion {
+  id: string;
+  version: number;
+  coverageAmount: number;
+  monthlyPremium: number;
+  term?: number;
+  createdDate: string;
+  notes?: string;
+}
+
 export interface Quote {
   id: string;
   leadId?: string;
@@ -203,6 +233,13 @@ export interface Quote {
   expiresDate: string;
   agentId: string;
   notes?: string;
+  carrier?: string;
+  healthClass?: string;
+  versions?: QuoteVersion[];
+  currentVersion?: number;
+  signatureStatus?: 'pending' | 'sent' | 'signed' | 'declined';
+  signedDate?: string;
+  templateId?: string;
 }
 
 const DEMO_AGENTS: AgentUser[] = [
@@ -1136,6 +1173,18 @@ interface AgentStore {
   addQuote: (quote: Omit<Quote, 'id' | 'createdDate' | 'expiresDate' | 'agentId' | 'status'>) => void;
   updateQuoteStatus: (quoteId: string, status: Quote['status']) => void;
   addActivity: (activity: Omit<ActivityItem, 'id' | 'timestamp'>) => void;
+  // Lead enhancements
+  updateLeadNotes: (leadId: string, notes: string) => void;
+  addTagToLead: (leadId: string, tag: string) => void;
+  removeTagFromLead: (leadId: string, tag: string) => void;
+  addLeadReminder: (leadId: string, reminder: Omit<LeadReminder, 'id' | 'completed'>) => void;
+  completeReminder: (leadId: string, reminderId: string) => void;
+  bulkUpdateLeadStatus: (leadIds: string[], status: Lead['status']) => void;
+  importLeads: (leads: Omit<Lead, 'id' | 'createdDate' | 'notes' | 'assignedTo' | 'statusHistory'>[]) => void;
+  deleteLeads: (leadIds: string[]) => void;
+  // Quote enhancements
+  createQuoteVersion: (quoteId: string) => void;
+  updateQuoteSignature: (quoteId: string, status: Quote['signatureStatus']) => void;
 }
 
 export const useAgentStore = create<AgentStore>()(
@@ -1235,10 +1284,23 @@ export const useAgentStore = create<AgentStore>()(
       },
 
       updateLeadStatus: (leadId: string, status: Lead['status']) => {
+        const user = get().currentUser;
         set(state => ({
-          leads: state.leads.map(lead => 
-            lead.id === leadId ? { ...lead, status } : lead
-          )
+          leads: state.leads.map(lead => {
+            if (lead.id !== leadId) return lead;
+            const statusChange: StatusChange = {
+              id: `sc-${Date.now()}`,
+              from: lead.status,
+              to: status,
+              date: new Date().toISOString(),
+              agentId: user?.id || 'unknown'
+            };
+            return {
+              ...lead,
+              status,
+              statusHistory: [...(lead.statusHistory || []), statusChange]
+            };
+          })
         }));
       },
 
@@ -1462,6 +1524,147 @@ export const useAgentStore = create<AgentStore>()(
             },
             ...state.activities.slice(0, 49)
           ]
+        }));
+      },
+
+      // Lead enhancements
+      updateLeadNotes: (leadId: string, notes: string) => {
+        set(state => ({
+          leads: state.leads.map(lead =>
+            lead.id === leadId ? { ...lead, leadNotes: notes } : lead
+          )
+        }));
+      },
+
+      addTagToLead: (leadId: string, tag: string) => {
+        set(state => ({
+          leads: state.leads.map(lead =>
+            lead.id === leadId
+              ? { ...lead, tags: [...(lead.tags || []), tag].filter((t, i, arr) => arr.indexOf(t) === i) }
+              : lead
+          )
+        }));
+      },
+
+      removeTagFromLead: (leadId: string, tag: string) => {
+        set(state => ({
+          leads: state.leads.map(lead =>
+            lead.id === leadId
+              ? { ...lead, tags: (lead.tags || []).filter(t => t !== tag) }
+              : lead
+          )
+        }));
+      },
+
+      addLeadReminder: (leadId: string, reminder: Omit<LeadReminder, 'id' | 'completed'>) => {
+        set(state => ({
+          leads: state.leads.map(lead =>
+            lead.id === leadId
+              ? {
+                  ...lead,
+                  reminders: [
+                    ...(lead.reminders || []),
+                    { ...reminder, id: `rem-${Date.now()}`, completed: false }
+                  ]
+                }
+              : lead
+          )
+        }));
+      },
+
+      completeReminder: (leadId: string, reminderId: string) => {
+        set(state => ({
+          leads: state.leads.map(lead =>
+            lead.id === leadId
+              ? {
+                  ...lead,
+                  reminders: (lead.reminders || []).map(r =>
+                    r.id === reminderId ? { ...r, completed: true } : r
+                  )
+                }
+              : lead
+          )
+        }));
+      },
+
+      bulkUpdateLeadStatus: (leadIds: string[], status: Lead['status']) => {
+        const user = get().currentUser;
+        set(state => ({
+          leads: state.leads.map(lead => {
+            if (!leadIds.includes(lead.id)) return lead;
+            const statusChange: StatusChange = {
+              id: `sc-${Date.now()}-${lead.id}`,
+              from: lead.status,
+              to: status,
+              date: new Date().toISOString(),
+              agentId: user?.id || 'unknown'
+            };
+            return {
+              ...lead,
+              status,
+              statusHistory: [...(lead.statusHistory || []), statusChange]
+            };
+          })
+        }));
+      },
+
+      importLeads: (leads: Omit<Lead, 'id' | 'createdDate' | 'notes' | 'assignedTo' | 'statusHistory'>[]) => {
+        const user = get().currentUser;
+        set(state => ({
+          leads: [
+            ...state.leads,
+            ...leads.map((lead, idx) => ({
+              ...lead,
+              id: `lead-import-${Date.now()}-${idx}`,
+              createdDate: new Date().toISOString().split('T')[0],
+              notes: [],
+              assignedTo: user?.id || 'unknown',
+              statusHistory: []
+            }))
+          ]
+        }));
+      },
+
+      deleteLeads: (leadIds: string[]) => {
+        set(state => ({
+          leads: state.leads.filter(lead => !leadIds.includes(lead.id))
+        }));
+      },
+
+      // Quote enhancements
+      createQuoteVersion: (quoteId: string) => {
+        set(state => ({
+          quotes: state.quotes.map(quote => {
+            if (quote.id !== quoteId) return quote;
+            const newVersion: QuoteVersion = {
+              id: `qv-${Date.now()}`,
+              version: (quote.currentVersion || 1) + 1,
+              coverageAmount: quote.coverageAmount,
+              monthlyPremium: quote.monthlyPremium,
+              term: quote.term,
+              createdDate: new Date().toISOString(),
+              notes: quote.notes
+            };
+            return {
+              ...quote,
+              versions: [...(quote.versions || []), newVersion],
+              currentVersion: newVersion.version
+            };
+          })
+        }));
+      },
+
+      updateQuoteSignature: (quoteId: string, signatureStatus: Quote['signatureStatus']) => {
+        set(state => ({
+          quotes: state.quotes.map(quote =>
+            quote.id === quoteId
+              ? {
+                  ...quote,
+                  signatureStatus,
+                  signedDate: signatureStatus === 'signed' ? new Date().toISOString() : quote.signedDate
+                }
+              : quote
+          )
         }));
       }
     }),

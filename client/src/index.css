@@ -52,72 +52,72 @@
   --font-serif: 'Playfair Display', serif;
 }
 
-/* Gold Coast Financial Theme - Dark Red, Gold, Black */
+/* Gold Coast Financial Theme - Purple & Cream */
 :root {
-  /* Darkish Red / Burgundy */
-  --primary: 348 65% 20%; 
+  /* Rich Purple (matches heritage-primary #292966) */
+  --primary: 240 43% 28%;
   --primary-foreground: 0 0% 100%;
 
-  /* Rich Gold */
-  --secondary: 42 60% 55%; 
-  --secondary-foreground: 0 0% 100%;
+  /* Warm Beige/Cream */
+  --secondary: 36 40% 92%;
+  --secondary-foreground: 240 43% 28%;
 
   /* Warm Cream/Beige Backgrounds */
-  --background: 36 33% 94%;
+  --background: 36 33% 96%;
   --foreground: 0 0% 10%; /* Black text */
 
-  --card: 39 50% 97%;
+  --card: 36 40% 98%;
   --card-foreground: 0 0% 10%;
 
-  --popover: 39 50% 97%;
+  --popover: 36 40% 98%;
   --popover-foreground: 0 0% 10%;
 
   /* Soft accents */
-  --muted: 36 20% 90%;
-  --muted-foreground: 0 0% 40%;
+  --muted: 36 25% 93%;
+  --muted-foreground: 0 0% 35%; /* Darker for better contrast */
 
-  --accent: 42 60% 95%; /* Very light gold for hovers */
-  --accent-foreground: 0 0% 10%;
+  --accent: 240 30% 95%; /* Very light purple for hovers */
+  --accent-foreground: 240 43% 28%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 348 65% 20%;
+  --border: 36 15% 82%; /* Slightly darker border for visibility */
+  --input: 36 15% 82%;
+  --ring: 240 43% 28%;
 
   --radius: 0.25rem;
 }
 
 .dark {
   /* Inverse for potential dark mode */
-  --background: 0 0% 5%;
+  --background: 240 20% 8%;
   --foreground: 0 0% 98%;
 
-  --card: 0 0% 8%;
+  --card: 240 20% 12%;
   --card-foreground: 0 0% 98%;
 
-  --popover: 0 0% 8%;
+  --popover: 240 20% 12%;
   --popover-foreground: 0 0% 98%;
 
-  --primary: 42 60% 55%; /* Gold becomes primary in dark */
-  --primary-foreground: 0 0% 5%;
+  --primary: 240 60% 70%; /* Light purple in dark mode */
+  --primary-foreground: 240 43% 15%;
 
-  --secondary: 348 65% 25%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 36 30% 25%;
+  --secondary-foreground: 36 40% 92%;
 
-  --muted: 0 0% 15%;
+  --muted: 240 15% 18%;
   --muted-foreground: 0 0% 65%;
 
-  --accent: 0 0% 15%;
+  --accent: 240 20% 20%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 62% 30%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 0 0% 20%;
-  --input: 0 0% 20%;
-  --ring: 348 65% 20%;
+  --border: 240 15% 22%;
+  --input: 240 15% 22%;
+  --ring: 240 60% 70%;
 }
 
 @layer base {
@@ -235,4 +235,306 @@
 
 .animate-marquee-slow:hover {
   animation-play-state: paused;
+}
+
+/* =============================================================================
+   AGENT LOUNGE SPECIFIC STYLES
+   ============================================================================= */
+
+/* Shimmer animation for loading skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite linear;
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 0%,
+    #f3f4f6 50%,
+    #e5e7eb 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Glow effects for gamification elements */
+.glow-purple {
+  box-shadow: 0 0 20px rgba(124, 124, 255, 0.4);
+}
+
+.glow-gold {
+  box-shadow: 0 0 20px rgba(225, 177, 56, 0.4);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
+}
+
+/* Pulse animation for notifications/achievements */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Heritage gradient backgrounds */
+.bg-heritage-gradient {
+  background: linear-gradient(135deg, #292966 0%, #7C7CFF 100%);
+}
+
+.bg-heritage-gradient-gold {
+  background: linear-gradient(135deg, #E1B138 0%, #c49a2f 100%);
+}
+
+.bg-heritage-gradient-subtle {
+  background: linear-gradient(135deg, rgba(124, 124, 255, 0.1) 0%, rgba(225, 177, 56, 0.1) 100%);
+}
+
+/* Status badge backgrounds using heritage colors */
+.bg-status-new {
+  background-color: #541221;
+}
+
+.bg-status-contacted {
+  background-color: #6b2c3d;
+}
+
+.bg-status-qualified {
+  background-color: #7C7CFF;
+}
+
+.bg-status-proposal {
+  background-color: #E1B138;
+}
+
+.bg-status-closed {
+  background-color: #c49a2f;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card-hover:hover {
+  box-shadow: 0 8px 24px rgba(41, 41, 102, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Smooth scrollbar for Agent Lounge */
+.agent-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.agent-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.agent-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.agent-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Focus ring for accessibility */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #7C7CFF;
+}
+
+/* Number animation for stats */
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-count-up {
+  animation: count-up 0.5s ease-out forwards;
+}
+
+/* Level up celebration burst */
+@keyframes burst {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.animate-burst {
+  animation: burst 0.6s ease-out forwards;
+}
+
+/* =============================================================================
+   VISUAL CONSISTENCY FIXES (#85-87)
+   ============================================================================= */
+
+/* #85: Standardized badge colors/opacity */
+.badge-status-success { @apply bg-emerald-100 text-emerald-700 border-emerald-200; }
+.badge-status-warning { @apply bg-amber-100 text-amber-700 border-amber-200; }
+.badge-status-error { @apply bg-red-100 text-red-700 border-red-200; }
+.badge-status-info { @apply bg-blue-100 text-blue-700 border-blue-200; }
+.badge-status-neutral { @apply bg-gray-100 text-gray-700 border-gray-200; }
+.badge-status-primary { @apply bg-violet-100 text-violet-700 border-violet-200; }
+
+/* #87: Standardized avatar styles - always gradient */
+.avatar-standard {
+  @apply bg-gradient-to-br from-primary to-violet-500 text-white font-bold flex items-center justify-center;
+}
+
+/* =============================================================================
+   ACCESSIBILITY FIXES (#97-99, #104)
+   ============================================================================= */
+
+/* #97: Screen reader only text for icons */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* #98: Improved contrast for muted text - use darker grays */
+.text-contrast-safe { color: #4b5563; } /* gray-600 instead of gray-400/500 */
+
+/* #99: Enhanced focus states for all interactive elements */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #7C7CFF;
+  outline-offset: 2px;
+}
+
+/* Focus within for composite components */
+.focus-within-ring:focus-within {
+  outline: 2px solid #7C7CFF;
+  outline-offset: 2px;
+}
+
+/* #104: Chart patterns for accessibility */
+.chart-pattern-dots {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.chart-pattern-lines {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 2px,
+    currentColor 2px,
+    currentColor 4px
+  );
+}
+
+.chart-pattern-crosshatch {
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 2px, currentColor 2px, currentColor 4px),
+    repeating-linear-gradient(-45deg, transparent, transparent 2px, currentColor 2px, currentColor 4px);
+}
+
+/* =============================================================================
+   PERFORMANCE & ANIMATION FIXES
+   ============================================================================= */
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =============================================================================
+   RESPONSIVE FIXES (#88-90)
+   ============================================================================= */
+
+/* #88: Bottom nav safe area for mobile */
+.pb-mobile-nav {
+  padding-bottom: 5rem; /* 80px for bottom nav */
+}
+
+@media (min-width: 1024px) {
+  .pb-mobile-nav {
+    padding-bottom: 0;
+  }
+}
+
+/* #90: Smoother grid transitions for training modules */
+.grid-smooth-cols {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 480px) {
+  .grid-smooth-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-smooth-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-smooth-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-smooth-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

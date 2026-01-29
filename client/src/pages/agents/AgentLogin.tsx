@@ -55,10 +55,10 @@ export default function AgentLogin() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-8"
             >
-              <div className="w-16 h-16 bg-heritage-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Lock className="w-8 h-8 text-heritage-accent" />
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Lock className="w-8 h-8 text-violet-500" />
               </div>
-              <h1 className="text-3xl font-bold text-heritage-primary mb-2">
+              <h1 className="text-3xl font-bold text-primary mb-2">
                 Agent Portal
               </h1>
               <p className="text-gray-600">
@@ -84,7 +84,7 @@ export default function AgentLogin() {
                   <div className="space-y-3">
                     <button
                       onClick={() => setLocation("/agents/lounge")}
-                      className="w-full bg-heritage-primary hover:bg-heritage-primary/90 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
+                      className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
                     >
                       Go to Agent Lounge <ArrowRight className="w-5 h-5" />
                     </button>
@@ -118,7 +118,7 @@ export default function AgentLogin() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -135,7 +135,7 @@ export default function AgentLogin() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-heritage-primary focus:border-transparent transition-all"
+                      className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     />
                     <button
                       type="button"
@@ -151,11 +151,11 @@ export default function AgentLogin() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded border-gray-300 text-heritage-primary focus:ring-heritage-primary"
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                     <span className="text-sm text-gray-600">Remember me</span>
                   </label>
-                  <a href="#" className="text-sm text-heritage-primary hover:text-heritage-accent transition-colors">
+                  <a href="#" className="text-sm text-primary hover:text-violet-500 transition-colors">
                     Forgot password?
                   </a>
                 </div>
@@ -165,7 +165,7 @@ export default function AgentLogin() {
                   disabled={isLoading}
                   whileHover={{ scale: isLoading ? 1 : 1.02 }}
                   whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                  className="w-full bg-heritage-primary hover:bg-heritage-primary/90 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -183,7 +183,7 @@ export default function AgentLogin() {
               <div className="mt-8 pt-6 border-t border-gray-100">
                 <p className="text-center text-gray-600 text-sm">
                   Don't have an account?{" "}
-                  <Link href="/agents/become-an-agent" className="text-heritage-primary font-semibold hover:text-heritage-accent transition-colors">
+                  <Link href="/agents/become-an-agent" className="text-primary font-semibold hover:text-violet-500 transition-colors">
                     Become an Agent
                   </Link>
                 </p>
@@ -206,14 +206,14 @@ export default function AgentLogin() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
                   href="tel:6307780800"
-                  className="flex items-center justify-center gap-2 text-heritage-primary hover:text-heritage-accent transition-colors"
+                  className="flex items-center justify-center gap-2 text-primary hover:text-violet-500 transition-colors"
                 >
                   <Phone className="w-4 h-4" />
                   <span className="text-sm font-medium">(630) 778-0800</span>
                 </a>
                 <a
                   href="mailto:support@heritagels.org"
-                  className="flex items-center justify-center gap-2 text-heritage-primary hover:text-heritage-accent transition-colors"
+                  className="flex items-center justify-center gap-2 text-primary hover:text-violet-500 transition-colors"
                 >
                   <Mail className="w-4 h-4" />
                   <span className="text-sm font-medium">support@heritagels.org</span>

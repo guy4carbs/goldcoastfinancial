@@ -171,11 +171,11 @@ export function LevelUpCelebration({
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
               className="absolute -top-6 left-1/2 -translate-x-1/2"
             >
-              <Star className="w-12 h-12 text-secondary" fill="currentColor" />
+              <Star className="w-12 h-12 text-violet-600" fill="currentColor" />
             </motion.div>
             
             <motion.p 
-              className="text-secondary font-bold text-sm tracking-widest mb-2 mt-4"
+              className="text-violet-600 font-bold text-sm tracking-widest mb-2 mt-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -207,7 +207,7 @@ export function LevelUpCelebration({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
             >
-              <span className="px-3 py-1 bg-secondary/20 rounded-full text-secondary text-xs font-medium">
+              <span className="px-3 py-1 bg-violet-100 rounded-full text-violet-600 text-xs font-medium">
                 +100 Bonus XP
               </span>
             </motion.div>

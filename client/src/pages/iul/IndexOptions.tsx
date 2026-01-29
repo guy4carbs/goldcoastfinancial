@@ -160,28 +160,28 @@ export default function IndexOptions() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#fffaf3] via-white to-[#f5f0e8] pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-heritage-accent/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-heritage-primary/5 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-start pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start pt-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-heritage-primary/10 text-heritage-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <BarChart3 className="w-4 h-4" />
                 IUL Index Selection
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-heritage-primary mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 leading-tight text-balance">
                 Choose Your
-                <span className="block text-heritage-accent">Index Options</span>
+                <span className="block text-violet-500">Index Options</span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed text-pretty">
                 IUL policies offer multiple indexes to link your growth. Build a customized strategy that balances growth potential with downside protection.
               </p>
 
@@ -194,7 +194,7 @@ export default function IndexOptions() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -205,7 +205,7 @@ export default function IndexOptions() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                   >
                     Get IUL Quote
                     <ChevronRight className="w-5 h-5" />
@@ -215,7 +215,7 @@ export default function IndexOptions() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto border-2 border-heritage-primary text-heritage-primary hover:bg-heritage-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <Phone className="w-5 h-5" />
                     Speak to a Specialist
@@ -232,7 +232,7 @@ export default function IndexOptions() {
               className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-heritage-primary mb-2">Index Explorer</h3>
+                <h3 className="text-2xl font-bold text-primary mb-2">Index Explorer</h3>
                 <p className="text-gray-600 text-sm">Select an index to see details</p>
               </div>
 
@@ -243,29 +243,29 @@ export default function IndexOptions() {
                     onClick={() => setSelectedIndex(index.id)}
                     className={`p-4 rounded-xl text-left transition-all ${
                       selectedIndex === index.id
-                        ? 'bg-heritage-primary text-white ring-2 ring-heritage-primary/30'
+                        ? 'bg-primary text-white ring-2 ring-primary/30'
                         : 'bg-[#fffaf3] hover:bg-[#f5f0e8]'
                     }`}
                   >
                     <index.icon className={`w-5 h-5 mb-2 ${
-                      selectedIndex === index.id ? 'text-white' : 'text-heritage-accent'
+                      selectedIndex === index.id ? 'text-white' : 'text-violet-500'
                     }`} />
                     <p className={`font-semibold text-sm ${
-                      selectedIndex === index.id ? 'text-white' : 'text-heritage-primary'
+                      selectedIndex === index.id ? 'text-white' : 'text-primary'
                     }`}>{index.name}</p>
                   </button>
                 ))}
               </div>
 
               {selectedIndexData && (
-                <div className="bg-gradient-to-r from-heritage-primary to-heritage-primary/90 rounded-xl p-6 text-white">
+                <div className="bg-gradient-to-r from-primary to-primary/90 rounded-xl p-6 text-white">
                   <h4 className="font-bold text-lg mb-2">{selectedIndexData.name}</h4>
                   <p className="text-white/80 text-sm mb-4">{selectedIndexData.details}</p>
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="bg-white/10 rounded-lg p-3">
                       <p className="text-xs text-white/60">Hist. Return</p>
-                      <p className="text-xl font-bold text-heritage-accent">{selectedIndexData.histReturn}</p>
+                      <p className="text-xl font-bold text-violet-500">{selectedIndexData.histReturn}</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-3">
                       <p className="text-xs text-white/60">Typical Cap</p>
@@ -284,7 +284,7 @@ export default function IndexOptions() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full mt-6 bg-heritage-accent hover:bg-heritage-accent/90 text-white py-4 rounded-lg font-semibold"
+                  className="w-full mt-6 bg-violet-500 hover:bg-violet-500/90 text-white py-4 rounded-lg font-semibold"
                 >
                   Get Custom Illustration
                 </motion.button>
@@ -295,9 +295,9 @@ export default function IndexOptions() {
       </section>
 
       {/* Trust Stats */}
-      <section className="bg-heritage-primary py-8">
+      <section className="bg-primary py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {[
               { value: "4+", label: "Index Options" },
               { value: "0%", label: "Floor Protection" },
@@ -312,7 +312,7 @@ export default function IndexOptions() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center text-white"
               >
-                <p className="text-3xl md:text-4xl font-bold text-heritage-accent">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-bold text-violet-500">{stat.value}</p>
                 <p className="text-sm opacity-90">{stat.label}</p>
               </motion.div>
             ))}
@@ -329,10 +329,10 @@ export default function IndexOptions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Why Index-Linked Growth?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               IUL index options give you the potential for market-linked returns with built-in protection.
             </p>
           </motion.div>
@@ -342,7 +342,7 @@ export default function IndexOptions() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div
@@ -350,10 +350,10 @@ export default function IndexOptions() {
                 variants={fadeInUp}
                 className="bg-[#fffaf3] rounded-xl p-6 text-center hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-7 h-7 text-heritage-accent" />
+                <div className="w-14 h-14 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-7 h-7 text-violet-500" />
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{benefit.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
@@ -370,10 +370,10 @@ export default function IndexOptions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Explore Index Options
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Click on each index to learn about its characteristics, advantages, and considerations.
             </p>
           </motion.div>
@@ -395,7 +395,7 @@ export default function IndexOptions() {
                     whileTap={{ scale: 0.98 }}
                     className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
                       selectedIndex === index.id
-                        ? 'bg-heritage-accent text-white shadow-lg'
+                        ? 'bg-violet-500 text-white shadow-lg'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -413,40 +413,40 @@ export default function IndexOptions() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="grid md:grid-cols-2 gap-8"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8"
                   >
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-heritage-accent/10 rounded-xl flex items-center justify-center">
-                          <selectedIndexData.icon className="w-6 h-6 text-heritage-accent" />
+                        <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                          <selectedIndexData.icon className="w-6 h-6 text-violet-500" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-heritage-primary">{selectedIndexData.name}</h3>
+                          <h3 className="text-2xl font-bold text-primary">{selectedIndexData.name}</h3>
                           <p className="text-gray-500">{selectedIndexData.description}</p>
                         </div>
                       </div>
 
                       <p className="text-gray-600 mb-6">{selectedIndexData.details}</p>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                         <div className="bg-[#fffaf3] rounded-lg p-4 text-center">
                           <p className="text-xs text-gray-500 mb-1">Hist. Return</p>
-                          <p className="text-xl font-bold text-heritage-accent">{selectedIndexData.histReturn}</p>
+                          <p className="text-xl font-bold text-violet-500">{selectedIndexData.histReturn}</p>
                         </div>
                         <div className="bg-[#fffaf3] rounded-lg p-4 text-center">
                           <p className="text-xs text-gray-500 mb-1">Typical Cap</p>
-                          <p className="text-xl font-bold text-heritage-primary">{selectedIndexData.typicalCap}</p>
+                          <p className="text-xl font-bold text-primary">{selectedIndexData.typicalCap}</p>
                         </div>
                         <div className="bg-[#fffaf3] rounded-lg p-4 text-center">
                           <p className="text-xs text-gray-500 mb-1">Volatility</p>
-                          <p className="text-xl font-bold text-heritage-primary">{selectedIndexData.volatility}</p>
+                          <p className="text-xl font-bold text-primary">{selectedIndexData.volatility}</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-6">
                       <div>
-                        <h4 className="font-semibold text-heritage-primary mb-3 flex items-center gap-2">
+                        <h4 className="font-semibold text-primary mb-3 flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-green-500" />
                           Advantages
                         </h4>
@@ -461,7 +461,7 @@ export default function IndexOptions() {
                       </div>
 
                       <div>
-                        <h4 className="font-semibold text-heritage-primary mb-3 flex items-center gap-2">
+                        <h4 className="font-semibold text-primary mb-3 flex items-center gap-2">
                           <Info className="w-5 h-5 text-amber-500" />
                           Considerations
                         </h4>
@@ -475,9 +475,9 @@ export default function IndexOptions() {
                         </ul>
                       </div>
 
-                      <div className="bg-heritage-primary/5 rounded-lg p-4">
+                      <div className="bg-primary/5 rounded-lg p-4">
                         <p className="text-sm text-gray-600">
-                          <span className="font-semibold text-heritage-primary">Best For:</span> {selectedIndexData.bestFor}
+                          <span className="font-semibold text-primary">Best For:</span> {selectedIndexData.bestFor}
                         </p>
                       </div>
                     </div>
@@ -492,13 +492,13 @@ export default function IndexOptions() {
       {/* Who Is This For */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
                 Ideal For Those Who...
               </h2>
               <div className="space-y-4">
@@ -511,7 +511,7 @@ export default function IndexOptions() {
                     transition={{ delay: i * 0.1 }}
                     className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm"
                   >
-                    <CheckCircle className="w-5 h-5 text-heritage-accent flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-violet-500 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
                   </motion.div>
                 ))}
@@ -533,11 +533,11 @@ export default function IndexOptions() {
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-[220px]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-heritage-accent/10 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-heritage-accent" />
+                  <div className="w-10 h-10 bg-violet-500/10 rounded-full flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-violet-500" />
                   </div>
                   <div>
-                    <p className="font-bold text-heritage-primary">Growth + Protection</p>
+                    <p className="font-bold text-primary">Growth + Protection</p>
                     <p className="text-xs text-gray-500">Market gains, no losses</p>
                   </div>
                 </div>
@@ -556,15 +556,15 @@ export default function IndexOptions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               How Index Options Work
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-pretty">
               Understanding the mechanics of IUL index crediting
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { step: "1", title: "Choose Index", description: "Select from available index options based on your goals", icon: Layers },
               { step: "2", title: "Allocate Premium", description: "Distribute your premium across one or more indexes", icon: Percent },
@@ -580,17 +580,17 @@ export default function IndexOptions() {
                 className="text-center"
               >
                 <div className="relative mb-4">
-                  <div className="w-16 h-16 bg-heritage-accent rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 bg-violet-500 rounded-full flex items-center justify-center mx-auto">
                     <item.icon className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-heritage-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-heritage-primary mb-2">{item.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.description}</p>
                 {i < 3 && (
-                  <ArrowRight className="w-6 h-6 text-heritage-accent/30 mx-auto mt-4 hidden md:block" />
+                  <ArrowRight className="w-6 h-6 text-violet-500/30 mx-auto mt-4 hidden md:block" />
                 )}
               </motion.div>
             ))}
@@ -599,7 +599,7 @@ export default function IndexOptions() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-20 bg-heritage-primary">
+      <section className="py-20 bg-primary">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -609,7 +609,7 @@ export default function IndexOptions() {
           >
             <div className="flex justify-center mb-6">
               {[...Array(5)].map((_, i) => (
-                <Award key={i} className="w-6 h-6 text-heritage-accent" />
+                <Award key={i} className="w-6 h-6 text-violet-500" />
               ))}
             </div>
             <blockquote className="text-2xl md:text-3xl text-white font-light mb-8 leading-relaxed">
@@ -641,7 +641,7 @@ export default function IndexOptions() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 text-balance">
               Common Questions
             </h2>
           </motion.div>
@@ -660,8 +660,8 @@ export default function IndexOptions() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-6 text-left bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <span className="font-semibold text-heritage-primary pr-4">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-heritage-accent transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                  <span className="font-semibold text-primary pr-4">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-violet-500 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openFaq === i && (
@@ -691,10 +691,10 @@ export default function IndexOptions() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-heritage-primary mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6 text-balance">
               Ready to Build Your Strategy?
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 text-pretty">
               Get a custom IUL illustration with your preferred index allocation. Our specialists will help you design a strategy that fits your goals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -702,7 +702,7 @@ export default function IndexOptions() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-accent hover:bg-heritage-accent/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full sm:w-auto bg-violet-500 hover:bg-violet-500/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg"
                 >
                   Get Your IUL Quote
                   <ChevronRight className="w-5 h-5" />
@@ -712,7 +712,7 @@ export default function IndexOptions() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-heritage-primary hover:bg-heritage-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Call (555) 123-4567

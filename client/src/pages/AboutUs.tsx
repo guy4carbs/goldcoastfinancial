@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Heart, Shield, Users, Target, Award, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { CarrierStrip } from "@/components/TrustIndicators";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -48,7 +49,7 @@ export default function AboutUs() {
       <Header />
 
       {/* HERO SECTION */}
-      <section className="bg-heritage-primary py-20 md:py-28">
+      <section className="bg-primary py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
@@ -57,11 +58,11 @@ export default function AboutUs() {
               animate="visible"
               variants={fadeInUp}
             >
-              <p className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">About Heritage</p>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              <p className="text-violet-500 font-semibold mb-4 tracking-wide uppercase text-sm">About Heritage</p>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-balance">
                 We're reimagining life insurance for modern families.
               </h1>
-              <p className="text-xl text-white/80 leading-relaxed">
+              <p className="text-xl text-white/80 leading-relaxed text-pretty">
                 Heritage Life Solutions was founded on a simple belief: protecting your family shouldn't be complicated, expensive, or time-consuming.
               </p>
             </motion.div>
@@ -73,7 +74,7 @@ export default function AboutUs() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="hidden lg:block"
             >
-              <div className="h-[500px] rounded-3xl overflow-hidden">
+              <div className="h-[250px] md:h-[400px] lg:h-[500px] rounded-3xl overflow-hidden">
                 <img
                   src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769118677833-cozy-family-moment-stockcake.webp?alt=media&token=0ab78a73-d3ed-44d3-ad5c-1f80e78695a3"
                   alt="Family moment"
@@ -86,7 +87,7 @@ export default function AboutUs() {
       </section>
 
       {/* OUR STORY SECTION */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-4xl mx-auto px-6">
           <motion.div
             className="text-center"
@@ -95,18 +96,18 @@ export default function AboutUs() {
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Our Story</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-balance">Our Story</h2>
             <div className="space-y-6 text-lg text-gray-600 leading-relaxed text-left">
-              <p>
+              <p className="text-pretty">
                 Heritage Life Solutions started with a frustration that too many families know all too well: trying to get life insurance felt like navigating a maze blindfolded. Weeks of paperwork. Confusing jargon. Pushy sales tactics. Medical exams that took forever to schedule.
               </p>
-              <p>
+              <p className="text-pretty">
                 Our founders experienced this firsthand when trying to protect their own families. They knew there had to be a better way—a way that respected people's time, offered honest guidance, and made coverage accessible to everyone.
               </p>
-              <p>
+              <p className="text-pretty">
                 So in 2025, Heritage was born in Naperville, Illinois. We partnered with over 40 A-rated insurance carriers to offer real choices, built technology that delivers quotes in minutes instead of weeks, and assembled a team of licensed advisors who genuinely care about finding the right fit for each family.
               </p>
-              <p className="font-semibold text-gray-900">
+              <p className="font-semibold text-gray-900 text-pretty">
                 Today, we've helped over 10,000 families secure their futures. But we're just getting started.
               </p>
             </div>
@@ -115,7 +116,7 @@ export default function AboutUs() {
       </section>
 
       {/* MISSION STATEMENT */}
-      <section className="bg-heritage-primary py-24">
+      <section className="bg-primary py-20">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
@@ -123,8 +124,8 @@ export default function AboutUs() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <p className="text-heritage-accent font-semibold mb-4 tracking-wide uppercase text-sm">Our Mission</p>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+            <p className="text-violet-500 font-semibold mb-4 tracking-wide uppercase text-sm">Our Mission</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight text-balance">
               To give every family the clarity and protection they deserve—without the hassle.
             </h2>
           </motion.div>
@@ -132,7 +133,7 @@ export default function AboutUs() {
       </section>
 
       {/* OUR VALUES */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
             className="text-center mb-16"
@@ -141,12 +142,12 @@ export default function AboutUs() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">What We Stand For</h2>
-            <p className="text-xl text-gray-600">The principles that guide everything we do.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-balance">What We Stand For</h2>
+            <p className="text-xl text-gray-600 text-pretty">The principles that guide everything we do.</p>
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-2 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -156,13 +157,13 @@ export default function AboutUs() {
               <motion.div
                 key={index}
                 variants={fadeInUp}
-                className="bg-[#f5f0e8] rounded-2xl p-8 hover:shadow-lg transition-shadow"
+                className="bg-[#f5f0e8] rounded-2xl p-4 md:p-6 lg:p-8 hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-heritage-primary/10 rounded-xl flex items-center justify-center mb-5">
-                  <value.icon className="w-7 h-7 text-heritage-primary" />
+                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-5">
+                  <value.icon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{value.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{value.description}</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3 text-balance">{value.title}</h3>
+                <p className="text-gray-600 leading-relaxed text-pretty">{value.description}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -173,7 +174,7 @@ export default function AboutUs() {
       <section className="bg-[#f5f0e8] py-20">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
-            className="flex flex-wrap justify-center gap-12 md:gap-20"
+            className="flex flex-wrap justify-center gap-6 md:gap-12 lg:gap-20"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -185,7 +186,7 @@ export default function AboutUs() {
                 variants={fadeInUp}
                 className="text-center"
               >
-                <div className="text-5xl md:text-6xl font-bold text-heritage-primary mb-2">{stat.number}</div>
+                <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-2">{stat.number}</div>
                 <div className="text-gray-600 font-medium">{stat.label}</div>
               </motion.div>
             ))}
@@ -194,7 +195,7 @@ export default function AboutUs() {
       </section>
 
       {/* WHY HERITAGE */}
-      <section className="bg-[#fffaf3] py-24">
+      <section className="bg-[#fffaf3] py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Image */}
@@ -205,7 +206,7 @@ export default function AboutUs() {
               transition={{ duration: 0.6 }}
               className="hidden lg:block"
             >
-              <div className="h-[450px] rounded-3xl overflow-hidden">
+              <div className="h-[250px] md:h-[350px] lg:h-[450px] rounded-3xl overflow-hidden">
                 <img
                   src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769121863109-Springbok-Website-Photos-43-2.png?alt=media&token=120c4164-321e-4572-b672-76b77154d4cc"
                   alt="Heritage advisor with family"
@@ -221,35 +222,35 @@ export default function AboutUs() {
               viewport={{ once: true }}
               variants={fadeInUp}
             >
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Why families choose Heritage</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-balance">Why families choose Heritage</h2>
               <div className="space-y-6">
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-heritage-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-6 h-6 text-heritage-accent" />
+                  <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-violet-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Real Savings</h3>
-                    <p className="text-gray-600">We shop 40+ carriers to find you the best rate. Our clients save an average of $500/year compared to going direct.</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 text-balance">Real Savings</h3>
+                    <p className="text-gray-600 text-pretty">We shop 40+ carriers to find you the best rate. Our clients save an average of $500/year compared to going direct.</p>
                   </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-heritage-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Award className="w-6 h-6 text-heritage-accent" />
+                  <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Award className="w-6 h-6 text-violet-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Expert Guidance</h3>
-                    <p className="text-gray-600">Our licensed advisors have decades of combined experience. We answer your questions and never pressure you.</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 text-balance">Expert Guidance</h3>
+                    <p className="text-gray-600 text-pretty">Our licensed advisors have decades of combined experience. We answer your questions and never pressure you.</p>
                   </div>
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-heritage-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-6 h-6 text-heritage-accent" />
+                  <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-violet-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Trusted Partners</h3>
-                    <p className="text-gray-600">We only work with A-rated carriers with proven track records of paying claims. Your family's security is non-negotiable.</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 text-balance">Trusted Partners</h3>
+                    <p className="text-gray-600 text-pretty">We only work with A-rated carriers with proven track records of paying claims. Your family's security is non-negotiable.</p>
                   </div>
                 </div>
               </div>
@@ -258,8 +259,11 @@ export default function AboutUs() {
         </div>
       </section>
 
+      {/* Carrier Partners */}
+      <CarrierStrip />
+
       {/* MEET THE TEAM CTA */}
-      <section className="bg-heritage-primary py-20">
+      <section className="bg-primary py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial="hidden"
@@ -267,15 +271,15 @@ export default function AboutUs() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 text-balance">
               Meet the people behind Heritage
             </h2>
-            <p className="text-xl text-white/80 mb-10">
+            <p className="text-xl text-white/80 mb-10 text-pretty">
               Get to know the founders and team members who are dedicated to protecting your family.
             </p>
             <a
               href="/about/founders"
-              className="inline-block bg-heritage-accent hover:bg-heritage-accent/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg transition-colors"
             >
               Meet Our Founders
             </a>

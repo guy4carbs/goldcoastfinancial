@@ -19,13 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, User, Mail, Phone, MapPin, FileText, Sparkles } from "lucide-react";
+import { UserPlus, User, Mail, Phone, MapPin, FileText, Sparkles, Loader2 } from "lucide-react";
 import type { Lead } from "@/lib/agentStore";
+import { useCelebration } from "@/lib/celebrationContext";
 
 interface AddLeadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddLead: (lead: Omit<Lead, 'id' | 'createdDate' | 'notes' | 'assignedTo'>) => void;
+  existingLeads?: Lead[];
 }
 
 const US_STATES = [
@@ -42,7 +44,8 @@ const US_STATES = [
 const PRODUCTS = ['Term Life', 'Whole Life', 'IUL', 'Final Expense', 'Mortgage Protection'];
 const SOURCES = ['Website', 'Referral', 'Facebook Ad', 'Google Ad', 'Cold Call', 'Event', 'Other'];
 
-export function AddLeadModal({ open, onOpenChange, onAddLead }: AddLeadModalProps) {
+export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = [] }: AddLeadModalProps) {
+  const { showXP } = useCelebration();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -54,19 +57,78 @@ export function AddLeadModal({ open, onOpenChange, onAddLead }: AddLeadModalProp
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string) => {
+    // Accept various phone formats
+    const phoneRegex = /^[\d\s\-\(\)\+]{10,}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  };
+
+  // Check for duplicate leads by email or phone
+  const checkForDuplicates = () => {
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    const normalizedPhone = formData.phone.replace(/[\s\-\(\)]/g, '');
+
+    for (const lead of existingLeads) {
+      if (lead.email?.toLowerCase() === normalizedEmail) {
+        return { field: 'email', lead };
+      }
+      if (lead.phone?.replace(/[\s\-\(\)]/g, '') === normalizedPhone) {
+        return { field: 'phone', lead };
+      }
+    }
+    return null;
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone is required';
+    } else if (!validatePhone(formData.phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    // Check for duplicates
+    const duplicate = checkForDuplicates();
+    if (duplicate) {
+      if (duplicate.field === 'email') {
+        newErrors.email = `Lead already exists: ${duplicate.lead.name}`;
+      } else {
+        newErrors.phone = `Lead already exists: ${duplicate.lead.name}`;
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) return;
-    
+
+    setIsSubmitting(true);
+
+    // Simulate a brief delay for better UX feedback
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     onAddLead({
       name: formData.name,
       email: formData.email,
@@ -75,7 +137,11 @@ export function AddLeadModal({ open, onOpenChange, onAddLead }: AddLeadModalProp
       product: formData.product,
       source: formData.source,
       status: 'new',
+      ...(formData.notes.trim() && { leadNotes: formData.notes.trim() }),
     });
+
+    // Show XP celebration
+    showXP(25);
 
     setFormData({
       name: '',
@@ -86,6 +152,7 @@ export function AddLeadModal({ open, onOpenChange, onAddLead }: AddLeadModalProp
       source: 'Website',
       notes: '',
     });
+    setIsSubmitting(false);
     onOpenChange(false);
   };
 
@@ -94,8 +161,8 @@ export function AddLeadModal({ open, onOpenChange, onAddLead }: AddLeadModalProp
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-serif">
-            <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-secondary" />
+            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
+              <UserPlus className="w-5 h-5 text-violet-600" />
             </div>
             Add New Lead
           </DialogTitle>
@@ -212,12 +279,21 @@ export function AddLeadModal({ open, onOpenChange, onAddLead }: AddLeadModalProp
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="gap-2 bg-secondary hover:bg-secondary/90">
-            <UserPlus className="w-4 h-4" />
-            Add Lead
+          <Button onClick={handleSubmit} className="gap-2 bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                Add Lead
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

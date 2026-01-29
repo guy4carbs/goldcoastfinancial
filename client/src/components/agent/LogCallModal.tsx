@@ -19,12 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Phone, Clock, User, ThumbsUp, ThumbsDown, 
+import {
+  Phone, Clock, User, ThumbsUp, ThumbsDown,
   Calendar, Voicemail, PhoneOff, Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Lead } from "@/lib/agentStore";
+import { useCelebration } from "@/lib/celebrationContext";
 
 interface LogCallModalProps {
   open: boolean;
@@ -39,15 +40,16 @@ interface LogCallModalProps {
 }
 
 const DISPOSITIONS = [
-  { value: 'interested', label: 'Interested', icon: ThumbsUp, color: 'text-secondary' },
+  { value: 'interested', label: 'Interested', icon: ThumbsUp, color: 'text-violet-600' },
   { value: 'callback', label: 'Callback', icon: Calendar, color: 'text-primary' },
-  { value: 'appointment_set', label: 'Appointment Set', icon: Calendar, color: 'text-secondary' },
+  { value: 'appointment_set', label: 'Appointment Set', icon: Calendar, color: 'text-violet-600' },
   { value: 'not_interested', label: 'Not Interested', icon: ThumbsDown, color: 'text-muted-foreground' },
   { value: 'no_answer', label: 'No Answer', icon: PhoneOff, color: 'text-muted-foreground' },
   { value: 'voicemail', label: 'Voicemail', icon: Voicemail, color: 'text-muted-foreground' },
 ];
 
 export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallModalProps) {
+  const { showXP } = useCelebration();
   const [formData, setFormData] = useState({
     leadId: '',
     duration: 5,
@@ -66,7 +68,11 @@ export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallMo
       disposition: formData.disposition,
       notes: formData.notes,
     });
-    
+
+    // Show XP celebration - bonus for appointment set
+    const xpAmount = formData.disposition === 'appointment_set' ? 25 : 15;
+    showXP(xpAmount);
+
     setFormData({
       leadId: '',
       duration: 5,
@@ -108,7 +114,7 @@ export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallMo
                   className={cn(
                     "flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all",
                     contactType === 'existing'
-                      ? "border-secondary bg-secondary/10"
+                      ? "border-violet-300 bg-violet-50"
                       : "border-transparent bg-muted/50 hover:bg-muted"
                   )}
                 >
@@ -123,7 +129,7 @@ export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallMo
                   className={cn(
                     "flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all",
                     contactType === 'new'
-                      ? "border-secondary bg-secondary/10"
+                      ? "border-violet-300 bg-violet-50"
                       : "border-transparent bg-muted/50 hover:bg-muted"
                   )}
                 >
@@ -178,7 +184,7 @@ export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallMo
                   className={cn(
                     "flex-1 py-2 rounded-lg border-2 text-sm font-medium transition-all",
                     formData.duration === mins
-                      ? "border-secondary bg-secondary/10 text-secondary"
+                      ? "border-violet-300 bg-violet-50 text-violet-600"
                       : "border-transparent bg-muted/50 hover:bg-muted"
                   )}
                 >
@@ -201,7 +207,7 @@ export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallMo
                     className={cn(
                       "p-3 rounded-lg border-2 text-center transition-all",
                       formData.disposition === disp.value
-                        ? "border-secondary bg-secondary/10"
+                        ? "border-violet-300 bg-violet-50"
                         : "border-transparent bg-muted/50 hover:bg-muted"
                     )}
                   >
@@ -227,8 +233,8 @@ export function LogCallModal({ open, onOpenChange, leads, onLogCall }: LogCallMo
 
         <DialogFooter>
           <div className="flex items-center gap-2 mr-auto text-sm text-muted-foreground">
-            <Zap className="w-4 h-4 text-secondary" />
-            +10 XP
+            <Zap className="w-4 h-4 text-violet-600" />
+            +{formData.disposition === 'appointment_set' ? 25 : 15} XP
           </div>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel

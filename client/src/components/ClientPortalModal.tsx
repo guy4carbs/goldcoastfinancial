@@ -38,10 +38,10 @@ export default function ClientPortalModal({ isOpen, onClose }: ClientPortalModal
           >
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-heritage-primary">
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-primary">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-heritage-accent/20 rounded-xl flex items-center justify-center">
-                    <User className="w-5 h-5 text-heritage-accent" />
+                  <div className="w-10 h-10 bg-violet-500/20 rounded-xl flex items-center justify-center">
+                    <User className="w-5 h-5 text-violet-500" />
                   </div>
                   <div>
                     <h2 className="font-bold text-white">Client Portal</h2>
@@ -73,20 +73,20 @@ export default function ClientPortalModal({ isOpen, onClose }: ClientPortalModal
                       className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                     >
                       <span className="font-medium text-gray-900">{portal.name}</span>
-                      <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-heritage-primary transition-colors" />
+                      <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
                     </a>
                   ))}
                 </div>
 
-                <div className="bg-heritage-accent/10 rounded-xl p-4">
-                  <p className="text-sm font-medium text-heritage-primary mb-2">Don't see your carrier?</p>
+                <div className="bg-violet-500/10 rounded-xl p-4">
+                  <p className="text-sm font-medium text-primary mb-2">Don't see your carrier?</p>
                   <p className="text-sm text-gray-600 mb-3">
                     Contact us and we'll help you access your policy information.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <a
                       href="tel:6307780800"
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-heritage-primary text-white rounded-lg text-sm font-medium hover:bg-heritage-primary/90 transition-colors"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
                     >
                       <Phone className="w-4 h-4" />
                       (630) 778-0800
