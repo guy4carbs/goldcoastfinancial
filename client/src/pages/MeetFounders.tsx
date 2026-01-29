@@ -24,7 +24,7 @@ const founders = [
     extendedBio: "A former college football quarterback, Jack brings a disciplined leadership mindset forged through high-pressure decision-making and team command. Originally from Naperville, Illinois, he is recognized for combining deep industry knowledge with decisive founder authority to structure organizations for scale, operational leverage, and long-term stability.",
     quote: "Our mission is simple: give every family access to the protection they deserve, without the complexity they've come to expect.",
     linkedin: "#",
-    email: "jack@heritagels.com"
+    email: "jack.cook@heritagels.org"
   },
   {
     initials: "FC",
@@ -36,7 +36,7 @@ const founders = [
     extendedBio: "Frank has conducted business internationally, including experience living in Dubai and collaborating with the Dubai Mercantile Exchange (DME). He is a licensed futures and commodities trader, having passed the Series 3 and Series 6 examinations. His background includes serving as a licensed real estate professional, operating as a public adjuster for over 15 years, and holding ownership and partnership positions in large-scale commercial enterprises.",
     quote: "Risk isn't something to fear—it's something to understand, structure, and ultimately master.",
     linkedin: "#",
-    email: "frank@heritagels.com"
+    email: "frank.carbonara@heritagels.org"
   },
   {
     initials: "GC",
@@ -48,7 +48,7 @@ const founders = [
     extendedBio: "A former college football quarterback from Oak Brook, Illinois, Gaetano is known for building high-performing teams, driving disciplined execution, and demanding excellence across the organization. He brings a strategic negotiating mindset and a culture-first leadership approach, ensuring teams operate with clarity, ownership, and consistently elevated standards as the company scales.",
     quote: "Culture isn't a department—it's the foundation everything else is built on.",
     linkedin: "#",
-    email: "gaetano@heritagels.com"
+    email: "gaetano.carbonara@heritagels.org"
   },
   {
     initials: "NG",
@@ -60,7 +60,7 @@ const founders = [
     extendedBio: "Originally from Naperville, Illinois, Nick developed his leadership foundation through athletics, where preparation, accountability, and performance were non-negotiable. He is recognized as a skilled communicator who supports executive initiatives by aligning strategy, negotiation, and execution in service of long-term organizational objectives.",
     quote: "Every negotiation is an opportunity to create value—for our partners and for the families we serve.",
     linkedin: "#",
-    email: "nick@heritagels.com"
+    email: "nick.gallagher@heritagels.org"
   }
 ];
 

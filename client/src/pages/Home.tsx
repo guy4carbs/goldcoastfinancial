@@ -58,13 +58,23 @@ export default function Home() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isLeadershipVideoPlaying, setIsLeadershipVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const leadershipVideoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlayVideo = () => {
     const video = videoRef.current;
     if (video) {
       video.play();
       setIsVideoPlaying(true);
+    }
+  };
+
+  const handlePlayLeadershipVideo = () => {
+    const video = leadershipVideoRef.current;
+    if (video) {
+      video.play();
+      setIsLeadershipVideoPlaying(true);
     }
   };
 
@@ -693,8 +703,12 @@ export default function Home() {
               </p>
 
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">JC</span>
+                <div className="w-16 h-16 rounded-full overflow-hidden">
+                  <img
+                    src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769720305403-hf_20260129_205442_6d34e584-b5ff-4ddd-80ca-a9fc2e5c8b0a.png?alt=media&token=00e3d8ae-3929-4a45-93e5-de6e6bd2a014"
+                    alt="Jack Cook"
+                    className="w-full h-full object-cover object-top"
+                  />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-gray-900">Jack Cook</p>
@@ -703,7 +717,7 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Right Video Placeholder */}
+            {/* Right Video */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -711,17 +725,26 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-6 lg:mt-0"
             >
-              <div className="relative aspect-video bg-[#e8e0d5] rounded-2xl overflow-hidden">
-                {/* Video placeholder with play button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
-                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+              <div className="relative aspect-video bg-gray-900 rounded-2xl overflow-hidden">
+                <video
+                  ref={leadershipVideoRef}
+                  src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1769724797939-Avatar%20IV%20Video.mp4?alt=media&token=a1d8e99e-3bbb-4f80-89c9-53e6716a00e6"
+                  poster="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/images%2F1769725060571-hf_20260129_215733_d1cccf71-d808-4c08-bf54-ce19c119b54d.png?alt=media&token=ed03a02c-0013-4942-b5f9-1943642ac090"
+                  controls={isLeadershipVideoPlaying}
+                  playsInline
+                  className="w-full h-full object-cover"
+                  onEnded={() => setIsLeadershipVideoPlaying(false)}
+                />
+                {!isLeadershipVideoPlaying && (
+                  <button
+                    onClick={handlePlayLeadershipVideo}
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors cursor-pointer group"
+                  >
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="w-8 h-8 text-primary ml-1" fill="currentColor" />
+                    </div>
+                  </button>
+                )}
               </div>
               <p className="text-center text-sm text-gray-500 mt-4">Watch our story</p>
             </motion.div>
