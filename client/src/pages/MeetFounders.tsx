@@ -19,6 +19,7 @@ const founders = [
     name: "Jack Cook",
     title: "Founder & Chief Executive Officer",
     location: "Naperville, IL",
+    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769720305403-hf_20260129_205442_6d34e584-b5ff-4ddd-80ca-a9fc2e5c8b0a.png?alt=media&token=00e3d8ae-3929-4a45-93e5-de6e6bd2a014",
     bio: "Jack Cook is the Founder and Chief Executive Officer of Heritage Life Solutions, responsible for defining the firm's long-term vision and stewarding the organization at the ownership level. His leadership encompasses strategic decision-making, carrier and IMO relationships, compensation architecture, and enterprise partnerships that drive sustainable growth.",
     extendedBio: "A former college football quarterback, Jack brings a disciplined leadership mindset forged through high-pressure decision-making and team command. Originally from Naperville, Illinois, he is recognized for combining deep industry knowledge with decisive founder authority to structure organizations for scale, operational leverage, and long-term stability.",
     quote: "Our mission is simple: give every family access to the protection they deserve, without the complexity they've come to expect.",
@@ -30,6 +31,7 @@ const founders = [
     name: "Frank Carbonara",
     title: "Executive Chairman & Risk Strategist",
     location: "Elmwood Park, IL",
+    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769719058773-hf_20260129_192235_99e66f0c-a605-48ff-98dc-ecbf9ddc70bd.png?alt=media&token=121c77cd-50f0-4009-aabb-a5fb09dcb11e",
     bio: "Frank Carbonara serves as Executive Chairman and Risk Strategist, providing senior governance, strategic oversight, and risk-based decision guidance. He brings extensive business experience across multiple industries and global markets, with a career spanning finance, real estate, insurance, and enterprise operations.",
     extendedBio: "Frank has conducted business internationally, including experience living in Dubai and collaborating with the Dubai Mercantile Exchange (DME). He is a licensed futures and commodities trader, having passed the Series 3 and Series 6 examinations. His background includes serving as a licensed real estate professional, operating as a public adjuster for over 15 years, and holding ownership and partnership positions in large-scale commercial enterprises.",
     quote: "Risk isn't something to fear—it's something to understand, structure, and ultimately master.",
@@ -41,6 +43,7 @@ const founders = [
     name: "Gaetano Carbonara",
     title: "Chief Operating Officer",
     location: "Oak Brook, IL",
+    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769718917570-hf_20260129_201527_51bb8df6-a4f3-4dfb-b745-3739f55c4b99%20(1).png?alt=media&token=d3074740-f4f1-4e95-9940-691c4d71fa0d",
     bio: "Gaetano Carbonara serves as Chief Operating Officer and Head of Systems & Culture, overseeing the operational infrastructure that converts executive vision into scalable execution. His responsibilities span organizational design, performance standards, accountability frameworks, leadership development, and systematized operations.",
     extendedBio: "A former college football quarterback from Oak Brook, Illinois, Gaetano is known for building high-performing teams, driving disciplined execution, and demanding excellence across the organization. He brings a strategic negotiating mindset and a culture-first leadership approach, ensuring teams operate with clarity, ownership, and consistently elevated standards as the company scales.",
     quote: "Culture isn't a department—it's the foundation everything else is built on.",
@@ -52,6 +55,7 @@ const founders = [
     name: "Nick Gallagher",
     title: "Head of Strategy & Negotiation",
     location: "Naperville, IL",
+    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769718901040-hf_20260129_193816_eef4fbcd-ed99-4c87-b1c7-9431e77c935f.png?alt=media&token=928e75a5-55b8-44e3-add0-25d4282a7573",
     bio: "Nick Gallagher leads strategy and negotiation initiatives, supporting expansion efforts, partnerships, and growth-oriented projects. He contributes to deal structuring, strategic evaluation, and stakeholder communication across internal and external channels.",
     extendedBio: "Originally from Naperville, Illinois, Nick developed his leadership foundation through athletics, where preparation, accountability, and performance were non-negotiable. He is recognized as a skilled communicator who supports executive initiatives by aligning strategy, negotiation, and execution in service of long-term organizational objectives.",
     quote: "Every negotiation is an opportunity to create value—for our partners and for the families we serve.",
@@ -103,10 +107,11 @@ export default function MeetFounders() {
                 {/* Photo */}
                 <div className={`${index % 2 === 1 ? 'lg:order-2' : ''}`}>
                   <div className="aspect-[4/5] max-w-md mx-auto lg:mx-0 bg-[#e8e0d5] rounded-3xl overflow-hidden relative">
-                    {/* Photo placeholder with initials */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-8xl font-bold text-[#d4ccc0]">{founder.initials}</span>
-                    </div>
+                    <img
+                      src={founder.image}
+                      alt={founder.name}
+                      className="w-full h-full object-cover object-top"
+                    />
                   </div>
                 </div>
 
