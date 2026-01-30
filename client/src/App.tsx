@@ -75,7 +75,6 @@ import FAQs from "@/pages/resources/FAQs";
 import Calculators from "@/pages/resources/Calculators";
 // Agent Pages
 import BecomeAgent from "@/pages/agents/BecomeAgent";
-import AgentLounge from "@/pages/agents/AgentLounge";
 import AgentResources from "@/pages/agents/AgentResources";
 import AgentLogin from "@/pages/agents/AgentLogin";
 import AgentDashboard from "@/pages/agents/AgentDashboard";
@@ -188,11 +187,6 @@ function Router() {
         <Route path="/resources/calculators" component={Calculators} />
         <Route path="/agents/become-an-agent" component={BecomeAgent} />
         <Route path="/agents/login" component={AgentLogin} />
-        <Route path="/agents/lounge">
-          <AgentProtectedRoute>
-            <AgentLounge />
-          </AgentProtectedRoute>
-        </Route>
         <Route path="/agents/dashboard">
           <AgentProtectedRoute>
             <AgentDashboard />

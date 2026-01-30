@@ -302,7 +302,7 @@ export const leadStatusConfig = {
 // =============================================================================
 
 export const sidebarNavItems = [
-  { icon: 'Home', label: 'Dashboard', href: '/agents/lounge' },
+  { icon: 'Home', label: 'Dashboard', href: '/agents/dashboard' },
   { icon: 'Users', label: 'Leads', href: '/agents/leads' },
   { icon: 'BarChart3', label: 'Pipeline', href: '/agents/pipeline' },
   { icon: 'DollarSign', label: 'Earnings', href: '/agents/earnings' },

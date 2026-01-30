@@ -24,7 +24,7 @@ export default function AdminLogin() {
     try {
       await signIn(email, password);
       toast.success("Logged in successfully");
-      navigate("/admin/images");
+      navigate("/admin");
     } catch (error: any) {
       console.error("Login error:", error);
 

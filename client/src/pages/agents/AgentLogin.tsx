@@ -44,7 +44,7 @@ export default function AgentLogin() {
     try {
       await login(email, password);
       trackAgentLogin(email);
-      setLocation("/agents/lounge");
+      setLocation("/agents/dashboard");
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     } finally {
@@ -119,7 +119,7 @@ export default function AgentLogin() {
                   </div>
                   <div className="space-y-3">
                     <button
-                      onClick={() => setLocation("/agents/lounge")}
+                      onClick={() => setLocation("/agents/dashboard")}
                       className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
                     >
                       Go to Agent Lounge <ArrowRight className="w-5 h-5" />
