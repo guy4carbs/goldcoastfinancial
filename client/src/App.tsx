@@ -4,7 +4,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
-import { HeritageLiveChat } from "@/components/ui/heritage-live-chat";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -403,7 +402,6 @@ function App() {
                 <AnalyticsProvider>
                   <Toaster />
                   <Router />
-                  <HeritageLiveChat />
                 </AnalyticsProvider>
               </TooltipProvider>
             </ConfirmProvider>
