@@ -4,7 +4,6 @@ import { Leaf, Menu, Phone, MapPin, Mail, Instagram, Linkedin, Youtube, Navigati
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HeritageLiveChat } from "@/components/ui/heritage-live-chat";
 import { MobileCallButton } from "@/components/ui/mobile-call-button";
 
 const OFFICE_ADDRESS = "1240 Iroquois Ave Suite 506, Naperville, IL 60563";
@@ -127,7 +126,6 @@ export function HeritageLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <HeritageLiveChat />
       <MobileCallButton />
 
       {/* Footer */}
