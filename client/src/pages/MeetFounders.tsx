@@ -32,9 +32,9 @@ const founders = [
     name: "Frank Carbonara",
     title: "Executive Chairman & Risk Strategist",
     location: "Elmwood Park, IL",
-    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769719058773-hf_20260129_192235_99e66f0c-a605-48ff-98dc-ecbf9ddc70bd.png?alt=media&token=121c77cd-50f0-4009-aabb-a5fb09dcb11e",
+    image: "",
     bio: "Frank Carbonara serves as Executive Chairman and Risk Strategist, providing senior governance, strategic oversight, and risk-based decision guidance. He brings extensive business experience across multiple industries and global markets, with a career spanning finance, real estate, insurance, and enterprise operations.",
-    extendedBio: "Frank has conducted business internationally, including experience living in Dubai and collaborating with the Dubai Mercantile Exchange (DME). He is a licensed futures and commodities trader, having passed the Series 3 and Series 6 examinations. His background includes serving as a licensed real estate professional, operating as a public adjuster for over 15 years, and holding ownership and partnership positions in large-scale commercial enterprises.",
+    extendedBio: "Frank has conducted business internationally, including experience living in Dubai and collaborating with the Dubai Mercantile Exchange (DME). He is a futures and commodities trader, having passed the Series 3 examination. His background includes serving as a licensed real estate professional, operating as a public adjuster for over 15 years, and holding ownership and partnership positions in large-scale commercial enterprises.",
     quote: "Risk isn't something to fear—it's something to understand, structure, and ultimately master.",
     linkedin: null,
     email: "frank.carbonara@heritagels.org"
@@ -44,7 +44,7 @@ const founders = [
     name: "Gaetano Carbonara",
     title: "Chief Operating Officer",
     location: "Oak Brook, IL",
-    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769801101428-hf_20260130_191852_ab65a643-0722-4e56-850b-cd44759e38fb.png?alt=media&token=6b52f71c-557d-459e-b74d-cb3eb6261281",
+    image: "",
     bio: "Gaetano Carbonara serves as Chief Operating Officer and Head of Systems & Culture, overseeing the operational infrastructure that converts executive vision into scalable execution. His responsibilities span organizational design, performance standards, accountability frameworks, leadership development, and systematized operations.",
     extendedBio: "A former college football quarterback from Oak Brook, Illinois, Gaetano is known for building high-performing teams, driving disciplined execution, and demanding excellence across the organization. He brings a strategic negotiating mindset and a culture-first leadership approach, ensuring teams operate with clarity, ownership, and consistently elevated standards as the company scales.",
     quote: "Culture isn't a department—it's the foundation everything else is built on.",
@@ -109,12 +109,16 @@ export default function MeetFounders() {
               >
                 {/* Photo */}
                 <div className={`${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-                  <div className="aspect-[4/5] max-w-md mx-auto lg:mx-0 bg-[#e8e0d5] rounded-3xl overflow-hidden relative">
-                    <img
-                      src={founder.image}
-                      alt={founder.name}
-                      className="w-full h-full object-cover object-top"
-                    />
+                  <div className="aspect-[4/5] max-w-md mx-auto lg:mx-0 bg-[#e8e0d5] rounded-3xl overflow-hidden relative flex items-center justify-center">
+                    {founder.image ? (
+                      <img
+                        src={founder.image}
+                        alt={founder.name}
+                        className="w-full h-full object-cover object-top"
+                      />
+                    ) : (
+                      <span className="text-8xl font-bold text-primary/30">{founder.initials}</span>
+                    )}
                   </div>
                 </div>
 
