@@ -44,7 +44,7 @@ const founders = [
     name: "Gaetano Carbonara",
     title: "Chief Operating Officer",
     location: "Oak Brook, IL",
-    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769718917570-hf_20260129_201527_51bb8df6-a4f3-4dfb-b745-3739f55c4b99%20(1).png?alt=media&token=d3074740-f4f1-4e95-9940-691c4d71fa0d",
+    image: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/team%2F1769801101428-hf_20260130_191852_ab65a643-0722-4e56-850b-cd44759e38fb.png?alt=media&token=6b52f71c-557d-459e-b74d-cb3eb6261281",
     bio: "Gaetano Carbonara serves as Chief Operating Officer and Head of Systems & Culture, overseeing the operational infrastructure that converts executive vision into scalable execution. His responsibilities span organizational design, performance standards, accountability frameworks, leadership development, and systematized operations.",
     extendedBio: "A former college football quarterback from Oak Brook, Illinois, Gaetano is known for building high-performing teams, driving disciplined execution, and demanding excellence across the organization. He brings a strategic negotiating mindset and a culture-first leadership approach, ensuring teams operate with clarity, ownership, and consistently elevated standards as the company scales.",
     quote: "Culture isn't a department—it's the foundation everything else is built on.",
