@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { LindyChat } from "@/components/LindyChat";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -402,6 +403,7 @@ function App() {
                 <AnalyticsProvider>
                   <Toaster />
                   <Router />
+                  <LindyChat />
                 </AnalyticsProvider>
               </TooltipProvider>
             </ConfirmProvider>
