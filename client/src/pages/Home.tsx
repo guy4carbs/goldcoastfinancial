@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { Check, X, Clock, Shield, FileText, DollarSign, MessageCircle, Send, ArrowRight, Star, Play, Phone } from "lucide-react";
+import { Check, Clock, Shield, FileText, DollarSign, ArrowRight, Star, Play, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -58,8 +58,6 @@ const testimonials = [
 export default function Home() {
   const [, setLocation] = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessage, setChatMessage] = useState("");
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isLeadershipVideoPlaying, setIsLeadershipVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -860,67 +858,6 @@ export default function Home() {
         </motion.div>
       </a>
 
-      {/* LIVE CHAT WIDGET */}
-      <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
-        {chatOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="mb-4 w-80 bg-white rounded-2xl shadow-2xl border border-[#e8e0d5] overflow-hidden"
-          >
-            {/* Chat Header */}
-            <div className="bg-primary p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-violet-500 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h4 className="text-white font-semibold text-sm">Heritage Support</h4>
-                  <p className="text-white/70 text-xs">We typically reply in minutes</p>
-                </div>
-              </div>
-              <button onClick={() => setChatOpen(false)} className="text-white/70 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Chat Body */}
-            <div className="p-4 h-64 bg-[#f5f0e8]">
-              <div className="bg-white rounded-lg p-3 shadow-sm max-w-[80%]">
-                <p className="text-sm text-gray-700">Hi! 👋 How can we help you today?</p>
-                <p className="text-xs text-gray-400 mt-1">Just now</p>
-              </div>
-            </div>
-
-            {/* Chat Input */}
-            <div className="p-4 border-t border-[#e8e0d5] bg-white">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Type a message..."
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-[#e8e0d5] rounded-lg text-sm focus:outline-none focus:border-primary"
-                />
-                <button className="p-3 bg-primary text-white rounded-lg hover:bg-primary/90">
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Chat Toggle Button */}
-        <motion.button
-          onClick={() => setChatOpen(!chatOpen)}
-          className="w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 flex items-center justify-center"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {chatOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
-        </motion.button>
-      </div>
     </div>
   );
 }
