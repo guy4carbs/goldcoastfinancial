@@ -690,7 +690,10 @@ export default function Home() {
                 </p>
                 <button
                   className="bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg"
-                  onClick={() => trackCTAClicked("Learn More", "annuities_section")}
+                  onClick={() => {
+                    trackCTAClicked("Learn More", "annuities_section");
+                    setLocation("/annuities/retirement-income");
+                  }}
                 >
                   Learn more
                 </button>
