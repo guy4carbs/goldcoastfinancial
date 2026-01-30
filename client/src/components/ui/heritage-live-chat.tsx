@@ -5,16 +5,16 @@ import { Button } from "./button";
 import { Input } from "./input";
 import { Avatar, AvatarFallback } from "./avatar";
 
-// Heritage Life Solutions color palette
+// Heritage Life Solutions color palette - Purple theme
 const c = {
-  background: "#f5f0e8",
-  primary: "#4f5a3f",
-  primaryHover: "#3d4730",
-  secondary: "#d4a05b",
-  secondaryHover: "#c49149",
-  muted: "#c8b6a6",
-  textPrimary: "#333333",
-  textSecondary: "#5c5347",
+  background: "#fffaf3",
+  primary: "#7c3aed",
+  primaryHover: "#6d28d9",
+  secondary: "#a78bfa",
+  secondaryHover: "#8b5cf6",
+  muted: "#e5e7eb",
+  textPrimary: "#1f2937",
+  textSecondary: "#6b7280",
   cream: "#fffaf3",
   white: "#ffffff",
 };
