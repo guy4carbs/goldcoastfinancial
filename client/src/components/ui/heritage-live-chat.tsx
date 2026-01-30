@@ -37,7 +37,7 @@ const botResponses: { [key: string]: string } = {
   "get a quote": "I'd be happy to help you get a quote! You can click here to start your personalized quote, or I can have one of our advisors call you. What works best?",
   "talk to an agent": "Great! Our team is available Monday-Friday, 9am-5pm CT. You can call us at (630) 555-0123, or leave your contact info and we'll reach out within 24 hours.",
   "learn about term life": "Term life insurance provides coverage for a specific period (10, 20, or 30 years). It's the most affordable option and perfect for protecting your family during peak earning years. Would you like to learn more or get a quote?",
-  "office hours": "Our office hours are:\n• Monday - Friday: 9:00 AM - 5:00 PM CT\n• Saturday: By Appointment\n• Sunday: Closed\n\nYou can also reach us anytime via email at contact@heritagels.com",
+  "office hours": "Our office hours are:\n• Monday - Friday: 9:00 AM - 5:00 PM CT\n• Saturday: By Appointment\n• Sunday: Closed\n\nYou can also reach us anytime via email at contact@heritagels.org",
   "default": "Thanks for reaching out! One of our advisors will get back to you shortly. In the meantime, is there anything specific I can help you with?",
 };
 
