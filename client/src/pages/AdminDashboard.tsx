@@ -14,6 +14,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import AdminNav from "@/components/AdminNav";
+import LoadingScreen from "@/components/LoadingScreen";
 
 interface DashboardStats {
   totalImages: number;
@@ -174,6 +175,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      <LoadingScreen />
       <AdminNav />
 
       <div className="flex-1 p-4 md:p-6 lg:p-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8">

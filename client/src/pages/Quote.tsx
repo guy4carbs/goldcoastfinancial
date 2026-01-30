@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import QuoteCalculator, { type QuoteCalculatorPrefillData } from "@/components/QuoteCalculator";
 import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWidget";
 import TrustIndicators, { RatingBadge } from "@/components/TrustIndicators";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const carriers = [
   { name: "Americo", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba" },
@@ -93,6 +94,7 @@ export default function Quote() {
 
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
+      <LoadingScreen />
       <Header />
 
       {/* Hero Section */}

@@ -13,6 +13,7 @@ import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LogCallModal } from "@/components/agent/LogCallModal";
 import { AddTaskModal } from "@/components/agent/AddTaskModal";
 import { LeaderboardModal } from "@/components/agent/LeaderboardModal";
+import LoadingScreen from "@/components/LoadingScreen";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -179,6 +180,7 @@ export default function AgentDashboard() {
 
   return (
     <AgentLoungeLayout>
+      <LoadingScreen />
       <DemoModeIndicator />
 
       {/* Modals */}

@@ -8,6 +8,7 @@ import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWi
 import TrustIndicators from "@/components/TrustIndicators";
 import Testimonials from "@/components/Testimonials";
 import NewsletterBanner from "@/components/NewsletterBanner";
+import LoadingScreen from "@/components/LoadingScreen";
 import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
@@ -113,6 +114,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#fffaf3]">
+      <LoadingScreen />
       <NewsletterBanner />
       <Header />
 
