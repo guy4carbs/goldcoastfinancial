@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Linkedin, Mail, Quote, MapPin } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -23,7 +24,7 @@ const founders = [
     bio: "Jack Cook is the Founder and Chief Executive Officer of Heritage Life Solutions, responsible for defining the firm's long-term vision and stewarding the organization at the ownership level. His leadership encompasses strategic decision-making, carrier and IMO relationships, compensation architecture, and enterprise partnerships that drive sustainable growth.",
     extendedBio: "A former college football quarterback, Jack brings a disciplined leadership mindset forged through high-pressure decision-making and team command. Originally from Naperville, Illinois, he is recognized for combining deep industry knowledge with decisive founder authority to structure organizations for scale, operational leverage, and long-term stability.",
     quote: "Our mission is simple: give every family access to the protection they deserve, without the complexity they've come to expect.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/jack-cook-810386271",
     email: "jack.cook@heritagels.org"
   },
   {
@@ -35,7 +36,7 @@ const founders = [
     bio: "Frank Carbonara serves as Executive Chairman and Risk Strategist, providing senior governance, strategic oversight, and risk-based decision guidance. He brings extensive business experience across multiple industries and global markets, with a career spanning finance, real estate, insurance, and enterprise operations.",
     extendedBio: "Frank has conducted business internationally, including experience living in Dubai and collaborating with the Dubai Mercantile Exchange (DME). He is a licensed futures and commodities trader, having passed the Series 3 and Series 6 examinations. His background includes serving as a licensed real estate professional, operating as a public adjuster for over 15 years, and holding ownership and partnership positions in large-scale commercial enterprises.",
     quote: "Risk isn't something to fear—it's something to understand, structure, and ultimately master.",
-    linkedin: "#",
+    linkedin: null,
     email: "frank.carbonara@heritagels.org"
   },
   {
@@ -47,7 +48,7 @@ const founders = [
     bio: "Gaetano Carbonara serves as Chief Operating Officer and Head of Systems & Culture, overseeing the operational infrastructure that converts executive vision into scalable execution. His responsibilities span organizational design, performance standards, accountability frameworks, leadership development, and systematized operations.",
     extendedBio: "A former college football quarterback from Oak Brook, Illinois, Gaetano is known for building high-performing teams, driving disciplined execution, and demanding excellence across the organization. He brings a strategic negotiating mindset and a culture-first leadership approach, ensuring teams operate with clarity, ownership, and consistently elevated standards as the company scales.",
     quote: "Culture isn't a department—it's the foundation everything else is built on.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/gaetano-carbonara-3b89713a3",
     email: "gaetano.carbonara@heritagels.org"
   },
   {
@@ -59,12 +60,14 @@ const founders = [
     bio: "Nick Gallagher leads strategy and negotiation initiatives, supporting expansion efforts, partnerships, and growth-oriented projects. He contributes to deal structuring, strategic evaluation, and stakeholder communication across internal and external channels.",
     extendedBio: "Originally from Naperville, Illinois, Nick developed his leadership foundation through athletics, where preparation, accountability, and performance were non-negotiable. He is recognized as a skilled communicator who supports executive initiatives by aligning strategy, negotiation, and execution in service of long-term organizational objectives.",
     quote: "Every negotiation is an opportunity to create value—for our partners and for the families we serve.",
-    linkedin: "#",
+    linkedin: "https://www.linkedin.com/in/nicholas-gallagher-a93a68293",
     email: "nick.gallagher@heritagels.org"
   }
 ];
 
 export default function MeetFounders() {
+  const { trackSocialClicked } = useAnalytics();
+
   return (
     <div className="min-h-screen bg-[#fffaf3]">
       <Header />
@@ -137,13 +140,18 @@ export default function MeetFounders() {
 
                   {/* Contact Links */}
                   <div className="flex gap-4">
-                    <a
-                      href={founder.linkedin}
-                      className="w-12 h-12 bg-primary/10 hover:bg-primary hover:text-white rounded-full flex items-center justify-center text-primary transition-colors"
-                      aria-label={`${founder.name}'s LinkedIn`}
-                    >
-                      <Linkedin className="w-5 h-5" />
-                    </a>
+                    {founder.linkedin && (
+                      <a
+                        href={founder.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-12 h-12 bg-primary/10 hover:bg-primary hover:text-white rounded-full flex items-center justify-center text-primary transition-colors"
+                        aria-label={`${founder.name}'s LinkedIn`}
+                        onClick={() => trackSocialClicked("linkedin", founder.linkedin!)}
+                      >
+                        <Linkedin className="w-5 h-5" />
+                      </a>
+                    )}
                     <a
                       href={`mailto:${founder.email}`}
                       className="w-12 h-12 bg-primary/10 hover:bg-primary hover:text-white rounded-full flex items-center justify-center text-primary transition-colors"

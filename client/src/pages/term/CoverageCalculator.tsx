@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import {
   Calculator,
   Shield,
@@ -40,6 +41,7 @@ const staggerContainer = {
 };
 
 export default function CoverageCalculator() {
+  const { trackCalculatorUsed, trackCalculatorResultViewed } = useAnalytics();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [simpleIncome, setSimpleIncome] = useState(75000);
   const [multiplier, setMultiplier] = useState(10);
@@ -80,6 +82,17 @@ export default function CoverageCalculator() {
     const total = debts + incomeReplacement + mortgageBalance + educationCosts;
     const adjustedTotal = Math.max(0, total - existingCoverage - savings);
 
+    // Track calculator usage
+    trackCalculatorUsed('dime', {
+      debts,
+      annualIncome,
+      yearsToReplace,
+      mortgageBalance,
+      educationCosts,
+      existingCoverage,
+      savings
+    });
+
     const breakdown = [
       { label: "Debts (D)", value: debts },
       { label: `Income Replacement (I) - ${yearsToReplace} years`, value: incomeReplacement },
@@ -100,6 +113,9 @@ export default function CoverageCalculator() {
 
     setDetailedCalculation({ total: adjustedTotal, breakdown, recommendation });
     setShowDetailedResult(true);
+
+    // Track result viewed
+    trackCalculatorResultViewed('dime', `$${adjustedTotal.toLocaleString()}`);
   };
 
   const calculationMethods = [
@@ -234,7 +250,10 @@ export default function CoverageCalculator() {
 
               <div className="flex gap-2 mb-6">
                 <button
-                  onClick={() => setCalculatorMode('simple')}
+                  onClick={() => {
+                    setCalculatorMode('simple');
+                    trackCalculatorUsed('simple_10x_rule', { income: simpleIncome, multiplier });
+                  }}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
                     calculatorMode === 'simple'
                       ? 'bg-violet-500 text-white'
@@ -244,7 +263,10 @@ export default function CoverageCalculator() {
                   10x Rule
                 </button>
                 <button
-                  onClick={() => setCalculatorMode('dime')}
+                  onClick={() => {
+                    setCalculatorMode('dime');
+                    trackCalculatorUsed('dime_method', { debts, annualIncome, yearsToReplace, mortgageBalance, educationCosts });
+                  }}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold text-sm transition-all ${
                     calculatorMode === 'dime'
                       ? 'bg-violet-500 text-white'
@@ -277,7 +299,12 @@ export default function CoverageCalculator() {
                       {[8, 10, 12, 15].map((mult) => (
                         <button
                           key={mult}
-                          onClick={() => setMultiplier(mult)}
+                          onClick={() => {
+                            setMultiplier(mult);
+                            const result = simpleIncome * mult;
+                            trackCalculatorUsed('simple_10x_rule', { income: simpleIncome, multiplier: mult });
+                            trackCalculatorResultViewed('simple_10x_rule', `$${result.toLocaleString()}`);
+                          }}
                           className={`py-2 rounded-lg text-sm font-medium transition-all ${
                             multiplier === mult
                               ? 'bg-primary text-white'

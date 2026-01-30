@@ -15,6 +15,13 @@
       "when": 1769400992303,
       "tag": "0001_dry_kylun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769729626015,
+      "tag": "0002_short_the_fury",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
+import { getAnalytics, logEvent, isSupported } from "firebase/analytics";
 
 // Your web app's Firebase configuration from environment variables
 const firebaseConfig = {
@@ -22,4 +23,21 @@ export const storage = getStorage(app);
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 
+// Initialize Firebase Analytics (only in browser environment)
+let analytics: ReturnType<typeof getAnalytics> | null = null;
+
+isSupported().then((supported) => {
+  if (supported) {
+    analytics = getAnalytics(app);
+  }
+});
+
+// Export analytics helper function
+export const trackEvent = (eventName: string, eventParams?: Record<string, any>) => {
+  if (analytics) {
+    logEvent(analytics, eventName, eventParams);
+  }
+};
+
+export { analytics };
 export default app;

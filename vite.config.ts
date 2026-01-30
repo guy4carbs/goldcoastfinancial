@@ -44,9 +44,6 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: true,
     strictPort: false,
-    hmr: {
-      clientPort: 4500,
-    },
     fs: {
       strict: true,
       deny: ["**/.*"],

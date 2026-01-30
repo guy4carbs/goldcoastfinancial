@@ -33,6 +33,10 @@ import {
   type InsertAgentCertificate,
   type AgentXpTransaction,
   type InsertAgentXpTransaction,
+  type PageView,
+  type InsertPageView,
+  type AnalyticsEvent,
+  type InsertAnalyticsEvent,
   quoteRequests,
   contactMessages,
   users,
@@ -50,6 +54,8 @@ import {
   agentSimulationResults,
   agentCertificates,
   agentXpTransactions,
+  pageViews,
+  analyticsEvents,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
@@ -133,6 +139,14 @@ export interface IStorage {
 
   // Leaderboard
   getLeaderboard(limit?: number): Promise<{ userId: string; totalXp: number; user: User }[]>;
+
+  // Analytics
+  createPageView(pageView: InsertPageView): Promise<PageView>;
+  createAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent>;
+  getPageViews(startDate?: Date, endDate?: Date): Promise<PageView[]>;
+  getAnalyticsEvents(startDate?: Date, endDate?: Date): Promise<AnalyticsEvent[]>;
+  getPageViewStats(): Promise<{ page: string; count: number }[]>;
+  getEventStats(): Promise<{ eventName: string; count: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -652,6 +666,64 @@ export class DatabaseStorage implements IStorage {
     });
 
     console.log("Demo data created successfully.");
+  }
+
+  // Analytics Methods
+  async createPageView(pageView: InsertPageView): Promise<PageView> {
+    const [created] = await db.insert(pageViews).values(pageView).returning();
+    return created;
+  }
+
+  async createAnalyticsEvent(event: InsertAnalyticsEvent): Promise<AnalyticsEvent> {
+    const [created] = await db.insert(analyticsEvents).values(event).returning();
+    return created;
+  }
+
+  async getPageViews(startDate?: Date, endDate?: Date): Promise<PageView[]> {
+    if (startDate && endDate) {
+      return db.select().from(pageViews)
+        .where(and(
+          sql`${pageViews.createdAt} >= ${startDate}`,
+          sql`${pageViews.createdAt} <= ${endDate}`
+        ))
+        .orderBy(desc(pageViews.createdAt));
+    }
+    return db.select().from(pageViews).orderBy(desc(pageViews.createdAt)).limit(1000);
+  }
+
+  async getAnalyticsEvents(startDate?: Date, endDate?: Date): Promise<AnalyticsEvent[]> {
+    if (startDate && endDate) {
+      return db.select().from(analyticsEvents)
+        .where(and(
+          sql`${analyticsEvents.createdAt} >= ${startDate}`,
+          sql`${analyticsEvents.createdAt} <= ${endDate}`
+        ))
+        .orderBy(desc(analyticsEvents.createdAt));
+    }
+    return db.select().from(analyticsEvents).orderBy(desc(analyticsEvents.createdAt)).limit(1000);
+  }
+
+  async getPageViewStats(): Promise<{ page: string; count: number }[]> {
+    const results = await db.select({
+      page: pageViews.page,
+      count: sql<number>`COUNT(*)`
+    })
+      .from(pageViews)
+      .groupBy(pageViews.page)
+      .orderBy(sql`COUNT(*) DESC`)
+      .limit(20);
+    return results.map(r => ({ page: r.page, count: Number(r.count) }));
+  }
+
+  async getEventStats(): Promise<{ eventName: string; count: number }[]> {
+    const results = await db.select({
+      eventName: analyticsEvents.eventName,
+      count: sql<number>`COUNT(*)`
+    })
+      .from(analyticsEvents)
+      .groupBy(analyticsEvents.eventName)
+      .orderBy(sql`COUNT(*) DESC`);
+    return results.map(r => ({ eventName: r.eventName, count: Number(r.count) }));
   }
 }
 

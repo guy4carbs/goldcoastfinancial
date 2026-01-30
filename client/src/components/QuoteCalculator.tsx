@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
@@ -31,6 +31,7 @@ import {
   Trash2
 } from "lucide-react";
 import { submitQuoteToGoogleSheets } from "@/lib/googleSheets";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 // ============================================
 // TYPES
@@ -673,6 +674,13 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
   const [applicationStep, setApplicationStep] = useState(0);
   const [direction, setDirection] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const { trackQuoteStarted, trackQuoteStepCompleted, trackQuoteSubmitted, trackQuoteAbandoned, track } = useAnalytics();
+  const isSubmittedRef = useRef(false);
+
+  // Track when quote form is first started
+  useEffect(() => {
+    trackQuoteStarted();
+  }, [trackQuoteStarted]);
 
   const [discoveryAnswers, setDiscoveryAnswers] = useState<DiscoveryAnswers>({
     primaryGoal: [], // Multi-select array
@@ -722,6 +730,24 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
   const [adjustedProductType, setAdjustedProductType] = useState<string>("");
   const [adjustedCoverage, setAdjustedCoverage] = useState<number>(0);
   const [adjustedTermLength, setAdjustedTermLength] = useState<string>("");
+
+  // Track form abandonment on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!isSubmittedRef.current && phase !== "discovery") {
+        const data = JSON.stringify({
+          event: 'quote_form_abandoned',
+          params: { phase, discovery_step: discoveryStep, application_step: applicationStep, coverage_type: recommendation?.productType },
+          page: window.location.pathname,
+          timestamp: new Date().toISOString()
+        });
+        navigator.sendBeacon('/api/analytics/event', data);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [phase, discoveryStep, applicationStep, recommendation]);
 
   const currentQuestion = discoveryQuestions[discoveryStep];
   const isMultiSelect = (currentQuestion as { multiSelect?: boolean }).multiSelect === true;
@@ -783,6 +809,9 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
     setAdjustedTermLength(rec.termLength);
     setPhase("recommendation");
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Track recommendation generated
+    trackQuoteStepCompleted(1, 'recommendation_generated');
+    track('product_viewed', { product_type: rec.productType, coverage_amount: rec.coverageAmount });
   };
 
   // Recalculate rates when user adjusts coverage, product, or term
@@ -1107,11 +1136,25 @@ Estimated Monthly Rate: $${recommendation?.monthlyRate?.toFixed(2) || 'N/A'}
 
       setApplicationId(result.applicationId);
       setPhase("submitted");
+      isSubmittedRef.current = true;
+      // Track successful submission
+      trackQuoteSubmitted(
+        recommendation?.productType || 'unknown',
+        recommendation?.coverageAmount?.toString() || '0',
+        applicationData.state
+      );
     } catch (error) {
       console.error('Submission error:', error);
       // Still show success to user - data can be recovered from console
       setApplicationId(`HLS-${Date.now()}`);
       setPhase("submitted");
+      isSubmittedRef.current = true;
+      // Track even on error since we show success to user
+      trackQuoteSubmitted(
+        recommendation?.productType || 'unknown',
+        recommendation?.coverageAmount?.toString() || '0',
+        applicationData.state
+      );
     } finally {
       setSubmitting(false);
     }

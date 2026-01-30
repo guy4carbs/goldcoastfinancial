@@ -8,6 +8,8 @@ import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWi
 import TrustIndicators from "@/components/TrustIndicators";
 import Testimonials from "@/components/Testimonials";
 import NewsletterBanner from "@/components/NewsletterBanner";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -62,11 +64,20 @@ export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const leadershipVideoRef = useRef<HTMLVideoElement>(null);
 
+  // Site settings
+  const { getPhone } = useSiteSettings();
+  const phone = getPhone();
+
+  // Analytics tracking
+  const { trackCTAClicked, trackVideoPlayed, trackPhoneClicked } = useAnalytics();
+  useScrollTracking();
+
   const handlePlayVideo = () => {
     const video = videoRef.current;
     if (video) {
       video.play();
       setIsVideoPlaying(true);
+      trackVideoPlayed("hero_video", video.src);
     }
   };
 
@@ -75,6 +86,7 @@ export default function Home() {
     if (video) {
       video.play();
       setIsLeadershipVideoPlaying(true);
+      trackVideoPlayed("leadership_video", video.src);
     }
   };
 
@@ -143,10 +155,18 @@ export default function Home() {
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-16">
-                  <a href="/quote" className="bg-violet-500 hover:bg-violet-400 text-white px-8 py-3.5 md:py-4 rounded-xl font-semibold text-lg text-center shadow-lg shadow-violet-500/30 transition-all">
+                  <a
+                    href="/quote"
+                    className="bg-violet-500 hover:bg-violet-400 text-white px-8 py-3.5 md:py-4 rounded-xl font-semibold text-lg text-center shadow-lg shadow-violet-500/30 transition-all"
+                    onClick={() => trackCTAClicked("Check My Price", "hero", "/quote")}
+                  >
                     Check my price
                   </a>
-                  <a href="/products" className="border-2 border-white/80 hover:bg-white/10 text-white px-8 py-3.5 md:py-4 rounded-xl font-semibold text-lg text-center transition-all">
+                  <a
+                    href="/products"
+                    className="border-2 border-white/80 hover:bg-white/10 text-white px-8 py-3.5 md:py-4 rounded-xl font-semibold text-lg text-center transition-all"
+                    onClick={() => trackCTAClicked("Which policy do I need?", "hero", "/products")}
+                  >
                     Which policy do I need?
                   </a>
                 </div>
@@ -361,7 +381,11 @@ export default function Home() {
           </motion.div>
 
           <div className="mt-16">
-            <a href="/quote" className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-12 py-5 rounded-xl font-semibold text-xl">
+            <a
+              href="/quote"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-12 py-5 rounded-xl font-semibold text-xl"
+              onClick={() => trackCTAClicked("Check My Price", "headline_section", "/quote")}
+            >
               Check my price
             </a>
           </div>
@@ -402,7 +426,11 @@ export default function Home() {
               <p className="text-xl text-gray-600 mb-8 leading-relaxed text-pretty">
                 Life insurance isn't just about money—it's about making sure your family is taken care of no matter what. We make it simple to get the coverage you need.
               </p>
-              <a href="/quote" className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg">
+              <a
+                href="/quote"
+                className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg"
+                onClick={() => trackCTAClicked("Get started", "protect_section", "/quote")}
+              >
                 Get started
               </a>
             </div>
@@ -548,7 +576,11 @@ export default function Home() {
 
           {/* CTA Button */}
           <div className="text-center mt-12">
-            <a href="/quote" className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-12 py-5 rounded-xl font-semibold text-xl">
+            <a
+              href="/quote"
+              className="inline-block bg-violet-500 hover:bg-violet-500/80 text-white px-12 py-5 rounded-xl font-semibold text-xl"
+              onClick={() => trackCTAClicked("Check My Price", "comparison_section", "/quote")}
+            >
               Check my price
             </a>
           </div>
@@ -654,7 +686,10 @@ export default function Home() {
                 <p className="text-xl text-white/90 mb-8 leading-relaxed text-pretty">
                   Turn your savings into guaranteed income for life. Our annuity solutions provide financial security and peace of mind in retirement.
                 </p>
-                <button className="bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg">
+                <button
+                  className="bg-violet-500 hover:bg-violet-500/80 text-white px-10 py-4 rounded-xl font-semibold text-lg"
+                  onClick={() => trackCTAClicked("Learn More", "annuities_section")}
+                >
                   Learn more
                 </button>
               </div>
@@ -806,8 +841,9 @@ export default function Home() {
 
       {/* CALL NOW FLOATING BUTTON - Mobile Only */}
       <a
-        href="tel:+16307780800"
+        href={phone.href}
         className="fixed bottom-4 left-4 z-50 md:hidden"
+        onClick={() => trackPhoneClicked(phone.display, "floating_button")}
       >
         <motion.div
           className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-full shadow-lg transition-colors"

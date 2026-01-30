@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
@@ -20,7 +21,8 @@ import {
   History,
   Mail,
   Send,
-  CheckCircle
+  CheckCircle,
+  X
 } from "lucide-react";
 
 const fadeInUp = {
@@ -1329,13 +1331,57 @@ const popularSearchTerms = [
 export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [email, setEmail] = useState("");
-  const [isSubscribing, setIsSubscribing] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [, navigate] = useLocation();
+
+  // Newsletter modal state
+  const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+  const [isNewsletterSubmitted, setIsNewsletterSubmitted] = useState(false);
+  const [isNewsletterLoading, setIsNewsletterLoading] = useState(false);
+  const [newsletterForm, setNewsletterForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    agreedToTerms: false
+  });
+
+  // Fetch blog posts from API with fallback to hardcoded data
+  const { data: apiPosts } = useQuery({
+    queryKey: ["blog-posts"],
+    queryFn: async () => {
+      const res = await fetch("/api/content/blog");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      return data.posts || [];
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: false,
+  });
+
+  // Use API data if available, otherwise fall back to hardcoded data
+  const activePosts = useMemo(() => {
+    if (apiPosts && apiPosts.length > 0) {
+      // Transform API posts to match expected format
+      return apiPosts.map((post: any) => ({
+        id: post.id,
+        slug: post.slug,
+        title: post.title,
+        excerpt: post.excerpt,
+        category: post.category,
+        author: post.author,
+        readTime: `${post.readTimeMinutes || 5} min read`,
+        date: post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent",
+        image: post.featuredImage || "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=400&fit=crop",
+        featured: post.isFeatured,
+        content: post.content,
+      }));
+    }
+    return blogPosts;
+  }, [apiPosts]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -1359,10 +1405,10 @@ export default function Blog() {
   ];
 
   // Get featured post (always the first one)
-  const featuredPost = blogPosts.find(post => post.featured);
+  const featuredPost = activePosts.find(post => post.featured);
 
   // Get all posts except featured for the grid
-  const regularPosts = blogPosts.filter(post => !post.featured);
+  const regularPosts = activePosts.filter(post => !post.featured);
 
   // Filter posts based on category and search
   const filteredPosts = regularPosts.filter(post => {
@@ -1393,7 +1439,7 @@ export default function Blog() {
 
     // Find matching articles
     const query = searchQuery.toLowerCase();
-    const matchingArticles = blogPosts
+    const matchingArticles = activePosts
       .filter(post =>
         post.title.toLowerCase().includes(query) ||
         post.excerpt.toLowerCase().includes(query)
@@ -1473,24 +1519,60 @@ export default function Blog() {
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email) {
-      toast.error("Please enter your email address");
+    if (!newsletterForm.email || !newsletterForm.firstName || !newsletterForm.agreedToTerms) {
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Please enter a valid email address");
-      return;
+    setIsNewsletterLoading(true);
+
+    try {
+      const response = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newsletterForm.email,
+          firstName: newsletterForm.firstName,
+          lastName: newsletterForm.lastName,
+          phone: newsletterForm.phone,
+          source: "blog",
+          landingPage: window.location.pathname,
+          referrerUrl: document.referrer || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to subscribe");
+      }
+
+      setIsNewsletterSubmitted(true);
+      localStorage.setItem("newsletter-subscribed", "true");
+
+      // Close modal after showing success
+      setTimeout(() => {
+        setIsNewsletterModalOpen(false);
+        setIsNewsletterSubmitted(false);
+        setNewsletterForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          agreedToTerms: false
+        });
+      }, 2000);
+    } catch (error) {
+      console.error("Newsletter subscription error:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsNewsletterLoading(false);
     }
+  };
 
-    setIsSubscribing(true);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast.success("Thanks for subscribing! Check your inbox for a confirmation email.");
-    setEmail("");
-    setIsSubscribing(false);
+  const handleNewsletterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setNewsletterForm(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
   };
 
   return (
@@ -1806,30 +1888,14 @@ export default function Blog() {
             <p className="text-xl text-white/80 mb-8 text-pretty">
               Join thousands of families receiving weekly tips, guides, and insights to protect what matters most.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-lg mx-auto">
-              <div className="flex-1 relative">
-                <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-4 rounded-xl outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-500"
-                />
-              </div>
-              <motion.button
-                type="submit"
-                disabled={isSubscribing}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-violet-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-violet-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isSubscribing ? "Subscribing..." : (
-                  <>
-                    Subscribe <Send className="w-4 h-4" />
-                  </>
-                )}
-              </motion.button>
-            </form>
+            <motion.button
+              onClick={() => setIsNewsletterModalOpen(true)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-violet-500 text-white px-8 py-4 rounded-xl font-semibold hover:bg-violet-500/90 transition-colors flex items-center justify-center gap-2 mx-auto"
+            >
+              Subscribe Now <ChevronRight className="w-5 h-5" />
+            </motion.button>
             <div className="flex items-center justify-center gap-6 mt-6 text-white/60 text-sm">
               <span className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" /> Free forever
@@ -1844,6 +1910,161 @@ export default function Blog() {
           </motion.div>
         </div>
       </section>
+
+      {/* Newsletter Modal */}
+      <AnimatePresence>
+        {isNewsletterModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsNewsletterModalOpen(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md mx-2 sm:mx-auto p-4 z-50"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                {/* Header */}
+                <div className="bg-primary px-6 py-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-violet-500/20 rounded-lg">
+                        <Mail className="w-5 h-5 text-violet-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">Stay Informed</h3>
+                        <p className="text-white/70 text-sm">Weekly tips & insights</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsNewsletterModalOpen(false)}
+                      className="p-1 text-white/60 hover:text-white transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Form */}
+                <div className="p-6">
+                  {isNewsletterSubmitted ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h4 className="text-xl font-bold text-gray-900 mb-2">You're subscribed!</h4>
+                      <p className="text-gray-600">Thanks for joining. Check your inbox soon.</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleNewsletterSubmit} className="space-y-3 md:space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            First Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={newsletterForm.firstName}
+                            onChange={handleNewsletterChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            placeholder="John"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Last Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={newsletterForm.lastName}
+                            onChange={handleNewsletterChange}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                            placeholder="Smith"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={newsletterForm.email}
+                          onChange={handleNewsletterChange}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                          placeholder="john@example.com"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone <span className="text-gray-400 font-normal">(optional)</span>
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={newsletterForm.phone}
+                          onChange={handleNewsletterChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          name="agreedToTerms"
+                          id="blog-agreedToTerms"
+                          checked={newsletterForm.agreedToTerms}
+                          onChange={handleNewsletterChange}
+                          required
+                          className="mt-1 w-4 h-4 text-violet-500 border-gray-300 rounded focus:ring-violet-500"
+                        />
+                        <label htmlFor="blog-agreedToTerms" className="text-sm text-gray-600">
+                          I agree to receive emails from Heritage Life Solutions. I understand I can unsubscribe at any time. View our{" "}
+                          <a href="/privacy" className="text-violet-500 hover:underline">Privacy Policy</a>
+                          {" "}and{" "}
+                          <a href="/terms" className="text-violet-500 hover:underline">Terms of Service</a>.
+                        </label>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isNewsletterLoading || !newsletterForm.agreedToTerms}
+                        className="w-full py-3 bg-violet-500 text-primary font-semibold rounded-lg hover:bg-violet-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isNewsletterLoading ? "Subscribing..." : "Subscribe to Newsletter"}
+                      </button>
+
+                      <p className="text-xs text-gray-500 text-center">
+                        We respect your privacy. No spam, ever.
+                      </p>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>

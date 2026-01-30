@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 import {
   CheckCircle2,
   ArrowRight,
@@ -14,6 +15,13 @@ export default function FinalExpense() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [coverageAmount, setCoverageAmount] = useState(15000);
   const [age, setAge] = useState(65);
+
+  const { trackProductViewed, trackCTAClicked } = useAnalytics();
+  useScrollTracking();
+
+  useEffect(() => {
+    trackProductViewed("final_expense");
+  }, []);
 
   const calculatePremium = () => {
     const baseRate = 0.45;
@@ -63,12 +71,14 @@ export default function FinalExpense() {
               <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
                 <a
                   href="/quote"
+                  onClick={() => trackCTAClicked("Get Your Free Quote", "hero", "/quote")}
                   className="inline-flex items-center justify-center gap-2 bg-violet-500 text-primary px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold hover:bg-white transition-colors text-sm sm:text-base"
                 >
                   Get Your Free Quote <ArrowRight className="w-5 h-5" />
                 </a>
                 <a
                   href="tel:6307780800"
+                  onClick={() => trackCTAClicked("Phone", "hero", "tel:6307780800")}
                   className="inline-flex items-center justify-center gap-2 bg-white/10 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold hover:bg-white/20 transition-colors text-sm sm:text-base"
                 >
                   <Phone className="w-5 h-5" /> (630) 778-0800
@@ -218,12 +228,14 @@ export default function FinalExpense() {
           <div className="flex flex-col sm:flex-row justify-center gap-2 md:gap-4">
             <a
               href="/quote"
+              onClick={() => trackCTAClicked("Get Your Free Quote", "footer_cta", "/quote")}
               className="inline-flex items-center justify-center gap-2 bg-violet-500 text-primary px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold hover:bg-white transition-colors text-sm sm:text-base"
             >
               Get Your Free Quote <ArrowRight className="w-5 h-5" />
             </a>
             <a
               href="tel:6307780800"
+              onClick={() => trackCTAClicked("Phone", "footer_cta", "tel:6307780800")}
               className="inline-flex items-center justify-center gap-2 bg-white/10 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold hover:bg-white/20 transition-colors text-sm sm:text-base"
             >
               <Phone className="w-5 h-5" /> (630) 778-0800

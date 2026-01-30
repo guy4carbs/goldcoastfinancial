@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TrustIndicators, { CarrierStrip } from "@/components/TrustIndicators";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 import {
   HelpCircle,
   Search,
@@ -56,6 +58,22 @@ export default function FAQs() {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Analytics tracking
+  const { trackFAQExpanded } = useAnalytics();
+  useScrollTracking();
+
+  // Fetch FAQs from API with fallback to hardcoded data
+  const { data: apiFaqs } = useQuery({
+    queryKey: ["faqs"],
+    queryFn: async () => {
+      const res = await fetch("/api/content/faqs");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: false,
+  });
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -387,7 +405,20 @@ export default function FAQs() {
     }
   ];
 
-  const filteredFaqs = faqs.filter(faq => {
+  // Use API data if available, otherwise fall back to hardcoded data
+  const activeFaqs = useMemo(() => {
+    if (apiFaqs && apiFaqs.length > 0) {
+      return apiFaqs.map((faq: any, index: number) => ({
+        id: faq.id || index + 1,
+        category: faq.category,
+        question: faq.question,
+        answer: faq.answer,
+      }));
+    }
+    return faqs;
+  }, [apiFaqs, faqs]);
+
+  const filteredFaqs = activeFaqs.filter(faq => {
     const matchesCategory = selectedCategory === "all" || faq.category === selectedCategory;
     const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
@@ -408,7 +439,7 @@ export default function FAQs() {
     }
 
     const query = searchQuery.toLowerCase();
-    const matchingFaqs = faqs
+    const matchingFaqs = activeFaqs
       .filter(faq =>
         faq.question.toLowerCase().includes(query) ||
         faq.answer.toLowerCase().includes(query)
@@ -669,7 +700,13 @@ export default function FAQs() {
                 className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200"
               >
                 <button
-                  onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
+                  onClick={() => {
+                    const isOpening = openFaq !== faq.id;
+                    setOpenFaq(isOpening ? faq.id : null);
+                    if (isOpening) {
+                      trackFAQExpanded(faq.question, faq.category);
+                    }
+                  }}
                   className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>

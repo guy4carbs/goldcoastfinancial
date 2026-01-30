@@ -6,13 +6,14 @@ interface MapSelectorProps {
   children: React.ReactNode;
   address?: string;
   className?: string;
+  onClick?: (mapType: "google" | "apple") => void;
 }
 
 const HERITAGE_ADDRESS = "1240 Iroquois Ave, Suite 506, Naperville, IL 60563";
 const GOOGLE_MAPS_URL = "https://maps.google.com/?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563";
 const APPLE_MAPS_URL = "https://maps.apple.com/?address=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563";
 
-export default function MapSelector({ children, address = HERITAGE_ADDRESS, className = "" }: MapSelectorProps) {
+export default function MapSelector({ children, address = HERITAGE_ADDRESS, className = "", onClick }: MapSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +35,7 @@ export default function MapSelector({ children, address = HERITAGE_ADDRESS, clas
 
   const handleOpenMaps = (type: "google" | "apple") => {
     const url = type === "google" ? GOOGLE_MAPS_URL : APPLE_MAPS_URL;
+    onClick?.(type);
     window.open(url, "_blank", "noopener,noreferrer");
     setIsOpen(false);
   };

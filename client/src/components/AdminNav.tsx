@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Video, Package, LogOut, LayoutDashboard, Inbox, Menu, X } from "lucide-react";
+import { Image, Video, Package, LogOut, LayoutDashboard, Inbox, Menu, X, BarChart3, FileText, Settings, Star, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -20,6 +20,21 @@ export default function AdminNav() {
       icon: Inbox,
     },
     {
+      label: "Content",
+      path: "/admin/content",
+      icon: FileText,
+    },
+    {
+      label: "Testimonials",
+      path: "/admin/testimonials",
+      icon: Star,
+    },
+    {
+      label: "Newsletter",
+      path: "/admin/newsletter",
+      icon: Mail,
+    },
+    {
       label: "Images",
       path: "/admin/images",
       icon: Image,
@@ -33,6 +48,16 @@ export default function AdminNav() {
       label: "Products",
       path: "/admin/products",
       icon: Package,
+    },
+    {
+      label: "Analytics",
+      path: "/admin/analytics",
+      icon: BarChart3,
+    },
+    {
+      label: "Settings",
+      path: "/admin/settings",
+      icon: Settings,
     },
   ];
 

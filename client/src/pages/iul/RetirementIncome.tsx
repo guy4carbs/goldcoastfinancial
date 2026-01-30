@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 import {
   Wallet,
   Shield,
@@ -41,12 +42,15 @@ export default function RetirementIncome() {
   const [annualContribution, setAnnualContribution] = useState(20000);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { trackVideoPlayed, trackCalculatorUsed } = useAnalytics();
+  useScrollTracking();
 
   const handlePlayVideo = () => {
     const video = videoRef.current;
     if (video) {
       video.play();
       setIsPlaying(true);
+      trackVideoPlayed("retirement_income_video", video.src);
     }
   };
 

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import {
   Calculator,
   Target,
@@ -34,6 +35,7 @@ const staggerContainer = {
 };
 
 export default function Calculators() {
+  const { trackCalculatorUsed, trackCalculatorResultViewed } = useAnalytics();
   const [activeCalc, setActiveCalc] = useState<string>("coverage");
 
   // Coverage Calculator State
@@ -157,7 +159,10 @@ export default function Calculators() {
                 key={calc.id}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveCalc(calc.id)}
+                onClick={() => {
+                  setActiveCalc(calc.id);
+                  trackCalculatorUsed(calc.id, { calculator_name: calc.name });
+                }}
                 className={`flex items-center gap-3 px-6 py-4 rounded-xl font-medium transition-all ${
                   activeCalc === calc.id
                     ? 'bg-primary text-white shadow-lg'
@@ -351,6 +356,18 @@ export default function Calculators() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        trackCalculatorUsed('coverage_needs', {
+                          income,
+                          yearsToReplace,
+                          mortgage,
+                          otherDebts,
+                          collegeFund,
+                          existingSavings,
+                          existingCoverage
+                        });
+                        trackCalculatorResultViewed('coverage_needs', `$${coverageNeeded.toLocaleString()}`);
+                      }}
                       className="w-full bg-violet-500 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                     >
                       Get Quotes for This Amount <ArrowRight className="w-5 h-5" />
@@ -507,6 +524,16 @@ export default function Calculators() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        trackCalculatorUsed('premium_estimator', {
+                          age,
+                          gender,
+                          smoker,
+                          coverageAmount,
+                          termLength
+                        });
+                        trackCalculatorResultViewed('premium_estimator', `$${estimatedMonthly}/month`);
+                      }}
                       className="w-full bg-violet-500 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                     >
                       Get Your Real Quote <ArrowRight className="w-5 h-5" />
@@ -639,6 +666,15 @@ export default function Calculators() {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        trackCalculatorUsed('human_life_value', {
+                          currentAge,
+                          retirementAge,
+                          annualIncome: annualIncome2,
+                          incomeGrowth
+                        });
+                        trackCalculatorResultViewed('human_life_value', `$${humanLifeValue.toLocaleString()}`);
+                      }}
                       className="w-full bg-violet-500 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
                     >
                       Protect Your Value <ArrowRight className="w-5 h-5" />

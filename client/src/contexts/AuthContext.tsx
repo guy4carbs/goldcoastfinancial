@@ -3,7 +3,8 @@ import {
   User,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -14,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,13 +42,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignOut(auth);
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const value = {
     user,
     loading,
     login: signIn,
     logout: signOut,
     signIn,
-    signOut
+    signOut,
+    resetPassword
   };
 
   return (

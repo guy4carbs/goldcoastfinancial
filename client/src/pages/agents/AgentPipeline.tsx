@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { PipelineKanban, type PipelineLead } from "@/components/agent/PipelineKanban";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LeadDetailDrawer } from "@/components/agent/LeadDetailDrawer";
@@ -64,6 +65,7 @@ function getTimePeriodDays(period: TimePeriod): number {
 
 export default function AgentPipeline() {
   const { leads, addLead, updateLeadStatus, addActivityToLead } = useAgentStore();
+  const { trackAgentPipelineUpdated, trackAgentLeadStatusChanged } = useAnalytics();
   const [viewMode, setViewMode] = useState<'funnel' | 'kanban'>('funnel');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('week');
   const [showAddLead, setShowAddLead] = useState(false);
@@ -94,6 +96,7 @@ export default function AgentPipeline() {
       ...leadData,
       status: initialStage as Lead['status'],
     });
+    trackAgentPipelineUpdated('lead_added');
     toast.success('Lead added to pipeline');
   };
 
@@ -289,11 +292,15 @@ export default function AgentPipeline() {
           open={drawerOpen}
           onOpenChange={setDrawerOpen}
           onUpdateStatus={(leadId: string, status: Lead['status']) => {
+            const oldStatus = selectedLead?.status || 'unknown';
             updateLeadStatus(leadId, status);
+            trackAgentLeadStatusChanged(leadId, oldStatus, status);
+            trackAgentPipelineUpdated('status_changed', leadId);
             toast.success(`Lead moved to ${statusConfig[status]?.label || status}`);
           }}
           onAddActivity={(leadId: string, activity) => {
             addActivityToLead(leadId, activity);
+            trackAgentPipelineUpdated('activity_added', leadId);
             toast.success('Activity logged');
           }}
         />

@@ -1,41 +1,52 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail, Clock, Send, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MapSelector from "@/components/MapSelector";
 import TrustIndicators from "@/components/TrustIndicators";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 };
 
-const contactMethods = [
-  {
-    icon: Phone,
-    title: "Call Us",
-    description: "Speak with a licensed advisor",
-    value: "(630) 778-0800",
-    link: "tel:6307780800"
-  },
-  {
-    icon: Mail,
-    title: "Email Us",
-    description: "We'll respond within 24 hours",
-    value: "contact@heritagels.org",
-    link: "mailto:contact@heritagels.org"
-  },
-  {
-    icon: Clock,
-    title: "Business Hours",
-    description: "Monday - Friday",
-    value: "9:00 AM - 5:00 PM CT",
-    link: null
-  }
-];
-
 export default function Contact() {
+  const { trackContactSubmitted, trackContactStarted, trackDirectionsClicked, track, trackPhoneClicked, trackEmailClicked } = useAnalytics();
+  useScrollTracking();
+
+  const { getPhone, getEmail, getAddress, getSetting } = useSiteSettings();
+  const phone = getPhone();
+  const email = getEmail();
+  const address = getAddress();
+  const businessHoursWeekday = getSetting("business_hours_weekday", "9:00 AM - 5:00 PM CT");
+
+  const contactMethods = [
+    {
+      icon: Phone,
+      title: "Call Us",
+      description: "Speak with a licensed advisor",
+      value: phone.display,
+      link: phone.href
+    },
+    {
+      icon: Mail,
+      title: "Email Us",
+      description: "We'll respond within 24 hours",
+      value: email.display,
+      link: email.href
+    },
+    {
+      icon: Clock,
+      title: "Business Hours",
+      description: "Monday - Friday",
+      value: businessHoursWeekday,
+      link: null
+    }
+  ];
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -46,6 +57,35 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const isSubmittedRef = useRef(false);
+  const hasStartedRef = useRef(false);
+
+  // Track form abandonment on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Check if form has been started (any field has value) and not submitted
+      const fieldsWithValue = Object.values(formData).filter(value => value.trim() !== '').length;
+      if (fieldsWithValue > 0 && !isSubmittedRef.current) {
+        const data = JSON.stringify({
+          event: 'contact_form_abandoned',
+          params: { fields_completed: fieldsWithValue },
+          page: window.location.pathname,
+          timestamp: new Date().toISOString()
+        });
+        navigator.sendBeacon('/api/analytics/event', data);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formData]);
+
+  const handleFirstInteraction = () => {
+    if (!hasStartedRef.current) {
+      hasStartedRef.current = true;
+      trackContactStarted();
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -82,7 +122,10 @@ export default function Contact() {
         throw new Error('Failed to send message');
       }
 
+      isSubmittedRef.current = true;
       setIsSubmitted(true);
+      trackContactSubmitted();
+      track('contact_form_submitted', { subject: formData.subject });
     } catch (error) {
       console.error('Error submitting contact form:', error);
       alert('There was an error sending your message. Please try again or call us directly.');
@@ -142,6 +185,13 @@ export default function Contact() {
                   <a
                     href={method.link}
                     className="text-primary font-semibold hover:text-violet-500 transition-colors"
+                    onClick={() => {
+                      if (method.link?.startsWith("tel:")) {
+                        trackPhoneClicked(method.value, "contact_page");
+                      } else if (method.link?.startsWith("mailto:")) {
+                        trackEmailClicked(method.value, "contact_page");
+                      }
+                    }}
                   >
                     {method.value}
                   </a>
@@ -197,6 +247,7 @@ export default function Contact() {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
+                        onFocus={handleFirstInteraction}
                         required
                         className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="John"
@@ -320,7 +371,7 @@ export default function Contact() {
               {/* Google Map Embed */}
               <div className="h-48 md:h-64 rounded-2xl mb-8 overflow-hidden shadow-lg">
                 <iframe
-                  src="https://maps.google.com/maps?q=1240+Iroquois+Ave,+Suite+506,+Naperville,+IL+60563&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(address.full)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -334,11 +385,17 @@ export default function Contact() {
               {/* Address Card */}
               <div className="bg-white rounded-2xl p-4 md:p-6 lg:p-8 border border-[#e8e0d5]">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Heritage Life Solutions</h3>
-                <MapSelector className="block">
+                <MapSelector
+                  className="block"
+                  onClick={() => trackDirectionsClicked(address.full)}
+                >
                   <span className="text-gray-600 leading-relaxed hover:text-primary transition-colors cursor-pointer block">
-                    1240 Iroquois Ave<br />
-                    Suite 506<br />
-                    Naperville, IL 60563
+                    {address.lines.map((line, index) => (
+                      <span key={index}>
+                        {line}
+                        {index < address.lines.length - 1 && <br />}
+                      </span>
+                    ))}
                   </span>
                   <span className="text-primary font-semibold hover:text-violet-500 transition-colors cursor-pointer inline-block mt-4">
                     Get Directions →

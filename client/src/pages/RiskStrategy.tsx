@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { Check, Shield, Home, Heart, Play } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -15,9 +16,14 @@ export default function RiskStrategy() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { trackVideoPlayed, trackFAQExpanded } = useAnalytics();
+  useScrollTracking();
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
+    if (openFaq !== index) {
+      trackFAQExpanded(`FAQ ${index + 1}`, "risk_strategy");
+    }
   };
 
   const handlePlayVideo = () => {
@@ -25,6 +31,7 @@ export default function RiskStrategy() {
     if (video) {
       video.play();
       setIsPlaying(true);
+      trackVideoPlayed("risk_strategy_video", video.src);
     }
   };
 

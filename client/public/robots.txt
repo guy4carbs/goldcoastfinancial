@@ -1,0 +1,35 @@
+# Heritage Life Solutions - robots.txt
+# https://www.heritagels.org
+
+User-agent: *
+Allow: /
+
+# Disallow admin and agent areas
+Disallow: /admin
+Disallow: /admin/
+Disallow: /agents/lounge
+Disallow: /agents/dashboard
+Disallow: /agents/leads
+Disallow: /agents/pipeline
+Disallow: /agents/training
+Disallow: /agents/calendar
+Disallow: /agents/chat
+Disallow: /agents/email
+Disallow: /agents/quotes
+Disallow: /agents/earnings
+Disallow: /agents/achievements
+Disallow: /agents/leaderboard
+Disallow: /agents/settings
+Disallow: /agents/help
+Disallow: /agents/resources
+Disallow: /agents/scripts
+Disallow: /agents/announcements
+Disallow: /agents/guidelines
+Disallow: /agents/getting-started
+
+# Allow agent public pages
+Allow: /agents/login
+Allow: /agents/become-an-agent
+
+# Sitemap location
+Sitemap: https://www.heritagels.org/sitemap.xml

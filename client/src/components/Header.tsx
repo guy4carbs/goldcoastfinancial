@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Search, User, ChevronDown, Leaf, Phone, Menu, X } from "lucide-react";
 import SearchModal from "./SearchModal";
 import ClientPortalModal from "./ClientPortalModal";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 type DropdownKey = "life" | "annuities" | "about" | "resources" | "agents" | null;
 
@@ -10,6 +12,9 @@ export default function Header() {
   const [activeDropdown, setActiveDropdown] = useState<DropdownKey>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [clientPortalOpen, setClientPortalOpen] = useState(false);
+  const { trackMenuOpened, trackMenuClosed, trackPhoneClicked, trackCTAClicked } = useAnalytics();
+  const { getPhone } = useSiteSettings();
+  const phone = getPhone();
 
   const handleMouseEnter = (key: DropdownKey) => {
     setActiveDropdown(key);
@@ -47,7 +52,11 @@ export default function Header() {
             <div className={`absolute top-full -left-4 pt-2 transition-all duration-200 ${activeDropdown === "life" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"}`}>
               <div className="bg-white rounded-xl shadow-xl border border-[#e8e0d5] p-6 w-[800px] max-w-[95vw]">
                 {/* Get a Quote CTA */}
-                <a href="/quote" className="block mb-4 p-4 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors">
+                <a
+                  href="/quote"
+                  className="block mb-4 p-4 bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors"
+                  onClick={() => trackCTAClicked("Get a Free Quote", "header-mega-menu", "/quote")}
+                >
                   <span className="font-semibold">Get a Free Quote</span>
                   <span className="text-white/80 text-sm ml-2">Compare rates in minutes</span>
                 </a>
@@ -211,9 +220,13 @@ export default function Header() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {/* Phone - visible on all screen sizes */}
-          <a href="tel:6307780800" className="flex items-center gap-2 text-sm text-gray-700 hover:text-primary transition-colors">
+          <a
+            href={phone.href}
+            className="flex items-center gap-2 text-sm text-gray-700 hover:text-primary transition-colors"
+            onClick={() => trackPhoneClicked(phone.display, "header")}
+          >
             <Phone className="w-4 h-4" />
-            <span className="font-medium hidden sm:inline">(630) 778-0800</span>
+            <span className="font-medium hidden sm:inline">{phone.display}</span>
           </a>
 
           {/* Desktop icons */}
@@ -237,7 +250,15 @@ export default function Header() {
           {/* Mobile menu button */}
           <button
             className="lg:hidden p-2 hover:bg-[#e8e0d5] rounded-full transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => {
+              const newState = !mobileMenuOpen;
+              setMobileMenuOpen(newState);
+              if (newState) {
+                trackMenuOpened();
+              } else {
+                trackMenuClosed();
+              }
+            }}
           >
             {mobileMenuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
           </button>
@@ -248,7 +269,11 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#fffaf3] border-t border-[#e8e0d5] px-6 py-4 space-y-1 max-h-[85vh] overflow-y-auto overscroll-contain">
           {/* Get a Quote CTA */}
-          <a href="/quote" className="block p-3 bg-primary rounded-lg text-white text-center font-semibold mb-4">
+          <a
+            href="/quote"
+            className="block p-3 bg-primary rounded-lg text-white text-center font-semibold mb-4"
+            onClick={() => trackCTAClicked("Get a Free Quote", "mobile-menu", "/quote")}
+          >
             Get a Free Quote
           </a>
 
@@ -352,9 +377,13 @@ export default function Header() {
               <User className="w-4 h-4" />
               Client Portal
             </button>
-            <a href="tel:6307780800" className="flex items-center gap-2 text-primary font-medium">
+            <a
+              href={phone.href}
+              className="flex items-center gap-2 text-primary font-medium"
+              onClick={() => trackPhoneClicked(phone.display, "mobile-menu")}
+            >
               <Phone className="w-4 h-4" />
-              (630) 778-0800
+              {phone.display}
             </a>
           </div>
         </div>

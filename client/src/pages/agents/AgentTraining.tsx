@@ -97,6 +97,7 @@ import {
 } from "@/lib/trainingInfrastructure";
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { toast } from "sonner";
 import {
   INSTITUTIONAL_MODULES,
@@ -411,6 +412,9 @@ export default function AgentTraining() {
   const { performance, currentUser } = useAgentStore();
   const currentStreak = performance.currentStreak;
   const [totalXP, setTotalXP] = useState(performance.xp);
+
+  // Analytics
+  const { trackAgentTrainingStarted } = useAnalytics();
 
   // Phase 5 State - Module Rating & Review Popups
   const [showModuleRating, setShowModuleRating] = useState(false);
@@ -908,6 +912,7 @@ Gold Coast Financial | Heritage Life Division
     setLastModuleId(module.id);
     setSelectedModule(module);
     setModuleViewerOpen(true);
+    trackAgentTrainingStarted(module.title);
   };
 
   // Complete module after assessment pass (waits for passedAssessments state update)

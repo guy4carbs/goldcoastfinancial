@@ -11,7 +11,16 @@ import AdminImages from "@/pages/AdminImages";
 import AdminVideos from "@/pages/AdminVideos";
 import AdminProducts from "@/pages/AdminProducts";
 import AdminSubmissions from "@/pages/AdminSubmissions";
+import AdminAnalytics from "@/pages/AdminAnalytics";
+import AdminContent from "@/pages/AdminContent";
+import AdminBlogEditor from "@/pages/AdminBlogEditor";
+import AdminFAQEditor from "@/pages/AdminFAQEditor";
+import AdminPageEditor from "@/pages/AdminPageEditor";
 import AdminLogin from "@/pages/AdminLogin";
+import AdminSettings from "@/pages/AdminSettings";
+import AdminTestimonials from "@/pages/AdminTestimonials";
+import AdminNewsletter from "@/pages/AdminNewsletter";
+import Unsubscribe from "@/pages/Unsubscribe";
 import RiskStrategy from "@/pages/RiskStrategy";
 import Products from "@/pages/Products";
 import Quote from "@/pages/Quote";
@@ -99,10 +108,12 @@ import Accessibility from "@/pages/legal/Accessibility";
 import Licenses from "@/pages/legal/Licenses";
 import DoNotSell from "@/pages/legal/DoNotSell";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AgentProtectedRoute } from "@/components/AgentProtectedRoute";
 import { CelebrationProvider } from "@/lib/celebrationContext";
 import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
+import { AnalyticsProvider } from "@/hooks/useAnalytics";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -298,6 +309,11 @@ function Router() {
             <AdminSubmissions />
           </ProtectedRoute>
         </Route>
+        <Route path="/admin/analytics">
+          <ProtectedRoute>
+            <AdminAnalytics />
+          </ProtectedRoute>
+        </Route>
         <Route path="/admin/images">
           <ProtectedRoute>
             <AdminImages />
@@ -313,6 +329,56 @@ function Router() {
             <AdminProducts />
           </ProtectedRoute>
         </Route>
+        <Route path="/admin/content">
+          <ProtectedRoute>
+            <AdminContent />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/content/blog/new">
+          <ProtectedRoute>
+            <AdminBlogEditor />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/content/blog/:id">
+          <ProtectedRoute>
+            <AdminBlogEditor />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/content/faqs/new">
+          <ProtectedRoute>
+            <AdminFAQEditor />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/content/faqs/:id">
+          <ProtectedRoute>
+            <AdminFAQEditor />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/content/pages/new">
+          <ProtectedRoute>
+            <AdminPageEditor />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/content/pages/:id">
+          <ProtectedRoute>
+            <AdminPageEditor />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/settings">
+          <ProtectedRoute>
+            <AdminSettings />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/testimonials">
+          <ProtectedRoute>
+            <AdminTestimonials />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/newsletter">
+          <ProtectedRoute>
+            <AdminNewsletter />
+          </ProtectedRoute>
+        </Route>
         <Route path="/admin">
           <ProtectedRoute>
             <AdminDashboard />
@@ -324,6 +390,7 @@ function Router() {
         <Route path="/legal/accessibility" component={Accessibility} />
         <Route path="/legal/licenses" component={Licenses} />
         <Route path="/legal/do-not-sell" component={DoNotSell} />
+        <Route path="/unsubscribe/:token" component={Unsubscribe} />
         <Route component={NotFound} />
       </Switch>
     </>
@@ -334,14 +401,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CelebrationProvider>
-          <ConfirmProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </ConfirmProvider>
-        </CelebrationProvider>
+        <SiteSettingsProvider>
+          <CelebrationProvider>
+            <ConfirmProvider>
+              <TooltipProvider>
+                <AnalyticsProvider>
+                  <Toaster />
+                  <Router />
+                </AnalyticsProvider>
+              </TooltipProvider>
+            </ConfirmProvider>
+          </CelebrationProvider>
+        </SiteSettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

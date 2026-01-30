@@ -1,7 +1,24 @@
 import { Facebook, Twitter, Linkedin, Youtube, Instagram } from "lucide-react";
 import MapSelector from "./MapSelector";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
 export default function Footer() {
+  const { trackPhoneClicked, trackEmailClicked, trackSocialClicked, trackCTAClicked } = useAnalytics();
+  const { getSetting, getPhone, getEmail, getAddress } = useSiteSettings();
+
+  // Contact info from settings
+  const phone = getPhone();
+  const email = getEmail();
+  const address = getAddress();
+
+  // Social media links from settings
+  const socialFacebook = getSetting("social_facebook", "https://facebook.com");
+  const socialTwitter = getSetting("social_twitter", "https://twitter.com");
+  const socialLinkedin = getSetting("social_linkedin", "https://linkedin.com");
+  const socialYoutube = getSetting("social_youtube", "https://youtube.com");
+  const socialInstagram = getSetting("social_instagram", "https://instagram.com");
+
   return (
     <footer className="bg-[#fffaf3] border-t border-gray-200 py-16">
       <div className="max-w-7xl mx-auto px-6">
@@ -13,62 +30,79 @@ export default function Footer() {
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Mailing Address</p>
                 <MapSelector>
-                  <span className="block">1240 Iroquois Ave</span>
-                  <span className="block">Suite 506</span>
-                  <span className="block">Naperville, IL 60563</span>
+                  {address.lines.map((line, index) => (
+                    <span key={index} className="block">{line}</span>
+                  ))}
                 </MapSelector>
               </div>
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Phone</p>
-                <a href="tel:6307780800" className="hover:text-primary">(630) 778-0800</a>
+                <a
+                  href={phone.href}
+                  className="hover:text-primary"
+                  onClick={() => trackPhoneClicked(phone.display, "footer")}
+                >
+                  {phone.display}
+                </a>
               </div>
               <div>
                 <p className="font-semibold text-gray-900 mb-1">Email</p>
-                <a href="mailto:contact@heritagels.org" className="hover:text-primary">contact@heritagels.org</a>
+                <a
+                  href={email.href}
+                  className="hover:text-primary"
+                  onClick={() => trackEmailClicked(email.display, "footer")}
+                >
+                  {email.display}
+                </a>
               </div>
               <div className="flex gap-3 pt-2">
                 <a
-                  href="https://facebook.com"
+                  href={socialFacebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 md:w-9 md:h-9 bg-[#e8e0d5] hover:bg-[#1877F2] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
                   aria-label="Facebook"
+                  onClick={() => trackSocialClicked("Facebook", socialFacebook)}
                 >
                   <Facebook className="w-5 h-5 md:w-4 md:h-4" />
                 </a>
                 <a
-                  href="https://twitter.com"
+                  href={socialTwitter}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 md:w-9 md:h-9 bg-[#e8e0d5] hover:bg-black hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
                   aria-label="X (Twitter)"
+                  onClick={() => trackSocialClicked("Twitter", socialTwitter)}
                 >
                   <Twitter className="w-5 h-5 md:w-4 md:h-4" />
                 </a>
                 <a
-                  href="https://linkedin.com"
+                  href={socialLinkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 md:w-9 md:h-9 bg-[#e8e0d5] hover:bg-[#0A66C2] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
                   aria-label="LinkedIn"
+                  onClick={() => trackSocialClicked("LinkedIn", socialLinkedin)}
                 >
                   <Linkedin className="w-5 h-5 md:w-4 md:h-4" />
                 </a>
                 <a
-                  href="https://youtube.com"
+                  href={socialYoutube}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 md:w-9 md:h-9 bg-[#e8e0d5] hover:bg-[#FF0000] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
                   aria-label="YouTube"
+                  onClick={() => trackSocialClicked("YouTube", socialYoutube)}
                 >
                   <Youtube className="w-5 h-5 md:w-4 md:h-4" />
                 </a>
                 <a
-                  href="https://instagram.com"
+                  href={socialInstagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 md:w-9 md:h-9 bg-[#e8e0d5] hover:bg-gradient-to-tr hover:from-[#FCAF45] hover:via-[#E1306C] hover:to-[#833AB4] hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
                   aria-label="Instagram"
+                  onClick={() => trackSocialClicked("Instagram", socialInstagram)}
                 >
                   <Instagram className="w-5 h-5 md:w-4 md:h-4" />
                 </a>

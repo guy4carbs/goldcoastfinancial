@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
@@ -13,7 +14,8 @@ interface Testimonial {
   verified: boolean;
 }
 
-const testimonials: Testimonial[] = [
+// Fallback testimonials if API fails
+const fallbackTestimonials: Testimonial[] = [
   {
     id: 1,
     name: "Michael R.",
@@ -76,6 +78,55 @@ const testimonials: Testimonial[] = [
   },
 ];
 
+// Format product type from API to display string
+function formatProductType(productType: string): string {
+  const productMap: Record<string, string> = {
+    term: "Term Life",
+    whole: "Whole Life",
+    iul: "IUL",
+    final_expense: "Final Expense",
+    annuity: "Annuity",
+  };
+  return productMap[productType] || "Life Insurance";
+}
+
+// Format date to relative string
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return "1 week ago";
+  if (diffDays < 21) return "2 weeks ago";
+  if (diffDays < 30) return "3 weeks ago";
+  if (diffDays < 60) return "1 month ago";
+  if (diffDays < 90) return "2 months ago";
+  return "3+ months ago";
+}
+
+// Fetch testimonials from API
+async function fetchTestimonials(): Promise<Testimonial[]> {
+  const response = await fetch("/api/admin/public/testimonials?showOnHomepage=true");
+  if (!response.ok) {
+    throw new Error("Failed to fetch testimonials");
+  }
+  const data = await response.json();
+
+  // Map API response to component format
+  return data.map((t: any, index: number) => ({
+    id: t.id || index + 1,
+    name: t.name,
+    location: t.location,
+    rating: t.rating,
+    text: t.quote,
+    product: formatProductType(t.productType),
+    date: t.dateReceived ? formatRelativeDate(t.dateReceived) : "Recently",
+    verified: true, // Approved testimonials are considered verified
+  }));
+}
+
 interface TestimonialsProps {
   variant?: "carousel" | "grid" | "featured";
 }
@@ -84,16 +135,31 @@ export default function Testimonials({ variant = "carousel" }: TestimonialsProps
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoPlay, setAutoPlay] = useState(true);
 
+  // Fetch testimonials from API with fallback to hardcoded data
+  const { data: testimonials = fallbackTestimonials } = useQuery({
+    queryKey: ["public-testimonials"],
+    queryFn: fetchTestimonials,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+  });
+
+  // Reset index when testimonials change
+  useEffect(() => {
+    if (currentIndex >= testimonials.length) {
+      setCurrentIndex(0);
+    }
+  }, [testimonials.length, currentIndex]);
+
   // Auto-advance carousel
   useEffect(() => {
-    if (!autoPlay || variant !== "carousel") return;
+    if (!autoPlay || variant !== "carousel" || testimonials.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [autoPlay, variant]);
+  }, [autoPlay, variant, testimonials.length]);
 
   const handlePrev = () => {
     setAutoPlay(false);

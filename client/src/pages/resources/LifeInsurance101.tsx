@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 import {
   GraduationCap,
   BookOpen,
@@ -79,12 +80,15 @@ export default function LifeInsurance101() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { trackVideoPlayed } = useAnalytics();
+  useScrollTracking();
 
   const handlePlayVideo = () => {
     const video = videoRef.current;
     if (video) {
       video.play();
       setIsVideoPlaying(true);
+      trackVideoPlayed(`life_insurance_101_module_${activeModule}`, video.src);
     }
   };
 

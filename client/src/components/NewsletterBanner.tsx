@@ -37,18 +37,39 @@ export default function NewsletterBanner() {
 
     setIsLoading(true);
 
-    // Simulate API call - replace with actual newsletter signup
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          source: "banner",
+          landingPage: window.location.pathname,
+          referrerUrl: document.referrer || null,
+        }),
+      });
 
-    setIsLoading(false);
-    setIsSubmitted(true);
-    localStorage.setItem("newsletter-subscribed", "true");
+      if (!response.ok) {
+        throw new Error("Failed to subscribe");
+      }
 
-    // Close modal after showing success
-    setTimeout(() => {
-      setIsModalOpen(false);
-      setIsVisible(false);
-    }, 2000);
+      setIsSubmitted(true);
+      localStorage.setItem("newsletter-subscribed", "true");
+
+      // Close modal after showing success
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setIsVisible(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Newsletter subscription error:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

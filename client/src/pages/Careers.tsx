@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, TrendingUp, Users, Heart, MapPin, Clock, DollarSign, ChevronRight, X, CheckCircle, Calendar, Mail } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAnalytics, useScrollTracking } from "@/hooks/useAnalytics";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -110,6 +111,9 @@ const processSteps = [
 ];
 
 export default function Careers() {
+  const { trackJobApplicationSubmitted, trackJobApplicationStarted, trackJobApplicationAbandoned, track } = useAnalytics();
+  useScrollTracking();
+  const isSubmittedRef = useRef(false);
   const [selectedPosition, setSelectedPosition] = useState<typeof openPositions[0] | null>(null);
   const [modalStep, setModalStep] = useState<"form" | "book">("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,9 +127,24 @@ export default function Careers() {
     whyJoinUs: ""
   });
 
+  // Track form abandonment when user leaves page with incomplete application
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (selectedPosition && !isSubmittedRef.current) {
+        // Count filled fields for abandonment tracking
+        const filledFields = Object.values(formData).filter(value => value.trim() !== '').length;
+        trackJobApplicationAbandoned(selectedPosition.title, filledFields);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [selectedPosition, formData, trackJobApplicationAbandoned]);
+
   const handleOpenModal = (position: typeof openPositions[0]) => {
     setSelectedPosition(position);
     setModalStep("form");
+    isSubmittedRef.current = false;
     setFormData({
       firstName: "",
       lastName: "",
@@ -135,6 +154,9 @@ export default function Careers() {
       experience: "",
       whyJoinUs: ""
     });
+    // Track that user opened job position
+    track('careers_page_viewed', { position: position.title, department: position.department });
+    trackJobApplicationStarted(position.title);
   };
 
   const handleCloseModal = () => {
@@ -177,6 +199,8 @@ export default function Careers() {
       }
 
       setModalStep("book");
+      isSubmittedRef.current = true;
+      trackJobApplicationSubmitted(selectedPosition?.title || 'General Application');
     } catch (error) {
       console.error('Error submitting application:', error);
       alert('There was an error submitting your application. Please try again or email us directly at careers@heritagels.org');

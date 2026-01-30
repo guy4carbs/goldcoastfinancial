@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
@@ -11,6 +12,9 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { Pool } from "pg";
 import adminProductsRouter from "./routes/admin-products";
+import adminContentRouter from "./routes/admin-content";
+import adminCrmRouter from "./routes/admin-crm";
+import contentRouter from "./routes/content";
 import quotesRouter from "./routes/quotes";
 
 declare module "express-session" {
@@ -866,8 +870,192 @@ export async function registerRoutes(
   // Admin: Products management
   app.use("/api/admin/products", adminProductsRouter);
 
+  // Admin: Content management (CMS)
+  app.use("/api/admin/content", adminContentRouter);
+
+  // Admin: CRM (leads, settings, testimonials)
+  app.use("/api/admin", adminCrmRouter);
+
+  // Public content (blog, FAQs, pages)
+  app.use("/api/content", contentRouter);
+
   // Quotes and estimates
   app.use("/api/quotes", quotesRouter);
+
+  // ===== Public Newsletter Subscribe =====
+  app.post("/api/newsletter/subscribe", async (req, res) => {
+    try {
+      const { email, firstName, lastName, phone, source, landingPage, referrerUrl } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const ipAddress = req.ip || req.headers["x-forwarded-for"] || "unknown";
+      const userAgent = req.headers["user-agent"] || "unknown";
+
+      // Check if already subscribed
+      const existing = await pool.query(
+        "SELECT * FROM newsletter_subscribers WHERE email = $1",
+        [email.toLowerCase()]
+      );
+
+      if (existing.rows.length > 0) {
+        const existingRecord = existing.rows[0];
+
+        // Update info if new details provided (fill in missing fields)
+        const updatedFirstName = firstName || existingRecord.first_name;
+        const updatedLastName = lastName || existingRecord.last_name;
+        const updatedPhone = phone || existingRecord.phone;
+
+        if (existingRecord.status === "unsubscribed") {
+          await pool.query(
+            `UPDATE newsletter_subscribers SET
+              status = 'active',
+              first_name = COALESCE($2, first_name),
+              last_name = COALESCE($3, last_name),
+              phone = COALESCE($4, phone),
+              unsubscribed_at = NULL,
+              updated_at = NOW()
+            WHERE email = $1`,
+            [email.toLowerCase(), firstName, lastName, phone]
+          );
+
+          await pool.query(
+            `INSERT INTO subscriber_activity (subscriber_id, activity_type, description, performed_by)
+             VALUES ($1, 'resubscribed', 'User resubscribed', 'user')`,
+            [existingRecord.id]
+          );
+
+          return res.json({ success: true, message: "Welcome back! You've been resubscribed." });
+        }
+
+        // Update any missing info for existing active subscribers
+        if (firstName || lastName || phone) {
+          await pool.query(
+            `UPDATE newsletter_subscribers SET
+              first_name = COALESCE($2, first_name),
+              last_name = COALESCE($3, last_name),
+              phone = COALESCE($4, phone),
+              updated_at = NOW()
+            WHERE email = $1`,
+            [email.toLowerCase(), firstName, lastName, phone]
+          );
+        }
+
+        return res.json({ success: true, message: "You're already subscribed!" });
+      }
+
+      // Generate a unique unsubscribe token
+      const unsubscribeToken = crypto.randomUUID();
+
+      const result = await pool.query(
+        `INSERT INTO newsletter_subscribers
+          (email, first_name, last_name, phone, source, landing_page, referrer_url, ip_address, user_agent, created_by, confirm_token)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'user', $10)
+         RETURNING id`,
+        [
+          email.toLowerCase(),
+          firstName || null,
+          lastName || null,
+          phone || null,
+          source || "website",
+          landingPage || null,
+          referrerUrl || null,
+          ipAddress,
+          userAgent,
+          unsubscribeToken,
+        ]
+      );
+
+      await pool.query(
+        `INSERT INTO subscriber_activity (subscriber_id, activity_type, description, metadata, performed_by)
+         VALUES ($1, 'subscribed', 'Subscribed via website', $2, 'user')`,
+        [result.rows[0].id, JSON.stringify({ source: source || "website", landingPage })]
+      );
+
+      res.status(201).json({ success: true, message: "Thanks for subscribing!" });
+    } catch (error) {
+      console.error("Error subscribing:", error);
+      res.status(500).json({ error: "Failed to subscribe" });
+    }
+  });
+
+  // ===== Public Newsletter Unsubscribe =====
+
+  // GET unsubscribe page data (lookup by token)
+  app.get("/api/newsletter/unsubscribe/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      const result = await pool.query(
+        `SELECT id, email, first_name, status FROM newsletter_subscribers WHERE confirm_token = $1`,
+        [token]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Invalid or expired unsubscribe link" });
+      }
+
+      const subscriber = result.rows[0];
+
+      // Mask email for privacy (show first 2 chars and domain)
+      const [localPart, domain] = subscriber.email.split("@");
+      const maskedEmail = localPart.slice(0, 2) + "***@" + domain;
+
+      res.json({
+        email: maskedEmail,
+        firstName: subscriber.first_name,
+        status: subscriber.status,
+        alreadyUnsubscribed: subscriber.status === "unsubscribed"
+      });
+    } catch (error) {
+      console.error("Error fetching unsubscribe info:", error);
+      res.status(500).json({ error: "Failed to process request" });
+    }
+  });
+
+  // POST to confirm unsubscribe
+  app.post("/api/newsletter/unsubscribe/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      const result = await pool.query(
+        `SELECT id, email, status FROM newsletter_subscribers WHERE confirm_token = $1`,
+        [token]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Invalid or expired unsubscribe link" });
+      }
+
+      const subscriber = result.rows[0];
+
+      if (subscriber.status === "unsubscribed") {
+        return res.json({ success: true, message: "You were already unsubscribed" });
+      }
+
+      // Update status to unsubscribed
+      await pool.query(
+        `UPDATE newsletter_subscribers
+         SET status = 'unsubscribed', unsubscribed_at = NOW(), updated_at = NOW()
+         WHERE id = $1`,
+        [subscriber.id]
+      );
+
+      // Log activity
+      await pool.query(
+        `INSERT INTO subscriber_activity (subscriber_id, activity_type, description, performed_by)
+         VALUES ($1, 'unsubscribed', 'User unsubscribed via email link', 'user')`,
+        [subscriber.id]
+      );
+
+      res.json({ success: true, message: "You have been successfully unsubscribed" });
+    } catch (error) {
+      console.error("Error processing unsubscribe:", error);
+      res.status(500).json({ error: "Failed to unsubscribe" });
+    }
+  });
 
   // ===== Training API Routes =====
 
@@ -1206,6 +1394,177 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching training summary:", error);
       res.status(500).json({ error: "Failed to fetch training summary" });
+    }
+  });
+
+  // ===== Analytics API Routes =====
+
+  // Track page view (called from client)
+  app.post("/api/analytics/pageview", async (req, res) => {
+    try {
+      const { page, title, referrer, userAgent, screenWidth, screenHeight } = req.body;
+
+      await storage.createPageView({
+        page: page || "/",
+        title: title || null,
+        referrer: referrer || null,
+        userAgent: userAgent || null,
+        screenWidth: screenWidth?.toString() || null,
+        screenHeight: screenHeight?.toString() || null,
+        sessionId: req.sessionID || null,
+      });
+
+      res.status(201).json({ success: true });
+    } catch (error) {
+      // Silent fail - don't break the app if analytics fails
+      res.status(201).json({ success: true });
+    }
+  });
+
+  // Track custom event (called from client)
+  app.post("/api/analytics/event", async (req, res) => {
+    try {
+      const { event, params, page, timestamp } = req.body;
+
+      await storage.createAnalyticsEvent({
+        eventName: event,
+        eventParams: params ? JSON.stringify(params) : null,
+        page: page || null,
+        sessionId: req.sessionID || null,
+      });
+
+      res.status(201).json({ success: true });
+    } catch (error) {
+      // Silent fail
+      res.status(201).json({ success: true });
+    }
+  });
+
+  // Get analytics overview for admin dashboard
+  app.get("/api/analytics/overview", async (req, res) => {
+    try {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get all the data
+      const [quotes, contacts, applications, pageViewsAll, eventsAll] = await Promise.all([
+        storage.getQuoteRequests(),
+        storage.getContactMessages(),
+        storage.getJobApplications(),
+        storage.getPageViews(),
+        storage.getAnalyticsEvents(),
+      ]);
+
+      // Calculate stats
+      const quotesToday = quotes.filter(q => new Date(q.createdAt) >= today).length;
+      const quotesThisWeek = quotes.filter(q => new Date(q.createdAt) >= weekAgo).length;
+      const quotesThisMonth = quotes.filter(q => new Date(q.createdAt) >= monthAgo).length;
+
+      const contactsToday = contacts.filter(c => new Date(c.createdAt) >= today).length;
+      const contactsThisWeek = contacts.filter(c => new Date(c.createdAt) >= weekAgo).length;
+      const contactsThisMonth = contacts.filter(c => new Date(c.createdAt) >= monthAgo).length;
+
+      const pageViewsToday = pageViewsAll.filter(p => new Date(p.createdAt) >= today).length;
+      const pageViewsThisWeek = pageViewsAll.filter(p => new Date(p.createdAt) >= weekAgo).length;
+      const pageViewsThisMonth = pageViewsAll.filter(p => new Date(p.createdAt) >= monthAgo).length;
+
+      // Coverage type breakdown
+      const coverageTypes = quotes.reduce((acc, q) => {
+        const type = q.coverageType || 'unknown';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // State breakdown
+      const stateBreakdown = quotes.reduce((acc, q) => {
+        const state = q.state || 'unknown';
+        acc[state] = (acc[state] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Top pages
+      const pageStats = await storage.getPageViewStats();
+
+      // Event breakdown
+      const eventStats = await storage.getEventStats();
+
+      // Daily trends (last 30 days)
+      const dailyQuotes: Record<string, number> = {};
+      const dailyPageViews: Record<string, number> = {};
+
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = date.toISOString().split('T')[0];
+        dailyQuotes[dateStr] = 0;
+        dailyPageViews[dateStr] = 0;
+      }
+
+      quotes.forEach(q => {
+        const dateStr = new Date(q.createdAt).toISOString().split('T')[0];
+        if (dailyQuotes[dateStr] !== undefined) {
+          dailyQuotes[dateStr]++;
+        }
+      });
+
+      pageViewsAll.forEach(p => {
+        const dateStr = new Date(p.createdAt).toISOString().split('T')[0];
+        if (dailyPageViews[dateStr] !== undefined) {
+          dailyPageViews[dateStr]++;
+        }
+      });
+
+      res.json({
+        summary: {
+          quotes: {
+            total: quotes.length,
+            today: quotesToday,
+            thisWeek: quotesThisWeek,
+            thisMonth: quotesThisMonth,
+          },
+          contacts: {
+            total: contacts.length,
+            today: contactsToday,
+            thisWeek: contactsThisWeek,
+            thisMonth: contactsThisMonth,
+          },
+          applications: {
+            total: applications.length,
+          },
+          pageViews: {
+            total: pageViewsAll.length,
+            today: pageViewsToday,
+            thisWeek: pageViewsThisWeek,
+            thisMonth: pageViewsThisMonth,
+          },
+        },
+        coverageTypes,
+        stateBreakdown,
+        topPages: pageStats.slice(0, 10),
+        eventStats: eventStats.slice(0, 10),
+        trends: {
+          quotes: Object.entries(dailyQuotes).map(([date, count]) => ({ date, count })),
+          pageViews: Object.entries(dailyPageViews).map(([date, count]) => ({ date, count })),
+        },
+        recentQuotes: quotes.slice(0, 10).map(q => ({
+          id: q.id,
+          name: `${q.firstName} ${q.lastName}`,
+          coverageType: q.coverageType,
+          coverageAmount: q.coverageAmount,
+          state: q.state,
+          createdAt: q.createdAt,
+        })),
+        recentContacts: contacts.slice(0, 10).map(c => ({
+          id: c.id,
+          name: `${c.firstName} ${c.lastName}`,
+          email: c.email,
+          createdAt: c.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching analytics overview:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
     }
   });
 

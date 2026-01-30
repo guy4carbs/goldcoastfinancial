@@ -7,6 +7,8 @@ export * from "./models/auth";
 export * from "./models/portal";
 export * from "./models/chat";
 export * from "./models/training";
+export * from "./models/content";
+export * from "./models/crm";
 
 export const guideRequests = pgTable("guide_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -96,3 +98,41 @@ export const insertJobApplicationSchema = createInsertSchema(jobApplications).om
 
 export type JobApplication = typeof jobApplications.$inferSelect;
 export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
+
+// Analytics tables
+export const pageViews = pgTable("page_views", {
+  id: serial("id").primaryKey(),
+  page: text("page").notNull(),
+  title: text("title"),
+  referrer: text("referrer"),
+  userAgent: text("user_agent"),
+  screenWidth: text("screen_width"),
+  screenHeight: text("screen_height"),
+  sessionId: text("session_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const analyticsEvents = pgTable("analytics_events", {
+  id: serial("id").primaryKey(),
+  eventName: text("event_name").notNull(),
+  eventParams: text("event_params"), // JSON stringified
+  page: text("page"),
+  sessionId: text("session_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPageViewSchema = createInsertSchema(pageViews).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAnalyticsEventSchema = createInsertSchema(analyticsEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type PageView = typeof pageViews.$inferSelect;
+export type InsertPageView = z.infer<typeof insertPageViewSchema>;
+
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = z.infer<typeof insertAnalyticsEventSchema>;

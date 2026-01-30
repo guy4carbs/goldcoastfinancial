@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, memo, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAgentStore, Lead } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LogCallModal } from "@/components/agent/LogCallModal";
 import { LeadDetailDrawer } from "@/components/agent/LeadDetailDrawer";
@@ -77,6 +78,7 @@ function HighlightText({ text, query }: { text: string; query: string }): ReactN
 export default function AgentLeads() {
   const { leads, updateLeadStatus, currentUser, addLead, logCall, addActivityToLead, bulkUpdateLeadStatus, importLeads, deleteLeads } = useAgentStore();
   const confirm = useConfirm();
+  const { trackAgentLeadViewed } = useAnalytics();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
@@ -288,6 +290,7 @@ export default function AgentLeads() {
   const openLeadDetail = (lead: Lead) => {
     setSelectedLead(lead);
     setDrawerOpen(true);
+    trackAgentLeadViewed(lead.id, lead.name);
   };
 
   const LeadCard = memo(({ lead }: { lead: Lead }) => (

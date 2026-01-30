@@ -157,7 +157,7 @@ export default function AdminSubmissions() {
     const key = getReadStorageKey(type, id);
     if (!readItems.has(key)) {
       localStorage.setItem(key, "true");
-      setReadItems((prev) => new Set([...prev, key]));
+      setReadItems((prev) => new Set([...Array.from(prev), key]));
     }
   };
 
