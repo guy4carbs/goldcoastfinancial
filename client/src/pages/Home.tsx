@@ -224,7 +224,7 @@ export default function Home() {
                 <img
                   src={carrier.logo}
                   alt={carrier.name}
-                  className={`object-contain grayscale hover:grayscale-0 transition-all duration-300 ${carrier.size === 'large' ? 'h-20 max-w-[180px]' : 'h-16 max-w-[160px]'}`}
+                  className={`object-contain ${carrier.size === 'large' ? 'h-20 max-w-[180px]' : 'h-16 max-w-[160px]'}`}
                 />
               </div>
             ))}
