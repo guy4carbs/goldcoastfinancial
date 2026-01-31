@@ -31,7 +31,7 @@ const founders = [
     initials: "FC",
     name: "Frank Carbonara",
     title: "Executive Chairman & Risk Strategist",
-    location: "Elmwood Park, IL",
+    location: "Oak Brook, IL",
     image: "",
     bio: "Frank Carbonara serves as Executive Chairman and Risk Strategist, providing senior governance, strategic oversight, and risk-based decision guidance. He brings extensive business experience across multiple industries and global markets, with a career spanning finance, real estate, insurance, and enterprise operations.",
     extendedBio: "Frank has conducted business internationally, including experience living in Dubai and collaborating with the Dubai Mercantile Exchange (DME). He is a futures and commodities trader, having passed the Series 3 examination. His background includes serving as a licensed real estate professional, operating as a public adjuster for over 15 years, and holding ownership and partnership positions in large-scale commercial enterprises.",
