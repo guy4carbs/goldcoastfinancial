@@ -204,34 +204,21 @@ export default function Quote() {
       </section>
 
       {/* Carrier Logos */}
-      <section className="py-12 bg-[#fffaf3] border-y border-[#e8e0d5]">
+      <section className="py-12 bg-[#fffaf3] border-y border-[#e8e0d5] overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-center text-sm text-gray-500 mb-8">Trusted by families nationwide. We partner with 40+ A-rated carriers.</p>
-          <div className="relative overflow-hidden">
-            <div className="flex items-center">
-              <div className="flex animate-marquee-slow gap-12 items-center">
-                {carriers.map((carrier, i) => (
-                  <div key={i} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
-                    <img
-                      src={carrier.logo}
-                      alt={carrier.name}
-                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
-                    />
-                  </div>
-                ))}
+        </div>
+        <div className="relative w-full">
+          <div className="flex w-max animate-carousel">
+            {[...carriers, ...carriers].map((carrier, i) => (
+              <div key={i} className="flex-shrink-0 w-[200px] mx-6 h-24 flex items-center justify-center">
+                <img
+                  src={carrier.logo}
+                  alt={carrier.name}
+                  className={`object-contain ${carrier.size === 'large' ? 'h-20 max-w-[180px]' : 'h-16 max-w-[160px]'}`}
+                />
               </div>
-              <div className="flex animate-marquee-slow gap-12 items-center" aria-hidden="true">
-                {carriers.map((carrier, i) => (
-                  <div key={`dup-${i}`} className="flex-shrink-0 w-[240px] h-28 flex items-center justify-center">
-                    <img
-                      src={carrier.logo}
-                      alt={carrier.name}
-                      className={`object-contain ${carrier.size === 'large' ? 'h-24 max-w-[220px]' : 'h-[72px] max-w-[200px]'}`}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
