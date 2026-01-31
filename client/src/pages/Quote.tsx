@@ -1,26 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearch } from "wouter";
+import { useSearch, Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import QuoteCalculator, { type QuoteCalculatorPrefillData } from "@/components/QuoteCalculator";
 import QuickQuoteWidget, { type QuickQuoteData } from "@/components/QuickQuoteWidget";
 import TrustIndicators, { RatingBadge } from "@/components/TrustIndicators";
 import LoadingScreen from "@/components/LoadingScreen";
-
-const carriers = [
-  { name: "Americo", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba" },
-  { name: "Athene", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643" },
-  { name: "Baltimore Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277409363-logo%402x.png?alt=media&token=cdd3c6d0-e497-4a4c-a357-6e3b548dd95c" },
-  { name: "Corebridge", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2" },
-  { name: "Mutual of Omaha", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277474666-Mutual-of-Omaha-logo.png?alt=media&token=0382cf9c-c262-4931-8155-688210c1c173", size: "large" },
-  { name: "Ethos", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277532663-6341f9fa-fd59-42aa-b238-d23e46658048.png?alt=media&token=ea3d4914-d65e-4817-9a81-1ea709064e52" },
-  { name: "Royal Neighbors", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277589538-330-3309455_royal-neighbors-of-america-life-insurance-royal-neighbors.png?alt=media&token=d700619b-ad2d-4071-bd2b-a57eb5a12b56" },
-  { name: "Transamerica", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769278248208-transamerica-logo.png?alt=media&token=9d6fb91f-9c8e-432b-96e4-c4ed8971cc6d", size: "large" },
-  { name: "American Home Life", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277674404-Carrier-Logo-Web-270x200-American-Home-Life-1080x608.webp?alt=media&token=0546ea66-443d-44bc-b2f1-d561bd1f713b", size: "large" },
-  { name: "Polish Falcons", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238" },
-  { name: "Ladder", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733" },
-  { name: "Lincoln Financial", logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b" },
-];
+import { carrierLinks } from "@/data/carriers";
 import Testimonials, { MiniTestimonial } from "@/components/Testimonials";
 import { Phone, ArrowRight, Check } from "lucide-react";
 import { motion } from "framer-motion";
@@ -210,14 +196,14 @@ export default function Quote() {
         </div>
         <div className="relative w-full">
           <div className="flex w-max animate-carousel">
-            {[...carriers, ...carriers].map((carrier, i) => (
-              <div key={i} className="flex-shrink-0 w-[200px] mx-6 h-24 flex items-center justify-center">
+            {[...carrierLinks, ...carrierLinks].map((carrier, i) => (
+              <Link key={i} href={carrier.href} className="flex-shrink-0 w-[200px] mx-6 h-24 flex items-center justify-center hover:opacity-70 transition-opacity cursor-pointer">
                 <img
                   src={carrier.logo}
                   alt={carrier.name}
                   className={`object-contain ${carrier.size === 'large' ? 'h-20 max-w-[180px]' : 'h-16 max-w-[160px]'}`}
                 />
-              </div>
+              </Link>
             ))}
           </div>
         </div>

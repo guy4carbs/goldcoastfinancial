@@ -64,6 +64,8 @@ import CapsAndFloors from "@/pages/iul/CapsAndFloors";
 import IULRetirementIncome from "@/pages/iul/RetirementIncome";
 import MaxFunding from "@/pages/iul/MaxFunding";
 import IndexOptions from "@/pages/iul/IndexOptions";
+// Carrier Pages
+import CarrierPage from "@/pages/CarrierPage";
 // Annuity Pages
 import FixedAnnuities from "@/pages/annuities/FixedAnnuities";
 import IndexedAnnuities from "@/pages/annuities/IndexedAnnuities";
@@ -148,6 +150,7 @@ function Router() {
         <Route path="/contact" component={Contact} />
         <Route path="/risk-strategy" component={RiskStrategy} />
         <Route path="/products" component={Products} />
+        <Route path="/carriers/:slug" component={CarrierPage} />
         <Route path="/life-insurance/term" component={TermLife} />
         <Route path="/life-insurance/term/coverage-calculator" component={CoverageCalculator} />
         <Route path="/life-insurance/term/term-lengths" component={TermLengths} />
