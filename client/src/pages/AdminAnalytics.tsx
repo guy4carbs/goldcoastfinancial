@@ -73,6 +73,11 @@ interface AnalyticsData {
 
 const COLORS = ["#7c3aed", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe", "#8b5cf6", "#6d28d9", "#4c1d95"];
 
+// Format large numbers with commas (e.g., 1234567 -> "1,234,567")
+const formatNumber = (num: number): string => {
+  return num.toLocaleString('en-US');
+};
+
 const formatCoverageType = (type: string): string => {
   const typeMap: Record<string, string> = {
     term: "Term Life",
@@ -398,7 +403,7 @@ export default function AdminAnalytics() {
                               <span className="text-sm text-gray-600 truncate max-w-[180px]" title={page.page}>
                                 {page.page === "/" ? "Home" : page.page}
                               </span>
-                              <span className="text-sm font-medium text-gray-900">{page.count}</span>
+                              <span className="text-sm font-medium text-gray-900">{formatNumber(page.count)}</span>
                             </div>
                           ))
                         ) : (
@@ -512,7 +517,7 @@ export default function AdminAnalytics() {
                           categorizedEvents.engagement.map((event, idx) => (
                             <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                               <span className="text-sm text-gray-700">{formatEventName(event.eventName)}</span>
-                              <span className="text-lg font-bold text-primary">{event.count}</span>
+                              <span className="text-lg font-bold text-primary">{formatNumber(event.count)}</span>
                             </div>
                           ))
                         ) : (
@@ -542,7 +547,7 @@ export default function AdminAnalytics() {
                                 />
                               </div>
                               <span className="text-sm font-medium text-gray-900 w-16 text-right">
-                                {getEventCount("scroll_depth")}
+                                {formatNumber(getEventCount("scroll_depth"))}
                               </span>
                             </div>
                           );
@@ -559,19 +564,19 @@ export default function AdminAnalytics() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation Tracking</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("menu_opened")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("menu_opened"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Menu Opens</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("directions_clicked")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("directions_clicked"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Directions Clicked</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("external_link_clicked")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("external_link_clicked"))}</p>
                         <p className="text-xs text-gray-600 mt-1">External Links</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("product_cta_clicked")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("product_cta_clicked"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Product CTAs</p>
                       </div>
                     </div>
@@ -619,15 +624,15 @@ export default function AdminAnalytics() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Form</h3>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="p-4 bg-blue-50 rounded-lg text-center">
-                          <p className="text-2xl font-bold text-blue-600">{getEventCount("contact_form_started")}</p>
+                          <p className="text-2xl font-bold text-blue-600">{formatNumber(getEventCount("contact_form_started"))}</p>
                           <p className="text-xs text-gray-600 mt-1">Started</p>
                         </div>
                         <div className="p-4 bg-green-50 rounded-lg text-center">
-                          <p className="text-2xl font-bold text-green-600">{getEventCount("contact_form_submitted")}</p>
+                          <p className="text-2xl font-bold text-green-600">{formatNumber(getEventCount("contact_form_submitted"))}</p>
                           <p className="text-xs text-gray-600 mt-1">Submitted</p>
                         </div>
                         <div className="p-4 bg-red-50 rounded-lg text-center">
-                          <p className="text-2xl font-bold text-red-600">{getEventCount("contact_form_abandoned")}</p>
+                          <p className="text-2xl font-bold text-red-600">{formatNumber(getEventCount("contact_form_abandoned"))}</p>
                           <p className="text-xs text-gray-600 mt-1">Abandoned</p>
                         </div>
                       </div>
@@ -638,15 +643,15 @@ export default function AdminAnalytics() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Applications</h3>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="p-4 bg-blue-50 rounded-lg text-center">
-                          <p className="text-2xl font-bold text-blue-600">{getEventCount("job_application_started")}</p>
+                          <p className="text-2xl font-bold text-blue-600">{formatNumber(getEventCount("job_application_started"))}</p>
                           <p className="text-xs text-gray-600 mt-1">Started</p>
                         </div>
                         <div className="p-4 bg-green-50 rounded-lg text-center">
-                          <p className="text-2xl font-bold text-green-600">{getEventCount("job_application_submitted")}</p>
+                          <p className="text-2xl font-bold text-green-600">{formatNumber(getEventCount("job_application_submitted"))}</p>
                           <p className="text-xs text-gray-600 mt-1">Submitted</p>
                         </div>
                         <div className="p-4 bg-red-50 rounded-lg text-center">
-                          <p className="text-2xl font-bold text-red-600">{getEventCount("job_application_abandoned")}</p>
+                          <p className="text-2xl font-bold text-red-600">{formatNumber(getEventCount("job_application_abandoned"))}</p>
                           <p className="text-xs text-gray-600 mt-1">Abandoned</p>
                         </div>
                       </div>
@@ -658,23 +663,23 @@ export default function AdminAnalytics() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Interest</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                       <div className="p-4 bg-purple-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-purple-600">{getEventCount("product_viewed")}</p>
+                        <p className="text-2xl font-bold text-purple-600">{formatNumber(getEventCount("product_viewed"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Product Views</p>
                       </div>
                       <div className="p-4 bg-violet-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-violet-600">{coverageTypeData.find(c => c.name === "Term Life")?.value || 0}</p>
+                        <p className="text-2xl font-bold text-violet-600">{formatNumber(coverageTypeData.find(c => c.name === "Term Life")?.value || 0)}</p>
                         <p className="text-xs text-gray-600 mt-1">Term Life Quotes</p>
                       </div>
                       <div className="p-4 bg-indigo-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-indigo-600">{coverageTypeData.find(c => c.name === "Whole Life")?.value || 0}</p>
+                        <p className="text-2xl font-bold text-indigo-600">{formatNumber(coverageTypeData.find(c => c.name === "Whole Life")?.value || 0)}</p>
                         <p className="text-xs text-gray-600 mt-1">Whole Life Quotes</p>
                       </div>
                       <div className="p-4 bg-blue-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-blue-600">{coverageTypeData.find(c => c.name === "IUL")?.value || 0}</p>
+                        <p className="text-2xl font-bold text-blue-600">{formatNumber(coverageTypeData.find(c => c.name === "IUL")?.value || 0)}</p>
                         <p className="text-xs text-gray-600 mt-1">IUL Quotes</p>
                       </div>
                       <div className="p-4 bg-cyan-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-cyan-600">{coverageTypeData.find(c => c.name === "Final Expense")?.value || 0}</p>
+                        <p className="text-2xl font-bold text-cyan-600">{formatNumber(coverageTypeData.find(c => c.name === "Final Expense")?.value || 0)}</p>
                         <p className="text-xs text-gray-600 mt-1">Final Expense</p>
                       </div>
                     </div>
@@ -721,27 +726,27 @@ export default function AdminAnalytics() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Agent Portal Activity</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("agent_login")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("agent_login"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Agent Logins</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("agent_lead_viewed")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("agent_lead_viewed"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Leads Viewed</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("agent_lead_status_changed")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("agent_lead_status_changed"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Status Changes</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("agent_pipeline_updated")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("agent_pipeline_updated"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Pipeline Updates</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("agent_training_started")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("agent_training_started"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Training Started</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg text-center">
-                        <p className="text-2xl font-bold text-primary">{getEventCount("agent_training_completed")}</p>
+                        <p className="text-2xl font-bold text-primary">{formatNumber(getEventCount("agent_training_completed"))}</p>
                         <p className="text-xs text-gray-600 mt-1">Training Completed</p>
                       </div>
                     </div>
@@ -754,7 +759,7 @@ export default function AdminAnalytics() {
                       {data.eventStats.length > 0 ? (
                         data.eventStats.map((event, idx) => (
                           <div key={idx} className="p-4 bg-gray-50 rounded-lg text-center">
-                            <p className="text-2xl font-bold text-primary">{event.count}</p>
+                            <p className="text-2xl font-bold text-primary">{formatNumber(event.count)}</p>
                             <p className="text-xs text-gray-600 mt-1 truncate" title={formatEventName(event.eventName)}>
                               {formatEventName(event.eventName)}
                             </p>
@@ -805,9 +810,9 @@ function MetricCard({
         {trend === "up" && <ArrowUpRight className="w-5 h-5 text-green-500" />}
         {trend === "down" && <ArrowDownRight className="w-5 h-5 text-red-500" />}
       </div>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <p className="text-3xl font-bold text-gray-900">{formatNumber(value)}</p>
       <p className="text-sm text-gray-500 mt-1">{title}</p>
-      <p className="text-xs text-gray-400 mt-1">{total} total</p>
+      <p className="text-xs text-gray-400 mt-1">{formatNumber(total)} total</p>
     </div>
   );
 }
@@ -832,7 +837,7 @@ function EventMetricCard({
           <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <p className="text-3xl font-bold text-gray-900">{formatNumber(value)}</p>
       <p className="text-sm text-gray-500 mt-1">{title}</p>
       <p className="text-xs text-gray-400 mt-1">{description}</p>
     </div>
@@ -856,7 +861,7 @@ function FunnelStep({
         <div className={`${color} rounded-full p-2 w-10 h-10 mx-auto mb-2 flex items-center justify-center`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-2xl font-bold text-gray-900">{formatNumber(value)}</p>
         <p className="text-xs text-gray-600 mt-1">{title}</p>
       </div>
     </div>

@@ -147,6 +147,12 @@ export interface IStorage {
   getAnalyticsEvents(startDate?: Date, endDate?: Date): Promise<AnalyticsEvent[]>;
   getPageViewStats(): Promise<{ page: string; count: number }[]>;
   getEventStats(): Promise<{ eventName: string; count: number }[]>;
+
+  // Scalable analytics counts (uses SQL aggregation instead of loading all records)
+  getPageViewCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }>;
+  getQuoteCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }>;
+  getContactCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }>;
+  getDailyTrends(days?: number): Promise<{ quotes: { date: string; count: number }[]; pageViews: { date: string; count: number }[] }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -724,6 +730,139 @@ export class DatabaseStorage implements IStorage {
       .groupBy(analyticsEvents.eventName)
       .orderBy(sql`COUNT(*) DESC`);
     return results.map(r => ({ eventName: r.eventName, count: Number(r.count) }));
+  }
+
+  // Scalable analytics count methods using SQL aggregation
+  async getPageViewCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [totalResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(pageViews);
+
+    const [todayResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(pageViews).where(sql`${pageViews.createdAt} >= ${today}`);
+
+    const [weekResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(pageViews).where(sql`${pageViews.createdAt} >= ${weekAgo}`);
+
+    const [monthResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(pageViews).where(sql`${pageViews.createdAt} >= ${monthAgo}`);
+
+    return {
+      total: Number(totalResult?.count) || 0,
+      today: Number(todayResult?.count) || 0,
+      thisWeek: Number(weekResult?.count) || 0,
+      thisMonth: Number(monthResult?.count) || 0,
+    };
+  }
+
+  async getQuoteCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [totalResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(quoteRequests);
+
+    const [todayResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(quoteRequests).where(sql`${quoteRequests.createdAt} >= ${today}`);
+
+    const [weekResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(quoteRequests).where(sql`${quoteRequests.createdAt} >= ${weekAgo}`);
+
+    const [monthResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(quoteRequests).where(sql`${quoteRequests.createdAt} >= ${monthAgo}`);
+
+    return {
+      total: Number(totalResult?.count) || 0,
+      today: Number(todayResult?.count) || 0,
+      thisWeek: Number(weekResult?.count) || 0,
+      thisMonth: Number(monthResult?.count) || 0,
+    };
+  }
+
+  async getContactCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [totalResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(contactMessages);
+
+    const [todayResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(contactMessages).where(sql`${contactMessages.createdAt} >= ${today}`);
+
+    const [weekResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(contactMessages).where(sql`${contactMessages.createdAt} >= ${weekAgo}`);
+
+    const [monthResult] = await db.select({
+      count: sql<number>`COUNT(*)`
+    }).from(contactMessages).where(sql`${contactMessages.createdAt} >= ${monthAgo}`);
+
+    return {
+      total: Number(totalResult?.count) || 0,
+      today: Number(todayResult?.count) || 0,
+      thisWeek: Number(weekResult?.count) || 0,
+      thisMonth: Number(monthResult?.count) || 0,
+    };
+  }
+
+  async getDailyTrends(days: number = 30): Promise<{ quotes: { date: string; count: number }[]; pageViews: { date: string; count: number }[] }> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startDate = new Date(today.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+
+    // Get daily quote counts using SQL
+    const quoteResults = await db.select({
+      date: sql<string>`DATE(${quoteRequests.createdAt})`,
+      count: sql<number>`COUNT(*)`
+    })
+      .from(quoteRequests)
+      .where(sql`${quoteRequests.createdAt} >= ${startDate}`)
+      .groupBy(sql`DATE(${quoteRequests.createdAt})`)
+      .orderBy(sql`DATE(${quoteRequests.createdAt})`);
+
+    // Get daily page view counts using SQL
+    const pageViewResults = await db.select({
+      date: sql<string>`DATE(${pageViews.createdAt})`,
+      count: sql<number>`COUNT(*)`
+    })
+      .from(pageViews)
+      .where(sql`${pageViews.createdAt} >= ${startDate}`)
+      .groupBy(sql`DATE(${pageViews.createdAt})`)
+      .orderBy(sql`DATE(${pageViews.createdAt})`);
+
+    // Build full date range with zeros for missing days
+    const quoteMap = new Map(quoteResults.map(r => [r.date, Number(r.count)]));
+    const pageViewMap = new Map(pageViewResults.map(r => [r.date, Number(r.count)]));
+
+    const quotes: { date: string; count: number }[] = [];
+    const pageViewTrends: { date: string; count: number }[] = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split('T')[0];
+      quotes.push({ date: dateStr, count: quoteMap.get(dateStr) || 0 });
+      pageViewTrends.push({ date: dateStr, count: pageViewMap.get(dateStr) || 0 });
+    }
+
+    return { quotes, pageViews: pageViewTrends };
   }
 }
 

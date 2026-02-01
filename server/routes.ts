@@ -1441,112 +1441,60 @@ export async function registerRoutes(
   });
 
   // Get analytics overview for admin dashboard
+  // Uses SQL COUNT queries for scalability with high traffic (1000s+ views daily)
   app.get("/api/analytics/overview", async (req, res) => {
     try {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      // Get all the data
-      const [quotes, contacts, applications, pageViewsAll, eventsAll] = await Promise.all([
-        storage.getQuoteRequests(),
-        storage.getContactMessages(),
+      // Use efficient SQL COUNT queries instead of loading all records
+      const [
+        pageViewCounts,
+        quoteCounts,
+        contactCounts,
+        applications,
+        quotes,
+        contacts,
+        pageStats,
+        eventStats,
+        trends,
+      ] = await Promise.all([
+        storage.getPageViewCounts(),
+        storage.getQuoteCounts(),
+        storage.getContactCounts(),
         storage.getJobApplications(),
-        storage.getPageViews(),
-        storage.getAnalyticsEvents(),
+        storage.getQuoteRequests(),  // Only for recent list and breakdowns
+        storage.getContactMessages(), // Only for recent list
+        storage.getPageViewStats(),
+        storage.getEventStats(),
+        storage.getDailyTrends(30),
       ]);
 
-      // Calculate stats
-      const quotesToday = quotes.filter(q => new Date(q.createdAt) >= today).length;
-      const quotesThisWeek = quotes.filter(q => new Date(q.createdAt) >= weekAgo).length;
-      const quotesThisMonth = quotes.filter(q => new Date(q.createdAt) >= monthAgo).length;
-
-      const contactsToday = contacts.filter(c => new Date(c.createdAt) >= today).length;
-      const contactsThisWeek = contacts.filter(c => new Date(c.createdAt) >= weekAgo).length;
-      const contactsThisMonth = contacts.filter(c => new Date(c.createdAt) >= monthAgo).length;
-
-      const pageViewsToday = pageViewsAll.filter(p => new Date(p.createdAt) >= today).length;
-      const pageViewsThisWeek = pageViewsAll.filter(p => new Date(p.createdAt) >= weekAgo).length;
-      const pageViewsThisMonth = pageViewsAll.filter(p => new Date(p.createdAt) >= monthAgo).length;
-
-      // Coverage type breakdown
+      // Coverage type breakdown (from loaded quotes)
       const coverageTypes = quotes.reduce((acc, q) => {
         const type = q.coverageType || 'unknown';
         acc[type] = (acc[type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      // State breakdown
+      // State breakdown (from loaded quotes)
       const stateBreakdown = quotes.reduce((acc, q) => {
         const state = q.state || 'unknown';
         acc[state] = (acc[state] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      // Top pages
-      const pageStats = await storage.getPageViewStats();
-
-      // Event breakdown
-      const eventStats = await storage.getEventStats();
-
-      // Daily trends (last 30 days)
-      const dailyQuotes: Record<string, number> = {};
-      const dailyPageViews: Record<string, number> = {};
-
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-        const dateStr = date.toISOString().split('T')[0];
-        dailyQuotes[dateStr] = 0;
-        dailyPageViews[dateStr] = 0;
-      }
-
-      quotes.forEach(q => {
-        const dateStr = new Date(q.createdAt).toISOString().split('T')[0];
-        if (dailyQuotes[dateStr] !== undefined) {
-          dailyQuotes[dateStr]++;
-        }
-      });
-
-      pageViewsAll.forEach(p => {
-        const dateStr = new Date(p.createdAt).toISOString().split('T')[0];
-        if (dailyPageViews[dateStr] !== undefined) {
-          dailyPageViews[dateStr]++;
-        }
-      });
-
       res.json({
         summary: {
-          quotes: {
-            total: quotes.length,
-            today: quotesToday,
-            thisWeek: quotesThisWeek,
-            thisMonth: quotesThisMonth,
-          },
-          contacts: {
-            total: contacts.length,
-            today: contactsToday,
-            thisWeek: contactsThisWeek,
-            thisMonth: contactsThisMonth,
-          },
+          quotes: quoteCounts,
+          contacts: contactCounts,
           applications: {
             total: applications.length,
           },
-          pageViews: {
-            total: pageViewsAll.length,
-            today: pageViewsToday,
-            thisWeek: pageViewsThisWeek,
-            thisMonth: pageViewsThisMonth,
-          },
+          pageViews: pageViewCounts,
         },
         coverageTypes,
         stateBreakdown,
         topPages: pageStats.slice(0, 10),
         eventStats: eventStats.slice(0, 10),
-        trends: {
-          quotes: Object.entries(dailyQuotes).map(([date, count]) => ({ date, count })),
-          pageViews: Object.entries(dailyPageViews).map(([date, count]) => ({ date, count })),
-        },
+        trends,
         recentQuotes: quotes.slice(0, 10).map(q => ({
           id: q.id,
           name: `${q.firstName} ${q.lastName}`,
