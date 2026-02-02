@@ -338,14 +338,42 @@ html {
   display: flex;
   overflow: hidden;
   width: 100%;
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+@media (min-width: 640px) {
+  .partner-scroll-container {
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+}
+
+@media (min-width: 1024px) {
+  .partner-scroll-container {
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
 }
 
 .partner-scroll-track {
   display: flex;
-  animation: partner-scroll 40s linear infinite;
-  gap: 4rem;
+  animation: partner-scroll 30s linear infinite;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .partner-scroll-track {
+    animation-duration: 35s;
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .partner-scroll-track {
+    animation-duration: 40s;
+    gap: 3rem;
+  }
 }
 
 @keyframes partner-scroll {

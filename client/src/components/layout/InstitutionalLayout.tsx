@@ -14,6 +14,7 @@ import { SkipLink } from "@/components/accessibility/SkipLink";
 import { InstitutionalAnnouncementBanner } from "@/components/ui/institutional-announcement-banner";
 import { InstitutionalSearch } from "@/components/ui/institutional-search";
 import { InstitutionalNewsletter } from "@/components/ui/institutional-newsletter";
+import { MapChoicePopover } from "@/components/ui/map-choice-popover";
 
 /**
  * Institutional Layout for Gold Coast Financial Holdings
@@ -31,18 +32,18 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const navLinks = [
-    { href: "/goldcoastfinancial2", label: "Overview" },
-    { href: "/goldcoastfinancial2/about", label: "About" },
-    { href: "/goldcoastfinancial2/portfolio", label: "Portfolio" },
-    { href: "/goldcoastfinancial2/investors", label: "Investors" },
-    { href: "/goldcoastfinancial2/contact", label: "Contact" },
+    { href: "/", label: "Overview" },
+    { href: "/about", label: "About" },
+    { href: "/portfolio", label: "Portfolio" },
+    { href: "/investors", label: "Investors" },
+    { href: "/contact", label: "Contact" },
   ];
 
   const moreLinks = [
-    { href: "/goldcoastfinancial2/careers", label: "Careers" },
-    { href: "/goldcoastfinancial2/blog", label: "Insights" },
-    { href: "/goldcoastfinancial2/media", label: "Media" },
-    { href: "/goldcoastfinancial2/news", label: "News" },
+    { href: "/careers", label: "Careers" },
+    { href: "/blog", label: "Insights" },
+    { href: "/media", label: "Media" },
+    { href: "/news", label: "News" },
   ];
 
   return (
@@ -61,7 +62,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
         <div className="container mx-auto px-6 lg:px-12">
           <div className="h-20 flex items-center justify-between">
             {/* Logo - Simple, understated */}
-            <Link href="/goldcoastfinancial2" className="flex items-center gap-3 cursor-pointer group">
+            <Link href="/" className="flex items-center gap-3 cursor-pointer group">
               <div className="bg-primary p-2 rounded-sm transition-transform duration-200 group-hover:scale-105">
                 <Shield className="w-5 h-5 text-secondary" />
               </div>
@@ -110,9 +111,9 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
                   ))}
                   <div className="border-t border-border/40 my-1" />
                   <DropdownMenuItem asChild>
-                    <a href="/heritage" className="flex items-center gap-2 cursor-pointer">
-                      <div className="bg-[#4f5a3f] p-1 rounded-sm">
-                        <Leaf className="w-3 h-3 text-[#d4a05b]" />
+                    <a href="https://heritagels.org" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer">
+                      <div className="bg-[#6B5B95] p-1 rounded-sm">
+                        <Leaf className="w-3 h-3 text-[#C4B7D5]" />
                       </div>
                       <span>Heritage Life Solutions</span>
                     </a>
@@ -189,12 +190,14 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
                   <div className="border-t border-border/60 pt-4">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Subsidiaries</p>
                     <a
-                      href="/heritage"
+                      href="https://heritagels.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center gap-2 text-muted-foreground"
                     >
-                      <div className="bg-[#4f5a3f] p-1 rounded-sm">
-                        <Leaf className="w-3 h-3 text-[#d4a05b]" />
+                      <div className="bg-[#6B5B95] p-1 rounded-sm">
+                        <Leaf className="w-3 h-3 text-[#C4B7D5]" />
                       </div>
                       <span>Heritage Life Solutions</span>
                     </a>
@@ -272,27 +275,27 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
               </h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <Link href="/goldcoastfinancial2/about" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/about" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     About
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/portfolio" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/portfolio" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Portfolio
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/investors" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/investors" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Investors
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/careers" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/careers" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Careers
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/contact" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/contact" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Contact
                   </Link>
                 </li>
@@ -306,23 +309,23 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
               </h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <Link href="/goldcoastfinancial2/news" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/news" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     News
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/blog" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/blog" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Insights
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/media" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/media" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Media Center
                   </Link>
                 </li>
                 <li>
-                  <a href="/heritage" className="text-white/60 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5">
-                    <Leaf className="w-3 h-3 text-[hsl(42,60%,55%)]" />
+                  <a href="https://heritagels.org" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5">
+                    <Leaf className="w-3 h-3 text-[#C4B7D5]" />
                     Heritage Life
                   </a>
                 </li>
@@ -336,12 +339,12 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
               </h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <Link href="/goldcoastfinancial2/privacy" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/privacy" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/goldcoastfinancial2/terms" className="text-white/60 hover:text-white transition-colors cursor-pointer">
+                  <Link href="/terms" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Terms of Use
                   </Link>
                 </li>
@@ -355,18 +358,10 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
               </h4>
               <ul className="space-y-3 text-sm">
                 <li>
-                  <a
-                    href="https://maps.google.com/?q=1240+Iroquois+Ave+Suite+506+Naperville+IL+60563"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white/60 hover:text-white transition-colors flex items-start gap-2 group"
-                  >
-                    <MapPin className="w-4 h-4 text-[hsl(42,60%,55%)] mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
-                    <span className="leading-relaxed">
-                      1240 Iroquois Ave Suite 506<br />
-                      Naperville, IL 60563
-                    </span>
-                  </a>
+                  <MapChoicePopover
+                    address="1240 Iroquois Ave Suite 506"
+                    addressLine2="Naperville, IL 60563"
+                  />
                 </li>
                 <li>
                   <a

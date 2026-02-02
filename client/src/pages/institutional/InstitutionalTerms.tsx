@@ -1,6 +1,9 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { TrustIndicators } from "@/components/institutional/TrustIndicators";
+import { MapChoicePopover } from "@/components/ui/map-choice-popover";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 /**
  * Gold Coast Financial - Terms of Use Page
@@ -12,6 +15,8 @@ import { Link } from "wouter";
  */
 
 export default function InstitutionalTerms() {
+  const { trackCTAClicked } = useAnalytics();
+
   return (
     <InstitutionalLayout>
       {/* Hero */}
@@ -37,8 +42,12 @@ export default function InstitutionalTerms() {
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="border-t border-border/60" />
+      {/* Trust Indicators */}
+      <section className="py-12 bg-muted/30 border-y border-border/60">
+        <div className="container mx-auto px-6 lg:px-12">
+          <TrustIndicators variant="light" />
+        </div>
+      </section>
 
       {/* Terms Content */}
       <section className="py-20 md:py-28">
@@ -259,8 +268,12 @@ export default function InstitutionalTerms() {
                 </p>
                 <div className="bg-muted/30 p-6 border border-border/60">
                   <p className="font-medium text-primary mb-2">Gold Coast Financial</p>
-                  <p>1240 Iroquois Ave, Suite 506</p>
-                  <p>Naperville, IL 60563</p>
+                  <MapChoicePopover
+                    address="1240 Iroquois Ave, Suite 506"
+                    addressLine2="Naperville, IL 60563"
+                    iconClassName="w-4 h-4 text-primary mt-0.5 shrink-0"
+                    textClassName="text-muted-foreground hover:text-primary"
+                  />
                   <p className="mt-2">
                     <a href="mailto:legal@goldcoastfnl.com" className="text-primary hover:text-primary/80 transition-colors">
                       legal@goldcoastfnl.com
@@ -281,13 +294,13 @@ export default function InstitutionalTerms() {
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex flex-wrap gap-8">
             <Link
-              href="/goldcoastfinancial2/privacy"
+              href="/privacy"
               className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
             >
               Privacy Policy
             </Link>
             <Link
-              href="/goldcoastfinancial2/contact"
+              href="/contact"
               className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
             >
               Contact Us

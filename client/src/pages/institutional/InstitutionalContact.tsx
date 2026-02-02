@@ -15,28 +15,23 @@ import {
 } from "@/components/ui/accordion";
 import { InstitutionalSecurityBadges } from "@/components/ui/institutional-security-badges";
 import { InstitutionalAppointmentScheduler } from "@/components/ui/institutional-appointment-scheduler";
+import { TrustIndicators } from "@/components/institutional/TrustIndicators";
+import { MapChoicePopover } from "@/components/ui/map-choice-popover";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
-// Enhanced Institutional FAQs
+// Institutional FAQs
 const institutionalFaqs = [
   {
-    question: "How do I contact Gold Coast Financial for a corporate matter?",
-    answer: "For corporate development, partnership opportunities, or institutional inquiries, please submit an inquiry through our contact form or email corporate@goldcoastfnl.com. Our corporate team reviews all inquiries and responds within 2-3 business days."
+    question: "Does Gold Coast Financial sell insurance directly?",
+    answer: "No. Consumer insurance inquiries should be directed to Heritage Life Solutions."
   },
   {
-    question: "Does Gold Coast Financial sell insurance directly to consumers?",
-    answer: "No. Gold Coast Financial operates as a holding company providing governance and oversight to our operating companies. Consumer insurance inquiries should be directed to Heritage Life Solutions, our life insurance brokerage."
-  },
-  {
-    question: "What types of partnerships does Gold Coast Financial consider?",
-    answer: "We evaluate potential partnerships with financial services businesses that demonstrate strong regulatory standing, experienced management teams, sustainable competitive positions, and alignment with our long-term orientation."
+    question: "What types of partnerships do you consider?",
+    answer: "Financial services businesses with strong regulatory standing and alignment with our long-term orientation."
   },
   {
     question: "Is Gold Coast Financial a private equity firm?",
-    answer: "No. Unlike private equity firms that typically seek exits within a defined timeframe, Gold Coast Financial acquires and develops financial services businesses with the intent to hold them indefinitely."
-  },
-  {
-    question: "How can I apply for a position at Gold Coast Financial?",
-    answer: "Executive and corporate-level positions within the holding company can be inquired about by contacting applications@goldcoastfnl.com. For positions within our operating companies, please visit their respective career pages."
+    answer: "No. We acquire businesses with the intent to hold them indefinitely."
   },
 ];
 
@@ -257,7 +252,7 @@ function CorporateInquiryForm() {
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full pl-10 pr-4 py-3 text-sm border border-border/60 rounded-sm bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40"
-              placeholder="(555) 123-4567"
+              placeholder="(630) 555-0123"
             />
           </div>
         </div>
@@ -330,6 +325,8 @@ function CorporateInquiryForm() {
 }
 
 export default function InstitutionalContact() {
+  const { trackCTAClicked } = useAnalytics();
+
   return (
     <InstitutionalLayout>
       {/* Hero */}
@@ -356,8 +353,12 @@ export default function InstitutionalContact() {
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="border-t border-border/60" />
+      {/* Trust Indicators */}
+      <section className="py-12 bg-muted/30 border-y border-border/60">
+        <div className="container mx-auto px-6 lg:px-12">
+          <TrustIndicators variant="light" />
+        </div>
+      </section>
 
       {/* Contact Types - Enhanced Cards */}
       <section className="py-20 md:py-28">
@@ -367,19 +368,19 @@ export default function InstitutionalContact() {
               {
                 icon: Briefcase,
                 title: "Corporate Development",
-                description: "Partnership opportunities, acquisition inquiries, and strategic discussions.",
+                description: "Partnership opportunities, acquisitions, and strategic discussions.",
                 email: "corporate@goldcoastfnl.com"
               },
               {
                 icon: Building,
                 title: "Institutional Inquiries",
-                description: "Regulatory matters, carrier relationships, and institutional communications.",
+                description: "Regulatory matters, carrier relationships, and communications.",
                 email: "contact@goldcoastfnl.com"
               },
               {
                 icon: Users,
                 title: "Career Opportunities",
-                description: "Executive and corporate-level positions within the holding company.",
+                description: "Executive and corporate positions within the company.",
                 email: "applications@goldcoastfnl.com"
               },
             ].map((item, index) => (
@@ -415,56 +416,29 @@ export default function InstitutionalContact() {
       {/* Divider */}
       <div className="border-t border-border/60" />
 
-      {/* Consumer Redirect */}
-      <section className="py-20 md:py-28 bg-muted/30">
+      {/* Consumer Redirect - Simplified */}
+      <section className="py-12 bg-muted/30">
         <div className="container mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-px w-8 bg-secondary" />
-                <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                  Insurance Inquiries
-                </h2>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-white border border-border/60 rounded-sm">
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-sm" style={{ backgroundColor: "#6B5B95" }}>
+                <Leaf className="w-5 h-5" style={{ color: "#C4B7D5" }} />
               </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="lg:col-span-2"
-            >
-              <p className="text-lg text-primary leading-relaxed mb-6">
-                Looking for life insurance coverage?
-              </p>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                Consumer insurance inquiries, policy questions, and coverage requests should be directed to our operating companies. Gold Coast Financial does not sell insurance products directly.
-              </p>
-
-              <div className="border border-border/60 p-6 bg-white rounded-sm hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-[#4f5a3f] p-1.5 rounded-sm">
-                    <Leaf className="w-4 h-4 text-[#d4a05b]" />
-                  </div>
-                  <span className="font-medium text-primary">Heritage Life Solutions</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Life insurance, mortgage protection, whole life, IUL, and final expense coverage.
-                </p>
-                <a
-                  href="/heritage/contact"
-                  className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-2"
-                >
-                  Contact Heritage Life Solutions
-                  <ArrowRight className="w-4 h-4" />
-                </a>
+              <div>
+                <p className="text-sm font-medium text-primary mb-1">Looking for life insurance coverage?</p>
+                <p className="text-xs text-muted-foreground">Consumer insurance inquiries should be directed to Heritage Life Solutions.</p>
               </div>
-            </motion.div>
+            </div>
+            <a
+              href="https://heritagels.org/contact"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCTAClicked('heritage_contact', 'consumer_redirect')}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#6B5B95] text-white rounded-sm text-sm font-medium hover:bg-[#5D4E82] transition-colors shrink-0"
+            >
+              Contact Heritage Life Solutions
+              <ArrowRight className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </section>
@@ -492,7 +466,7 @@ export default function InstitutionalContact() {
                 Executive Discussions
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                For partnership discussions, acquisition conversations, or strategic meetings with our leadership team.
+                For partnership or strategic meetings with leadership.
               </p>
             </motion.div>
             <motion.div
@@ -528,12 +502,30 @@ export default function InstitutionalContact() {
                 </h2>
               </div>
               <div className="space-y-6 mb-8">
+                {/* Address with Map Choice */}
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4 }}
+                  className="flex items-start gap-4"
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4 text-primary" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="text-primary font-medium mb-1">Gold Coast Financial</p>
+                    <MapChoicePopover
+                      address="1240 Iroquois Ave, Suite 506"
+                      addressLine2="Naperville, IL 60563"
+                      iconClassName="hidden"
+                      textClassName="text-muted-foreground text-sm hover:text-primary"
+                    />
+                  </div>
+                </motion.div>
+
+                {/* Other contact items */}
                 {[
-                  {
-                    icon: MapPin,
-                    title: "Gold Coast Financial",
-                    content: "1240 Iroquois Ave, Suite 506\nNaperville, IL 60563\nUnited States"
-                  },
                   {
                     icon: Phone,
                     title: "Corporate Office",
@@ -557,7 +549,7 @@ export default function InstitutionalContact() {
                     initial={{ opacity: 0, x: -10 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    transition={{ duration: 0.4, delay: (index + 1) * 0.1 }}
                     className="flex items-start gap-4"
                   >
                     <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center shrink-0">
@@ -702,10 +694,10 @@ export default function InstitutionalContact() {
               className="lg:col-span-2"
             >
               <p className="text-lg leading-relaxed mb-6">
-                For press inquiries and media requests, please contact our communications team.
+                For press and media requests, contact our communications team.
               </p>
               <p className="text-primary-foreground/80 leading-relaxed mb-6">
-                Gold Coast Financial responds to legitimate media inquiries from credentialed journalists and publications. Please include your publication name, deadline, and specific questions.
+                Include your publication name, deadline, and questions.
               </p>
               <a
                 href="mailto:media@goldcoastfnl.com"

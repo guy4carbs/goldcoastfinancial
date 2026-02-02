@@ -307,7 +307,7 @@ export function InstitutionalPartnershipQuiz() {
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       type="tel"
-                      placeholder="(555) 123-4567"
+                      placeholder="(630) 555-0123"
                       value={data.phone}
                       onChange={(e) => updateData("phone", e.target.value)}
                       className="pl-10"

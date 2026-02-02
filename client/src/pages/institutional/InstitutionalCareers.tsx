@@ -1,41 +1,85 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { motion } from "framer-motion";
-import { ArrowRight, Briefcase, MapPin, Clock, Users, Heart, TrendingUp, Shield, Building2 } from "lucide-react";
+import { ArrowRight, Briefcase, MapPin, Clock, Users, Heart, TrendingUp, Shield, Building2, DollarSign, GraduationCap, Home, Calendar, Umbrella, HeartPulse, CheckCircle, Quote, Scale, Code, MessageSquare } from "lucide-react";
 import { Link } from "wouter";
 import { InstitutionalSEO } from "@/components/seo/InstitutionalSEO";
+import { VideoSection } from "@/components/institutional/VideoSection";
+import { AnimatedStats } from "@/components/institutional/AnimatedStats";
+import { useAnalytics } from "@/hooks/useAnalytics";
+
+// Department configurations with colors and icons
+const departmentConfig: Record<string, { color: string; bgColor: string; borderColor: string; icon: React.ElementType }> = {
+  "Corporate Development": { color: "text-blue-700", bgColor: "bg-blue-50", borderColor: "border-blue-200", icon: TrendingUp },
+  "Legal & Compliance": { color: "text-purple-700", bgColor: "bg-purple-50", borderColor: "border-purple-200", icon: Scale },
+  "Finance": { color: "text-green-700", bgColor: "bg-green-50", borderColor: "border-green-200", icon: DollarSign },
+  "Operations": { color: "text-amber-700", bgColor: "bg-amber-50", borderColor: "border-amber-200", icon: Building2 },
+  "Executive Office": { color: "text-rose-700", bgColor: "bg-rose-50", borderColor: "border-rose-200", icon: Briefcase },
+  "Technology": { color: "text-cyan-700", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", icon: Code },
+  "Corporate Communications": { color: "text-indigo-700", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", icon: MessageSquare },
+};
+
+// Employee testimonials
+const employeeTestimonials = [
+  {
+    quote: "Working here means being part of something built to last. The long-term thinking is refreshing after years at firms focused on quarterly results.",
+    name: "Team Member",
+    role: "Corporate Development",
+    initials: "CD"
+  },
+  {
+    quote: "Leadership truly cares about doing things the right way. Compliance isn't a burden here—it's a competitive advantage we all take pride in.",
+    name: "Team Member",
+    role: "Legal & Compliance",
+    initials: "LC"
+  },
+  {
+    quote: "I appreciate the autonomy and trust given to each team member. We're empowered to make decisions and drive meaningful impact.",
+    name: "Team Member",
+    role: "Operations",
+    initials: "OP"
+  }
+];
+
+// Team stats
+const teamStats = [
+  { value: 15, suffix: "+", label: "Team Members" },
+  { value: 4, label: "Leadership Team" },
+  { value: 50, label: "States Licensed" },
+  { value: 100, suffix: "%", label: "Remote Friendly" },
+];
 
 const cultureValues = [
   {
     icon: Shield,
     title: "Integrity First",
-    description: "We operate with the highest ethical standards, prioritizing compliance and transparency in everything we do."
+    description: "Ethical standards in everything we do."
   },
   {
     icon: TrendingUp,
     title: "Long-Term Thinking",
-    description: "We make decisions based on sustainable value creation, not short-term gains or quarterly pressures."
+    description: "Decisions focused on sustainable value creation."
   },
   {
     icon: Users,
     title: "Collaborative Excellence",
-    description: "We believe the best results come from diverse perspectives working together toward shared goals."
+    description: "Diverse perspectives toward shared goals."
   },
   {
     icon: Heart,
     title: "People-Centered",
-    description: "Our people are our greatest asset. We invest in growth, well-being, and professional development."
+    description: "Investment in growth and development."
   }
 ];
 
 const benefits = [
-  "Competitive compensation packages",
-  "Comprehensive health, dental, and vision insurance",
-  "401(k) with company matching",
-  "Professional development budget",
-  "Flexible work arrangements",
-  "Paid time off and holidays",
-  "Life and disability insurance",
-  "Employee assistance program"
+  { icon: DollarSign, text: "Competitive compensation" },
+  { icon: HeartPulse, text: "Health, dental, vision" },
+  { icon: TrendingUp, text: "401(k) with matching" },
+  { icon: GraduationCap, text: "Professional development" },
+  { icon: Home, text: "Flexible work options" },
+  { icon: Calendar, text: "Generous paid time off" },
+  { icon: Umbrella, text: "Life and disability coverage" },
+  { icon: Heart, text: "Employee assistance program" },
 ];
 
 const openPositions = [
@@ -44,15 +88,12 @@ const openPositions = [
     department: "Corporate Development",
     location: "Naperville, IL",
     type: "Full-time",
-    description: "Join our corporate development team to identify, evaluate, and execute strategic acquisitions and partnerships in the insurance and financial services sectors. You'll work directly with senior leadership on deal sourcing, financial modeling, due diligence, and post-acquisition integration planning.",
+    description: "Join our corporate development team to identify, evaluate, and execute strategic acquisitions and partnerships in the insurance and financial services sectors.",
     requirements: [
-      "Bachelor's degree in Finance, Economics, Accounting, or related field",
-      "2-4 years of experience in investment banking, private equity, corporate development, or M&A advisory",
-      "Strong financial modeling and valuation skills (DCF, LBO, comparable analysis)",
-      "Experience with due diligence processes and deal execution",
-      "Advanced proficiency in Excel and PowerPoint",
-      "Insurance or financial services industry experience preferred",
-      "CFA progress or MBA a plus"
+      "2-4 years in investment banking, PE, or M&A advisory",
+      "Strong financial modeling skills (DCF, LBO)",
+      "Bachelor's in Finance or related field",
+      "Insurance/financial services experience preferred"
     ]
   },
   {
@@ -60,15 +101,12 @@ const openPositions = [
     department: "Legal & Compliance",
     location: "Naperville, IL",
     type: "Full-time",
-    description: "Lead our compliance function to ensure regulatory adherence across all portfolio companies. You'll develop and maintain compliance programs, manage state insurance licensing, oversee regulatory filings, and serve as the primary liaison with regulatory bodies. This role is critical to maintaining our reputation for integrity and operational excellence.",
+    description: "Lead our compliance function ensuring regulatory adherence across all portfolio companies with responsibility for licensing, filings, and regulatory relationships.",
     requirements: [
-      "Bachelor's degree required; JD or compliance certification (CPCU, FLMI) preferred",
-      "5+ years of compliance experience in insurance or financial services",
-      "Deep knowledge of state insurance regulations and NAIC requirements",
-      "Experience managing multi-state insurance licensing and producer appointments",
-      "Strong understanding of anti-money laundering (AML) and privacy regulations",
-      "Excellent written and verbal communication skills",
-      "Ability to translate complex regulatory requirements into actionable policies"
+      "5+ years compliance experience in insurance/financial services",
+      "Deep knowledge of state insurance regulations",
+      "Experience with multi-state licensing",
+      "JD or compliance certification preferred"
     ]
   },
   {
@@ -76,15 +114,12 @@ const openPositions = [
     department: "Finance",
     location: "Naperville, IL / Remote",
     type: "Full-time",
-    description: "Support the CFO and finance team with comprehensive financial analysis, reporting, and strategic planning across the holding company and portfolio businesses. You'll prepare monthly financial reports, develop budgets and forecasts, analyze portfolio company performance, and provide insights that drive strategic decision-making.",
+    description: "Support the CFO with financial analysis, reporting, and strategic planning across the holding company and portfolio businesses.",
     requirements: [
-      "Bachelor's degree in Finance, Accounting, or related field; CPA or CFA a plus",
-      "3-5 years of experience in financial analysis, FP&A, or public accounting",
-      "Strong understanding of GAAP and financial statement analysis",
-      "Experience with financial consolidation and multi-entity reporting",
-      "Advanced Excel skills; experience with ERP systems and BI tools",
-      "Insurance industry experience strongly preferred",
-      "Strong attention to detail and ability to meet deadlines in a fast-paced environment"
+      "3-5 years in financial analysis or FP&A",
+      "Strong GAAP knowledge and Excel skills",
+      "Experience with multi-entity reporting",
+      "Insurance industry experience preferred"
     ]
   },
   {
@@ -92,15 +127,12 @@ const openPositions = [
     department: "Legal & Compliance",
     location: "Naperville, IL",
     type: "Full-time",
-    description: "Serve as the chief legal advisor to Gold Coast Financial, providing strategic legal guidance on corporate governance, M&A transactions, regulatory matters, and commercial contracts. You'll manage outside counsel relationships, oversee legal risk management, and ensure the company's legal interests are protected across all business activities.",
+    description: "Chief legal advisor providing strategic guidance on governance, M&A, regulatory matters, and commercial contracts.",
     requirements: [
-      "Juris Doctor (JD) from an accredited law school",
-      "Active bar membership in Illinois (or ability to obtain)",
-      "10+ years of legal experience, with 5+ years in insurance or financial services",
-      "Experience with M&A transactions, corporate governance, and securities law",
-      "Strong background in regulatory compliance and contract negotiation",
-      "Previous in-house counsel experience preferred",
-      "Excellent judgment and ability to balance legal risk with business objectives"
+      "JD with Illinois bar membership",
+      "10+ years legal experience, 5+ in insurance/financial services",
+      "M&A and corporate governance experience",
+      "In-house counsel experience preferred"
     ]
   },
   {
@@ -108,68 +140,19 @@ const openPositions = [
     department: "Operations",
     location: "Naperville, IL",
     type: "Full-time",
-    description: "Lead operational excellence initiatives across the holding company and portfolio businesses. You'll develop and implement operational strategies, drive process improvements, manage vendor relationships, and ensure seamless coordination between corporate functions and operating companies. This role is key to scaling our platform efficiently.",
+    description: "Lead operational excellence initiatives across the holding company and portfolio businesses, driving efficiency and coordinating corporate functions.",
     requirements: [
-      "Bachelor's degree required; MBA or relevant advanced degree preferred",
-      "7+ years of operations management experience in financial services or insurance",
-      "Proven track record of implementing operational improvements and driving efficiency",
-      "Experience managing cross-functional teams and complex projects",
-      "Strong analytical skills with a data-driven approach to decision-making",
-      "Excellent communication and stakeholder management abilities",
-      "Knowledge of insurance operations and technology platforms a plus"
-    ]
-  },
-  {
-    title: "Executive Assistant to CEO",
-    department: "Executive Office",
-    location: "Naperville, IL",
-    type: "Full-time",
-    description: "Provide high-level administrative and strategic support to the Chief Executive Officer. You'll manage the CEO's calendar, coordinate board meetings and investor communications, handle confidential correspondence, and serve as a key liaison between the executive office and internal/external stakeholders.",
-    requirements: [
-      "Bachelor's degree preferred",
-      "5+ years of executive assistant experience, preferably in financial services",
-      "Exceptional organizational skills and attention to detail",
-      "Advanced proficiency in Microsoft Office Suite and calendar management",
-      "Excellent written and verbal communication skills",
-      "Ability to handle confidential information with discretion",
-      "Proactive problem-solver with strong interpersonal skills"
-    ]
-  },
-  {
-    title: "IT Security Manager",
-    department: "Technology",
-    location: "Naperville, IL / Hybrid",
-    type: "Full-time",
-    description: "Lead our cybersecurity program to protect sensitive financial and customer data across the organization. You'll develop security policies, manage threat detection and incident response, ensure compliance with industry regulations (SOC 2, NIST), and build a security-aware culture throughout the company.",
-    requirements: [
-      "Bachelor's degree in Computer Science, Cybersecurity, or related field",
-      "5+ years of information security experience, with 2+ years in a leadership role",
-      "Industry certifications such as CISSP, CISM, or CISA required",
-      "Experience with security frameworks (NIST, ISO 27001, SOC 2)",
-      "Knowledge of cloud security (AWS, Azure) and network security architecture",
-      "Understanding of insurance and financial services regulatory requirements",
-      "Strong communication skills to convey security concepts to non-technical stakeholders"
-    ]
-  },
-  {
-    title: "Investor Relations Manager",
-    department: "Corporate Communications",
-    location: "Naperville, IL",
-    type: "Full-time",
-    description: "Manage relationships with existing and prospective investors, capital partners, and key stakeholders. You'll prepare investor presentations and reports, coordinate quarterly communications, support capital raising initiatives, and serve as the primary point of contact for investor inquiries.",
-    requirements: [
-      "Bachelor's degree in Finance, Communications, or related field; MBA a plus",
-      "5+ years of experience in investor relations, private equity, or investment banking",
-      "Strong financial acumen and ability to translate complex data into compelling narratives",
-      "Excellent presentation and communication skills",
-      "Experience with CRM systems and investor management platforms",
-      "Understanding of private capital markets and institutional investor expectations",
-      "Ability to manage multiple priorities in a fast-paced environment"
+      "7+ years operations management in financial services",
+      "Proven track record in process improvement",
+      "Experience managing cross-functional teams",
+      "MBA or advanced degree preferred"
     ]
   }
 ];
 
 export default function InstitutionalCareers() {
+  const { trackCTAClicked, trackVideoPlayed } = useAnalytics();
+
   return (
     <InstitutionalLayout>
       <InstitutionalSEO />
@@ -190,15 +173,19 @@ export default function InstitutionalCareers() {
               Build Your Career With Us
             </h1>
             <p className="text-lg text-white/70 leading-relaxed mb-10">
-              Join a team committed to long-term value creation, operational excellence, and the highest standards of integrity in financial services.
+              Join a team committed to long-term value creation and operational excellence.
             </p>
             <div className="accent-line-animated" />
           </motion.div>
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="border-t border-border/60" />
+      {/* Team Stats */}
+      <section className="py-16 md:py-20 bg-muted/30 border-y border-border/60">
+        <div className="container mx-auto px-6 lg:px-12">
+          <AnimatedStats stats={teamStats} columns={4} />
+        </div>
+      </section>
 
       {/* Culture & Values */}
       <section className="py-20 md:py-28">
@@ -242,6 +229,63 @@ export default function InstitutionalCareers() {
       {/* Divider */}
       <div className="border-t border-border/60" />
 
+      {/* Employee Testimonials */}
+      <section className="py-20 md:py-28 bg-gradient-to-b from-white to-muted/30">
+        <div className="container mx-auto px-6 lg:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-12 text-center"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+              From Our Team
+            </h2>
+            <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl mx-auto">
+              Hear what it's like to work at Gold Coast Financial.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {employeeTestimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white p-6 rounded-lg border border-border/60 hover:shadow-lg transition-all relative"
+              >
+                {/* Quote icon */}
+                <div className="absolute -top-3 left-6">
+                  <div className="w-8 h-8 rounded-full bg-[hsl(348,65%,20%)] flex items-center justify-center">
+                    <Quote className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground leading-relaxed italic mt-4 mb-6">
+                  "{testimonial.quote}"
+                </p>
+
+                <div className="flex items-center gap-3 pt-4 border-t border-border/60">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-primary">{testimonial.initials}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-primary">{testimonial.name}</p>
+                    <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-border/60" />
+
       {/* Benefits */}
       <section className="py-20 md:py-28 bg-muted/30">
         <div className="container mx-auto px-6 lg:px-12">
@@ -259,7 +303,7 @@ export default function InstitutionalCareers() {
                 Comprehensive benefits that support your well-being.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We offer competitive compensation and a comprehensive benefits package designed to support our team members and their families. Our benefits reflect our commitment to long-term thinking—investing in the health, growth, and security of our people.
+                Competitive compensation and comprehensive benefits designed to support our team members and their families.
               </p>
             </motion.div>
 
@@ -272,9 +316,11 @@ export default function InstitutionalCareers() {
               <div className="bg-white border border-border/60 p-8 rounded-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[hsl(348,65%,25%)]" />
-                      <span className="text-sm text-muted-foreground">{benefit}</span>
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <benefit.icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">{benefit.text}</span>
                     </div>
                   ))}
                 </div>
@@ -306,63 +352,71 @@ export default function InstitutionalCareers() {
           </motion.div>
 
           <div className="space-y-6">
-            {openPositions.map((position, index) => (
-              <motion.div
-                key={position.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white border border-border/60 p-6 md:p-8 rounded-sm hover:shadow-lg transition-all duration-300 group"
-              >
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <Briefcase className="w-5 h-5 text-[hsl(348,65%,25%)]" />
-                      <h3 className="text-lg font-medium text-primary">{position.title}</h3>
+            {openPositions.map((position, index) => {
+              const deptConfig = departmentConfig[position.department] || departmentConfig["Operations"];
+              const DeptIcon = deptConfig.icon;
+
+              return (
+                <motion.div
+                  key={position.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className={`bg-white border-2 ${deptConfig.borderColor} p-6 md:p-8 rounded-lg hover:shadow-lg transition-all duration-300 group`}
+                >
+                  {/* Header with Department Badge */}
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                    <div>
+                      {/* Department Badge */}
+                      <div className="mb-3">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${deptConfig.bgColor} ${deptConfig.color}`}>
+                          <DeptIcon className="w-3.5 h-3.5" />
+                          {position.department}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-medium text-primary mb-2">{position.title}</h3>
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4" />
+                          {position.location}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4" />
+                          {position.type}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Building2 className="w-3 h-3" />
-                        {position.department}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {position.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {position.type}
-                      </span>
-                    </div>
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[hsl(348,65%,20%)] text-white rounded-lg text-sm font-medium hover:bg-[hsl(348,65%,25%)] transition-colors shrink-0 shadow-sm hover:shadow-md"
+                    >
+                      Apply Now
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
-                  <Link
-                    href="/goldcoastfinancial2/contact"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(348,65%,20%)] text-white rounded-sm text-sm font-medium hover:bg-[hsl(348,65%,25%)] transition-colors shrink-0"
-                  >
-                    Apply Now
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
 
-                {/* Description */}
-                <p className="text-sm text-muted-foreground leading-relaxed mb-5">{position.description}</p>
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-5">{position.description}</p>
 
-                {/* Requirements */}
-                <div>
-                  <h4 className="text-sm font-medium text-primary mb-3">Requirements</h4>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {position.requirements.map((req, reqIndex) => (
-                      <li key={reqIndex} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[hsl(348,65%,25%)] mt-2 shrink-0" />
-                        <span>{req}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-            ))}
+                  {/* Requirements */}
+                  <div className="bg-muted/30 rounded-lg p-5">
+                    <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      Requirements
+                    </h4>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {position.requirements.map((req, reqIndex) => (
+                        <li key={reqIndex} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <div className={`w-1.5 h-1.5 rounded-full ${deptConfig.bgColor.replace('bg-', 'bg-').replace('-50', '-500')} mt-2 shrink-0`} style={{ backgroundColor: deptConfig.color.includes('blue') ? '#3b82f6' : deptConfig.color.includes('purple') ? '#8b5cf6' : deptConfig.color.includes('green') ? '#22c55e' : deptConfig.color.includes('amber') ? '#f59e0b' : deptConfig.color.includes('rose') ? '#f43f5e' : deptConfig.color.includes('cyan') ? '#06b6d4' : '#6366f1' }} />
+                          <span>{req}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
           {/* No Positions Message - uncomment if needed */}
@@ -373,7 +427,7 @@ export default function InstitutionalCareers() {
               We don't have any open positions at this time, but we're always interested in talented people.
             </p>
             <Link
-              href="/goldcoastfinancial2/contact"
+              href="/contact"
               className="inline-flex items-center gap-2 text-[hsl(348,65%,25%)] font-medium hover:underline"
             >
               Send us your resume
@@ -408,10 +462,10 @@ export default function InstitutionalCareers() {
               className="lg:col-span-2"
             >
               <p className="text-lg leading-relaxed mb-6">
-                Don't see a position that fits your background? We're always interested in hearing from talented professionals who share our values and want to contribute to our mission.
+                Don't see a position that fits? We're always interested in talented professionals who share our values.
               </p>
               <p className="text-white/70 leading-relaxed mb-8">
-                Send your resume and a brief note about your background and interests to our team. We review all applications and will reach out if there's a potential fit.
+                Send your resume to our team—we review all applications.
               </p>
               <a
                 href="mailto:applications@goldcoastfnl.com"

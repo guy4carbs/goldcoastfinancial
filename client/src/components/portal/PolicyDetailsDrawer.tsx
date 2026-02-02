@@ -58,8 +58,8 @@ For the official policy document, please contact your advisor:
   Email: jack.cook@goldcoastfnl.com
 
 Gold Coast Financial Group
-123 Main Street
-Naperville, IL 60540
+1240 Iroquois Ave, Suite 506
+Naperville, IL 60563
 
 ================================================================================
                     Thank you for choosing Gold Coast Financial

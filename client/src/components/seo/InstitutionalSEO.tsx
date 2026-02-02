@@ -21,57 +21,57 @@ const defaultMeta = {
 
 // Page-specific SEO configurations
 export const pageSEO: Record<string, SEOProps> = {
-  "/goldcoastfinancial2": {
+  "/": {
     title: "Gold Coast Financial | Institutional Financial Services Holding Company",
     description: "Gold Coast Financial is a diversified financial services holding company providing governance, capital stewardship, and strategic oversight to regulated insurance and advisory businesses.",
     keywords: "holding company, financial services, institutional investor, capital stewardship, insurance holdings",
   },
-  "/goldcoastfinancial2/about": {
+  "/about": {
     title: "About Us | Gold Coast Financial",
     description: "Learn about Gold Coast Financial's leadership, mission, and commitment to long-term value creation through disciplined capital allocation and operational excellence.",
     keywords: "about gold coast financial, leadership team, company history, mission values, financial services",
   },
-  "/goldcoastfinancial2/portfolio": {
+  "/portfolio": {
     title: "Portfolio Companies | Gold Coast Financial",
     description: "Explore Gold Coast Financial's portfolio of regulated financial services businesses, including Heritage Life Solutions and planned expansions in insurance and advisory services.",
     keywords: "portfolio companies, Heritage Life Solutions, insurance holdings, financial services portfolio",
   },
-  "/goldcoastfinancial2/contact": {
+  "/contact": {
     title: "Contact Us | Gold Coast Financial",
     description: "Connect with Gold Coast Financial for partnership opportunities, corporate inquiries, and institutional discussions. Located in Naperville, Illinois.",
     keywords: "contact gold coast financial, corporate inquiries, partnership opportunities, Naperville Illinois",
   },
-  "/goldcoastfinancial2/news": {
+  "/news": {
     title: "News & Updates | Gold Coast Financial",
     description: "Stay informed with the latest corporate announcements, milestones, and company updates from Gold Coast Financial.",
     keywords: "company news, corporate announcements, press releases, company updates",
   },
-  "/goldcoastfinancial2/investors": {
+  "/investors": {
     title: "Investor Relations | Gold Coast Financial",
     description: "Access investor information, capital philosophy, and partnership opportunities with Gold Coast Financial.",
     keywords: "investor relations, capital partners, investment opportunities, financial performance",
   },
-  "/goldcoastfinancial2/careers": {
+  "/careers": {
     title: "Careers | Gold Coast Financial",
     description: "Join Gold Coast Financial's team. Explore career opportunities in financial services, insurance, and corporate operations.",
     keywords: "careers, jobs, employment, financial services careers, insurance jobs",
   },
-  "/goldcoastfinancial2/blog": {
+  "/blog": {
     title: "Insights & Perspectives | Gold Coast Financial",
     description: "Industry insights, market perspectives, and thought leadership from Gold Coast Financial's leadership team.",
     keywords: "industry insights, thought leadership, financial services blog, market perspectives",
   },
-  "/goldcoastfinancial2/media": {
+  "/media": {
     title: "Media Center | Gold Coast Financial",
     description: "Press resources, executive photos, brand assets, and media contact information for Gold Coast Financial.",
     keywords: "press kit, media resources, brand assets, press contact",
   },
-  "/goldcoastfinancial2/privacy": {
+  "/privacy": {
     title: "Privacy Policy | Gold Coast Financial",
     description: "Gold Coast Financial's privacy policy detailing how we collect, use, and protect your personal information.",
     keywords: "privacy policy, data protection, personal information",
   },
-  "/goldcoastfinancial2/terms": {
+  "/terms": {
     title: "Terms of Use | Gold Coast Financial",
     description: "Terms and conditions governing the use of Gold Coast Financial's website and services.",
     keywords: "terms of use, terms and conditions, legal",
@@ -164,11 +164,11 @@ export function InstitutionalSchema() {
     const organizationSchema = {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "@id": "https://goldcoastfinancial.co/goldcoastfinancial2#organization",
+      "@id": "https://goldcoastfinancial.co/#organization",
       "name": "Gold Coast Financial",
       "legalName": "Gold Coast Financial Group",
       "description": "A diversified financial services holding company providing governance, capital stewardship, and strategic oversight to regulated insurance and advisory businesses across the United States.",
-      "url": "https://goldcoastfinancial.co/goldcoastfinancial2",
+      "url": "https://goldcoastfinancial.co/",
       "logo": "https://goldcoastfinancial.co/logo.png",
       "foundingDate": "2025",
       "address": {
@@ -205,10 +205,10 @@ export function InstitutionalSchema() {
     const localBusinessSchema = {
       "@context": "https://schema.org",
       "@type": "FinancialService",
-      "@id": "https://goldcoastfinancial.co/goldcoastfinancial2#localbusiness",
+      "@id": "https://goldcoastfinancial.co/#localbusiness",
       "name": "Gold Coast Financial",
       "description": "Institutional financial services holding company",
-      "url": "https://goldcoastfinancial.co/goldcoastfinancial2",
+      "url": "https://goldcoastfinancial.co/",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "1240 Iroquois Ave Suite 506",
@@ -239,7 +239,7 @@ export function InstitutionalSchema() {
     const leadershipSchema = {
       "@context": "https://schema.org",
       "@type": "Person",
-      "@id": "https://goldcoastfinancial.co/goldcoastfinancial2/about#jack-cook",
+      "@id": "https://goldcoastfinancial.co/about#jack-cook",
       "name": "Jack Cook",
       "jobTitle": "Chief Executive Officer",
       "worksFor": {

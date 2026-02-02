@@ -167,8 +167,8 @@ export function InstitutionalNewsletter({ variant = "card", className = "" }: Ne
             </div>
 
             {/* Form */}
-            <div className="w-full lg:w-auto">
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+            <div className="w-full lg:w-auto lg:ml-auto shrink-0">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 lg:justify-end">
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                   <Input
@@ -199,7 +199,7 @@ export function InstitutionalNewsletter({ variant = "card", className = "" }: Ne
                   )}
                 </Button>
               </form>
-              <p className="text-white/30 text-xs mt-3 text-center sm:text-left">
+              <p className="text-white/30 text-xs mt-3 text-center lg:text-right">
                 No spam. Unsubscribe anytime.
               </p>
             </div>
@@ -222,13 +222,13 @@ export function InstitutionalNewsletter({ variant = "card", className = "" }: Ne
           <Mail className="w-5 h-5 text-[hsl(42,60%,55%)]" />
         </div>
         <div>
-          <h3 className="font-medium text-white text-lg">Stay Informed</h3>
-          <p className="text-white/60 text-sm">Corporate updates and insights</p>
+          <p className="text-[hsl(42,60%,55%)] text-xs font-medium uppercase tracking-wider">Stay Informed</p>
+          <h3 className="font-serif text-white text-lg">The Gold Coast Perspective</h3>
         </div>
       </div>
 
       <p className="text-white/70 text-sm mb-6 leading-relaxed">
-        Receive quarterly updates on company developments, portfolio news, and industry perspectives from our leadership team.
+        Quarterly insights on financial services, market dynamics, and strategic perspectives from our leadership team.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-3">

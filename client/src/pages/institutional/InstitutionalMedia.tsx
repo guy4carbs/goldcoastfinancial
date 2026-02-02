@@ -1,30 +1,31 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { motion } from "framer-motion";
-import { ArrowRight, Download, Mail, User, Building2, FileText, Image, ExternalLink } from "lucide-react";
+import { ArrowRight, Mail, CheckCircle } from "lucide-react";
 import { Link } from "wouter";
 import { InstitutionalSEO } from "@/components/seo/InstitutionalSEO";
-import { Button } from "@/components/ui/button";
+import { TrustIndicators } from "@/components/institutional/TrustIndicators";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const pressReleases = [
   {
     date: "January 2026",
     title: "Gold Coast Financial Enters Second Year of Operations",
-    summary: "Company announces continued growth and operational milestones as it begins its second year."
+    summary: "Continued growth and operational milestones mark second year."
   },
   {
     date: "November 2025",
     title: "Gold Coast Financial Formalizes Holding Company Structure",
-    summary: "Enhanced governance framework positions company for continued portfolio expansion."
+    summary: "Enhanced governance framework supports continued portfolio expansion."
   },
   {
     date: "September 2025",
     title: "Heritage Life Solutions Expands Carrier Network",
-    summary: "Portfolio company adds partnerships with leading insurance carriers."
+    summary: "Portfolio company adds leading insurance carrier partnerships."
   },
   {
     date: "January 2025",
     title: "Gold Coast Financial Announces Formation",
-    summary: "New financial services holding company established in Naperville, Illinois."
+    summary: "Financial services holding company established in Naperville."
   }
 ];
 
@@ -32,45 +33,33 @@ const executives = [
   {
     name: "Jack Cook",
     title: "Chief Executive Officer",
-    bio: "Jack Cook serves as CEO of Gold Coast Financial, overseeing strategic direction, capital allocation, and portfolio company governance.",
+    bio: "Oversees strategic direction, capital allocation, and portfolio company governance.",
     available: true
   },
   {
-    name: "Guy Carbonara",
+    name: "Frank Carbonara",
+    title: "Executive Chairman",
+    bio: "Provides senior governance oversight and strategic counsel across the organization.",
+    available: true
+  },
+  {
+    name: "Gaetano Carbonara",
     title: "Chief Operating Officer",
-    bio: "Guy Carbonara leads operations, compliance, and technology initiatives across Gold Coast Financial and its portfolio companies.",
+    bio: "Leads operations, compliance, and technology initiatives across portfolio companies.",
+    available: true
+  },
+  {
+    name: "Nick Gallagher",
+    title: "Head of Strategy",
+    bio: "Leads corporate development, partnership evaluation, and strategic planning.",
     available: true
   }
 ];
 
-const brandAssets = [
-  {
-    name: "Primary Logo",
-    description: "Gold Coast Financial logo in primary colors",
-    format: "PNG, SVG",
-    icon: Image
-  },
-  {
-    name: "Logo - White",
-    description: "Logo variant for dark backgrounds",
-    format: "PNG, SVG",
-    icon: Image
-  },
-  {
-    name: "Brand Guidelines",
-    description: "Complete brand identity guidelines",
-    format: "PDF",
-    icon: FileText
-  },
-  {
-    name: "Fact Sheet",
-    description: "Company overview and key facts",
-    format: "PDF",
-    icon: FileText
-  }
-];
 
 export default function InstitutionalMedia() {
+  const { trackCTAClicked } = useAnalytics();
+
   return (
     <InstitutionalLayout>
       <InstitutionalSEO />
@@ -98,8 +87,12 @@ export default function InstitutionalMedia() {
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="border-t border-border/60" />
+      {/* Trust Indicators */}
+      <section className="py-12 bg-muted/30 border-y border-border/60">
+        <div className="container mx-auto px-6 lg:px-12">
+          <TrustIndicators variant="light" />
+        </div>
+      </section>
 
       {/* Media Contact */}
       <section className="py-16 bg-muted/30">
@@ -113,6 +106,7 @@ export default function InstitutionalMedia() {
             </div>
             <a
               href="mailto:media@goldcoastfnl.com"
+              onClick={() => trackCTAClicked('media_email', 'media_contact')}
               className="inline-flex items-center gap-2 px-6 py-3 bg-[hsl(348,65%,20%)] text-white rounded-sm font-medium hover:bg-[hsl(348,65%,25%)] transition-colors"
             >
               <Mail className="w-4 h-4" />
@@ -162,7 +156,7 @@ export default function InstitutionalMedia() {
                     <p className="text-sm text-muted-foreground mt-2">{release.summary}</p>
                   </div>
                   <Link
-                    href="/goldcoastfinancial2/news"
+                    href="/news"
                     className="text-sm text-[hsl(348,65%,25%)] font-medium hover:underline flex items-center gap-1 shrink-0"
                   >
                     Read More
@@ -175,7 +169,7 @@ export default function InstitutionalMedia() {
 
           <div className="mt-8 text-center">
             <Link
-              href="/goldcoastfinancial2/news"
+              href="/news"
               className="inline-flex items-center gap-2 text-sm text-[hsl(348,65%,25%)] font-medium hover:underline"
             >
               View All News & Updates
@@ -202,36 +196,28 @@ export default function InstitutionalMedia() {
               Executive Information
             </h2>
             <p className="text-2xl md:text-3xl font-serif text-primary">
-              Leadership bios and availability.
+              Leadership available for media inquiries.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {executives.map((exec, index) => (
               <motion.div
                 key={exec.name}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white border border-border/60 p-6 rounded-sm"
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                className="bg-white border border-border/60 p-5 rounded-sm"
               >
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-[hsl(348,65%,20%)]/5 rounded-sm flex items-center justify-center shrink-0">
-                    <User className="w-8 h-8 text-[hsl(348,65%,25%)]" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-base font-medium text-primary">{exec.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{exec.title}</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">{exec.bio}</p>
-                    {exec.available && (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-1 rounded-sm">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                        Available for interviews
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <h3 className="text-sm font-medium text-primary mb-1">{exec.name}</h3>
+                <p className="text-xs text-muted-foreground mb-2">{exec.title}</p>
+                {exec.available && (
+                  <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    Available
+                  </span>
+                )}
               </motion.div>
             ))}
           </div>
@@ -244,54 +230,54 @@ export default function InstitutionalMedia() {
       {/* Brand Assets */}
       <section className="py-20 md:py-28">
         <div className="container mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-12"
-          >
-            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
-              Brand Assets
-            </h2>
-            <p className="text-2xl md:text-3xl font-serif text-primary">
-              Logos, guidelines, and company materials.
-            </p>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {brandAssets.map((asset, index) => (
-              <motion.div
-                key={asset.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white border border-border/60 p-6 rounded-sm hover:shadow-md transition-all group"
-              >
-                <div className="w-12 h-12 bg-muted/50 rounded-sm flex items-center justify-center mb-4">
-                  <asset.icon className="w-6 h-6 text-muted-foreground" />
+          <div className="grid lg:grid-cols-3 gap-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+                Brand Assets
+              </h2>
+              <p className="text-2xl md:text-3xl font-serif text-primary mb-4">
+                Logos & Materials
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Logos, brand guidelines, and company fact sheets are available upon request for editorial use.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="lg:col-span-2"
+            >
+              <div className="bg-white border border-border/60 p-8 rounded-sm">
+                <h3 className="text-base font-medium text-primary mb-4">Available Materials</h3>
+                <ul className="space-y-3 mb-6">
+                  {["Primary Logo (PNG, SVG)", "Logo for Dark Backgrounds", "Brand Guidelines (PDF)", "Company Fact Sheet (PDF)"].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="pt-6 border-t border-border/60">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    <strong className="text-primary">Request Assets:</strong> Contact our media team to receive brand materials.
+                  </p>
+                  <a
+                    href="mailto:media@goldcoastfnl.com?subject=Brand%20Asset%20Request"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[hsl(348,65%,20%)] text-white rounded-sm text-sm font-medium hover:bg-[hsl(348,65%,25%)] transition-colors"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Request Brand Assets
+                  </a>
                 </div>
-                <h3 className="text-sm font-medium text-primary mb-1">{asset.name}</h3>
-                <p className="text-xs text-muted-foreground mb-3">{asset.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{asset.format}</span>
-                  <button className="p-1 text-[hsl(348,65%,25%)] hover:bg-[hsl(348,65%,20%)]/5 rounded-sm transition-colors">
-                    <Download className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-8 p-6 bg-muted/30 rounded-sm">
-            <p className="text-sm text-muted-foreground">
-              <strong className="text-primary">Usage Guidelines:</strong> These assets are provided for editorial and news coverage purposes.
-              Please maintain proportions and do not alter colors or add effects. For questions about usage, contact{" "}
-              <a href="mailto:media@goldcoastfnl.com" className="text-[hsl(348,65%,25%)] hover:underline">
-                media@goldcoastfnl.com
-              </a>.
-            </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

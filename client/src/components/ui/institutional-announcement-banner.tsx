@@ -14,15 +14,8 @@ interface Announcement {
 }
 
 // Configure announcements here or fetch from API
-const announcements: Announcement[] = [
-  {
-    id: "2026-q1-update",
-    message: "Gold Coast Financial enters second year of operations with continued growth.",
-    link: "/goldcoastfinancial2/news",
-    linkText: "Read more",
-    type: "update",
-  },
-];
+// Empty array = no banner shown
+const announcements: Announcement[] = [];
 
 interface AnnouncementBannerProps {
   className?: string;

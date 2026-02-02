@@ -174,7 +174,7 @@ export function AppointmentScheduler() {
                 <span>
                   {formData.meetingType === "video" && "Video call link included in confirmation email"}
                   {formData.meetingType === "phone" && `We'll call you at ${formData.phone}`}
-                  {formData.meetingType === "inperson" && "Visit us at 123 Main Street, Naperville, IL"}
+                  {formData.meetingType === "inperson" && "Visit us at 1240 Iroquois Ave, Suite 506, Naperville, IL 60563"}
                 </span>
               </div>
             </div>
@@ -333,7 +333,7 @@ export function AppointmentScheduler() {
                       <Input
                         id="appt-phone"
                         type="tel"
-                        placeholder="(555) 123-4567"
+                        placeholder="(630) 555-0123"
                         value={formData.phone}
                         onChange={(e) => updateField('phone', e.target.value)}
                         className="pl-10"

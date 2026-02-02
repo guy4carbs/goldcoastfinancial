@@ -2,7 +2,7 @@ import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { Link } from "wouter";
 import {
   ArrowRight, Shield, Scale, TrendingUp, Building2, Calendar, MapPin, Users, Briefcase,
-  CheckCircle, XCircle, Play, Award, Target, Handshake, HelpCircle, Leaf
+  CheckCircle, XCircle, Target, Handshake, HelpCircle, Leaf, Quote
 } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
@@ -12,6 +12,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { TrustIndicators } from "@/components/institutional/TrustIndicators";
+import { VideoSection } from "@/components/institutional/VideoSection";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 /**
  * Gold Coast Financial - Institutional Homepage
@@ -59,114 +62,177 @@ function AnimatedNumber({ end, suffix = "", duration = 2000 }: { end: number; su
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
-// Partner endorsements data
-const partnerEndorsements = [
-  { name: "Mutual of Omaha", rating: "A+" },
-  { name: "Nationwide", rating: "A+" },
-  { name: "Prudential", rating: "A+" },
-  { name: "Lincoln Financial", rating: "A+" },
-  { name: "Pacific Life", rating: "A+" },
-  { name: "Transamerica", rating: "A" },
-  { name: "Protective Life", rating: "A+" },
-  { name: "American National", rating: "A" },
-  { name: "Foresters", rating: "A" },
-  { name: "North American", rating: "A+" },
+// Carrier logos for carousel - links to Heritage (consumer site)
+const carrierLinks = [
+  {
+    name: "Mutual of Omaha",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277474666-Mutual-of-Omaha-logo.png?alt=media&token=0382cf9c-c262-4931-8155-688210c1c173",
+    size: "large" as const,
+  },
+  {
+    name: "Lincoln Financial Group",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b",
+    size: "normal" as const,
+  },
+  {
+    name: "Transamerica",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769278248208-transamerica-logo.png?alt=media&token=9d6fb91f-9c8e-432b-96e4-c4ed8971cc6d",
+    size: "large" as const,
+  },
+  {
+    name: "Corebridge Financial",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2",
+    size: "normal" as const,
+  },
+  {
+    name: "Athene",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643",
+    size: "normal" as const,
+  },
+  {
+    name: "Americo",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba",
+    size: "normal" as const,
+  },
+  {
+    name: "Ladder Life",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733",
+    size: "normal" as const,
+  },
+  {
+    name: "Ethos",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277532663-6341f9fa-fd59-42aa-b238-d23e46658048.png?alt=media&token=ea3d4914-d65e-4817-9a81-1ea709064e52",
+    size: "normal" as const,
+  },
+  {
+    name: "Baltimore Life",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277409363-logo%402x.png?alt=media&token=cdd3c6d0-e497-4a4c-a357-6e3b548dd95c",
+    size: "normal" as const,
+  },
+  {
+    name: "American Home Life",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277674404-Carrier-Logo-Web-270x200-American-Home-Life-1080x608.webp?alt=media&token=0546ea66-443d-44bc-b2f1-d561bd1f713b",
+    size: "large" as const,
+  },
+  {
+    name: "Royal Neighbors",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277589538-330-3309455_royal-neighbors-of-america-life-insurance-royal-neighbors.png?alt=media&token=d700619b-ad2d-4071-bd2b-a57eb5a12b56",
+    size: "normal" as const,
+  },
+  {
+    name: "Polish Falcons",
+    logo: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238",
+    size: "normal" as const,
+  },
 ];
 
 // Enhanced FAQs with more questions
 const institutionalFaqs = [
   {
     question: "What is Gold Coast Financial?",
-    answer: "Gold Coast Financial is a diversified financial services holding company headquartered in Naperville, Illinois. We provide governance, capital allocation, and strategic oversight to regulated insurance and advisory businesses across the United States."
+    answer: "A financial services holding company headquartered in Naperville, Illinois, providing governance and oversight to regulated insurance businesses."
   },
   {
-    question: "How do I contact Gold Coast Financial for a corporate matter?",
-    answer: "For corporate development, partnership opportunities, or institutional inquiries, please submit an inquiry through our contact form or email corporate@goldcoastfnl.com. Our corporate team reviews all inquiries and responds within 2-3 business days."
+    question: "Does Gold Coast Financial sell insurance directly?",
+    answer: "No. Consumer insurance inquiries should be directed to Heritage Life Solutions, our operating company."
   },
   {
-    question: "Does Gold Coast Financial sell insurance directly to consumers?",
-    answer: "No. Gold Coast Financial operates as a holding company providing governance and oversight to our operating companies. Consumer insurance inquiries should be directed to Heritage Life Solutions, our life insurance brokerage."
-  },
-  {
-    question: "What types of partnerships does Gold Coast Financial consider?",
-    answer: "We evaluate potential partnerships with financial services businesses that demonstrate strong regulatory standing, experienced management teams, sustainable competitive positions, and alignment with our long-term orientation. We are particularly interested in insurance distribution, advisory services, and related technology platforms."
+    question: "What types of partnerships do you consider?",
+    answer: "Financial services businesses with strong regulatory standing, experienced management, and alignment with our long-term orientation."
   },
   {
     question: "Is Gold Coast Financial a private equity firm?",
-    answer: "No. Unlike private equity firms that typically seek exits within a defined timeframe, Gold Coast Financial acquires and develops financial services businesses with the intent to hold them indefinitely. We focus on building permanent institutions rather than transactions."
-  },
-  {
-    question: "What makes Gold Coast Financial different from other holding companies?",
-    answer: "Our approach emphasizes permanent capital commitment, operational independence for portfolio companies, and a multi-decade investment horizon. We prioritize regulatory excellence and sustainable growth over aggressive scaling or short-term returns."
-  },
-  {
-    question: "How can I apply for a position at Gold Coast Financial?",
-    answer: "Executive and corporate-level positions within the holding company can be inquired about by contacting applications@goldcoastfnl.com. For positions within our operating companies, please visit their respective career pages."
+    answer: "No. We acquire businesses with the intent to hold them indefinitely, focusing on permanent institutions rather than exits."
   },
 ];
 
-// Why Partner benefits
-const partnerBenefits = [
+// Partner/Carrier testimonials
+const partnerTestimonials = [
   {
-    icon: Shield,
-    title: "Permanent Capital",
-    description: "Long-term commitment without exit pressure or forced timelines"
+    quote: "Their commitment to compliance and long-term relationships aligns perfectly with our distribution partner standards.",
+    source: "Regional Director",
+    company: "A+ Rated National Carrier",
+    initials: "NC"
   },
   {
-    icon: Target,
-    title: "Operational Independence",
-    description: "Maintain autonomy while benefiting from institutional support"
+    quote: "Working with Heritage Life Solutions has been seamless. Their focus on doing things right makes them trusted.",
+    source: "Relationship Manager",
+    company: "Leading Life Insurance Provider",
+    initials: "LP"
   },
   {
-    icon: Scale,
-    title: "Compliance Infrastructure",
-    description: "Robust regulatory framework and governance oversight"
-  },
-  {
-    icon: Handshake,
-    title: "Strategic Partnership",
-    description: "Collaborative approach focused on mutual long-term success"
-  },
+    quote: "The institutional approach Gold Coast Financial brings sets them apart from typical insurance distributors.",
+    source: "VP of Business Development",
+    company: "Fortune 500 Insurance Company",
+    initials: "IC"
+  }
 ];
 
 export default function InstitutionalHome() {
+  const { trackCTAClicked, trackVideoPlayed } = useAnalytics();
+
   return (
     <InstitutionalLayout>
       {/* Hero Section */}
-      <section className="hero-gradient py-28 md:py-36 lg:py-44 relative overflow-hidden">
+      <section className="hero-gradient py-16 md:py-20 lg:py-24 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-white/5 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full -translate-x-1/2 translate-y-1/2 blur-3xl" />
 
         <div className="container mx-auto px-6 lg:px-12 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-            className="max-w-4xl"
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Text Content */}
             <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "3rem" }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="h-1 bg-secondary mb-8"
-            />
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif display-text text-white mb-10 leading-[1.15]">
-              A diversified financial services holding company providing governance and strategic oversight to regulated businesses across the United States.
-            </h1>
-            <div className="accent-line-animated mb-10" />
-            <p className="text-lg md:text-xl text-white/70 max-w-2xl leading-relaxed">
-              Gold Coast Financial maintains long-term capital commitments to insurance and advisory operations, emphasizing compliance, risk management, and sustainable growth.
-            </p>
-          </motion.div>
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: "3rem" }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="h-1 bg-secondary mb-6"
+              />
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif display-text text-white mb-6 leading-[1.2]">
+                Permanent capital for regulated financial services.
+              </h1>
+              <p className="text-base md:text-lg text-white/70 leading-relaxed">
+                Long-term governance, compliance infrastructure, and strategic oversight for insurance and advisory businesses nationwide.
+              </p>
+            </motion.div>
+
+            {/* Visual */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="hidden lg:block"
+            >
+              <div className="relative">
+                <div className="aspect-[4/3] rounded-lg overflow-hidden bg-white/5 border border-white/10">
+                  <img
+                    src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80"
+                    alt="Modern office building representing institutional strength"
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[hsl(348,65%,15%)]/60 to-transparent" />
+                </div>
+                {/* Accent corner */}
+                <div className="absolute -bottom-3 -left-3 w-20 h-20 border-l-2 border-b-2 border-secondary/40" />
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="border-t border-border/60" />
+      {/* Trust Indicators */}
+      <section className="py-12 bg-muted/30 border-y border-border/60">
+        <div className="container mx-auto px-6 lg:px-12">
+          <TrustIndicators variant="light" />
+        </div>
+      </section>
 
       {/* Key Metrics - Enhanced with icons and hover */}
-      <section className="py-20 md:py-24 bg-gradient-to-b from-muted/40 to-white">
+      <section className="py-20 md:py-24 bg-gradient-to-b from-white to-muted/20">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {[
@@ -209,12 +275,37 @@ export default function InstitutionalHome() {
       {/* Who We Are */}
       <section className="py-20 md:py-28">
         <div className="container mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            {/* Left: Image */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative order-2 lg:order-1"
+            >
+              <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80"
+                  alt="Business professionals in meeting"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                {/* Warm overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-amber-900/20 via-transparent to-secondary/10" />
+              </div>
+              {/* Accent elements */}
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-secondary/20 rounded-lg -z-10" />
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-primary/10 rounded-lg -z-10" />
+            </motion.div>
+
+            {/* Right: Content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-6 order-1 lg:order-2"
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-px w-8 bg-secondary" />
@@ -225,22 +316,11 @@ export default function InstitutionalHome() {
               <p className="text-2xl md:text-3xl font-serif text-primary leading-relaxed">
                 Gold Coast Financial serves as the parent holding company for a portfolio of regulated financial services businesses.
               </p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="space-y-6"
-            >
               <p className="text-muted-foreground leading-relaxed">
-                Headquartered in Naperville, Illinois, we provide centralized governance, capital allocation, and strategic direction to our operating companies. Each subsidiary maintains independent management while benefiting from shared infrastructure and institutional oversight.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Our approach prioritizes regulatory compliance, conservative risk management, and the long-term interests of policyholders and stakeholders. We do not pursue short-term growth at the expense of stability.
+                Headquartered in Naperville, Illinois, we provide governance, capital allocation, and strategic direction. Each subsidiary maintains independent management while benefiting from shared infrastructure.
               </p>
               <Link
-                href="/goldcoastfinancial2/about"
+                href="/about"
                 className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
               >
                 Learn more about our company
@@ -251,199 +331,48 @@ export default function InstitutionalHome() {
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="border-t border-border/60" />
-
-      {/* Why Partner With Us - NEW SECTION */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-white to-muted/30">
+      {/* Company Overview Video */}
+      <section className="py-20 md:py-28 bg-muted/30">
         <div className="container mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="h-px w-8 bg-secondary" />
-              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                Why Partner With Us
-              </h2>
-              <div className="h-px w-8 bg-secondary" />
-            </div>
-            <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl mx-auto">
-              A different kind of holding company built for permanent partnerships.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {partnerBenefits.map((benefit, index) => (
-              <motion.div
-                key={benefit.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -6, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.1)" }}
-                className="group p-8 rounded-lg bg-white border border-border/40 hover:border-secondary/30 transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <benefit.icon className="w-6 h-6 text-primary" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-base font-medium text-primary mb-3">{benefit.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {benefit.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="border-t border-border/60" />
-
-      {/* Before/After Comparison - NEW SECTION */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-16"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-px w-8 bg-secondary" />
-              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                Partnership Impact
-              </h2>
-            </div>
-            <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl">
-              The difference institutional partnership makes for financial services businesses.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Without Partnership */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="p-8 rounded-lg bg-gradient-to-br from-red-50/50 to-white border border-red-100/60"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="w-5 h-5 text-red-500" />
-                </div>
-                <h3 className="text-lg font-medium text-primary">Without Institutional Partner</h3>
-              </div>
-              <ul className="space-y-4">
-                {[
-                  "Limited access to capital for growth",
-                  "Compliance burden falls entirely on operations",
-                  "Vulnerable to market volatility",
-                  "Succession planning uncertainty",
-                  "Isolated decision-making",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-
-            {/* With Partnership */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="p-8 rounded-lg bg-gradient-to-br from-green-50/50 to-white border border-green-100/60"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium text-primary">With Gold Coast Financial</h3>
-              </div>
-              <ul className="space-y-4">
-                {[
-                  "Permanent capital with patient growth orientation",
-                  "Centralized compliance and governance support",
-                  "Stability through institutional backing",
-                  "Clear succession and continuity planning",
-                  "Strategic counsel and peer network",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="border-t border-border/60" />
-
-      {/* Video/CEO Message Section - NEW SECTION */}
-      <section className="py-20 md:py-28 bg-muted/30">
-        <div className="container mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-px w-8 bg-secondary" />
                 <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                  From Our Leadership
+                  Our Vision
                 </h2>
               </div>
               <p className="text-2xl md:text-3xl font-serif text-primary mb-6 leading-relaxed">
-                "We build institutions meant to endure for generations, not transactions designed for exits."
+                Building permanent institutions through disciplined capital allocation.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                Gold Coast Financial was founded on the belief that financial services require patient capital, principled leadership, and an unwavering commitment to doing what is right for policyholders and partners alike.
+                Hear from our leadership on our approach to long-term value creation.
               </p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-serif font-medium">
-                  JC
-                </div>
-                <div>
-                  <p className="font-medium text-primary">Jack Cook</p>
-                  <p className="text-sm text-muted-foreground">Founder & Chief Executive Officer</p>
-                </div>
-              </div>
+              <Link
+                href="/about"
+                onClick={() => trackCTAClicked("Meet Leadership", "video_section", "/about")}
+                className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
+              >
+                Meet our leadership team
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </motion.div>
-
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="relative"
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg overflow-hidden border border-border/40 relative group cursor-pointer">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-8 h-8 text-primary ml-1" fill="currentColor" />
-                  </div>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4">
-                    <p className="text-sm font-medium text-primary">Company Overview</p>
-                    <p className="text-xs text-muted-foreground">Learn about our approach to financial services</p>
-                  </div>
-                </div>
-              </div>
+              <VideoSection
+                title="Company Overview"
+                subtitle="Leadership Message"
+                onPlay={() => trackVideoPlayed("company_overview")}
+              />
             </motion.div>
           </div>
         </div>
@@ -452,68 +381,102 @@ export default function InstitutionalHome() {
       {/* Divider */}
       <div className="border-t border-border/60" />
 
-      {/* Our Philosophy - Enhanced */}
-      <section className="py-20 md:py-28">
+      {/* Our Approach - Combined Philosophy & Partner Benefits */}
+      <section className="py-20 md:py-28 bg-gradient-to-b from-white to-muted/20">
         <div className="container mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-16"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-px w-8 bg-secondary" />
-              <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                Our Philosophy
-              </h2>
-            </div>
-            <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl">
-              We believe financial services require patience, discipline, and an unwavering commitment to doing what is right.
-            </p>
-          </motion.div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            {/* Left: Philosophy Text */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="lg:sticky lg:top-24"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-px w-8 bg-secondary" />
+                <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
+                  Our Approach
+                </h2>
+              </div>
+              <p className="text-2xl md:text-3xl font-serif text-primary mb-6 leading-relaxed">
+                Patient capital. Permanent partnerships. Principled growth.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-8">
+                We believe financial services require discipline and an unwavering commitment to doing what is right—for partners, policyholders, and the communities we serve.
+              </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: Shield,
-                title: "Compliance First",
-                description: "Regulatory adherence is not a constraint but a foundation. We exceed requirements rather than merely meeting them."
-              },
-              {
-                icon: Scale,
-                title: "Risk Management",
-                description: "Conservative underwriting and capital reserves protect policyholders and ensure long-term viability."
-              },
-              {
-                icon: TrendingUp,
-                title: "Sustainable Growth",
-                description: "We prioritize measured expansion over aggressive scaling, building enterprises meant to endure."
-              },
-              {
-                icon: Building2,
-                title: "Long-Term Orientation",
-                description: "Decisions are made with a multi-decade horizon, not quarterly pressures."
-              }
-            ].map((item, index) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -6 }}
-                className="group p-8 rounded-lg bg-gradient-to-b from-white to-gray-50/50 border border-border/40 hover:border-primary/20 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center mb-6 group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-300">
-                  <item.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
+              {/* Key differentiators */}
+              <div className="space-y-4">
+                {[
+                  { icon: Shield, text: "Compliance-first culture" },
+                  { icon: TrendingUp, text: "Multi-decade investment horizon" },
+                  { icon: Handshake, text: "Operational independence for partners" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-secondary" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-sm font-medium text-primary">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right: Before/After Comparison */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="space-y-6"
+            >
+              {/* Without Partnership */}
+              <div className="p-6 rounded-lg bg-gradient-to-br from-red-50/50 to-white border border-red-100/60">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <XCircle className="w-4 h-4 text-red-500" />
+                  </div>
+                  <h3 className="text-sm font-medium text-primary">Without Institutional Partner</h3>
                 </div>
-                <h3 className="text-base font-medium text-primary mb-3">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {item.description}
-                </p>
-              </motion.div>
-            ))}
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    "Limited growth capital",
+                    "Full compliance burden",
+                    "Market vulnerability",
+                    "Succession uncertainty",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <XCircle className="w-3 h-3 text-red-400 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* With Partnership */}
+              <div className="p-6 rounded-lg bg-gradient-to-br from-green-50/50 to-white border border-green-100/60">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-primary">With Gold Coast Financial</h3>
+                </div>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    "Permanent capital",
+                    "Compliance infrastructure",
+                    "Institutional stability",
+                    "Succession planning",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle className="w-3 h-3 text-green-500 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -542,20 +505,20 @@ export default function InstitutionalHome() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Heritage Life Solutions - Active */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Heritage Life Solutions - Active (spans 3 columns) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
               whileHover={{ y: -4 }}
-              className="p-8 md:p-10 rounded-lg bg-gradient-to-br from-white to-gray-50/80 border-2 border-secondary/20 hover:border-secondary/40 shadow-sm hover:shadow-xl transition-all duration-300"
+              className="lg:col-span-3 p-8 md:p-10 rounded-lg bg-gradient-to-br from-white to-gray-50/80 border-2 border-secondary/20 hover:border-secondary/40 shadow-sm hover:shadow-xl transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="bg-[#4f5a3f] p-2 rounded-sm">
-                    <Leaf className="w-4 h-4 text-[#d4a05b]" />
+                  <div className="p-2 rounded-sm" style={{ backgroundColor: "#6B5B95" }}>
+                    <Leaf className="w-4 h-4" style={{ color: "#C4B7D5" }} />
                   </div>
                   <span className="text-xs font-medium uppercase tracking-wider text-secondary">
                     Life Insurance
@@ -570,42 +533,44 @@ export default function InstitutionalHome() {
                 An independent life insurance brokerage providing personalized coverage solutions to individuals and families nationwide. Operates under Gold Coast Financial governance with full regulatory compliance across all 50 states.
               </p>
               <a
-                href="/heritage"
-                className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-2"
+                href="https://heritagels.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
               >
                 Visit Heritage Life Solutions
                 <ArrowRight className="w-4 h-4" />
               </a>
             </motion.div>
 
-            {/* Future Expansion Cards */}
-            {[
-              { sector: "Property & Casualty", desc: "Evaluating opportunities in property and casualty insurance distribution" },
-              { sector: "Advisory Services", desc: "Strategic advisory services for insurance and financial planning" },
-              { sector: "Technology & Data", desc: "Insurance technology and data analytics capabilities" },
-            ].map((item, index) => (
-              <motion.div
-                key={item.sector}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: (index + 1) * 0.1 }}
-                className="p-8 md:p-10 rounded-lg border border-border/60 bg-muted/20"
+            {/* Future Expansion - Single Card (spans 2 columns) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="lg:col-span-2 p-8 md:p-10 rounded-lg border border-border/60 bg-muted/20"
+            >
+              <div className="flex items-center gap-2 mb-6">
+                <Target className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Growth Strategy
+                </span>
+              </div>
+              <h3 className="text-lg font-serif text-primary mb-4">
+                Disciplined Expansion
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                We evaluate opportunities in adjacent sectors—property & casualty, advisory services, and insurance technology—with rigorous criteria for partnership selection.
+              </p>
+              <Link
+                href="/investors"
+                className="arrow-link text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-2"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {item.sector}
-                  </span>
-                  <span className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded-full">Planned</span>
-                </div>
-                <h3 className="text-xl font-serif text-muted-foreground mb-4">
-                  Future Expansion
-                </h3>
-                <p className="text-muted-foreground/70 text-sm leading-relaxed">
-                  {item.desc}, maintaining disciplined criteria for market entry and partnership selection.
-                </p>
-              </motion.div>
-            ))}
+                Learn about partnership criteria
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
           </div>
 
           <motion.div
@@ -616,7 +581,7 @@ export default function InstitutionalHome() {
             className="mt-12"
           >
             <Link
-              href="/goldcoastfinancial2/portfolio"
+              href="/portfolio"
               className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
             >
               View all portfolio information
@@ -654,19 +619,20 @@ export default function InstitutionalHome() {
 
         <div className="partner-scroll-container">
           <div className="partner-scroll-track">
-            {[...partnerEndorsements, ...partnerEndorsements].map((partner, index) => (
-              <div
-                key={`${partner.name}-${index}`}
-                className="flex items-center gap-3 shrink-0 px-6 py-3 bg-gradient-to-r from-transparent via-muted/30 to-transparent rounded-lg"
+            {[...carrierLinks, ...carrierLinks].map((carrier, index) => (
+              <a
+                key={`${carrier.name}-${index}`}
+                href="https://heritagels.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] mx-2 sm:mx-4 lg:mx-6 h-16 sm:h-20 lg:h-24 flex items-center justify-center hover:opacity-70 transition-opacity cursor-pointer"
               >
-                <Award className="w-4 h-4 text-secondary" />
-                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  {partner.name}
-                </span>
-                <span className="text-xs px-2 py-0.5 bg-secondary/10 text-secondary rounded font-medium">
-                  {partner.rating}
-                </span>
-              </div>
+                <img
+                  src={carrier.logo}
+                  alt={carrier.name}
+                  className={`object-contain ${carrier.size === 'large' ? 'h-12 sm:h-16 lg:h-20 max-w-[120px] sm:max-w-[150px] lg:max-w-[180px]' : 'h-10 sm:h-12 lg:h-16 max-w-[100px] sm:max-w-[130px] lg:max-w-[160px]'}`}
+                />
+              </a>
             ))}
           </div>
         </div>
@@ -675,11 +641,12 @@ export default function InstitutionalHome() {
       {/* Divider */}
       <div className="border-t border-border/60" />
 
-      {/* Leadership Preview */}
+      {/* Leadership & Partner Trust */}
       <section className="py-20 md:py-28 dark-gradient text-primary-foreground relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-secondary/5 to-transparent" />
         <div className="container mx-auto px-6 lg:px-12 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Leadership Header */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -689,11 +656,11 @@ export default function InstitutionalHome() {
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-px w-8 bg-secondary" />
                 <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-secondary">
-                  Leadership
+                  Leadership & Trust
                 </h2>
               </div>
               <p className="text-2xl md:text-3xl font-serif leading-relaxed">
-                Experienced leadership with a commitment to integrity, regulatory excellence, and long-term value creation.
+                Experienced leadership. Trusted by industry partners.
               </p>
             </motion.div>
             <motion.div
@@ -701,19 +668,47 @@ export default function InstitutionalHome() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="space-y-6"
+              className="flex flex-col justify-center"
             >
-              <p className="text-primary-foreground/80 leading-relaxed">
-                Gold Coast Financial's governance structure ensures accountability, transparency, and alignment with the interests of all stakeholders. Our leadership team brings decades of combined experience in insurance, finance, and regulatory affairs.
+              <p className="text-primary-foreground/70 leading-relaxed mb-4">
+                Our leadership team brings decades of combined experience in insurance, finance, and regulatory affairs.
               </p>
               <Link
-                href="/goldcoastfinancial2/about"
+                href="/about"
                 className="arrow-link text-sm font-medium text-secondary hover:text-secondary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
               >
                 Meet our leadership
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
+          </div>
+
+          {/* Partner Testimonials - Integrated */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {partnerTestimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white/5 backdrop-blur-sm p-6 rounded-lg border border-white/10"
+              >
+                <Quote className="w-6 h-6 text-secondary/60 mb-4" />
+                <p className="text-sm text-primary-foreground/80 leading-relaxed italic mb-6">
+                  "{testimonial.quote}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-secondary">{testimonial.initials}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-primary-foreground">{testimonial.source}</p>
+                    <p className="text-xs text-primary-foreground/50">{testimonial.company}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -741,7 +736,7 @@ export default function InstitutionalHome() {
                 Frequently asked questions about Gold Coast Financial.
               </p>
               <Link
-                href="/goldcoastfinancial2/contact"
+                href="/contact"
                 className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
               >
                 Contact us with questions
@@ -802,10 +797,10 @@ export default function InstitutionalHome() {
               Corporate & Partnership Inquiries
             </p>
             <p className="text-muted-foreground leading-relaxed mb-8">
-              For corporate development, partnership opportunities, or institutional inquiries, please contact our corporate office. Consumer insurance inquiries should be directed to our operating companies.
+              For partnership opportunities or institutional inquiries, contact our corporate office.
             </p>
             <Link
-              href="/goldcoastfinancial2/contact"
+              href="/contact"
               className="arrow-link text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer inline-flex items-center gap-2"
             >
               Contact information

@@ -1,50 +1,57 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { motion } from "framer-motion";
-import { ArrowRight, TrendingUp, Shield, Target, Users, Building2, DollarSign, BarChart3 } from "lucide-react";
+import { ArrowRight, TrendingUp, Shield, Target, Users } from "lucide-react";
 import { Link } from "wouter";
 import { InstitutionalSEO, InstitutionalSchema } from "@/components/seo/InstitutionalSEO";
 import { InstitutionalPartnershipQuiz } from "@/components/ui/institutional-partnership-quiz";
+import { TrustIndicators } from "@/components/institutional/TrustIndicators";
+import { AnimatedStats } from "@/components/institutional/AnimatedStats";
+import { useAnalytics } from "@/hooks/useAnalytics";
+
+// Animated investor stats
+const investorStats = [
+  { value: 10, prefix: "$", suffix: "M+", label: "Premium Volume", description: "Annual written premium" },
+  { value: 98, suffix: "%", label: "Retention Rate", description: "Client satisfaction" },
+  { value: 50, label: "States", description: "Nationwide reach" },
+  { value: 30, suffix: "+", label: "Carriers", description: "A-rated partners" },
+];
 
 const capitalPhilosophy = [
   {
     icon: Shield,
     title: "Permanent Capital",
-    description: "We invest with a long-term perspective, providing stable capital to portfolio companies without arbitrary exit timelines."
+    description: "Stable capital without exit timelines."
   },
   {
     icon: Target,
     title: "Disciplined Allocation",
-    description: "Every capital deployment undergoes rigorous evaluation for sustainable returns and strategic fit within our portfolio."
+    description: "Rigorous evaluation for sustainable returns."
   },
   {
     icon: TrendingUp,
     title: "Operational Excellence",
-    description: "We actively support portfolio companies with governance, compliance, and operational resources to drive value creation."
+    description: "Governance, compliance, and operational support."
   },
   {
     icon: Users,
     title: "Aligned Interests",
-    description: "Our structure ensures alignment between management, capital partners, and the long-term interests of policyholders."
+    description: "Alignment between management and stakeholders."
   }
 ];
 
-const keyMetrics = [
-  { label: "Assets Under Management", value: "Growing", icon: DollarSign },
-  { label: "Portfolio Companies", value: "1", icon: Building2 },
-  { label: "States Licensed", value: "50", icon: BarChart3 },
-  { label: "Families Served", value: "1,000+", icon: Users },
-];
 
 const partnershipCriteria = [
-  "Regulated financial services businesses (insurance, advisory)",
-  "Strong compliance culture and clean regulatory history",
+  "Regulated financial services (insurance, advisory)",
+  "Strong compliance culture and regulatory history",
   "Established market position with growth potential",
-  "Management teams committed to long-term value creation",
-  "Annual revenue typically $1M-$50M",
+  "Management committed to long-term value creation",
+  "Annual revenue typically between $1M-$50M",
   "Geographic focus on United States markets"
 ];
 
 export default function InstitutionalInvestors() {
+  const { trackCTAClicked } = useAnalytics();
+
   return (
     <InstitutionalLayout>
       <InstitutionalSEO />
@@ -70,6 +77,31 @@ export default function InstitutionalInvestors() {
             </p>
             <div className="accent-line-animated" />
           </motion.div>
+        </div>
+      </section>
+
+      {/* Trust Indicators */}
+      <section className="py-12 bg-muted/30 border-y border-border/60">
+        <div className="container mx-auto px-6 lg:px-12">
+          <TrustIndicators variant="light" />
+        </div>
+      </section>
+
+      {/* Key Metrics - Animated */}
+      <section className="py-16 md:py-20">
+        <div className="container mx-auto px-6 lg:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
+              By The Numbers
+            </h2>
+          </motion.div>
+          <AnimatedStats stats={investorStats} columns={4} />
         </div>
       </section>
 
@@ -118,46 +150,6 @@ export default function InstitutionalInvestors() {
       {/* Divider */}
       <div className="border-t border-border/60" />
 
-      {/* Key Metrics */}
-      <section className="py-20 md:py-28 bg-muted/30">
-        <div className="container mx-auto px-6 lg:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-12"
-          >
-            <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
-              Company Metrics
-            </h2>
-            <p className="text-2xl md:text-3xl font-serif text-primary">
-              Our operational footprint and reach.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {keyMetrics.map((metric, index) => (
-              <motion.div
-                key={metric.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white border border-border/60 p-6 rounded-sm text-center"
-              >
-                <metric.icon className="w-6 h-6 text-[hsl(42,60%,55%)] mx-auto mb-3" />
-                <p className="text-2xl font-serif font-medium text-primary mb-1">{metric.value}</p>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{metric.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="border-t border-border/60" />
-
       {/* Partnership Criteria */}
       <section className="py-20 md:py-28">
         <div className="container mx-auto px-6 lg:px-12">
@@ -175,7 +167,7 @@ export default function InstitutionalInvestors() {
                 What we look for in portfolio companies and capital partners.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We evaluate potential partnerships based on strategic fit, management quality, regulatory standing, and alignment with our long-term investment philosophy. Our focus is on building lasting relationships that create value for all stakeholders.
+                Evaluating partnerships based on strategic fit, management quality, and regulatory standing.
               </p>
             </motion.div>
 
@@ -223,7 +215,7 @@ export default function InstitutionalInvestors() {
                 Explore fit with Gold Coast Financial.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Complete our brief assessment to help us understand your organization and partnership objectives. Our corporate development team will follow up on qualified inquiries.
+                Complete our assessment to help us understand your organization.
               </p>
             </motion.div>
             <motion.div
@@ -264,11 +256,11 @@ export default function InstitutionalInvestors() {
               className="lg:col-span-2"
             >
               <p className="text-lg leading-relaxed mb-8">
-                For confidential discussions regarding capital partnerships, portfolio company opportunities, or institutional inquiries, please contact our corporate development team.
+                For discussions regarding capital partnerships or portfolio opportunities.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/goldcoastfinancial2/contact"
+                  href="/contact"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground rounded-sm font-medium hover:bg-secondary/90 transition-colors"
                 >
                   Contact Corporate Development

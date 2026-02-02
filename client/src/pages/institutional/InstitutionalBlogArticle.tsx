@@ -1,9 +1,26 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, Clock, Tag, Share2, Linkedin, Twitter } from "lucide-react";
+import { ArrowLeft, Calendar, User, Clock, Tag, BookOpen, TrendingUp, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { InstitutionalSEO } from "@/components/seo/InstitutionalSEO";
 import { InstitutionalNewsletter } from "@/components/ui/institutional-newsletter";
+import { ShareButtons } from "@/components/ui/share-buttons";
+import { useAnalytics } from "@/hooks/useAnalytics";
+
+// Category configurations with colors and icons
+const categoryConfig: Record<string, { color: string; bgColor: string; icon: React.ElementType; gradient: string }> = {
+  "Capital Philosophy": { color: "text-blue-700", bgColor: "bg-blue-50", icon: TrendingUp, gradient: "from-blue-600 via-blue-700 to-blue-800" },
+  "Industry Insights": { color: "text-purple-700", bgColor: "bg-purple-50", icon: BookOpen, gradient: "from-purple-600 via-purple-700 to-purple-800" },
+  "Operations": { color: "text-green-700", bgColor: "bg-green-50", icon: Building2, gradient: "from-green-600 via-green-700 to-green-800" },
+  "Governance": { color: "text-amber-700", bgColor: "bg-amber-50", icon: Shield, gradient: "from-amber-600 via-amber-700 to-amber-800" },
+};
+
+// Author configurations
+const authorConfig: Record<string, { initials: string; color: string }> = {
+  "Jack Cook": { initials: "JC", color: "bg-[hsl(348,65%,20%)]" },
+  "Gaetano Carbonara": { initials: "GC", color: "bg-purple-600" },
+  "Gold Coast Financial": { initials: "GCF", color: "bg-secondary" },
+};
 
 interface ArticleContent {
   slug: string;
@@ -18,6 +35,7 @@ interface ArticleContent {
   content: string[];
   keyTakeaways?: string[];
   relatedTopics?: string[];
+  image: string;
 }
 
 const articleData: Record<string, ArticleContent> = {
@@ -31,6 +49,7 @@ const articleData: Record<string, ArticleContent> = {
     date: "January 15, 2026",
     readTime: "5 min read",
     category: "Capital Philosophy",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
     content: [
       "In an industry increasingly dominated by private equity firms with 3-5 year hold periods, we believe there's a compelling alternative: permanent capital structures designed for generational ownership. This isn't just a philosophical preference—it's a strategic advantage that creates tangible value for all stakeholders.",
 
@@ -99,6 +118,7 @@ const articleData: Record<string, ArticleContent> = {
     date: "January 8, 2026",
     readTime: "7 min read",
     category: "Industry Insights",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
     content: [
       "As we enter 2026, the life insurance industry stands at a crossroads of significant transformation. Demographic tailwinds, technological innovation, and evolving consumer expectations are reshaping how insurance is manufactured, distributed, and serviced. Here's our perspective on the key trends that will define the year ahead.",
 
@@ -179,12 +199,13 @@ const articleData: Record<string, ArticleContent> = {
     slug: "building-compliance-culture",
     title: "Building a Culture of Compliance in Insurance",
     excerpt: "How we approach regulatory compliance as a competitive advantage and the systems we've implemented across our portfolio companies.",
-    author: "Guy Carbonara",
+    author: "Gaetano Carbonara",
     authorTitle: "Chief Operating Officer",
-    authorBio: "Guy Carbonara serves as COO of Gold Coast Financial, overseeing operations, compliance, and technology across the organization. His background spans insurance operations, regulatory affairs, and business process optimization.",
+    authorBio: "Gaetano Carbonara serves as COO of Gold Coast Financial, overseeing operations, compliance, and technology across the organization. His background spans insurance operations, regulatory affairs, and business process optimization.",
     date: "December 18, 2025",
     readTime: "4 min read",
     category: "Operations",
+    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80",
     content: [
       "In regulated industries like insurance, compliance is often viewed as a cost center—a necessary burden that consumes resources without directly contributing to revenue. At Gold Coast Financial, we take a fundamentally different view: compliance excellence is a competitive advantage that protects value and enables sustainable growth.",
 
@@ -279,6 +300,7 @@ const articleData: Record<string, ArticleContent> = {
     date: "November 22, 2025",
     readTime: "6 min read",
     category: "Industry Insights",
+    image: "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&q=80",
     content: [
       "In an era of digital disruption, one might expect traditional insurance distribution channels to be under existential threat. Yet independent insurance agencies not only survive but continue to thrive and gain market share. Understanding why requires looking beyond surface-level assumptions about technology and consumer preferences.",
 
@@ -379,6 +401,7 @@ const articleData: Record<string, ArticleContent> = {
     date: "October 15, 2025",
     readTime: "5 min read",
     category: "Governance",
+    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80",
     content: [
       "Effective governance is the foundation upon which sustainable businesses are built. At Gold Coast Financial, we've developed governance frameworks that we implement across our portfolio companies—frameworks designed to ensure operational excellence, regulatory compliance, and long-term value creation. Here we share the key elements of our approach.",
 
@@ -518,9 +541,26 @@ function getRelatedArticles(currentSlug: string, category: string): ArticleConte
 }
 
 export default function InstitutionalBlogArticle() {
+  const { trackCTAClicked } = useAnalytics();
   const params = useParams();
   const slug = params.slug as string;
   const article = articleData[slug];
+
+  // Get category config
+  const getCategoryConfig = (category: string) => {
+    return categoryConfig[category] || categoryConfig["Industry Insights"];
+  };
+
+  // Get author config
+  const getAuthorConfig = (author: string) => {
+    return authorConfig[author] || { initials: author.split(' ').map(n => n[0]).join(''), color: "bg-gray-500" };
+  };
+
+  // Get all article slugs for navigation
+  const allSlugs = Object.keys(articleData);
+  const currentIndex = allSlugs.indexOf(slug);
+  const prevArticle = currentIndex > 0 ? articleData[allSlugs[currentIndex - 1]] : null;
+  const nextArticle = currentIndex < allSlugs.length - 1 ? articleData[allSlugs[currentIndex + 1]] : null;
 
   if (!article) {
     return (
@@ -541,7 +581,7 @@ export default function InstitutionalBlogArticle() {
                 The article you're looking for doesn't exist or has been moved.
               </p>
               <Link
-                href="/goldcoastfinancial2/blog"
+                href="/blog"
                 className="inline-flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -555,53 +595,84 @@ export default function InstitutionalBlogArticle() {
   }
 
   const relatedArticles = getRelatedArticles(article.slug, article.category);
+  const catConfig = getCategoryConfig(article.category);
+  const authConfig = getAuthorConfig(article.author);
+  const CategoryIcon = catConfig.icon;
 
   return (
     <InstitutionalLayout>
       <InstitutionalSEO />
 
-      {/* Hero */}
-      <section className="hero-gradient py-24 md:py-32">
+      {/* Hero with Featured Image */}
+      <section className="hero-gradient py-16 md:py-20">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-            className="max-w-4xl"
           >
             <Link
-              href="/goldcoastfinancial2/blog"
+              href="/blog"
               className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to All Articles
             </Link>
 
-            <span className="inline-block px-3 py-1 text-xs uppercase tracking-wider text-secondary bg-secondary/10 rounded-sm mb-4">
-              {article.category}
-            </span>
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Content */}
+              <div>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium uppercase tracking-wider rounded-full mb-4 ${catConfig.bgColor} ${catConfig.color}`}>
+                  <CategoryIcon className="w-3.5 h-3.5" />
+                  {article.category}
+                </span>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif display-text text-white mb-6">
-              {article.title}
-            </h1>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif display-text text-white mb-6">
+                  {article.title}
+                </h1>
 
-            <p className="text-lg text-white/70 leading-relaxed mb-8">
-              {article.excerpt}
-            </p>
+                <p className="text-lg text-white/70 leading-relaxed mb-8">
+                  {article.excerpt}
+                </p>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm text-white/60">
-              <span className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                {article.author}, {article.authorTitle}
-              </span>
-              <span className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                {article.date}
-              </span>
-              <span className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                {article.readTime}
-              </span>
+                {/* Author info with avatar */}
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-full ${authConfig.color} flex items-center justify-center border-2 border-white/20`}>
+                    <span className="text-lg font-semibold text-white">{authConfig.initials}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{article.author}</p>
+                    <div className="flex items-center gap-3 text-sm text-white/60">
+                      <span>{article.authorTitle}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {article.date}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {article.readTime}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Featured Image */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="relative aspect-[4/3] rounded-xl overflow-hidden"
+              >
+                <img
+                  src={article.image}
+                  alt={article.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -691,18 +762,48 @@ export default function InstitutionalBlogArticle() {
               </div>
 
               {/* Share */}
-              <div className="mt-8 pt-8 border-t border-border/60 flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">Share this article:</span>
-                <div className="flex gap-2">
-                  <button className="w-8 h-8 rounded-sm bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors">
-                    <Linkedin className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <button className="w-8 h-8 rounded-sm bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors">
-                    <Twitter className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <button className="w-8 h-8 rounded-sm bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors">
-                    <Share2 className="w-4 h-4 text-muted-foreground" />
-                  </button>
+              <div className="mt-8 pt-8 border-t border-border/60">
+                <ShareButtons
+                  title={article.title}
+                  summary={article.excerpt}
+                />
+              </div>
+
+              {/* Article Navigation */}
+              <div className="mt-12 pt-8 border-t border-border/60">
+                <div className="grid grid-cols-2 gap-4">
+                  {prevArticle ? (
+                    <Link
+                      href={`/blog/${prevArticle.slug}`}
+                      className="group p-4 rounded-lg border border-border/60 hover:border-primary/30 hover:bg-muted/30 transition-all"
+                    >
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous Article
+                      </div>
+                      <p className="text-sm font-medium text-primary group-hover:text-[hsl(348,65%,25%)] transition-colors line-clamp-2">
+                        {prevArticle.title}
+                      </p>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+                  {nextArticle ? (
+                    <Link
+                      href={`/blog/${nextArticle.slug}`}
+                      className="group p-4 rounded-lg border border-border/60 hover:border-primary/30 hover:bg-muted/30 transition-all text-right"
+                    >
+                      <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mb-2">
+                        Next Article
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                      <p className="text-sm font-medium text-primary group-hover:text-[hsl(348,65%,25%)] transition-colors line-clamp-2">
+                        {nextArticle.title}
+                      </p>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
                 </div>
               </div>
             </motion.article>
@@ -747,7 +848,7 @@ export default function InstitutionalBlogArticle() {
                   {relatedArticles.map((related) => (
                     <Link
                       key={related.slug}
-                      href={`/goldcoastfinancial2/blog/${related.slug}`}
+                      href={`/blog/${related.slug}`}
                       className="block group"
                     >
                       <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -787,7 +888,7 @@ export default function InstitutionalBlogArticle() {
               Contact our team to discuss how Gold Coast Financial's approach to long-term value creation might align with your goals.
             </p>
             <Link
-              href="/goldcoastfinancial2/contact"
+              href="/contact"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[hsl(348,65%,20%)] text-white rounded-sm font-medium hover:bg-[hsl(348,65%,25%)] transition-colors"
             >
               Contact Us
