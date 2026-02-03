@@ -18,13 +18,20 @@ export default function LoadingScreen({ minDisplayTime = 1500 }: LoadingScreenPr
       return;
     }
 
+    // Hide Lindy chatbot during loading
+    document.body.setAttribute('data-loading', 'true');
+
     // Show loading screen for minimum time
     const timer = setTimeout(() => {
       setShowLoading(false);
       sessionStorage.setItem(sessionKey, "true");
+      document.body.removeAttribute('data-loading');
     }, minDisplayTime);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.body.removeAttribute('data-loading');
+    };
   }, [minDisplayTime]);
 
   return (

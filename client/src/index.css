@@ -556,3 +556,16 @@ textarea:focus-visible {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* =============================================================================
+   LINDY CHATBOT - HIDE DURING LOADING SCREEN
+   ============================================================================= */
+
+/* Hide Lindy chatbot widget when loading screen is visible */
+body[data-loading="true"] [data-lindy-widget],
+body[data-loading="true"] #lindy-embed-root,
+body[data-loading="true"] iframe[src*="lindy"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
