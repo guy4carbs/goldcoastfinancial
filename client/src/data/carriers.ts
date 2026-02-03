@@ -86,16 +86,16 @@ export const carriers: CarrierData[] = [
       { quote: "I want to commend the agents for their patience and competence. They answered all of my questions and made my experience with purchasing insurance a great experience.", name: "Verified Customer", location: "Trustpilot" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80", alt: "Kansas City skyline - Americo headquarters city", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&q=80", alt: "Multi-generational family enjoying time together", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&q=80", alt: "Senior couple reviewing insurance documents with advisor", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80", alt: "Family financial planning session", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075573838-2.jpg?alt=media&token=44e4540d-d7aa-4e44-8106-8738330f83ff", alt: "Americo Financial headquarters", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075578788-3.jpg?alt=media&token=121e37ef-4811-4232-bb7c-7e86fc93d99e", alt: "Americo Financial office", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075583450-4.jpg?alt=media&token=94fe9a37-a62b-4baf-b856-684928b0fa78", alt: "Americo Financial building", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075588067-intern1-2023update.png?alt=media&token=ba44a7c9-6e1b-4726-a23f-2895f6cd48f9", alt: "Americo Financial team", placement: "gallery" }
     ],
     videos: [
       { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "About Americo Financial", description: "Learn about Americo's 78-year history of protecting American families", placement: "about", type: "youtube" }
     ],
     website: "https://www.americo.com",
-    heroImage: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770074718548-unionstation-7.jpg?alt=media&token=7c275e54-ef65-448a-a983-686826d1cf51"
   },
   {
     slug: "athene",
@@ -134,14 +134,16 @@ export const carriers: CarrierData[] = [
       { quote: "Dedication to a financial strategy gives me the means to live my dream. Athene helped me build that foundation.", name: "Graham G.", location: "Athene Customer Story" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80", alt: "Retired couple enjoying active lifestyle outdoors", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80", alt: "West Des Moines Iowa - Athene headquarters", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80", alt: "Financial advisor consulting with retirement client", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80", alt: "Couple celebrating retirement milestone", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076064016-united-way-2025---it-donations.jpg?alt=media&token=e2e5a1de-fe85-4a0b-a75a-d8e4206c8ee5", alt: "Athene United Way community involvement", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076068731-internships2.jpg?alt=media&token=8de61b24-41e0-4684-aa2d-87b355a00342", alt: "Athene internship program", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076072925-employee-bbq---2025--2.jpg?alt=media&token=704d35a3-d295-4dea-aeda-7c2b909b8c81", alt: "Athene employee BBQ event", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076077146-hydroponic_1-min-2.jpg?alt=media&token=7ed932a3-2e7f-4116-9f4a-0e57eed94ac0", alt: "Athene sustainability initiatives", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=4X1xc5mSN68", title: "Welcome to Athene", description: "Discover how Athene helps Americans build a more secure retirement", placement: "about", type: "youtube" }
+    ],
     website: "https://www.athene.com",
-    heroImage: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075822105-7Dsyn8whfd88mwhziKTvHH.jpg?alt=media&token=4babc1da-b70a-4615-a0ba-bbc01e799218"
   },
   {
     slug: "baltimore-life",
@@ -180,14 +182,16 @@ export const carriers: CarrierData[] = [
       { quote: "I've worked with Baltimore Life for 13 years and it's a very family oriented company. I've learned much about marketing, branding and helping families build strong insurance programs.", name: "Long-term Employee", location: "Company Review" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=800&q=80", alt: "Historic Baltimore Maryland cityscape", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", alt: "Owings Mills Maryland - Baltimore Life headquarters area", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80", alt: "Senior couple in comfortable home setting", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=800&q=80", alt: "Multi-generational family gathering", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077158256-modAgents.jpg?alt=media&token=166a09a6-57ad-4837-ab6c-306527ed927a", alt: "Baltimore Life insurance agents", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077161981-headerAboutUs.jpg?alt=media&token=cb0059db-93a7-47cf-bc90-c69ee3b62af8", alt: "Baltimore Life about us", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077166597-headerProductPort.jpg?alt=media&token=207bbdaf-6231-48d4-9fb7-c0b9389d8833", alt: "Baltimore Life products", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077172095-career-employment-Baltimore-Life.png?alt=media&token=81c33d9f-6037-4dd7-8626-f1b4bb636c89", alt: "Baltimore Life careers", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=Ks7tR6eiDGk", title: "Baltimore Life - Our Story", description: "Over 140 years of protecting American families", placement: "about", type: "youtube" }
+    ],
     website: "https://www.baltimorelife.com",
-    heroImage: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076992593-Baltimore-Inner-Harbor.jpg?alt=media&token=d275e2eb-74d9-4737-8cf4-1c585e9d5e6d"
   },
   {
     slug: "corebridge",
@@ -226,14 +230,16 @@ export const carriers: CarrierData[] = [
       { quote: "Great coverage and pros all the way! Great rates and quick service, no hassle for me whatsoever. The agent took time to explain everything and aided my decision.", name: "Verified Customer", location: "Customer Survey" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1548519853-bed01c36a709?w=800&q=80", alt: "Houston Texas skyline - Corebridge headquarters city", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80", alt: "American General Center building in Houston", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80", alt: "Professional business meeting about retirement planning", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&q=80", alt: "Couple reviewing retirement portfolio together", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077713216-career_banner_with_people.jpg?alt=media&token=03b00fca-d4db-4c9a-b49a-42a7e94df20f", alt: "Corebridge Financial team", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077708790-1705533247362.jpeg?alt=media&token=8460304c-9dc7-4b67-b7da-c6da611e4162", alt: "Corebridge Financial team", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077705205-JA_ERG2.png?alt=media&token=52045b42-1d58-4651-b4ea-43c04c764f33", alt: "Corebridge Financial employee resource group", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077699967-1000s.jpg?alt=media&token=214674d9-4922-42e7-ab01-99b115ed2692", alt: "Corebridge Financial community", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=KVHXWjD0_Pw", title: "Corebridge Financial Overview", description: "Building stronger financial futures for millions of Americans", placement: "about", type: "youtube" }
+    ],
     website: "https://www.corebridgefinancial.com",
-    heroImage: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077320847-0150681.webp?alt=media&token=876ef634-0d48-4c66-aa86-de2b241fba3f"
   },
   {
     slug: "mutual-of-omaha",
@@ -273,14 +279,16 @@ export const carriers: CarrierData[] = [
       { quote: "My representative has been nothing but helpful, patient, and understanding. The application process was a breeze, and I am now at peace knowing my kids will be provided for.", name: "Verified Customer", location: "ConsumerAffairs" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80", alt: "Mutual of Omaha headquarters building in Omaha Nebraska", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1474511320723-9a56873571b7?w=800&q=80", alt: "Wildlife scene representing Wild Kingdom heritage", placement: "history" },
-      { url: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&q=80", alt: "Three generations of family together", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80", alt: "Senior reviewing Medicare supplement options", placement: "products" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078310588-AdobeStock_148871930-1536x766-landscape-1bc06457d4f4eed955eac4f555ac78da-mgaio2kphz8b.jpg?alt=media&token=564f63ae-8f96-4c05-b013-fa0a5bccfc8b", alt: "Mutual of Omaha customer service", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078316944-AdobeStock_241427046-scaled.jpg?alt=media&token=0831e5cf-6a6a-441c-a3b1-45e7d329e7e5", alt: "Mutual of Omaha family protection", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078321349-MutualExchange-scaled.jpeg?alt=media&token=59729eb8-266c-478e-93df-a9baa5c99d60", alt: "Mutual of Omaha Exchange", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078331651-EEMydZwWwAAHjah.jpg?alt=media&token=ba38a3d4-2a6e-4682-8624-c860b522c0ad", alt: "Mutual of Omaha community", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=mwzp7fflGzU", title: "Mutual of Omaha - Here for Your Tomorrow", description: "115+ years of protecting families and helping them achieve financial security", placement: "about", type: "youtube" }
+    ],
     website: "https://www.mutualofomaha.com",
-    heroImage: "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077998953-hero-Mutual-of-Omaha_Hero.jpg?alt=media&token=f99f98dd-2a4b-4a71-8920-ff4a9dbe4c15"
   },
   {
     slug: "ethos",
@@ -319,14 +327,16 @@ export const carriers: CarrierData[] = [
       { quote: "It was the easiest transaction ever! I loved getting this insurance policy! I still work full time and I saved a lot of time!", name: "Wendell M.", location: "South Carolina" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1596568005218-e6ce0db16942?w=800&q=80", alt: "Young family using smartphone for insurance application", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", alt: "San Francisco tech startup office environment", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=800&q=80", alt: "Parent with young children at home", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80", alt: "Diverse group of happy customers", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078772377-life-insurance-01-coworkers-having-a-conversation.jpg?alt=media&token=235e1096-abaf-4769-b691-734c2bf3956f", alt: "Ethos coworkers conversation", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078788507-Hero-Image_Mobile_2_mqfp52.webp?alt=media&token=fc3c75cf-504f-49ea-b5c5-b02d5b014ffa", alt: "Ethos mobile app", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078781111-1_oXXWHlTmKp3UPKyx9xD8MQ.jpg?alt=media&token=28928b7f-475c-4bd1-8ff8-596e14879089", alt: "Ethos team", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078777161-agency%401x.jpg?alt=media&token=833597ac-a33b-4a65-a961-9ee7ce315c59", alt: "Ethos agency", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=Pj8gR2RjR8c", title: "Ethos Life Insurance - Simplified", description: "Get life insurance in minutes, not weeks", placement: "about", type: "youtube" }
+    ],
     website: "https://www.ethoslife.com",
-    heroImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078562366-istockphoto-476881195-612x612.jpg?alt=media&token=a0d9dfd1-ab8d-4b16-9a33-946fcffe4a43"
   },
   {
     slug: "royal-neighbors",
@@ -365,14 +375,16 @@ export const carriers: CarrierData[] = [
       { quote: "Best company I've ever seen when it comes to approving day one coverage. Royal Neighbors of America has kept my family out of debt for a long time.", name: "Verified Member", location: "Customer Review" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800&q=80", alt: "Group of women in community gathering", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80", alt: "Community members together", placement: "history" },
-      { url: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=80", alt: "Rock Island Illinois - Royal Neighbors headquarters", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&q=80", alt: "Community volunteer service event", placement: "products" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079491195-company_image_2.webp?alt=media&token=63cbc508-1642-4f40-9f0b-c2343cca1b19", alt: "Royal Neighbors community image", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079500173-company_image_1.jpg?alt=media&token=1d6ae0a6-2201-492a-9ec8-1d97db993c9a", alt: "Royal Neighbors team", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079513720-About-Us-How-it-Works.png?alt=media&token=c3eded8c-c97e-4855-90f0-596bdef0ac80", alt: "Royal Neighbors how it works", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079519185-company_image_5.webp?alt=media&token=5730d3dd-a236-4206-8b0d-ef219fe6a809", alt: "Royal Neighbors community service", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=J4_CGeQzC4k", title: "Royal Neighbors of America", description: "Neighbor helping neighbor since 1895", placement: "about", type: "youtube" }
+    ],
     website: "https://www.royalneighbors.org",
-    heroImage: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079074172-Hero_Best-Skyline-Views.jpg?alt=media&token=4f85240b-1774-49ba-9964-94494fa1805a"
   },
   {
     slug: "transamerica",
@@ -412,14 +424,16 @@ export const carriers: CarrierData[] = [
       { quote: "Easy and straight forward process. There is always a live person to speak to if questions arise and the online communication is easy too.", name: "Verified Customer", location: "Trustpilot" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1521747116042-5a810fda9664?w=800&q=80", alt: "Transamerica Pyramid building in San Francisco - iconic landmark", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80", alt: "Cedar Rapids Iowa - Transamerica headquarters", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&q=80", alt: "Family financial planning session with advisor", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&q=80", alt: "Couple reviewing retirement strategy", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079958481-adobestock_301163419.jpg?alt=media&token=f4d1d5c8-14c2-49b1-8d08-194b6ec9a004", alt: "Transamerica team collaboration", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079955387-adobestock_304074642-1200x810-21ff5cf.jpg?alt=media&token=b776846b-7212-43b0-893b-e1b71129c965", alt: "Transamerica customer service", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079952405-graduates_smiling_outside_building.jpg?alt=media&token=e07fdae5-1f9c-4558-80cf-b21631d402bd", alt: "Transamerica graduates celebration", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079949060-adobestock_322174411-1200x800-5b2df79.jpg?alt=media&token=8f44aa0b-d4fe-4c51-8e0b-7040718a00cd", alt: "Transamerica community", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=Gi6FcJSjnFU", title: "Transamerica - Building a Stronger Tomorrow", description: "120 years of helping Americans achieve financial security", placement: "about", type: "youtube" }
+    ],
     website: "https://www.transamerica.com",
-    heroImage: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079764587-San-Francisco-California-Transamerica-Pyramid-building.webp?alt=media&token=001783fe-c087-40eb-bd30-ce521f122de9"
   },
   {
     slug: "american-home-life",
@@ -459,14 +473,16 @@ export const carriers: CarrierData[] = [
       { quote: "We rank American Home Life in our top ten carriers with a top review rating. Their commitment to policyholders is one of trust and delivering at the time of need.", name: "Medicare Review", location: "Insurance Rating Site" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80", alt: "Kansas prairie landscape - heartland of America", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80", alt: "Topeka Kansas - American Home Life headquarters city", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80", alt: "Senior couple relaxing at home", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=800&q=80", alt: "Caring family moment with elderly parent", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080522553-life-insurance-remote-jobs.webp?alt=media&token=d303571f-4598-4820-96a0-be7086fd759a", alt: "American Home Life remote work", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080525967-0343_638362679349188302.avif?alt=media&token=3cfcc21d-d84f-43ee-8620-e8c127725be3", alt: "American Home Life team", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080529100-Friendly-insurance-agent-meets-client-at-home.webp?alt=media&token=c612feec-5d34-4753-9552-2db60a6c6027", alt: "American Home Life agent meeting client", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080532693-99dd65_19a6ad5314424143a0155473a9f7adda~mv2.avif?alt=media&token=c579a6a6-3a40-44c6-a4a7-f269648c2763", alt: "American Home Life customer service", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=QsF5P8Nk_YY", title: "American Home Life Insurance", description: "Protecting families with care since 1909", placement: "about", type: "youtube" }
+    ],
     website: "https://www.amhomelife.com",
-    heroImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080221375-kansas-1-1024x615.jpg?alt=media&token=4920cc24-8b1f-481a-8594-285540f47264"
   },
   {
     slug: "polish-falcons",
@@ -505,14 +521,16 @@ export const carriers: CarrierData[] = [
       { quote: "As a member, I enjoy the social events, scholarships, and community service grants. The Disaster Relief Fund and Member Assistance Fund have helped so many families in need.", name: "Active Member", location: "Member Testimonial" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80", alt: "Polish cultural celebration with traditional elements", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=800&q=80", alt: "Pittsburgh Pennsylvania skyline - Polish Falcons headquarters city", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80", alt: "Youth gymnastics and sports activities", placement: "history" },
-      { url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80", alt: "Community gathering at local Polish Falcons nest", placement: "products" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081158263-comm-old-club_orig.jpg?alt=media&token=46bd9f4c-e7b5-4afd-b042-db6bad3dc231", alt: "Polish Falcons historic club", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081162236-Community-Service-banner.jpg?alt=media&token=35c8890a-f84f-49e7-a5e8-ce6c974d0ca9", alt: "Polish Falcons community service", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081166036-1939-unidenified-club-picture_orig.jpg?alt=media&token=186df889-b859-4a3e-8392-7dd49c2d3e33", alt: "Polish Falcons 1939 club photo", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081170337-Nests-top.png?alt=media&token=06af22b7-e387-4537-a01b-3b1f586e43da", alt: "Polish Falcons nests", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=hU2wXqPk6Uc", title: "Polish Falcons of America", description: "A Polish-American tradition of community and protection since 1928", placement: "about", type: "youtube" }
+    ],
     website: "https://www.polishfalcons.org",
-    heroImage: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080902270-istockphoto-951973848-612x612.jpg?alt=media&token=ac1bef02-5a8f-4540-ad76-6d366bf88087"
   },
   {
     slug: "ladder",
@@ -551,14 +569,16 @@ export const carriers: CarrierData[] = [
       { quote: "Shockingly quick process, start to finish was about 5 minutes. Approved almost instantly after submission. No selling, upselling, or emotional games at all during the application.", name: "Verified Customer", location: "Trustpilot" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80", alt: "Young professional using laptop for insurance application", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", alt: "Palo Alto Silicon Valley tech environment", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80", alt: "Young family with new home celebrating", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80", alt: "Person adjusting coverage on smartphone app", placement: "gallery" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081743346-1755629527969.jpeg?alt=media&token=4fd8181f-4b3a-4bd8-a358-d5bc8904f8ae", alt: "Ladder team meeting", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081746899-careers-game-night.jpg?alt=media&token=4aa17ca2-c78c-4e31-8378-f3aad4f6c9cb", alt: "Ladder careers game night", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081750494-careers-three-wise-monkeys.jpg?alt=media&token=7fdf7471-0756-4fb6-aeb2-3605961f8bfe", alt: "Ladder team culture", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081755314-Untitled-design-46.png?alt=media&token=41a1d6d5-417a-4e29-ae2d-1efd0643d2d0", alt: "Ladder company", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=WfGL-TmDk3o", title: "Ladder Life Insurance - Smart Coverage", description: "Instant life insurance that adjusts as your life changes", placement: "about", type: "youtube" }
+    ],
     website: "https://www.ladderlife.com",
-    heroImage: "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081427670-360_F_127871556_hqd4j8qAAievBtBsXva6r1Y4ns12laDI.jpg?alt=media&token=b505bd05-b980-4250-9f3f-e18076efd462"
   },
   {
     slug: "lincoln-financial",
@@ -597,14 +617,16 @@ export const carriers: CarrierData[] = [
       { quote: "I plan to renew with Lincoln Financial. They've earned my trust over the years with their reliability and the peace of mind knowing my family is protected by a company with 120 years of history.", name: "Long-term Policyholder", location: "Customer Survey" }
     ],
     photos: [
-      { url: "https://images.unsplash.com/photo-1569025690938-a00729c9e1f9?w=800&q=80", alt: "Abraham Lincoln memorial imagery", placement: "hero" },
-      { url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80", alt: "Radnor Pennsylvania - Lincoln Financial headquarters", placement: "about" },
-      { url: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&q=80", alt: "Multi-generational family wealth planning session", placement: "products" },
-      { url: "https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80", alt: "Senior couple enjoying active retirement", placement: "testimonials" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770082127889-Lincoln-Financial-logo-1.jpg.webp?alt=media&token=bfec3abf-d3d9-402a-99b8-4934f647e4c9", alt: "Lincoln Financial branding", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770082131661-Lincoln-Financial-Group-1024x490.jpg?alt=media&token=5686dd40-2d28-47de-a0fb-5ebd1691db31", alt: "Lincoln Financial Group team", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770082134676-aq7F6h6Ra6GMSYjirxDY_transformed.webp?alt=media&token=80e62986-7171-422c-8aa6-7d17acd2c6cf", alt: "Lincoln Financial office", placement: "gallery" },
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770082139593-Careers---Life-at-Lincoln---tab-1---DEI-image.jpg?alt=media&token=0eeea929-7793-4cd3-88d2-14f34377aff3", alt: "Lincoln Financial DEI initiatives", placement: "gallery" }
     ],
-    videos: [],
+    videos: [
+      { url: "https://www.youtube.com/watch?v=1YxF0x3k2jQ", title: "Lincoln Financial Group", description: "120 years of helping Americans take charge of their financial futures", placement: "about", type: "youtube" }
+    ],
     website: "https://www.lfg.com",
-    heroImage: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80"
+    heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081973466-GettyImages-1372911980-scaled.webp?alt=media&token=9b0a2ea9-248a-4b45-9db8-1f2415e7a492"
   }
 ];
 
