@@ -33,6 +33,8 @@ import {
   ClipboardCheck,
   Mail,
   Bot,
+  Inbox,
+  Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,15 +56,17 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { icon: Home, label: "Dashboard", href: "/agents/dashboard" },
+  { icon: Inbox, label: "Lead Inbox", href: "/agents/inbox" },
+  { icon: Brain, label: "Intelligence", href: "/agents/intelligence" },
   { icon: Rocket, label: "Getting Started", href: "/agents/getting-started" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
-  { icon: BarChart3, label: "Pipeline", href: "/agents/pipeline" },
-  { icon: DollarSign, label: "Earnings", href: "/agents/earnings" },
+  { icon: BarChart3, label: "Performance", href: "/agents/performance" },
 ];
 
 const toolsNavItems: NavItem[] = [
   { icon: Bot, label: "AI Avatar Council", href: "/agents/avatar-council" },
   { icon: FileText, label: "Quotes", href: "/agents/quotes" },
+  { icon: Mail, label: "Templates", href: "/agents/templates" },
   { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
   { icon: BookOpen, label: "Resources", href: "/agents/resources" },
   { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
@@ -96,21 +100,27 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
     logout,
     markNotificationRead,
     markAllNotificationsRead,
-    clearNotification
+    clearNotification,
+    getOverdueLeads,
   } = useAgentStore();
+
+  // Get overdue leads count for badge
+  const overdueCount = getOverdueLeads().length;
 
   // Navigation handler for command palette - uses wouter for SPA navigation (no page reload)
   const handleNavigate = (tab: string) => {
     const routes: Record<string, string> = {
       dashboard: '/agents/dashboard',
+      inbox: '/agents/inbox',
+      intelligence: '/agents/intelligence',
       'getting-started': '/agents/getting-started',
       calendar: '/agents/calendar',
-      pipeline: '/agents/pipeline',
-      earnings: '/agents/earnings',
+      performance: '/agents/performance',
       training: '/agents/training',
       chat: '/agents/chat',
       email: '/agents/email',
       quotes: '/agents/quotes',
+      templates: '/agents/templates',
       scripts: '/agents/scripts',
       resources: '/agents/resources',
       guidelines: '/agents/guidelines',
@@ -139,6 +149,9 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       <div className="space-y-1">
         {items.map((item) => {
           const isActive = location === item.href || location.startsWith(item.href + "/");
+          // Dynamic badge for Lead Inbox showing overdue count
+          const dynamicBadge = item.href === "/agents/inbox" && overdueCount > 0 ? overdueCount : item.badge;
+          const isOverdueBadge = item.href === "/agents/inbox" && overdueCount > 0;
           return (
             <Link key={item.href} href={item.href}>
               <motion.div
@@ -156,9 +169,12 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                 {!sidebarCollapsed && (
                   <>
                     <span className="font-medium text-sm flex-1">{item.label}</span>
-                    {item.badge && (
-                      <Badge className="bg-violet-500 text-white text-[10px] px-1.5 h-5">
-                        {item.badge}
+                    {dynamicBadge && (
+                      <Badge className={cn(
+                        "text-white text-[10px] px-1.5 h-5",
+                        isOverdueBadge ? "bg-red-500 animate-pulse" : "bg-violet-500"
+                      )}>
+                        {dynamicBadge}
                       </Badge>
                     )}
                   </>
@@ -400,9 +416,9 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         <div className="flex items-center justify-around py-2">
           {[
             { icon: Home, label: "Home", href: "/agents/dashboard" },
-            { icon: BarChart3, label: "Pipeline", href: "/agents/pipeline" },
+            { icon: BarChart3, label: "Performance", href: "/agents/performance" },
             { icon: GraduationCap, label: "Training", href: "/agents/training" },
-            { icon: DollarSign, label: "Earnings", href: "/agents/earnings" },
+            { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
           ].map((item) => {
             const isActive = location === item.href;
             return (

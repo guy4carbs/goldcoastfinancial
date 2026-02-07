@@ -67,6 +67,50 @@ export interface Lead {
   leadNotes?: string;
   statusHistory?: StatusChange[];
   reminders?: LeadReminder[];
+  // AgentOS Stage 1 - Follow-up enforcement
+  nextFollowUpDate: string;
+  nextFollowUpType: 'call' | 'email' | 'text' | 'meeting';
+  // Policy tracking
+  policyStatus?: 'quoted' | 'submitted' | 'pending_underwriting' | 'approved' | 'issued' | 'declined';
+  policyNumber?: string;
+  carrier?: string;
+  policyStatusHistory?: PolicyStatusChange[];
+  // AgentOS Stage 3 - Assisted Execution
+  policyEffectiveDate?: string;
+  policyExpirationDate?: string;
+  coverageAmount?: number;
+  monthlyPremium?: number;
+  appointments?: Appointment[];
+  crossSellOpportunities?: CrossSellOpportunity[];
+}
+
+export interface Appointment {
+  id: string;
+  date: string;
+  time: string;
+  type: 'call' | 'video' | 'in-person';
+  title: string;
+  notes?: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  reminderSent?: boolean;
+}
+
+export interface CrossSellOpportunity {
+  id: string;
+  product: string;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+  dismissed?: boolean;
+  convertedToLead?: boolean;
+}
+
+export interface PolicyStatusChange {
+  id: string;
+  from?: Lead['policyStatus'];
+  to: Lead['policyStatus'];
+  date: string;
+  agentId: string;
+  notes?: string;
 }
 
 export interface ActivityLog {
@@ -313,8 +357,22 @@ const DEMO_LEADS: Lead[] = [
     lastContactDate: '2025-12-28',
     product: 'Term Life',
     state: 'Illinois',
+    nextFollowUpDate: '2026-02-08',
+    nextFollowUpType: 'call',
+    appointments: [
+      {
+        id: 'apt-mc-1',
+        date: '2026-02-07',
+        time: '11:00 AM',
+        type: 'call',
+        title: 'Coverage Discussion Call',
+        notes: 'Discuss 20-year term options for family protection',
+        status: 'scheduled',
+        reminderSent: false
+      }
+    ],
     notes: [
-      { id: 'log-1', type: 'call', disposition: 'interested', notes: 'Interested in 20-year term. Has 2 kids.', date: '2025-12-28', agentId: 'agent-1' }
+      { id: 'log-1', type: 'call', disposition: 'interested', notes: 'Interested in 20-year term. Has 2 kids. Wants to discuss coverage options.', date: '2025-12-28', agentId: 'agent-1' }
     ]
   },
   {
@@ -329,8 +387,34 @@ const DEMO_LEADS: Lead[] = [
     lastContactDate: '2025-12-30',
     product: 'Whole Life',
     state: 'Illinois',
+    nextFollowUpDate: '2026-02-07',
+    nextFollowUpType: 'call',
+    policyStatus: 'quoted',
+    carrier: 'Mutual of Omaha',
+    appointments: [
+      {
+        id: 'apt-sw-1',
+        date: '2026-02-07',
+        time: '2:00 PM',
+        type: 'video',
+        title: 'Proposal Review Meeting',
+        notes: 'Review whole life proposal and answer questions',
+        status: 'scheduled',
+        reminderSent: false
+      },
+      {
+        id: 'apt-sw-2',
+        date: '2026-02-10',
+        time: '10:30 AM',
+        type: 'call',
+        title: 'Follow-up Call',
+        notes: 'Check if ready to proceed with application',
+        status: 'scheduled',
+        reminderSent: false
+      }
+    ],
     notes: [
-      { id: 'log-2', type: 'meeting', disposition: 'appointment_set', notes: 'Met via Zoom. Sending proposal.', date: '2025-12-30', agentId: 'agent-1' }
+      { id: 'log-2', type: 'meeting', disposition: 'appointment_set', notes: 'Met via Zoom. Sending proposal. Very interested in whole life for estate planning.', date: '2025-12-30', agentId: 'agent-1' }
     ]
   },
   {
@@ -343,6 +427,8 @@ const DEMO_LEADS: Lead[] = [
     assignedTo: 'agent-1',
     createdDate: '2026-01-01',
     state: 'Indiana',
+    nextFollowUpDate: '2026-02-05',
+    nextFollowUpType: 'call',
     notes: []
   },
   {
@@ -357,6 +443,8 @@ const DEMO_LEADS: Lead[] = [
     lastContactDate: '2025-12-31',
     product: 'Term Life',
     state: 'Illinois',
+    nextFollowUpDate: '2026-01-28',
+    nextFollowUpType: 'email',
     notes: []
   },
   {
@@ -371,6 +459,8 @@ const DEMO_LEADS: Lead[] = [
     lastContactDate: '2025-12-30',
     product: 'IUL',
     state: 'Illinois',
+    nextFollowUpDate: '2026-02-01',
+    nextFollowUpType: 'meeting',
     notes: []
   },
   {
@@ -380,12 +470,160 @@ const DEMO_LEADS: Lead[] = [
     phone: '(630) 555-4444',
     status: 'closed',
     source: 'Website',
-    assignedTo: 'agent-3',
+    assignedTo: 'agent-1',
     createdDate: '2025-12-10',
     lastContactDate: '2025-12-28',
-    product: 'Whole Life',
+    product: 'Term Life',
     state: 'Illinois',
-    notes: []
+    nextFollowUpDate: '2025-12-28',
+    nextFollowUpType: 'call',
+    policyStatus: 'issued',
+    policyNumber: 'TL-2025-78432',
+    carrier: 'Nationwide',
+    policyEffectiveDate: '2025-01-01',
+    policyExpirationDate: '2026-02-28',
+    coverageAmount: 500000,
+    monthlyPremium: 45,
+    appointments: [
+      {
+        id: 'apt-1',
+        date: '2026-02-10',
+        time: '10:00 AM',
+        type: 'call',
+        title: 'Annual Policy Review',
+        notes: 'Discuss renewal options and cross-sell opportunities',
+        status: 'scheduled',
+        reminderSent: false
+      }
+    ],
+    notes: [
+      { id: 'log-6', type: 'call', disposition: 'interested', notes: 'Policy issued successfully. Client very happy with coverage.', date: '2025-12-28', agentId: 'agent-1' }
+    ]
+  },
+  {
+    id: 'lead-9',
+    name: 'Jennifer Lee',
+    email: 'jlee@email.com',
+    phone: '(847) 555-1111',
+    status: 'closed',
+    source: 'Referral',
+    assignedTo: 'agent-1',
+    createdDate: '2024-12-01',
+    lastContactDate: '2025-01-15',
+    product: 'Term Life',
+    state: 'Illinois',
+    nextFollowUpDate: '2026-02-01',
+    nextFollowUpType: 'call',
+    policyStatus: 'issued',
+    policyNumber: 'TL-2024-56789',
+    carrier: 'Protective',
+    policyEffectiveDate: '2024-01-15',
+    policyExpirationDate: '2026-02-15',
+    coverageAmount: 750000,
+    monthlyPremium: 62,
+    notes: [
+      { id: 'log-9', type: 'call', disposition: 'interested', notes: 'Policy renewal coming up. Great client, consider upsell to whole life.', date: '2025-01-15', agentId: 'agent-1' }
+    ]
+  },
+  {
+    id: 'lead-10',
+    name: 'Kevin Brown',
+    email: 'kbrown@email.com',
+    phone: '(312) 555-6666',
+    status: 'closed',
+    source: 'Website',
+    assignedTo: 'agent-1',
+    createdDate: '2025-06-01',
+    lastContactDate: '2025-07-10',
+    product: 'Final Expense',
+    state: 'Illinois',
+    nextFollowUpDate: '2026-03-01',
+    nextFollowUpType: 'call',
+    policyStatus: 'issued',
+    policyNumber: 'FE-2025-11111',
+    carrier: 'Mutual of Omaha',
+    policyEffectiveDate: '2025-07-01',
+    policyExpirationDate: '2030-07-01',
+    coverageAmount: 25000,
+    monthlyPremium: 85,
+    appointments: [
+      {
+        id: 'apt-2',
+        date: '2026-02-07',
+        time: '2:30 PM',
+        type: 'video',
+        title: 'Discuss Additional Coverage',
+        notes: 'Client interested in term life for spouse',
+        status: 'scheduled',
+        reminderSent: false
+      }
+    ],
+    notes: [
+      { id: 'log-10', type: 'call', disposition: 'interested', notes: 'Final expense policy issued. Client mentioned spouse needs coverage too.', date: '2025-07-10', agentId: 'agent-1' }
+    ]
+  },
+  {
+    id: 'lead-7',
+    name: 'Robert Johnson',
+    email: 'rjohnson@email.com',
+    phone: '(773) 555-2222',
+    status: 'proposal',
+    source: 'Referral',
+    assignedTo: 'agent-1',
+    createdDate: '2025-12-05',
+    lastContactDate: '2026-01-02',
+    product: 'Term Life',
+    state: 'Illinois',
+    nextFollowUpDate: '2026-02-10',
+    nextFollowUpType: 'call',
+    policyStatus: 'submitted',
+    carrier: 'Protective',
+    notes: [
+      { id: 'log-7', type: 'call', disposition: 'interested', notes: 'Application submitted, waiting on underwriting. Client prefers morning calls.', date: '2026-01-02', agentId: 'agent-1' }
+    ]
+  },
+  {
+    id: 'lead-11',
+    name: 'Maria Santos',
+    email: 'msantos@email.com',
+    phone: '(312) 555-9876',
+    status: 'closed',
+    source: 'Referral',
+    assignedTo: 'agent-1',
+    createdDate: '2024-02-01',
+    lastContactDate: '2024-02-15',
+    product: 'Term Life',
+    state: 'Illinois',
+    nextFollowUpDate: '2026-02-10',
+    nextFollowUpType: 'call',
+    policyStatus: 'issued',
+    policyNumber: 'TL-2024-33333',
+    carrier: 'Prudential',
+    policyEffectiveDate: '2024-02-15',
+    policyExpirationDate: '2026-02-10',
+    coverageAmount: 350000,
+    monthlyPremium: 38,
+    notes: [
+      { id: 'log-11', type: 'call', disposition: 'interested', notes: 'Policy issued. Client very satisfied. Has 3 children.', date: '2024-02-15', agentId: 'agent-1' }
+    ]
+  },
+  {
+    id: 'lead-8',
+    name: 'Amanda Foster',
+    email: 'afoster@email.com',
+    phone: '(630) 555-8888',
+    status: 'contacted',
+    source: 'Website',
+    assignedTo: 'agent-1',
+    createdDate: '2025-12-18',
+    lastContactDate: '2025-12-20',
+    product: 'Final Expense',
+    state: 'Illinois',
+    nextFollowUpDate: '2025-12-27',
+    nextFollowUpType: 'call',
+    notes: [
+      { id: 'log-8', type: 'call', disposition: 'callback', notes: 'Asked for a callback next week. Interested in final expense for mother.', date: '2025-12-20', agentId: 'agent-1' }
+    ]
   }
 ];
 
@@ -1185,6 +1423,37 @@ interface AgentStore {
   // Quote enhancements
   createQuoteVersion: (quoteId: string) => void;
   updateQuoteSignature: (quoteId: string, status: Quote['signatureStatus']) => void;
+  // AgentOS Stage 1 - Follow-up enforcement & Policy tracking
+  getOverdueLeads: () => Lead[];
+  getLeadsDueToday: () => Lead[];
+  getLeadsDueThisWeek: () => Lead[];
+  getLeadsWithNoFollowUp: () => Lead[];
+  updateLeadFollowUp: (leadId: string, date: string, type: Lead['nextFollowUpType']) => void;
+  updatePolicyStatus: (leadId: string, status: Lead['policyStatus'], notes?: string) => void;
+  // AgentOS Stage 2 - Intelligence Assist
+  calculateLeadUrgencyScore: (lead: Lead) => { score: number; reasons: string[] };
+  getDailyPriorityList: () => Array<{ lead: Lead; score: number; reasons: string[]; callReason: string }>;
+  getMissedCallAlerts: () => Array<{ lead: Lead; daysMissed: number; lastContact: string | null }>;
+  getAppointmentReadiness: (lead: Lead) => { ready: boolean; missing: string[]; score: number };
+  getCloseRateStats: () => {
+    overall: number;
+    byStage: Record<string, number>;
+    trend: 'up' | 'down' | 'stable';
+    thisMonth: number;
+    lastMonth: number;
+    leadsInPipeline: number;
+    projectedCloses: number;
+  };
+  // AgentOS Stage 3 - Assisted Execution
+  getSuggestedTemplate: (lead: Lead) => { templateId: string; reason: string } | null;
+  generateCallSummary: (lead: Lead, notes: string, disposition: string) => string;
+  scheduleAppointment: (leadId: string, appointment: Omit<Appointment, 'id' | 'status' | 'reminderSent'>) => void;
+  updateAppointmentStatus: (leadId: string, appointmentId: string, status: Appointment['status']) => void;
+  getRenewalAlerts: () => Array<{ lead: Lead; daysUntilExpiration: number; product: string }>;
+  getCrossSellOpportunities: (lead: Lead) => CrossSellOpportunity[];
+  dismissCrossSell: (leadId: string, opportunityId: string) => void;
+  convertCrossSellToLead: (leadId: string, opportunityId: string) => void;
+  getUpcomingAppointments: () => Array<{ lead: Lead; appointment: Appointment }>;
 }
 
 export const useAgentStore = create<AgentStore>()(
@@ -1666,10 +1935,629 @@ export const useAgentStore = create<AgentStore>()(
               : quote
           )
         }));
+      },
+
+      // AgentOS Stage 1 - Follow-up enforcement & Policy tracking
+      getOverdueLeads: () => {
+        const today = new Date().toISOString().split('T')[0];
+        return get().leads.filter(lead =>
+          lead.nextFollowUpDate &&
+          lead.nextFollowUpDate < today &&
+          !['closed', 'lost'].includes(lead.status)
+        );
+      },
+
+      getLeadsDueToday: () => {
+        const today = new Date().toISOString().split('T')[0];
+        return get().leads.filter(lead =>
+          lead.nextFollowUpDate === today &&
+          !['closed', 'lost'].includes(lead.status)
+        );
+      },
+
+      getLeadsDueThisWeek: () => {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        return get().leads.filter(lead =>
+          lead.nextFollowUpDate &&
+          lead.nextFollowUpDate > todayStr &&
+          lead.nextFollowUpDate <= weekFromNow &&
+          !['closed', 'lost'].includes(lead.status)
+        );
+      },
+
+      getLeadsWithNoFollowUp: () => {
+        return get().leads.filter(lead =>
+          !lead.nextFollowUpDate &&
+          !['closed', 'lost'].includes(lead.status)
+        );
+      },
+
+      updateLeadFollowUp: (leadId: string, date: string, type: Lead['nextFollowUpType']) => {
+        set(state => ({
+          leads: state.leads.map(lead =>
+            lead.id === leadId
+              ? { ...lead, nextFollowUpDate: date, nextFollowUpType: type }
+              : lead
+          )
+        }));
+      },
+
+      updatePolicyStatus: (leadId: string, status: Lead['policyStatus'], notes?: string) => {
+        const user = get().currentUser;
+        set(state => ({
+          leads: state.leads.map(lead => {
+            if (lead.id !== leadId) return lead;
+            const policyChange: PolicyStatusChange = {
+              id: `psc-${Date.now()}`,
+              from: lead.policyStatus,
+              to: status,
+              date: new Date().toISOString(),
+              agentId: user?.id || 'unknown',
+              notes
+            };
+            return {
+              ...lead,
+              policyStatus: status,
+              policyStatusHistory: [...(lead.policyStatusHistory || []), policyChange]
+            };
+          })
+        }));
+      },
+
+      // AgentOS Stage 2 - Intelligence Assist
+      calculateLeadUrgencyScore: (lead: Lead) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const reasons: string[] = [];
+        let score = 50; // Base score
+
+        // Factor 1: Follow-up date urgency (0-30 points)
+        if (lead.nextFollowUpDate) {
+          const followUp = new Date(lead.nextFollowUpDate);
+          followUp.setHours(0, 0, 0, 0);
+          const daysDiff = Math.floor((followUp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (daysDiff < 0) {
+            score += Math.min(30, Math.abs(daysDiff) * 5);
+            reasons.push(`${Math.abs(daysDiff)} day${Math.abs(daysDiff) > 1 ? 's' : ''} overdue`);
+          } else if (daysDiff === 0) {
+            score += 25;
+            reasons.push('Follow-up due today');
+          } else if (daysDiff === 1) {
+            score += 15;
+            reasons.push('Follow-up due tomorrow');
+          }
+        } else if (!['closed', 'lost'].includes(lead.status)) {
+          score += 10;
+          reasons.push('No follow-up scheduled');
+        }
+
+        // Factor 2: Days since last contact (0-20 points)
+        if (lead.lastContactDate) {
+          const lastContact = new Date(lead.lastContactDate);
+          const daysSinceContact = Math.floor((today.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysSinceContact > 7) {
+            score += Math.min(20, (daysSinceContact - 7) * 2);
+            reasons.push(`No contact in ${daysSinceContact} days`);
+          }
+        } else if (lead.status !== 'new') {
+          score += 15;
+          reasons.push('Never contacted');
+        }
+
+        // Factor 3: Lead stage value (0-15 points)
+        const stageScores: Record<string, number> = {
+          proposal: 15,
+          qualified: 10,
+          contacted: 5,
+          new: 8,
+          closed: 0,
+          lost: 0
+        };
+        score += stageScores[lead.status] || 0;
+        if (lead.status === 'proposal') {
+          reasons.push('Hot prospect - proposal stage');
+        } else if (lead.status === 'qualified') {
+          reasons.push('Qualified lead ready to close');
+        }
+
+        // Factor 4: Policy in progress (0-10 points)
+        if (lead.policyStatus && !['issued', 'declined'].includes(lead.policyStatus)) {
+          score += 10;
+          reasons.push(`Active policy: ${lead.policyStatus.replace('_', ' ')}`);
+        }
+
+        // Factor 5: Recent activity bonus (-10 to 0 points)
+        if (lead.notes && lead.notes.length > 0) {
+          const lastNote = lead.notes[lead.notes.length - 1];
+          const noteDate = new Date(lastNote.date);
+          const daysSinceNote = Math.floor((today.getTime() - noteDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (daysSinceNote <= 2) {
+            score -= 10; // Recently worked, lower priority
+          }
+        }
+
+        return {
+          score: Math.max(0, Math.min(100, score)),
+          reasons
+        };
+      },
+
+      getDailyPriorityList: () => {
+        const state = get();
+        const user = state.currentUser;
+        const userLeads = state.leads.filter(l =>
+          l.assignedTo === user?.id &&
+          !['closed', 'lost'].includes(l.status)
+        );
+
+        const priorityList = userLeads.map(lead => {
+          const { score, reasons } = state.calculateLeadUrgencyScore(lead);
+
+          // Generate call reason based on top priority factor
+          let callReason = 'Schedule follow-up';
+          if (reasons.includes('Follow-up due today')) {
+            callReason = `Scheduled ${lead.nextFollowUpType || 'call'} for today`;
+          } else if (reasons.some(r => r.includes('overdue'))) {
+            callReason = 'Overdue follow-up - re-engage immediately';
+          } else if (reasons.includes('Hot prospect - proposal stage')) {
+            callReason = 'Close the deal - proposal pending';
+          } else if (reasons.some(r => r.includes('Active policy'))) {
+            callReason = 'Check on application status';
+          } else if (reasons.includes('Qualified lead ready to close')) {
+            callReason = 'Move to proposal stage';
+          } else if (reasons.some(r => r.includes('No contact in'))) {
+            callReason = 'Re-engage cold lead';
+          }
+
+          return { lead, score, reasons, callReason };
+        });
+
+        // Sort by score descending
+        return priorityList.sort((a, b) => b.score - a.score).slice(0, 15);
+      },
+
+      getMissedCallAlerts: () => {
+        const state = get();
+        const user = state.currentUser;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return state.leads
+          .filter(lead => {
+            if (lead.assignedTo !== user?.id) return false;
+            if (['closed', 'lost'].includes(lead.status)) return false;
+            if (!lead.nextFollowUpDate) return false;
+
+            const followUp = new Date(lead.nextFollowUpDate);
+            followUp.setHours(0, 0, 0, 0);
+            return followUp < today;
+          })
+          .map(lead => {
+            const followUp = new Date(lead.nextFollowUpDate!);
+            followUp.setHours(0, 0, 0, 0);
+            const daysMissed = Math.floor((today.getTime() - followUp.getTime()) / (1000 * 60 * 60 * 24));
+            return {
+              lead,
+              daysMissed,
+              lastContact: lead.lastContactDate || null
+            };
+          })
+          .sort((a, b) => b.daysMissed - a.daysMissed);
+      },
+
+      getAppointmentReadiness: (lead: Lead) => {
+        const missing: string[] = [];
+        let score = 100;
+
+        // Check for required information
+        if (!lead.phone) {
+          missing.push('Phone number');
+          score -= 25;
+        }
+        if (!lead.email) {
+          missing.push('Email address');
+          score -= 15;
+        }
+        if (!lead.product) {
+          missing.push('Product interest');
+          score -= 20;
+        }
+        if (!lead.state) {
+          missing.push('State/Location');
+          score -= 10;
+        }
+
+        // Check for activity history
+        if (!lead.notes || lead.notes.length === 0) {
+          missing.push('No prior contact notes');
+          score -= 15;
+        }
+
+        // Check for quote if in proposal stage
+        if (lead.status === 'proposal' && !lead.policyStatus) {
+          missing.push('No quote on file');
+          score -= 15;
+        }
+
+        return {
+          ready: missing.length === 0,
+          missing,
+          score: Math.max(0, score)
+        };
+      },
+
+      getCloseRateStats: () => {
+        const state = get();
+        const user = state.currentUser;
+        const userLeads = state.leads.filter(l => l.assignedTo === user?.id);
+
+        const today = new Date();
+        const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
+        // Calculate overall close rate
+        const closedLeads = userLeads.filter(l => l.status === 'closed');
+        const lostLeads = userLeads.filter(l => l.status === 'lost');
+        const totalDecided = closedLeads.length + lostLeads.length;
+        const overall = totalDecided > 0 ? Math.round((closedLeads.length / totalDecided) * 100) : 0;
+
+        // Calculate by stage conversion rates
+        const byStage: Record<string, number> = {};
+        const stages = ['new', 'contacted', 'qualified', 'proposal'];
+        stages.forEach((stage, index) => {
+          if (index < stages.length - 1) {
+            const inStage = userLeads.filter(l => l.status === stage).length;
+            const advanced = userLeads.filter(l => {
+              const stageIndex = stages.indexOf(l.status);
+              return stageIndex > index || l.status === 'closed';
+            }).length;
+            byStage[`${stage}_to_next`] = inStage > 0 ? Math.round((advanced / (inStage + advanced)) * 100) : 0;
+          }
+        });
+
+        // This month closes (based on status history or creation date for demo)
+        const thisMonthCloses = closedLeads.filter(l => {
+          const closeDate = l.statusHistory?.find(h => h.to === 'closed')?.date;
+          if (closeDate) {
+            return new Date(closeDate) >= thisMonthStart;
+          }
+          return new Date(l.createdDate) >= thisMonthStart;
+        }).length;
+
+        // Last month closes
+        const lastMonthCloses = closedLeads.filter(l => {
+          const closeDate = l.statusHistory?.find(h => h.to === 'closed')?.date;
+          if (closeDate) {
+            const d = new Date(closeDate);
+            return d >= lastMonthStart && d <= lastMonthEnd;
+          }
+          const d = new Date(l.createdDate);
+          return d >= lastMonthStart && d <= lastMonthEnd;
+        }).length;
+
+        // Determine trend
+        let trend: 'up' | 'down' | 'stable' = 'stable';
+        if (thisMonthCloses > lastMonthCloses) trend = 'up';
+        else if (thisMonthCloses < lastMonthCloses) trend = 'down';
+
+        // Leads in active pipeline
+        const leadsInPipeline = userLeads.filter(l =>
+          !['closed', 'lost'].includes(l.status)
+        ).length;
+
+        // Projected closes based on current conversion rate and pipeline
+        const proposalLeads = userLeads.filter(l => l.status === 'proposal').length;
+        const qualifiedLeads = userLeads.filter(l => l.status === 'qualified').length;
+        const projectedCloses = Math.round(proposalLeads * 0.6 + qualifiedLeads * 0.3);
+
+        return {
+          overall,
+          byStage,
+          trend,
+          thisMonth: thisMonthCloses,
+          lastMonth: lastMonthCloses,
+          leadsInPipeline,
+          projectedCloses
+        };
+      },
+
+      // AgentOS Stage 3 - Assisted Execution
+      getSuggestedTemplate: (lead: Lead) => {
+        // Suggest template based on lead context
+        const lastActivity = lead.notes?.[lead.notes.length - 1];
+        const daysSinceContact = lead.lastContactDate
+          ? Math.floor((Date.now() - new Date(lead.lastContactDate).getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+
+        // No prior contact - initial outreach
+        if (!lastActivity || lead.status === 'new') {
+          return { templateId: 'template-outreach-1', reason: 'First contact with new lead' };
+        }
+
+        // Quote ready - send quote notification
+        if (lead.policyStatus === 'quoted') {
+          return { templateId: 'template-quote-1', reason: 'Quote is ready to share' };
+        }
+
+        // Application submitted
+        if (lead.policyStatus === 'submitted') {
+          return { templateId: 'template-app-1', reason: 'Confirm application submission' };
+        }
+
+        // Policy approved
+        if (lead.policyStatus === 'approved') {
+          return { templateId: 'template-policy-1', reason: 'Congratulate on approval' };
+        }
+
+        // Policy issued
+        if (lead.policyStatus === 'issued') {
+          return { templateId: 'template-policy-2', reason: 'Welcome new policyholder' };
+        }
+
+        // Callback requested
+        if (lastActivity?.disposition === 'callback') {
+          return { templateId: 'template-followup-1', reason: 'Follow up on callback request' };
+        }
+
+        // No answer / voicemail - follow up
+        if (lastActivity?.disposition === 'no_answer' || lastActivity?.disposition === 'voicemail') {
+          return { templateId: 'template-followup-2', reason: 'Re-attempt after missed call' };
+        }
+
+        // Cold lead (>7 days no contact)
+        if (daysSinceContact && daysSinceContact > 7) {
+          return { templateId: 'template-followup-3', reason: `No contact in ${daysSinceContact} days` };
+        }
+
+        return null;
+      },
+
+      generateCallSummary: (lead: Lead, notes: string, disposition: string) => {
+        const today = new Date().toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+
+        const dispositionLabels: Record<string, string> = {
+          interested: 'Client expressed interest',
+          callback: 'Callback requested',
+          appointment_set: 'Appointment scheduled',
+          not_interested: 'Client not interested',
+          no_answer: 'No answer',
+          voicemail: 'Left voicemail'
+        };
+
+        const summary = `
+📞 CALL SUMMARY - ${today}
+━━━━━━━━━━━━━━━━━━━━━━━━
+Client: ${lead.name}
+Product: ${lead.product || 'Not specified'}
+Outcome: ${dispositionLabels[disposition] || disposition}
+
+📝 KEY POINTS:
+${notes}
+
+📋 NEXT STEPS:
+${disposition === 'appointment_set' ? '• Prepare for scheduled appointment' : ''}
+${disposition === 'interested' ? '• Send quote/proposal\n• Schedule follow-up call' : ''}
+${disposition === 'callback' ? '• Call back at requested time\n• Prepare answers to questions' : ''}
+${disposition === 'no_answer' || disposition === 'voicemail' ? '• Try again later today\n• Send follow-up text/email' : ''}
+${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider future re-engagement' : ''}
+━━━━━━━━━━━━━━━━━━━━━━━━`.trim();
+
+        return summary;
+      },
+
+      scheduleAppointment: (leadId: string, appointment: Omit<Appointment, 'id' | 'status' | 'reminderSent'>) => {
+        set(state => ({
+          leads: state.leads.map(lead => {
+            if (lead.id !== leadId) return lead;
+            const newAppointment: Appointment = {
+              ...appointment,
+              id: `apt-${Date.now()}`,
+              status: 'scheduled',
+              reminderSent: false
+            };
+            return {
+              ...lead,
+              appointments: [...(lead.appointments || []), newAppointment]
+            };
+          })
+        }));
+      },
+
+      updateAppointmentStatus: (leadId: string, appointmentId: string, status: Appointment['status']) => {
+        set(state => ({
+          leads: state.leads.map(lead => {
+            if (lead.id !== leadId) return lead;
+            return {
+              ...lead,
+              appointments: (lead.appointments || []).map(apt =>
+                apt.id === appointmentId ? { ...apt, status } : apt
+              )
+            };
+          })
+        }));
+      },
+
+      getRenewalAlerts: () => {
+        const state = get();
+        const user = state.currentUser;
+
+        return state.leads
+          .filter(lead => {
+            // For demo: show all issued policies with expiration dates
+            if (user && lead.assignedTo !== user.id && lead.assignedTo !== 'agent-1') return false;
+            if (lead.status !== 'closed' || lead.policyStatus !== 'issued') return false;
+            if (!lead.policyExpirationDate) return false;
+            return true; // Show all for demo
+          })
+          .map(lead => {
+            const expDate = new Date(lead.policyExpirationDate!);
+            const today = new Date();
+            const daysUntilExpiration = Math.floor((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            return {
+              lead,
+              daysUntilExpiration: Math.max(daysUntilExpiration, 3), // At least 3 days for demo visibility
+              product: lead.product || 'Life Insurance'
+            };
+          })
+          .sort((a, b) => a.daysUntilExpiration - b.daysUntilExpiration);
+      },
+
+      getCrossSellOpportunities: (lead: Lead) => {
+        const opportunities: CrossSellOpportunity[] = [];
+
+        // Only suggest for closed/issued policies
+        if (lead.status !== 'closed' || lead.policyStatus !== 'issued') {
+          return opportunities;
+        }
+
+        const currentProduct = lead.product?.toLowerCase() || '';
+
+        // Term life -> Suggest whole life or IUL
+        if (currentProduct.includes('term')) {
+          opportunities.push({
+            id: `cs-${lead.id}-whole`,
+            product: 'Whole Life',
+            reason: 'Build cash value and permanent coverage',
+            priority: 'medium'
+          });
+          opportunities.push({
+            id: `cs-${lead.id}-iul`,
+            product: 'IUL',
+            reason: 'Tax-advantaged retirement supplement',
+            priority: 'low'
+          });
+        }
+
+        // Final expense -> Suggest term for family
+        if (currentProduct.includes('final expense')) {
+          opportunities.push({
+            id: `cs-${lead.id}-term`,
+            product: 'Term Life',
+            reason: 'Additional coverage for family protection',
+            priority: 'medium'
+          });
+        }
+
+        // Mortgage protection -> Suggest final expense
+        if (currentProduct.includes('mortgage')) {
+          opportunities.push({
+            id: `cs-${lead.id}-fe`,
+            product: 'Final Expense',
+            reason: 'Cover burial costs separately',
+            priority: 'low'
+          });
+        }
+
+        // Any life product -> Suggest annuity for retirement
+        if (currentProduct.includes('life') || currentProduct.includes('iul')) {
+          opportunities.push({
+            id: `cs-${lead.id}-annuity`,
+            product: 'Fixed Annuity',
+            reason: 'Guaranteed retirement income',
+            priority: 'low'
+          });
+        }
+
+        // Filter out dismissed opportunities
+        return opportunities.filter(opp =>
+          !lead.crossSellOpportunities?.find(co => co.id === opp.id && co.dismissed)
+        );
+      },
+
+      dismissCrossSell: (leadId: string, opportunityId: string) => {
+        set(state => ({
+          leads: state.leads.map(lead => {
+            if (lead.id !== leadId) return lead;
+            const existing = lead.crossSellOpportunities || [];
+            const updated = existing.find(o => o.id === opportunityId)
+              ? existing.map(o => o.id === opportunityId ? { ...o, dismissed: true } : o)
+              : [...existing, { id: opportunityId, product: '', reason: '', priority: 'low' as const, dismissed: true }];
+            return { ...lead, crossSellOpportunities: updated };
+          })
+        }));
+      },
+
+      convertCrossSellToLead: (leadId: string, opportunityId: string) => {
+        const state = get();
+        const lead = state.leads.find(l => l.id === leadId);
+        const opportunity = state.getCrossSellOpportunities(lead!).find(o => o.id === opportunityId);
+
+        if (!lead || !opportunity) return;
+
+        // Mark as converted
+        set(state => ({
+          leads: state.leads.map(l => {
+            if (l.id !== leadId) return l;
+            const existing = l.crossSellOpportunities || [];
+            const updated = existing.find(o => o.id === opportunityId)
+              ? existing.map(o => o.id === opportunityId ? { ...o, convertedToLead: true } : o)
+              : [...existing, { ...opportunity, convertedToLead: true }];
+            return { ...l, crossSellOpportunities: updated };
+          })
+        }));
+
+        // Add new lead for the cross-sell product
+        const user = state.currentUser;
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        set(state => ({
+          leads: [...state.leads, {
+            id: `lead-cs-${Date.now()}`,
+            name: lead.name,
+            email: lead.email,
+            phone: lead.phone,
+            status: 'new' as const,
+            source: 'Cross-sell',
+            assignedTo: user?.id || 'unknown',
+            createdDate: new Date().toISOString().split('T')[0],
+            notes: [{
+              id: `note-cs-${Date.now()}`,
+              type: 'note' as const,
+              notes: `Cross-sell opportunity from ${lead.product} policy. ${opportunity.reason}`,
+              date: new Date().toISOString().split('T')[0],
+              agentId: user?.id || 'unknown'
+            }],
+            product: opportunity.product,
+            state: lead.state,
+            nextFollowUpDate: tomorrow.toISOString().split('T')[0],
+            nextFollowUpType: 'call' as const
+          }]
+        }));
+      },
+
+      getUpcomingAppointments: () => {
+        const state = get();
+        const user = state.currentUser;
+
+        const appointments: Array<{ lead: Lead; appointment: Appointment }> = [];
+
+        state.leads.forEach(lead => {
+          // For demo: show all appointments for agent-1 or current user
+          if (user && lead.assignedTo !== user.id && lead.assignedTo !== 'agent-1') return;
+          (lead.appointments || []).forEach(apt => {
+            if (apt.status !== 'scheduled') return;
+            // For demo: show all scheduled appointments regardless of date
+            appointments.push({ lead, appointment: apt });
+          });
+        });
+
+        return appointments.sort((a, b) =>
+          new Date(a.appointment.date + ' ' + a.appointment.time).getTime() -
+          new Date(b.appointment.date + ' ' + b.appointment.time).getTime()
+        );
       }
     }),
     {
-      name: 'agent-lounge-storage',
+      name: 'agent-lounge-storage-v4',
       partialize: (state) => ({
         currentUser: state.currentUser,
         theme: state.theme,

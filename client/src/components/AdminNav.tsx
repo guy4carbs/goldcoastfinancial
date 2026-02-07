@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Video, Package, LogOut, LayoutDashboard, Inbox, Menu, X, BarChart3, FileText, Settings, Star, Mail } from "lucide-react";
+import { Image, Video, Package, LogOut, LayoutDashboard, Inbox, Menu, X, BarChart3, FileText, Settings, Star, Mail, Bot } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -53,6 +53,11 @@ export default function AdminNav() {
       label: "Analytics",
       path: "/admin/analytics",
       icon: BarChart3,
+    },
+    {
+      label: "Avatar Council",
+      path: "/admin/avatar-council",
+      icon: Bot,
     },
     {
       label: "Settings",

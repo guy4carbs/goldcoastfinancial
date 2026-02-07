@@ -37,6 +37,9 @@ import { cn, formatPhone, openGoogleCalendar } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import type { Lead, ActivityLog, LeadReminder } from "@/lib/agentStore";
 import { toast } from "sonner";
+import { SmartTemplatePanel } from "./SmartTemplatePanel";
+import { CrossSellPrompts } from "./CrossSellPrompts";
+import { PolicyTracker } from "./PolicyTracker";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -224,6 +227,28 @@ export function LeadDetailDrawer({
                 <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
             </div>
+
+            {/* AI Suggested Template - Stage 3 */}
+            <SmartTemplatePanel lead={lead} compact />
+
+            {/* Policy Tracker */}
+            {lead.policyStatus && (
+              <>
+                <Separator />
+                <PolicyTracker lead={lead} />
+              </>
+            )}
+
+            {/* Cross-Sell Opportunities - Stage 3 */}
+            {lead.status === 'closed' && lead.policyStatus === 'issued' && (
+              <>
+                <Separator />
+                <CrossSellPrompts
+                  lead={lead}
+                  onConvert={(product) => toast.success(`New lead created for ${product}`)}
+                />
+              </>
+            )}
 
             {/* Tags Section */}
             <div>

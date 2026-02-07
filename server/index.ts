@@ -6,6 +6,8 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { initializeDatabase } from "./db";
 import { setupWebSocket } from "./websocket";
+import { setupAvatarWebSocket, initializeAvatarNetwork } from "./websocket-avatars";
+import { avatarRegistry } from "./services/avatarRegistry";
 
 const app = express();
 const httpServer = createServer(app);
@@ -75,12 +77,24 @@ app.use((req, res, next) => {
   
   // Setup WebSocket for real-time chat
   setupWebSocket(httpServer);
+
+  // Setup WebSocket for Avatar Council
+  setupAvatarWebSocket(httpServer);
   
   // Initialize demo user for client portal
   try {
     await storage.initializeDemoUser();
   } catch (error) {
     console.error("Failed to initialize demo user:", error);
+  }
+
+  // Seed initial avatars for Avatar Council
+  try {
+    await avatarRegistry.seedInitialAvatars();
+    // Initialize avatar network after seeding
+    await initializeAvatarNetwork();
+  } catch (error) {
+    console.error("Failed to seed avatars:", error);
   }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

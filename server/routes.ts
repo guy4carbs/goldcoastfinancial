@@ -16,6 +16,7 @@ import adminContentRouter from "./routes/admin-content";
 import adminCrmRouter from "./routes/admin-crm";
 import contentRouter from "./routes/content";
 import quotesRouter from "./routes/quotes";
+import avatarCouncilRouter from "./routes/avatar-council";
 
 declare module "express-session" {
   interface SessionData {
@@ -881,6 +882,9 @@ export async function registerRoutes(
 
   // Quotes and estimates
   app.use("/api/quotes", quotesRouter);
+
+  // Avatar Council (AI avatars, debates, sessions)
+  app.use("/api/avatar-council", avatarCouncilRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

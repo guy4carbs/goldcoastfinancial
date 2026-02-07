@@ -11,7 +11,19 @@ interface ChatClient {
 const clients = new Map<string, ChatClient>();
 
 export function setupWebSocket(server: Server) {
-  const wss = new WebSocketServer({ server, path: "/ws/chat" });
+  const wss = new WebSocketServer({ noServer: true });
+
+  // Handle upgrade manually
+  server.on("upgrade", (request, socket, head) => {
+    const pathname = new URL(request.url || "", `http://${request.headers.host}`).pathname;
+
+    if (pathname === "/ws/chat") {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit("connection", ws, request);
+      });
+    }
+    // Let other WebSocket servers handle their paths
+  });
 
   wss.on("connection", (ws) => {
     let userId: string | null = null;

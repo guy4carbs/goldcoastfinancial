@@ -569,3 +569,122 @@ body[data-loading="true"] iframe[src*="lindy"] {
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/* =============================================================================
+   AVATAR COUNCIL WAR ROOM - IRON MAN HUD AESTHETIC
+   ============================================================================= */
+
+/* Scan line texture for holographic effect */
+.scan-lines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(255, 255, 255, 0.02) 2px,
+    rgba(255, 255, 255, 0.02) 4px
+  );
+  pointer-events: none;
+}
+
+/* Edge sweep animation for hover effects */
+@keyframes edgeSweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-edge-sweep {
+  animation: edgeSweep 1s ease-out;
+}
+
+/* Corner pulse animation for idle state */
+@keyframes cornerPulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-corner-pulse {
+  animation: cornerPulse 2s ease-in-out infinite;
+}
+
+/* Breathing glow animation */
+@keyframes breathingGlow {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.animate-breathing-glow {
+  animation: breathingGlow 3s ease-in-out infinite;
+}
+
+/* Micro-float animation for cards */
+@keyframes microFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.animate-micro-float {
+  animation: microFloat 4s ease-in-out infinite;
+}
+
+/* Status pulse for LINKED/DEBATE MODE indicators */
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-status-pulse {
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+/* Grid pattern overlay for war room background */
+.war-room-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* War room scrollbar styling */
+.war-room-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.war-room-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 2px;
+}
+
+.war-room-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.war-room-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

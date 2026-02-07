@@ -39,6 +39,11 @@ export async function setupVite(server: Server, app: Express) {
       return next();
     }
 
+    // Skip WebSocket routes
+    if (url.startsWith("/ws/")) {
+      return next();
+    }
+
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,

@@ -81,8 +81,7 @@ import BecomeAgent from "@/pages/agents/BecomeAgent";
 import AgentResources from "@/pages/agents/AgentResources";
 import AgentLogin from "@/pages/agents/AgentLogin";
 import AgentDashboard from "@/pages/agents/AgentDashboard";
-import AgentPipeline from "@/pages/agents/AgentPipeline";
-import AgentEarnings from "@/pages/agents/AgentEarnings";
+import AgentPerformance from "@/pages/agents/AgentPerformance";
 import AgentTraining from "@/pages/agents/AgentTraining";
 import AgentChat from "@/pages/agents/AgentChat";
 import AgentQuotes from "@/pages/agents/AgentQuotes";
@@ -101,6 +100,9 @@ import AgentStudyExamPrep from "@/pages/agents/study/AgentStudyExamPrep";
 import AgentStudyPracticeExam from "@/pages/agents/study/AgentStudyPracticeExam";
 import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
 import AgentAvatarCouncil from "@/pages/agents/AgentAvatarCouncil";
+import AgentLeadInbox from "@/pages/agents/AgentLeadInbox";
+import AgentTemplates from "@/pages/agents/AgentTemplates";
+import AgentIntelligence from "@/pages/agents/AgentIntelligence";
 import AdminAvatarCouncil from "@/pages/admin/AdminAvatarCouncil";
 // Legal Pages
 import TermsOfUse from "@/pages/legal/TermsOfUse";
@@ -201,14 +203,9 @@ function Router() {
             <AgentCalendar />
           </AgentProtectedRoute>
         </Route>
-        <Route path="/agents/pipeline">
+        <Route path="/agents/performance">
           <AgentProtectedRoute>
-            <AgentPipeline />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/earnings">
-          <AgentProtectedRoute>
-            <AgentEarnings />
+            <AgentPerformance />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/training">
@@ -294,6 +291,21 @@ function Router() {
         <Route path="/agents/avatar-council">
           <AgentProtectedRoute>
             <AgentAvatarCouncil />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/inbox">
+          <AgentProtectedRoute>
+            <AgentLeadInbox />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/templates">
+          <AgentProtectedRoute>
+            <AgentTemplates />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/intelligence">
+          <AgentProtectedRoute>
+            <AgentIntelligence />
           </AgentProtectedRoute>
         </Route>
         <Route path="/admin/login" component={AdminLogin} />

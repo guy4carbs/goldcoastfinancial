@@ -19,9 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, User, Mail, Phone, MapPin, FileText, Sparkles, Loader2 } from "lucide-react";
+import { UserPlus, User, Mail, Phone, MapPin, FileText, Sparkles, Loader2, Calendar, AlertCircle, MessageSquare, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Lead } from "@/lib/agentStore";
 import { useCelebration } from "@/lib/celebrationContext";
+
+const FOLLOW_UP_TYPES = [
+  { value: 'call', label: 'Call', icon: Phone },
+  { value: 'email', label: 'Email', icon: Mail },
+  { value: 'text', label: 'Text', icon: MessageSquare },
+  { value: 'meeting', label: 'Meeting', icon: Users },
+];
 
 interface AddLeadModalProps {
   open: boolean;
@@ -46,6 +54,14 @@ const SOURCES = ['Website', 'Referral', 'Facebook Ad', 'Google Ad', 'Cold Call',
 
 export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = [] }: AddLeadModalProps) {
   const { showXP } = useCelebration();
+
+  // Calculate default follow-up date (tomorrow)
+  const getDefaultFollowUpDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -54,6 +70,8 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
     product: '',
     source: 'Website',
     notes: '',
+    nextFollowUpDate: getDefaultFollowUpDate(),
+    nextFollowUpType: 'call' as Lead['nextFollowUpType'],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -117,6 +135,18 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
       }
     }
 
+    // Validate follow-up date (required for AgentOS Stage 1)
+    if (!formData.nextFollowUpDate) {
+      newErrors.nextFollowUpDate = 'Follow-up date is required';
+    } else {
+      const followUpDate = new Date(formData.nextFollowUpDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (followUpDate < today) {
+        newErrors.nextFollowUpDate = 'Follow-up date cannot be in the past';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -137,6 +167,8 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
       product: formData.product,
       source: formData.source,
       status: 'new',
+      nextFollowUpDate: formData.nextFollowUpDate,
+      nextFollowUpType: formData.nextFollowUpType,
       ...(formData.notes.trim() && { leadNotes: formData.notes.trim() }),
     });
 
@@ -151,6 +183,8 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
       product: '',
       source: 'Website',
       notes: '',
+      nextFollowUpDate: getDefaultFollowUpDate(),
+      nextFollowUpType: 'call',
     });
     setIsSubmitting(false);
     onOpenChange(false);
@@ -274,6 +308,88 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
                 placeholder="Any additional information about this lead..."
                 className="min-h-[80px]"
               />
+            </div>
+          </div>
+
+          {/* Follow-up Section - Required */}
+          <div className="bg-amber-50 rounded-lg p-4 space-y-3 border border-amber-200 mt-4">
+            <div className="flex items-center gap-2 text-amber-800">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm font-medium">First Follow-Up *</span>
+            </div>
+            <p className="text-xs text-amber-700">Every new lead requires a scheduled follow-up to ensure no leads are forgotten.</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="followUpDate" className="text-xs font-medium mb-1 block text-amber-800">Date</Label>
+                <Input
+                  id="followUpDate"
+                  type="date"
+                  value={formData.nextFollowUpDate}
+                  onChange={(e) => setFormData({ ...formData, nextFollowUpDate: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  className={cn(
+                    "bg-white",
+                    errors.nextFollowUpDate && "border-red-300"
+                  )}
+                />
+                {errors.nextFollowUpDate && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.nextFollowUpDate}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label className="text-xs font-medium mb-1 block text-amber-800">Type</Label>
+                <Select
+                  value={formData.nextFollowUpType}
+                  onValueChange={(v) => setFormData({ ...formData, nextFollowUpType: v as Lead['nextFollowUpType'] })}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FOLLOW_UP_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        <div className="flex items-center gap-2">
+                          <type.icon className="w-4 h-4" />
+                          {type.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Quick date buttons */}
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { label: 'Today', days: 0 },
+                { label: 'Tomorrow', days: 1 },
+                { label: 'In 2 days', days: 2 },
+                { label: 'Next week', days: 7 },
+              ].map((option) => {
+                const date = new Date();
+                date.setDate(date.getDate() + option.days);
+                const dateStr = date.toISOString().split('T')[0];
+                return (
+                  <button
+                    key={option.days}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, nextFollowUpDate: dateStr })}
+                    className={cn(
+                      "text-xs px-2 py-1 rounded border transition-all",
+                      formData.nextFollowUpDate === dateStr
+                        ? "bg-amber-600 text-white border-amber-600"
+                        : "bg-white text-amber-800 border-amber-300 hover:bg-amber-100"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
