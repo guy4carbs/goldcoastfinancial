@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { DemoBadge } from "@/components/agent/primitives";
 
 // Import Social Learning Components
 import {
@@ -751,7 +752,10 @@ export default function AgentChat() {
                 className="fixed left-0 top-0 bottom-0 w-72 bg-white z-50 flex flex-col lg:hidden shadow-xl"
               >
                 <div className="p-3 border-b border-gray-100 flex items-center justify-between">
-                  <span className="font-semibold text-primary">Chat</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-primary">Chat</span>
+                    <DemoBadge />
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"

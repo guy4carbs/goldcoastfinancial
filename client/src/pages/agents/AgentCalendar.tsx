@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { AddEventModal, EventData } from "@/components/agent/AddEventModal";
 import { useConfirm } from "@/components/agent/primitives/ConfirmDialog";
 import { toast } from "sonner";
+import { DemoBadge } from "@/components/agent/primitives";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -281,7 +282,10 @@ export default function AgentCalendar() {
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-primary">Calendar</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-primary">Calendar</h1>
+              <DemoBadge />
+            </div>
             <p className="text-sm text-gray-600">Manage your schedule and sync with your email calendar</p>
           </div>
           <Button className="bg-primary hover:bg-primary/90" onClick={() => setShowAddEvent(true)}>

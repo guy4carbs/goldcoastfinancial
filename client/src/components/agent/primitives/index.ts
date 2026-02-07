@@ -19,3 +19,4 @@ export { ConfirmDialog, ConfirmProvider, useConfirm } from './ConfirmDialog';
 export { LoadingOverlay, LoadingButtonContent, Spinner } from './LoadingOverlay';
 export { Pagination, usePagination } from './Pagination';
 export { ErrorBoundary, ErrorFallback, showErrorToast, withErrorHandling } from './ErrorBoundary';
+export { DemoBadge, DemoIndicator } from './DemoBadge';

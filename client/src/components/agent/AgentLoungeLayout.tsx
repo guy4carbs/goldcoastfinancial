@@ -31,7 +31,8 @@ import {
   Calendar,
   Rocket,
   ClipboardCheck,
-  Mail
+  Mail,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const toolsNavItems: NavItem[] = [
+  { icon: Bot, label: "AI Avatar Council", href: "/agents/avatar-council" },
   { icon: FileText, label: "Quotes", href: "/agents/quotes" },
   { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
   { icon: BookOpen, label: "Resources", href: "/agents/resources" },
@@ -119,6 +121,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       achievements: '/agents/achievements',
       announcements: '/agents/announcements',
       settings: '/agents/settings',
+      'avatar-council': '/agents/avatar-council',
     };
     if (routes[tab]) {
       setLocation(routes[tab]);
@@ -393,27 +396,45 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       <Onboarding />
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200" style={{ zIndex: zIndex.fixed }}>
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200"
+        style={{ zIndex: zIndex.fixed }}
+        aria-label="Mobile navigation"
+      >
         <div className="flex items-center justify-around py-2">
           {[
             { icon: Home, label: "Home", href: "/agents/dashboard" },
             { icon: Users, label: "Leads", href: "/agents/leads" },
             { icon: GraduationCap, label: "Training", href: "/agents/training" },
-            { icon: MessageSquare, label: "Chat", href: "/agents/chat" },
+            { icon: DollarSign, label: "Earnings", href: "/agents/earnings" },
           ].map((item) => {
             const isActive = location === item.href;
             return (
               <Link key={item.href} href={item.href}>
-                <div className={cn(
-                  "flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors",
-                  isActive ? "text-violet-500" : "text-gray-500"
-                )}>
-                  <item.icon className="w-5 h-5" />
+                <div
+                  className={cn(
+                    "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors",
+                    isActive ? "text-violet-500" : "text-gray-500"
+                  )}
+                  role="link"
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  <item.icon className="w-5 h-5" aria-hidden="true" />
                   <span className="text-[10px] font-medium">{item.label}</span>
                 </div>
               </Link>
             );
           })}
+          {/* More menu button */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors text-gray-500"
+            aria-label="Open menu for more options"
+            aria-expanded={mobileMenuOpen}
+          >
+            <Menu className="w-5 h-5" aria-hidden="true" />
+            <span className="text-[10px] font-medium">More</span>
+          </button>
         </div>
       </nav>
     </div>

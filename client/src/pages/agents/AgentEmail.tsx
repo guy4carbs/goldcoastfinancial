@@ -44,6 +44,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
+import { DemoBadge } from "@/components/agent/primitives";
 
 // Animation variants
 const FADE_IN_UP = {
@@ -546,6 +547,7 @@ export default function AgentEmail() {
               <div className="flex items-center gap-2">
                 <Mail className="w-5 h-5 text-primary" aria-hidden="true" />
                 <span className="font-bold text-primary text-sm">Email</span>
+                <DemoBadge className="ml-auto" />
               </div>
               <Button
                 onClick={() => setShowCompose(true)}
