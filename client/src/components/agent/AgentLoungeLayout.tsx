@@ -56,7 +56,6 @@ const mainNavItems: NavItem[] = [
   { icon: Home, label: "Dashboard", href: "/agents/dashboard" },
   { icon: Rocket, label: "Getting Started", href: "/agents/getting-started" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
-  { icon: Users, label: "Leads", href: "/agents/leads" },
   { icon: BarChart3, label: "Pipeline", href: "/agents/pipeline" },
   { icon: DollarSign, label: "Earnings", href: "/agents/earnings" },
 ];
@@ -78,7 +77,6 @@ const growthNavItems: NavItem[] = [
 const teamNavItems: NavItem[] = [
   { icon: Mail, label: "Email", href: "/agents/email" },
   { icon: MessageSquare, label: "Chat", href: "/agents/chat" },
-  { icon: Megaphone, label: "Announcements", href: "/agents/announcements" },
 ];
 
 interface AgentLoungeLayoutProps {
@@ -107,7 +105,6 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       dashboard: '/agents/dashboard',
       'getting-started': '/agents/getting-started',
       calendar: '/agents/calendar',
-      leads: '/agents/leads',
       pipeline: '/agents/pipeline',
       earnings: '/agents/earnings',
       training: '/agents/training',
@@ -119,7 +116,6 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       guidelines: '/agents/guidelines',
       leaderboard: '/agents/leaderboard',
       achievements: '/agents/achievements',
-      announcements: '/agents/announcements',
       settings: '/agents/settings',
       'avatar-council': '/agents/avatar-council',
     };
@@ -404,7 +400,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         <div className="flex items-center justify-around py-2">
           {[
             { icon: Home, label: "Home", href: "/agents/dashboard" },
-            { icon: Users, label: "Leads", href: "/agents/leads" },
+            { icon: BarChart3, label: "Pipeline", href: "/agents/pipeline" },
             { icon: GraduationCap, label: "Training", href: "/agents/training" },
             { icon: DollarSign, label: "Earnings", href: "/agents/earnings" },
           ].map((item) => {

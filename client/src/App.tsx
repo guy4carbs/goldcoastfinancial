@@ -81,7 +81,6 @@ import BecomeAgent from "@/pages/agents/BecomeAgent";
 import AgentResources from "@/pages/agents/AgentResources";
 import AgentLogin from "@/pages/agents/AgentLogin";
 import AgentDashboard from "@/pages/agents/AgentDashboard";
-import AgentLeads from "@/pages/agents/AgentLeads";
 import AgentPipeline from "@/pages/agents/AgentPipeline";
 import AgentEarnings from "@/pages/agents/AgentEarnings";
 import AgentTraining from "@/pages/agents/AgentTraining";
@@ -90,7 +89,6 @@ import AgentQuotes from "@/pages/agents/AgentQuotes";
 import AgentScripts from "@/pages/agents/AgentScripts";
 import AgentLeaderboard from "@/pages/agents/AgentLeaderboard";
 import AgentAchievements from "@/pages/agents/AgentAchievements";
-import AgentAnnouncements from "@/pages/agents/AgentAnnouncements";
 import AgentSettings from "@/pages/agents/AgentSettings";
 import AgentCalendar from "@/pages/agents/AgentCalendar";
 import AgentHelp from "@/pages/agents/AgentHelp";
@@ -102,6 +100,8 @@ import AgentStudyFundamentals from "@/pages/agents/study/AgentStudyFundamentals"
 import AgentStudyExamPrep from "@/pages/agents/study/AgentStudyExamPrep";
 import AgentStudyPracticeExam from "@/pages/agents/study/AgentStudyPracticeExam";
 import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
+import AgentAvatarCouncil from "@/pages/agents/AgentAvatarCouncil";
+import AdminAvatarCouncil from "@/pages/admin/AdminAvatarCouncil";
 // Legal Pages
 import TermsOfUse from "@/pages/legal/TermsOfUse";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
@@ -201,11 +201,6 @@ function Router() {
             <AgentCalendar />
           </AgentProtectedRoute>
         </Route>
-        <Route path="/agents/leads">
-          <AgentProtectedRoute>
-            <AgentLeads />
-          </AgentProtectedRoute>
-        </Route>
         <Route path="/agents/pipeline">
           <AgentProtectedRoute>
             <AgentPipeline />
@@ -244,11 +239,6 @@ function Router() {
         <Route path="/agents/achievements">
           <AgentProtectedRoute>
             <AgentAchievements />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/announcements">
-          <AgentProtectedRoute>
-            <AgentAnnouncements />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/settings">
@@ -299,6 +289,11 @@ function Router() {
         <Route path="/agents/study/flashcards">
           <AgentProtectedRoute>
             <AgentStudyFlashcards />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/avatar-council">
+          <AgentProtectedRoute>
+            <AgentAvatarCouncil />
           </AgentProtectedRoute>
         </Route>
         <Route path="/admin/login" component={AdminLogin} />
@@ -375,6 +370,11 @@ function Router() {
         <Route path="/admin/newsletter">
           <ProtectedRoute>
             <AdminNewsletter />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/admin/avatar-council">
+          <ProtectedRoute>
+            <AdminAvatarCouncil />
           </ProtectedRoute>
         </Route>
         <Route path="/admin">
