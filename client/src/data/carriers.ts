@@ -92,7 +92,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075588067-intern1-2023update.png?alt=media&token=ba44a7c9-6e1b-4726-a23f-2895f6cd48f9", alt: "Americo Financial team", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "About Americo Financial", description: "Learn about Americo's 78-year history of protecting American families", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770221411357-Americo_%20A%20Legacy%20of%20Protection.mp4?alt=media&token=1bd821ed-efd1-41b4-9189-96af48305ee0", title: "Americo: A Legacy of Protection", description: "Learn about Americo's 78-year history of protecting American families", placement: "about", type: "hosted" }
     ],
     website: "https://www.americo.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770074718548-unionstation-7.jpg?alt=media&token=7c275e54-ef65-448a-a983-686826d1cf51"
@@ -140,7 +140,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076077146-hydroponic_1-min-2.jpg?alt=media&token=7ed932a3-2e7f-4116-9f4a-0e57eed94ac0", alt: "Athene sustainability initiatives", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=4X1xc5mSN68", title: "Welcome to Athene", description: "Discover how Athene helps Americans build a more secure retirement", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770224529646-Athene_%20Strength%20in%20Retirement.mp4?alt=media&token=88ed8465-8df8-4e35-b924-93cd40e003cf", title: "Athene: Strength in Retirement", description: "Discover how Athene helps Americans build a more secure retirement", placement: "about", type: "hosted" }
     ],
     website: "https://www.athene.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770075822105-7Dsyn8whfd88mwhziKTvHH.jpg?alt=media&token=4babc1da-b70a-4615-a0ba-bbc01e799218"
@@ -188,7 +188,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077172095-career-employment-Baltimore-Life.png?alt=media&token=81c33d9f-6037-4dd7-8626-f1b4bb636c89", alt: "Baltimore Life careers", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=Ks7tR6eiDGk", title: "Baltimore Life - Our Story", description: "Over 140 years of protecting American families", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770226116626-Baltimore%20Life_%20Trusted%20for%20Generations.mp4?alt=media&token=0a876e4c-ffe4-4606-845b-2755bc91ceed", title: "Baltimore Life: Trusted for Generations", description: "Over 140 years of protecting American families", placement: "about", type: "hosted" }
     ],
     website: "https://www.baltimorelife.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770076992593-Baltimore-Inner-Harbor.jpg?alt=media&token=d275e2eb-74d9-4737-8cf4-1c585e9d5e6d"
@@ -236,7 +236,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077699967-1000s.jpg?alt=media&token=214674d9-4922-42e7-ab01-99b115ed2692", alt: "Corebridge Financial community", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=KVHXWjD0_Pw", title: "Corebridge Financial Overview", description: "Building stronger financial futures for millions of Americans", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770231434871-Corebridge%20Financial_%20Built%20for%20Confidence.mp4?alt=media&token=1e8b7086-fcb5-4888-81c0-c0eaf8e8eef4", title: "Corebridge Financial: Built for Confidence", description: "Building stronger financial futures for millions of Americans", placement: "about", type: "hosted" }
     ],
     website: "https://www.corebridgefinancial.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077320847-0150681.webp?alt=media&token=876ef634-0d48-4c66-aa86-de2b241fba3f"
@@ -285,7 +285,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078331651-EEMydZwWwAAHjah.jpg?alt=media&token=ba38a3d4-2a6e-4682-8624-c860b522c0ad", alt: "Mutual of Omaha community", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=mwzp7fflGzU", title: "Mutual of Omaha - Here for Your Tomorrow", description: "115+ years of protecting families and helping them achieve financial security", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770238562019-Mutual%20of%20Omaha_%20Built%20for%20Life.mp4?alt=media&token=55da419c-230e-43c5-a605-2093ef49773f", title: "Mutual of Omaha: Built for Life", description: "115+ years of protecting families and helping them achieve financial security", placement: "about", type: "hosted" }
     ],
     website: "https://www.mutualofomaha.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770077998953-hero-Mutual-of-Omaha_Hero.jpg?alt=media&token=f99f98dd-2a4b-4a71-8920-ff4a9dbe4c15"
@@ -333,7 +333,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078777161-agency%401x.jpg?alt=media&token=833597ac-a33b-4a65-a961-9ee7ce315c59", alt: "Ethos agency", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=Pj8gR2RjR8c", title: "Ethos Life Insurance - Simplified", description: "Get life insurance in minutes, not weeks", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770245419612-Ethos%20-%20Life%20Insurance%20Built%20for%20Today.mp4?alt=media&token=a0190f62-1542-4c1f-ba23-32b7d9c5ccf4", title: "Ethos: Life Insurance Built for Today", description: "Get life insurance in minutes, not weeks", placement: "about", type: "hosted" }
     ],
     website: "https://www.ethoslife.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770078562366-istockphoto-476881195-612x612.jpg?alt=media&token=a0d9dfd1-ab8d-4b16-9a33-946fcffe4a43"
@@ -381,7 +381,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079519185-company_image_5.webp?alt=media&token=5730d3dd-a236-4206-8b0d-ef219fe6a809", alt: "Royal Neighbors community service", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=J4_CGeQzC4k", title: "Royal Neighbors of America", description: "Neighbor helping neighbor since 1895", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770250413822-Royal%20Neighbors_%20A%20Legacy%20of%20Purpose.mp4?alt=media&token=8af58632-dfdb-4fd2-ba75-d8ba8de69d35", title: "Royal Neighbors: A Legacy of Purpose", description: "Neighbor helping neighbor since 1895", placement: "about", type: "hosted" }
     ],
     website: "https://www.royalneighbors.org",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079074172-Hero_Best-Skyline-Views.jpg?alt=media&token=4f85240b-1774-49ba-9964-94494fa1805a"
@@ -430,7 +430,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079949060-adobestock_322174411-1200x800-5b2df79.jpg?alt=media&token=8f44aa0b-d4fe-4c51-8e0b-7040718a00cd", alt: "Transamerica community", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=Gi6FcJSjnFU", title: "Transamerica - Building a Stronger Tomorrow", description: "120 years of helping Americans achieve financial security", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770309760428-Transamerica_%20A%20Legacy%20of%20Strength.mp4?alt=media&token=aac0ba6a-b029-4a01-b68c-36bc2cf1ae78", title: "Transamerica: A Legacy of Strength", description: "120 years of helping Americans achieve financial security", placement: "about", type: "hosted" }
     ],
     website: "https://www.transamerica.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770079764587-San-Francisco-California-Transamerica-Pyramid-building.webp?alt=media&token=001783fe-c087-40eb-bd30-ce521f122de9"
@@ -479,7 +479,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080532693-99dd65_19a6ad5314424143a0155473a9f7adda~mv2.avif?alt=media&token=c579a6a6-3a40-44c6-a4a7-f269648c2763", alt: "American Home Life customer service", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=QsF5P8Nk_YY", title: "American Home Life Insurance", description: "Protecting families with care since 1909", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770311112909-American%20Home%20Life_%20A%20Promise%20Kept.mp4?alt=media&token=d3d2daa4-798e-4a8a-a4d6-ba75a173c1ed", title: "American Home Life: A Promise Kept", description: "Protecting families with care since 1909", placement: "about", type: "hosted" }
     ],
     website: "https://www.amhomelife.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080221375-kansas-1-1024x615.jpg?alt=media&token=4920cc24-8b1f-481a-8594-285540f47264"
@@ -527,7 +527,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081170337-Nests-top.png?alt=media&token=06af22b7-e387-4537-a01b-3b1f586e43da", alt: "Polish Falcons nests", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=hU2wXqPk6Uc", title: "Polish Falcons of America", description: "A Polish-American tradition of community and protection since 1928", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770401525751-Polish%20Falcons_%20A%20Century%20of%20Heritage.mp4?alt=media&token=483728d8-de7a-4138-a26c-d3fd4a33a03a", title: "Polish Falcons: A Century of Heritage", description: "A Polish-American tradition of community and protection since 1928", placement: "about", type: "hosted" }
     ],
     website: "https://www.polishfalcons.org",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770080902270-istockphoto-951973848-612x612.jpg?alt=media&token=ac1bef02-5a8f-4540-ad76-6d366bf88087"
@@ -575,7 +575,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081755314-Untitled-design-46.png?alt=media&token=41a1d6d5-417a-4e29-ae2d-1efd0643d2d0", alt: "Ladder company", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=WfGL-TmDk3o", title: "Ladder Life Insurance - Smart Coverage", description: "Instant life insurance that adjusts as your life changes", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770315295299-Ladder_%20Life%20Insurance%20that%20Adapts.mp4?alt=media&token=a29b46a2-006f-4b36-9a92-c7494b13afa6", title: "Ladder: Life Insurance that Adapts", description: "Instant life insurance that adjusts as your life changes", placement: "about", type: "hosted" }
     ],
     website: "https://www.ladderlife.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081427670-360_F_127871556_hqd4j8qAAievBtBsXva6r1Y4ns12laDI.jpg?alt=media&token=b505bd05-b980-4250-9f3f-e18076efd462"
@@ -623,7 +623,7 @@ export const carriers: CarrierData[] = [
       { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770082139593-Careers---Life-at-Lincoln---tab-1---DEI-image.jpg?alt=media&token=0eeea929-7793-4cd3-88d2-14f34377aff3", alt: "Lincoln Financial DEI initiatives", placement: "gallery" }
     ],
     videos: [
-      { url: "https://www.youtube.com/watch?v=1YxF0x3k2jQ", title: "Lincoln Financial Group", description: "120 years of helping Americans take charge of their financial futures", placement: "about", type: "youtube" }
+      { url: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fexplainers%2F1770424231764-Lincoln%20Financial_%20Strength%20for%20Generations.mp4?alt=media&token=d13271c1-315f-45a8-9c42-80afe9b77c63", title: "Lincoln Financial: Strength for Generations", description: "120 years of helping Americans take charge of their financial futures", placement: "about", type: "hosted" }
     ],
     website: "https://www.lfg.com",
     heroImage: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1770081973466-GettyImages-1372911980-scaled.webp?alt=media&token=9b0a2ea9-248a-4b45-9db8-1f2415e7a492"

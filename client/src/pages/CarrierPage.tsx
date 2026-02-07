@@ -1,6 +1,6 @@
 import { useParams, Link } from "wouter";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Shield, Lock, Heart, TrendingUp, Clock, CheckCircle,
   DollarSign, Users, BarChart, Zap, Plus, Sliders,
@@ -118,6 +118,44 @@ function PhotoGallery({ photos, carrierName }: { photos: CarrierPhoto[], carrier
   );
 }
 
+// Hosted Video Player Component with Play Button Overlay
+function HostedVideoPlayer({ url, title }: { url: string, title: string }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    setTimeout(() => {
+      videoRef.current?.play();
+    }, 100);
+  };
+
+  return (
+    <div className="aspect-video relative bg-black">
+      <video
+        ref={videoRef}
+        src={url}
+        title={title}
+        className="w-full h-full object-contain"
+        controls={isPlaying}
+        preload="metadata"
+        onEnded={() => setIsPlaying(false)}
+      />
+      {!isPlaying && (
+        <div
+          className="absolute inset-0 flex items-center justify-center cursor-pointer group"
+          onClick={handlePlay}
+        >
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+          <div className="relative w-20 h-20 bg-primary rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+            <Play className="w-10 h-10 text-white ml-1" fill="white" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Video Section Component
 function VideoSection({ videos, carrierName }: { videos: CarrierVideo[], carrierName: string }) {
   const validVideos = videos.filter(v => v.url && v.url.length > 0);
@@ -165,6 +203,8 @@ function VideoSection({ videos, carrierName }: { videos: CarrierVideo[], carrier
                       allowFullScreen
                     />
                   </div>
+                ) : video.type === 'hosted' ? (
+                  <HostedVideoPlayer url={video.url} title={video.title} />
                 ) : (
                   <div className="aspect-video bg-gray-100 flex items-center justify-center">
                     <a
