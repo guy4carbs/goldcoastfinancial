@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,6 +32,7 @@ import {
   FileText,
   User,
   Building,
+  Building2,
   Copy,
   Clock,
   Eye,
@@ -44,6 +45,7 @@ import {
   DollarSign,
   CheckCircle,
   AlertCircle,
+  Fingerprint,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -130,11 +132,26 @@ interface SentLink {
   expiresAt: Date;
   status: "pending" | "opened" | "completed" | "expired";
   carrier?: string;
+  carrierId?: string;
   // Agent who sent the form
   agentId: string;
   agentName: string;
   agentEmail: string;
   agentPhone: string;
+  // Submitted data
+  hasSubmittedData?: boolean;
+}
+
+interface SubmittedFormData {
+  linkId: string;
+  formType: string;
+  carrierId: string;
+  carrierName: string;
+  clientName: string;
+  agentName: string;
+  status: string;
+  submittedData: Record<string, any>;
+  submittedAt: string;
 }
 
 type SendMethod = "email" | "sms" | "both";
@@ -154,6 +171,11 @@ export default function AgentDataEncryption() {
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [selectedFormType, setSelectedFormType] = useState<SecureFormType | null>(null);
 
+  // View Data Dialog State
+  const [viewDataDialogOpen, setViewDataDialogOpen] = useState(false);
+  const [viewingFormData, setViewingFormData] = useState<SubmittedFormData | null>(null);
+  const [isLoadingFormData, setIsLoadingFormData] = useState(false);
+
   // Shared Form State
   const [formClientName, setFormClientName] = useState("");
   const [formEmail, setFormEmail] = useState("");
@@ -165,53 +187,49 @@ export default function AgentDataEncryption() {
   const [devicePreview, setDevicePreview] = useState<DevicePreview>("phone");
   const [isSending, setIsSending] = useState(false);
 
-  const [sentLinks, setSentLinks] = useState<SentLink[]>([
-    {
-      id: "link-1",
-      type: "Banking Information",
-      clientName: "John Smith",
-      clientContact: "john.smith@email.com",
-      method: "email",
-      sentAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000),
-      status: "opened",
-      carrier: "Transamerica",
-      agentId: "agent-1",
-      agentName: "Alex Johnson",
-      agentEmail: "agent@goldcoastfnl.com",
-      agentPhone: "(312) 555-0147"
-    },
-    {
-      id: "link-2",
-      type: "Social Security Number",
-      clientName: "Maria Garcia",
-      clientContact: "(555) 123-4567",
-      method: "text",
-      sentAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      expiresAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      status: "completed",
-      carrier: "Mutual of Omaha",
-      agentId: "agent-1",
-      agentName: "Alex Johnson",
-      agentEmail: "agent@goldcoastfnl.com",
-      agentPhone: "(312) 555-0147"
-    },
-    {
-      id: "link-3",
-      type: "Full Application",
-      clientName: "Robert Johnson",
-      clientContact: "r.johnson@email.com",
-      method: "email",
-      sentAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      expiresAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      status: "expired",
-      carrier: "Lincoln Financial",
-      agentId: "agent-1",
-      agentName: "Alex Johnson",
-      agentEmail: "agent@goldcoastfnl.com",
-      agentPhone: "(312) 555-0147"
-    }
-  ]);
+  const [sentLinks, setSentLinks] = useState<SentLink[]>([]);
+  const [isLoadingLinks, setIsLoadingLinks] = useState(true);
+
+  // Fetch sent forms from server on mount
+  useEffect(() => {
+    const fetchForms = async () => {
+      try {
+        const response = await fetch('/api/secure-forms');
+        if (response.ok) {
+          const data = await response.json();
+          // Map server response to SentLink format
+          const links: SentLink[] = data.forms.map((form: any) => ({
+            id: form.linkId,
+            type: form.formType === 'ssn' ? 'Social Security Number'
+                : form.formType === 'banking' ? 'Banking Information'
+                : form.formType === 'full_application' ? 'Full Application'
+                : form.formType,
+            clientName: form.clientName,
+            clientContact: form.clientEmail || form.clientPhone || '',
+            method: 'email' as const,
+            sentAt: new Date(form.createdAt),
+            expiresAt: new Date(form.expiresAt),
+            status: form.status === 'completed' ? 'completed'
+                  : new Date(form.expiresAt) < new Date() ? 'expired'
+                  : 'pending' as SentLink['status'],
+            carrier: form.carrierName,
+            carrierId: form.carrierId,
+            agentId: 'agent-1',
+            agentName: form.agentName,
+            agentEmail: form.agentEmail || '',
+            agentPhone: '',
+            hasSubmittedData: form.hasSubmittedData
+          }));
+          setSentLinks(links);
+        }
+      } catch (error) {
+        console.error('Failed to fetch forms:', error);
+      } finally {
+        setIsLoadingLinks(false);
+      }
+    };
+    fetchForms();
+  }, []);
 
   const openSendDialog = (formType: SecureFormType) => {
     setSelectedFormType(formType);
@@ -350,6 +368,32 @@ export default function AgentDataEncryption() {
     toast.success(`Link resent to ${link.clientName}`, {
       description: `Via ${link.method} to ${link.clientContact}`
     });
+  };
+
+  const viewFormData = async (linkId: string) => {
+    setIsLoadingFormData(true);
+    setViewDataDialogOpen(true);
+    try {
+      const response = await fetch(`/api/secure-forms/${linkId}/data`);
+      if (!response.ok) {
+        throw new Error("Failed to load form data");
+      }
+      const data = await response.json();
+      setViewingFormData(data);
+    } catch (error) {
+      console.error("Error loading form data:", error);
+      toast.error("Failed to load form data");
+      setViewDataDialogOpen(false);
+    } finally {
+      setIsLoadingFormData(false);
+    }
+  };
+
+  const formatFieldLabel = (key: string): string => {
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .replace(/([a-z])([A-Z])/g, '$1 $2');
   };
 
   const getStatusBadge = (status: SentLink["status"]) => {
@@ -1432,25 +1476,6 @@ export default function AgentDataEncryption() {
           </div>
         </motion.div>
 
-        {/* Security Notice */}
-        <motion.div variants={fadeInUp}>
-          <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-emerald-800">Bank-Level Encryption</h3>
-                  <p className="text-sm text-emerald-600">
-                    All data is encrypted with AES-256 and transmitted over secure TLS connections.
-                    Links expire after 24 hours for maximum security.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
         {/* Send Secure Form Cards */}
         <motion.div variants={fadeInUp}>
@@ -1507,6 +1532,17 @@ export default function AgentDataEncryption() {
           <h2 className="text-lg font-semibold mb-4">Recent Secure Links</h2>
           <Card>
             <CardContent className="p-0">
+              {isLoadingLinks ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : sentLinks.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p className="font-medium">No secure links sent yet</p>
+                  <p className="text-sm">Send your first secure form to get started</p>
+                </div>
+              ) : (
               <div className="divide-y">
                 {sentLinks.map((link) => (
                   <div key={link.id} className="p-4 hover:bg-gray-50 transition-colors">
@@ -1601,7 +1637,12 @@ export default function AgentDataEncryption() {
                           </Button>
                         )}
                         {link.status === "completed" && (
-                          <Button variant="ghost" size="sm" className="text-emerald-600">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-emerald-600"
+                            onClick={() => viewFormData(link.id)}
+                          >
                             <Eye className="w-4 h-4 mr-1" />
                             View Data
                           </Button>
@@ -1611,6 +1652,7 @@ export default function AgentDataEncryption() {
                   </div>
                 ))}
               </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -2030,6 +2072,195 @@ export default function AgentDataEncryption() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Submitted Data Dialog */}
+      <Dialog open={viewDataDialogOpen} onOpenChange={setViewDataDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-emerald-600" />
+              Submitted Form Data
+            </DialogTitle>
+            <DialogDescription>
+              {viewingFormData && (
+                <span>
+                  {viewingFormData.clientName} • {viewingFormData.carrierName} • {viewingFormData.formType}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {isLoadingFormData ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : viewingFormData?.submittedData ? (
+            <div className="space-y-6">
+              {/* Personal Information */}
+              {(viewingFormData.submittedData.fullName || viewingFormData.submittedData.dateOfBirth) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {viewingFormData.submittedData.fullName && (
+                      <div><span className="text-gray-500">Full Name:</span> <span className="font-medium">{viewingFormData.submittedData.fullName}</span></div>
+                    )}
+                    {viewingFormData.submittedData.dateOfBirth && (
+                      <div><span className="text-gray-500">Date of Birth:</span> <span className="font-medium">{viewingFormData.submittedData.dateOfBirth}</span></div>
+                    )}
+                    {viewingFormData.submittedData.gender && (
+                      <div><span className="text-gray-500">Gender:</span> <span className="font-medium">{viewingFormData.submittedData.gender}</span></div>
+                    )}
+                    {(viewingFormData.submittedData.heightFeet || viewingFormData.submittedData.heightInches) && (
+                      <div><span className="text-gray-500">Height:</span> <span className="font-medium">{viewingFormData.submittedData.heightFeet}'{viewingFormData.submittedData.heightInches}"</span></div>
+                    )}
+                    {viewingFormData.submittedData.weight && (
+                      <div><span className="text-gray-500">Weight:</span> <span className="font-medium">{viewingFormData.submittedData.weight} lbs</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Information */}
+              {(viewingFormData.submittedData.address || viewingFormData.submittedData.phone || viewingFormData.submittedData.email) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    Contact Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {viewingFormData.submittedData.address && (
+                      <div className="col-span-2"><span className="text-gray-500">Address:</span> <span className="font-medium">{viewingFormData.submittedData.address}, {viewingFormData.submittedData.city}, {viewingFormData.submittedData.state} {viewingFormData.submittedData.zipCode}</span></div>
+                    )}
+                    {viewingFormData.submittedData.phone && (
+                      <div><span className="text-gray-500">Phone:</span> <span className="font-medium">{viewingFormData.submittedData.phone}</span></div>
+                    )}
+                    {viewingFormData.submittedData.email && (
+                      <div><span className="text-gray-500">Email:</span> <span className="font-medium">{viewingFormData.submittedData.email}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* SSN */}
+              {viewingFormData.submittedData.ssn && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Fingerprint className="w-4 h-4" />
+                    Social Security Number
+                  </h3>
+                  <div className="text-sm">
+                    <span className="text-gray-500">SSN:</span> <span className="font-medium font-mono">{viewingFormData.submittedData.ssn}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Banking Information */}
+              {(viewingFormData.submittedData.bankName || viewingFormData.submittedData.routingNumber) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Building className="w-4 h-4" />
+                    Banking Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {viewingFormData.submittedData.accountHolderName && (
+                      <div><span className="text-gray-500">Account Holder:</span> <span className="font-medium">{viewingFormData.submittedData.accountHolderName}</span></div>
+                    )}
+                    {viewingFormData.submittedData.bankName && (
+                      <div><span className="text-gray-500">Bank Name:</span> <span className="font-medium">{viewingFormData.submittedData.bankName}</span></div>
+                    )}
+                    {viewingFormData.submittedData.routingNumber && (
+                      <div><span className="text-gray-500">Routing Number:</span> <span className="font-medium font-mono">{viewingFormData.submittedData.routingNumber}</span></div>
+                    )}
+                    {viewingFormData.submittedData.accountNumber && (
+                      <div><span className="text-gray-500">Account Number:</span> <span className="font-medium font-mono">{viewingFormData.submittedData.accountNumber}</span></div>
+                    )}
+                    {viewingFormData.submittedData.accountType && (
+                      <div><span className="text-gray-500">Account Type:</span> <span className="font-medium capitalize">{viewingFormData.submittedData.accountType}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Coverage Details */}
+              {(viewingFormData.submittedData.coverageType || viewingFormData.submittedData.coverageAmount) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Coverage Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {viewingFormData.submittedData.coverageType && (
+                      <div><span className="text-gray-500">Coverage Type:</span> <span className="font-medium">{viewingFormData.submittedData.coverageType}</span></div>
+                    )}
+                    {viewingFormData.submittedData.coverageAmount && (
+                      <div><span className="text-gray-500">Coverage Amount:</span> <span className="font-medium">${viewingFormData.submittedData.coverageAmount}</span></div>
+                    )}
+                    {viewingFormData.submittedData.monthlyPremium && (
+                      <div><span className="text-gray-500">Monthly Premium:</span> <span className="font-medium">${viewingFormData.submittedData.monthlyPremium}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Health Questions */}
+              {(viewingFormData.submittedData.tobaccoUse || viewingFormData.submittedData.healthConditions) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Stethoscope className="w-4 h-4" />
+                    Health Information
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 text-sm">
+                    {viewingFormData.submittedData.tobaccoUse && (
+                      <div><span className="text-gray-500">Tobacco Use:</span> <span className="font-medium capitalize">{viewingFormData.submittedData.tobaccoUse}</span></div>
+                    )}
+                    {viewingFormData.submittedData.healthConditions && (
+                      <div><span className="text-gray-500">Health Conditions:</span> <span className="font-medium">{Array.isArray(viewingFormData.submittedData.healthConditions) ? viewingFormData.submittedData.healthConditions.join(", ") : viewingFormData.submittedData.healthConditions}</span></div>
+                    )}
+                    {viewingFormData.submittedData.healthConditionsOther && (
+                      <div><span className="text-gray-500">Other Conditions:</span> <span className="font-medium">{viewingFormData.submittedData.healthConditionsOther}</span></div>
+                    )}
+                    {viewingFormData.submittedData.medications && (
+                      <div><span className="text-gray-500">Medications:</span> <span className="font-medium">{Array.isArray(viewingFormData.submittedData.medications) ? viewingFormData.submittedData.medications.join(", ") : viewingFormData.submittedData.medications}</span></div>
+                    )}
+                    {viewingFormData.submittedData.medicationsOther && (
+                      <div><span className="text-gray-500">Other Medications:</span> <span className="font-medium">{viewingFormData.submittedData.medicationsOther}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Beneficiaries */}
+              {viewingFormData.submittedData.beneficiaries && viewingFormData.submittedData.beneficiaries.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Beneficiaries
+                  </h3>
+                  <div className="space-y-2">
+                    {viewingFormData.submittedData.beneficiaries.map((b: any, i: number) => (
+                      <div key={i} className="text-sm p-2 bg-gray-50 rounded-lg">
+                        <span className="font-medium">{b.name}</span> • {b.relationship} • DOB: {b.dob} • <span className="text-emerald-600 font-medium">{b.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submission Info */}
+              <div className="pt-4 border-t text-xs text-gray-500">
+                Submitted on {new Date(viewingFormData.submittedAt).toLocaleString()}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No data available
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </AgentLoungeLayout>

@@ -329,6 +329,7 @@ export async function registerRoutes(
     carrierName: string;
     clientName: string;
     clientEmail: string;
+    agent?: { name: string; email: string; phone: string };
     agentName: string;
     agentEmail: string;
     agentPhone: string;
@@ -336,6 +337,7 @@ export async function registerRoutes(
     createdAt: Date;
     status: 'pending' | 'opened' | 'completed' | 'expired';
     submittedData?: any;
+    submittedAt?: Date;
   }>();
 
   // Secure data collection - Send encrypted form link via email
@@ -443,6 +445,37 @@ export async function registerRoutes(
     }
   });
 
+  // List all secure forms (for agent dashboard) - MUST be before :linkId routes
+  app.get("/api/secure-forms", async (req, res) => {
+    try {
+      const forms: any[] = [];
+      secureFormStore.forEach((formData, linkId) => {
+        forms.push({
+          linkId,
+          formType: formData.formType,
+          carrierId: formData.carrierId,
+          carrierName: formData.carrierName,
+          clientName: formData.clientName,
+          clientEmail: formData.clientEmail,
+          agentName: formData.agentName,
+          agentEmail: formData.agent?.email,
+          status: formData.status,
+          createdAt: formData.createdAt || formData.expiresAt,
+          expiresAt: formData.expiresAt,
+          hasSubmittedData: !!formData.submittedData
+        });
+      });
+
+      // Sort by creation date, newest first
+      forms.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      res.json({ forms });
+    } catch (error: any) {
+      console.error("[SecureForm] Error listing forms:", error);
+      res.status(500).json({ error: "Failed to list forms" });
+    }
+  });
+
   // Get secure form metadata by linkId
   app.get("/api/secure-forms/:linkId", async (req, res) => {
     try {
@@ -479,6 +512,37 @@ export async function registerRoutes(
     }
   });
 
+  // Get submitted form data (for agents to view)
+  app.get("/api/secure-forms/:linkId/data", async (req, res) => {
+    try {
+      const { linkId } = req.params;
+      const formData = secureFormStore.get(linkId);
+
+      if (!formData) {
+        return res.status(404).json({ error: "Form not found" });
+      }
+
+      if (formData.status !== 'completed') {
+        return res.status(400).json({ error: "Form has not been submitted yet" });
+      }
+
+      res.json({
+        linkId,
+        formType: formData.formType,
+        carrierId: formData.carrierId,
+        carrierName: formData.carrierName,
+        clientName: formData.clientName,
+        agentName: formData.agentName,
+        status: formData.status,
+        submittedData: formData.submittedData,
+        submittedAt: formData.submittedAt || new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("[SecureForm] Error getting form data:", error);
+      res.status(500).json({ error: "Failed to get form data" });
+    }
+  });
+
   // Submit secure form data
   app.post("/api/secure-forms/:linkId/submit", async (req, res) => {
     try {
@@ -498,8 +562,10 @@ export async function registerRoutes(
       }
 
       // Store the submitted data (encrypted in production)
-      formData.submittedData = req.body;
+      // Extract formData from nested structure if present
+      formData.submittedData = req.body.formData || req.body;
       formData.status = 'completed';
+      formData.submittedAt = new Date();
 
       console.log(`[SecureForm] Form submitted: ${linkId}`);
 
