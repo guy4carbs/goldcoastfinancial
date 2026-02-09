@@ -4,11 +4,11 @@ import { useLocation } from "wouter";
 export function LindyChat() {
   const [location] = useLocation();
 
-  // Don't show on admin or agent pages
-  const isAdminOrAgent = location.startsWith("/admin") || location.startsWith("/agents");
+  // Don't show on admin, agent, or secure form pages
+  const shouldHideLindy = location.startsWith("/admin") || location.startsWith("/agents") || location.startsWith("/secure");
 
   useEffect(() => {
-    if (isAdminOrAgent) {
+    if (shouldHideLindy) {
       // Remove Lindy widget if it exists
       const lindyWidget = document.querySelector('[data-lindy-widget]') ||
                           document.getElementById('lindy-embed-root') ||
@@ -39,7 +39,7 @@ export function LindyChat() {
         widget.remove();
       }
     };
-  }, [isAdminOrAgent]);
+  }, [shouldHideLindy]);
 
   return null;
 }

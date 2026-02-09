@@ -519,3 +519,475 @@ Please respond within 45 days as required by law.
     }
   });
 }
+
+// Carrier branding data for emails (subset of full branding)
+const CARRIER_EMAIL_BRANDING: Record<string, {
+  name: string;
+  shortName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  gradientFrom: string;
+  gradientTo: string;
+  tagline: string;
+  logoUrl?: string;
+}> = {
+  "americo": {
+    name: "Americo Financial Life and Annuity Insurance Company",
+    shortName: "Americo",
+    primaryColor: "#1E3A5F",
+    secondaryColor: "#C4A052",
+    gradientFrom: "#1E3A5F",
+    gradientTo: "#2D5A87",
+    tagline: "Life Insurance That Fits Your Life",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba"
+  },
+  "athene": {
+    name: "Athene Annuity and Life Company",
+    shortName: "Athene",
+    primaryColor: "#00205B",
+    secondaryColor: "#00A3E0",
+    gradientFrom: "#00205B",
+    gradientTo: "#003380",
+    tagline: "Retirement Innovators",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643"
+  },
+  "baltimore-life": {
+    name: "Baltimore Life Insurance Company",
+    shortName: "Baltimore Life",
+    primaryColor: "#3471B6",
+    secondaryColor: "#2860A0",
+    gradientFrom: "#3471B6",
+    gradientTo: "#4080C4",
+    tagline: "Protecting Families Since 1882",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277409363-logo%402x.png?alt=media&token=cdd3c6d0-e497-4a4c-a357-6e3b548dd95c"
+  },
+  "corebridge": {
+    name: "Corebridge Financial",
+    shortName: "Corebridge",
+    primaryColor: "#4808C1",
+    secondaryColor: "#5A1AD3",
+    gradientFrom: "#4808C1",
+    gradientTo: "#5A1AD3",
+    tagline: "Helping People Act on Their Ambitions",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2"
+  },
+  "mutual-of-omaha": {
+    name: "Mutual of Omaha Insurance Company",
+    shortName: "Mutual of Omaha",
+    primaryColor: "#003057",
+    secondaryColor: "#FFB81C",
+    gradientFrom: "#003057",
+    gradientTo: "#004477",
+    tagline: "The Company You Keep",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277474666-Mutual-of-Omaha-logo.png?alt=media&token=0382cf9c-c262-4931-8155-688210c1c173"
+  },
+  "ethos": {
+    name: "Ethos Life Insurance",
+    shortName: "Ethos",
+    primaryColor: "#23514A",
+    secondaryColor: "#1A3F3A",
+    gradientFrom: "#23514A",
+    gradientTo: "#2D635A",
+    tagline: "Life Insurance for the Modern Family",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277532663-6341f9fa-fd59-42aa-b238-d23e46658048.png?alt=media&token=ea3d4914-d65e-4817-9a81-1ea709064e52"
+  },
+  "royal-neighbors": {
+    name: "Royal Neighbors of America",
+    shortName: "Royal Neighbors",
+    primaryColor: "#6B2D7B",
+    secondaryColor: "#E91E8C",
+    gradientFrom: "#6B2D7B",
+    gradientTo: "#8B3D9B",
+    tagline: "More Than Insurance. A Sisterhood.",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277589538-330-3309455_royal-neighbors-of-america-life-insurance-royal-neighbors.png?alt=media&token=d700619b-ad2d-4071-bd2b-a57eb5a12b56"
+  },
+  "transamerica": {
+    name: "Transamerica Life Insurance Company",
+    shortName: "Transamerica",
+    primaryColor: "#C41230",
+    secondaryColor: "#002B5C",
+    gradientFrom: "#C41230",
+    gradientTo: "#E01540",
+    tagline: "Tomorrow Makers",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769278248208-transamerica-logo.png?alt=media&token=9d6fb91f-9c8e-432b-96e4-c4ed8971cc6d"
+  },
+  "american-home-life": {
+    name: "American Home Life Insurance Company",
+    shortName: "American Home Life",
+    primaryColor: "#1B4F72",
+    secondaryColor: "#D4AC0D",
+    gradientFrom: "#1B4F72",
+    gradientTo: "#2471A3",
+    tagline: "Protecting What Matters Most",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277674404-Carrier-Logo-Web-270x200-American-Home-Life-1080x608.webp?alt=media&token=0546ea66-443d-44bc-b2f1-d561bd1f713b"
+  },
+  "polish-falcons": {
+    name: "Polish Falcons of America",
+    shortName: "Polish Falcons",
+    primaryColor: "#DC143C",
+    secondaryColor: "#FFFFFF",
+    gradientFrom: "#DC143C",
+    gradientTo: "#E83C5C",
+    tagline: "Strength Through Unity",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238"
+  },
+  "ladder": {
+    name: "Ladder Life Insurance",
+    shortName: "Ladder",
+    primaryColor: "#1A1A2E",
+    secondaryColor: "#16C79A",
+    gradientFrom: "#1A1A2E",
+    gradientTo: "#2D2D44",
+    tagline: "Flexible Life Insurance for Today",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733"
+  },
+  "lincoln-financial": {
+    name: "Lincoln Financial Group",
+    shortName: "Lincoln Financial",
+    primaryColor: "#6B1C23",
+    secondaryColor: "#8B2D35",
+    gradientFrom: "#6B1C23",
+    gradientTo: "#8B2D35",
+    tagline: "Chief Life Officer",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b"
+  }
+};
+
+// Send secure data collection form link to client
+export async function sendSecureFormEmail(data: {
+  clientName: string;
+  clientEmail: string;
+  formType: 'ssn' | 'banking' | 'full_application';
+  secureLink: string;
+  expiresAt: Date;
+  carrier?: string;
+  carrierId?: string;
+  customMessage?: string;
+  agent: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}) {
+  const gmail = await getGmailClient();
+
+  const formTypeLabels: Record<string, string> = {
+    ssn: 'Social Security Number',
+    banking: 'Banking Information',
+    full_application: 'Full Application'
+  };
+
+  const formTypeLabel = formTypeLabels[data.formType] || data.formType;
+  const clientFirstName = data.clientName.split(' ')[0];
+  const agentFirstName = data.agent.name.split(' ')[0];
+
+  // Get carrier branding or use defaults
+  const carrierBranding = data.carrierId ? CARRIER_EMAIL_BRANDING[data.carrierId] : null;
+  const primaryColor = carrierBranding?.primaryColor || '#1e40af';
+  const gradientFrom = carrierBranding?.gradientFrom || '#1e40af';
+  const gradientTo = carrierBranding?.gradientTo || '#3b82f6';
+  const carrierName = carrierBranding?.shortName || data.carrier || 'Insurance Provider';
+  const carrierTagline = carrierBranding?.tagline || 'Secure Document Request';
+  const carrierLogoUrl = carrierBranding?.logoUrl || '';
+
+  // Build logo HTML - show image if URL exists, otherwise show carrier name
+  const logoHtml = carrierLogoUrl
+    ? `<table cellpadding="0" cellspacing="0" style="margin-bottom: 12px;"><tr><td align="center" style="background-color: #ffffff; border-radius: 12px; padding: 14px 22px;"><img src="${carrierLogoUrl}" alt="${carrierName}" width="180" style="display: block; max-height: 60px; width: auto;" /></td></tr></table>`
+    : `<h1 style="color: #ffffff; margin: 0 0 12px 0; font-size: 26px; font-weight: 700;">${carrierName}</h1>`;
+
+  // Subject with carrier branding
+  const subject = `${carrierName} - Secure ${formTypeLabel} Request from ${agentFirstName}`;
+
+  // Form-specific default messages
+  const getDefaultMessage = () => {
+    switch (data.formType) {
+      case 'ssn':
+        return `To finalize and submit your application with ${carrierName}, we'll need your Social Security number for identity verification and underwriting purposes.\n\nFor security, please provide this through our secure submission link below (or feel free to call me directly if you prefer).\n\nLet me know once it's sent so I can confirm receipt and move your application forward immediately.`;
+      case 'banking':
+        return `To complete your policy setup with ${carrierName}, we'll need your banking information for the initial premium draft and ongoing billing authorization.\n\nYou can submit this securely using the link below, or we can complete it together over the phone — whichever you prefer.\n\nOnce received, I'll confirm and finalize your submission right away.`;
+      case 'full_application':
+        return `To move forward with your policy submission to ${carrierName}, I'll need your completed application on file.\n\nPlease send it over at your earliest convenience so we can keep everything on track for underwriting.\n\nIf you have any questions while completing it, let me know — happy to help.`;
+      default:
+        return `I need your ${formTypeLabel.toLowerCase()} to process your application with ${carrierName}.`;
+    }
+  };
+  const bodyMessage = data.customMessage || getDefaultMessage();
+
+  // HTML Email with carrier branding - nice design without spam triggers
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden;">
+          <!-- Carrier Header -->
+          <tr>
+            <td style="background-color: ${gradientFrom}; padding: 28px 40px; text-align: center;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    ${logoHtml}
+                    <p style="color: #ffffff; margin: 0; font-size: 14px; font-weight: 500;">${carrierTagline}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Form Type Banner -->
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding-right: 16px; vertical-align: middle;">
+                    <span style="font-size: 32px;">${data.formType === 'ssn' ? '🔐' : data.formType === 'banking' ? '🏦' : '📋'}</span>
+                  </td>
+                  <td style="vertical-align: middle;">
+                    <p style="color: ${primaryColor}; font-size: 18px; font-weight: 700; margin: 0;">${formTypeLabel} Request</p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">Secure form requested by ${data.agent.name}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <!-- Welcome Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0f9ff; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0;">
+                      Hi <strong style="color: ${primaryColor};">${clientFirstName}</strong>,
+                    </p>
+                    <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 12px 0 0 0;">
+                      ${bodyMessage.replace(/\n\n/g, '</p><p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 12px 0 0 0;">')}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 25px 0; text-align: center;">
+                Click the secure button below to submit your information:
+              </p>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${data.secureLink}" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 17px; font-weight: 700;">
+                      🔒 Submit ${formTypeLabel} Securely
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Trust Indicators -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding: 0 12px; text-align: center;">
+                          <span style="font-size: 24px;">🔐</span>
+                          <p style="color: #6b7280; font-size: 11px; margin: 6px 0 0 0; font-weight: 600;">256-bit SSL</p>
+                        </td>
+                        <td style="padding: 0 12px; text-align: center;">
+                          <span style="font-size: 24px;">🏛️</span>
+                          <p style="color: #6b7280; font-size: 11px; margin: 6px 0 0 0; font-weight: 600;">Bank-Level</p>
+                        </td>
+                        <td style="padding: 0 12px; text-align: center;">
+                          <span style="font-size: 24px;">⏱️</span>
+                          <p style="color: #6b7280; font-size: 11px; margin: 6px 0 0 0; font-weight: 600;">24hr Expiry</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Security Notice -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px; margin: 25px 0;">
+                <tr>
+                  <td style="padding: 18px 24px;">
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="vertical-align: top; padding-right: 14px;">
+                          <span style="font-size: 20px;">⚠️</span>
+                        </td>
+                        <td>
+                          <p style="color: #92400e; font-size: 14px; line-height: 1.5; margin: 0; font-weight: 500;">
+                            This secure link expires in 24 hours for your protection.
+                          </p>
+                          <p style="color: #a16207; font-size: 12px; line-height: 1.5; margin: 6px 0 0 0;">
+                            Your data is protected with bank-level encryption and will be securely transmitted to your agent.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Agent Signature -->
+          <tr>
+            <td style="padding: 0 40px 40px 40px; border-top: 1px solid #e5e7eb;">
+              <table cellpadding="0" cellspacing="0" style="padding-top: 30px;">
+                <tr>
+                  <td style="padding-right: 16px; vertical-align: top;">
+                    <!-- Agent Avatar -->
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="width: 56px; height: 56px; background-color: ${gradientFrom}; border-radius: 14px; text-align: center; vertical-align: middle;">
+                          <span style="color: #ffffff; font-size: 22px; font-weight: 700;">${data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                    <p style="color: #111827; font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">${data.agent.name}</p>
+                    <p style="color: ${primaryColor}; font-size: 13px; font-weight: 600; margin: 0 0 8px 0;">Licensed Insurance Agent</p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 0;">📧 <a href="mailto:${data.agent.email}" style="color: #6b7280; text-decoration: none;">${data.agent.email}</a></p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">📱 <a href="tel:${data.agent.phone.replace(/[^0-9+]/g, '')}" style="color: ${primaryColor}; text-decoration: none; font-weight: 600;">${data.agent.phone}</a></p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    ${carrierLogoUrl ? `<img src="${carrierLogoUrl}" alt="${carrierName}" width="120" style="display: block; margin: 0 auto 12px auto; max-height: 40px; width: auto;" />` : `<p style="color: ${primaryColor}; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">${carrierName}</p>`}
+                    <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                      via Heritage Life Solutions
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Legal Footer -->
+          <tr>
+            <td style="background-color: #f1f5f9; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <p style="color: #64748b; font-size: 11px; line-height: 1.6; margin: 0 0 12px 0; text-align: center;">
+                      &copy; 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567. Policies are issued by our carrier partners and product availability may vary by state.
+                    </p>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
+                      At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.
+                    </p>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
+                      Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term.
+                    </p>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0; text-align: center;">
+                      Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  // Plain text fallback
+  const plainTextBody = `
+${carrierName}
+${carrierTagline}
+
+Hi ${clientFirstName},
+
+${bodyMessage}
+
+--------------------------------------------
+SUBMIT YOUR ${formTypeLabel.toUpperCase()}:
+${data.secureLink}
+--------------------------------------------
+
+Security Notice:
+- This link expires in 24 hours
+- Your data is protected with bank-level encryption
+- Information is securely transmitted to your agent
+
+Best regards,
+
+${data.agent.name}
+Licensed Insurance Agent
+${data.agent.email}
+${data.agent.phone}
+
+--------------------------------------------
+${carrierName} via Heritage Life Solutions
+
+(c) 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567. Policies are issued by our carrier partners and product availability may vary by state.
+
+At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.
+
+Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term.
+
+Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.
+  `.trim();
+
+  // Create multipart email with HTML and plain text
+  const boundary = `boundary_${Date.now()}`;
+  const message = [
+    'MIME-Version: 1.0',
+    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    `To: ${data.clientEmail}`,
+    `Reply-To: ${data.agent.email}`,
+    `Subject: ${subject}`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: 7bit',
+    '',
+    plainTextBody,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: 7bit',
+    '',
+    htmlBody,
+    '',
+    `--${boundary}--`
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(message)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  const result = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+
+  console.log(`[SecureForm] Email sent to ${data.clientEmail} for ${formTypeLabel} (${carrierName})`);
+  return result;
+}
