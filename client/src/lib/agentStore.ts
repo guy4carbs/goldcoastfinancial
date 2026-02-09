@@ -5,6 +5,7 @@ export interface AgentUser {
   id: string;
   name: string;
   email: string;
+  phone: string;
   role: 'agent' | 'executive';
   avatar?: string;
   territories: string[];
@@ -291,6 +292,7 @@ const DEMO_AGENTS: AgentUser[] = [
     id: 'agent-1',
     name: 'Alex Johnson',
     email: 'agent@goldcoastfnl.com',
+    phone: '(312) 555-0147',
     role: 'agent',
     territories: ['Illinois', 'Indiana'],
     startDate: '2024-06-15',
@@ -301,6 +303,7 @@ const DEMO_AGENTS: AgentUser[] = [
     id: 'exec-1',
     name: 'Jack Cook',
     email: 'jack@goldcoastfnl.com',
+    phone: '(630) 778-0888',
     role: 'executive',
     territories: ['All States'],
     startDate: '2023-01-01',
@@ -1392,6 +1395,8 @@ interface AgentStore {
   levelUp: number | null;
   login: (email: string, password: string) => boolean;
   logout: () => void;
+  updateProfile: (updates: Partial<Pick<AgentUser, 'name' | 'email' | 'phone'>>) => void;
+  createOrUpdateProfile: (profile: { name: string; email: string; phone: string }) => void;
   toggleTheme: () => void;
   completeTask: (taskId: string) => void;
   addTask: (task: Omit<Task, 'id' | 'assignedTo' | 'completed'>) => void;
@@ -1494,7 +1499,56 @@ export const useAgentStore = create<AgentStore>()(
 
       logout: () => {
         set({ currentUser: null });
-        localStorage.removeItem('agent-lounge-storage');
+        localStorage.removeItem('agent-lounge-storage-v6');
+      },
+
+      updateProfile: (updates) => {
+        const { currentUser } = get();
+        if (currentUser) {
+          // Create a completely new user object to ensure Zustand detects the change
+          const updatedUser: AgentUser = {
+            id: currentUser.id,
+            name: updates.name ?? currentUser.name,
+            email: updates.email ?? currentUser.email,
+            phone: updates.phone ?? currentUser.phone,
+            role: currentUser.role,
+            avatar: currentUser.avatar,
+            territories: [...currentUser.territories],
+            startDate: currentUser.startDate,
+            certifications: [...currentUser.certifications],
+            badges: [...currentUser.badges],
+          };
+          set({ currentUser: updatedUser });
+        }
+      },
+
+      // Creates a new user or updates existing - allows saving without login
+      createOrUpdateProfile: (profile) => {
+        const { currentUser } = get();
+        if (currentUser) {
+          // Update existing user
+          const updatedUser: AgentUser = {
+            ...currentUser,
+            name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+          };
+          set({ currentUser: updatedUser });
+        } else {
+          // Create new user with default values
+          const newUser: AgentUser = {
+            id: `agent-${Date.now()}`,
+            name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+            role: 'agent',
+            territories: [],
+            startDate: new Date().toISOString().split('T')[0],
+            certifications: [],
+            badges: [],
+          };
+          set({ currentUser: newUser });
+        }
       },
 
       toggleTheme: () => set(state => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
@@ -2557,7 +2611,8 @@ ${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider futur
       }
     }),
     {
-      name: 'agent-lounge-storage-v4',
+      name: 'agent-lounge-storage-v6',
+      version: 1,
       partialize: (state) => ({
         currentUser: state.currentUser,
         theme: state.theme,
@@ -2572,9 +2627,20 @@ ${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider futur
         return {
           ...currentState,
           ...persisted,
+          // Reset demo data for courses and performance on each load
           performance: DEMO_PERFORMANCE,
           courses: DEMO_COURSES
         };
+      },
+      // Ensure storage is correctly initialized
+      onRehydrateStorage: () => (state) => {
+        // Called when state is rehydrated from storage
+        if (state?.currentUser) {
+          // Ensure phone field exists for older stored users
+          if (!state.currentUser.phone) {
+            state.currentUser.phone = '';
+          }
+        }
       }
     }
   )

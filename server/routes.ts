@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification } from "./gmail";
+import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail } from "./gmail";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -318,6 +318,204 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error processing meeting request:", error);
       res.status(500).json({ error: "Failed to submit meeting request" });
+    }
+  });
+
+  // In-memory store for secure form metadata (in production, use database)
+  const secureFormStore = new Map<string, {
+    linkId: string;
+    formType: string;
+    carrierId: string;
+    carrierName: string;
+    clientName: string;
+    clientEmail: string;
+    agentName: string;
+    agentEmail: string;
+    agentPhone: string;
+    expiresAt: Date;
+    createdAt: Date;
+    status: 'pending' | 'opened' | 'completed' | 'expired';
+    submittedData?: any;
+  }>();
+
+  // Secure data collection - Send encrypted form link via email
+  app.post("/api/secure-forms/send", async (req, res) => {
+    try {
+      const {
+        clientName,
+        clientEmail,
+        formType,
+        carrier,
+        carrierId,
+        customMessage,
+        sendMethod,
+        agent
+      } = req.body;
+
+      // Validate required fields
+      if (!clientName || !clientEmail || !formType || !agent) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      if (!agent.name || !agent.email) {
+        return res.status(400).json({ error: "Agent information is required" });
+      }
+
+      if (!carrierId) {
+        return res.status(400).json({ error: "Carrier selection is required" });
+      }
+
+      // Generate a unique secure link
+      const linkId = crypto.randomBytes(16).toString('hex');
+      // Use the app's base URL (in production, this would be the production domain)
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? 'https://heritagels.org'
+        : `http://localhost:${process.env.PORT || 5000}`;
+      const secureLink = `${baseUrl}/secure/form/${linkId}`;
+
+      // Set expiration to 24 hours from now
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      // Store form metadata
+      secureFormStore.set(linkId, {
+        linkId,
+        formType,
+        carrierId,
+        carrierName: carrier,
+        clientName,
+        clientEmail,
+        agentName: agent.name,
+        agentEmail: agent.email,
+        agentPhone: agent.phone || '',
+        expiresAt,
+        createdAt: new Date(),
+        status: 'pending'
+      });
+
+      console.log(`[SecureForm] Form created: ${linkId} for ${carrierId} - ${formType}`);
+
+      // Only send email if sendMethod includes email
+      if (sendMethod === 'email' || sendMethod === 'both') {
+        try {
+          await sendSecureFormEmail({
+            clientName,
+            clientEmail,
+            formType,
+            secureLink,
+            expiresAt,
+            carrier,
+            carrierId,
+            customMessage,
+            agent: {
+              name: agent.name,
+              email: agent.email,
+              phone: agent.phone || ''
+            }
+          });
+          console.log(`[SecureForm] Email sent successfully to ${clientEmail}`);
+        } catch (emailError: any) {
+          console.error("[SecureForm] Error sending email:", emailError?.message || emailError);
+          return res.status(500).json({
+            error: "Failed to send email. Please check your Gmail configuration.",
+            details: emailError?.message
+          });
+        }
+      }
+
+      // For SMS, we'll add this later
+      if (sendMethod === 'sms' || sendMethod === 'both') {
+        console.log(`[SecureForm] SMS sending not yet implemented for ${req.body.clientPhone}`);
+        // SMS will be added when Twilio is configured
+      }
+
+      res.status(201).json({
+        success: true,
+        message: "Secure form link sent successfully",
+        linkId,
+        secureLink,
+        expiresAt: expiresAt.toISOString(),
+        emailSent: sendMethod === 'email' || sendMethod === 'both',
+        smsSent: false // Will be true when SMS is implemented
+      });
+    } catch (error: any) {
+      console.error("[SecureForm] Error:", error);
+      res.status(500).json({ error: "Failed to send secure form link" });
+    }
+  });
+
+  // Get secure form metadata by linkId
+  app.get("/api/secure-forms/:linkId", async (req, res) => {
+    try {
+      const { linkId } = req.params;
+      const formData = secureFormStore.get(linkId);
+
+      if (!formData) {
+        return res.status(404).json({ error: "Form not found or has expired" });
+      }
+
+      // Check if expired
+      if (new Date() > formData.expiresAt) {
+        formData.status = 'expired';
+        return res.status(410).json({ error: "This form link has expired", expired: true });
+      }
+
+      // Mark as opened if first access
+      if (formData.status === 'pending') {
+        formData.status = 'opened';
+      }
+
+      res.json({
+        formType: formData.formType,
+        carrierId: formData.carrierId,
+        carrierName: formData.carrierName,
+        clientName: formData.clientName,
+        agentName: formData.agentName,
+        expiresAt: formData.expiresAt.toISOString(),
+        status: formData.status
+      });
+    } catch (error: any) {
+      console.error("[SecureForm] Error fetching form:", error);
+      res.status(500).json({ error: "Failed to load form" });
+    }
+  });
+
+  // Submit secure form data
+  app.post("/api/secure-forms/:linkId/submit", async (req, res) => {
+    try {
+      const { linkId } = req.params;
+      const formData = secureFormStore.get(linkId);
+
+      if (!formData) {
+        return res.status(404).json({ error: "Form not found" });
+      }
+
+      if (new Date() > formData.expiresAt) {
+        return res.status(410).json({ error: "This form link has expired" });
+      }
+
+      if (formData.status === 'completed') {
+        return res.status(400).json({ error: "This form has already been submitted" });
+      }
+
+      // Store the submitted data (encrypted in production)
+      formData.submittedData = req.body;
+      formData.status = 'completed';
+
+      console.log(`[SecureForm] Form submitted: ${linkId}`);
+
+      // In production, you would:
+      // 1. Encrypt and store the data securely
+      // 2. Send notification to the agent
+      // 3. Trigger any carrier-specific workflows
+
+      res.json({
+        success: true,
+        message: "Your information has been securely submitted",
+        submittedAt: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("[SecureForm] Error submitting form:", error);
+      res.status(500).json({ error: "Failed to submit form" });
     }
   });
 

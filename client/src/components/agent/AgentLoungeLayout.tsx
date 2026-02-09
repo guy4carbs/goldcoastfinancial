@@ -11,7 +11,6 @@ import {
   DollarSign,
   FileText,
   BookOpen,
-  GraduationCap,
   Trophy,
   Star,
   MessageSquare,
@@ -35,6 +34,7 @@ import {
   Bot,
   Inbox,
   Brain,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,22 +58,21 @@ const mainNavItems: NavItem[] = [
   { icon: Home, label: "Dashboard", href: "/agents/dashboard" },
   { icon: Inbox, label: "Lead Inbox", href: "/agents/inbox" },
   { icon: Brain, label: "Intelligence", href: "/agents/intelligence" },
-  { icon: Rocket, label: "Getting Started", href: "/agents/getting-started" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
   { icon: BarChart3, label: "Performance", href: "/agents/performance" },
 ];
 
 const toolsNavItems: NavItem[] = [
+  { icon: Shield, label: "Data Encryption", href: "/agents/data-encryption" },
+  { icon: Zap, label: "Automations", href: "/agents/automations" },
   { icon: Bot, label: "AI Avatar Council", href: "/agents/avatar-council" },
   { icon: FileText, label: "Quotes", href: "/agents/quotes" },
-  { icon: Mail, label: "Templates", href: "/agents/templates" },
   { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
   { icon: BookOpen, label: "Resources", href: "/agents/resources" },
   { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
 ];
 
 const growthNavItems: NavItem[] = [
-  { icon: GraduationCap, label: "Training", href: "/agents/training" },
   { icon: Trophy, label: "Leaderboard", href: "/agents/leaderboard" },
   { icon: Star, label: "Achievements", href: "/agents/achievements" },
 ];
@@ -116,11 +115,9 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       'getting-started': '/agents/getting-started',
       calendar: '/agents/calendar',
       performance: '/agents/performance',
-      training: '/agents/training',
       chat: '/agents/chat',
       email: '/agents/email',
       quotes: '/agents/quotes',
-      templates: '/agents/templates',
       scripts: '/agents/scripts',
       resources: '/agents/resources',
       guidelines: '/agents/guidelines',
@@ -128,6 +125,8 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       achievements: '/agents/achievements',
       settings: '/agents/settings',
       'avatar-council': '/agents/avatar-council',
+      automations: '/agents/automations',
+      'data-encryption': '/agents/data-encryption',
     };
     if (routes[tab]) {
       setLocation(routes[tab]);
@@ -416,8 +415,8 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         <div className="flex items-center justify-around py-2">
           {[
             { icon: Home, label: "Home", href: "/agents/dashboard" },
+            { icon: Inbox, label: "Inbox", href: "/agents/inbox" },
             { icon: BarChart3, label: "Performance", href: "/agents/performance" },
-            { icon: GraduationCap, label: "Training", href: "/agents/training" },
             { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
           ].map((item) => {
             const isActive = location === item.href;

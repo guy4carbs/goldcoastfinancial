@@ -32,12 +32,16 @@ import {
   Calendar,
   Bell,
   ChevronRight,
+  ChevronDown,
   Clock,
   CheckCircle2,
   BarChart3,
   ArrowUpRight,
   Zap,
-  Users
+  Users,
+  Brain,
+  Lightbulb,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -140,13 +144,59 @@ export default function AgentDashboard() {
     }
   };
 
-  // Get time-based greeting
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
+  // Get aggressive command center directive
+  const getCommandDirective = () => {
+    const callsRemaining = performance.dailyCallsTarget - performance.dailyCalls;
+    const closesRemaining = performance.dailyClosesTarget - performance.dailyCloses;
+    const rank = performance.rank;
+
+    // Only show critical/warning for truly urgent situations
+
+    // Critical: Way behind on calls (less than 30% done late in day)
+    if (callsRemaining > performance.dailyCallsTarget * 0.7) {
+      return {
+        main: `${callsRemaining} CALLS LEFT.`,
+        sub: "You're behind pace. Pick up the phone.",
+        urgency: 'critical'
+      };
+    }
+
+    // Close opportunity - exciting, use brand color
+    if (closesRemaining === 1) {
+      return {
+        main: "ONE MORE CLOSE.",
+        sub: `That's $${Math.round(pendingEarnings / 3)} in commission. Finish strong.`,
+        urgency: 'standard'
+      };
+    }
+
+    // Good momentum - streak protection
+    if (performance.currentStreak >= 5) {
+      return {
+        main: `${performance.currentStreak}-DAY STREAK.`,
+        sub: `${callsRemaining} calls to keep it alive. Don't break it.`,
+        urgency: 'standard'
+      };
+    }
+
+    // Ranking push - but keep brand colors
+    if (rank <= 3 && rank > 1) {
+      return {
+        main: `#${rank} ON LEADERBOARD.`,
+        sub: `${5 - rank + 2} more calls to overtake #${rank - 1}. Push harder.`,
+        urgency: 'standard'
+      };
+    }
+
+    // Default: Clear mission
+    return {
+      main: `${callsRemaining} CALLS. ${closesRemaining} CLOSES.`,
+      sub: "That's today's mission. Execute.",
+      urgency: 'standard'
+    };
   };
+
+  const directive = getCommandDirective();
 
   const pipelineStats = useMemo(() => ({
     new: leads.filter(l => l.status === 'new').length,
@@ -200,66 +250,90 @@ export default function AgentDashboard() {
         animate="visible"
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Welcome Banner */}
+        {/* Command Center Banner */}
         <motion.div variants={fadeInUp}>
-          <Card className="bg-gradient-to-r from-primary to-primary/90 border-0 overflow-hidden">
+          <Card className={cn(
+            "border-0 overflow-hidden",
+            directive.urgency === 'critical'
+              ? "bg-gradient-to-r from-red-600 to-red-500"
+              : "bg-gradient-to-r from-primary to-primary/80"
+          )}>
             <CardContent className="p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                {/* Left: Greeting & Stats */}
+                {/* Left: Command Directive */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-white">
-                      {getGreeting()}, {currentUser?.name?.split(' ')[0] || 'Agent'}!
-                    </h1>
-                    <div className="flex items-center gap-1 bg-orange-500/20 px-2 py-1 rounded-full">
-                      <Flame className="w-4 h-4 text-orange-400" />
-                      <span className="text-sm font-medium text-orange-300">{performance.currentStreak}-day streak</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full",
+                      directive.urgency === 'critical' ? "bg-white animate-pulse" : "bg-white/60"
+                    )} />
+                    <span className="text-white/70 text-sm font-medium uppercase tracking-wider">
+                      {directive.urgency === 'critical' ? 'ACTION REQUIRED' : 'COMMAND CENTER'}
+                    </span>
+                    <div className="flex items-center gap-1 bg-black/20 px-2 py-1 rounded-full ml-2">
+                      <Trophy className="w-3 h-3 text-amber-300" />
+                      <span className="text-xs font-bold text-amber-300">#{performance.rank}</span>
                     </div>
                   </div>
-                  <p className="text-white/70 mb-4">
-                    You're <span className="text-amber-300 font-semibold">#{performance.rank}</span> on the leaderboard this week. Keep pushing!
+
+                  <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tight mb-1">
+                    {directive.main}
+                  </h1>
+                  <p className="text-white/80 text-lg font-medium">
+                    {directive.sub}
                   </p>
 
-                  {/* Daily Call Progress */}
-                  <div className="max-w-md">
+                  {/* Progress Bar */}
+                  <div className="mt-4 max-w-md">
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-white/70">Daily Calls</span>
-                      <span className="text-white font-medium">{performance.dailyCalls}/{performance.dailyCallsTarget}</span>
+                      <span className="text-white/70 font-medium">Progress</span>
+                      <span className="text-white font-bold">{performance.dailyCalls}/{performance.dailyCallsTarget} calls</span>
                     </div>
-                    <Progress
-                      value={(performance.dailyCalls / performance.dailyCallsTarget) * 100}
-                      className="h-2 bg-white/20"
-                    />
+                    <div className="h-3 bg-black/20 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min((performance.dailyCalls / performance.dailyCallsTarget) * 100, 100)}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className="h-full rounded-full bg-white"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Right: Quick Actions */}
-                <div className="flex flex-wrap gap-2">
+                {/* Right: Action Buttons */}
+                <div className="flex flex-col gap-2">
                   <Button
                     onClick={() => setShowLogCall(true)}
-                    className="bg-white text-primary hover:bg-white/90"
+                    size="lg"
+                    className="bg-white text-gray-900 hover:bg-white/90 font-bold text-base"
                   >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Log Call
+                    <Phone className="w-5 h-5 mr-2" />
+                    LOG CALL NOW
                   </Button>
-                  <Button
-                    onClick={() => setShowAddLead(true)}
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10"
-                  >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add Lead
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10"
-                    asChild
-                  >
-                    <Link href="/agents/quotes">
-                      <FileText className="w-4 h-4 mr-2" />
-                      New Quote
-                    </Link>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setShowAddLead(true)}
+                      variant="outline"
+                      className="border-white/30 text-white hover:bg-white/10 flex-1"
+                    >
+                      <UserPlus className="w-4 h-4 mr-1" />
+                      Lead
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:bg-white/10 flex-1"
+                      asChild
+                    >
+                      <Link href="/agents/quotes">
+                        <FileText className="w-4 h-4 mr-1" />
+                        Quote
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mt-1">
+                    <Flame className="w-4 h-4 text-orange-300" />
+                    <span className="text-sm font-bold text-orange-300">{performance.currentStreak}-day streak</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -279,64 +353,130 @@ export default function AgentDashboard() {
           />
         </motion.div>
 
-        {/* Stats Row */}
+        {/* Enhanced KPI Cards with Trends & Coaching */}
         <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            {
-              icon: Phone,
-              label: "Calls Today",
-              value: performance.dailyCalls,
-              subtext: `of ${performance.dailyCallsTarget} target`,
-              color: "text-blue-600",
-              bg: "bg-blue-50",
-              trend: performance.dailyCalls >= performance.dailyCallsTarget / 2 ? "up" : "down"
-            },
-            {
-              icon: Target,
-              label: "Closes This Week",
-              value: performance.dailyCloses,
-              subtext: `of ${performance.dailyClosesTarget} target`,
-              color: "text-green-600",
-              bg: "bg-green-50",
-              trend: "up"
-            },
-            {
-              icon: BarChart3,
-              label: "Conversion Rate",
-              value: `${performance.conversionRate}%`,
-              subtext: "qualified → closed",
-              color: "text-purple-600",
-              bg: "bg-purple-50",
-              trend: "up"
-            },
-            {
-              icon: DollarSign,
-              label: "Pending Earnings",
-              value: `$${pendingEarnings.toLocaleString()}`,
-              subtext: `$${paidEarnings.toLocaleString()} paid MTD`,
-              color: "text-violet-500",
-              bg: "bg-violet-500/10",
-              trend: "up"
-            }
-          ].map((stat, idx) => (
-            <Card key={idx} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", stat.bg)}>
-                    <stat.icon className={cn("w-5 h-5", stat.color)} />
-                  </div>
-                  {stat.trend === "up" ? (
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 text-red-500" />
-                  )}
+          {/* Calls Card */}
+          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-blue-600" />
                 </div>
-                <p className={cn("text-2xl font-bold mt-3", stat.color)}>{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.label}</p>
-                <p className="text-[10px] text-gray-400 mt-1">{stat.subtext}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <div className={cn(
+                  "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
+                  performance.dailyCalls >= 38 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                )}>
+                  {performance.dailyCalls >= 38 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {performance.dailyCalls >= 38 ? `+${performance.dailyCalls - 38}` : `${performance.dailyCalls - 38}`} vs avg
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-blue-600">{performance.dailyCalls}</p>
+              <p className="text-xs text-gray-500 font-medium">Calls Today</p>
+              {/* Mini Sparkline */}
+              <div className="flex items-end gap-0.5 h-8 mt-2">
+                {performance.weeklyHistory.map((day, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex-1 rounded-sm transition-all",
+                      i === performance.weeklyHistory.length - 1 ? "bg-blue-500" : "bg-blue-200"
+                    )}
+                    style={{ height: `${Math.max((day.calls / 30) * 100, 10)}%` }}
+                  />
+                ))}
+              </div>
+                          </CardContent>
+          </Card>
+
+          {/* Closes Card */}
+          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-green-600" />
+                </div>
+                <div className={cn(
+                  "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
+                  performance.dailyCloses >= 1 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                )}>
+                  {performance.dailyCloses >= 1 ? <TrendingUp className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                  {performance.dailyCloses >= 1 ? `+${performance.dailyCloses}` : "0"} this week
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-green-600">{performance.dailyCloses}</p>
+              <p className="text-xs text-gray-500 font-medium">Closes This Week</p>
+              {/* Mini Sparkline */}
+              <div className="flex items-end gap-0.5 h-8 mt-2">
+                {performance.weeklyHistory.map((day, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex-1 rounded-sm transition-all",
+                      day.deals > 0 ? "bg-green-500" : "bg-green-100"
+                    )}
+                    style={{ height: `${Math.max(day.deals * 33, 10)}%` }}
+                  />
+                ))}
+              </div>
+                          </CardContent>
+          </Card>
+
+          {/* Conversion Rate Card */}
+          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className={cn(
+                  "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
+                  performance.conversionRate >= 12 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                )}>
+                  {performance.conversionRate >= 12 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {performance.conversionRate >= 12 ? `+${performance.conversionRate - 10}%` : `-${12 - performance.conversionRate}%`} vs baseline
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-purple-600">{performance.conversionRate}%</p>
+              <p className="text-xs text-gray-500 font-medium">Conversion Rate</p>
+              {/* Visual gauge */}
+              <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    performance.conversionRate >= 15 ? "bg-green-500" :
+                    performance.conversionRate >= 10 ? "bg-purple-500" : "bg-amber-500"
+                  )}
+                  style={{ width: `${Math.min(performance.conversionRate * 5, 100)}%` }}
+                />
+              </div>
+                          </CardContent>
+          </Card>
+
+          {/* Earnings Card */}
+          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-violet-600" />
+                </div>
+                <div className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                  <TrendingUp className="w-3 h-3" />
+                  +${Math.round(pendingEarnings * 0.15).toLocaleString()} projected
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-violet-600">${pendingEarnings.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 font-medium">Pending Earnings</p>
+              {/* Earnings breakdown bar */}
+              <div className="mt-2 flex gap-1 h-8">
+                <div className="flex-1 bg-green-100 rounded flex items-center justify-center">
+                  <span className="text-[9px] font-medium text-green-700">${paidEarnings.toLocaleString()} paid</span>
+                </div>
+                <div className="flex-1 bg-violet-100 rounded flex items-center justify-center">
+                  <span className="text-[9px] font-medium text-violet-700">${pendingEarnings.toLocaleString()} pending</span>
+                </div>
+              </div>
+                          </CardContent>
+          </Card>
         </motion.div>
 
         {/* Main Content Grid */}

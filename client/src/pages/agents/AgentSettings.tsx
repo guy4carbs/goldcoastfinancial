@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -97,7 +97,9 @@ const NOTIFICATION_PREFERENCES: NotificationOption[] = [
 ];
 
 export default function AgentSettings() {
-  const { logout, currentUser } = useAgentStore();
+  const logout = useAgentStore((state) => state.logout);
+  const currentUser = useAgentStore((state) => state.currentUser);
+  const createOrUpdateProfile = useAgentStore((state) => state.createOrUpdateProfile);
 
   const [notifications, setNotifications] = useState<NotificationSettings>({
     email: true,
@@ -108,19 +110,44 @@ export default function AgentSettings() {
     achievements: true,
   });
 
-  // Use store data for profile if available
-  const userName = currentUser?.name || 'John Agent';
-  const userEmail = currentUser?.email || 'john.agent@example.com';
-  const [firstName, lastName] = userName.split(' ');
+  // Initialize profile from currentUser
+  const getInitialProfile = (): ProfileSettings => {
+    if (currentUser) {
+      const nameParts = currentUser.name?.split(' ') || ['', ''];
+      return {
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        location: 'Los Angeles, CA',
+        bio: 'Experienced insurance agent specializing in life and health coverage.',
+      };
+    }
+    return {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      location: 'Los Angeles, CA',
+      bio: 'Experienced insurance agent specializing in life and health coverage.',
+    };
+  };
 
-  const [profile, setProfile] = useState<ProfileSettings>({
-    firstName: firstName || 'John',
-    lastName: lastName || 'Agent',
-    email: userEmail,
-    phone: '(555) 123-4567',
-    location: 'Los Angeles, CA',
-    bio: 'Experienced insurance agent specializing in life and health coverage.',
-  });
+  const [profile, setProfile] = useState<ProfileSettings>(getInitialProfile);
+
+  // Sync profile state with store when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      const nameParts = currentUser.name?.split(' ') || ['', ''];
+      setProfile(prev => ({
+        ...prev,
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+      }));
+    }
+  }, [currentUser]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -145,11 +172,36 @@ export default function AgentSettings() {
   });
 
   const handleSave = useCallback(async () => {
+    // Validate required fields
+    if (!profile.firstName.trim() || !profile.lastName.trim()) {
+      toast.error('First and last name are required');
+      return;
+    }
+    if (!profile.email.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Build the profile object
+    const profileData = {
+      name: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
+      email: profile.email.trim(),
+      phone: profile.phone.trim(),
+    };
+
+    // Create or update the profile - works with or without being logged in
+    createOrUpdateProfile(profileData);
+
+    // Small delay for UX feedback
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     setIsSaving(false);
-    toast.success('Settings saved successfully');
-  }, []);
+    toast.success('Profile saved successfully!', {
+      description: `Your info is now synced across all features.`
+    });
+  }, [profile, createOrUpdateProfile]);
 
   // TODO: Implement photo upload functionality
   const handleChangePhoto = useCallback(() => {
@@ -245,12 +297,23 @@ export default function AgentSettings() {
                 Profile Information
               </CardTitle>
               <CardDescription>Update your personal details</CardDescription>
+              {currentUser ? (
+                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                  <span>Synced: {currentUser.name} • {currentUser.email} • {currentUser.phone || 'No phone'}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mt-2 text-xs text-amber-600">
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>No profile saved yet - fill in your details and click Save</span>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar */}
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-2xl">
-                  {profile.firstName[0]}{profile.lastName[0]}
+                  {(profile.firstName[0] || '?')}{(profile.lastName[0] || '?')}
                 </div>
                 <div>
                   <Button variant="outline" size="sm" onClick={handleChangePhoto}>

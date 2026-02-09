@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { LindyChat } from "@/components/LindyChat";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import SecureForm from "@/pages/SecureForm";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminImages from "@/pages/AdminImages";
 import AdminVideos from "@/pages/AdminVideos";
@@ -82,7 +83,6 @@ import AgentResources from "@/pages/agents/AgentResources";
 import AgentLogin from "@/pages/agents/AgentLogin";
 import AgentDashboard from "@/pages/agents/AgentDashboard";
 import AgentPerformance from "@/pages/agents/AgentPerformance";
-import AgentTraining from "@/pages/agents/AgentTraining";
 import AgentChat from "@/pages/agents/AgentChat";
 import AgentQuotes from "@/pages/agents/AgentQuotes";
 import AgentScripts from "@/pages/agents/AgentScripts";
@@ -101,8 +101,10 @@ import AgentStudyPracticeExam from "@/pages/agents/study/AgentStudyPracticeExam"
 import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
 import AgentAvatarCouncil from "@/pages/agents/AgentAvatarCouncil";
 import AgentLeadInbox from "@/pages/agents/AgentLeadInbox";
-import AgentTemplates from "@/pages/agents/AgentTemplates";
 import AgentIntelligence from "@/pages/agents/AgentIntelligence";
+import AgentOnboarding from "@/pages/agents/AgentOnboarding";
+import AgentDataEncryption from "@/pages/agents/AgentDataEncryption";
+import AgentAutomations from "@/pages/agents/AgentAutomations";
 import AdminAvatarCouncil from "@/pages/admin/AdminAvatarCouncil";
 // Legal Pages
 import TermsOfUse from "@/pages/legal/TermsOfUse";
@@ -145,6 +147,7 @@ function Router() {
       <ScrollToTop />
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/secure/form/:id" component={SecureForm} />
         <Route path="/quote" component={Quote} />
         <Route path="/about" component={AboutUs} />
         <Route path="/about/founders" component={MeetFounders} />
@@ -206,11 +209,6 @@ function Router() {
         <Route path="/agents/performance">
           <AgentProtectedRoute>
             <AgentPerformance />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/training">
-          <AgentProtectedRoute>
-            <AgentTraining />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/chat">
@@ -298,16 +296,22 @@ function Router() {
             <AgentLeadInbox />
           </AgentProtectedRoute>
         </Route>
-        <Route path="/agents/templates">
-          <AgentProtectedRoute>
-            <AgentTemplates />
-          </AgentProtectedRoute>
-        </Route>
         <Route path="/agents/intelligence">
           <AgentProtectedRoute>
             <AgentIntelligence />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/data-encryption">
+          <AgentProtectedRoute>
+            <AgentDataEncryption />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/automations">
+          <AgentProtectedRoute>
+            <AgentAutomations />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding" component={AgentOnboarding} />
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/submissions">
           <ProtectedRoute>

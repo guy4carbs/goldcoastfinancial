@@ -1,0 +1,2037 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Shield,
+  Lock,
+  Key,
+  FileCheck,
+  Send,
+  Mail,
+  MessageSquare,
+  FileText,
+  User,
+  Building,
+  Copy,
+  Clock,
+  Eye,
+  Smartphone,
+  Monitor,
+  CreditCard,
+  Heart,
+  Stethoscope,
+  Users,
+  DollarSign,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useAgentStore } from "@/lib/agentStore";
+import { CARRIER_BRANDING } from "@shared/carrierBranding";
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
+
+// Get carrier color from branding
+const getCarrierColor = (carrierId: string): string => {
+  return CARRIER_BRANDING[carrierId]?.primaryColor || "#1E40AF";
+};
+
+const getCarrierGradient = (carrierId: string): { from: string; to: string } => {
+  const branding = CARRIER_BRANDING[carrierId];
+  return {
+    from: branding?.gradientFrom || "#1E40AF",
+    to: branding?.gradientTo || "#3B82F6"
+  };
+};
+
+// 12 Insurance Carriers
+const INSURANCE_CARRIERS = [
+  { id: "americo", name: "Americo Financial" },
+  { id: "athene", name: "Athene" },
+  { id: "baltimore-life", name: "Baltimore Life" },
+  { id: "corebridge", name: "Corebridge Financial" },
+  { id: "mutual-of-omaha", name: "Mutual of Omaha" },
+  { id: "ethos", name: "Ethos Life" },
+  { id: "royal-neighbors", name: "Royal Neighbors" },
+  { id: "transamerica", name: "Transamerica" },
+  { id: "american-home-life", name: "American Home Life" },
+  { id: "polish-falcons", name: "Polish Falcons" },
+  { id: "ladder", name: "Ladder Life" },
+  { id: "lincoln-financial", name: "Lincoln Financial" },
+];
+
+interface SecureFormType {
+  id: string;
+  name: string;
+  description: string;
+  icon: typeof Shield;
+  color: string;
+  fields: string[];
+}
+
+const SECURE_FORM_TYPES: SecureFormType[] = [
+  {
+    id: "ssn",
+    name: "Social Security Number",
+    description: "Collect SSN securely for application processing",
+    icon: User,
+    color: "blue",
+    fields: ["Full Legal Name", "Date of Birth", "Social Security Number"]
+  },
+  {
+    id: "banking",
+    name: "Banking Information",
+    description: "Collect routing and account numbers for premium payments",
+    icon: Building,
+    color: "emerald",
+    fields: ["Bank Name", "Routing Number", "Account Number", "Account Type"]
+  },
+  {
+    id: "full_application",
+    name: "Full Application",
+    description: "Complete application with all sensitive information",
+    icon: FileText,
+    color: "violet",
+    fields: ["Personal Info", "SSN", "Banking Details", "Beneficiary Info", "Health Questions"]
+  }
+];
+
+interface SentLink {
+  id: string;
+  type: string;
+  clientName: string;
+  clientContact: string;
+  method: "email" | "text" | "both";
+  sentAt: Date;
+  expiresAt: Date;
+  status: "pending" | "opened" | "completed" | "expired";
+  carrier?: string;
+  // Agent who sent the form
+  agentId: string;
+  agentName: string;
+  agentEmail: string;
+  agentPhone: string;
+}
+
+type SendMethod = "email" | "sms" | "both";
+type PreviewTab = "email" | "sms" | "form";
+type DevicePreview = "phone" | "desktop";
+
+export default function AgentDataEncryption() {
+  // Get current agent from store
+  const currentUser = useAgentStore((state) => state.currentUser);
+
+  // Agent info with fallbacks
+  const agentName = currentUser?.name || "Agent";
+  const agentEmail = currentUser?.email || "agent@heritagels.org";
+  const agentPhone = currentUser?.phone || "(555) 000-0000";
+  const agentFirstName = agentName.split(" ")[0];
+
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [selectedFormType, setSelectedFormType] = useState<SecureFormType | null>(null);
+
+  // Shared Form State
+  const [formClientName, setFormClientName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formCarrier, setFormCarrier] = useState("");
+  const [formSendMethod, setFormSendMethod] = useState<SendMethod>("email");
+  const [formCustomMessage, setFormCustomMessage] = useState("");
+  const [previewTab, setPreviewTab] = useState<PreviewTab>("email");
+  const [devicePreview, setDevicePreview] = useState<DevicePreview>("phone");
+  const [isSending, setIsSending] = useState(false);
+
+  const [sentLinks, setSentLinks] = useState<SentLink[]>([
+    {
+      id: "link-1",
+      type: "Banking Information",
+      clientName: "John Smith",
+      clientContact: "john.smith@email.com",
+      method: "email",
+      sentAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000),
+      status: "opened",
+      carrier: "Transamerica",
+      agentId: "agent-1",
+      agentName: "Alex Johnson",
+      agentEmail: "agent@goldcoastfnl.com",
+      agentPhone: "(312) 555-0147"
+    },
+    {
+      id: "link-2",
+      type: "Social Security Number",
+      clientName: "Maria Garcia",
+      clientContact: "(555) 123-4567",
+      method: "text",
+      sentAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      status: "completed",
+      carrier: "Mutual of Omaha",
+      agentId: "agent-1",
+      agentName: "Alex Johnson",
+      agentEmail: "agent@goldcoastfnl.com",
+      agentPhone: "(312) 555-0147"
+    },
+    {
+      id: "link-3",
+      type: "Full Application",
+      clientName: "Robert Johnson",
+      clientContact: "r.johnson@email.com",
+      method: "email",
+      sentAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      status: "expired",
+      carrier: "Lincoln Financial",
+      agentId: "agent-1",
+      agentName: "Alex Johnson",
+      agentEmail: "agent@goldcoastfnl.com",
+      agentPhone: "(312) 555-0147"
+    }
+  ]);
+
+  const openSendDialog = (formType: SecureFormType) => {
+    setSelectedFormType(formType);
+    // Reset form state
+    setFormClientName("");
+    setFormEmail("");
+    setFormPhone("");
+    setFormCarrier("");
+    setFormSendMethod("email");
+    setFormCustomMessage("");
+    setPreviewTab("email");
+    setDevicePreview("phone");
+    setSendDialogOpen(true);
+  };
+
+  const handleSendForm = async () => {
+    if (!selectedFormType) return;
+    if (!currentUser) {
+      toast.error("You must be logged in to send secure forms");
+      return;
+    }
+
+    if (!formClientName) {
+      toast.error("Client name is required");
+      return;
+    }
+    if (!formCarrier) {
+      toast.error("Please select an insurance carrier");
+      return;
+    }
+    if (formSendMethod === "email" && !formEmail) {
+      toast.error("Email address is required for email delivery");
+      return;
+    }
+    if (formSendMethod === "sms" && !formPhone) {
+      toast.error("Phone number is required for SMS delivery");
+      return;
+    }
+    if (formSendMethod === "both" && (!formEmail || !formPhone)) {
+      toast.error("Both email and phone are required for dual delivery");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const contact = formSendMethod === "sms" ? formPhone : formEmail;
+      const carrierName = INSURANCE_CARRIERS.find(c => c.id === formCarrier)?.name || formCarrier;
+
+      // Prepare the secure form request payload
+      const formPayload = {
+        formType: selectedFormType.id,
+        clientName: formClientName,
+        clientEmail: formEmail || null,
+        clientPhone: formPhone || null,
+        carrier: carrierName,
+        carrierId: formCarrier,
+        sendMethod: formSendMethod,
+        customMessage: formCustomMessage || null,
+        // Agent information - this is who the form is sent FROM
+        agent: {
+          id: currentUser.id,
+          name: currentUser.name,
+          email: currentUser.email,
+          phone: currentUser.phone,
+        }
+      };
+
+      // Call the API to send the secure form
+      const response = await fetch('/api/secure-forms/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formPayload)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send secure form');
+      }
+
+      // Create the sent link record using API response
+      const newLink: SentLink = {
+        id: result.linkId || `link-${Date.now()}`,
+        type: selectedFormType.name,
+        clientName: formClientName,
+        clientContact: formSendMethod === "both" ? `${formEmail} / ${formPhone}` : contact,
+        method: formSendMethod === "sms" ? "text" : formSendMethod === "both" ? "both" : "email",
+        sentAt: new Date(),
+        expiresAt: new Date(result.expiresAt || Date.now() + 24 * 60 * 60 * 1000),
+        status: "pending",
+        carrier: carrierName,
+        agentId: currentUser.id,
+        agentName: currentUser.name,
+        agentEmail: currentUser.email,
+        agentPhone: currentUser.phone,
+      };
+
+      setSentLinks(prev => [newLink, ...prev]);
+
+      // Show success messages based on what was actually sent
+      if (result.emailSent) {
+        toast.success(`Email sent from ${currentUser.email}`, {
+          description: `Secure link delivered to ${formEmail}`
+        });
+      }
+      if (result.smsSent) {
+        toast.success(`SMS sent from ${currentUser.phone}`, {
+          description: `Secure link delivered to ${formPhone}`
+        });
+      }
+      if (formSendMethod === "sms" && !result.smsSent) {
+        toast.info("SMS feature coming soon", {
+          description: "Email was sent as fallback if email was provided"
+        });
+      }
+
+      setSendDialogOpen(false);
+    } catch (error: any) {
+      console.error("[SecureForm] Error:", error);
+      toast.error(error.message || "Failed to send secure form", {
+        description: "Please check your connection and try again"
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const copyLink = (linkId: string) => {
+    const baseUrl = window.location.origin;
+    navigator.clipboard.writeText(`${baseUrl}/secure/form/${linkId}`);
+    toast.success("Secure link copied to clipboard");
+  };
+
+  const resendLink = (link: SentLink) => {
+    toast.success(`Link resent to ${link.clientName}`, {
+      description: `Via ${link.method} to ${link.clientContact}`
+    });
+  };
+
+  const getStatusBadge = (status: SentLink["status"]) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="outline" className="text-amber-600 border-amber-200">Pending</Badge>;
+      case "opened":
+        return <Badge variant="outline" className="text-blue-600 border-blue-200">Opened</Badge>;
+      case "completed":
+        return <Badge className="bg-emerald-500 text-white">Completed</Badge>;
+      case "expired":
+        return <Badge variant="outline" className="text-gray-400 border-gray-200">Expired</Badge>;
+    }
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  // Get carrier name for preview
+  const getCarrierName = () => {
+    return INSURANCE_CARRIERS.find(c => c.id === formCarrier)?.name || "Insurance Carrier";
+  };
+
+  // Get form title based on type
+  const getFormTitle = () => {
+    switch (selectedFormType?.id) {
+      case "ssn":
+        return "Social Security Number";
+      case "banking":
+        return "Banking Information";
+      case "full_application":
+        return "Full Application";
+      default:
+        return "Secure Form";
+    }
+  };
+
+  // Get form description for email
+  const getFormDescription = () => {
+    switch (selectedFormType?.id) {
+      case "ssn":
+        return "Your insurance agent has requested your Social Security Number to process your application";
+      case "banking":
+        return "Your insurance agent has requested your banking information to set up premium payments";
+      case "full_application":
+        return "Your insurance agent has requested you complete a full application";
+      default:
+        return "Your insurance agent has requested some information";
+    }
+  };
+
+  // Get form-specific message content
+  const getFormSpecificMessage = () => {
+    const carrierDisplayName = getCarrierName();
+    switch (selectedFormType?.id) {
+      case "ssn":
+        return {
+          line1: `To finalize and submit your application with ${carrierDisplayName}, we'll need your Social Security number for identity verification and underwriting purposes.`,
+          line2: `For security, please provide this through our secure submission link below (or feel free to call me directly if you prefer).`,
+          line3: `Let me know once it's sent so I can confirm receipt and move your application forward immediately.`
+        };
+      case "banking":
+        return {
+          line1: `To complete your policy setup with ${carrierDisplayName}, we'll need your banking information for the initial premium draft and ongoing billing authorization.`,
+          line2: `You can submit this securely using the link below, or we can complete it together over the phone — whichever you prefer.`,
+          line3: `Once received, I'll confirm and finalize your submission right away.`
+        };
+      case "full_application":
+        return {
+          line1: `To move forward with your policy submission to ${carrierDisplayName}, I'll need your completed application on file.`,
+          line2: `Please send it over at your earliest convenience so we can keep everything on track for underwriting.`,
+          line3: `If you have any questions while completing it, let me know — happy to help.`
+        };
+      default:
+        return {
+          line1: `I need your ${getFormTitle().toLowerCase()} to process your application with ${carrierDisplayName}.`,
+          line2: `Please submit this through the secure link below.`,
+          line3: ``
+        };
+    }
+  };
+
+  // Email Preview Component
+  const EmailPreview = ({ isPhone }: { isPhone: boolean }) => {
+    if (isPhone) {
+      // iOS Mail App Style
+      return (
+        <div className="bg-[#f2f2f7] min-h-[440px]">
+          {/* Mail App Header */}
+          <div className="bg-[#f2f2f7] px-4 py-2 flex items-center justify-between border-b border-gray-300">
+            <div className="flex items-center gap-2 text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm">Inbox</span>
+            </div>
+            <div className="flex items-center gap-4 text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Email Content */}
+          <div className="bg-white mx-0">
+            {/* From Section */}
+            <div className="px-4 py-3 border-b border-gray-200">
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+                >
+                  <span className="text-white font-semibold text-sm">{agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-gray-900 text-sm">{agentName}</p>
+                    <span className="text-xs text-gray-400">Now</span>
+                  </div>
+                  <p className="text-xs text-gray-500">{agentEmail}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">to me</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Subject */}
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="font-semibold text-base text-gray-900">
+                Secure {getFormTitle()} Request from {agentFirstName}
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className="px-4 py-4 space-y-3 text-sm">
+              <p className="text-gray-800">Hi {formClientName ? <span>{formClientName}</span> : <span className="font-bold">Client</span>},</p>
+              {formCustomMessage ? (
+                <p className="text-gray-600">{formCustomMessage}</p>
+              ) : (
+                <>
+                  <p className="text-gray-600">{getFormSpecificMessage().line1}</p>
+                  <p className="text-gray-600">{getFormSpecificMessage().line2}</p>
+                  <p className="text-gray-600">{getFormSpecificMessage().line3}</p>
+                </>
+              )}
+              <div className="py-2">
+                <div
+                  className="text-white rounded-lg text-center font-medium py-3 text-sm"
+                  style={{ backgroundColor: getCarrierColor(formCarrier) }}
+                >
+                  Submit {getFormTitle()} Securely
+                </div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-amber-700 text-xs">
+                    This link expires in 24 hours. Your data is protected with bank-level encryption.
+                  </p>
+                </div>
+              </div>
+              {/* Agent Signature */}
+              <div className="pt-2 border-t border-gray-100 mt-3">
+                <p className="text-gray-700 font-medium">{agentName}</p>
+                <p className="text-gray-500 text-xs">Licensed Insurance Agent</p>
+                <p className="text-gray-500 text-xs">{agentPhone}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Desktop Gmail Style
+    return (
+      <div className="bg-white min-h-[350px]">
+        {/* Gmail Toolbar */}
+        <div className="flex items-center gap-2 px-2 py-2 border-b border-gray-200">
+          <button className="p-2 hover:bg-gray-100 rounded-full">
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-full">
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-full">
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-full">
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+          <div className="flex-1" />
+          <span className="text-xs text-gray-500">1 of 24</span>
+        </div>
+
+        {/* Subject Line */}
+        <div className="px-4 py-3 border-b border-gray-100">
+          <h1 className="text-xl text-gray-900">
+            Secure {getFormTitle()} Request from {agentFirstName}
+          </h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">Inbox</span>
+          </div>
+        </div>
+
+        {/* Sender Info */}
+        <div className="px-4 py-3 flex items-start gap-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+          >
+            <span className="text-white font-semibold">{agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sm text-gray-900">{agentName}</span>
+              <span className="text-xs text-gray-400">&lt;{agentEmail}&gt;</span>
+            </div>
+            <p className="text-xs text-gray-500">to me</p>
+          </div>
+          <div className="text-xs text-gray-400">2:30 PM (0 minutes ago)</div>
+        </div>
+
+        {/* Email Body */}
+        <div className="px-4 py-4 pl-16 space-y-3 text-sm">
+          <p className="text-gray-800">Hi {formClientName ? <span>{formClientName}</span> : <span className="font-bold">Client</span>},</p>
+          {formCustomMessage ? (
+            <p className="text-gray-600">{formCustomMessage}</p>
+          ) : (
+            <>
+              <p className="text-gray-600">{getFormSpecificMessage().line1}</p>
+              <p className="text-gray-600">{getFormSpecificMessage().line2}</p>
+              <p className="text-gray-600">{getFormSpecificMessage().line3}</p>
+            </>
+          )}
+          <div className="py-2">
+            <div
+              className="text-white rounded text-center font-medium py-3 px-6 inline-block cursor-pointer hover:opacity-90"
+              style={{ backgroundColor: getCarrierColor(formCarrier) }}
+            >
+              Submit {getFormTitle()} Securely
+            </div>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 max-w-md">
+            <div className="flex items-start gap-2">
+              <Lock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-amber-700 text-xs">
+                This link expires in 24 hours. Your data is protected with bank-level encryption.
+              </p>
+            </div>
+          </div>
+          {/* Agent Signature */}
+          <div className="pt-3 border-t border-gray-100 mt-4">
+            <p className="text-gray-800 font-medium">{agentName}</p>
+            <p className="text-gray-500">Licensed Insurance Agent</p>
+            <p className="text-gray-500">{agentPhone}</p>
+            <p className="text-gray-500">{agentEmail}</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // SMS Preview Component
+  const SMSPreview = ({ isPhone }: { isPhone: boolean }) => {
+    if (isPhone) {
+      // iMessage App Style
+      return (
+        <div className="bg-[#f2f2f7] min-h-[440px]">
+          {/* iMessage Header */}
+          <div className="bg-[#f2f2f7] px-3 py-2 flex items-center gap-2 border-b border-gray-300">
+            <div className="flex items-center gap-1 text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-xs">(12)</span>
+            </div>
+            <div className="flex-1 text-center">
+              <div
+                className="w-8 h-8 rounded-full mx-auto flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+              >
+                <span className="text-white text-xs font-semibold">{agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+              </div>
+              <p className="text-xs font-medium text-black mt-0.5">{agentFirstName}</p>
+            </div>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <svg className="w-5 h-5 text-[#007aff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Message Thread */}
+          <div className="p-3 space-y-2 bg-white min-h-[340px]">
+            {/* Date Stamp */}
+            <div className="text-center">
+              <span className="text-[10px] text-gray-500 bg-gray-100/80 px-2 py-0.5 rounded-full">Today 2:30 PM</span>
+            </div>
+
+            {/* Sender Phone Number */}
+            <div className="text-center">
+              <span className="text-[10px] text-gray-400">From: {agentPhone}</span>
+            </div>
+
+            {/* First Message Bubble */}
+            <div className="flex justify-start">
+              <div className="bg-[#e5e5ea] rounded-2xl rounded-bl-md px-3 py-2 max-w-[85%]">
+                <p className="text-black text-xs leading-relaxed">
+                  Hi {formClientName ? <span>{formClientName}</span> : <span className="font-semibold">there</span>}, it's {agentFirstName}. To finalize your {getCarrierName()} application, I need your {getFormTitle().toLowerCase()}. Please use the secure link below.
+                  {formCustomMessage && (
+                    <span className="block mt-1">"{formCustomMessage.slice(0, 40)}{formCustomMessage.length > 40 ? '...' : ''}"</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Second Message Bubble with Link */}
+            <div className="flex justify-start">
+              <div className="bg-[#e5e5ea] rounded-2xl rounded-bl-md px-3 py-2 max-w-[85%]">
+                <p className="text-black text-xs">Click the secure link below (expires in 24hrs):</p>
+                {/* Link Preview Card */}
+                <div className="mt-2 bg-white rounded-xl overflow-hidden border border-gray-200">
+                  <div
+                    className="h-16 flex items-center justify-center"
+                    style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+                  >
+                    <Lock className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="p-2">
+                    <p className="text-[10px] text-gray-400">secure.heritagels.org</p>
+                    <p className="text-xs font-medium text-black truncate">Submit {getFormTitle()} Securely</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Delivered Status */}
+            <div className="flex justify-start pl-3">
+              <span className="text-[10px] text-gray-400 italic">Delivered</span>
+            </div>
+          </div>
+
+          {/* Message Input Bar */}
+          <div className="bg-[#f2f2f7] px-3 py-2 border-t border-gray-300">
+            <div className="flex items-center gap-2">
+              <button className="w-7 h-7 bg-[#007aff] rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <div className="flex-1 bg-white rounded-full border border-gray-300 px-3 py-1.5">
+                <span className="text-xs text-gray-400">iMessage</span>
+              </div>
+              <button className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm-1 1.93c-3.94-.49-7-3.85-7-7.93h2c0 3.31 2.69 6 6 6s6-2.69 6-6h2c0 4.08-3.06 7.44-7 7.93V21h-2v-4.07z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Desktop Messages / Google Messages Style
+    return (
+      <div className="bg-white min-h-[350px] flex">
+        {/* Sidebar Preview */}
+        <div className="w-20 bg-gray-50 border-r border-gray-200 p-2 hidden sm:block">
+          <div className="space-y-2">
+            {/* Active Conversation */}
+            <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+              <div
+                className="w-8 h-8 rounded-full mx-auto flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+              >
+                <span className="text-white text-xs font-semibold">{agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+              </div>
+              <p className="text-[9px] text-center text-gray-600 mt-1 truncate">{agentFirstName}</p>
+            </div>
+            {/* Other chats placeholder */}
+            <div className="p-2">
+              <div className="w-8 h-8 bg-gray-300 rounded-full mx-auto" />
+            </div>
+            <div className="p-2">
+              <div className="w-8 h-8 bg-gray-300 rounded-full mx-auto" />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+            >
+              <span className="text-white font-semibold">{agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900">{agentName}</p>
+              <p className="text-xs text-gray-500">{agentPhone} • Secure Messaging</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="p-2 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 p-4 space-y-3 bg-[#fafafa]">
+            {/* Date Divider */}
+            <div className="text-center">
+              <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">Today</span>
+            </div>
+
+            {/* First Message */}
+            <div className="flex justify-start gap-2">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+              >
+                <span className="text-white text-xs font-semibold">{agentName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+              </div>
+              <div>
+                <div className="bg-white rounded-2xl rounded-bl-md px-4 py-2 shadow-sm border border-gray-100 max-w-md">
+                  <p className="text-sm text-gray-800">
+                    Hi {formClientName ? <span>{formClientName}</span> : <span className="font-semibold">there</span>}! This is {agentFirstName}, your insurance agent. I need your {getFormTitle().toLowerCase()} for your {formCarrier ? <span>{getCarrierName()}</span> : <span className="font-semibold">{getCarrierName()}</span>} application.
+                    {formCustomMessage && (
+                      <span className="block mt-1 italic">"{formCustomMessage.slice(0, 50)}{formCustomMessage.length > 50 ? '...' : ''}"</span>
+                    )}
+                  </p>
+                </div>
+                <span className="text-[10px] text-gray-400 ml-2">2:30 PM</span>
+              </div>
+            </div>
+
+            {/* Second Message with Link */}
+            <div className="flex justify-start gap-2">
+              <div className="w-8 h-8 flex-shrink-0" /> {/* Spacer for alignment */}
+              <div>
+                <div className="bg-white rounded-2xl rounded-bl-md px-4 py-2 shadow-sm border border-gray-100 max-w-md">
+                  <p className="text-sm text-gray-800 mb-2">Click to submit securely (expires in 24hrs):</p>
+                  {/* Link Preview */}
+                  <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+                    <div
+                      className="h-20 flex items-center justify-center"
+                      style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+                    >
+                      <Lock className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs text-gray-400">secure.heritagels.org</p>
+                      <p className="text-sm font-medium text-gray-900">Submit {getFormTitle()} Securely</p>
+                      <p className="text-xs text-gray-500 mt-1">Your data is protected with bank-level encryption</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 ml-2 mt-1">
+                  <span className="text-[10px] text-gray-400">2:30 PM</span>
+                  <CheckCircle className="w-3 h-3 text-blue-500" />
+                  <span className="text-[10px] text-blue-500">Delivered</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Message Input */}
+          <div className="p-3 border-t border-gray-200 bg-white">
+            <div className="flex items-center gap-2">
+              <button className="p-2 hover:bg-gray-100 rounded-full">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+              <div className="flex-1 bg-gray-100 rounded-full px-4 py-2">
+                <span className="text-sm text-gray-400">Type a message...</span>
+              </div>
+              <button className="p-2 hover:bg-gray-100 rounded-full text-blue-500">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // SSN Form Preview Component
+  const SSNFormPreview = ({ isPhone }: { isPhone: boolean }) => {
+    if (isPhone) {
+      return (
+        <div className="bg-[#f2f2f7] min-h-[440px]">
+          {/* Safari Browser Header */}
+          <div className="bg-[#f2f2f7] px-3 py-2 flex items-center gap-2 border-b border-gray-300">
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="bg-white/80 rounded-lg px-3 py-1.5 flex items-center gap-2 text-center">
+                <Lock className="w-3 h-3 text-gray-500 mx-auto" />
+                <span className="text-xs text-gray-600 flex-1">secure.heritagels.org</span>
+              </div>
+            </div>
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Form Content */}
+          <div className="bg-white">
+            {/* Form Header */}
+            <div
+              className="p-4 text-white text-center"
+              style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+            >
+              <Shield className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-bold text-base">Secure SSN Submission</h3>
+              <p className="text-xs mt-1 opacity-90">{getCarrierName()}</p>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Full Legal Name</label>
+                <div className={cn(
+                  "border rounded-xl p-3 bg-gray-50 text-sm",
+                  formClientName ? "text-gray-900" : "text-gray-400"
+                )}>
+                  {formClientName || "Enter your full name"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Date of Birth</label>
+                <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm">MM/DD/YYYY</div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Social Security Number</label>
+                <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  XXX-XX-XXXX
+                </div>
+              </div>
+              <div className="pt-3">
+                <div
+                  className="text-white rounded-xl text-center font-semibold py-3.5 text-sm"
+                  style={{ backgroundColor: getCarrierColor(formCarrier) }}
+                >
+                  Submit Securely
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-400 pt-2">
+                <Lock className="w-3 h-3" />
+                <span className="text-xs">256-bit encryption</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Desktop View
+    return (
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden min-h-[350px]">
+        {/* Form Header */}
+        <div
+          className="p-6 text-white text-center"
+          style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+        >
+          <Shield className="w-10 h-10 mx-auto mb-3" />
+          <h3 className="font-bold text-xl">Secure SSN Submission</h3>
+          <p className="text-sm mt-1 opacity-90">{getCarrierName()}</p>
+        </div>
+        {/* Form Body */}
+        <div className="p-6 space-y-5">
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Full Legal Name</label>
+            <div className={cn(
+              "border rounded-lg p-3 bg-gray-50",
+              formClientName ? "text-gray-900" : "text-gray-400"
+            )}>
+              {formClientName || "Enter your full name"}
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Date of Birth</label>
+            <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">MM/DD/YYYY</div>
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Social Security Number</label>
+            <div className="border rounded-lg p-3 bg-gray-50 text-gray-400 flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              XXX-XX-XXXX
+            </div>
+          </div>
+          <div className="pt-3">
+            <div
+              className="text-white rounded-lg text-center font-semibold py-4 text-base cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: getCarrierColor(formCarrier) }}
+            >
+              Submit Securely
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-gray-400">
+            <Lock className="w-4 h-4" />
+            <span className="text-sm">256-bit encryption</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Banking Form Preview Component
+  const BankingFormPreview = ({ isPhone }: { isPhone: boolean }) => {
+    if (isPhone) {
+      return (
+        <div className="bg-[#f2f2f7] min-h-[440px]">
+          {/* Safari Browser Header */}
+          <div className="bg-[#f2f2f7] px-3 py-2 flex items-center gap-2 border-b border-gray-300">
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="bg-white/80 rounded-lg px-3 py-1.5 flex items-center gap-2 text-center">
+                <Lock className="w-3 h-3 text-gray-500 mx-auto" />
+                <span className="text-xs text-gray-600 flex-1">secure.heritagels.org</span>
+              </div>
+            </div>
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Form Content */}
+          <div className="bg-white">
+            {/* Form Header */}
+            <div
+              className="p-4 text-white text-center"
+              style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+            >
+              <Building className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-bold text-base">Secure Banking Information</h3>
+              <p className="text-xs mt-1 opacity-90">{getCarrierName()}</p>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Account Holder Name</label>
+                <div className={cn(
+                  "border rounded-xl p-3 bg-gray-50 text-sm",
+                  formClientName ? "text-gray-900" : "text-gray-400"
+                )}>
+                  {formClientName || "Enter account holder name"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Bank Name</label>
+                <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm">Enter bank name</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-gray-600 mb-1.5 text-xs font-medium">Routing Number</label>
+                  <div className="border rounded-xl p-2.5 bg-gray-50 text-gray-400 text-xs flex items-center gap-1">
+                    <CreditCard className="w-3 h-3" />
+                    XXXXXXXXX
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-gray-600 mb-1.5 text-xs font-medium">Account Number</label>
+                  <div className="border rounded-xl p-2.5 bg-gray-50 text-gray-400 text-xs flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    XXXXXXXXXX
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Account Type</label>
+                <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm">Checking / Savings</div>
+              </div>
+              <div className="pt-2">
+                <div
+                  className="text-white rounded-xl text-center font-semibold py-3.5 text-sm"
+                  style={{ backgroundColor: getCarrierColor(formCarrier) }}
+                >
+                  Submit Securely
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-400 pt-1">
+                <Lock className="w-3 h-3" />
+                <span className="text-xs">Bank-level encryption</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Desktop View
+    return (
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden min-h-[350px]">
+        {/* Form Header */}
+        <div
+          className="p-6 text-white text-center"
+          style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+        >
+          <Building className="w-10 h-10 mx-auto mb-3" />
+          <h3 className="font-bold text-xl">Secure Banking Information</h3>
+          <p className="text-sm mt-1 opacity-90">{getCarrierName()}</p>
+        </div>
+        {/* Form Body */}
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Account Holder Name</label>
+            <div className={cn(
+              "border rounded-lg p-3 bg-gray-50",
+              formClientName ? "text-gray-900" : "text-gray-400"
+            )}>
+              {formClientName || "Enter account holder name"}
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Bank Name</label>
+            <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">Enter bank name</div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-2 font-medium">Routing Number</label>
+              <div className="border rounded-lg p-3 bg-gray-50 text-gray-400 flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                XXXXXXXXX
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-2 font-medium">Account Number</label>
+              <div className="border rounded-lg p-3 bg-gray-50 text-gray-400 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                XXXXXXXXXXXX
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Account Type</label>
+            <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">Checking / Savings</div>
+          </div>
+          <div className="pt-3">
+            <div
+              className="text-white rounded-lg text-center font-semibold py-4 text-base cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: getCarrierColor(formCarrier) }}
+            >
+              Submit Securely
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-gray-400">
+            <Lock className="w-4 h-4" />
+            <span className="text-sm">Bank-level encryption</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Full Application Form Preview Component
+  const FullApplicationFormPreview = ({ isPhone }: { isPhone: boolean }) => {
+    const sections = [
+      { icon: User, label: "Personal Information", status: "current" },
+      { icon: Shield, label: "Social Security Number", status: "pending" },
+      { icon: Building, label: "Banking Details", status: "pending" },
+      { icon: DollarSign, label: "Coverage Details", status: "pending" },
+      { icon: Users, label: "Beneficiary Information", status: "pending" },
+    ];
+
+    if (isPhone) {
+      return (
+        <div className="bg-[#f2f2f7] min-h-[440px]">
+          {/* Safari Browser Header */}
+          <div className="bg-[#f2f2f7] px-3 py-2 flex items-center gap-2 border-b border-gray-300">
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="bg-white/80 rounded-lg px-3 py-1.5 flex items-center gap-2 text-center">
+                <Lock className="w-3 h-3 text-gray-500 mx-auto" />
+                <span className="text-xs text-gray-600 flex-1">secure.heritagels.org</span>
+              </div>
+            </div>
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Form Content */}
+          <div className="bg-white">
+            {/* Form Header */}
+            <div
+              className="p-4 text-white text-center"
+              style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+            >
+              <FileText className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-bold text-base">Complete Application</h3>
+              <p className="text-xs mt-1 opacity-90">{getCarrierName()}</p>
+            </div>
+
+            {/* Progress Steps */}
+            <div className="p-3 space-y-2">
+              {sections.map((section, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2.5 p-2.5 rounded-xl border"
+                  style={{
+                    borderColor: section.status === "current" ? `${getCarrierColor(formCarrier)}40` : "#e5e7eb",
+                    backgroundColor: section.status === "current" ? `${getCarrierColor(formCarrier)}08` : "transparent"
+                  }}
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{
+                      backgroundColor: section.status === "current" ? getCarrierColor(formCarrier) : "#f3f4f6",
+                      color: section.status === "current" ? "#ffffff" : "#9ca3af"
+                    }}
+                  >
+                    {section.status === "current" ? (
+                      <section.icon className="w-3.5 h-3.5" />
+                    ) : (
+                      <span className="text-xs font-medium">{index + 1}</span>
+                    )}
+                  </div>
+                  <p
+                    className="text-xs font-medium flex-1"
+                    style={{ color: section.status === "current" ? getCarrierColor(formCarrier) : "#6b7280" }}
+                  >
+                    {section.label}
+                  </p>
+                  {section.status === "current" && (
+                    <span className="text-[10px] font-medium" style={{ color: getCarrierColor(formCarrier) }}>Current</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Current Section Preview */}
+            <div className="px-3 pb-3">
+              <div className="border-t pt-3">
+                <p className="text-gray-600 mb-2.5 text-xs font-semibold">Personal Information</p>
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-gray-500 mb-1 text-[10px] font-medium">Full Legal Name</label>
+                    <div className={cn(
+                      "border rounded-xl p-2.5 bg-gray-50 text-xs",
+                      formClientName ? "text-gray-900" : "text-gray-400"
+                    )}>
+                      {formClientName || "Enter your full name"}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-gray-500 mb-1 text-[10px] font-medium">Date of Birth</label>
+                      <div className="border rounded-xl p-2.5 bg-gray-50 text-gray-400 text-xs">MM/DD/YYYY</div>
+                    </div>
+                    <div>
+                      <label className="block text-gray-500 mb-1 text-[10px] font-medium">Gender</label>
+                      <div className="border rounded-xl p-2.5 bg-gray-50 text-gray-400 text-xs">Select</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3">
+                <div
+                  className="text-white rounded-xl text-center font-semibold py-3 text-sm"
+                  style={{ backgroundColor: getCarrierColor(formCarrier) }}
+                >
+                  Continue to Next Section
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-400 pt-2">
+                <Lock className="w-3 h-3" />
+                <span className="text-[10px]">Your progress is auto-saved</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Desktop View
+    return (
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden min-h-[350px]">
+        {/* Form Header */}
+        <div
+          className="p-6 text-white text-center"
+          style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+        >
+          <FileText className="w-10 h-10 mx-auto mb-3" />
+          <h3 className="font-bold text-xl">Complete Application</h3>
+          <p className="text-sm mt-1 opacity-90">{getCarrierName()}</p>
+        </div>
+        {/* Form Body - Sections Preview */}
+        <div className="p-5 space-y-3">
+          {/* Section indicators */}
+          {sections.map((section, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-3 p-3 rounded-lg border"
+              style={{
+                borderColor: section.status === "current" ? `${getCarrierColor(formCarrier)}40` : "#e5e7eb",
+                backgroundColor: section.status === "current" ? `${getCarrierColor(formCarrier)}08` : "transparent"
+              }}
+            >
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{
+                  backgroundColor: section.status === "current" ? getCarrierColor(formCarrier) : "#f3f4f6",
+                  color: section.status === "current" ? "#ffffff" : "#9ca3af"
+                }}
+              >
+                {section.status === "current" ? (
+                  <section.icon className="w-4 h-4" />
+                ) : (
+                  <span className="text-sm font-medium">{index + 1}</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <p
+                  className="font-medium"
+                  style={{ color: section.status === "current" ? getCarrierColor(formCarrier) : "#6b7280" }}
+                >
+                  {section.label}
+                </p>
+              </div>
+              {section.status === "current" && (
+                <div
+                  className="text-xs font-medium"
+                  style={{ color: getCarrierColor(formCarrier) }}
+                >
+                  In Progress
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Current Section Preview */}
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-gray-600 mb-3 font-semibold">Personal Information</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-gray-500 mb-1.5 text-sm font-medium">Full Legal Name</label>
+                <div className={cn(
+                  "border rounded-lg p-3 bg-gray-50",
+                  formClientName ? "text-gray-900" : "text-gray-400 font-semibold"
+                )}>
+                  {formClientName || "Enter your full name"}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-500 mb-1.5 text-sm font-medium">Date of Birth</label>
+                  <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">MM/DD/YYYY</div>
+                </div>
+                <div>
+                  <label className="block text-gray-500 mb-1.5 text-sm font-medium">Gender</label>
+                  <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">Select</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-3">
+            <div
+              className="text-white rounded-lg text-center font-semibold py-4 text-base cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: getCarrierColor(formCarrier) }}
+            >
+              Continue to Next Section
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-gray-400">
+            <Lock className="w-4 h-4" />
+            <span className="text-sm">Your progress is auto-saved</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Get the appropriate form preview based on type
+  const getFormPreview = (isPhone: boolean) => {
+    switch (selectedFormType?.id) {
+      case "ssn":
+        return <SSNFormPreview isPhone={isPhone} />;
+      case "banking":
+        return <BankingFormPreview isPhone={isPhone} />;
+      case "full_application":
+        return <FullApplicationFormPreview isPhone={isPhone} />;
+      default:
+        return <SSNFormPreview isPhone={isPhone} />;
+    }
+  };
+
+  // Get form-specific styling
+  const getFormColor = () => {
+    switch (selectedFormType?.id) {
+      case "ssn":
+        return "primary";
+      case "banking":
+        return "emerald";
+      case "full_application":
+        return "violet";
+      default:
+        return "primary";
+    }
+  };
+
+  return (
+    <AgentLoungeLayout>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        className="space-y-6"
+      >
+        {/* Header */}
+        <motion.div variants={fadeInUp}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Shield className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Secure Data Collection</h1>
+                <p className="text-gray-500 text-sm">Send encrypted forms to collect sensitive client information</p>
+              </div>
+            </div>
+            {/* Agent Account Indicator */}
+            <div className="text-right text-sm">
+              <div className="text-gray-500">Sending as</div>
+              <div className="font-medium text-gray-900">{agentName}</div>
+              <div className="text-xs text-gray-400">{agentEmail} • {agentPhone}</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Security Notice */}
+        <motion.div variants={fadeInUp}>
+          <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-emerald-800">Bank-Level Encryption</h3>
+                  <p className="text-sm text-emerald-600">
+                    All data is encrypted with AES-256 and transmitted over secure TLS connections.
+                    Links expire after 24 hours for maximum security.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Send Secure Form Cards */}
+        <motion.div variants={fadeInUp}>
+          <h2 className="text-lg font-semibold mb-4">Send Secure Form</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {SECURE_FORM_TYPES.map((formType) => (
+              <Card
+                key={formType.id}
+                className="hover:shadow-lg transition-all cursor-pointer group border-2 hover:border-primary/30"
+                onClick={() => openSendDialog(formType)}
+              >
+                <CardContent className="p-5">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110",
+                    formType.id === "ssn" ? "bg-blue-100" :
+                    formType.id === "banking" ? "bg-emerald-100" : "bg-violet-100"
+                  )}>
+                    <formType.icon className={cn(
+                      "w-6 h-6",
+                      formType.id === "ssn" ? "text-blue-600" :
+                      formType.id === "banking" ? "text-emerald-600" : "text-violet-600"
+                    )} />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">{formType.name}</h3>
+                  <p className="text-sm text-gray-500 mb-4">{formType.description}</p>
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {formType.fields.slice(0, 3).map((field, i) => (
+                      <Badge key={i} variant="outline" className="text-[10px] text-gray-500">
+                        {field}
+                      </Badge>
+                    ))}
+                    {formType.fields.length > 3 && (
+                      <Badge variant="outline" className="text-[10px] text-gray-400">
+                        +{formType.fields.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                  <Button className={cn(
+                    "w-full gap-2",
+                    formType.id === "banking" ? "bg-emerald-600 hover:bg-emerald-700" :
+                    formType.id === "full_application" ? "bg-violet-600 hover:bg-violet-700" : ""
+                  )}>
+                    <Send className="w-4 h-4" />
+                    Send to Client
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Recent Sent Links */}
+        <motion.div variants={fadeInUp}>
+          <h2 className="text-lg font-semibold mb-4">Recent Secure Links</h2>
+          <Card>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {sentLinks.map((link) => (
+                  <div key={link.id} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center",
+                          link.status === "completed" ? "bg-emerald-100" :
+                          link.status === "expired" ? "bg-gray-100" : "bg-blue-100"
+                        )}>
+                          {link.method === "email" ? (
+                            <Mail className={cn(
+                              "w-5 h-5",
+                              link.status === "completed" ? "text-emerald-600" :
+                              link.status === "expired" ? "text-gray-400" : "text-blue-600"
+                            )} />
+                          ) : link.method === "both" ? (
+                            <div className="flex items-center gap-0.5">
+                              <Mail className={cn(
+                                "w-3.5 h-3.5",
+                                link.status === "completed" ? "text-emerald-600" :
+                                link.status === "expired" ? "text-gray-400" : "text-blue-600"
+                              )} />
+                              <MessageSquare className={cn(
+                                "w-3.5 h-3.5",
+                                link.status === "completed" ? "text-emerald-600" :
+                                link.status === "expired" ? "text-gray-400" : "text-blue-600"
+                              )} />
+                            </div>
+                          ) : (
+                            <MessageSquare className={cn(
+                              "w-5 h-5",
+                              link.status === "completed" ? "text-emerald-600" :
+                              link.status === "expired" ? "text-gray-400" : "text-blue-600"
+                            )} />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">{link.clientName}</span>
+                            {getStatusBadge(link.status)}
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <span>{link.type}</span>
+                            {link.carrier && (
+                              <>
+                                <span>•</span>
+                                <span>{link.carrier}</span>
+                              </>
+                            )}
+                            <span>•</span>
+                            <span>{link.clientContact}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                            <Clock className="w-3 h-3" />
+                            Sent {formatTimeAgo(link.sentAt)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {link.status !== "expired" && link.status !== "completed" && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyLink(link.id)}
+                              className="text-gray-500"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => resendLink(link)}
+                            >
+                              Resend
+                            </Button>
+                          </>
+                        )}
+                        {link.status === "expired" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const formType = SECURE_FORM_TYPES.find(f => f.name === link.type);
+                              if (formType) {
+                                openSendDialog(formType);
+                              }
+                            }}
+                          >
+                            Send New Link
+                          </Button>
+                        )}
+                        {link.status === "completed" && (
+                          <Button variant="ghost" size="sm" className="text-emerald-600">
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Data
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Security Features */}
+        <motion.div variants={fadeInUp}>
+          <h2 className="text-lg font-semibold mb-4">Security Features</h2>
+          <div className="grid md:grid-cols-4 gap-4">
+            {[
+              { icon: Lock, title: "AES-256 Encryption", description: "Military-grade encryption" },
+              { icon: Clock, title: "24-Hour Expiry", description: "Links auto-expire for safety" },
+              { icon: Key, title: "One-Time Use", description: "Each link works once" },
+              { icon: FileCheck, title: "HIPAA Compliant", description: "Meets all regulations" },
+            ].map((feature, index) => (
+              <Card key={index}>
+                <CardContent className="p-4 text-center">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <feature.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-medium text-gray-900 text-sm">{feature.title}</h3>
+                  <p className="text-xs text-gray-500">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Enhanced Two-Column Dialog for All Form Types */}
+      <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              {selectedFormType?.id === "ssn" && <User className="w-6 h-6" style={{ color: getCarrierColor(formCarrier) }} />}
+              {selectedFormType?.id === "banking" && <Building className="w-6 h-6" style={{ color: getCarrierColor(formCarrier) }} />}
+              {selectedFormType?.id === "full_application" && <FileText className="w-6 h-6" style={{ color: getCarrierColor(formCarrier) }} />}
+              Send Secure {getFormTitle()} Form
+            </DialogTitle>
+            <DialogDescription>
+              Your client will receive a secure, encrypted link to submit their information.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
+            {/* Left Side - Form */}
+            <div className="space-y-4">
+              {/* Client Name */}
+              <div>
+                <Label htmlFor="formClientName" className="flex items-center gap-1">
+                  Client Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="formClientName"
+                  placeholder="John Smith"
+                  value={formClientName}
+                  onChange={(e) => setFormClientName(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Email Address */}
+              <div>
+                <Label htmlFor="formEmail">Email Address</Label>
+                <Input
+                  id="formEmail"
+                  type="email"
+                  placeholder="john.smith@email.com"
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <Label htmlFor="formPhone">Phone Number</Label>
+                <Input
+                  id="formPhone"
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={formPhone}
+                  onChange={(e) => setFormPhone(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Insurance Carrier */}
+              <div>
+                <Label className="flex items-center gap-1">
+                  Insurance Carrier <span className="text-red-500">*</span>
+                </Label>
+                <Select value={formCarrier} onValueChange={setFormCarrier}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a carrier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INSURANCE_CARRIERS.map((carrier) => (
+                      <SelectItem key={carrier.id} value={carrier.id}>
+                        {carrier.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Send Via */}
+              <div>
+                <Label className="flex items-center gap-1 mb-2">
+                  Send Via <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={formSendMethod === "email" ? "default" : "outline"}
+                    className="flex-1 gap-2"
+                    style={formSendMethod === "email" ? { backgroundColor: getCarrierColor(formCarrier) } : {}}
+                    onClick={() => setFormSendMethod("email")}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formSendMethod === "sms" ? "default" : "outline"}
+                    className="flex-1 gap-2"
+                    style={formSendMethod === "sms" ? { backgroundColor: getCarrierColor(formCarrier) } : {}}
+                    onClick={() => setFormSendMethod("sms")}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    SMS
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formSendMethod === "both" ? "default" : "outline"}
+                    className="flex-1 gap-2"
+                    style={formSendMethod === "both" ? { backgroundColor: getCarrierColor(formCarrier) } : {}}
+                    onClick={() => setFormSendMethod("both")}
+                  >
+                    <div className="flex items-center gap-1">
+                      <Mail className="w-3.5 h-3.5" />
+                      <span className="text-xs opacity-60">&</span>
+                      <MessageSquare className="w-3.5 h-3.5" />
+                    </div>
+                    Both
+                  </Button>
+                </div>
+              </div>
+
+              {/* Custom Message */}
+              <div>
+                <Label htmlFor="formCustomMessage">Custom Message (optional)</Label>
+                <Textarea
+                  id="formCustomMessage"
+                  placeholder={
+                    selectedFormType?.id === "ssn"
+                      ? "Hi John, I need your SSN to complete your life insurance application..."
+                      : selectedFormType?.id === "banking"
+                      ? "Hi John, please provide your banking information to set up automatic premium payments..."
+                      : "Hi John, please complete this application for your life insurance policy..."
+                  }
+                  value={formCustomMessage}
+                  onChange={(e) => setFormCustomMessage(e.target.value)}
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Sending From Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-blue-800 mb-2">Sending From Your Account</p>
+                <div className="space-y-1">
+                  {(formSendMethod === "email" || formSendMethod === "both") && (
+                    <div className="flex items-center gap-2 text-xs text-blue-700">
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>{agentEmail}</span>
+                    </div>
+                  )}
+                  {(formSendMethod === "sms" || formSendMethod === "both") && (
+                    <div className="flex items-center gap-2 text-xs text-blue-700">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>{agentPhone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setSendDialogOpen(false)}
+                  className="flex-1"
+                  disabled={isSending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSendForm}
+                  disabled={isSending}
+                  className="flex-1 gap-2"
+                  style={{ backgroundColor: getCarrierColor(formCarrier) }}
+                >
+                  {isSending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send Request
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Side - Preview */}
+            <div className="space-y-4">
+              {/* Device Toggle */}
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Preview</Label>
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setDevicePreview("phone")}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
+                      devicePreview === "phone"
+                        ? "bg-white shadow text-gray-900"
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    Phone
+                  </button>
+                  <button
+                    onClick={() => setDevicePreview("desktop")}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
+                      devicePreview === "desktop"
+                        ? "bg-white shadow text-gray-900"
+                        : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    <Monitor className="w-4 h-4" />
+                    Desktop
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview Tabs */}
+              <div className="flex border-b">
+                {[
+                  { id: "email" as PreviewTab, label: "Email Preview", icon: Mail },
+                  { id: "sms" as PreviewTab, label: "SMS Preview", icon: MessageSquare },
+                  { id: "form" as PreviewTab, label: "Form Preview", icon: FileText },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setPreviewTab(tab.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+                      previewTab !== tab.id && "border-transparent text-gray-500 hover:text-gray-700"
+                    )}
+                    style={previewTab === tab.id ? {
+                      borderColor: getCarrierColor(formCarrier),
+                      color: getCarrierColor(formCarrier)
+                    } : {}}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Preview Content */}
+              <div className={cn(
+                "bg-gray-100 rounded-xl p-4 flex items-start justify-center",
+                devicePreview === "phone" ? "py-6 min-h-[580px]" : "py-4 min-h-[400px]"
+              )}>
+                {devicePreview === "phone" ? (
+                  // iPhone 17 Style Frame
+                  <div className="relative">
+                    {/* Titanium Frame */}
+                    <div className="w-[290px] bg-gradient-to-b from-[#8a8a8f] via-[#6e6e73] to-[#48484a] rounded-[3rem] p-[3px] shadow-2xl">
+                      {/* Inner black bezel */}
+                      <div className="bg-black rounded-[2.8rem] p-[2px]">
+                        {/* Screen */}
+                        <div className="bg-white rounded-[2.7rem] overflow-hidden relative">
+                          {/* Status Bar with Dynamic Island */}
+                          <div className="bg-white px-6 pt-3 pb-1 flex items-center justify-between relative">
+                            {/* Time */}
+                            <span className="text-sm font-semibold text-black w-12">9:41</span>
+
+                            {/* Dynamic Island */}
+                            <div className="absolute left-1/2 -translate-x-1/2 top-2">
+                              <div className="bg-black rounded-full w-[90px] h-[28px] flex items-center justify-center gap-2">
+                                {/* Camera */}
+                                <div className="w-[10px] h-[10px] rounded-full bg-[#1a1a1a] ring-1 ring-[#2a2a2a] flex items-center justify-center">
+                                  <div className="w-[4px] h-[4px] rounded-full bg-[#0a3d62]" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Status Icons */}
+                            <div className="flex items-center gap-1 w-12 justify-end">
+                              {/* Signal */}
+                              <svg className="w-4 h-4" viewBox="0 0 18 12" fill="black">
+                                <rect x="0" y="8" width="3" height="4" rx="0.5"/>
+                                <rect x="4" y="5" width="3" height="7" rx="0.5"/>
+                                <rect x="8" y="2" width="3" height="10" rx="0.5"/>
+                                <rect x="12" y="0" width="3" height="12" rx="0.5"/>
+                              </svg>
+                              {/* WiFi */}
+                              <svg className="w-4 h-4" viewBox="0 0 16 12" fill="black">
+                                <path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM3.5 7.5c2.5-2.5 6.5-2.5 9 0l-1 1c-2-2-5-2-7 0l-1-1zM1 5c3.9-3.9 10.1-3.9 14 0l-1 1c-3.3-3.3-8.7-3.3-12 0l-1-1z"/>
+                              </svg>
+                              {/* Battery */}
+                              <div className="flex items-center">
+                                <div className="w-6 h-3 border border-black rounded-sm flex items-center p-[1px]">
+                                  <div className="bg-black h-full w-[85%] rounded-[1px]" />
+                                </div>
+                                <div className="w-[2px] h-[4px] bg-black rounded-r-sm ml-[1px]" />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="px-2 pb-2 max-h-[480px] overflow-y-auto">
+                            {previewTab === "email" && <EmailPreview isPhone={true} />}
+                            {previewTab === "sms" && <SMSPreview isPhone={true} />}
+                            {previewTab === "form" && getFormPreview(true)}
+                          </div>
+
+                          {/* Home Indicator */}
+                          <div className="h-8 flex items-center justify-center bg-white">
+                            <div className="w-32 h-1 bg-black rounded-full" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Side Button (Power) */}
+                    <div className="absolute right-[-2px] top-24 w-[3px] h-12 bg-gradient-to-b from-[#8a8a8f] to-[#6e6e73] rounded-r-sm" />
+
+                    {/* Volume Buttons */}
+                    <div className="absolute left-[-2px] top-20 w-[3px] h-7 bg-gradient-to-b from-[#8a8a8f] to-[#6e6e73] rounded-l-sm" />
+                    <div className="absolute left-[-2px] top-32 w-[3px] h-12 bg-gradient-to-b from-[#8a8a8f] to-[#6e6e73] rounded-l-sm" />
+                  </div>
+                ) : (
+                  // Modern macOS Browser Frame
+                  <div className="w-full max-w-lg">
+                    {/* Window Chrome */}
+                    <div className="bg-gradient-to-b from-[#e8e8e8] to-[#d8d8d8] rounded-t-xl border border-gray-300 border-b-0 shadow-sm">
+                      {/* Title Bar */}
+                      <div className="flex items-center px-3 py-2.5">
+                        {/* Traffic Lights */}
+                        <div className="flex gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e] shadow-sm" />
+                          <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-[#dea123] shadow-sm" />
+                          <div className="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29] shadow-sm" />
+                        </div>
+
+                        {/* Navigation Buttons */}
+                        <div className="flex items-center gap-1 ml-4">
+                          <button className="w-7 h-7 rounded-md hover:bg-gray-200 flex items-center justify-center text-gray-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                          </button>
+                          <button className="w-7 h-7 rounded-md hover:bg-gray-200 flex items-center justify-center text-gray-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {/* URL Bar */}
+                        <div className="flex-1 mx-3">
+                          <div className="bg-white rounded-lg border border-gray-300 px-3 py-1.5 flex items-center gap-2 shadow-inner">
+                            {/* Lock Icon */}
+                            <Lock className="w-3.5 h-3.5 text-gray-400" />
+                            <span className="text-sm text-gray-600 flex-1 truncate">
+                              {previewTab === "email"
+                                ? "mail.google.com/inbox"
+                                : previewTab === "sms"
+                                ? "messages.google.com"
+                                : "secure.heritagels.org/form"
+                              }
+                            </span>
+                            {/* Refresh Icon */}
+                            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        {/* Share Button */}
+                        <button className="w-7 h-7 rounded-md hover:bg-gray-200 flex items-center justify-center text-gray-400">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Browser Content */}
+                    <div className="bg-white rounded-b-xl border border-gray-300 border-t-0 shadow-xl max-h-[420px] overflow-y-auto">
+                      <div className="p-4">
+                        {previewTab === "email" && <EmailPreview isPhone={false} />}
+                        {previewTab === "sms" && <SMSPreview isPhone={false} />}
+                        {previewTab === "form" && getFormPreview(false)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </AgentLoungeLayout>
+  );
+}
