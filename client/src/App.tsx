@@ -101,7 +101,6 @@ import AgentStudyPracticeExam from "@/pages/agents/study/AgentStudyPracticeExam"
 import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
 import AgentAvatarCouncil from "@/pages/agents/AgentAvatarCouncil";
 import AgentLeadInbox from "@/pages/agents/AgentLeadInbox";
-import AgentIntelligence from "@/pages/agents/AgentIntelligence";
 import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentDataEncryption from "@/pages/agents/AgentDataEncryption";
 import AgentAutomations from "@/pages/agents/AgentAutomations";
@@ -294,11 +293,6 @@ function Router() {
         <Route path="/agents/inbox">
           <AgentProtectedRoute>
             <AgentLeadInbox />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/intelligence">
-          <AgentProtectedRoute>
-            <AgentIntelligence />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/data-encryption">

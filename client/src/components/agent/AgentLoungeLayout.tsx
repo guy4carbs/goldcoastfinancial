@@ -33,7 +33,6 @@ import {
   Mail,
   Bot,
   Inbox,
-  Brain,
   Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -57,7 +56,6 @@ interface NavItem {
 const mainNavItems: NavItem[] = [
   { icon: Home, label: "Dashboard", href: "/agents/dashboard" },
   { icon: Inbox, label: "Lead Inbox", href: "/agents/inbox" },
-  { icon: Brain, label: "Intelligence", href: "/agents/intelligence" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
   { icon: BarChart3, label: "Performance", href: "/agents/performance" },
 ];
@@ -111,7 +109,6 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
     const routes: Record<string, string> = {
       dashboard: '/agents/dashboard',
       inbox: '/agents/inbox',
-      intelligence: '/agents/intelligence',
       'getting-started': '/agents/getting-started',
       calendar: '/agents/calendar',
       performance: '/agents/performance',
