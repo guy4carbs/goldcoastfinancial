@@ -45,6 +45,7 @@ export interface EventData {
   reminders?: EventReminder[];
   meetingNotes?: string;
   clientName?: string;
+  clientEmail?: string;
   clientPhone?: string;
 }
 

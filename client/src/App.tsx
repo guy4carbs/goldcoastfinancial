@@ -104,7 +104,19 @@ import AgentLeadInbox from "@/pages/agents/AgentLeadInbox";
 import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentDataEncryption from "@/pages/agents/AgentDataEncryption";
 import AgentAutomations from "@/pages/agents/AgentAutomations";
+import BookAppointment from "@/pages/BookAppointment";
 import AdminAvatarCouncil from "@/pages/admin/AdminAvatarCouncil";
+import AgentOps from "@/pages/admin/AgentOps";
+// 2FA Pages
+import TwoFactorSetup from "@/pages/ai/TwoFactorSetup";
+import TwoFactorVerify from "@/pages/ai/TwoFactorVerify";
+// Lounge Pages
+import { AIDashboard } from "@/pages/ai";
+import { ManagerDashboard } from "@/pages/manager";
+import { ExecutiveDashboard } from "@/pages/executive";
+import { LobbyLanding, LobbyImport, LobbyExport, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
+import { MarketingDashboard } from "@/pages/marketing";
+import { PortalDashboard } from "@/pages/portal";
 // Legal Pages
 import TermsOfUse from "@/pages/legal/TermsOfUse";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
@@ -116,9 +128,12 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AgentProtectedRoute } from "@/components/AgentProtectedRoute";
+import { RoleProtectedRoute, SuperAdminRoute, AdminRoute, StaffRoute } from "@/components/auth/RoleProtectedRoute";
+import { Roles } from "@/types/permissions";
 import { CelebrationProvider } from "@/lib/celebrationContext";
 import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
 import { AnalyticsProvider } from "@/hooks/useAnalytics";
+import { WebSocketProvider } from "@/providers/WebSocketProvider";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -147,6 +162,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/secure/form/:id" component={SecureForm} />
+        <Route path="/book/:agentSlug" component={BookAppointment} />
         <Route path="/quote" component={Quote} />
         <Route path="/about" component={AboutUs} />
         <Route path="/about/founders" component={MeetFounders} />
@@ -306,6 +322,140 @@ function Router() {
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/onboarding" component={AgentOnboarding} />
+        {/* Two-Factor Authentication Routes */}
+        <Route path="/ai/2fa-setup" component={TwoFactorSetup} />
+        <Route path="/ai/2fa-verify" component={TwoFactorVerify} />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            LOUNGE ROUTES - Role-protected access to each lounge
+        ═══════════════════════════════════════════════════════════════════ */}
+
+        {/* AI Lounge - Super Admin only with 2FA */}
+        <Route path="/ai/dashboard">
+          <RoleProtectedRoute
+            allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]}
+            require2FA={true}
+          >
+            <AIDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/ai/:rest*">
+          <RoleProtectedRoute
+            allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]}
+            require2FA={true}
+          >
+            <AIDashboard />
+          </RoleProtectedRoute>
+        </Route>
+
+        {/* Manager Lounge - Manager and above */}
+        <Route path="/manager/dashboard">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/:rest*">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerDashboard />
+          </RoleProtectedRoute>
+        </Route>
+
+        {/* Executive Lounge - Owner/Admin/Investor */}
+        <Route path="/executive/dashboard">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]}>
+            <ExecutiveDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/executive/:rest*">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]}>
+            <ExecutiveDashboard />
+          </RoleProtectedRoute>
+        </Route>
+
+        {/* CRM Lobby - The welcoming entrance */}
+        <Route path="/crm">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <LobbyLanding />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/import">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <LobbyImport />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/export">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <LobbyExport />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/dashboard">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <CRMDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/contacts">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <ContactDatabase />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/pipeline">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <PipelineBoard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/leads/:id">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <LeadProfile />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/clients">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <ClientManagement />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/segments">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <SegmentsTags />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/history">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <ActivityHistory />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/crm/:rest*">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+            <LobbyLanding />
+          </RoleProtectedRoute>
+        </Route>
+
+        {/* Marketing Lounge - Marketing staff and above */}
+        <Route path="/marketing/dashboard">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.MARKETING_STAFF]}>
+            <MarketingDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/marketing/:rest*">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.MARKETING_STAFF]}>
+            <MarketingDashboard />
+          </RoleProtectedRoute>
+        </Route>
+
+        {/* Client Portal - Clients only */}
+        <Route path="/portal/dashboard">
+          <RoleProtectedRoute allowedRoles={[Roles.CLIENT]}>
+            <PortalDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/portal/:rest*">
+          <RoleProtectedRoute allowedRoles={[Roles.CLIENT]}>
+            <PortalDashboard />
+          </RoleProtectedRoute>
+        </Route>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            ADMIN ROUTES
+        ═══════════════════════════════════════════════════════════════════ */}
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/submissions">
           <ProtectedRoute>
@@ -387,6 +537,11 @@ function Router() {
             <AdminAvatarCouncil />
           </ProtectedRoute>
         </Route>
+        <Route path="/admin/agent-ops">
+          <ProtectedRoute>
+            <AgentOps />
+          </ProtectedRoute>
+        </Route>
         <Route path="/admin">
           <ProtectedRoute>
             <AdminDashboard />
@@ -409,19 +564,21 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SiteSettingsProvider>
-          <CelebrationProvider>
-            <ConfirmProvider>
-              <TooltipProvider>
-                <AnalyticsProvider>
-                  <Toaster />
-                  <Router />
-                  <LindyChat />
-                </AnalyticsProvider>
-              </TooltipProvider>
-            </ConfirmProvider>
-          </CelebrationProvider>
-        </SiteSettingsProvider>
+        <WebSocketProvider>
+          <SiteSettingsProvider>
+            <CelebrationProvider>
+              <ConfirmProvider>
+                <TooltipProvider>
+                  <AnalyticsProvider>
+                    <Toaster />
+                    <Router />
+                    <LindyChat />
+                  </AnalyticsProvider>
+                </TooltipProvider>
+              </ConfirmProvider>
+            </CelebrationProvider>
+          </SiteSettingsProvider>
+        </WebSocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -991,3 +991,316 @@ Heritage Life Solutions partners with A-rated insurance carriers to provide comp
   console.log(`[SecureForm] Email sent to ${data.clientEmail} for ${formTypeLabel} (${carrierName})`);
   return result;
 }
+
+// Send booking link email to customer
+export async function sendBookingLinkEmail(data: {
+  customerName: string;
+  customerEmail: string;
+  bookingLink: string;
+  meetingDuration: string;
+  meetingType: 'call' | 'video' | 'meeting';
+  customMessage?: string;
+  agent: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}) {
+  const gmail = await getGmailClient();
+
+  const customerFirstName = data.customerName.split(' ')[0];
+  const agentFirstName = data.agent.name.split(' ')[0];
+  const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  // Meeting type labels
+  const meetingTypeLabels: Record<string, string> = {
+    call: 'Phone Call',
+    video: 'Video Call',
+    meeting: 'In-Person Meeting'
+  };
+  const meetingTypeLabel = meetingTypeLabels[data.meetingType] || 'Appointment';
+
+  // Duration labels
+  const durationLabels: Record<string, string> = {
+    '15': '15-minute',
+    '30': '30-minute',
+    '45': '45-minute',
+    '60': '1-hour'
+  };
+  const durationLabel = durationLabels[data.meetingDuration] || `${data.meetingDuration}-minute`;
+
+  // Heritage brand colors - Purple and Gold
+  const primaryColor = '#7c3aed'; // violet-600
+  const goldColor = '#D4AF37'; // heritage gold
+  const gradientFrom = '#7c3aed'; // violet
+  const gradientTo = '#D4AF37'; // gold
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+
+  const subject = `Book Your ${durationLabel} ${meetingTypeLabel} with ${agentFirstName}`;
+
+  const defaultMessage = `I'd love to schedule a time to connect with you! Use the secure link below to pick a time that works best for your schedule. Looking forward to speaking with you soon.`;
+  const bodyMessage = data.customMessage || defaultMessage;
+
+  // HTML Email
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+          <!-- Header with Logo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); padding: 32px 40px; text-align: center;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 80px; height: 80px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+                    <h1 style="color: #ffffff; margin: 16px 0 8px 0; font-size: 24px; font-weight: 700;">Schedule Your Appointment</h1>
+                    <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; font-weight: 500;">${durationLabel} ${meetingTypeLabel} with ${data.agent.name}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Meeting Info Banner -->
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f5f3ff; border-bottom: 1px solid #e9d5ff;">
+              <table cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="text-align: center;">
+                    <table cellpadding="0" cellspacing="0" style="display: inline-block;">
+                      <tr>
+                        <td style="padding: 0 20px; text-align: center; border-right: 1px solid #e9d5ff;">
+                          <span style="font-size: 24px;">${data.meetingType === 'video' ? '📹' : data.meetingType === 'call' ? '📞' : '🤝'}</span>
+                          <p style="color: #5b21b6; font-size: 13px; margin: 8px 0 0 0; font-weight: 600;">${meetingTypeLabel}</p>
+                        </td>
+                        <td style="padding: 0 20px; text-align: center;">
+                          <span style="font-size: 24px;">⏱️</span>
+                          <p style="color: #5b21b6; font-size: 13px; margin: 8px 0 0 0; font-weight: 600;">${durationLabel}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <!-- Welcome Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ff; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0;">
+                      Hi <strong style="color: ${primaryColor};">${customerFirstName}</strong>,
+                    </p>
+                    <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 12px 0 0 0;">
+                      ${bodyMessage}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 0 0 25px 0; text-align: center;">
+                Click the button below to choose a time that works for you:
+              </p>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${data.bookingLink}" style="display: inline-block; background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 17px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+                      📅 Book Your Appointment
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- What to Expect -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; margin: 30px 0;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="color: #374151; font-size: 14px; font-weight: 600; margin: 0 0 16px 0;">What to expect:</p>
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                          <span style="color: ${primaryColor}; font-weight: bold;">1.</span>
+                        </td>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">
+                          Choose a date and time that works for your schedule
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                          <span style="color: ${primaryColor}; font-weight: bold;">2.</span>
+                        </td>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">
+                          Enter your contact information
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; vertical-align: top; width: 24px;">
+                          <span style="color: ${primaryColor}; font-weight: bold;">3.</span>
+                        </td>
+                        <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">
+                          Receive a confirmation email with ${data.meetingType === 'video' ? 'video call link' : data.meetingType === 'call' ? 'call details' : 'meeting location'}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Agent Signature -->
+          <tr>
+            <td style="padding: 0 40px 40px 40px; border-top: 1px solid #e5e7eb;">
+              <table cellpadding="0" cellspacing="0" style="padding-top: 30px;">
+                <tr>
+                  <td style="padding-right: 16px; vertical-align: top;">
+                    <!-- Agent Avatar -->
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="width: 56px; height: 56px; background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); border-radius: 14px; text-align: center; vertical-align: middle;">
+                          <span style="color: #ffffff; font-size: 22px; font-weight: 700;">${agentInitials}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                    <p style="color: #111827; font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">${data.agent.name}</p>
+                    <p style="color: ${primaryColor}; font-size: 13px; font-weight: 600; margin: 0 0 8px 0;">Licensed Insurance Agent</p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 0;">📧 <a href="mailto:${data.agent.email}" style="color: #6b7280; text-decoration: none;">${data.agent.email}</a></p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">📱 <a href="tel:${data.agent.phone.replace(/[^0-9+]/g, '')}" style="color: ${primaryColor}; text-decoration: none; font-weight: 600;">${data.agent.phone}</a></p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">Heritage Life Solutions</p>
+                    <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                      Protecting families with personalized insurance solutions
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Legal Footer -->
+          <tr>
+            <td style="background-color: #f1f5f9; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 0; text-align: center;">
+                &copy; 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567. Policies are issued by our carrier partners and product availability may vary by state.
+              </p>
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 16px 0 0 0; text-align: center;">
+                At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.
+              </p>
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 16px 0 0 0; text-align: center;">
+                Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term.
+              </p>
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 16px 0 0 0; text-align: center;">
+                Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  // Plain text fallback
+  const plainTextBody = `
+HERITAGE LIFE SOLUTIONS
+Schedule Your Appointment
+
+Hi ${customerFirstName},
+
+${bodyMessage}
+
+--------------------------------------------
+BOOK YOUR ${durationLabel.toUpperCase()} ${meetingTypeLabel.toUpperCase()}:
+${data.bookingLink}
+--------------------------------------------
+
+What to expect:
+1. Choose a date and time that works for your schedule
+2. Enter your contact information
+3. Receive a confirmation email with ${data.meetingType === 'video' ? 'video call link' : data.meetingType === 'call' ? 'call details' : 'meeting location'}
+
+Best regards,
+
+${data.agent.name}
+Licensed Insurance Agent
+${data.agent.email}
+${data.agent.phone}
+
+--------------------------------------------
+Heritage Life Solutions
+Protecting families with personalized insurance solutions
+
+(c) 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states.
+  `.trim();
+
+  // Create multipart email with HTML and plain text
+  const boundary = `boundary_${Date.now()}`;
+  const message = [
+    'MIME-Version: 1.0',
+    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    `To: ${data.customerEmail}`,
+    `Reply-To: ${data.agent.email}`,
+    `Subject: ${subject}`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: 7bit',
+    '',
+    plainTextBody,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: 7bit',
+    '',
+    htmlBody,
+    '',
+    `--${boundary}--`
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(message)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  const result = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+
+  console.log(`[BookingLink] Email sent to ${data.customerEmail} for ${durationLabel} ${meetingTypeLabel}`);
+  return result;
+}
