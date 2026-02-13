@@ -482,12 +482,12 @@ export function LobbyLanding() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-5 h-5 text-amber-300" />
-                <span className="text-sm text-indigo-200">Welcome back</span>
+                <span className="text-sm text-white/90 font-medium">Welcome back</span>
               </div>
-              <h1 className="text-3xl lg:text-4xl font-bold mb-2">
+              <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
                 {user?.displayName || user?.email?.split('@')[0] || 'Guest'}
               </h1>
-              <p className="text-indigo-200 text-lg">
+              <p className="text-white/80 text-lg">
                 Here's how your business is performing today
               </p>
             </div>
