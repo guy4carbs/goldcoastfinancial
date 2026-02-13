@@ -219,8 +219,10 @@ export default function AgentLeadInbox() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-serif font-bold text-primary flex items-center gap-2">
-              <Inbox className="w-7 h-7" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                <Inbox className="w-5 h-5 text-white" />
+              </div>
               Lead Inbox
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -229,7 +231,7 @@ export default function AgentLeadInbox() {
           </div>
 
         <div className="flex items-center gap-3">
-          <Button onClick={() => setAddLeadOpen(true)} className="gap-2 bg-primary hover:bg-primary/90">
+          <Button onClick={() => setAddLeadOpen(true)} className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0 shadow-md">
             <UserPlus className="w-4 h-4" />
             Add Lead
           </Button>
@@ -241,16 +243,15 @@ export default function AgentLeadInbox() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={cn(
-            "p-4 rounded-xl border-2",
-            overdueCount > 0 ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"
-          )}
+          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
         >
-          <div className="flex items-center gap-2 mb-1">
-            <AlertCircle className={cn("w-5 h-5", overdueCount > 0 ? "text-red-500" : "text-green-500")} />
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-md", overdueCount > 0 ? "bg-gradient-to-br from-red-400 to-rose-500" : "bg-gradient-to-br from-green-400 to-emerald-500")}>
+              <AlertCircle className="w-5 h-5 text-white" />
+            </div>
             <span className="text-sm font-medium text-gray-600">Overdue</span>
           </div>
-          <p className={cn("text-2xl font-bold", overdueCount > 0 ? "text-red-600" : "text-green-600")}>
+          <p className={cn("text-2xl font-bold", overdueCount > 0 ? "bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent" : "bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent")}>
             {overdueCount}
           </p>
         </motion.div>
@@ -259,48 +260,51 @@ export default function AgentLeadInbox() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-4 rounded-xl border-2 bg-amber-50 border-amber-200"
+          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
         >
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-5 h-5 text-amber-500" />
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
             <span className="text-sm font-medium text-gray-600">Due Today</span>
           </div>
-          <p className="text-2xl font-bold text-amber-600">{todayCount}</p>
+          <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{todayCount}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="p-4 rounded-xl border-2 bg-green-50 border-green-200"
+          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
         >
-          <div className="flex items-center gap-2 mb-1">
-            <Calendar className="w-5 h-5 text-green-500" />
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
             <span className="text-sm font-medium text-gray-600">This Week</span>
           </div>
-          <p className="text-2xl font-bold text-green-600">{categorizedLeads.upcoming.length}</p>
+          <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{categorizedLeads.upcoming.length}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className={cn(
-            "p-4 rounded-xl border-2",
-            categorizedLeads['no-followup'].length > 0 ? "bg-gray-100 border-gray-300 border-dashed" : "bg-green-50 border-green-200"
-          )}
+          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
         >
-          <div className="flex items-center gap-2 mb-1">
-            {categorizedLeads['no-followup'].length > 0 ? (
-              <AlertCircle className="w-5 h-5 text-gray-400" />
-            ) : (
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-            )}
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-md", categorizedLeads['no-followup'].length > 0 ? "bg-gradient-to-br from-gray-400 to-slate-500" : "bg-gradient-to-br from-green-400 to-emerald-500")}>
+              {categorizedLeads['no-followup'].length > 0 ? (
+                <AlertCircle className="w-5 h-5 text-white" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              )}
+            </div>
             <span className="text-sm font-medium text-gray-600">No Date Set</span>
           </div>
           <p className={cn(
             "text-2xl font-bold",
-            categorizedLeads['no-followup'].length > 0 ? "text-gray-500" : "text-green-600"
+            categorizedLeads['no-followup'].length > 0 ? "bg-gradient-to-r from-gray-500 to-slate-500 bg-clip-text text-transparent" : "bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent"
           )}>
             {categorizedLeads['no-followup'].length}
           </p>

@@ -1,0 +1,214 @@
+/**
+ * RBAC Permission System - Frontend Types
+ * Mirror of server-side permissions for client-side route protection
+ */
+
+// =============================================================================
+// ROLES
+// =============================================================================
+
+export const Roles = {
+  OWNER: 'owner',
+  SYSTEM_ADMIN: 'system_admin',
+  AGENCY_MANAGER: 'manager',
+  SALES_AGENT: 'sales_agent',
+  MARKETING_STAFF: 'marketing_staff',
+  CLIENT: 'client',
+  INVESTOR: 'investor',
+} as const;
+
+export type Role = typeof Roles[keyof typeof Roles];
+
+export const ALL_ROLES: Role[] = Object.values(Roles);
+
+// Role hierarchy for comparisons (lower index = higher privilege)
+export const ROLE_HIERARCHY: Role[] = [
+  Roles.OWNER,
+  Roles.SYSTEM_ADMIN,
+  Roles.AGENCY_MANAGER,
+  Roles.SALES_AGENT,
+  Roles.MARKETING_STAFF,
+  Roles.CLIENT,
+  Roles.INVESTOR,
+];
+
+// =============================================================================
+// PERMISSIONS (subset needed for frontend)
+// =============================================================================
+
+export const Permission = {
+  // AI Access
+  AI_LOUNGE_ACCESS: 'ai:lounge:access',
+  AI_AGENTS_VIEW: 'ai:agents:view',
+  AI_AGENTS_CONTROL: 'ai:agents:control',
+  AI_AGENTS_CONFIGURE: 'ai:agents:configure',
+  AI_AVATAR_COUNCIL: 'ai:avatar:council',
+
+  // Analytics
+  ANALYTICS_VIEW_OWN: 'analytics:view:own',
+  ANALYTICS_VIEW_ALL: 'analytics:view:all',
+  ANALYTICS_EXECUTIVE: 'analytics:executive',
+
+  // Content
+  CONTENT_VIEW: 'content:view',
+  CONTENT_CREATE: 'content:create',
+  CONTENT_EDIT: 'content:edit',
+  CONTENT_PUBLISH: 'content:publish',
+
+  // Leads
+  LEADS_VIEW_OWN: 'leads:view:own',
+  LEADS_VIEW_ALL: 'leads:view:all',
+
+  // Financial
+  FINANCIAL_VIEW: 'financial:view',
+  FINANCIAL_INVESTOR_REPORTS: 'financial:investor:reports',
+
+  // System
+  SYSTEM_SETTINGS: 'system:settings',
+  USERS_VIEW: 'users:view',
+} as const;
+
+export type PermissionType = typeof Permission[keyof typeof Permission];
+
+// =============================================================================
+// ROLE-PERMISSION MAPPING (frontend subset)
+// =============================================================================
+
+export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
+  [Roles.OWNER]: Object.values(Permission),
+
+  [Roles.SYSTEM_ADMIN]: [
+    Permission.AI_LOUNGE_ACCESS,
+    Permission.AI_AGENTS_VIEW,
+    Permission.AI_AGENTS_CONTROL,
+    Permission.AI_AGENTS_CONFIGURE,
+    Permission.AI_AVATAR_COUNCIL,
+    Permission.ANALYTICS_VIEW_ALL,
+    Permission.ANALYTICS_EXECUTIVE,
+    Permission.CONTENT_VIEW,
+    Permission.CONTENT_CREATE,
+    Permission.CONTENT_EDIT,
+    Permission.CONTENT_PUBLISH,
+    Permission.LEADS_VIEW_ALL,
+    Permission.FINANCIAL_VIEW,
+    Permission.SYSTEM_SETTINGS,
+    Permission.USERS_VIEW,
+  ],
+
+  [Roles.AGENCY_MANAGER]: [
+    Permission.AI_LOUNGE_ACCESS,
+    Permission.AI_AGENTS_VIEW,
+    Permission.AI_AGENTS_CONTROL,
+    Permission.AI_AVATAR_COUNCIL,
+    Permission.ANALYTICS_VIEW_ALL,
+    Permission.ANALYTICS_EXECUTIVE,
+    Permission.CONTENT_VIEW,
+    Permission.CONTENT_CREATE,
+    Permission.CONTENT_EDIT,
+    Permission.LEADS_VIEW_ALL,
+    Permission.USERS_VIEW,
+  ],
+
+  [Roles.SALES_AGENT]: [
+    Permission.AI_LOUNGE_ACCESS,
+    Permission.AI_AVATAR_COUNCIL,
+    Permission.ANALYTICS_VIEW_OWN,
+    Permission.CONTENT_VIEW,
+    Permission.LEADS_VIEW_OWN,
+  ],
+
+  [Roles.MARKETING_STAFF]: [
+    Permission.AI_AVATAR_COUNCIL,
+    Permission.ANALYTICS_VIEW_ALL,
+    Permission.CONTENT_VIEW,
+    Permission.CONTENT_CREATE,
+    Permission.CONTENT_EDIT,
+    Permission.CONTENT_PUBLISH,
+  ],
+
+  [Roles.CLIENT]: [
+    Permission.CONTENT_VIEW,
+  ],
+
+  [Roles.INVESTOR]: [
+    Permission.FINANCIAL_VIEW,
+    Permission.FINANCIAL_INVESTOR_REPORTS,
+    Permission.ANALYTICS_EXECUTIVE,
+  ],
+};
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+export function hasPermission(role: Role, permission: PermissionType): boolean {
+  const permissions = ROLE_PERMISSIONS[role];
+  return permissions?.includes(permission) ?? false;
+}
+
+export function hasAnyPermission(role: Role, permissions: PermissionType[]): boolean {
+  return permissions.some(p => hasPermission(role, p));
+}
+
+export function hasAllPermissions(role: Role, permissions: PermissionType[]): boolean {
+  return permissions.every(p => hasPermission(role, p));
+}
+
+export function isRoleAtLeast(roleA: Role, roleB: Role): boolean {
+  const indexA = ROLE_HIERARCHY.indexOf(roleA);
+  const indexB = ROLE_HIERARCHY.indexOf(roleB);
+  if (indexA === -1 || indexB === -1) return false;
+  return indexA <= indexB;
+}
+
+export function isAdminRole(role: Role): boolean {
+  const adminRoles: Role[] = [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER];
+  return adminRoles.includes(role);
+}
+
+export function isValidRole(role: string): role is Role {
+  return ALL_ROLES.includes(role as Role);
+}
+
+// =============================================================================
+// ROLE GROUPS (for route protection)
+// =============================================================================
+
+export const RoleGroups = {
+  ADMINS: [Roles.OWNER, Roles.SYSTEM_ADMIN] as Role[],
+  MANAGEMENT: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER] as Role[],
+  STAFF: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF] as Role[],
+  AI_LOUNGE: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT] as Role[],
+  EXTERNAL: [Roles.CLIENT, Roles.INVESTOR] as Role[],
+  ALL: ALL_ROLES,
+} as const;
+
+export type RoleGroup = keyof typeof RoleGroups;
+
+// =============================================================================
+// DEFAULT ROUTES BY ROLE
+// =============================================================================
+
+export const DEFAULT_ROUTE_BY_ROLE: Record<Role, string> = {
+  [Roles.OWNER]: '/admin',
+  [Roles.SYSTEM_ADMIN]: '/admin',
+  [Roles.AGENCY_MANAGER]: '/admin',
+  [Roles.SALES_AGENT]: '/agents',
+  [Roles.MARKETING_STAFF]: '/admin/content',
+  [Roles.CLIENT]: '/portal',
+  [Roles.INVESTOR]: '/investor',
+};
+
+// =============================================================================
+// ROLE DISPLAY NAMES
+// =============================================================================
+
+export const ROLE_DISPLAY_NAMES: Record<Role, string> = {
+  [Roles.OWNER]: 'Owner',
+  [Roles.SYSTEM_ADMIN]: 'System Administrator',
+  [Roles.AGENCY_MANAGER]: 'Agency Manager',
+  [Roles.SALES_AGENT]: 'Sales Agent',
+  [Roles.MARKETING_STAFF]: 'Marketing Staff',
+  [Roles.CLIENT]: 'Client',
+  [Roles.INVESTOR]: 'Investor',
+};

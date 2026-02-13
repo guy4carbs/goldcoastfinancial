@@ -553,8 +553,8 @@ export default function BecomeAgent() {
               </div>
 
               <div className="text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="w-10 h-10 text-green-500" />
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <CheckCircle className="w-10 h-10 text-white" />
                 </div>
 
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Received!</h3>

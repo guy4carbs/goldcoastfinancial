@@ -288,13 +288,18 @@ export default function AgentPerformance() {
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-primary">Performance</h1>
-            <p className="text-sm text-gray-600">Track your pipeline, earnings, and analytics</p>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
+                <Activity className="w-5 h-5 text-white" />
+              </div>
+              Performance
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">Track your pipeline, earnings, and analytics</p>
           </div>
           <div className="flex items-center gap-2">
             <Select value={timePeriod} onValueChange={(v) => setTimePeriod(v as TimePeriod)}>
-              <SelectTrigger className="w-[140px]">
-                <Calendar className="w-4 h-4 mr-2" />
+              <SelectTrigger className="w-[140px] border-indigo-200 focus:ring-violet-500">
+                <Calendar className="w-4 h-4 mr-2 text-indigo-500" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -305,7 +310,7 @@ export default function AgentPerformance() {
               </SelectContent>
             </Select>
             {activeTab === 'earnings' && (
-              <Button variant="outline" onClick={handleExport}>
+              <Button variant="outline" onClick={handleExport} className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -316,16 +321,16 @@ export default function AgentPerformance() {
         {/* Tab Navigation */}
         <motion.div variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="pipeline" className="gap-2">
+            <TabsList className="grid w-full max-w-md grid-cols-3 bg-gray-100/80 p-1">
+              <TabsTrigger value="pipeline" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <BarChart3 className="w-4 h-4" />
                 Pipeline
               </TabsTrigger>
-              <TabsTrigger value="earnings" className="gap-2">
+              <TabsTrigger value="earnings" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <DollarSign className="w-4 h-4" />
                 Earnings
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="gap-2">
+              <TabsTrigger value="analytics" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Activity className="w-4 h-4" />
                 Analytics
               </TabsTrigger>
@@ -336,18 +341,18 @@ export default function AgentPerformance() {
               {/* Summary Stats */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { icon: Users, label: "Total Pipeline", value: pipelineMetrics.totalLeads, subtext: `active leads`, color: "text-blue-600", bg: "bg-blue-50" },
-                      { icon: DollarSign, label: "Pipeline Value", value: `$${(pipelineMetrics.totalPipelineValue / 1000).toFixed(1)}K`, subtext: "potential revenue", color: "text-green-600", bg: "bg-green-50" },
-                      { icon: Target, label: "Conversion Rate", value: `${pipelineMetrics.overallConversion}%`, subtext: "overall", color: "text-purple-600", bg: "bg-purple-50" },
-                      { icon: Clock, label: "Avg. Cycle Time", value: `${pipelineMetrics.avgCycleTime}`, subtext: "days to close", color: "text-orange-600", bg: "bg-orange-50" }
+                      { icon: Users, label: "Total Pipeline", value: pipelineMetrics.totalLeads, subtext: `active leads`, gradient: "from-blue-500 to-cyan-500" },
+                      { icon: DollarSign, label: "Pipeline Value", value: `$${(pipelineMetrics.totalPipelineValue / 1000).toFixed(1)}K`, subtext: "potential revenue", gradient: "from-emerald-500 to-green-500" },
+                      { icon: Target, label: "Conversion Rate", value: `${pipelineMetrics.overallConversion}%`, subtext: "overall", gradient: "from-violet-500 to-purple-500" },
+                      { icon: Clock, label: "Avg. Cycle Time", value: `${pipelineMetrics.avgCycleTime}`, subtext: "days to close", gradient: "from-orange-500 to-amber-500" }
                     ].map((stat, idx) => (
-                      <Card key={idx}>
+                      <Card key={idx} className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
                         <CardContent className="p-4">
-                          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", stat.bg)}>
-                            <stat.icon className={cn("w-5 h-5", stat.color)} />
+                          <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-lg bg-gradient-to-br", stat.gradient)}>
+                            <stat.icon className="w-5 h-5 text-white" />
                           </div>
-                          <p className={cn("text-2xl font-bold", stat.color)}>{stat.value}</p>
-                          <p className="text-xs text-gray-500">{stat.label}</p>
+                          <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
+                          <p className="text-xs font-medium text-gray-600">{stat.label}</p>
                           <p className="text-[10px] text-gray-400 mt-1">{stat.subtext}</p>
                         </CardContent>
                       </Card>
@@ -355,11 +360,13 @@ export default function AgentPerformance() {
                   </div>
 
                   {/* Funnel Visualization */}
-                  <Card>
+                  <Card className="overflow-hidden border-0 shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-violet-500" />
-                        Sales Funnel
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md">
+                          <BarChart3 className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Sales Funnel</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -461,54 +468,63 @@ export default function AgentPerformance() {
             <TabsContent value="earnings" className="space-y-6 mt-6">
               {/* Summary Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200">
+                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-yellow-600" />
-                      <span className="text-xs font-medium text-yellow-700">Pending</span>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-md">
+                        <Clock className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-xs font-semibold text-amber-700">Pending</span>
                     </div>
-                    <p className="text-2xl font-bold text-yellow-700">${earningsMetrics.pending.total.toLocaleString()}</p>
-                    <p className="text-xs text-yellow-600 mt-1">{earningsMetrics.pending.count} policies</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${earningsMetrics.pending.total.toLocaleString()}</p>
+                    <p className="text-xs text-amber-600 mt-1">{earningsMetrics.pending.count} policies</p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
+                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <span className="text-xs font-medium text-green-700">Paid</span>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-700">Paid</span>
                     </div>
-                    <p className="text-2xl font-bold text-green-700">${earningsMetrics.paid.total.toLocaleString()}</p>
-                    <p className="text-xs text-green-600 mt-1">{earningsMetrics.paid.count} policies</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${earningsMetrics.paid.total.toLocaleString()}</p>
+                    <p className="text-xs text-emerald-600 mt-1">{earningsMetrics.paid.count} policies</p>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-violet-500/10 to-violet-500/5 border-violet-500/30">
-                  <CardContent className="p-4">
+                <Card className="overflow-hidden border-0 shadow-xl relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600" />
+                  <CardContent className="p-4 relative z-10">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-violet-500" />
-                      <span className="text-xs font-medium text-primary">Net Total</span>
+                      <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                        <DollarSign className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-xs font-semibold text-white/90">Net Total</span>
                     </div>
-                    <p className="text-2xl font-bold text-primary">${earningsMetrics.netTotal.toLocaleString()}</p>
-                    <p className="text-xs text-gray-600 mt-1">{periodLabel.toLowerCase()}</p>
+                    <p className="text-2xl font-bold text-white">${earningsMetrics.netTotal.toLocaleString()}</p>
+                    <p className="text-xs text-white/70 mt-1">{periodLabel.toLowerCase()}</p>
                     {earningsMetrics.clawback.total > 0 && (
-                      <p className="text-[10px] text-red-500 mt-0.5 flex items-center gap-1">
+                      <p className="text-[10px] text-red-200 mt-0.5 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />-${earningsMetrics.clawback.total.toLocaleString()} clawbacks
                       </p>
                     )}
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <BarChart3 className="w-4 h-4 text-blue-600" />
-                      <span className="text-xs font-medium text-gray-700">YTD</span>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
+                        <BarChart3 className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-xs font-semibold text-blue-700">YTD</span>
                     </div>
-                    <p className="text-2xl font-bold text-primary">${earningsMetrics.ytd.toLocaleString()}</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">${earningsMetrics.ytd.toLocaleString()}</p>
                     <div className="flex items-center gap-1 mt-1">
                       <TrendingUp className="w-3 h-3 text-green-500" />
-                      <span className="text-xs text-green-600">+18% YoY</span>
+                      <span className="text-xs text-green-600 font-medium">+18% YoY</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -517,11 +533,13 @@ export default function AgentPerformance() {
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   {/* Monthly Trend */}
-                  <Card>
+                  <Card className="overflow-hidden border-0 shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-violet-500" />
-                        Earnings Trend (6 Months)
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                          <TrendingUp className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Earnings Trend (6 Months)</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -688,11 +706,13 @@ export default function AgentPerformance() {
             {/* Analytics Tab */}
             <TabsContent value="analytics" className="space-y-6 mt-6">
               {/* Lead Source ROI */}
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-violet-500" />
-                    Lead Source ROI Analysis
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md">
+                      <Target className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Lead Source ROI Analysis</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -737,11 +757,13 @@ export default function AgentPerformance() {
               </Card>
 
               {/* Product Mix */}
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-violet-500" />
-                    Product Mix Breakdown
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
+                      <Layers className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Product Mix Breakdown</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -822,34 +844,45 @@ export default function AgentPerformance() {
               </Card>
 
               {/* Performance Trends */}
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg">
                 <CardHeader>
-                  <CardTitle>Performance Trends</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                      <Activity className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Performance Trends</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">New Leads</span>
-                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <span className="text-sm font-medium text-gray-600">New Leads</span>
+                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                          <TrendingUp className="w-3 h-3 text-green-500" />
+                        </div>
                       </div>
-                      <p className="text-2xl font-bold text-primary">+23%</p>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">+23%</p>
                       <p className="text-xs text-gray-500">vs last {timePeriod}</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Close Rate</span>
-                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <span className="text-sm font-medium text-gray-600">Close Rate</span>
+                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                          <TrendingUp className="w-3 h-3 text-blue-500" />
+                        </div>
                       </div>
-                      <p className="text-2xl font-bold text-primary">+8%</p>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">+8%</p>
                       <p className="text-xs text-gray-500">vs last {timePeriod}</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="p-4 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-100">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Avg Deal Size</span>
-                        <TrendingDown className="w-4 h-4 text-red-500" />
+                        <span className="text-sm font-medium text-gray-600">Avg Deal Size</span>
+                        <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                          <TrendingDown className="w-3 h-3 text-red-500" />
+                        </div>
                       </div>
-                      <p className="text-2xl font-bold text-primary">-5%</p>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">-5%</p>
                       <p className="text-xs text-gray-500">vs last {timePeriod}</p>
                     </div>
                   </div>

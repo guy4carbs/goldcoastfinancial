@@ -753,7 +753,10 @@ export default function AgentChat() {
               >
                 <div className="p-3 border-b border-gray-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-primary">Chat</span>
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-sm">
+                      <MessageSquare className="w-4 h-4 text-white" aria-hidden="true" />
+                    </div>
+                    <span className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Chat</span>
                     <DemoBadge />
                   </div>
                   <Button
@@ -794,8 +797,8 @@ export default function AgentChat() {
                 <Menu className="w-5 h-5" aria-hidden="true" />
               </Button>
               {selectedChannel.type === 'channel' ? (
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Hash className="w-5 h-5 text-primary" aria-hidden="true" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                  <Hash className="w-5 h-5 text-white" aria-hidden="true" />
                 </div>
               ) : (
                 <Avatar className="w-10 h-10">

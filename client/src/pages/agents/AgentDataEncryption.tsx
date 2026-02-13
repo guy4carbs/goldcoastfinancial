@@ -1459,11 +1459,11 @@ export default function AgentDataEncryption() {
         <motion.div variants={fadeInUp}>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                <Shield className="w-5 h-5 text-primary" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Secure Data Collection</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Secure Data Collection</h1>
                 <p className="text-gray-500 text-sm">Send encrypted forms to collect sensitive client information</p>
               </div>
             </div>

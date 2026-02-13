@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, varchar, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, varchar, integer, boolean, jsonb, date, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -25,6 +25,18 @@ export type LeadSource = typeof leadSourceEnum[number];
  */
 export const leadPriorityEnum = ["low", "medium", "high", "urgent"] as const;
 export type LeadPriority = typeof leadPriorityEnum[number];
+
+/**
+ * Pipeline stage enum for leads
+ */
+export const pipelineStageEnum = ["new", "contacted", "qualified", "appointment_set", "quoted", "application", "underwriting", "issued", "placed", "lost"] as const;
+export type PipelineStage = typeof pipelineStageEnum[number];
+
+/**
+ * Score tier based on lead score
+ */
+export const scoreTierEnum = ["cold", "warm", "hot", "on_fire"] as const;
+export type ScoreTier = typeof scoreTierEnum[number];
 
 /**
  * Main leads table - tracks potential customers through the sales pipeline
@@ -70,10 +82,35 @@ export const leads = pgTable("leads", {
   // Notes
   notes: text("notes"),
 
+  // ===== NEW PIPELINE COLUMNS =====
+  // Scoring
+  leadScore: integer("lead_score").default(0), // 0-100 AI-calculated score
+  scoreTier: varchar("score_tier", { length: 20 }), // cold, warm, hot, on_fire
+  closeProbability: integer("close_probability").default(0), // 0-100 percent
+
+  // Pipeline
+  pipelineStage: varchar("pipeline_stage", { length: 50 }).default("new"),
+  expectedCloseDate: date("expected_close_date"),
+
+  // Enrichment (from DataEnrichmentAgent)
+  enrichmentData: jsonb("enrichment_data"), // Social profiles, employment, household info
+
+  // Tags for filtering/segmentation
+  tags: text("tags").array(),
+
+  // Contact tracking
+  contactCount: integer("contact_count").default(0),
+
   // Metadata
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  index("idx_leads_assigned_to").on(table.assignedTo),
+  index("idx_leads_status").on(table.status),
+  index("idx_leads_pipeline_stage").on(table.pipelineStage),
+  index("idx_leads_lead_score").on(table.leadScore),
+  index("idx_leads_next_follow_up").on(table.nextFollowUp),
+]);
 
 /**
  * Lead activities - tracks all interactions and status changes for a lead
@@ -114,6 +151,28 @@ export type Lead = typeof leads.$inferSelect;
 export type InsertLead = z.infer<typeof insertLeadSchema>;
 export type LeadActivity = typeof leadActivities.$inferSelect;
 export type InsertLeadActivity = z.infer<typeof insertLeadActivitySchema>;
+
+// =============================================================================
+// IMPORT HISTORY
+// =============================================================================
+
+/**
+ * Import history - tracks bulk import operations
+ */
+export const importHistory = pgTable("import_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id"),
+  fileName: text("file_name"),
+  totalRows: integer("total_rows").default(0),
+  importedRows: integer("imported_rows").default(0),
+  skippedRows: integer("skipped_rows").default(0),
+  errorRows: integer("error_rows").default(0),
+  source: text("source").default("import"),
+  errorDetails: text("error_details"), // JSON array of error messages
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ImportHistory = typeof importHistory.$inferSelect;
 
 // =============================================================================
 // SITE SETTINGS

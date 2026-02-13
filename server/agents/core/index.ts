@@ -1,0 +1,22 @@
+/**
+ * CORE EXPORTS
+ * The foundational infrastructure layer of the GCF Agent System.
+ */
+
+export { EventBus, EventType, eventBus } from './event-bus';
+export type { AgentEvent, Subscription } from './event-bus';
+
+export { BaseAgent, AgentStatus } from './base-agent';
+export type { AgentConfig, AgentMetrics } from './base-agent';
+
+export { MemoryGraph, NodeType, EdgeType, memoryGraph } from './memory-graph';
+export type { GraphNode, GraphEdge, LeadData, ClientData, PolicyData, ConversationData } from './memory-graph';
+
+export { KnowledgeBase, knowledgeBase } from './knowledge-base';
+export type { Carrier, ProductTemplate, ObjectionResponse, ComplianceRule, SalesScript, EmailTemplate } from './knowledge-base';
+
+export { AnalyticsLedger, MetricType, analyticsLedger } from './analytics-ledger';
+export type { LedgerEntry, TimeWindow } from './analytics-ledger';
+
+export { SecurityLayer, Permission, securityLayer } from './security-layer';
+export type { AuditEntry } from './security-layer';

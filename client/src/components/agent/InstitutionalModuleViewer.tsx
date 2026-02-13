@@ -419,7 +419,6 @@ export function InstitutionalModuleViewer({
                   {/* Key Points */}
                   {currentSection?.keyPoints && currentSection.keyPoints.length > 0 && (
                     <Card className="mt-8 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200/50 shadow-sm overflow-hidden">
-                      <div className="h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
                       <CardContent className="p-5">
                         <h4 className="text-sm font-semibold text-emerald-800 mb-4 flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -442,7 +441,6 @@ export function InstitutionalModuleViewer({
                   {/* Compliance Notes */}
                   {currentSection?.complianceNotes && currentSection.complianceNotes.length > 0 && (
                     <Card className="mt-5 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200/50 shadow-sm overflow-hidden">
-                      <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
                       <CardContent className="p-5">
                         <h4 className="text-sm font-semibold text-amber-800 mb-4 flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">

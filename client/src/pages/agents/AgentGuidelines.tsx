@@ -37,25 +37,25 @@ const CORE_VALUES = [
     icon: Heart,
     title: 'Client First',
     description: 'Every decision we make starts with what\'s best for the client and their family.',
-    color: 'text-red-500 bg-red-50'
+    color: 'bg-gradient-to-br from-red-400 to-rose-500'
   },
   {
     icon: Shield,
     title: 'Integrity',
     description: 'We do the right thing, even when no one is watching. Honesty is non-negotiable.',
-    color: 'text-blue-500 bg-blue-50'
+    color: 'bg-gradient-to-br from-blue-400 to-cyan-500'
   },
   {
     icon: Target,
     title: 'Excellence',
     description: 'We strive for excellence in everything we do, continuously improving our skills.',
-    color: 'text-purple-500 bg-purple-50'
+    color: 'bg-gradient-to-br from-violet-400 to-purple-500'
   },
   {
     icon: Users,
     title: 'Teamwork',
     description: 'We support each other, share knowledge, and celebrate wins together.',
-    color: 'text-green-500 bg-green-50'
+    color: 'bg-gradient-to-br from-emerald-400 to-green-500'
   }
 ];
 
@@ -246,7 +246,7 @@ export default function AgentGuidelines() {
 
         {/* Quick Links */}
         <motion.div variants={fadeInUp}>
-          <Card>
+          <Card className="border-0 shadow-lg">
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-2" role="group" aria-label="Quick navigation to guideline sections">
                 {[
@@ -262,8 +262,8 @@ export default function AgentGuidelines() {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "hover:bg-primary/5",
-                      activeTab === link.value && "bg-primary/10 border-primary text-primary"
+                      "transition-all hover:shadow-md",
+                      activeTab === link.value && "bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 shadow-md"
                     )}
                     onClick={() => setActiveTab(link.value)}
                     aria-label={`Go to ${link.label} section`}
@@ -279,28 +279,28 @@ export default function AgentGuidelines() {
         {/* Tabs */}
         <motion.div variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4 flex-wrap h-auto gap-1">
-              <TabsTrigger value="values" className="gap-2">
+            <TabsList className="mb-4 flex-wrap h-auto gap-1 bg-white/50 shadow-md p-1">
+              <TabsTrigger value="values" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Heart className="w-4 h-4" aria-hidden="true" />
                 Values
               </TabsTrigger>
-              <TabsTrigger value="performance" className="gap-2">
+              <TabsTrigger value="performance" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Target className="w-4 h-4" aria-hidden="true" />
                 Performance
               </TabsTrigger>
-              <TabsTrigger value="commission" className="gap-2">
+              <TabsTrigger value="commission" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <DollarSign className="w-4 h-4" aria-hidden="true" />
                 Commission
               </TabsTrigger>
-              <TabsTrigger value="compliance" className="gap-2">
+              <TabsTrigger value="compliance" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Shield className="w-4 h-4" aria-hidden="true" />
                 Compliance
               </TabsTrigger>
-              <TabsTrigger value="practices" className="gap-2">
+              <TabsTrigger value="practices" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Sparkles className="w-4 h-4" aria-hidden="true" />
                 Best Practices
               </TabsTrigger>
-              <TabsTrigger value="documents" className="gap-2">
+              <TabsTrigger value="documents" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <FileText className="w-4 h-4" aria-hidden="true" />
                 Documents
               </TabsTrigger>
@@ -312,12 +312,12 @@ export default function AgentGuidelines() {
                 {CORE_VALUES.map((value) => {
                   const Icon = value.icon;
                   return (
-                    <Card key={value.title}>
+                    <Card key={value.title} className="border-0 shadow-lg hover:shadow-xl transition-all">
                       <CardContent className="p-6">
-                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4", value.color)}>
-                          <Icon className="w-6 h-6" aria-hidden="true" />
+                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg", value.color)}>
+                          <Icon className="w-6 h-6 text-white" aria-hidden="true" />
                         </div>
-                        <h3 className="text-lg font-semibold text-primary mb-2">{value.title}</h3>
+                        <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">{value.title}</h3>
                         <p className="text-gray-600">{value.description}</p>
                       </CardContent>
                     </Card>
@@ -325,13 +325,17 @@ export default function AgentGuidelines() {
                 })}
               </div>
 
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-6">
+              <Card className="border-0 shadow-xl overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <CardContent className="p-6 relative z-10">
                   <div className="flex items-start gap-4">
-                    <Award className="w-8 h-8 text-primary flex-shrink-0" aria-hidden="true" />
+                    <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                      <Award className="w-6 h-6 text-white" aria-hidden="true" />
+                    </div>
                     <div>
-                      <h3 className="font-semibold text-primary mb-2">Our Mission</h3>
-                      <p className="text-gray-700">
+                      <h3 className="font-semibold text-white mb-2">Our Mission</h3>
+                      <p className="text-white/90">
                         To protect families across America by providing accessible, affordable life insurance
                         solutions while building a community of ethical, professional agents who prioritize
                         client needs above all else.
@@ -345,11 +349,13 @@ export default function AgentGuidelines() {
             {/* Performance Tab */}
             <TabsContent value="performance" className="space-y-4">
               {/* Daily Expectations */}
-              <Card>
+              <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-primary" aria-hidden="true" />
-                    Daily Expectations
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
+                      <Target className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Daily Expectations</span>
                   </CardTitle>
                   <CardDescription>
                     What's expected of every Heritage Life agent, every day
@@ -359,10 +365,20 @@ export default function AgentGuidelines() {
                   <div className="grid sm:grid-cols-2 gap-3">
                     {DAILY_EXPECTATIONS.map((item, idx) => {
                       const Icon = EXPECTATION_ICONS[item.icon] || Target;
+                      const gradients = [
+                        'from-violet-400 to-purple-500',
+                        'from-blue-400 to-cyan-500',
+                        'from-emerald-400 to-green-500',
+                        'from-amber-400 to-orange-500',
+                        'from-red-400 to-rose-500',
+                        'from-indigo-400 to-violet-500',
+                        'from-pink-400 to-rose-500',
+                        'from-teal-400 to-cyan-500',
+                      ];
                       return (
-                        <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-primary/5 transition-colors">
-                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
+                        <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white shadow-md hover:shadow-lg transition-all">
+                          <div className={cn("w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-sm", gradients[idx % gradients.length])}>
+                            <Icon className="w-4 h-4 text-white" aria-hidden="true" />
                           </div>
                           <div>
                             <p className="font-medium text-sm">{item.rule}</p>
@@ -376,11 +392,13 @@ export default function AgentGuidelines() {
               </Card>
 
               {/* Daily Schedule */}
-              <Card>
+              <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-primary" aria-hidden="true" />
-                    Daily Schedule
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md">
+                      <Clock className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Daily Schedule</span>
                   </CardTitle>
                   <CardDescription>
                     Our standard day — stay till 9 PM to be elite
@@ -407,11 +425,13 @@ export default function AgentGuidelines() {
 
             {/* Commission Tab */}
             <TabsContent value="commission" className="space-y-4">
-              <Card>
+              <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-green-500" aria-hidden="true" />
-                    Commission Structure
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-md">
+                      <DollarSign className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Commission Structure</span>
                   </CardTitle>
                   <CardDescription>
                     Your earnings grow as your production increases
@@ -455,18 +475,24 @@ export default function AgentGuidelines() {
                   </div>
 
                   <div className="mt-6 pt-6 border-t grid sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <Clock className="w-6 h-6 text-primary mx-auto mb-2" aria-hidden="true" />
+                    <div className="text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center mx-auto mb-2 shadow-sm">
+                        <Clock className="w-5 h-5 text-white" aria-hidden="true" />
+                      </div>
                       <p className="font-medium">Payment Schedule</p>
                       <p className="text-sm text-gray-600">Weekly on Fridays</p>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <DollarSign className="w-6 h-6 text-green-500 mx-auto mb-2" aria-hidden="true" />
+                    <div className="text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center mx-auto mb-2 shadow-sm">
+                        <DollarSign className="w-5 h-5 text-white" aria-hidden="true" />
+                      </div>
                       <p className="font-medium">Minimum Payout</p>
                       <p className="text-sm text-gray-600">$100</p>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <CheckCircle2 className="w-6 h-6 text-blue-500 mx-auto mb-2" aria-hidden="true" />
+                    <div className="text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center mx-auto mb-2 shadow-sm">
+                        <CheckCircle2 className="w-5 h-5 text-white" aria-hidden="true" />
+                      </div>
                       <p className="font-medium">Direct Deposit</p>
                       <p className="text-sm text-gray-600">Available</p>
                     </div>
@@ -477,13 +503,17 @@ export default function AgentGuidelines() {
 
             {/* Compliance Tab */}
             <TabsContent value="compliance" className="space-y-4">
-              <Card className="bg-red-50 border-red-200 mb-4">
-                <CardContent className="p-4">
+              <Card className="border-0 shadow-xl overflow-hidden relative mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500 via-rose-500 to-red-600" />
+                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <CardContent className="p-4 relative z-10">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                      <AlertTriangle className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
                     <div>
-                      <h4 className="font-medium text-red-800">Compliance is Non-Negotiable</h4>
-                      <p className="text-sm text-red-700">
+                      <h4 className="font-medium text-white">Compliance is Non-Negotiable</h4>
+                      <p className="text-sm text-white/90">
                         Violations of compliance standards may result in immediate termination and
                         reporting to state insurance departments. When in doubt, always ask.
                       </p>
@@ -493,36 +523,43 @@ export default function AgentGuidelines() {
               </Card>
 
               <div className="grid md:grid-cols-3 gap-4">
-                {COMPLIANCE_ITEMS.map((section) => (
-                  <Card key={section.category}>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{section.category}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {section.items.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ))}
+                {COMPLIANCE_ITEMS.map((section, sectionIdx) => {
+                  const gradients = [
+                    'from-blue-500 to-cyan-500',
+                    'from-violet-500 to-purple-500',
+                    'from-amber-500 to-orange-500',
+                  ];
+                  return (
+                    <Card key={section.category} className="border-0 shadow-lg hover:shadow-xl transition-all">
+                      <CardHeader>
+                        <CardTitle className={cn("text-lg bg-gradient-to-r bg-clip-text text-transparent", gradients[sectionIdx % gradients.length])}>{section.category}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {section.items.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
-              <Card>
+              <Card className="border-0 shadow-lg">
                 <CardContent className="p-4">
-                  <h4 className="font-medium mb-3">Need Compliance Help?</h4>
+                  <h4 className="font-medium mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Need Compliance Help?</h4>
                   <div className="flex flex-wrap gap-3">
-                    <Button variant="outline" className="gap-2" asChild>
+                    <Button className="gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-md" asChild>
                       <a href="tel:8005550199" aria-label="Call compliance department at (800) 555-0199">
                         <Phone className="w-4 h-4" aria-hidden="true" />
                         Call Compliance: (800) 555-0199
                       </a>
                     </Button>
-                    <Button variant="outline" className="gap-2" asChild>
+                    <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 shadow-md" asChild>
                       <a href="mailto:compliance@heritagels.org" aria-label="Email compliance at compliance@heritagels.org">
                         <Mail className="w-4 h-4" aria-hidden="true" />
                         compliance@heritagels.org
@@ -536,38 +573,50 @@ export default function AgentGuidelines() {
             {/* Best Practices Tab */}
             <TabsContent value="practices" className="space-y-4">
               <div className="grid md:grid-cols-3 gap-4">
-                {BEST_PRACTICES.map((section) => (
-                  <Card key={section.title}>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary" aria-hidden="true" />
-                        {section.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {section.practices.map((practice, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 text-xs font-medium">
-                              {idx + 1}
-                            </div>
-                            <span>{practice}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ))}
+                {BEST_PRACTICES.map((section, sectionIdx) => {
+                  const gradients = [
+                    { icon: 'from-amber-400 to-orange-500', text: 'from-amber-600 to-orange-600' },
+                    { icon: 'from-violet-400 to-purple-500', text: 'from-violet-600 to-purple-600' },
+                    { icon: 'from-emerald-400 to-green-500', text: 'from-emerald-600 to-green-600' },
+                  ];
+                  const gradient = gradients[sectionIdx % gradients.length];
+                  return (
+                    <Card key={section.title} className="border-0 shadow-lg hover:shadow-xl transition-all">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", gradient.icon)}>
+                            <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
+                          </div>
+                          <span className={cn("bg-gradient-to-r bg-clip-text text-transparent", gradient.text)}>{section.title}</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {section.practices.map((practice, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <div className={cn("w-5 h-5 rounded-full bg-gradient-to-br text-white flex items-center justify-center flex-shrink-0 text-xs font-medium shadow-sm", gradient.icon)}>
+                                {idx + 1}
+                              </div>
+                              <span>{practice}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </TabsContent>
 
             {/* Documents Tab */}
             <TabsContent value="documents" className="space-y-4">
-              <Card>
+              <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
-                    Downloadable Resources
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
+                      <FileText className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Downloadable Resources</span>
                   </CardTitle>
                   <CardDescription>
                     Official documents and guides for Heritage Life agents
@@ -581,25 +630,36 @@ export default function AgentGuidelines() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {DOCUMENTS.map((doc) => (
-                        <button
-                          key={doc.title}
-                          className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
-                          onClick={() => handleDownload(doc.title)}
-                          aria-label={`Download ${doc.title} (${doc.type}, ${doc.size})`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-red-600" aria-hidden="true" />
+                      {DOCUMENTS.map((doc, idx) => {
+                        const gradients = [
+                          'from-red-400 to-rose-500',
+                          'from-blue-400 to-cyan-500',
+                          'from-emerald-400 to-green-500',
+                          'from-violet-400 to-purple-500',
+                          'from-amber-400 to-orange-500',
+                        ];
+                        return (
+                          <button
+                            key={doc.title}
+                            className="w-full flex items-center justify-between p-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all text-left"
+                            onClick={() => handleDownload(doc.title)}
+                            aria-label={`Download ${doc.title} (${doc.type}, ${doc.size})`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", gradients[idx % gradients.length])}>
+                                <FileText className="w-5 h-5 text-white" aria-hidden="true" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{doc.title}</p>
+                                <p className="text-xs text-gray-500">{doc.type} - {doc.size}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{doc.title}</p>
-                              <p className="text-xs text-gray-500">{doc.type} - {doc.size}</p>
+                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <Download className="w-4 h-4 text-gray-500" aria-hidden="true" />
                             </div>
-                          </div>
-                          <Download className="w-4 h-4 text-gray-400" aria-hidden="true" />
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>

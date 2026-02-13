@@ -49,10 +49,10 @@ interface Script {
 
 type ScriptCategory = 'phone' | 'email' | 'sms';
 
-const categoryConfig: Record<ScriptCategory, { label: string; icon: typeof Phone; color: string }> = {
-  phone: { label: 'Phone', icon: Phone, color: 'bg-green-500/10 text-green-600' },
-  email: { label: 'Email', icon: Mail, color: 'bg-blue-500/10 text-blue-600' },
-  sms: { label: 'SMS', icon: MessageSquare, color: 'bg-purple-500/10 text-purple-600' },
+const categoryConfig: Record<ScriptCategory, { label: string; icon: typeof Phone; color: string; gradient: string }> = {
+  phone: { label: 'Phone', icon: Phone, color: 'bg-green-500/10 text-green-600', gradient: 'from-emerald-400 to-green-500' },
+  email: { label: 'Email', icon: Mail, color: 'bg-blue-500/10 text-blue-600', gradient: 'from-blue-400 to-cyan-500' },
+  sms: { label: 'SMS', icon: MessageSquare, color: 'bg-purple-500/10 text-purple-600', gradient: 'from-violet-400 to-purple-500' },
 };
 
 const FILTER_OPTIONS: { value: string; label: string }[] = [
@@ -198,27 +198,32 @@ export default function AgentScripts() {
       >
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-primary">Sales Scripts</h1>
-            <p className="text-sm text-gray-600">Proven scripts to help you close more deals</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
+              <FileText className="w-6 h-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Sales Scripts</h1>
+              <p className="text-sm text-gray-600">Proven scripts to help you close more deals</p>
+            </div>
           </div>
         </motion.div>
 
         {/* Stats */}
         <motion.div variants={fadeInUp} className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
-            { label: 'Scripts', value: stats.total, icon: BookOpen, color: 'text-primary' },
-            { label: 'Favorites', value: stats.favorites, icon: Star, color: 'text-yellow-500' },
-            { label: 'Avg Success', value: `${stats.avgSuccess}%`, icon: TrendingUp, color: 'text-green-600' },
+            { label: 'Scripts', value: stats.total, icon: BookOpen, gradient: 'from-indigo-400 to-violet-500' },
+            { label: 'Favorites', value: stats.favorites, icon: Star, gradient: 'from-amber-400 to-orange-500' },
+            { label: 'Avg Success', value: `${stats.avgSuccess}%`, icon: TrendingUp, gradient: 'from-emerald-400 to-green-500' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-gray-100">
+            <Card key={stat.label} className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className={cn("w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center", stat.color)}>
-                    <stat.icon className="w-5 h-5" aria-hidden="true" />
+                  <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", stat.gradient)}>
+                    <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
                     <p className="text-xs text-gray-500">{stat.label}</p>
                   </div>
                 </div>
@@ -246,7 +251,10 @@ export default function AgentScripts() {
                 variant={filterCategory === opt.value ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterCategory(opt.value)}
-                className={filterCategory === opt.value ? 'bg-primary' : ''}
+                className={cn(
+                  "transition-all",
+                  filterCategory === opt.value && 'bg-gradient-to-r from-indigo-500 to-violet-500 border-0 shadow-md'
+                )}
                 aria-pressed={filterCategory === opt.value}
                 aria-label={`Filter by ${opt.label}`}
               >
@@ -259,7 +267,7 @@ export default function AgentScripts() {
         {/* Scripts List */}
         <motion.div variants={fadeInUp} className="space-y-4">
           {filteredScripts.length === 0 ? (
-            <Card className="border-gray-100">
+            <Card className="border-0 shadow-lg">
               <CardContent className="p-0">
                 {searchQuery || filterCategory !== 'all' ? (
                   <div className="text-center py-12">
@@ -292,13 +300,13 @@ export default function AgentScripts() {
               return (
                 <Card
                   key={script.id}
-                  className="border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                  className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer"
                   onClick={() => setSelectedScript(script)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
-                      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", category.color)}>
-                        <CategoryIcon className="w-5 h-5" aria-hidden="true" />
+                      <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)}>
+                        <CategoryIcon className="w-5 h-5 text-white" aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -373,10 +381,10 @@ export default function AgentScripts() {
               <>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0", cat.color)}>
-                      <CatIcon className="w-4 h-4" aria-hidden="true" />
+                    <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", cat.gradient)}>
+                      <CatIcon className="w-4 h-4 text-white" aria-hidden="true" />
                     </div>
-                    {selectedScript.title}
+                    <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{selectedScript.title}</span>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-2">
@@ -399,7 +407,7 @@ export default function AgentScripts() {
                   </div>
                   <div className="flex gap-2 pt-2">
                     <Button
-                      className="flex-1 bg-primary hover:bg-primary/90"
+                      className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 shadow-md"
                       onClick={() => {
                         handleCopy(selectedScript.content, selectedScript.title);
                       }}

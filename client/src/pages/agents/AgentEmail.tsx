@@ -545,13 +545,15 @@ export default function AgentEmail() {
           >
             <div className="p-3 space-y-3">
               <div className="flex items-center gap-2">
-                <Mail className="w-5 h-5 text-primary" aria-hidden="true" />
-                <span className="font-bold text-primary text-sm">Email</span>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
+                  <Mail className="w-4 h-4 text-white" aria-hidden="true" />
+                </div>
+                <span className="font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent text-sm">Email</span>
                 <DemoBadge className="ml-auto" />
               </div>
               <Button
                 onClick={() => setShowCompose(true)}
-                className="w-full gap-2"
+                className="w-full gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md"
                 aria-label="Compose new email"
               >
                 <PenSquare className="w-4 h-4" aria-hidden="true" />

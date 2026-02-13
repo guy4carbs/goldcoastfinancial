@@ -57,6 +57,7 @@ import {
   pageViews,
   analyticsEvents,
 } from "@shared/schema";
+import { leads } from "@shared/models/crm";
 import { db } from "./db";
 import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -153,6 +154,9 @@ export interface IStorage {
   getQuoteCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }>;
   getContactCounts(): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }>;
   getDailyTrends(days?: number): Promise<{ quotes: { date: string; count: number }[]; pageViews: { date: string; count: number }[] }>;
+
+  // CRM Test Data
+  initializeCRMTestData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -863,6 +867,79 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { quotes, pageViews: pageViewTrends };
+  }
+
+  async initializeCRMTestData(): Promise<void> {
+    // Create admin user if not exists
+    const adminEmail = "admin@heritagels.org";
+    let adminUser = await this.getUserByEmail(adminEmail);
+
+    if (!adminUser) {
+      console.log("Creating admin user for CRM testing...");
+      const hashedPassword = await bcrypt.hash("admin1234", 10);
+      adminUser = await this.createUser({
+        email: adminEmail,
+        password: hashedPassword,
+        firstName: "Admin",
+        lastName: "User",
+        phone: "(630) 778-0888",
+        role: "owner",
+      });
+      console.log("Admin user created: admin@heritagels.org / admin1234");
+    } else {
+      // Ensure admin role
+      await db.update(users).set({ role: "owner" }).where(eq(users.email, adminEmail));
+      console.log("Admin user exists: admin@heritagels.org / admin1234");
+    }
+
+    // Check if we have leads
+    const existingLeads = await db.select({ count: sql<number>`COUNT(*)` }).from(leads);
+    if (Number(existingLeads[0].count) > 0) {
+      console.log(`Already have ${existingLeads[0].count} leads, skipping seed`);
+      return;
+    }
+
+    console.log("Seeding CRM test leads...");
+
+    const testLeads = [
+      { firstName: "John", lastName: "Smith", email: "john.smith@example.com", phone: "(630) 555-0101", source: "quote_form", status: "new", estimatedValue: 250000, coverageType: "term" },
+      { firstName: "Maria", lastName: "Garcia", email: "maria.garcia@example.com", phone: "(630) 555-0102", source: "referral", status: "contacted", estimatedValue: 500000, coverageType: "whole" },
+      { firstName: "Robert", lastName: "Johnson", email: "robert.j@example.com", phone: "(630) 555-0103", source: "website", status: "quoted", estimatedValue: 1000000, coverageType: "iul" },
+      { firstName: "Susan", lastName: "Williams", email: "susan.w@example.com", phone: "(630) 555-0104", source: "contact_form", status: "follow_up", estimatedValue: 150000, coverageType: "final_expense" },
+      { firstName: "Thomas", lastName: "Brown", email: "tom.brown@example.com", phone: "(630) 555-0105", source: "phone", status: "won", estimatedValue: 300000, wonAmount: 285000, coverageType: "term" },
+      { firstName: "Lisa", lastName: "Davis", email: "lisa.d@example.com", phone: "(630) 555-0106", source: "social_media", status: "lost", estimatedValue: 200000, lostReason: "Went with competitor", coverageType: "whole" },
+      { firstName: "Michael", lastName: "Wilson", email: "mike.wilson@example.com", phone: "(630) 555-0107", source: "referral", status: "new", estimatedValue: 750000, coverageType: "iul" },
+      { firstName: "Jennifer", lastName: "Taylor", email: "jen.taylor@example.com", phone: "(630) 555-0108", source: "quote_form", status: "contacted", estimatedValue: 400000, coverageType: "term" },
+      { firstName: "David", lastName: "Anderson", email: "david.a@example.com", phone: "(630) 555-0109", source: "website", status: "quoted", estimatedValue: 600000, coverageType: "whole" },
+      { firstName: "Emily", lastName: "Martinez", email: "emily.m@example.com", phone: "(630) 555-0110", source: "referral", status: "won", estimatedValue: 350000, wonAmount: 350000, coverageType: "term" },
+    ];
+
+    for (const lead of testLeads) {
+      const now = new Date();
+      const randomDays = Math.floor(Math.random() * 30);
+      const createdAt = new Date(now.getTime() - randomDays * 24 * 60 * 60 * 1000);
+
+      await db.insert(leads).values({
+        firstName: lead.firstName,
+        lastName: lead.lastName,
+        email: lead.email,
+        phone: lead.phone,
+        source: lead.source,
+        status: lead.status,
+        estimatedValue: lead.estimatedValue,
+        coverageType: lead.coverageType,
+        wonAmount: lead.wonAmount,
+        lostReason: lead.lostReason,
+        wonDate: lead.status === "won" ? createdAt : null,
+        lastContactedAt: ["contacted", "quoted", "follow_up", "won", "lost"].includes(lead.status)
+          ? new Date(createdAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000)
+          : null,
+        createdAt,
+        updatedAt: createdAt,
+      });
+    }
+
+    console.log("CRM test data seeded: 10 leads created");
   }
 }
 

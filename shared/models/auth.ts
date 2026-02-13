@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, jsonb, pgTable, timestamp, varchar, uuid } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, timestamp, varchar, uuid, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -14,6 +14,10 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
+// Role enum for RBAC
+export const userRoleEnum = ["owner", "system_admin", "manager", "sales_agent", "client"] as const;
+export type UserRole = typeof userRoleEnum[number];
+
 // User storage table for custom authentication
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -22,6 +26,21 @@ export const users = pgTable("users", {
   firstName: varchar("first_name").notNull(),
   lastName: varchar("last_name").notNull(),
   phone: varchar("phone"),
+
+  // Role & Status
+  role: varchar("role", { length: 50 }).notNull().default("sales_agent"),
+  isActive: boolean("is_active").notNull().default(true),
+
+  // Two-Factor Authentication
+  twoFactorSecret: varchar("two_factor_secret", { length: 255 }),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
+
+  // Profile & Preferences
+  avatarUrl: varchar("avatar_url", { length: 500 }),
+  timezone: varchar("timezone", { length: 100 }).default("America/Chicago"),
+
+  // Tracking
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1308,17 +1308,17 @@ export default function AgentOnboarding() {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Link href="/">
                 <div className="flex items-center gap-2 cursor-pointer">
-                  <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+                  <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
                     <Leaf className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-primary text-sm">Heritage Life</p>
+                    <p className="font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent text-sm">Heritage Life</p>
                     <p className="text-[10px] text-gray-500">Agent Onboarding</p>
                   </div>
                 </div>
@@ -1326,13 +1326,13 @@ export default function AgentOnboarding() {
             </div>
             <div className="flex items-center gap-3">
               <Link href="/agents/become-an-agent">
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Button variant="ghost" size="sm" className="gap-2 hover:shadow-md transition-all">
                   <ArrowLeft className="w-4 h-4" />
                   Back
                 </Button>
               </Link>
               <Link href="/agents/dashboard">
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 shadow-md">
                   <GraduationCap className="w-4 h-4" />
                   Agent Portal
                 </Button>
@@ -1486,20 +1486,20 @@ export default function AgentOnboarding() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-2xl font-bold text-primary">{stateReqs.hours}</p>
+                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                        <p className="text-2xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">{stateReqs.hours}</p>
                         <p className="text-xs text-gray-500">Pre-License Hours</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-2xl font-bold text-primary">${stateReqs.examFee}</p>
+                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                        <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${stateReqs.examFee}</p>
                         <p className="text-xs text-gray-500">Exam Fee</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-2xl font-bold text-primary">{stateReqs.renewalYears}</p>
+                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stateReqs.renewalYears}</p>
                         <p className="text-xs text-gray-500">Years to Renew</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-2xl font-bold text-primary">{stateReqs.ce}</p>
+                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                        <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stateReqs.ce}</p>
                         <p className="text-xs text-gray-500">CE Hours/Cycle</p>
                       </div>
                     </div>

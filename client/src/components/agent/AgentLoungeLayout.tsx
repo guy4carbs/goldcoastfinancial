@@ -154,21 +154,21 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                 whileHover={{ x: 2 }}
                 whileTap={{ scale: 0.98 }}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all",
                   isActive
-                    ? "bg-violet-500/10 text-violet-500"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-primary"
+                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md"
+                    : "text-gray-600 hover:bg-gray-100"
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-violet-500")} />
+                <item.icon className="w-5 h-5 flex-shrink-0" />
                 {!sidebarCollapsed && (
                   <>
                     <span className="font-medium text-sm flex-1">{item.label}</span>
                     {dynamicBadge && (
                       <Badge className={cn(
                         "text-white text-[10px] px-1.5 h-5",
-                        isOverdueBadge ? "bg-red-500 animate-pulse" : "bg-violet-500"
+                        isOverdueBadge ? "bg-red-500 animate-pulse" : isActive ? "bg-white/20" : "bg-gradient-to-r from-indigo-500 to-violet-500"
                       )}>
                         {dynamicBadge}
                       </Badge>
@@ -186,25 +186,25 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   const SidebarContent = () => (
     <>
       {/* Logo */}
-      <div className={cn("flex items-center gap-2 px-3 mb-8", sidebarCollapsed && "justify-center")}>
-        <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+      <div className={cn("flex items-center gap-3 px-4 mb-6", sidebarCollapsed && "justify-center px-2")}>
+        <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
           <Leaf className="w-5 h-5 text-white" />
         </div>
         {!sidebarCollapsed && (
           <div>
-            <p className="font-bold text-primary text-sm">Heritage</p>
-            <p className="text-[10px] text-gray-500">Agent Lounge</p>
+            <p className="font-bold text-gray-900">Heritage</p>
+            <p className="text-xs text-gray-500">Agent Lounge</p>
           </div>
         )}
       </div>
 
       {/* User Level & XP (collapsed: just icon) */}
       {!sidebarCollapsed && (
-        <div className="px-3 mb-6">
-          <div className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-3 text-white">
+        <div className="px-4 mb-6">
+          <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-xl p-4 text-white shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-violet-500" />
+                <Zap className="w-4 h-4 text-amber-300" />
                 <span className="text-sm font-medium">Level {performance.level}</span>
               </div>
               <div className="flex items-center gap-1">
@@ -212,13 +212,13 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                 <span className="text-sm font-medium">{performance.currentStreak}</span>
               </div>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-1.5">
+            <div className="w-full bg-white/20 rounded-full h-2">
               <div
-                className="bg-violet-500 h-1.5 rounded-full transition-all"
+                className="bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full transition-all shadow-sm"
                 style={{ width: `${(performance.xp % 1000) / 10}%` }}
               />
             </div>
-            <p className="text-[10px] text-white/70 mt-1">
+            <p className="text-xs text-indigo-200 mt-2">
               {1000 - (performance.xp % 1000)} XP to next level
             </p>
           </div>
@@ -226,7 +226,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2">
+      <nav className="flex-1 overflow-y-auto px-3">
         <NavSection title="Main" items={mainNavItems} />
         <NavSection title="Tools" items={toolsNavItems} />
         <NavSection title="Growth" items={growthNavItems} />
@@ -234,10 +234,10 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="border-t border-gray-200 pt-4 px-2 mt-auto">
+      <div className="border-t border-gray-200/60 pt-4 px-3 mt-auto">
         <Link href="/agents/settings">
           <div className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-primary transition-all",
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-gray-600 hover:bg-gray-100 transition-all",
             sidebarCollapsed && "justify-center"
           )}>
             <Settings className="w-5 h-5" />
@@ -246,7 +246,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         </Link>
         <Link href="/agents/help">
           <div className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-primary transition-all",
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-gray-600 hover:bg-gray-100 transition-all",
             sidebarCollapsed && "justify-center"
           )}>
             <HelpCircle className="w-5 h-5" />
@@ -258,7 +258,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-[#fffaf3] flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 flex">
       {/* Command Palette */}
       <CommandPalette
         open={commandPaletteOpen}
@@ -273,7 +273,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         initial={false}
         animate={{ width: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="hidden lg:flex flex-col bg-white border-r border-gray-200 py-6 fixed h-screen"
+        className="hidden lg:flex flex-col bg-white/80 backdrop-blur-sm border-r border-gray-200/60 py-6 fixed h-screen"
         style={{ zIndex: zIndex.fixed }}
       >
         <SidebarContent />
@@ -329,7 +329,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[256px]"
       )}>
         {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 sticky top-0" style={{ zIndex: zIndex.sticky }}>
+        <header className="bg-white/70 backdrop-blur-md border-b border-gray-200/60 sticky top-0" style={{ zIndex: zIndex.sticky }}>
           <div className="flex items-center justify-between px-4 lg:px-6 h-16">
             {/* Left: Mobile Menu + Search */}
             <div className="flex items-center gap-4">
@@ -342,10 +342,10 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
 
               <button
                 onClick={() => setCommandPaletteOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-500 hover:bg-gray-200/80 transition-colors"
               >
                 <Search className="w-4 h-4" />
-                <span className="hidden sm:inline text-sm">Search...</span>
+                <span className="hidden sm:inline text-sm">Search anything...</span>
                 <kbd className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-white rounded border border-gray-300">
                   <span>⌘</span>K
                 </kbd>
@@ -364,14 +364,14 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               <Link href="/agents/settings">
                 <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200 cursor-pointer hover:opacity-80 transition-opacity">
                   <div className="text-right">
-                    <p className="text-sm font-medium text-primary">
+                    <p className="text-sm font-medium text-gray-900">
                       {currentUser?.name || 'Agent'}
                     </p>
                     <p className="text-[10px] text-gray-500">
                       Level {performance.level} · {performance.xp} XP
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-violet-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold shadow-md">
                     {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'A'}
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200"
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200/60"
         style={{ zIndex: zIndex.fixed }}
         aria-label="Mobile navigation"
       >
@@ -421,8 +421,8 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               <Link key={item.href} href={item.href}>
                 <div
                   className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors",
-                    isActive ? "text-violet-500" : "text-gray-500"
+                    "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors",
+                    isActive ? "text-indigo-600 bg-indigo-50" : "text-gray-500"
                   )}
                   role="link"
                   aria-current={isActive ? "page" : undefined}
@@ -436,7 +436,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
           {/* More menu button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors text-gray-500"
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors text-gray-500"
             aria-label="Open menu for more options"
             aria-expanded={mobileMenuOpen}
           >

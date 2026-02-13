@@ -49,7 +49,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Getting Started',
     description: 'New to the platform? Start here',
     icon: Lightbulb,
-    color: 'bg-amber-500/10 text-amber-600',
+    color: 'bg-gradient-to-br from-amber-400 to-orange-500',
     articles: [
       'How to navigate the Agent Lounge',
       'Setting up your profile',
@@ -62,7 +62,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Managing Leads',
     description: 'Learn how to work with leads',
     icon: Users,
-    color: 'bg-blue-500/10 text-blue-600',
+    color: 'bg-gradient-to-br from-blue-400 to-cyan-500',
     articles: [
       'Adding and importing leads',
       'Lead status workflow',
@@ -75,7 +75,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Creating Quotes',
     description: 'Generate quotes for clients',
     icon: FileText,
-    color: 'bg-emerald-500/10 text-emerald-600',
+    color: 'bg-gradient-to-br from-emerald-400 to-green-500',
     articles: [
       'How to create a new quote',
       'Understanding coverage options',
@@ -88,7 +88,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Training & Certification',
     description: 'Complete your training modules',
     icon: GraduationCap,
-    color: 'bg-primary/10 text-primary',
+    color: 'bg-gradient-to-br from-violet-500 to-purple-600',
     articles: [
       'Completing training modules',
       'Tracking your certifications',
@@ -101,7 +101,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Commissions & Earnings',
     description: 'Track your income',
     icon: DollarSign,
-    color: 'bg-emerald-500/10 text-emerald-600',
+    color: 'bg-gradient-to-br from-green-400 to-emerald-500',
     articles: [
       'Understanding your commissions',
       'When payments are processed',
@@ -114,7 +114,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Account & Security',
     description: 'Manage your account settings',
     icon: Shield,
-    color: 'bg-red-500/10 text-red-600',
+    color: 'bg-gradient-to-br from-red-400 to-rose-500',
     articles: [
       'Updating your profile',
       'Changing your password',
@@ -162,10 +162,10 @@ export default function AgentHelp() {
       >
         {/* Header */}
         <motion.div variants={FADE_IN_UP} className="text-center max-w-2xl mx-auto">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <HelpCircle className="w-8 h-8 text-primary" aria-hidden="true" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <HelpCircle className="w-8 h-8 text-white" aria-hidden="true" />
           </div>
-          <h1 className="text-2xl font-bold text-primary">Help & Support</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Help & Support</h1>
           <p className="text-sm text-gray-600 mt-2">
             Find answers to your questions or contact our support team
           </p>
@@ -177,7 +177,7 @@ export default function AgentHelp() {
               placeholder="Search for help..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="pl-12 h-12 text-base"
+              className="pl-12 h-12 text-base border-gray-200 focus:border-violet-400 focus:ring-violet-400"
               aria-label="Search help articles"
             />
           </div>
@@ -185,28 +185,36 @@ export default function AgentHelp() {
 
         {/* Quick Links */}
         <motion.div variants={FADE_IN_UP} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {QUICK_LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="block"
-              aria-label={link.label}
-            >
-              <Card className="border-gray-100 hover:border-primary/20 transition-colors cursor-pointer h-full">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <link.icon className="w-5 h-5 text-primary" aria-hidden="true" />
-                  </div>
-                  <span className="font-medium text-sm text-primary">{link.label}</span>
-                </CardContent>
-              </Card>
-            </a>
-          ))}
+          {QUICK_LINKS.map((link, idx) => {
+            const gradients = [
+              'from-violet-500 to-purple-500',
+              'from-blue-500 to-cyan-500',
+              'from-amber-500 to-orange-500',
+              'from-emerald-500 to-green-500'
+            ];
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                className="block"
+                aria-label={link.label}
+              >
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer h-full">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-md bg-gradient-to-br", gradients[idx % gradients.length])}>
+                      <link.icon className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <span className="font-semibold text-sm text-gray-800">{link.label}</span>
+                  </CardContent>
+                </Card>
+              </a>
+            );
+          })}
         </motion.div>
 
         {/* Help Categories */}
         <motion.div variants={FADE_IN_UP}>
-          <h2 className="text-lg font-semibold text-primary mb-4">Browse by Topic</h2>
+          <h2 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">Browse by Topic</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {filteredCategories.length === 0 ? (
               <div className="col-span-2 text-center py-8 text-gray-500">
@@ -216,8 +224,8 @@ export default function AgentHelp() {
               <Card
                 key={category.id}
                 className={cn(
-                  "border-gray-100 cursor-pointer transition-all",
-                  expandedCategory === category.id && "ring-2 ring-primary"
+                  "border-0 shadow-lg hover:shadow-xl cursor-pointer transition-all",
+                  expandedCategory === category.id && "ring-2 ring-violet-400"
                 )}
                 onClick={() => handleCategoryToggle(category.id)}
                 role="button"
@@ -226,11 +234,11 @@ export default function AgentHelp() {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", category.color)}>
-                      <category.icon className="w-5 h-5" aria-hidden="true" />
+                    <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shadow-md", category.color)}>
+                      <category.icon className="w-5 h-5 text-white" aria-hidden="true" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-primary">{category.title}</h3>
+                      <h3 className="font-semibold text-gray-800">{category.title}</h3>
                       <p className="text-xs text-gray-500">{category.description}</p>
                     </div>
                     <ChevronRight className={cn(
@@ -250,7 +258,7 @@ export default function AgentHelp() {
                           <li key={idx}>
                             <a
                               href="#"
-                              className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
+                              className="flex items-center gap-2 text-sm text-gray-600 hover:text-violet-600 transition-colors"
                               onClick={(e) => e.stopPropagation()}
                               aria-label={`Read article: ${article}`}
                             >
@@ -270,50 +278,52 @@ export default function AgentHelp() {
 
         {/* Contact Support */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100 bg-gradient-to-br from-primary/5 to-transparent">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-primary mb-4">Still need help?</h2>
-              <p className="text-sm text-gray-600 mb-6">
+          <Card className="border-0 shadow-xl overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="p-6 relative z-10">
+              <h2 className="text-lg font-semibold text-white mb-4">Still need help?</h2>
+              <p className="text-sm text-white/80 mb-6">
                 Our support team is available Monday through Friday, 9am to 6pm PT.
               </p>
               <div className="grid sm:grid-cols-3 gap-4">
                 <a
                   href="tel:6307780800"
-                  className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary/20 transition-colors"
+                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur rounded-xl hover:bg-white/20 transition-colors"
                   aria-label="Call support at (630) 778-0800"
                 >
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg">
+                    <Phone className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-primary">Call Us</p>
-                    <p className="text-xs text-gray-500">(630) 778-0800</p>
+                    <p className="font-medium text-sm text-white">Call Us</p>
+                    <p className="text-xs text-white/70">(630) 778-0800</p>
                   </div>
                 </a>
                 <a
                   href="mailto:agents@heritagels.org"
-                  className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary/20 transition-colors"
+                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur rounded-xl hover:bg-white/20 transition-colors"
                   aria-label="Email support at agents@heritagels.org"
                 >
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-blue-600" aria-hidden="true" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg">
+                    <Mail className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-primary">Email</p>
-                    <p className="text-xs text-gray-500">agents@heritagels.org</p>
+                    <p className="font-medium text-sm text-white">Email</p>
+                    <p className="text-xs text-white/70">agents@heritagels.org</p>
                   </div>
                 </a>
                 <a
                   href="#"
-                  className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary/20 transition-colors"
+                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur rounded-xl hover:bg-white/20 transition-colors"
                   aria-label="Start a live chat conversation"
                 >
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <MessageSquare className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                    <MessageSquare className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-primary">Live Chat</p>
-                    <p className="text-xs text-gray-500">Start a conversation</p>
+                    <p className="font-medium text-sm text-white">Live Chat</p>
+                    <p className="text-xs text-white/70">Start a conversation</p>
                   </div>
                 </a>
               </div>

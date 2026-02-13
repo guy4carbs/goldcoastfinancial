@@ -114,7 +114,7 @@ import TwoFactorVerify from "@/pages/ai/TwoFactorVerify";
 import { AIDashboard } from "@/pages/ai";
 import { ManagerDashboard } from "@/pages/manager";
 import { ExecutiveDashboard } from "@/pages/executive";
-import { LobbyLanding, LobbyImport, LobbyExport, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
+import { LobbyLanding, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
 import { MarketingDashboard } from "@/pages/marketing";
 import { PortalDashboard } from "@/pages/portal";
 // Legal Pages
@@ -372,59 +372,49 @@ function Router() {
           </RoleProtectedRoute>
         </Route>
 
-        {/* CRM Lobby - The welcoming entrance */}
+        {/* CRM Lobby - The welcoming entrance (accessible to all authenticated employees) */}
         <Route path="/crm">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <LobbyLanding />
           </RoleProtectedRoute>
         </Route>
-        <Route path="/crm/import">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <LobbyImport />
-          </RoleProtectedRoute>
-        </Route>
-        <Route path="/crm/export">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <LobbyExport />
-          </RoleProtectedRoute>
-        </Route>
         <Route path="/crm/dashboard">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <CRMDashboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/contacts">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <ContactDatabase />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/pipeline">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <PipelineBoard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/leads/:id">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <LeadProfile />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/clients">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <ClientManagement />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/segments">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <SegmentsTags />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/history">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <ActivityHistory />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/:rest*">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT]}>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
             <LobbyLanding />
           </RoleProtectedRoute>
         </Route>

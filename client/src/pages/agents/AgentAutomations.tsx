@@ -41,6 +41,7 @@ interface Automation {
   runs: number;
   icon: typeof Zap;
   color: string;
+  gradient: string;
 }
 
 const AUTOMATIONS: Automation[] = [
@@ -53,7 +54,8 @@ const AUTOMATIONS: Automation[] = [
     enabled: true,
     runs: 156,
     icon: Bell,
-    color: "amber"
+    color: "amber",
+    gradient: "from-amber-400 to-orange-500"
   },
   {
     id: "auto-2",
@@ -64,7 +66,8 @@ const AUTOMATIONS: Automation[] = [
     enabled: true,
     runs: 42,
     icon: Calendar,
-    color: "pink"
+    color: "pink",
+    gradient: "from-pink-400 to-rose-500"
   },
   {
     id: "auto-3",
@@ -75,7 +78,8 @@ const AUTOMATIONS: Automation[] = [
     enabled: true,
     runs: 89,
     icon: RefreshCw,
-    color: "blue"
+    color: "blue",
+    gradient: "from-blue-400 to-cyan-500"
   },
   {
     id: "auto-4",
@@ -86,7 +90,8 @@ const AUTOMATIONS: Automation[] = [
     enabled: false,
     runs: 234,
     icon: Users,
-    color: "violet"
+    color: "violet",
+    gradient: "from-violet-400 to-purple-500"
   },
   {
     id: "auto-5",
@@ -97,7 +102,8 @@ const AUTOMATIONS: Automation[] = [
     enabled: true,
     runs: 67,
     icon: FileText,
-    color: "emerald"
+    color: "emerald",
+    gradient: "from-emerald-400 to-green-500"
   },
   {
     id: "auto-6",
@@ -108,7 +114,8 @@ const AUTOMATIONS: Automation[] = [
     enabled: true,
     runs: 28,
     icon: Target,
-    color: "cyan"
+    color: "cyan",
+    gradient: "from-cyan-400 to-teal-500"
   }
 ];
 
@@ -143,15 +150,15 @@ export default function AgentAutomations() {
         <motion.div variants={fadeInUp}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary" />
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <Zap className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Automations</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Automations</h1>
                 <p className="text-gray-500 text-sm">Automate your workflow and save time</p>
               </div>
             </div>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md">
               <Plus className="w-4 h-4" />
               Create Automation
             </Button>
@@ -161,27 +168,27 @@ export default function AgentAutomations() {
         {/* Stats */}
         <motion.div variants={fadeInUp}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-primary">{activeCount}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">{activeCount}</p>
                 <p className="text-sm text-gray-500">Active Automations</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-emerald-600">{totalRuns}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{totalRuns}</p>
                 <p className="text-sm text-gray-500">Total Runs</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-blue-600">12h</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">12h</p>
                 <p className="text-sm text-gray-500">Time Saved</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-amber-600">98%</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">98%</p>
                 <p className="text-sm text-gray-500">Success Rate</p>
               </CardContent>
             </Card>
@@ -190,7 +197,7 @@ export default function AgentAutomations() {
 
         {/* Automation List */}
         <motion.div variants={fadeInUp}>
-          <h2 className="text-lg font-semibold mb-4">Your Automations</h2>
+          <h2 className="text-lg font-semibold mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Your Automations</h2>
           <div className="space-y-4">
             {automations.map((automation, index) => (
               <motion.div
@@ -200,16 +207,16 @@ export default function AgentAutomations() {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card className={cn(
-                  "transition-all",
-                  automation.enabled ? "border-l-4 border-l-primary" : "opacity-75"
+                  "transition-all border-0 shadow-lg hover:shadow-xl",
+                  !automation.enabled && "opacity-60"
                 )}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
-                        `bg-${automation.color}-100`
+                        "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-md",
+                        automation.gradient
                       )}>
-                        <automation.icon className={cn("w-6 h-6", `text-${automation.color}-600`)} />
+                        <automation.icon className="w-6 h-6 text-white" />
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -261,15 +268,15 @@ export default function AgentAutomations() {
           <h2 className="text-lg font-semibold mb-4">Quick Templates</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {[
-              { name: "Email Drip Campaign", icon: Mail, description: "Send automated email sequences" },
-              { name: "Task Auto-Creation", icon: CheckCircle2, description: "Create tasks based on triggers" },
-              { name: "SMS Notifications", icon: MessageSquare, description: "Send text alerts automatically" },
+              { name: "Email Drip Campaign", icon: Mail, description: "Send automated email sequences", gradient: "from-blue-400 to-cyan-500" },
+              { name: "Task Auto-Creation", icon: CheckCircle2, description: "Create tasks based on triggers", gradient: "from-emerald-400 to-green-500" },
+              { name: "SMS Notifications", icon: MessageSquare, description: "Send text alerts automatically", gradient: "from-violet-400 to-purple-500" },
             ].map((template, index) => (
-              <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer group">
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <template.icon className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", template.gradient)}>
+                      <template.icon className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{template.name}</h3>

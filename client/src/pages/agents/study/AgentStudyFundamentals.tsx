@@ -202,7 +202,7 @@ export default function AgentStudyFundamentals() {
                 <span>Heritage Life Academy</span>
                 <Badge className="bg-green-100 text-green-700">Free</Badge>
               </div>
-              <h1 className="text-2xl font-bold text-primary">Life Insurance Fundamentals</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Life Insurance Fundamentals</h1>
             </div>
             <div className="text-right hidden sm:block">
               <div className="flex items-center gap-1 text-amber-500 mb-1">
@@ -396,20 +396,20 @@ export default function AgentStudyFundamentals() {
                   experienced agents looking to refresh their knowledge.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">5</p>
+                  <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                    <p className="text-2xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">5</p>
                     <p className="text-xs text-gray-500">Modules</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">26</p>
+                  <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                    <p className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">26</p>
                     <p className="text-xs text-gray-500">Lessons</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">6</p>
+                  <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                    <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">6</p>
                     <p className="text-xs text-gray-500">Hours</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">5</p>
+                  <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                    <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">5</p>
                     <p className="text-xs text-gray-500">Quizzes</p>
                   </div>
                 </div>

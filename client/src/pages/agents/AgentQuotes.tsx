@@ -269,22 +269,27 @@ export default function AgentQuotes() {
       >
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-primary">Quotes</h1>
-            <p className="text-sm text-gray-600">Create and manage insurance quotes for your clients</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+              <FileText className="w-6 h-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Quotes</h1>
+              <p className="text-sm text-gray-600">Create and manage insurance quotes for your clients</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setShowTemplates(true)}>
+            <Button variant="outline" onClick={() => setShowTemplates(true)} className="hover:shadow-md transition-all">
               <Zap className="w-4 h-4 mr-2" />
               Quick Template
             </Button>
             {compareQuotes.length > 0 && (
-              <Button variant="outline" onClick={() => setShowComparison(true)}>
+              <Button variant="outline" onClick={() => setShowComparison(true)} className="hover:shadow-md transition-all">
                 <GitCompare className="w-4 h-4 mr-2" />
                 Compare ({compareQuotes.length})
               </Button>
             )}
-            <Button className="bg-primary hover:bg-primary/90" onClick={() => setShowCreateQuote(true)}>
+            <Button className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-md" onClick={() => setShowCreateQuote(true)}>
               <Plus className="w-4 h-4 mr-2" />
               New Quote
             </Button>
@@ -294,19 +299,19 @@ export default function AgentQuotes() {
         {/* Stats */}
         <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Quotes', value: stats.total, icon: FileText, color: 'text-primary' },
-            { label: 'Draft', value: stats.draft, icon: Clock, color: 'text-yellow-600' },
-            { label: 'Sent / Viewed', value: stats.sent, icon: Send, color: 'text-blue-600' },
-            { label: 'Accepted', value: stats.accepted, icon: CheckCircle2, color: 'text-green-600' },
+            { label: 'Total Quotes', value: stats.total, icon: FileText, gradient: 'from-violet-400 to-purple-500' },
+            { label: 'Draft', value: stats.draft, icon: Clock, gradient: 'from-amber-400 to-orange-500' },
+            { label: 'Sent / Viewed', value: stats.sent, icon: Send, gradient: 'from-blue-400 to-cyan-500' },
+            { label: 'Accepted', value: stats.accepted, icon: CheckCircle2, gradient: 'from-emerald-400 to-green-500' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-gray-100">
+            <Card key={stat.label} className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className={cn("w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center", stat.color)}>
-                    <stat.icon className="w-5 h-5" aria-hidden="true" />
+                  <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", stat.gradient)}>
+                    <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
                     <p className="text-xs text-gray-500">{stat.label}</p>
                   </div>
                 </div>
@@ -346,7 +351,7 @@ export default function AgentQuotes() {
 
         {/* Quotes List */}
         <motion.div variants={fadeInUp}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardContent className="p-0">
               {filteredQuotes.length === 0 ? (
                 searchQuery || filterStatus !== 'all' ? (

@@ -4,8 +4,9 @@ import { useLocation } from "wouter";
 export function LindyChat() {
   const [location] = useLocation();
 
-  // Don't show on admin, agent, or secure form pages
-  const shouldHideLindy = location.startsWith("/admin") || location.startsWith("/agents") || location.startsWith("/secure");
+  // Only show Lindy on public website pages - hide on all internal app pages
+  const internalPaths = ["/admin", "/agents", "/secure", "/crm", "/finance", "/marketing", "/executive", "/manager", "/support", "/ai"];
+  const shouldHideLindy = internalPaths.some(path => location.startsWith(path));
 
   useEffect(() => {
     if (shouldHideLindy) {

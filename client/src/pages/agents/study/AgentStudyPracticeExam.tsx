@@ -528,7 +528,7 @@ export default function AgentStudyPracticeExam() {
                   <span>Heritage Life</span>
                   <Badge className="bg-green-100 text-green-700">Free</Badge>
                 </div>
-                <h1 className="text-2xl font-bold text-primary">Practice Exam Simulator</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Practice Exam Simulator</h1>
               </div>
             </div>
           </motion.div>
@@ -536,15 +536,15 @@ export default function AgentStudyPracticeExam() {
           {/* Stats */}
           <motion.div variants={fadeInUp}>
             <div className="grid sm:grid-cols-4 gap-4">
-              <Card>
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">{EXAM_QUESTIONS.length}</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{EXAM_QUESTIONS.length}</p>
                   <p className="text-xs text-gray-500">Total Questions</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-green-600">6</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">6</p>
                   <p className="text-xs text-gray-500">Categories</p>
                 </CardContent>
               </Card>
@@ -851,7 +851,7 @@ export default function AgentStudyPracticeExam() {
                     <AlertCircle className="w-12 h-12 text-red-600" />
                   )}
                 </div>
-                <p className="text-4xl font-bold text-primary">{score.percentage}%</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">{score.percentage}%</p>
                 <p className="text-gray-500">
                   {score.correct} of {score.total} correct
                 </p>
@@ -864,16 +864,16 @@ export default function AgentStudyPracticeExam() {
               </div>
 
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-green-600">{score.correct}</p>
+                <div className="p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{score.correct}</p>
                   <p className="text-xs text-gray-500">Correct</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-red-600">{score.total - score.correct}</p>
+                <div className="p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">{score.total - score.correct}</p>
                   <p className="text-xs text-gray-500">Incorrect</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-amber-600">{score.flagged}</p>
+                <div className="p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{score.flagged}</p>
                   <p className="text-xs text-gray-500">Flagged</p>
                 </div>
               </div>

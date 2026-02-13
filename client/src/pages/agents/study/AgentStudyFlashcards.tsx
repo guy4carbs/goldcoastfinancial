@@ -236,7 +236,7 @@ export default function AgentStudyFlashcards() {
                 <span>Heritage Life</span>
                 <Badge className="bg-green-100 text-green-700">Free</Badge>
               </div>
-              <h1 className="text-2xl font-bold text-primary">Insurance Terminology Flashcards</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Insurance Terminology Flashcards</h1>
             </div>
             <div className="text-right hidden sm:block">
               <div className="flex items-center gap-1 text-amber-500 mb-1">
@@ -251,21 +251,21 @@ export default function AgentStudyFlashcards() {
         {/* Stats & Controls */}
         <motion.div variants={fadeInUp}>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
-                  <Layers className="w-5 h-5 text-violet-600" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                  <Layers className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{filteredCards.length}</p>
+                  <p className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{filteredCards.length}</p>
                   <p className="text-xs text-gray-500">Cards to Study</p>
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                  <Check className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.mastered}</p>
@@ -273,13 +273,13 @@ export default function AgentStudyFlashcards() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Star className="w-5 h-5 text-amber-600" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                  <Star className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.starred}</p>
+                  <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stats.starred}</p>
                   <p className="text-xs text-gray-500">Starred</p>
                 </div>
               </CardContent>
@@ -402,7 +402,7 @@ export default function AgentStudyFlashcards() {
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col items-center justify-center p-8">
-                      <h2 className="text-3xl font-bold text-primary text-center">
+                      <h2 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent text-center">
                         {currentCard?.term}
                       </h2>
                       <p className="text-gray-500 mt-4 text-center">

@@ -386,20 +386,20 @@ export default function AgentGettingStarted() {
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-2xl font-bold text-primary">{stateReqs.hours}</p>
+                <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">{stateReqs.hours}</p>
                   <p className="text-xs text-gray-500">Pre-License Hours</p>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-2xl font-bold text-primary">${stateReqs.examFee}</p>
+                <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${stateReqs.examFee}</p>
                   <p className="text-xs text-gray-500">Exam Fee</p>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-2xl font-bold text-primary">{stateReqs.renewalYears}</p>
+                <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stateReqs.renewalYears}</p>
                   <p className="text-xs text-gray-500">Years to Renew</p>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-2xl font-bold text-primary">{stateReqs.ce}</p>
+                <div className="text-center p-3 bg-white rounded-xl shadow-md">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stateReqs.ce}</p>
                   <p className="text-xs text-gray-500">CE Hours/Cycle</p>
                 </div>
               </div>

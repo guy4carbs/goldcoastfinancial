@@ -253,10 +253,15 @@ export default function AgentResources() {
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-primary">Resources</h1>
-            <p className="text-sm text-gray-600">Guides, training, marketing materials, and support</p>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
+                <Folder className="w-5 h-5 text-white" />
+              </div>
+              Resources
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">Guides, training, marketing materials, and support</p>
           </div>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="border-violet-200 text-violet-600 hover:bg-violet-50">
             <a href="tel:6307780800" aria-label="Call support at (630) 778-0800">
               <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
               (630) 778-0800
@@ -265,21 +270,21 @@ export default function AgentResources() {
         </motion.div>
 
         {/* Quick Stats */}
-        <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {[
-            { label: 'Product Guides', value: productGuides.length, icon: BookOpen, color: 'text-primary' },
-            { label: 'Carrier Partners', value: carriers.length, icon: Building, color: 'text-blue-600' },
-            { label: 'Downloads', value: marketingMaterials.reduce((acc, m) => acc + m.count, 0), icon: Download, color: 'text-purple-600' },
+            { label: 'Product Guides', value: productGuides.length, icon: BookOpen, gradient: 'from-violet-500 to-purple-500' },
+            { label: 'Carrier Partners', value: carriers.length, icon: Building, gradient: 'from-blue-500 to-cyan-500' },
+            { label: 'Downloads', value: marketingMaterials.reduce((acc, m) => acc + m.count, 0), icon: Download, gradient: 'from-emerald-500 to-green-500' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-gray-100">
+            <Card key={stat.label} className="border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className={cn("w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center", stat.color)}>
-                    <stat.icon className="w-5 h-5" aria-hidden="true" />
+                  <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shadow-md bg-gradient-to-br", stat.gradient)}>
+                    <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
+                    <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
+                    <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
                   </div>
                 </div>
               </CardContent>
@@ -290,20 +295,20 @@ export default function AgentResources() {
         {/* Tabs */}
         <motion.div variants={fadeInUp}>
           <Tabs defaultValue="guides" className="space-y-6">
-            <TabsList className="bg-gray-100 p-1">
-              <TabsTrigger value="guides" className="data-[state=active]:bg-white">
+            <TabsList className="bg-gray-100/80 p-1">
+              <TabsTrigger value="guides" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
                 Guides
               </TabsTrigger>
-              <TabsTrigger value="marketing" className="data-[state=active]:bg-white">
+              <TabsTrigger value="marketing" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Download className="w-4 h-4 mr-2" aria-hidden="true" />
                 Marketing
               </TabsTrigger>
-              <TabsTrigger value="carriers" className="data-[state=active]:bg-white">
+              <TabsTrigger value="carriers" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Building className="w-4 h-4 mr-2" aria-hidden="true" />
                 Carriers
               </TabsTrigger>
-              <TabsTrigger value="support" className="data-[state=active]:bg-white">
+              <TabsTrigger value="support" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md">
                 <Headphones className="w-4 h-4 mr-2" aria-hidden="true" />
                 Support
               </TabsTrigger>
@@ -311,11 +316,20 @@ export default function AgentResources() {
 
             {/* Product Guides Tab */}
             <TabsContent value="guides" className="space-y-4">
-              {productGuides.map((guide) => {
+              {productGuides.map((guide, idx) => {
                 const Icon = guide.icon;
                 const isExpanded = expandedGuide === guide.id;
+                const gradients = [
+                  'from-violet-500 to-purple-500',
+                  'from-pink-500 to-rose-500',
+                  'from-blue-500 to-cyan-500',
+                  'from-emerald-500 to-green-500',
+                  'from-amber-500 to-orange-500',
+                  'from-indigo-500 to-violet-500'
+                ];
+                const gradient = gradients[idx % gradients.length];
                 return (
-                  <Card key={guide.id} className="border-gray-100">
+                  <Card key={guide.id} className="border-0 shadow-lg hover:shadow-xl transition-all overflow-hidden">
                     <CardContent className="p-0">
                       <button
                         onClick={() => setExpandedGuide(isExpanded ? null : guide.id)}
@@ -323,14 +337,14 @@ export default function AgentResources() {
                         aria-expanded={isExpanded}
                         aria-label={`${guide.title} - ${guide.description}. ${isExpanded ? 'Collapse' : 'Expand'} details`}
                       >
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Icon className="w-6 h-6 text-primary" aria-hidden="true" />
+                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br", gradient)}>
+                          <Icon className="w-6 h-6 text-white" aria-hidden="true" />
                         </div>
                         <div className="flex-1 text-left">
-                          <h3 className="font-semibold text-primary">{guide.title}</h3>
+                          <h3 className="font-semibold text-gray-800">{guide.title}</h3>
                           <p className="text-sm text-gray-600">{guide.description}</p>
                         </div>
-                        <Badge variant="outline" className="hidden sm:flex">
+                        <Badge className={cn("hidden sm:flex border-0 text-white bg-gradient-to-r", gradient)}>
                           {guide.commission}
                         </Badge>
                         <ChevronDown
@@ -432,16 +446,16 @@ export default function AgentResources() {
                   return (
                     <Card
                       key={category.category}
-                      className="border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                      className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer"
                       onClick={() => handleDownloadMarketing(category.category, category.count)}
                     >
                       <CardContent className="p-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-primary" aria-hidden="true" />
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                            <Icon className="w-6 h-6 text-white" aria-hidden="true" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-semibold text-primary">{category.category}</h3>
+                            <h3 className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{category.category}</h3>
                             <p className="text-sm text-gray-600">{category.count} files available</p>
                           </div>
                           <Download className="w-5 h-5 text-gray-400" aria-hidden="true" />
@@ -451,9 +465,9 @@ export default function AgentResources() {
                   );
                 })}
               </div>
-              <Card className="border-gray-100 mt-6">
+              <Card className="border-0 shadow-lg mt-6">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-primary mb-2">Custom Marketing Requests</h3>
+                  <h3 className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">Custom Marketing Requests</h3>
                   <p className="text-sm text-gray-600 mb-4">Need personalized materials with your contact information?</p>
                   <Button variant="outline" asChild>
                     <a href="mailto:marketing@heritagels.org" aria-label="Email marketing team for custom materials">
@@ -493,10 +507,10 @@ export default function AgentResources() {
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredCarriers.map((carrier) => (
-                    <Card key={carrier.name} className="border-gray-100 hover:shadow-md transition-shadow">
+                    <Card key={carrier.name} className="border-0 shadow-lg hover:shadow-xl transition-all">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
-                          <h3 className="font-semibold text-primary">{carrier.name}</h3>
+                          <h3 className="font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{carrier.name}</h3>
                           <Badge
                             className={ratingColors[carrier.rating] || 'bg-gray-100 text-gray-700'}
                             aria-label={`AM Best rating: ${carrier.rating}`}
@@ -532,46 +546,52 @@ export default function AgentResources() {
             {/* Support Tab */}
             <TabsContent value="support" className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
-                {supportContacts.map((contact) => (
-                  <Card key={contact.department} className="border-gray-100">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Headphones className="w-5 h-5 text-primary" aria-hidden="true" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-primary">{contact.department}</h3>
-                          <div className="space-y-1 mt-2 text-sm">
-                            <a
-                              href="tel:6307780800"
-                              className="flex items-center gap-2 text-gray-600 hover:text-primary"
-                              aria-label={`Call ${contact.department} at (630) 778-0800 ${contact.phone}`}
-                            >
-                              <Phone className="w-3 h-3" aria-hidden="true" />
-                              (630) 778-0800 {contact.phone}
-                            </a>
-                            <a
-                              href={`mailto:${contact.email}`}
-                              className="flex items-center gap-2 text-gray-600 hover:text-primary"
-                              aria-label={`Email ${contact.department} at ${contact.email}`}
-                            >
-                              <Mail className="w-3 h-3" aria-hidden="true" />
-                              {contact.email}
-                            </a>
+                {supportContacts.map((contact, idx) => {
+                  const gradients = ['from-amber-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-emerald-500 to-green-500', 'from-violet-500 to-purple-500'];
+                  return (
+                    <Card key={contact.department} className="border-0 shadow-lg hover:shadow-xl transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br", gradients[idx % gradients.length])}>
+                            <Headphones className="w-5 h-5 text-white" aria-hidden="true" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-800">{contact.department}</h3>
+                            <div className="space-y-1 mt-2 text-sm">
+                              <a
+                                href="tel:6307780800"
+                                className="flex items-center gap-2 text-gray-600 hover:text-violet-600 transition-colors"
+                                aria-label={`Call ${contact.department} at (630) 778-0800 ${contact.phone}`}
+                              >
+                                <Phone className="w-3 h-3" aria-hidden="true" />
+                                (630) 778-0800 {contact.phone}
+                              </a>
+                              <a
+                                href={`mailto:${contact.email}`}
+                                className="flex items-center gap-2 text-gray-600 hover:text-violet-600 transition-colors"
+                                aria-label={`Email ${contact.department} at ${contact.email}`}
+                              >
+                                <Mail className="w-3 h-3" aria-hidden="true" />
+                                {contact.email}
+                              </a>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-              <Card className="border-yellow-200 bg-yellow-50">
-                <CardContent className="p-4">
+              <Card className="border-0 shadow-lg overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500" />
+                <CardContent className="p-4 relative z-10">
                   <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-yellow-600" aria-hidden="true" />
+                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
                     <div>
-                      <p className="font-medium text-gray-900">Business Hours</p>
-                      <p className="text-sm text-gray-600">Mon-Fri 8am-6pm CT • Urgent: (630) 778-0800 option 0</p>
+                      <p className="font-semibold text-white">Business Hours</p>
+                      <p className="text-sm text-white/90">Mon-Fri 8am-6pm CT • Urgent: (630) 778-0800 option 0</p>
                     </div>
                   </div>
                 </CardContent>

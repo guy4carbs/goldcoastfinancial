@@ -284,7 +284,7 @@ export default function AgentStudyExamPrep() {
                 <span>Xcel Partner Course</span>
                 <Badge variant="outline" className="text-violet-600">Code: fflapex-hrojsf</Badge>
               </div>
-              <h1 className="text-2xl font-bold text-primary">State Exam Prep Course</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">State Exam Prep Course</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
@@ -308,39 +308,39 @@ export default function AgentStudyExamPrep() {
                 <p className="text-xs text-white/80">Total Topics</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-green-600">{stats.mastered}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{stats.mastered}</p>
                 <p className="text-xs text-gray-500">Mastered</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-blue-600">{stats.review}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stats.review}</p>
                 <p className="text-xs text-gray-500">Review</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-amber-600">{stats.inProgress}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stats.inProgress}</p>
                 <p className="text-xs text-gray-500">In Progress</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-gray-600">{stats.notStarted}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-gray-500 to-gray-600 bg-clip-text text-transparent">{stats.notStarted}</p>
                 <p className="text-xs text-gray-500">Not Started</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-0 shadow-lg">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-primary">{stats.avgConfidence}%</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stats.avgConfidence}%</p>
                 <p className="text-xs text-gray-500">Avg Confidence</p>
               </CardContent>
             </Card>
-            <Card className="bg-red-50">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50">
               <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-red-600">{stats.highPriority}</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">{stats.highPriority}</p>
                 <p className="text-xs text-gray-500">High Priority</p>
               </CardContent>
             </Card>

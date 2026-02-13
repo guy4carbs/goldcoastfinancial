@@ -41,7 +41,8 @@ import {
   Users,
   Brain,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -253,59 +254,63 @@ export default function AgentDashboard() {
         {/* Command Center Banner */}
         <motion.div variants={fadeInUp}>
           <Card className={cn(
-            "border-0 overflow-hidden",
+            "border-0 overflow-hidden shadow-xl",
             directive.urgency === 'critical'
-              ? "bg-gradient-to-r from-red-600 to-red-500"
-              : "bg-gradient-to-r from-primary to-primary/80"
+              ? "bg-gradient-to-r from-red-600 via-rose-600 to-pink-600"
+              : "bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700"
           )}>
-            <CardContent className="p-6">
+            {/* Background decorations */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+            <CardContent className="p-6 lg:p-8 relative">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 {/* Left: Command Directive */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-3">
                     <div className={cn(
-                      "w-2 h-2 rounded-full",
-                      directive.urgency === 'critical' ? "bg-white animate-pulse" : "bg-white/60"
+                      "w-2.5 h-2.5 rounded-full",
+                      directive.urgency === 'critical' ? "bg-white animate-pulse" : "bg-amber-300 animate-pulse"
                     )} />
-                    <span className="text-white/70 text-sm font-medium uppercase tracking-wider">
+                    <span className="text-white/80 text-sm font-semibold uppercase tracking-wider">
                       {directive.urgency === 'critical' ? 'ACTION REQUIRED' : 'COMMAND CENTER'}
                     </span>
-                    <div className="flex items-center gap-1 bg-black/20 px-2 py-1 rounded-full ml-2">
-                      <Trophy className="w-3 h-3 text-amber-300" />
-                      <span className="text-xs font-bold text-amber-300">#{performance.rank}</span>
+                    <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full ml-2">
+                      <Trophy className="w-4 h-4 text-amber-300" />
+                      <span className="text-sm font-bold text-amber-300">#{performance.rank}</span>
                     </div>
                   </div>
 
-                  <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tight mb-1">
+                  <h1 className="text-3xl lg:text-5xl font-black text-white tracking-tight mb-2">
                     {directive.main}
                   </h1>
-                  <p className="text-white/80 text-lg font-medium">
+                  <p className="text-indigo-100 text-lg font-medium">
                     {directive.sub}
                   </p>
 
                   {/* Progress Bar */}
-                  <div className="mt-4 max-w-md">
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-white/70 font-medium">Progress</span>
+                  <div className="mt-5 max-w-md">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-white/80 font-medium">Today's Progress</span>
                       <span className="text-white font-bold">{performance.dailyCalls}/{performance.dailyCallsTarget} calls</span>
                     </div>
-                    <div className="h-3 bg-black/20 rounded-full overflow-hidden">
+                    <div className="h-4 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min((performance.dailyCalls / performance.dailyCallsTarget) * 100, 100)}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-white"
+                        className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 shadow-lg"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Action Buttons */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <Button
                     onClick={() => setShowLogCall(true)}
                     size="lg"
-                    className="bg-white text-gray-900 hover:bg-white/90 font-bold text-base"
+                    className="bg-white text-indigo-700 hover:bg-white/90 font-bold text-base shadow-lg hover:shadow-xl transition-all hover:scale-105"
                   >
                     <Phone className="w-5 h-5 mr-2" />
                     LOG CALL NOW
@@ -314,14 +319,14 @@ export default function AgentDashboard() {
                     <Button
                       onClick={() => setShowAddLead(true)}
                       variant="outline"
-                      className="border-white/30 text-white hover:bg-white/10 flex-1"
+                      className="border-white/40 text-white hover:bg-white/20 flex-1 backdrop-blur-sm"
                     >
                       <UserPlus className="w-4 h-4 mr-1" />
                       Lead
                     </Button>
                     <Button
                       variant="outline"
-                      className="border-white/30 text-white hover:bg-white/10 flex-1"
+                      className="border-white/40 text-white hover:bg-white/20 flex-1 backdrop-blur-sm"
                       asChild
                     >
                       <Link href="/agents/quotes">
@@ -330,8 +335,8 @@ export default function AgentDashboard() {
                       </Link>
                     </Button>
                   </div>
-                  <div className="flex items-center justify-center gap-2 mt-1">
-                    <Flame className="w-4 h-4 text-orange-300" />
+                  <div className="flex items-center justify-center gap-2 mt-1 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                    <Flame className="w-5 h-5 text-orange-400" />
                     <span className="text-sm font-bold text-orange-300">{performance.currentStreak}-day streak</span>
                   </div>
                 </div>
@@ -356,21 +361,21 @@ export default function AgentDashboard() {
         {/* Enhanced KPI Cards with Trends & Coaching */}
         <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Calls Card */}
-          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-blue-600" />
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                  <Phone className="w-5 h-5 text-white" />
                 </div>
                 <div className={cn(
-                  "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
-                  performance.dailyCalls >= 38 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
+                  performance.dailyCalls >= 38 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                 )}>
                   {performance.dailyCalls >= 38 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {performance.dailyCalls >= 38 ? `+${performance.dailyCalls - 38}` : `${performance.dailyCalls - 38}`} vs avg
                 </div>
               </div>
-              <p className="text-2xl font-bold text-blue-600">{performance.dailyCalls}</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{performance.dailyCalls}</p>
               <p className="text-xs text-gray-500 font-medium">Calls Today</p>
               {/* Mini Sparkline */}
               <div className="flex items-end gap-0.5 h-8 mt-2">
@@ -389,21 +394,21 @@ export default function AgentDashboard() {
           </Card>
 
           {/* Closes Card */}
-          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-green-600" />
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+                  <Target className="w-5 h-5 text-white" />
                 </div>
                 <div className={cn(
-                  "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
-                  performance.dailyCloses >= 1 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                  "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
+                  performance.dailyCloses >= 1 ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
                 )}>
                   {performance.dailyCloses >= 1 ? <TrendingUp className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
                   {performance.dailyCloses >= 1 ? `+${performance.dailyCloses}` : "0"} this week
                 </div>
               </div>
-              <p className="text-2xl font-bold text-green-600">{performance.dailyCloses}</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{performance.dailyCloses}</p>
               <p className="text-xs text-gray-500 font-medium">Closes This Week</p>
               {/* Mini Sparkline */}
               <div className="flex items-end gap-0.5 h-8 mt-2">
@@ -412,7 +417,7 @@ export default function AgentDashboard() {
                     key={i}
                     className={cn(
                       "flex-1 rounded-sm transition-all",
-                      day.deals > 0 ? "bg-green-500" : "bg-green-100"
+                      day.deals > 0 ? "bg-gradient-to-t from-emerald-500 to-teal-400" : "bg-emerald-100"
                     )}
                     style={{ height: `${Math.max(day.deals * 33, 10)}%` }}
                   />
@@ -422,29 +427,29 @@ export default function AgentDashboard() {
           </Card>
 
           {/* Conversion Rate Card */}
-          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-purple-600" />
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <BarChart3 className="w-5 h-5 text-white" />
                 </div>
                 <div className={cn(
-                  "flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
-                  performance.conversionRate >= 12 ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
+                  performance.conversionRate >= 12 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                 )}>
                   {performance.conversionRate >= 12 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {performance.conversionRate >= 12 ? `+${performance.conversionRate - 10}%` : `-${12 - performance.conversionRate}%`} vs baseline
                 </div>
               </div>
-              <p className="text-2xl font-bold text-purple-600">{performance.conversionRate}%</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{performance.conversionRate}%</p>
               <p className="text-xs text-gray-500 font-medium">Conversion Rate</p>
               {/* Visual gauge */}
-              <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="mt-2 h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
-                    performance.conversionRate >= 15 ? "bg-green-500" :
-                    performance.conversionRate >= 10 ? "bg-purple-500" : "bg-amber-500"
+                    performance.conversionRate >= 15 ? "bg-gradient-to-r from-emerald-500 to-teal-500" :
+                    performance.conversionRate >= 10 ? "bg-gradient-to-r from-violet-500 to-purple-500" : "bg-gradient-to-r from-amber-500 to-orange-500"
                   )}
                   style={{ width: `${Math.min(performance.conversionRate * 5, 100)}%` }}
                 />
@@ -453,26 +458,26 @@ export default function AgentDashboard() {
           </Card>
 
           {/* Earnings Card */}
-          <Card className="hover:shadow-md transition-shadow overflow-hidden">
+          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-violet-600" />
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                  <DollarSign className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                <div className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
                   <TrendingUp className="w-3 h-3" />
                   +${Math.round(pendingEarnings * 0.15).toLocaleString()} projected
                 </div>
               </div>
-              <p className="text-2xl font-bold text-violet-600">${pendingEarnings.toLocaleString()}</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">${pendingEarnings.toLocaleString()}</p>
               <p className="text-xs text-gray-500 font-medium">Pending Earnings</p>
               {/* Earnings breakdown bar */}
-              <div className="mt-2 flex gap-1 h-8">
-                <div className="flex-1 bg-green-100 rounded flex items-center justify-center">
-                  <span className="text-[9px] font-medium text-green-700">${paidEarnings.toLocaleString()} paid</span>
+              <div className="mt-2 flex gap-1.5 h-8">
+                <div className="flex-1 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg flex items-center justify-center">
+                  <span className="text-[9px] font-semibold text-emerald-700">${paidEarnings.toLocaleString()} paid</span>
                 </div>
-                <div className="flex-1 bg-violet-100 rounded flex items-center justify-center">
-                  <span className="text-[9px] font-medium text-violet-700">${pendingEarnings.toLocaleString()} pending</span>
+                <div className="flex-1 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="text-[9px] font-semibold text-amber-700">${pendingEarnings.toLocaleString()} pending</span>
                 </div>
               </div>
                           </CardContent>
@@ -490,33 +495,35 @@ export default function AgentDashboard() {
 
             {/* Pipeline Snapshot */}
             <motion.div variants={fadeInUp}>
-              <Card>
-                <CardHeader className="pb-3">
+              <Card className="border-0 shadow-md overflow-hidden">
+                <CardHeader className="pb-3 bg-gradient-to-r from-violet-50 to-purple-50">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                      <Users className="w-5 h-5 text-violet-500" />
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-white" />
+                      </div>
                       Pipeline Snapshot
                     </CardTitle>
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-100" asChild>
                       <Link href="/agents/pipeline">
                         View Pipeline <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
                   {/* Stage Counts */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     {[
-                      { label: "New", count: pipelineStats.new, color: "bg-blue-500" },
-                      { label: "Contacted", count: pipelineStats.contacted, color: "bg-yellow-500" },
-                      { label: "Qualified", count: pipelineStats.qualified, color: "bg-purple-500" },
-                      { label: "Proposal", count: pipelineStats.proposal, color: "bg-green-500" }
+                      { label: "New", count: pipelineStats.new, gradient: "from-blue-500 to-cyan-500", bg: "from-blue-50 to-cyan-50" },
+                      { label: "Contacted", count: pipelineStats.contacted, gradient: "from-amber-500 to-yellow-500", bg: "from-amber-50 to-yellow-50" },
+                      { label: "Qualified", count: pipelineStats.qualified, gradient: "from-violet-500 to-purple-500", bg: "from-violet-50 to-purple-50" },
+                      { label: "Proposal", count: pipelineStats.proposal, gradient: "from-emerald-500 to-teal-500", bg: "from-emerald-50 to-teal-50" }
                     ].map((stage) => (
-                      <div key={stage.label} className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className={cn("w-2 h-2 rounded-full mx-auto mb-2", stage.color)} />
-                        <p className="text-xl font-bold text-gray-900">{stage.count}</p>
-                        <p className="text-[10px] text-gray-500">{stage.label}</p>
+                      <div key={stage.label} className={cn("text-center p-4 rounded-xl bg-gradient-to-br", stage.bg)}>
+                        <div className={cn("w-3 h-3 rounded-full mx-auto mb-2 bg-gradient-to-r", stage.gradient)} />
+                        <p className="text-2xl font-bold text-gray-900">{stage.count}</p>
+                        <p className="text-xs text-gray-600 font-medium">{stage.label}</p>
                       </div>
                     ))}
                   </div>
@@ -556,36 +563,40 @@ export default function AgentDashboard() {
 
             {/* Priority Tasks */}
             <motion.div variants={fadeInUp}>
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-violet-500" />
-                      Priority Tasks
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Priority Tasks</span>
                     </CardTitle>
-                    <Button variant="ghost" size="sm" onClick={() => setShowAddTask(true)}>
+                    <Button variant="outline" size="sm" onClick={() => setShowAddTask(true)} className="border-violet-200 text-violet-600 hover:bg-violet-50">
                       + Add Task
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {todaysTasks.length === 0 ? (
-                    <div className="text-center py-6 text-gray-500">
-                      <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-500" />
-                      <p className="font-medium">All caught up!</p>
-                      <p className="text-sm">No tasks due today</p>
+                    <div className="text-center py-6">
+                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
+                        <CheckCircle2 className="w-7 h-7 text-white" />
+                      </div>
+                      <p className="font-bold text-green-600">All caught up!</p>
+                      <p className="text-sm text-gray-500">No tasks due today</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {todaysTasks.map((task) => (
                         <div
                           key={task.id}
-                          className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-start gap-3 p-3 bg-gradient-to-r from-gray-50 to-violet-50/30 rounded-xl hover:from-violet-50 hover:to-purple-50/50 transition-all border border-gray-100"
                         >
                           <Checkbox
                             checked={task.completed}
                             onCheckedChange={() => handleCompleteTask(task.id)}
-                            className="mt-0.5"
+                            className="mt-0.5 border-violet-300 data-[state=checked]:bg-violet-500"
                           />
                           <div className="flex-1">
                             <p className={cn(
@@ -599,19 +610,18 @@ export default function AgentDashboard() {
                                 <Clock className="w-3 h-3" /> {task.dueDate}
                               </span>
                               <Badge
-                                variant="outline"
                                 className={cn(
-                                  "text-[10px] px-1.5",
-                                  task.priority === 'high' && "border-red-500 text-red-600",
-                                  task.priority === 'medium' && "border-yellow-500 text-yellow-600",
-                                  task.priority === 'low' && "border-gray-400 text-gray-500"
+                                  "text-[10px] px-1.5 border-0",
+                                  task.priority === 'high' && "bg-red-100 text-red-600",
+                                  task.priority === 'medium' && "bg-amber-100 text-amber-600",
+                                  task.priority === 'low' && "bg-gray-100 text-gray-500"
                                 )}
                               >
                                 {task.priority}
                               </Badge>
                             </div>
                           </div>
-                          <span className="text-[10px] text-violet-500 font-medium">
+                          <span className="text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent font-bold">
                             +{task.performanceImpact} XP
                           </span>
                         </div>
@@ -624,11 +634,13 @@ export default function AgentDashboard() {
 
             {/* Recent Activity */}
             <motion.div variants={fadeInUp}>
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-violet-500" />
-                    Team Activity
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                      <Zap className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Team Activity</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -642,33 +654,37 @@ export default function AgentDashboard() {
           <div className="space-y-6">
             {/* Leaderboard Preview */}
             <motion.div variants={fadeInUp}>
-              <Card>
-                <CardHeader className="pb-3">
+              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 p-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                      <Trophy className="w-5 h-5 text-yellow-500" />
-                      Leaderboard
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" onClick={() => setShowLeaderboard(true)}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <Trophy className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-lg font-bold text-white">Leaderboard</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setShowLeaderboard(true)} className="text-white hover:bg-white/20">
                       View All
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
+                </div>
+                <CardContent className="pt-4">
                   <div className="space-y-2">
                     {leaderboard.slice(0, 5).map((entry, idx) => (
                       <div
                         key={entry.id}
                         className={cn(
-                          "flex items-center gap-3 p-2 rounded-lg",
-                          entry.id === currentUser?.id && "bg-violet-500/10 ring-1 ring-violet-500/30"
+                          "flex items-center gap-3 p-2.5 rounded-xl transition-all",
+                          entry.id === currentUser?.id
+                            ? "bg-gradient-to-r from-violet-100 to-purple-100 ring-2 ring-violet-400"
+                            : "hover:bg-gray-50"
                         )}
                       >
                         <span className={cn(
-                          "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                          idx === 0 && "bg-yellow-500 text-white",
-                          idx === 1 && "bg-gray-400 text-white",
-                          idx === 2 && "bg-amber-600 text-white",
+                          "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shadow-md",
+                          idx === 0 && "bg-gradient-to-br from-yellow-400 to-amber-500 text-white",
+                          idx === 1 && "bg-gradient-to-br from-gray-300 to-gray-400 text-white",
+                          idx === 2 && "bg-gradient-to-br from-amber-500 to-orange-600 text-white",
                           idx > 2 && "bg-gray-100 text-gray-600"
                         )}>
                           {idx + 1}
@@ -677,16 +693,16 @@ export default function AgentDashboard() {
                           <p className="font-medium text-sm truncate">
                             {entry.name}
                             {entry.id === currentUser?.id && (
-                              <span className="text-violet-500 text-[10px] ml-1">(You)</span>
+                              <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent text-[10px] ml-1 font-bold">(You)</span>
                             )}
                           </p>
                           <p className="text-[10px] text-gray-500">Level {entry.level}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-sm text-violet-500">
+                          <p className="font-bold text-sm bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                             ${(entry.ap.weekly / 1000).toFixed(1)}K
                           </p>
-                          <p className="text-[10px] text-gray-500">AP</p>
+                          <p className="text-[10px] text-gray-400">AP</p>
                         </div>
                       </div>
                     ))}
@@ -697,14 +713,16 @@ export default function AgentDashboard() {
 
             {/* Announcements */}
             <motion.div variants={fadeInUp}>
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                      <Bell className="w-5 h-5 text-violet-500" />
-                      Announcements
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-md">
+                        <Bell className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Announcements</span>
                     </CardTitle>
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="ghost" size="sm" asChild className="text-pink-600 hover:bg-pink-50">
                       <Link href="/agents/announcements">
                         View All <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
@@ -723,11 +741,11 @@ export default function AgentDashboard() {
                       >
                         <div className="flex items-start gap-2">
                           {announcement.priority === 'high' && (
-                            <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0" />
+                            <span className="w-2.5 h-2.5 bg-gradient-to-br from-red-500 to-rose-500 rounded-full mt-1.5 flex-shrink-0 shadow-sm animate-pulse" />
                           )}
                           <div>
                             <p className="text-[10px] text-gray-400 mb-1">{announcement.date}</p>
-                            <h4 className="font-semibold text-sm text-primary mb-1">
+                            <h4 className="font-semibold text-sm bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1">
                               {announcement.title}
                             </h4>
                             <p className="text-xs text-gray-600 leading-relaxed">
@@ -744,14 +762,16 @@ export default function AgentDashboard() {
 
             {/* Upcoming Events */}
             <motion.div variants={fadeInUp}>
-              <Card>
+              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-violet-500" />
-                      Upcoming Events
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-md">
+                        <Calendar className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Upcoming Events</span>
                     </CardTitle>
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="ghost" size="sm" asChild className="text-cyan-600 hover:bg-cyan-50">
                       <Link href="/agents/calendar">
                         View All <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
@@ -763,14 +783,14 @@ export default function AgentDashboard() {
                     {upcomingEvents.map((event, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center gap-3 p-3 bg-gradient-to-r from-cyan-50 to-blue-50/50 rounded-xl border border-cyan-100 hover:shadow-md transition-all"
                       >
-                        <div className="text-center min-w-[50px]">
-                          <p className="text-[10px] text-gray-500">{event.date.split(' ')[0]}</p>
-                          <p className="font-bold text-primary text-lg">{event.date.split(' ')[1]}</p>
+                        <div className="text-center min-w-[50px] bg-white rounded-lg p-2 shadow-sm">
+                          <p className="text-[10px] text-gray-500 uppercase font-medium">{event.date.split(' ')[0]}</p>
+                          <p className="font-bold text-xl bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">{event.date.split(' ')[1]}</p>
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium text-sm text-primary">{event.title}</p>
+                          <p className="font-semibold text-sm text-gray-800">{event.title}</p>
                           <p className="text-xs text-gray-500">{event.time}</p>
                         </div>
                       </div>
@@ -782,28 +802,33 @@ export default function AgentDashboard() {
 
             {/* Earnings Summary */}
             <motion.div variants={fadeInUp}>
-              <Card className="bg-gradient-to-br from-violet-500/10 to-transparent">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-violet-500" />
+              <Card className="overflow-hidden border-0 shadow-xl relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+                <CardHeader className="pb-3 relative z-10">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2 text-white">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-white" />
+                    </div>
                     Earnings Summary
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative z-10">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Pending</span>
-                      <span className="font-bold text-lg text-violet-500">
+                    <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-lg p-3">
+                      <span className="text-sm text-white/80">Pending</span>
+                      <span className="font-bold text-xl text-white">
                         ${pendingEarnings.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Paid this month</span>
-                      <span className="font-medium text-green-600">
+                    <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-lg p-3">
+                      <span className="text-sm text-white/80">Paid this month</span>
+                      <span className="font-bold text-xl text-white">
                         ${paidEarnings.toLocaleString()}
                       </span>
                     </div>
-                    <Button variant="outline" className="w-full mt-2" asChild>
+                    <Button className="w-full mt-2 bg-white text-emerald-600 hover:bg-white/90 font-semibold shadow-lg" asChild>
                       <Link href="/agents/earnings">
                         View Statements <ArrowUpRight className="w-4 h-4 ml-1" />
                       </Link>
@@ -815,11 +840,13 @@ export default function AgentDashboard() {
 
             {/* Need Help */}
             <motion.div variants={fadeInUp}>
-              <Card className="bg-primary/5">
+              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Phone className="w-5 h-5 text-violet-500" />
-                    <h3 className="font-bold text-primary">Need Help?</h3>
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md">
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <h3 className="font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Need Help?</h3>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">
                     Our agent support team is here to help you succeed.
@@ -827,15 +854,17 @@ export default function AgentDashboard() {
                   <div className="space-y-2">
                     <a
                       href="tel:6307780800"
-                      className="block text-sm font-medium text-primary hover:text-violet-500 transition-colors"
+                      className="flex items-center gap-2 text-sm font-medium bg-gradient-to-r from-indigo-50 to-violet-50 p-2.5 rounded-lg hover:from-indigo-100 hover:to-violet-100 transition-colors"
                     >
-                      (630) 778-0800
+                      <Phone className="w-4 h-4 text-indigo-500" />
+                      <span className="text-indigo-600">(630) 778-0800</span>
                     </a>
                     <a
                       href="mailto:agents@heritagels.org"
-                      className="block text-sm font-medium text-primary hover:text-violet-500 transition-colors"
+                      className="flex items-center gap-2 text-sm font-medium bg-gradient-to-r from-indigo-50 to-violet-50 p-2.5 rounded-lg hover:from-indigo-100 hover:to-violet-100 transition-colors"
                     >
-                      agents@heritagels.org
+                      <Mail className="w-4 h-4 text-indigo-500" />
+                      <span className="text-indigo-600">agents@heritagels.org</span>
                     </a>
                   </div>
                 </CardContent>

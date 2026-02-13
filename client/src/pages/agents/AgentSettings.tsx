@@ -268,12 +268,17 @@ export default function AgentSettings() {
       >
         {/* Header */}
         <motion.div variants={FADE_IN_UP} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-primary">Settings</h1>
-            <p className="text-sm text-gray-600">Manage your account and preferences</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center shadow-lg">
+              <User className="w-6 h-6 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">Settings</h1>
+              <p className="text-sm text-gray-600">Manage your account and preferences</p>
+            </div>
           </div>
           <Button
-            className="bg-primary hover:bg-primary/90"
+            className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-md"
             onClick={handleSave}
             disabled={isSaving}
           >
@@ -290,11 +295,13 @@ export default function AgentSettings() {
 
         {/* Profile Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" aria-hidden="true" />
-                Profile Information
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
+                  <User className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Profile Information</span>
               </CardTitle>
               <CardDescription>Update your personal details</CardDescription>
               {currentUser ? (
@@ -386,11 +393,13 @@ export default function AgentSettings() {
 
         {/* Notifications Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Bell className="w-5 h-5 text-primary" aria-hidden="true" />
-                Notification Preferences
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                  <Bell className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Notification Preferences</span>
               </CardTitle>
               <CardDescription>Choose how you want to be notified</CardDescription>
             </CardHeader>
@@ -414,11 +423,13 @@ export default function AgentSettings() {
 
         {/* Security Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" aria-hidden="true" />
-                Security
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                  <Shield className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Security</span>
               </CardTitle>
               <CardDescription>Manage your account security</CardDescription>
             </CardHeader>
@@ -458,11 +469,13 @@ export default function AgentSettings() {
 
         {/* Bank / Direct Deposit Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-primary" aria-hidden="true" />
-                Direct Deposit
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                  <Building2 className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Direct Deposit</span>
               </CardTitle>
               <CardDescription>Manage your commission payment method</CardDescription>
             </CardHeader>
@@ -531,11 +544,13 @@ export default function AgentSettings() {
 
         {/* Tax Documents Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
-                Tax Documents
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-md">
+                  <FileText className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Tax Documents</span>
               </CardTitle>
               <CardDescription>Manage your W-9 and tax information</CardDescription>
             </CardHeader>
@@ -584,11 +599,13 @@ export default function AgentSettings() {
 
         {/* Two-Factor Authentication Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-primary" aria-hidden="true" />
-                Two-Factor Authentication
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
+                  <Smartphone className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Two-Factor Authentication</span>
               </CardTitle>
               <CardDescription>Add an extra layer of security to your account</CardDescription>
             </CardHeader>
@@ -660,11 +677,13 @@ export default function AgentSettings() {
 
         {/* Preferences Section */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-gray-100">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Palette className="w-5 h-5 text-primary" aria-hidden="true" />
-                Preferences
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-md">
+                  <Palette className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Preferences</span>
               </CardTitle>
               <CardDescription>Customize your experience</CardDescription>
             </CardHeader>
@@ -693,11 +712,14 @@ export default function AgentSettings() {
 
         {/* Danger Zone */}
         <motion.div variants={FADE_IN_UP}>
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-red-600">
-                <AlertTriangle className="w-5 h-5" aria-hidden="true" />
-                Danger Zone
+          <Card className="border-0 shadow-lg overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-rose-500/5 to-red-600/5" />
+            <CardHeader className="relative z-10">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-md">
+                  <AlertTriangle className="w-5 h-5 text-white" aria-hidden="true" />
+                </div>
+                <span className="bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">Danger Zone</span>
               </CardTitle>
               <CardDescription>Irreversible account actions</CardDescription>
             </CardHeader>
