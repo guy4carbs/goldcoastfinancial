@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -68,11 +68,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Training components
 import { InstitutionalModuleViewer } from "@/components/agent/InstitutionalModuleViewer";
 import { TrainingAssessment, type AssessmentResult } from "@/components/agent/TrainingAssessment";
 import { CertificationPathway } from "@/components/agent/CertificationPathway";
+import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
 import {
   TrainingSidebar,
   CertificationEarnedModal,
@@ -102,11 +104,6 @@ import {
   type Assessment,
 } from "@/lib/trainingData";
 import { useAgentStore } from "@/lib/agentStore";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
 
 // Training state management
 interface TrainingProgress {
@@ -312,7 +309,7 @@ const STUDY_RESOURCES = [
     rating: 4.8,
     enrolled: 1240,
     free: true,
-    href: '/agents/study/fundamentals'
+    href: '/agents/onboarding/study/course'
   },
   {
     id: 'res-2',
@@ -335,7 +332,7 @@ const STUDY_RESOURCES = [
     rating: 4.9,
     enrolled: 890,
     free: true,
-    href: '/agents/study/practice-exam'
+    href: '/agents/onboarding/study/practice-exam'
   },
   {
     id: 'res-4',
@@ -346,7 +343,7 @@ const STUDY_RESOURCES = [
     rating: 4.7,
     enrolled: 2100,
     free: true,
-    href: '/agents/study/flashcards'
+    href: '/agents/onboarding/study/flashcards'
   }
 ];
 
@@ -415,19 +412,19 @@ const STATE_REQUIREMENTS: Record<string, { hours: number; examFee: number; renew
 
 const ALL_STATES = Object.keys(STATE_REQUIREMENTS).sort();
 
-// Category styling for training modules
+// Category styling for training modules - Heritage brand colors (violet/purple primary)
 const categoryStyles: Record<string, { bg: string; text: string; border: string; icon: typeof Shield }> = {
-  onboarding: { bg: 'bg-cyan-100', text: 'text-cyan-600', border: 'border-cyan-200', icon: Rocket },
+  onboarding: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', icon: Rocket },
   doctrine: { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-200', icon: Shield },
-  compliance: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', icon: FileCheck },
-  methodology: { bg: 'bg-blue-100', text: 'text-blue-600', border: 'border-blue-200', icon: Target },
-  product: { bg: 'bg-emerald-100', text: 'text-emerald-600', border: 'border-emerald-200', icon: Package },
-  sales: { bg: 'bg-blue-100', text: 'text-blue-600', border: 'border-blue-200', icon: Target },
+  compliance: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', icon: FileCheck },
+  methodology: { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-200', icon: Target },
+  product: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', icon: Package },
+  sales: { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-200', icon: Target },
   objection_handling: { bg: 'bg-amber-100', text: 'text-amber-600', border: 'border-amber-200', icon: MessageSquare },
-  client_scenarios: { bg: 'bg-teal-100', text: 'text-teal-600', border: 'border-teal-200', icon: Users },
-  client_facilitation: { bg: 'bg-indigo-100', text: 'text-indigo-600', border: 'border-indigo-200', icon: Users },
+  client_scenarios: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', icon: Users },
+  client_facilitation: { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-200', icon: Users },
   state_specific: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', icon: MapPin },
-  ongoing_compliance: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', icon: FileCheck }
+  ongoing_compliance: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', icon: FileCheck }
 };
 
 export default function AgentOnboarding() {
@@ -825,64 +822,54 @@ export default function AgentOnboarding() {
     const isInProgress = moduleProgress > 0 && !isCompleted;
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.04, duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-        whileHover={!locked ? { y: -6, transition: { duration: 0.25, ease: "easeOut" } } : undefined}
-        className="h-full"
-      >
-        <Card className={cn(
-          "group relative h-full overflow-hidden transition-all duration-300 border-0",
-          "shadow-sm hover:shadow-xl",
-          isCompleted && "bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 ring-1 ring-emerald-200",
-          locked && "opacity-60 grayscale-[30%]",
-          isInProgress && "ring-1 ring-amber-200 bg-gradient-to-br from-amber-50/50 to-white",
-          !locked && !isCompleted && !isInProgress && "bg-white hover:bg-gradient-to-br hover:from-gray-50 hover:to-white"
-        )}>
+      <div className={cn("h-full transition-transform duration-200", !locked && "hover:-translate-y-1 hover:scale-[1.01]")}>
+        <Card
+          className={cn(
+            "group relative h-full overflow-hidden transition-all duration-300 border-0",
+            "shadow-sm hover:shadow-xl",
+            isCompleted && "bg-gradient-to-br from-violet-50 via-white to-violet-50/30 ring-1 ring-violet-200",
+            locked && "opacity-60 grayscale-[30%]",
+            isInProgress && "ring-1 ring-amber-200 bg-gradient-to-br from-amber-50/50 to-white",
+            !locked && !isCompleted && !isInProgress && "bg-white hover:bg-gradient-to-br hover:from-gray-50 hover:to-white"
+          )}
+          style={{ borderRadius: RADIUS.card }}
+        >
           <div className={cn(
             "absolute top-0 left-0 right-0 h-1.5 transition-all duration-300",
             isCompleted
-              ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
+              ? "bg-gradient-to-r from-violet-500 to-amber-500"
               : isInProgress
-              ? "bg-gradient-to-r from-amber-400 to-orange-400"
+              ? "bg-gradient-to-r from-violet-400 to-purple-400"
               : `bg-gradient-to-r ${style.bg} opacity-80`
           )} />
 
           <CardContent className="p-4 sm:p-5 pt-4 sm:pt-5 flex flex-col h-full">
             <div className="flex items-start justify-between mb-4">
-              <motion.div
+              <div
                 className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300",
                   isCompleted
-                    ? "bg-gradient-to-br from-emerald-100 to-emerald-50 shadow-inner"
+                    ? "bg-gradient-to-br from-violet-100 to-violet-50 shadow-inner"
                     : locked
                     ? "bg-gray-100"
                     : isInProgress
                     ? "bg-gradient-to-br from-amber-100 to-amber-50"
-                    : cn(style.bg, "group-hover:shadow-md")
+                    : cn(style.bg, "group-hover:shadow-md"),
+                  !locked && "hover:scale-105"
                 )}
-                whileHover={!locked ? { scale: 1.05, rotate: 3 } : undefined}
-                transition={{ duration: 0.2 }}
               >
                 {locked ? (
                   <Lock className="w-5 h-5 text-gray-400" />
                 ) : isCompleted ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                  >
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                  </motion.div>
+                  <CheckCircle2 className="w-6 h-6 text-amber-500" />
                 ) : (
                   <Icon className={cn("w-5 h-5", style.text)} />
                 )}
-              </motion.div>
+              </div>
 
               <div className="flex items-center gap-2">
                 {isCompleted && (
-                  <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px] font-medium px-2 py-0.5">
+                  <Badge className="bg-violet-100 text-violet-700 border-0 text-[10px] font-medium px-2 py-0.5">
                     Complete
                   </Badge>
                 )}
@@ -950,11 +937,9 @@ export default function AgentOnboarding() {
                   <span className="font-medium text-amber-600">{moduleProgress}%</span>
                 </div>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${moduleProgress}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  <div
+                    className="h-full bg-gradient-to-r from-violet-400 to-purple-400 rounded-full transition-all duration-500"
+                    style={{ width: `${moduleProgress}%` }}
                   />
                 </div>
               </div>
@@ -974,7 +959,7 @@ export default function AgentOnboarding() {
                   isCompleted
                     ? "bg-gray-100 text-gray-600 hover:bg-gray-200 border-0"
                     : isInProgress
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-amber-200/50"
+                    ? "bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white shadow-md shadow-violet-200/50"
                     : "bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
                 )}
                 size="sm"
@@ -1000,7 +985,7 @@ export default function AgentOnboarding() {
             )}
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     );
   };
 
@@ -1011,15 +996,14 @@ export default function AgentOnboarding() {
     const isFirst = index === 0;
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
-      >
-        <Card className={cn(
-          "overflow-hidden transition-all",
-          isFirst ? "ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 to-white" : ""
-        )}>
+      <div className="transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.01]">
+        <Card
+          className={cn(
+            "overflow-hidden transition-all",
+            isFirst ? "ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 to-white" : ""
+          )}
+          style={{ borderRadius: RADIUS.card }}
+        >
           <CardContent className="p-0">
             <div
               className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -1066,46 +1050,38 @@ export default function AgentOnboarding() {
               </div>
             </div>
 
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="border-t bg-gray-50"
-                >
-                  <div className="p-4">
-                    <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-primary" />
-                      Required Modules
-                    </h4>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {certModules.slice(0, 6).map((module, idx) => (
-                        <ModuleCard
-                          key={module.id}
-                          module={module}
-                          index={idx}
-                        />
-                      ))}
-                    </div>
-                    {certModules.length > 6 && (
-                      <p className="text-sm text-gray-500 mt-3 text-center">
-                        + {certModules.length - 6} more modules
-                      </p>
-                    )}
+            {isExpanded && (
+              <div className="border-t bg-gray-50">
+                <div className="p-4">
+                  <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    Required Modules
+                  </h4>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {certModules.slice(0, 6).map((module, idx) => (
+                      <ModuleCard
+                        key={module.id}
+                        module={module}
+                        index={idx}
+                      />
+                    ))}
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {certModules.length > 6 && (
+                    <p className="text-sm text-gray-500 mt-3 text-center">
+                      + {certModules.length - 6} more modules
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <OnboardingLoungeLayout>
       {/* Offline Indicator */}
       <OfflineIndicator />
 
@@ -1307,718 +1283,912 @@ export default function AgentOnboarding() {
         />
       )}
 
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <div className="flex items-center gap-2 cursor-pointer">
-                  <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
-                    <Leaf className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent text-sm">Heritage Life</p>
-                    <p className="text-[10px] text-gray-500">Agent Onboarding</p>
-                  </div>
-                </div>
-              </Link>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link href="/agents/become-an-agent">
-                <Button variant="ghost" size="sm" className="gap-2 hover:shadow-md transition-all">
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
-                </Button>
-              </Link>
-              <Link href="/agents/dashboard">
-                <Button size="sm" className="gap-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 shadow-md">
-                  <GraduationCap className="w-4 h-4" />
-                  Agent Portal
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-          className="space-y-6"
-        >
+      <div className="max-w-7xl mx-auto space-y-6 pb-8">
+        <div className="space-y-6">
           {/* Hero Section */}
-          <motion.div variants={fadeInUp}>
-            <div className="bg-gradient-to-r from-primary to-violet-600 rounded-2xl p-8 text-white relative overflow-hidden">
-              <div className="absolute inset-0 opacity-10"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Card
+              className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
+              style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+            >
+              {/* Decorative pattern overlay */}
+              <div
+                className="absolute inset-0 opacity-10"
                 style={{
-                  backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                  backgroundSize: '32px 32px'
+                  backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
+                  backgroundSize: '24px 24px',
                 }}
               />
-              <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                      <Rocket className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-3xl font-bold text-white">
-                        Become a Licensed Agent
+              {/* Floating decorative circles */}
+              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
+              <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-purple-300/15 rounded-full blur-sm" />
+
+              <CardContent className="relative" style={{ padding: spacing(4) }}>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div className="flex items-start gap-4">
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
+                      className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
+                      style={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: RADIUS.card,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                      }}
+                    >
+                      <BookOpen className="w-8 h-8 text-amber-200" />
+                    </motion.div>
+                    <div className="flex-1">
+                      <Badge
+                        className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium mb-2"
+                        style={{ padding: '4px 12px' }}
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Agent Resources
+                      </Badge>
+                      <h1
+                        className="font-bold tracking-tight text-white"
+                        style={{ fontSize: TYPE.display, marginBottom: 8, lineHeight: 1.1 }}
+                      >
+                        Resources
                       </h1>
-                      <p className="text-white/80">
-                        Your complete roadmap to success with Heritage Life
+                      <p style={{ fontSize: TYPE.body, lineHeight: 1.5 }} className="text-white/90 max-w-xl">
+                        Everything you need to get licensed, complete your training, and succeed in your insurance career.
                       </p>
                     </div>
                   </div>
-                  <p className="text-white/90 max-w-xl">
-                    Follow our step-by-step guide to get licensed, complete your training,
-                    and start building your career in life insurance sales.
-                  </p>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-white">{INSTITUTIONAL_MODULES.length}</p>
-                    <p className="text-sm text-white/70">Training Modules</p>
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3, duration: 0.4 }}
+                      className="text-center bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3"
+                    >
+                      <p className="text-3xl font-bold text-white">{LICENSING_STEPS.length}</p>
+                      <p className="text-sm text-white/70" style={{ fontSize: TYPE.meta }}>License Steps</p>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4, duration: 0.4 }}
+                      className="text-center bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3"
+                    >
+                      <p className="text-3xl font-bold text-white">{STUDY_RESOURCES.length}</p>
+                      <p className="text-sm text-white/70" style={{ fontSize: TYPE.meta }}>Study Resources</p>
+                    </motion.div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-white">{CERTIFICATION_GATES.length}</p>
-                    <p className="text-sm text-white/70">Certifications</p>
-                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           {/* Navigation Tabs */}
-          <motion.div variants={fadeInUp}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start bg-white border rounded-xl p-1 h-auto flex-wrap">
-                <TabsTrigger value="licensing" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <TabsList
+                className="w-full justify-start bg-white/80 backdrop-blur-sm border border-violet-100 p-1.5 h-auto flex-wrap gap-1"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level1 }}
+              >
+                <TabsTrigger
+                  value="licensing"
+                  className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-200/50 transition-all duration-200"
+                  style={{ borderRadius: RADIUS.button }}
+                >
                   <CheckCircle2 className="w-4 h-4" />
                   Licensing Roadmap
                 </TabsTrigger>
-                <TabsTrigger value="training" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-                  <GraduationCap className="w-4 h-4" />
-                  Training Center
-                </TabsTrigger>
-                <TabsTrigger value="study" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                <TabsTrigger
+                  value="study"
+                  className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-200/50 transition-all duration-200"
+                  style={{ borderRadius: RADIUS.button }}
+                >
                   <BookOpen className="w-4 h-4" />
                   Study Resources
                 </TabsTrigger>
-                <TabsTrigger value="videos" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                <TabsTrigger
+                  value="videos"
+                  className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-200/50 transition-all duration-200"
+                  style={{ borderRadius: RADIUS.button }}
+                >
                   <Video className="w-4 h-4" />
                   Video Tutorials
                 </TabsTrigger>
-                <TabsTrigger value="tips" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                <TabsTrigger
+                  value="tips"
+                  className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-200/50 transition-all duration-200"
+                  style={{ borderRadius: RADIUS.button }}
+                >
                   <Lightbulb className="w-4 h-4" />
                   Exam Tips
                 </TabsTrigger>
               </TabsList>
 
               {/* Licensing Tab */}
-              <TabsContent value="licensing" className="space-y-6 mt-6">
-                {/* State Selector */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 text-violet-500" />
-                        <div>
-                          <p className="font-medium">Your State</p>
-                          <p className="text-sm text-gray-500">Requirements vary by state</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Popover open={stateOpen} onOpenChange={setStateOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={stateOpen}
-                              className="w-[240px] justify-between"
-                            >
-                              {selectedState}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[240px] p-0">
-                            <Command>
-                              <CommandInput placeholder="Search state..." />
-                              <CommandList>
-                                <CommandEmpty>No state found.</CommandEmpty>
-                                <CommandGroup>
-                                  {ALL_STATES.map(state => (
-                                    <CommandItem
-                                      key={state}
-                                      value={state}
-                                      onSelect={() => {
-                                        setSelectedState(state);
-                                        setStateOpen(false);
-                                      }}
-                                    >
-                                      <Check className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedState === state ? "opacity-100" : "opacity-0"
-                                      )} />
-                                      {state}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                        {selectedState !== 'Illinois' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:text-gray-600"
-                            onClick={() => setSelectedState('Illinois')}
-                            aria-label="Reset to default state"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
-                        <p className="text-2xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">{stateReqs.hours}</p>
-                        <p className="text-xs text-gray-500">Pre-License Hours</p>
-                      </div>
-                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
-                        <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${stateReqs.examFee}</p>
-                        <p className="text-xs text-gray-500">Exam Fee</p>
-                      </div>
-                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
-                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stateReqs.renewalYears}</p>
-                        <p className="text-xs text-gray-500">Years to Renew</p>
-                      </div>
-                      <div className="text-center p-3 bg-white rounded-xl shadow-md">
-                        <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stateReqs.ce}</p>
-                        <p className="text-xs text-gray-500">CE Hours/Cycle</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Licensing Roadmap */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-violet-500" />
-                      Licensing Roadmap
-                    </CardTitle>
-                    <CardDescription>
-                      Complete each step to become a fully licensed agent
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">Overall Progress</span>
-                        <span className="text-sm text-gray-500">{completedSteps.length} of {LICENSING_STEPS.length} complete</span>
-                      </div>
-                      <Progress value={progress} className="h-3" />
-                    </div>
-
-                    <div className="space-y-4">
-                      {LICENSING_STEPS.map((step, index) => {
-                        const isComplete = completedSteps.includes(step.id);
-                        const isPrevComplete = index === 0 || completedSteps.includes(LICENSING_STEPS[index - 1].id);
-
-                        return (
-                          <div
-                            key={step.id}
-                            className={cn(
-                              "relative pl-10 pb-4",
-                              index !== LICENSING_STEPS.length - 1 && "border-l-2 border-gray-200 ml-4"
-                            )}
-                          >
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              className={cn(
-                                "absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center -translate-x-1/2 cursor-pointer transition-all",
-                                isComplete
-                                  ? "bg-green-500 text-white"
-                                  : isPrevComplete
-                                    ? "bg-violet-500 text-white animate-pulse"
-                                    : "bg-gray-200 text-gray-400"
-                              )}
-                              onClick={() => toggleStep(step.id)}
-                            >
-                              {isComplete ? (
-                                <CheckCircle2 className="w-5 h-5" />
-                              ) : (
-                                <span className="font-bold text-sm">{index + 1}</span>
+              <TabsContent value="licensing" className="mt-8">
+                <div className="space-y-8">
+                  {/* State Selector */}
+                  <div>
+                    <Card
+                      className="border-0 overflow-hidden"
+                      style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+                    >
+                      <CardContent className="p-0">
+                        {/* State Selector Header */}
+                        <div className="bg-gradient-to-r from-violet-50 via-purple-50 to-amber-50 p-6 border-b border-violet-100">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <div
+                                className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200/50 hover:scale-105 transition-transform"
+                                style={{ borderRadius: RADIUS.button }}
+                              >
+                                <MapPin className="w-6 h-6 text-amber-200" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.title }}>Select Your State</p>
+                                <p className="text-gray-500" style={{ fontSize: TYPE.meta }}>Licensing requirements vary by state</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Popover open={stateOpen} onOpenChange={setStateOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={stateOpen}
+                                    className="w-[240px] justify-between border-violet-200 hover:border-violet-400 hover:bg-violet-50/50"
+                                    style={{ borderRadius: RADIUS.button }}
+                                  >
+                                    {selectedState}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[240px] p-0" style={{ borderRadius: RADIUS.button }}>
+                                  <Command>
+                                    <CommandInput placeholder="Search state..." />
+                                    <CommandList>
+                                      <CommandEmpty>No state found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {ALL_STATES.map(state => (
+                                          <CommandItem
+                                            key={state}
+                                            value={state}
+                                            onSelect={() => {
+                                              setSelectedState(state);
+                                              setStateOpen(false);
+                                            }}
+                                          >
+                                            <Check className={cn(
+                                              "mr-2 h-4 w-4",
+                                              selectedState === state ? "opacity-100 text-violet-600" : "opacity-0"
+                                            )} />
+                                            {state}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                              {selectedState !== 'Illinois' && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-10 w-10 text-gray-400 hover:text-violet-600 hover:bg-violet-50"
+                                  onClick={() => setSelectedState('Illinois')}
+                                  aria-label="Reset to default state"
+                                  style={{ borderRadius: RADIUS.button }}
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                </Button>
                               )}
                             </div>
+                          </div>
+                        </div>
 
-                            <div className={cn(
-                              "p-4 rounded-lg border transition-all",
-                              isComplete
-                                ? "bg-green-50 border-green-200"
-                                : isPrevComplete
-                                  ? "bg-violet-50 border-violet-200"
-                                  : "bg-gray-50 border-gray-200"
-                            )}>
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h4 className={cn(
-                                    "font-medium",
-                                    isComplete ? "text-green-700" : isPrevComplete ? "text-violet-700" : "text-gray-500"
-                                  )}>
-                                    {step.title}
-                                  </h4>
-                                  <p className="text-sm text-gray-600 mt-1">{step.description}</p>
-                                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {step.hours}
-                                    </span>
+                        {/* State Requirements Grid - Balanced 4-column layout */}
+                        <div className="p-6">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                              { value: stateReqs.hours, label: 'Pre-License Hours', gradient: 'from-violet-500 to-purple-500', icon: Clock },
+                              { value: `$${stateReqs.examFee}`, label: 'Exam Fee', gradient: 'from-violet-600 to-purple-600', icon: FileText },
+                              { value: stateReqs.renewalYears, label: 'Years to Renew', gradient: 'from-purple-500 to-violet-500', icon: RefreshCw },
+                              { value: stateReqs.ce, label: 'CE Hours/Cycle', gradient: 'from-violet-500 to-amber-500', icon: Award },
+                            ].map((stat, idx) => (
+                              <div
+                                key={stat.label}
+                                className="relative overflow-hidden bg-white border border-gray-100 p-5 text-center group hover:-translate-y-1 hover:scale-[1.02] transition-transform"
+                                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level1 }}
+                              >
+                                <div className={cn(
+                                  "absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br",
+                                  stat.gradient
+                                )} />
+                                <div
+                                  className={cn("w-10 h-10 mx-auto mb-3 flex items-center justify-center bg-gradient-to-br", stat.gradient)}
+                                  style={{ borderRadius: RADIUS.button }}
+                                >
+                                  <stat.icon className="w-5 h-5 text-white" />
+                                </div>
+                                <p className={cn("text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>
+                                  {stat.value}
+                                </p>
+                                <p className="text-gray-500 mt-1" style={{ fontSize: TYPE.caption }}>{stat.label}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Licensing Roadmap - Enhanced Design */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    <Card
+                      className="border-0 overflow-hidden relative"
+                      style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+                    >
+                      {/* Decorative background elements */}
+                      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-violet-100/40 to-transparent rounded-full -translate-y-1/2 translate-x-1/3" />
+                      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-100/30 to-transparent rounded-full translate-y-1/2 -translate-x-1/4" />
+
+                      {/* Hero Header */}
+                      <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white overflow-hidden">
+                        {/* Pattern overlay */}
+                        <div
+                          className="absolute inset-0 opacity-10"
+                          style={{
+                            backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
+                            backgroundSize: '24px 24px',
+                          }}
+                        />
+                        {/* Floating circles */}
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-sm" />
+                        <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-amber-400/15 rounded-full translate-y-1/2 blur-md" />
+
+                        <div className="relative p-6 md:p-8">
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                            <div className="flex items-start gap-4">
+                              <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
+                                className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
+                                style={{
+                                  width: 64,
+                                  height: 64,
+                                  borderRadius: RADIUS.card,
+                                  boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
+                                  border: '1px solid rgba(255,255,255,0.2)',
+                                }}
+                              >
+                                <Target className="w-8 h-8 text-amber-200" />
+                              </motion.div>
+                              <div>
+                                <Badge
+                                  className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium mb-2"
+                                  style={{ padding: '4px 12px' }}
+                                >
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  Licensing Journey
+                                </Badge>
+                                <h2
+                                  className="font-bold tracking-tight text-white"
+                                  style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
+                                >
+                                  Licensing Roadmap
+                                </h2>
+                                <p className="text-white/80 mt-1" style={{ fontSize: TYPE.meta }}>
+                                  Complete each step to become a fully licensed agent
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Progress Stats */}
+                            <div className="flex items-center gap-3">
+                              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
+                                <p className="text-3xl font-bold text-white">{completedSteps.length}</p>
+                                <p className="text-white/70 text-xs">of {LICENSING_STEPS.length} Steps</p>
+                              </div>
+                              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
+                                <p className="text-3xl font-bold text-white">{progress}%</p>
+                                <p className="text-white/70 text-xs">Complete</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Progress Bar with Shimmer */}
+                          <div className="mt-6">
+                            <div className="h-3 bg-white/20 rounded-full overflow-hidden relative">
+                              <div
+                                className="absolute inset-0 opacity-30"
+                                style={{
+                                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)',
+                                  animation: 'shimmer 2s infinite',
+                                }}
+                              />
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                                className="h-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 rounded-full relative"
+                              >
+                                <div
+                                  className="absolute inset-0 rounded-full"
+                                  style={{
+                                    background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 50%)',
+                                  }}
+                                />
+                              </motion.div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Steps Content */}
+                      <CardContent className="p-6 md:p-8 relative">
+                        <div className="space-y-4">
+                          {LICENSING_STEPS.map((step, index) => {
+                            const isComplete = completedSteps.includes(step.id);
+                            const isPrevComplete = index === 0 || completedSteps.includes(LICENSING_STEPS[index - 1].id);
+                            const isCurrent = !isComplete && isPrevComplete;
+
+                            return (
+                              <motion.div
+                                key={step.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.4, delay: index * 0.05 }}
+                                className={cn(
+                                  "relative",
+                                  index !== LICENSING_STEPS.length - 1 && "pb-4"
+                                )}
+                              >
+                                {/* Connector Line */}
+                                {index !== LICENSING_STEPS.length - 1 && (
+                                  <div
+                                    className={cn(
+                                      "absolute left-5 top-12 w-0.5 h-[calc(100%-24px)]",
+                                      isComplete ? "bg-gradient-to-b from-violet-400 to-purple-300" : "bg-gray-200"
+                                    )}
+                                  />
+                                )}
+
+                                <div
+                                  className={cn(
+                                    "flex gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer group",
+                                    isComplete
+                                      ? "bg-gradient-to-r from-violet-50 to-purple-50/50 border-violet-200 hover:border-violet-300"
+                                      : isCurrent
+                                        ? "bg-gradient-to-r from-violet-50 to-purple-50/50 border-violet-300 shadow-lg shadow-violet-100/50"
+                                        : "bg-gray-50/50 border-gray-200 hover:border-gray-300"
+                                  )}
+                                  style={{ borderRadius: RADIUS.card }}
+                                  onClick={() => toggleStep(step.id)}
+                                >
+                                  {/* Step Number/Check */}
+                                  <div
+                                    className={cn(
+                                      "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all",
+                                      isComplete
+                                        ? "bg-gradient-to-br from-violet-500 to-amber-500 text-white shadow-lg shadow-violet-200/50"
+                                        : isCurrent
+                                          ? "bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-200/50 animate-pulse"
+                                          : "bg-gray-200 text-gray-500"
+                                    )}
+                                  >
+                                    {isComplete ? (
+                                      <CheckCircle2 className="w-5 h-5" />
+                                    ) : (
+                                      <span>{index + 1}</span>
+                                    )}
+                                  </div>
+
+                                  {/* Step Content */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex-1">
+                                        <h4
+                                          className={cn(
+                                            "font-semibold transition-colors",
+                                            isComplete ? "text-violet-700" : isCurrent ? "text-violet-700" : "text-gray-600"
+                                          )}
+                                          style={{ fontSize: TYPE.body }}
+                                        >
+                                          {step.title}
+                                        </h4>
+                                        <p className="text-gray-600 mt-1" style={{ fontSize: TYPE.meta }}>
+                                          {step.description}
+                                        </p>
+
+                                        {/* Duration Badge */}
+                                        <div className="flex items-center gap-2 mt-3">
+                                          <Badge
+                                            variant="outline"
+                                            className={cn(
+                                              "text-xs font-medium",
+                                              isComplete
+                                                ? "border-violet-200 text-violet-600 bg-violet-50"
+                                                : isCurrent
+                                                  ? "border-violet-200 text-violet-600 bg-violet-50"
+                                                  : "border-gray-200 text-gray-500"
+                                            )}
+                                          >
+                                            <Clock className="w-3 h-3 mr-1" />
+                                            {step.hours}
+                                          </Badge>
+                                          {isCurrent && (
+                                            <Badge className="bg-violet-600 text-white text-xs">
+                                              Current Step
+                                            </Badge>
+                                          )}
+                                          {isComplete && (
+                                            <Badge className="bg-violet-600 text-white text-xs">
+                                              Completed
+                                            </Badge>
+                                          )}
+                                        </div>
+
+                                        {/* Resources */}
+                                        {step.resources.length > 0 && (
+                                          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-dashed border-gray-200">
+                                            {step.resources.map((resource, idx) => (
+                                              isExternalLink(resource.url) ? (
+                                                <a
+                                                  key={resource.label}
+                                                  href={resource.url}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                >
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className={cn(
+                                                      "h-8 text-xs gap-1.5 transition-all",
+                                                      idx === 0 && isCurrent
+                                                        ? "bg-violet-600 text-white border-violet-600 hover:bg-violet-700"
+                                                        : "hover:bg-violet-50 hover:border-violet-300 hover:text-violet-700"
+                                                    )}
+                                                    style={{ borderRadius: RADIUS.button }}
+                                                  >
+                                                    {idx === 0 && isCurrent && <Sparkles className="w-3 h-3" />}
+                                                    {resource.label}
+                                                    <ExternalLink className="w-3 h-3" />
+                                                  </Button>
+                                                </a>
+                                              ) : (
+                                                <Link
+                                                  key={resource.label}
+                                                  href={resource.url}
+                                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                                >
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 text-xs gap-1.5 hover:bg-violet-50 hover:border-violet-300 hover:text-violet-700 transition-all"
+                                                    style={{ borderRadius: RADIUS.button }}
+                                                  >
+                                                    {resource.label}
+                                                    <ChevronRight className="w-3 h-3" />
+                                                  </Button>
+                                                </Link>
+                                              )
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Checkbox */}
+                                      <div className="flex-shrink-0">
+                                        <Checkbox
+                                          checked={isComplete}
+                                          onCheckedChange={() => toggleStep(step.id)}
+                                          className={cn(
+                                            "w-6 h-6 rounded-lg transition-all",
+                                            isComplete && "bg-violet-500 border-violet-500"
+                                          )}
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                                <Checkbox
-                                  checked={isComplete}
-                                  onCheckedChange={() => toggleStep(step.id)}
-                                />
-                              </div>
-                              {step.resources.length > 0 && (
-                                <div className="mt-3 pt-3 border-t border-dashed flex flex-wrap gap-2">
-                                  {step.resources.map(resource => (
-                                    isExternalLink(resource.url) ? (
-                                      <a
-                                        key={resource.label}
-                                        href={resource.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
-                                        <Badge variant="outline" className="text-xs cursor-pointer hover:bg-violet-50 hover:border-violet-300">
-                                          {resource.label}
-                                          <ExternalLink className="w-3 h-3 ml-1" />
-                                        </Badge>
-                                      </a>
-                                    ) : (
-                                      <Link key={resource.label} href={resource.url}>
-                                        <Badge variant="outline" className="text-xs cursor-pointer hover:bg-violet-50 hover:border-violet-300">
-                                          {resource.label}
-                                          <ChevronRight className="w-3 h-3 ml-1" />
-                                        </Badge>
-                                      </Link>
-                                    )
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Training Center Tab - Full Access */}
-              <TabsContent value="training" className="space-y-6 mt-6">
-                {/* Training Hero with Progress Stats */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="relative overflow-hidden bg-primary rounded-2xl p-6"
-                >
-                  <div className="absolute inset-0 opacity-5">
-                    <div className="absolute inset-0" style={{
-                      backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                      backgroundSize: '32px 32px'
-                    }} />
-                  </div>
-
-                  <div className="relative">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                            <Award className="w-5 h-5 text-white/80" />
-                          </div>
-                          <div>
-                            <h2 className="text-2xl font-bold text-white">Training Center</h2>
-                            <p className="text-white/50 text-xs">
-                              {currentCertification ? `Working on: ${currentCertification.name}` : 'Complete certifications to advance'}
-                            </p>
-                          </div>
+                              </motion.div>
+                            );
+                          })}
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-3 backdrop-blur-sm">
-                          <CircularProgress value={overallProgress} size={44} strokeWidth={4} color="accent">
-                            <span className="text-xs font-bold text-white">{overallProgress}%</span>
-                          </CircularProgress>
-                          <div className="hidden sm:block">
-                            <p className="text-white text-sm font-medium">{completedModulesCount}/{totalModules}</p>
-                            <p className="text-white/50 text-[10px]">Modules</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 bg-white/10 rounded-xl px-4 py-3 backdrop-blur-sm">
-                          <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}>
-                            <Flame className={cn(
-                              "w-6 h-6",
-                              currentStreak >= 7 ? "text-orange-400" : currentStreak >= 3 ? "text-amber-400" : "text-white/60"
-                            )} />
-                          </motion.div>
-                          <div>
-                            <p className="text-white text-sm font-bold">{currentStreak}</p>
-                            <p className="text-white/50 text-[10px]">Day Streak</p>
-                          </div>
-                        </div>
-
-                        <div className="hidden sm:flex items-center gap-2 bg-white/15 rounded-xl px-4 py-3 backdrop-blur-sm">
-                          <Zap className="w-5 h-5 text-amber-300" />
-                          <div>
-                            <p className="text-white text-sm font-bold">{totalXP.toLocaleString()}</p>
-                            <p className="text-white/50 text-[10px]">Total XP</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Certification Pathway */}
-                    <div className="hidden md:block bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                      <CertificationPathway
-                        certificationStatuses={certificationStatuses}
-                        curriculumProgress={overallProgress}
-                        onNodeClick={() => {}}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Training Sidebar for Navigation */}
-                <TrainingSidebar
-                  moduleGroups={moduleGroups}
-                  completedModules={completedModules}
-                  currentModuleId={selectedModule?.id}
-                  onSelectModule={(module) => {
-                    openModule(module);
-                    setSidebarOpen(false);
-                  }}
-                  isOpen={sidebarOpen}
-                  onToggle={() => setSidebarOpen(!sidebarOpen)}
-                />
-
-                {/* Certification Cards with Expandable Modules */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-amber-500" />
-                    Certification Pathway
-                  </h3>
-                  <div className="space-y-4">
-                    {CERTIFICATION_GATES.slice(0, 4).map((cert, index) => (
-                      <CertificationCard key={cert.id} cert={cert} index={index} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* All Modules Grid */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-blue-500" />
-                    All Training Modules
-                  </h3>
-
-                  {/* Getting Started */}
-                  {modulesByLevel.onboarding.length > 0 && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium mb-3 text-cyan-600 flex items-center gap-2">
-                        <Rocket className="w-4 h-4" />
-                        Getting Started
-                      </h4>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {modulesByLevel.onboarding.map((module, idx) => (
-                          <ModuleCard key={module.id} module={module} index={idx} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Doctrine & Compliance */}
-                  {modulesByLevel.doctrine.length > 0 && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium mb-3 text-purple-600 flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        Doctrine & Compliance
-                      </h4>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {modulesByLevel.doctrine.map((module, idx) => (
-                          <ModuleCard key={module.id} module={module} index={idx} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Methodology */}
-                  {modulesByLevel.methodology.length > 0 && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium mb-3 text-blue-600 flex items-center gap-2">
-                        <Target className="w-4 h-4" />
-                        Methodology
-                      </h4>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {modulesByLevel.methodology.map((module, idx) => (
-                          <ModuleCard key={module.id} module={module} index={idx} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Product Knowledge */}
-                  {modulesByLevel.product.length > 0 && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium mb-3 text-emerald-600 flex items-center gap-2">
-                        <Package className="w-4 h-4" />
-                        Product Knowledge
-                      </h4>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {modulesByLevel.product.map((module, idx) => (
-                          <ModuleCard key={module.id} module={module} index={idx} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Client Facilitation */}
-                  {modulesByLevel.client_facilitation.length > 0 && (
-                    <div className="mb-8">
-                      <h4 className="text-md font-medium mb-3 text-indigo-600 flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Client Facilitation
-                      </h4>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {modulesByLevel.client_facilitation.map((module, idx) => (
-                          <ModuleCard key={module.id} module={module} index={idx} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 </div>
               </TabsContent>
 
               {/* Study Resources Tab */}
-              <TabsContent value="study" className="space-y-4 mt-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  {STUDY_RESOURCES.map(resource => (
-                    <Card key={resource.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <Badge className={cn(
-                            "text-xs",
-                            resource.type === 'course' && "bg-blue-100 text-blue-700",
-                            resource.type === 'practice' && "bg-green-100 text-green-700",
-                            resource.type === 'flashcards' && "bg-amber-100 text-amber-700"
-                          )}>
-                            {resource.type}
-                          </Badge>
-                          {resource.free ? (
-                            <Badge className="bg-green-500 text-white">Free</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-violet-600 font-mono">
-                              Code: {resource.discountCode}
-                            </Badge>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-primary mb-1">{resource.title}</h3>
-                        <p className="text-sm text-gray-500 mb-3">{resource.provider}</p>
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-3">
-                            <span className="flex items-center gap-1 text-amber-500">
-                              <Star className="w-4 h-4 fill-current" />
-                              {resource.rating}
-                            </span>
-                            <span className="text-gray-400">{resource.enrolled.toLocaleString()} enrolled</span>
-                          </div>
-                          <span className="text-gray-500">{resource.duration}</span>
-                        </div>
-                        {isExternalLink(resource.href) ? (
-                          <a href={resource.href} target="_blank" rel="noopener noreferrer">
-                            <Button className="w-full mt-4 gap-1">
-                              {resource.type === 'course' ? 'Start Course' : resource.type === 'practice' ? 'Start Practice' : 'Open Flashcards'}
-                              <ExternalLink className="w-4 h-4" />
-                            </Button>
-                          </a>
-                        ) : (
-                          <Link href={resource.href}>
-                            <Button className="w-full mt-4">
-                              {resource.type === 'course' ? 'Start Course' : resource.type === 'practice' ? 'Start Practice' : 'Open Flashcards'}
-                              <ChevronRight className="w-4 h-4 ml-1" />
-                            </Button>
-                          </Link>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+              <TabsContent value="study" className="mt-8">
+                <div className="space-y-6">
+                  {/* Section Header */}
+                  <div className="flex items-center gap-4 mb-2">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200/50 hover:scale-105 transition-transform"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <BookOpen className="w-6 h-6 text-amber-200" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-gray-900" style={{ fontSize: TYPE.section }}>Study Resources</h2>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.meta }}>Courses, practice exams, and flashcards to prepare you for success</p>
+                    </div>
+                  </div>
+
+                  {/* Resources Grid - Balanced 2x2 layout */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {STUDY_RESOURCES.map((resource, idx) => (
+                      <div
+                        key={resource.id}
+                        className="hover:-translate-y-1 hover:scale-[1.01] transition-transform"
+                      >
+                        <Card
+                          className="h-full border-0 overflow-hidden group"
+                          style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+                        >
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between mb-4">
+                              <Badge
+                                className={cn(
+                                  "font-medium",
+                                  resource.type === 'course' && "bg-violet-100 text-violet-700 border-violet-200",
+                                  resource.type === 'practice' && "bg-purple-100 text-purple-700 border-purple-200",
+                                  resource.type === 'flashcards' && "bg-amber-100 text-amber-700 border-amber-200"
+                                )}
+                                style={{ borderRadius: RADIUS.pill, fontSize: TYPE.caption }}
+                              >
+                                {resource.type}
+                              </Badge>
+                              {resource.free ? (
+                                <Badge
+                                  className="bg-gradient-to-r from-violet-500 to-amber-500 text-white border-0 shadow-sm"
+                                  style={{ borderRadius: RADIUS.pill }}
+                                >
+                                  Free
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-violet-600 font-mono border-violet-200 bg-violet-50"
+                                  style={{ borderRadius: RADIUS.pill, fontSize: TYPE.micro }}
+                                >
+                                  Code: {resource.discountCode}
+                                </Badge>
+                              )}
+                            </div>
+                            <h3 className="font-bold text-gray-900 mb-1 group-hover:text-violet-600 transition-colors" style={{ fontSize: TYPE.title }}>
+                              {resource.title}
+                            </h3>
+                            <p className="text-gray-500 mb-4" style={{ fontSize: TYPE.meta }}>{resource.provider}</p>
+                            <div className="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
+                              <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-1.5 text-amber-500 font-medium">
+                                  <Star className="w-4 h-4 fill-current" />
+                                  {resource.rating}
+                                </span>
+                                <span className="text-gray-400" style={{ fontSize: TYPE.caption }}>
+                                  {resource.enrolled.toLocaleString()} enrolled
+                                </span>
+                              </div>
+                              <span className="text-gray-500 font-medium" style={{ fontSize: TYPE.meta }}>{resource.duration}</span>
+                            </div>
+                            {isExternalLink(resource.href) ? (
+                              <a href={resource.href} target="_blank" rel="noopener noreferrer">
+                                <Button
+                                  className="w-full gap-2 bg-gradient-to-r from-violet-600 via-purple-600 to-amber-500 hover:from-violet-700 hover:via-purple-700 hover:to-amber-600 shadow-lg shadow-violet-200/50"
+                                  style={{ borderRadius: RADIUS.button }}
+                                >
+                                  {resource.type === 'course' ? 'Start Course' : resource.type === 'practice' ? 'Start Practice' : 'Open Flashcards'}
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              </a>
+                            ) : (
+                              <Link href={resource.href}>
+                                <Button
+                                  className="w-full gap-2 bg-gradient-to-r from-violet-600 via-purple-600 to-amber-500 hover:from-violet-700 hover:via-purple-700 hover:to-amber-600 shadow-lg shadow-violet-200/50"
+                                  style={{ borderRadius: RADIUS.button }}
+                                >
+                                  {resource.type === 'course' ? 'Start Course' : resource.type === 'practice' ? 'Start Practice' : 'Open Flashcards'}
+                                  <ChevronRight className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </TabsContent>
 
               {/* Video Tutorials Tab */}
-              <TabsContent value="videos" className="space-y-4 mt-6">
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {VIDEO_TUTORIALS.map(video => (
-                    <Card
-                      key={video.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow group"
-                      onClick={() => handleWatchVideo(video.title)}
+              <TabsContent value="videos" className="mt-8">
+                <div className="space-y-6">
+                  {/* Section Header */}
+                  <div className="flex items-center gap-4 mb-2">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center shadow-lg shadow-violet-200/50 hover:scale-105 transition-transform"
+                      style={{ borderRadius: RADIUS.button }}
                     >
-                      <CardContent className="p-0">
-                        <div className="relative bg-gradient-to-br from-primary to-violet-600 h-32 rounded-t-lg flex items-center justify-center">
-                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors rounded-t-lg" />
-                          <Play className="w-12 h-12 text-white relative z-10 group-hover:scale-110 transition-transform" />
-                          <Badge className="absolute bottom-2 right-2 bg-black/70 text-white text-xs">
-                            {video.duration}
-                          </Badge>
-                        </div>
-                        <div className="p-3">
-                          <h4 className="font-medium text-sm line-clamp-2">{video.title}</h4>
-                          <p className="text-xs text-gray-500 mt-1">{video.views.toLocaleString()} views</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      <Video className="w-6 h-6 text-amber-200" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-gray-900" style={{ fontSize: TYPE.section }}>Video Tutorials</h2>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.meta }}>Watch expert-led training videos at your own pace</p>
+                    </div>
+                  </div>
+
+                  {/* Videos Grid - Balanced 4-column layout */}
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {VIDEO_TUTORIALS.map((video, idx) => (
+                      <div
+                        key={video.id}
+                        className="hover:-translate-y-1 hover:scale-[1.01] transition-transform"
+                      >
+                        <Card
+                          className="cursor-pointer border-0 overflow-hidden group h-full"
+                          style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+                          onClick={() => handleWatchVideo(video.title)}
+                        >
+                          <CardContent className="p-0">
+                            <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 h-36 flex items-center justify-center overflow-hidden">
+                              {/* Decorative pattern */}
+                              <div className="absolute inset-0 opacity-10" style={{
+                                backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                                backgroundSize: '20px 20px'
+                              }} />
+                              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors duration-300" />
+                              <div
+                                className="relative z-10 w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform"
+                                style={{ borderRadius: RADIUS.hero }}
+                              >
+                                <Play className="w-8 h-8 text-white ml-1" />
+                              </div>
+                              <Badge
+                                className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white border-0"
+                                style={{ borderRadius: RADIUS.pill, fontSize: TYPE.micro }}
+                              >
+                                {video.duration}
+                              </Badge>
+                            </div>
+                            <div className="p-4">
+                              <h4 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-violet-600 transition-colors" style={{ fontSize: TYPE.meta }}>
+                                {video.title}
+                              </h4>
+                              <p className="text-gray-400 mt-2 flex items-center gap-1" style={{ fontSize: TYPE.caption }}>
+                                <Users className="w-3.5 h-3.5" />
+                                {video.views.toLocaleString()} views
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </TabsContent>
 
               {/* Exam Tips Tab */}
-              <TabsContent value="tips" className="space-y-4 mt-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Lightbulb className="w-5 h-5 text-amber-500" />
-                        Study Strategies
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {[
-                        'Study in short 30-45 minute sessions',
-                        'Focus on understanding concepts, not memorization',
-                        'Take practice exams under timed conditions',
-                        'Review incorrect answers thoroughly',
-                        'Study state-specific regulations last'
-                      ].map((tip, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">{tip}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+              <TabsContent value="tips" className="mt-8">
+                <div className="space-y-6">
+                  {/* Section Header */}
+                  <div className="flex items-center gap-4 mb-2">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200/50 hover:scale-105 transition-transform"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Lightbulb className="w-6 h-6 text-amber-200" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-gray-900" style={{ fontSize: TYPE.section }}>Exam Tips & FAQ</h2>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.meta }}>Expert advice to help you succeed on exam day</p>
+                    </div>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-blue-500" />
-                        Exam Day Tips
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {[
-                        'Arrive 30 minutes early to the testing center',
-                        'Bring two forms of valid ID',
-                        'Read each question completely before answering',
-                        'Eliminate obviously wrong answers first',
-                        'Don\'t change answers unless you\'re certain'
-                      ].map((tip, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">{tip}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+                  {/* Tips Grid - Balanced 2-column layout */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="hover:-translate-y-1 hover:scale-[1.01] transition-transform">
+                      <Card className="h-full border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center"
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              <Lightbulb className="w-5 h-5 text-amber-600" />
+                            </div>
+                            <CardTitle style={{ fontSize: TYPE.title }}>Study Strategies</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {[
+                            'Study in short 30-45 minute sessions',
+                            'Focus on understanding concepts, not memorization',
+                            'Take practice exams under timed conditions',
+                            'Review incorrect answers thoroughly',
+                            'Study state-specific regulations last'
+                          ].map((tip, i) => (
+                            <div
+                              key={i}
+                              className="flex items-start gap-3 p-3 bg-amber-50/50 border border-amber-100"
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              <CheckCircle2 className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                              <span style={{ fontSize: TYPE.meta }}>{tip}</span>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </div>
 
-                  <Card className="md:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <HelpCircle className="w-5 h-5 text-violet-500" />
-                        Frequently Asked Questions
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {[
-                        { q: 'How long does the licensing process take?', a: 'Typically 2-4 weeks from start to finish, depending on your state and how quickly you complete the coursework.' },
-                        { q: 'What is the pass rate for the state exam?', a: 'The national average is around 60-70% on the first attempt. With proper preparation, you can significantly increase your chances.' },
-                        { q: 'Can I take the exam online?', a: 'Some states offer online proctored exams. Check with your state\'s Department of Insurance for current options.' },
-                        { q: 'What if I fail the exam?', a: 'You can retake the exam after a waiting period (usually 24-48 hours). Most states allow unlimited attempts.' }
-                      ].map((faq, i) => (
-                        <div key={i} className="border-b last:border-0 pb-3 last:pb-0">
-                          <h4 className="font-medium text-primary mb-1">{faq.q}</h4>
-                          <p className="text-sm text-gray-600">{faq.a}</p>
+                    <div className="hover:-translate-y-1 hover:scale-[1.01] transition-transform">
+                      <Card className="h-full border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center"
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              <Shield className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <CardTitle style={{ fontSize: TYPE.title }}>Exam Day Tips</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {[
+                            'Arrive 30 minutes early to the testing center',
+                            'Bring two forms of valid ID',
+                            'Read each question completely before answering',
+                            'Eliminate obviously wrong answers first',
+                            'Don\'t change answers unless you\'re certain'
+                          ].map((tip, i) => (
+                            <div
+                              key={i}
+                              className="flex items-start gap-3 p-3 bg-blue-50/50 border border-blue-100"
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              <CheckCircle2 className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <span style={{ fontSize: TYPE.meta }}>{tip}</span>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* FAQ Section - Full width */}
+                  <div className="hover:-translate-y-0.5 transition-transform">
+                    <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                      <CardHeader className="pb-4 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-10 h-10 bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center"
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            <HelpCircle className="w-5 h-5 text-violet-600" />
+                          </div>
+                          <CardTitle style={{ fontSize: TYPE.title }}>Frequently Asked Questions</CardTitle>
                         </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          {[
+                            { q: 'How long does the licensing process take?', a: 'Typically 2-4 weeks from start to finish, depending on your state and how quickly you complete the coursework.' },
+                            { q: 'What is the pass rate for the state exam?', a: 'The national average is around 60-70% on the first attempt. With proper preparation, you can significantly increase your chances.' },
+                            { q: 'Can I take the exam online?', a: 'Some states offer online proctored exams. Check with your state\'s Department of Insurance for current options.' },
+                            { q: 'What if I fail the exam?', a: 'You can retake the exam after a waiting period (usually 24-48 hours). Most states allow unlimited attempts.' }
+                          ].map((faq, i) => (
+                            <div
+                              key={i}
+                              className="p-4 bg-gradient-to-br from-violet-50/50 to-white border border-violet-100 hover:scale-[1.01] transition-transform"
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              <h4 className="font-semibold text-violet-700 mb-2" style={{ fontSize: TYPE.meta }}>{faq.q}</h4>
+                              <p className="text-gray-600" style={{ fontSize: TYPE.caption }}>{faq.a}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
           </motion.div>
 
           {/* CTA Section */}
-          <motion.div variants={fadeInUp}>
-            <Card className="bg-gradient-to-r from-primary/5 to-violet-500/5 border-primary/20">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-primary">Your Progress: {overallProgress}% Complete</h3>
-                    <p className="text-gray-600 mt-1">
-                      {completedModulesCount} of {totalModules} modules completed • {passedAssessments.length} assessments passed
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setActiveTab('training')}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Card
+              className="border-0 overflow-hidden relative"
+              style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+            >
+              {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-amber-500" />
+              {/* Pattern overlay */}
+              <div className="absolute inset-0 opacity-10" style={{
+                backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+                backgroundSize: '24px 24px'
+              }} />
+              <CardContent className="relative p-8">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <div
+                      className="hidden sm:flex w-20 h-20 bg-white/20 backdrop-blur-sm items-center justify-center hover:scale-105 transition-transform"
+                      style={{ borderRadius: RADIUS.card }}
                     >
-                      View Training
-                    </Button>
-                    <Link href="/agents/dashboard">
-                      <Button size="lg" className="gap-2">
-                        <ChevronRight className="w-4 h-4" />
-                        Go to Dashboard
+                      <div className="relative">
+                        <CircularProgress value={overallProgress} size={64} strokeWidth={5} color="accent">
+                          <span className="text-lg font-bold text-white">{overallProgress}%</span>
+                        </CircularProgress>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white" style={{ fontSize: TYPE.section }}>
+                        Your Progress: {overallProgress}% Complete
+                      </h3>
+                      <p className="text-white/80 mt-2" style={{ fontSize: TYPE.body }}>
+                        {completedModulesCount} of {totalModules} modules completed • {passedAssessments.length} assessments passed
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="hover:-translate-y-1 hover:scale-[1.02] transition-transform">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setActiveTab('study')}
+                        className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+                        style={{ borderRadius: RADIUS.button }}
+                      >
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        Study Resources
                       </Button>
+                    </div>
+                    <Link href="/agents/onboarding/lounge">
+                      <div className="hover:-translate-y-1 hover:scale-[1.02] transition-transform">
+                        <Button
+                          size="lg"
+                          className="bg-white text-violet-600 hover:bg-white/90 shadow-lg gap-2"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          Onboarding Dashboard
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </Link>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
-        </motion.div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t bg-white mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Leaf className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-primary">Heritage Life</span>
-            </div>
-            <p className="text-sm text-gray-500">
-              Questions? Contact our recruiting team at{' '}
-              <a href="mailto:recruiting@heritagelife.com" className="text-primary hover:underline">
-                recruiting@heritagelife.com
-              </a>
-            </p>
-          </div>
         </div>
-      </footer>
-    </div>
+      </div>
+    </OnboardingLoungeLayout>
   );
 }

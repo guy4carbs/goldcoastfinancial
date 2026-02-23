@@ -1,6 +1,12 @@
 /**
- * LoungeLayout - Shared layout for all 8 lounges
- * Provides consistent sidebar, header, and content area across lounges
+ * LoungeLayout - Shared layout for all lounges
+ * Heritage Command Lounge Design System - Apple-Aligned CRM + Dashboard Architecture
+ *
+ * Design System Specs:
+ * - 8-Point Modular Grid (U = 8px)
+ * - Golden Ratio (φ = 1.618) proportions
+ * - Glass Material System with backdrop-blur
+ * - Apple-style motion curves
  */
 
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
@@ -32,11 +38,98 @@ import { AgentActivityIndicator } from '@/components/agents/AgentActivityIndicat
 import { useAuth } from '@/contexts/AuthContext';
 
 // =============================================================================
+// HERITAGE COMMAND LOUNGE DESIGN SYSTEM
+// =============================================================================
+
+// 8-Point Modular Grid
+const GRID = {
+  unit: 8,
+  spacing: {
+    xs: 8,
+    sm: 16,
+    md: 24,
+    lg: 32,
+    xl: 40,
+    xxl: 48,
+    xxxl: 64,
+    xxxxl: 80,
+    section: 96,
+  },
+};
+
+// Typography Scale
+const TYPE = {
+  display: 40,
+  hero: 34,
+  section: 24,
+  title: 20,
+  body: 17,
+  meta: 14,
+  caption: 13,
+  micro: 11,
+  lineHeight: 1.4,
+};
+
+// Corner Radius System
+const RADIUS = {
+  button: 16,
+  card: 24,
+  hero: 32,
+  pill: 9999,
+};
+
+// Elevation-Based Shadow System
+const SHADOW = {
+  level1: '0 4px 6px rgba(0, 0, 0, 0.02)',
+  level2: '0 8px 12px rgba(0, 0, 0, 0.04)',
+  level3: '0 12px 18px rgba(0, 0, 0, 0.06)',
+  hero: '0 16px 24px rgba(0, 0, 0, 0.08)',
+};
+
+// Glass Material System
+const GLASS = {
+  blur: 20,
+  background: 'rgba(255, 255, 255, 0.72)',
+  backgroundDark: 'rgba(255, 255, 255, 0.85)',
+  border: 'rgba(0, 0, 0, 0.06)',
+};
+
+// Motion System (Apple-style curves)
+const MOTION = {
+  easing: [0.22, 1, 0.36, 1],
+  duration: {
+    hover: 0.12,
+    expand: 0.22,
+    transition: 0.35,
+    modal: 0.4,
+  },
+  hover: {
+    y: -4,
+    scale: 1.01,
+  },
+};
+
+// Layout Dimensions
+const LAYOUT = {
+  sidebar: {
+    expanded: 280,
+    collapsed: 88,
+    rowHeight: 48,
+    iconSize: 24,
+  },
+  header: {
+    height: 64,
+  },
+};
+
+// =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const SIDEBAR_EXPANDED = 256; // w-64
-const SIDEBAR_COLLAPSED = 64; // w-16
+const SIDEBAR_EXPANDED = LAYOUT.sidebar.expanded;
+const SIDEBAR_COLLAPSED = LAYOUT.sidebar.collapsed;
+const ROW_HEIGHT = LAYOUT.sidebar.rowHeight;
+const ICON_SIZE = LAYOUT.sidebar.iconSize;
 const SIDEBAR_STATE_KEY = 'lounge-sidebar-collapsed';
 
 // =============================================================================
@@ -136,16 +229,70 @@ export function LoungeLayout({
     setLocation('/');
   }, [logout, setLocation]);
 
-  // Color variants for active states
-  const colorVariants: Record<string, { bg: string; text: string; border: string }> = {
-    violet: { bg: 'bg-violet-500/10', text: 'text-violet-600', border: 'border-violet-500' },
-    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500' },
-    blue: { bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-500' },
-    amber: { bg: 'bg-amber-500/10', text: 'text-amber-600', border: 'border-amber-500' },
-    rose: { bg: 'bg-rose-500/10', text: 'text-rose-600', border: 'border-rose-500' },
-    cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-600', border: 'border-cyan-500' },
-    indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-600', border: 'border-indigo-500' },
-    slate: { bg: 'bg-slate-500/10', text: 'text-slate-600', border: 'border-slate-500' },
+  // Color variants for active states with Heritage Design System colors
+  const colorVariants: Record<string, {
+    bg: string;
+    text: string;
+    border: string;
+    gradient: string;
+    hoverBg: string;
+  }> = {
+    violet: {
+      bg: 'bg-violet-500/10',
+      text: 'text-violet-600',
+      border: 'border-violet-500',
+      gradient: 'from-violet-600 to-purple-600',
+      hoverBg: 'rgba(139, 92, 246, 0.08)',
+    },
+    emerald: {
+      bg: 'bg-emerald-500/10',
+      text: 'text-emerald-600',
+      border: 'border-emerald-500',
+      gradient: 'from-emerald-600 to-teal-600',
+      hoverBg: 'rgba(16, 185, 129, 0.08)',
+    },
+    blue: {
+      bg: 'bg-blue-500/10',
+      text: 'text-blue-600',
+      border: 'border-blue-500',
+      gradient: 'from-blue-600 to-indigo-600',
+      hoverBg: 'rgba(59, 130, 246, 0.08)',
+    },
+    amber: {
+      bg: 'bg-amber-500/10',
+      text: 'text-amber-600',
+      border: 'border-amber-500',
+      gradient: 'from-amber-600 to-orange-600',
+      hoverBg: 'rgba(245, 158, 11, 0.08)',
+    },
+    rose: {
+      bg: 'bg-rose-500/10',
+      text: 'text-rose-600',
+      border: 'border-rose-500',
+      gradient: 'from-rose-600 to-pink-600',
+      hoverBg: 'rgba(244, 63, 94, 0.08)',
+    },
+    cyan: {
+      bg: 'bg-cyan-500/10',
+      text: 'text-cyan-600',
+      border: 'border-cyan-500',
+      gradient: 'from-cyan-600 to-teal-600',
+      hoverBg: 'rgba(6, 182, 212, 0.08)',
+    },
+    indigo: {
+      bg: 'bg-indigo-500/10',
+      text: 'text-indigo-600',
+      border: 'border-indigo-500',
+      gradient: 'from-indigo-600 to-violet-600',
+      hoverBg: 'rgba(99, 102, 241, 0.08)',
+    },
+    slate: {
+      bg: 'bg-slate-500/10',
+      text: 'text-slate-600',
+      border: 'border-slate-500',
+      gradient: 'from-slate-600 to-gray-600',
+      hoverBg: 'rgba(100, 116, 139, 0.08)',
+    },
   };
   const colors = colorVariants[loungeColor] || colorVariants.violet;
 
@@ -160,30 +307,55 @@ export function LoungeLayout({
     return (
       <Link href={item.href}>
         <motion.div
-          whileHover={{ x: 2 }}
+          whileHover={{
+            x: 2,
+            backgroundColor: colors.hoverBg,
+          }}
           whileTap={{ scale: 0.98 }}
+          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
           className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all relative',
+            'flex items-center cursor-pointer transition-all relative',
             isActive
               ? `${colors.bg} ${colors.text}`
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-            isActive && `border-l-2 ${colors.border} ml-[-2px] pl-[14px]`
+              : 'text-gray-600 hover:text-gray-900',
+            isActive && `border-l-2 ${colors.border} ml-[-2px]`,
+            sidebarCollapsed && 'justify-center'
           )}
+          style={{
+            gap: GRID.spacing.sm - 4,
+            padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
+            paddingLeft: isActive ? GRID.spacing.md - 10 : GRID.spacing.md - 8,
+            borderRadius: RADIUS.button,
+            minHeight: ROW_HEIGHT,
+          }}
         >
-          <Icon className={cn('w-5 h-5 flex-shrink-0', isActive && colors.text)} />
+          <Icon
+            className={cn('flex-shrink-0', isActive && colors.text)}
+            style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }}
+          />
           {!sidebarCollapsed && (
             <>
-              <span className="font-medium text-sm flex-1 truncate">{item.label}</span>
+              <span
+                className="font-medium flex-1 truncate"
+                style={{ fontSize: TYPE.meta }}
+              >
+                {item.label}
+              </span>
               {item.badge !== undefined && (
                 <span
                   className={cn(
-                    'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
+                    'font-medium',
                     item.badgeVariant === 'destructive'
                       ? 'bg-red-500 text-white'
                       : item.badgeVariant === 'warning'
                       ? 'bg-amber-500 text-white'
                       : 'bg-gray-200 text-gray-700'
                   )}
+                  style={{
+                    fontSize: TYPE.micro,
+                    padding: '2px 6px',
+                    borderRadius: RADIUS.pill,
+                  }}
                 >
                   {item.badge}
                 </span>
@@ -200,13 +372,21 @@ export function LoungeLayout({
   // ==========================================================================
 
   const SidebarSectionComponent = ({ section }: { section: SidebarSection }) => (
-    <div className="mb-4">
+    <div style={{ marginBottom: GRID.spacing.md }}>
       {!sidebarCollapsed && (
-        <p className="px-3 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+        <p
+          className="font-semibold text-gray-400 uppercase tracking-wider"
+          style={{
+            paddingLeft: GRID.spacing.md - 8,
+            paddingRight: GRID.spacing.md - 8,
+            marginBottom: GRID.spacing.xs,
+            fontSize: TYPE.micro,
+          }}
+        >
           {section.title}
         </p>
       )}
-      <div className="space-y-1">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs / 2 }}>
         {section.items.map((item) => (
           <SidebarItemComponent key={item.id} item={item} />
         ))}
@@ -221,24 +401,53 @@ export function LoungeLayout({
   const SidebarContent = () => (
     <>
       {/* Logo / Lounge Header */}
-      <div className={cn('flex items-center gap-3 px-3 mb-6', sidebarCollapsed && 'justify-center')}>
+      <div
+        className={cn('flex items-center', sidebarCollapsed && 'justify-center')}
+        style={{
+          gap: GRID.spacing.sm - 4,
+          padding: `0 ${GRID.spacing.md - 8}px`,
+          marginBottom: GRID.spacing.lg,
+        }}
+      >
         {logo || (
-          <div className={cn(`w-9 h-9 rounded-lg flex items-center justify-center bg-${loungeColor}-500`)}>
-            <span className="text-white font-bold text-sm">{loungeName.charAt(0)}</span>
+          <div
+            className={cn(`flex items-center justify-center bg-gradient-to-br ${colors.gradient}`)}
+            style={{
+              width: GRID.spacing.xl,
+              height: GRID.spacing.xl,
+              borderRadius: RADIUS.button,
+              boxShadow: SHADOW.level2,
+            }}
+          >
+            <span className="text-white font-bold" style={{ fontSize: TYPE.meta }}>
+              {loungeName.charAt(0)}
+            </span>
           </div>
         )}
         {!sidebarCollapsed && (
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 text-sm truncate">{loungeName}</p>
+            <p
+              className="font-semibold text-gray-900 truncate"
+              style={{ fontSize: TYPE.body - 2 }}
+            >
+              {loungeName}
+            </p>
             {showLoungeSwitcher && (
-              <LoungeSwitcher variant="link" className="text-[10px] text-gray-500 hover:text-gray-700" />
+              <LoungeSwitcher
+                variant="link"
+                className="text-gray-500 hover:text-gray-700"
+                style={{ fontSize: TYPE.micro }}
+              />
             )}
           </div>
         )}
       </div>
 
       {/* Navigation Sections */}
-      <nav className="flex-1 overflow-y-auto px-2">
+      <nav
+        className="flex-1 overflow-y-auto"
+        style={{ padding: `0 ${GRID.spacing.xs}px` }}
+      >
         {sidebarSections.map((section, idx) => (
           <SidebarSectionComponent key={idx} section={section} />
         ))}
@@ -246,7 +455,14 @@ export function LoungeLayout({
 
       {/* Footer */}
       {footer && (
-        <div className="border-t border-gray-200 pt-4 px-2 mt-auto">
+        <div
+          className="border-t mt-auto"
+          style={{
+            borderColor: GLASS.border,
+            paddingTop: GRID.spacing.sm,
+            padding: `${GRID.spacing.sm}px ${GRID.spacing.xs}px 0`,
+          }}
+        >
           {footer}
         </div>
       )}
@@ -258,31 +474,50 @@ export function LoungeLayout({
   // ==========================================================================
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex">
       {/* Universal Search Modal */}
       <UniversalSearch open={searchOpen} onOpenChange={setSearchOpen} />
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - Glass Material */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-        className="hidden md:flex flex-col bg-white border-r border-gray-200 py-4 fixed h-screen z-30"
+        transition={{ duration: MOTION.duration.expand, ease: MOTION.easing }}
+        className="hidden md:flex flex-col fixed h-screen z-30"
+        style={{
+          backgroundColor: GLASS.backgroundDark,
+          backdropFilter: `blur(${GLASS.blur}px)`,
+          WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+          borderRight: `1px solid ${GLASS.border}`,
+          paddingTop: GRID.spacing.md,
+          paddingBottom: GRID.spacing.md,
+        }}
       >
         <SidebarContent />
 
-        {/* Collapse Toggle */}
-        <button
+        {/* Collapse Toggle - Floating Button */}
+        <motion.button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors z-40"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: MOTION.duration.hover }}
+          className="absolute -right-3 bg-white border flex items-center justify-center hover:bg-gray-50 transition-colors z-40"
+          style={{
+            top: GRID.spacing.xxxxl,
+            width: GRID.spacing.md,
+            height: GRID.spacing.md,
+            borderRadius: RADIUS.pill,
+            borderColor: GLASS.border,
+            boxShadow: SHADOW.level2,
+          }}
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {sidebarCollapsed ? (
-            <ChevronRight className="w-3 h-3 text-gray-600" />
+            <ChevronRight className="text-gray-600" style={{ width: 12, height: 12 }} />
           ) : (
-            <ChevronLeft className="w-3 h-3 text-gray-600" />
+            <ChevronLeft className="text-gray-600" style={{ width: 12, height: 12 }} />
           )}
-        </button>
+        </motion.button>
       </motion.aside>
 
       {/* Mobile Sidebar Overlay */}
@@ -293,22 +528,37 @@ export function LoungeLayout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: MOTION.duration.transition }}
               className="md:hidden fixed inset-0 bg-black/50 z-40"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.aside
-              initial={{ x: -280 }}
+              initial={{ x: -SIDEBAR_EXPANDED }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
+              exit={{ x: -SIDEBAR_EXPANDED }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="md:hidden fixed left-0 top-0 bottom-0 w-[280px] bg-white py-4 flex flex-col z-50"
+              className="md:hidden fixed left-0 top-0 bottom-0 flex flex-col z-50"
+              style={{
+                width: SIDEBAR_EXPANDED,
+                backgroundColor: GLASS.backgroundDark,
+                backdropFilter: `blur(${GLASS.blur}px)`,
+                WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+                paddingTop: GRID.spacing.md,
+                paddingBottom: GRID.spacing.md,
+              }}
             >
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100"
+                className="absolute hover:bg-gray-100 transition-colors"
+                style={{
+                  top: GRID.spacing.sm,
+                  right: GRID.spacing.sm,
+                  padding: GRID.spacing.xs,
+                  borderRadius: RADIUS.button,
+                }}
                 aria-label="Close menu"
               >
-                <X className="w-5 h-5 text-gray-600" />
+                <X className="text-gray-600" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
               </button>
               <SidebarContent />
             </motion.aside>
@@ -317,29 +567,48 @@ export function LoungeLayout({
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <div
-        className={cn(
-          'flex-1 flex flex-col min-h-screen transition-all duration-200',
-          sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
-        )}
+      <motion.div
+        initial={false}
+        animate={{
+          marginLeft: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED,
+        }}
+        transition={{ duration: MOTION.duration.expand, ease: MOTION.easing }}
+        className="flex-1 flex flex-col min-h-screen md:ml-0"
+        style={{ marginLeft: 0 }}
       >
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
-          <div className="flex items-center justify-between px-4 md:px-6 h-16">
+        {/* Header - Glass Material */}
+        <header
+          className="sticky top-0 z-20"
+          style={{
+            backgroundColor: GLASS.background,
+            backdropFilter: `blur(${GLASS.blur}px)`,
+            WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+            borderBottom: `1px solid ${GLASS.border}`,
+            height: LAYOUT.header.height,
+          }}
+        >
+          <div
+            className="flex items-center justify-between h-full"
+            style={{
+              paddingLeft: GRID.spacing.md,
+              paddingRight: GRID.spacing.md,
+            }}
+          >
             {/* Left: Mobile Menu + Breadcrumbs/Search */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center" style={{ gap: GRID.spacing.md }}>
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+                className="md:hidden hover:bg-gray-100 transition-colors"
+                style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button }}
                 aria-label="Open menu"
               >
-                <Menu className="w-5 h-5 text-gray-600" />
+                <Menu className="text-gray-600" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
               </button>
 
               {/* Breadcrumbs */}
               {breadcrumbs && breadcrumbs.length > 0 && (
                 <Breadcrumb className="hidden sm:flex">
-                  <BreadcrumbList>
+                  <BreadcrumbList style={{ fontSize: TYPE.meta }}>
                     {breadcrumbs.map((crumb, idx) => (
                       <BreadcrumbUIItem key={idx}>
                         {idx > 0 && <BreadcrumbSeparator />}
@@ -354,23 +623,41 @@ export function LoungeLayout({
                 </Breadcrumb>
               )}
 
-              {/* Search Button */}
+              {/* Search Button - Glass Style */}
               {showSearch && (
-                <button
+                <motion.button
                   onClick={() => setSearchOpen(true)}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: MOTION.duration.hover }}
+                  className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+                  style={{
+                    gap: GRID.spacing.xs,
+                    padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    borderRadius: RADIUS.button,
+                  }}
                 >
-                  <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline text-sm">Search...</span>
-                  <kbd className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-white rounded border border-gray-300">
+                  <Search style={{ width: 16, height: 16 }} />
+                  <span className="hidden sm:inline" style={{ fontSize: TYPE.meta }}>Search...</span>
+                  <kbd
+                    className="hidden md:inline-flex items-center font-medium bg-white border"
+                    style={{
+                      gap: 2,
+                      padding: '2px 6px',
+                      fontSize: TYPE.micro,
+                      borderRadius: RADIUS.button / 2,
+                      borderColor: GLASS.border,
+                    }}
+                  >
                     <span>⌘</span>K
                   </kbd>
-                </button>
+                </motion.button>
               )}
             </div>
 
             {/* Right: Actions + Notifications + User */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center" style={{ gap: GRID.spacing.sm - 4 }}>
               {/* Agent Activity Indicator */}
               {showAgentIndicator && <AgentActivityIndicator mode="compact" />}
 
@@ -388,14 +675,35 @@ export function LoungeLayout({
               )}
 
               {/* User Menu */}
-              <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
+              <div
+                className="hidden sm:flex items-center border-l"
+                style={{
+                  gap: GRID.spacing.sm - 4,
+                  paddingLeft: GRID.spacing.sm - 4,
+                  borderColor: GLASS.border,
+                }}
+              >
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">
+                  <p
+                    className="font-medium text-gray-900 truncate"
+                    style={{ fontSize: TYPE.meta, maxWidth: 120 }}
+                  >
                     {user?.displayName || user?.email || 'User'}
                   </p>
-                  <p className="text-[10px] text-gray-500 capitalize">{user?.role || 'Guest'}</p>
+                  <p className="text-gray-500 capitalize" style={{ fontSize: TYPE.micro }}>
+                    {user?.role || 'Guest'}
+                  </p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white font-medium text-sm">
+                <div
+                  className={cn(`flex items-center justify-center text-white font-medium bg-gradient-to-br ${colors.gradient}`)}
+                  style={{
+                    width: GRID.spacing.xl - 4,
+                    height: GRID.spacing.xl - 4,
+                    borderRadius: RADIUS.pill,
+                    fontSize: TYPE.meta,
+                    boxShadow: SHADOW.level1,
+                  }}
+                >
                   {user?.displayName?.charAt(0) || user?.email?.charAt(0) || '?'}
                 </div>
               </div>
@@ -408,15 +716,22 @@ export function LoungeLayout({
                 className="text-gray-500 hover:text-gray-700"
                 aria-label="Logout"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut style={{ width: 16, height: 16 }} />
               </Button>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 md:p-6">{children}</main>
-      </div>
+        <main
+          className="flex-1"
+          style={{
+            padding: GRID.spacing.md,
+          }}
+        >
+          {children}
+        </main>
+      </motion.div>
     </div>
   );
 }

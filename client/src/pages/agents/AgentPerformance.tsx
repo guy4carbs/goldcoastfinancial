@@ -39,11 +39,7 @@ import {
 } from "lucide-react";
 import { cn, daysSinceDate, formatRelativeDate } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 const STALE_DAYS = 7;
 const AVG_DEAL_VALUE = 1850;
@@ -282,7 +278,7 @@ export default function AgentPerformance() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Header */}
@@ -346,21 +342,27 @@ export default function AgentPerformance() {
                       { icon: Target, label: "Conversion Rate", value: `${pipelineMetrics.overallConversion}%`, subtext: "overall", gradient: "from-violet-500 to-purple-500" },
                       { icon: Clock, label: "Avg. Cycle Time", value: `${pipelineMetrics.avgCycleTime}`, subtext: "days to close", gradient: "from-orange-500 to-amber-500" }
                     ].map((stat, idx) => (
-                      <Card key={idx} className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-                        <CardContent className="p-4">
-                          <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-lg bg-gradient-to-br", stat.gradient)}>
-                            <stat.icon className="w-5 h-5 text-white" />
-                          </div>
-                          <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
-                          <p className="text-xs font-medium text-gray-600">{stat.label}</p>
-                          <p className="text-[10px] text-gray-400 mt-1">{stat.subtext}</p>
-                        </CardContent>
-                      </Card>
+                      <motion.div
+                        key={idx}
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover }}
+                      >
+                        <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
+                          <CardContent className="p-4">
+                            <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-lg bg-gradient-to-br", stat.gradient)}>
+                              <stat.icon className="w-5 h-5 text-white" />
+                            </div>
+                            <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
+                            <p className="text-xs font-medium text-gray-600">{stat.label}</p>
+                            <p className="text-[10px] text-gray-400 mt-1">{stat.subtext}</p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     ))}
                   </div>
 
                   {/* Funnel Visualization */}
-                  <Card className="overflow-hidden border-0 shadow-lg">
+                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md">
@@ -468,34 +470,38 @@ export default function AgentPerformance() {
             <TabsContent value="earnings" className="space-y-6 mt-6">
               {/* Summary Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-md">
-                        <Clock className="w-4 h-4 text-white" />
+                <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
+                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-md">
+                          <Clock className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-xs font-semibold text-amber-700">Pending</span>
                       </div>
-                      <span className="text-xs font-semibold text-amber-700">Pending</span>
-                    </div>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${earningsMetrics.pending.total.toLocaleString()}</p>
-                    <p className="text-xs text-amber-600 mt-1">{earningsMetrics.pending.count} policies</p>
-                  </CardContent>
-                </Card>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${earningsMetrics.pending.total.toLocaleString()}</p>
+                      <p className="text-xs text-amber-600 mt-1">{earningsMetrics.pending.count} policies</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
-                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
-                        <CheckCircle2 className="w-4 h-4 text-white" />
+                <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
+                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                          <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-xs font-semibold text-emerald-700">Paid</span>
                       </div>
-                      <span className="text-xs font-semibold text-emerald-700">Paid</span>
-                    </div>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${earningsMetrics.paid.total.toLocaleString()}</p>
-                    <p className="text-xs text-emerald-600 mt-1">{earningsMetrics.paid.count} policies</p>
-                  </CardContent>
-                </Card>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${earningsMetrics.paid.total.toLocaleString()}</p>
+                      <p className="text-xs text-emerald-600 mt-1">{earningsMetrics.paid.count} policies</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
-                <Card className="overflow-hidden border-0 shadow-xl relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600" />
+                <Card className={`overflow-hidden border-0 relative rounded-[${RADIUS.hero}px]`} style={{ boxShadow: SHADOW.hero }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600" />
                   <CardContent className="p-4 relative z-10">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -513,27 +519,29 @@ export default function AgentPerformance() {
                   </CardContent>
                 </Card>
 
-                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
-                        <BarChart3 className="w-4 h-4 text-white" />
+                <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
+                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
+                          <BarChart3 className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-xs font-semibold text-blue-700">YTD</span>
                       </div>
-                      <span className="text-xs font-semibold text-blue-700">YTD</span>
-                    </div>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">${earningsMetrics.ytd.toLocaleString()}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <TrendingUp className="w-3 h-3 text-green-500" />
-                      <span className="text-xs text-green-600 font-medium">+18% YoY</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">${earningsMetrics.ytd.toLocaleString()}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <TrendingUp className="w-3 h-3 text-green-500" />
+                        <span className="text-xs text-green-600 font-medium">+18% YoY</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </div>
 
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   {/* Monthly Trend */}
-                  <Card className="overflow-hidden border-0 shadow-lg">
+                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
@@ -706,7 +714,7 @@ export default function AgentPerformance() {
             {/* Analytics Tab */}
             <TabsContent value="analytics" className="space-y-6 mt-6">
               {/* Lead Source ROI */}
-              <Card className="overflow-hidden border-0 shadow-lg">
+              <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md">
@@ -757,7 +765,7 @@ export default function AgentPerformance() {
               </Card>
 
               {/* Product Mix */}
-              <Card className="overflow-hidden border-0 shadow-lg">
+              <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
@@ -844,7 +852,7 @@ export default function AgentPerformance() {
               </Card>
 
               {/* Performance Trends */}
-              <Card className="overflow-hidden border-0 shadow-lg">
+              <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">

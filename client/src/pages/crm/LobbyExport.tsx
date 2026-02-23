@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import {
   Download,
   FileSpreadsheet,
@@ -77,21 +78,28 @@ interface ExportTypeCardProps {
 function ExportTypeCard({ type, icon: Icon, title, description, count, selected, onClick }: ExportTypeCardProps) {
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
+      variants={fadeInUp}
+      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
     >
-      <Card className={cn(
-        'transition-all',
-        selected ? 'border-indigo-500 bg-indigo-50/50 shadow-md' : 'hover:border-indigo-200'
-      )}>
+      <Card
+        className={cn(
+          'transition-all',
+          selected ? 'border-indigo-500 bg-indigo-50/50' : 'hover:border-indigo-200'
+        )}
+        style={{
+          borderRadius: RADIUS.card,
+          boxShadow: selected ? SHADOW.level3 : SHADOW.level2
+        }}
+      >
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className={cn(
-              'w-12 h-12 rounded-xl flex items-center justify-center',
+              'w-12 h-12 flex items-center justify-center',
               selected ? 'bg-indigo-600' : 'bg-gray-100'
-            )}>
+            )} style={{ borderRadius: RADIUS.button }}>
               <Icon className={cn('w-6 h-6', selected ? 'text-white' : 'text-gray-600')} />
             </div>
             <div className="flex-1">
@@ -242,263 +250,303 @@ export function LobbyExport() {
 
   return (
     <LobbyLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Export Data</h1>
-          <p className="text-gray-500 mt-1">
-            Download your CRM data as CSV or Excel files
-          </p>
-        </div>
+      <motion.div
+        className="space-y-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 text-white p-8"
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <FileDown className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Export Data</h1>
+              <p className="text-white/80 mt-1">
+                Download your CRM data as CSV or Excel files
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Export Area */}
           <div className="lg:col-span-2 space-y-6">
             {/* Step 1: Select Data Type */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Database className="w-4 h-4 text-indigo-600" />
-                  Step 1: Select Data Type
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <ExportTypeCard
-                  type="contacts"
-                  icon={Users}
-                  title="Contacts"
-                  description="Leads and clients with contact info"
-                  selected={exportType === 'contacts'}
-                  onClick={() => handleTypeChange('contacts')}
-                />
-                <ExportTypeCard
-                  type="activities"
-                  icon={Activity}
-                  title="Activities"
-                  description="Communication and activity logs"
-                  selected={exportType === 'activities'}
-                  onClick={() => handleTypeChange('activities')}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Step 2: Select Fields */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                    Step 2: Select Fields
-                  </CardTitle>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={selectAllFields}>
-                      Select All
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={selectDefaultFields}>
-                      Reset
-                    </Button>
-                  </div>
-                </div>
-                <CardDescription>
-                  Choose which fields to include in your export
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {currentFields.map((field) => (
-                    <div
-                      key={field.id}
-                      onClick={() => toggleField(field.id)}
-                      className={cn(
-                        'flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all',
-                        selectedFields.has(field.id)
-                          ? 'bg-indigo-50 border-indigo-200'
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      )}
-                    >
-                      <Checkbox
-                        checked={selectedFields.has(field.id)}
-                        onCheckedChange={() => toggleField(field.id)}
-                      />
-                      <span className="text-sm">{field.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Step 3: Filters (for contacts) */}
-            {exportType === 'contacts' && (
-              <Card>
+            <motion.div variants={fadeInUp}>
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-indigo-600" />
-                    Step 3: Apply Filters (Optional)
+                    <Database className="w-4 h-4 text-indigo-600" />
+                    Step 1: Select Data Type
                   </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <motion.div
+                    className="grid grid-cols-2 gap-4"
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <ExportTypeCard
+                      type="contacts"
+                      icon={Users}
+                      title="Contacts"
+                      description="Leads and clients with contact info"
+                      selected={exportType === 'contacts'}
+                      onClick={() => handleTypeChange('contacts')}
+                    />
+                    <ExportTypeCard
+                      type="activities"
+                      icon={Activity}
+                      title="Activities"
+                      description="Communication and activity logs"
+                      selected={exportType === 'activities'}
+                      onClick={() => handleTypeChange('activities')}
+                    />
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Step 2: Select Fields */}
+            <motion.div variants={fadeInUp}>
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                      Step 2: Select Fields
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={selectAllFields}>
+                        Select All
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={selectDefaultFields}>
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
                   <CardDescription>
-                    Filter which records to include in your export
+                    Choose which fields to include in your export
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label className="text-xs text-gray-500">Contact Type</Label>
-                      <Select value={filters.type} onValueChange={(v) => setFilters({ ...filters, type: v })}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="both">All Types</SelectItem>
-                          <SelectItem value="lead">Leads Only</SelectItem>
-                          <SelectItem value="client">Clients Only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-500">Status</Label>
-                      <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Statuses</SelectItem>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="contacted">Contacted</SelectItem>
-                          <SelectItem value="quoted">Quoted</SelectItem>
-                          <SelectItem value="follow_up">Follow Up</SelectItem>
-                          <SelectItem value="won">Won</SelectItem>
-                          <SelectItem value="lost">Lost</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-500">From Date</Label>
-                      <Input
-                        type="date"
-                        className="mt-1"
-                        value={filters.dateFrom}
-                        onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-500">To Date</Label>
-                      <Input
-                        type="date"
-                        className="mt-1"
-                        value={filters.dateTo}
-                        onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                      />
-                    </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {currentFields.map((field) => (
+                      <motion.div
+                        key={field.id}
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        onClick={() => toggleField(field.id)}
+                        className={cn(
+                          'flex items-center gap-2 p-3 border cursor-pointer transition-all',
+                          selectedFields.has(field.id)
+                            ? 'bg-indigo-50 border-indigo-200'
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        )}
+                        style={{ borderRadius: RADIUS.input }}
+                      >
+                        <Checkbox
+                          checked={selectedFields.has(field.id)}
+                          onCheckedChange={() => toggleField(field.id)}
+                        />
+                        <span className="text-sm">{field.label}</span>
+                      </motion.div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+
+            {/* Step 3: Filters (for contacts) */}
+            {exportType === 'contacts' && (
+              <motion.div variants={fadeInUp}>
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-indigo-600" />
+                      Step 3: Apply Filters (Optional)
+                    </CardTitle>
+                    <CardDescription>
+                      Filter which records to include in your export
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label className="text-xs text-gray-500">Contact Type</Label>
+                        <Select value={filters.type} onValueChange={(v) => setFilters({ ...filters, type: v })}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="both">All Types</SelectItem>
+                            <SelectItem value="lead">Leads Only</SelectItem>
+                            <SelectItem value="client">Clients Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Status</Label>
+                        <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="quoted">Quoted</SelectItem>
+                            <SelectItem value="follow_up">Follow Up</SelectItem>
+                            <SelectItem value="won">Won</SelectItem>
+                            <SelectItem value="lost">Lost</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">From Date</Label>
+                        <Input
+                          type="date"
+                          className="mt-1"
+                          value={filters.dateFrom}
+                          onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">To Date</Label>
+                        <Input
+                          type="date"
+                          className="mt-1"
+                          value={filters.dateTo}
+                          onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <motion.div className="space-y-6" variants={staggerContainer}>
             {/* Format Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">File Format</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex gap-3">
-                  <FormatButton
-                    format="csv"
-                    icon={File}
-                    label="CSV"
-                    selected={format === 'csv'}
-                    onClick={() => setFormat('csv')}
-                  />
-                  <FormatButton
-                    format="xlsx"
-                    icon={FileSpreadsheet}
-                    label="Excel"
-                    selected={format === 'xlsx'}
-                    onClick={() => setFormat('xlsx')}
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  {format === 'csv'
-                    ? 'Comma-separated values, works with any spreadsheet'
-                    : 'Native Excel format with formatting support'
-                  }
-                </p>
-              </CardContent>
-            </Card>
+            <motion.div variants={fadeInUp}>
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader>
+                  <CardTitle className="text-base">File Format</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex gap-3">
+                    <FormatButton
+                      format="csv"
+                      icon={File}
+                      label="CSV"
+                      selected={format === 'csv'}
+                      onClick={() => setFormat('csv')}
+                    />
+                    <FormatButton
+                      format="xlsx"
+                      icon={FileSpreadsheet}
+                      label="Excel"
+                      selected={format === 'xlsx'}
+                      onClick={() => setFormat('xlsx')}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {format === 'csv'
+                      ? 'Comma-separated values, works with any spreadsheet'
+                      : 'Native Excel format with formatting support'
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
 
             {/* Export Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Export Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Data Type</span>
-                  <Badge variant="outline" className="capitalize">{exportType}</Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Fields</span>
-                  <span className="font-medium">{selectedFields.size} selected</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Format</span>
-                  <span className="font-medium uppercase">{format}</span>
-                </div>
+            <motion.div variants={fadeInUp}>
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader>
+                  <CardTitle className="text-base">Export Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Data Type</span>
+                    <Badge variant="outline" className="capitalize">{exportType}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Fields</span>
+                    <span className="font-medium">{selectedFields.size} selected</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Format</span>
+                    <span className="font-medium uppercase">{format}</span>
+                  </div>
 
-                <Button
-                  className="w-full"
-                  onClick={handleExport}
-                  disabled={exportMutation.isPending || selectedFields.size === 0}
-                >
-                  {exportMutation.isPending ? (
-                    <>
-                      <Download className="w-4 h-4 mr-2 animate-bounce" />
-                      Exporting...
-                    </>
-                  ) : (
-                    <>
-                      <FileDown className="w-4 h-4 mr-2" />
-                      Download Export
-                    </>
+                  <Button
+                    className="w-full"
+                    onClick={handleExport}
+                    disabled={exportMutation.isPending || selectedFields.size === 0}
+                  >
+                    {exportMutation.isPending ? (
+                      <>
+                        <Download className="w-4 h-4 mr-2 animate-bounce" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4 mr-2" />
+                        Download Export
+                      </>
+                    )}
+                  </Button>
+
+                  {selectedFields.size === 0 && (
+                    <p className="text-xs text-amber-600 text-center">
+                      Select at least one field to export
+                    </p>
                   )}
-                </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                {selectedFields.size === 0 && (
-                  <p className="text-xs text-amber-600 text-center">
-                    Select at least one field to export
+            {/* Export Tips */}
+            <motion.div variants={fadeInUp}>
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-indigo-600" />
+                    Export Tips
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-gray-600">
+                  <p className="flex items-start gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    Use filters to export only the data you need
                   </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Exports */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-indigo-600" />
-                  Export Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-gray-600">
-                <p className="flex items-start gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                  Use filters to export only the data you need
-                </p>
-                <p className="flex items-start gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                  CSV is best for importing into other systems
-                </p>
-                <p className="flex items-start gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                  Excel format preserves special characters better
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                  <p className="flex items-start gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    CSV is best for importing into other systems
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    Excel format preserves special characters better
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </LobbyLayout>
   );
 }

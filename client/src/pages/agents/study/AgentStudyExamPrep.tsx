@@ -53,11 +53,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface StudyTopic {
   id: string;
@@ -267,89 +263,137 @@ export default function AgentStudyExamPrep() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
+        {/* Hero Card */}
         <motion.div variants={fadeInUp}>
-          <div className="flex items-center gap-4 mb-4">
-            <Link href="/agents/getting-started">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>Xcel Partner Course</span>
-                <Badge variant="outline" className="text-violet-600">Code: fflapex-hrojsf</Badge>
+          <motion.div
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6 md:p-8"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <Link href="/agents/getting-started">
+                <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 text-sm text-white/80 mb-1">
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Xcel Partner Course</span>
+                  <Badge variant="outline" className="text-white border-white/30 bg-white/10">Code: fflapex-hrojsf</Badge>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-white">State Exam Prep Course</h1>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">State Exam Prep Course</h1>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleExport} className="gap-2 border-white/30 text-white hover:bg-white/10">
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2 border-white/30 text-white hover:bg-white/10">
+                  <Printer className="w-4 h-4" />
+                  Print
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Printer className="w-4 h-4" />
-                Print
-              </Button>
-            </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Stats Cards */}
         <motion.div variants={fadeInUp}>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-            <Card className="bg-gradient-to-br from-violet-500 to-violet-600 text-white">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold">{stats.total}</p>
-                <p className="text-xs text-white/80">Total Topics</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{stats.mastered}</p>
-                <p className="text-xs text-gray-500">Mastered</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stats.review}</p>
-                <p className="text-xs text-gray-500">Review</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stats.inProgress}</p>
-                <p className="text-xs text-gray-500">In Progress</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-gray-500 to-gray-600 bg-clip-text text-transparent">{stats.notStarted}</p>
-                <p className="text-xs text-gray-500">Not Started</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stats.avgConfidence}%</p>
-                <p className="text-xs text-gray-500">Avg Confidence</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-rose-50">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">{stats.highPriority}</p>
-                <p className="text-xs text-gray-500">High Priority</p>
-              </CardContent>
-            </Card>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card
+                className="bg-gradient-to-br from-violet-500 to-violet-600 text-white border-0"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+              >
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold">{stats.total}</p>
+                  <p className="text-xs text-white/80">Total Topics</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{stats.mastered}</p>
+                  <p className="text-xs text-gray-500">Mastered</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stats.review}</p>
+                  <p className="text-xs text-gray-500">Review</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stats.inProgress}</p>
+                  <p className="text-xs text-gray-500">In Progress</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-gray-500 to-gray-600 bg-clip-text text-transparent">{stats.notStarted}</p>
+                  <p className="text-xs text-gray-500">Not Started</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{stats.avgConfidence}%</p>
+                  <p className="text-xs text-gray-500">Avg Confidence</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0 bg-gradient-to-br from-red-50 to-rose-50" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">{stats.highPriority}</p>
+                  <p className="text-xs text-gray-500">High Priority</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </motion.div>
 
         {/* Filters */}
         <motion.div variants={fadeInUp}>
-          <Card>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-3">
                 <div className="relative flex-1 min-w-[200px]">
@@ -408,7 +452,7 @@ export default function AgentStudyExamPrep() {
 
         {/* Excel-style Table */}
         <motion.div variants={fadeInUp}>
-          <Card>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <ScrollArea className="h-[600px]">
               <Table>
                 <TableHeader className="sticky top-0 bg-white z-10">
@@ -553,7 +597,7 @@ export default function AgentStudyExamPrep() {
 
         {/* Legend */}
         <motion.div variants={fadeInUp}>
-          <Card>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-4">
               <div className="flex flex-wrap items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">

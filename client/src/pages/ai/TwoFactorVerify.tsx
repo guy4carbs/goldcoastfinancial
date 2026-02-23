@@ -1,10 +1,13 @@
 /**
  * Two-Factor Authentication Verification Page
  * Displayed when user needs to verify 2FA for session access
+ *
+ * Heritage Design System: AI Lounge (Cyan Theme)
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +15,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Shield, AlertCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 export default function TwoFactorVerify() {
   const { user, set2FAVerified, signOut } = useAuth();
@@ -104,93 +108,184 @@ export default function TwoFactorVerify() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-600 via-blue-600 to-cyan-700">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
+        >
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#292966] via-[#292966] to-black p-4">
-      <Card className="w-full max-w-sm shadow-2xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-            <Shield className="h-7 w-7 text-primary" />
-          </div>
-          <CardTitle className="text-xl">Two-Factor Verification</CardTitle>
-          <CardDescription>
-            Enter the code from your authenticator app
-          </CardDescription>
-        </CardHeader>
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-600 via-blue-600 to-cyan-700 p-4"
+      style={{ padding: spacing(3) }}
+    >
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-300/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.4, 0.2, 0.4]
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      </div>
 
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive" className="py-2">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-sm">{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {attempts >= 3 && (
-            <Alert className="py-2 bg-amber-50 border-amber-200">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-sm text-amber-800">
-                {5 - attempts} attempt{5 - attempts !== 1 ? 's' : ''} remaining
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="space-y-2">
-            <Input
-              ref={inputRef}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              placeholder="000000"
-              value={verificationCode}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                setVerificationCode(value);
-                setError(null);
-              }}
-              onKeyPress={handleKeyPress}
-              className="text-center text-2xl tracking-[0.5em] font-mono h-14"
-              autoComplete="one-time-code"
-              disabled={isVerifying}
-            />
-          </div>
-
-          <Button
-            className="w-full h-11"
-            onClick={handleVerify}
-            disabled={verificationCode.length !== 6 || isVerifying}
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 w-full max-w-sm"
+      >
+        <motion.div
+          variants={scaleIn}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover }}
+        >
+          <Card
+            className="w-full backdrop-blur-xl bg-white/95 border-white/20"
+            style={{
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.hero,
+            }}
           >
-            {isVerifying ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Verifying...
-              </>
-            ) : (
-              'Verify'
-            )}
-          </Button>
-        </CardContent>
+            <CardHeader className="text-center" style={{ padding: spacing(3) }}>
+              <motion.div
+                variants={fadeInUp}
+                className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg"
+              >
+                <Shield className="h-8 w-8 text-white" />
+              </motion.div>
+              <motion.div variants={fadeInUp}>
+                <CardTitle
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600"
+                  style={{ fontSize: TYPE.section }}
+                >
+                  Two-Factor Verification
+                </CardTitle>
+              </motion.div>
+              <motion.div variants={fadeInUp}>
+                <CardDescription style={{ fontSize: TYPE.body }}>
+                  Enter the code from your authenticator app
+                </CardDescription>
+              </motion.div>
+            </CardHeader>
 
-        <CardFooter className="flex flex-col gap-2">
-          <Button
-            variant="ghost"
-            className="w-full text-muted-foreground"
-            onClick={handleCancel}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Cancel and Sign Out
-          </Button>
-          <p className="text-xs text-center text-muted-foreground">
-            Having trouble? Contact support for help.
-          </p>
-        </CardFooter>
-      </Card>
+            <CardContent className="space-y-4" style={{ padding: `0 ${spacing(3)}px ${spacing(2)}px` }}>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: MOTION.duration.fast }}
+                >
+                  <Alert variant="destructive" className="py-2" style={{ borderRadius: RADIUS.input }}>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">{error}</AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+
+              {attempts >= 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: MOTION.duration.fast }}
+                >
+                  <Alert className="py-2 bg-amber-50 border-amber-200" style={{ borderRadius: RADIUS.input }}>
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-sm text-amber-800">
+                      {5 - attempts} attempt{5 - attempts !== 1 ? 's' : ''} remaining
+                    </AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+
+              <motion.div variants={fadeInUp} className="space-y-2">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={verificationCode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setVerificationCode(value);
+                    setError(null);
+                  }}
+                  onKeyPress={handleKeyPress}
+                  className="text-center text-2xl tracking-[0.5em] font-mono h-14 border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500"
+                  style={{ borderRadius: RADIUS.input }}
+                  autoComplete="one-time-code"
+                  disabled={isVerifying}
+                />
+              </motion.div>
+
+              <motion.div variants={fadeInUp}>
+                <Button
+                  className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium shadow-lg"
+                  style={{ borderRadius: RADIUS.button }}
+                  onClick={handleVerify}
+                  disabled={verificationCode.length !== 6 || isVerifying}
+                >
+                  {isVerifying ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Verify'
+                  )}
+                </Button>
+              </motion.div>
+            </CardContent>
+
+            <CardFooter className="flex flex-col gap-2" style={{ padding: `0 ${spacing(3)}px ${spacing(3)}px` }}>
+              <motion.div variants={fadeInUp} className="w-full">
+                <Button
+                  variant="ghost"
+                  className="w-full text-gray-500 hover:text-cyan-600 hover:bg-cyan-50"
+                  style={{ borderRadius: RADIUS.button }}
+                  onClick={handleCancel}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Cancel and Sign Out
+                </Button>
+              </motion.div>
+              <motion.p
+                variants={fadeInUp}
+                className="text-xs text-center text-gray-400"
+                style={{ fontSize: TYPE.micro }}
+              >
+                Having trouble? Contact support for help.
+              </motion.p>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

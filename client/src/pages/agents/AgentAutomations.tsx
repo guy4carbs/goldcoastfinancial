@@ -25,11 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Automation {
   id: string;
@@ -143,55 +139,73 @@ export default function AgentAutomations() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6"
       >
-        {/* Header */}
+        {/* Hero Card */}
         <motion.div variants={fadeInUp}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
+          <motion.div
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-8 text-white"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero
+            }}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                  style={{ borderRadius: RADIUS.card }}
+                >
+                  <Zap className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white">Automations</h1>
+                  <p className="text-white/80 mt-1">Automate your workflow and save time</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Automations</h1>
-                <p className="text-gray-500 text-sm">Automate your workflow and save time</p>
-              </div>
+              <Button
+                className="gap-2 bg-white text-violet-600 hover:bg-white/90 shadow-lg"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <Plus className="w-4 h-4" />
+                Create Automation
+              </Button>
             </div>
-            <Button className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md">
-              <Plus className="w-4 h-4" />
-              Create Automation
-            </Button>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Stats */}
         <motion.div variants={fadeInUp}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">{activeCount}</p>
-                <p className="text-sm text-gray-500">Active Automations</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">{totalRuns}</p>
-                <p className="text-sm text-gray-500">Total Runs</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">12h</p>
-                <p className="text-sm text-gray-500">Time Saved</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">98%</p>
-                <p className="text-sm text-gray-500">Success Rate</p>
-              </CardContent>
-            </Card>
+            {[
+              { value: activeCount, label: "Active Automations", gradient: "from-violet-500 to-purple-500" },
+              { value: totalRuns, label: "Total Runs", gradient: "from-emerald-500 to-green-500" },
+              { value: "12h", label: "Time Saved", gradient: "from-blue-500 to-cyan-500" },
+              { value: "98%", label: "Success Rate", gradient: "from-amber-500 to-orange-500" },
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                variants={scaleIn}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card
+                  className="border-0 transition-all"
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.card
+                  }}
+                >
+                  <CardContent className="p-4 text-center">
+                    <p className={cn("text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
+                    <p className="text-sm text-gray-500">{stat.label}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
 
@@ -205,17 +219,26 @@ export default function AgentAutomations() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
               >
-                <Card className={cn(
-                  "transition-all border-0 shadow-lg hover:shadow-xl",
-                  !automation.enabled && "opacity-60"
-                )}>
+                <Card
+                  className={cn(
+                    "transition-all border-0",
+                    !automation.enabled && "opacity-60"
+                  )}
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.card
+                  }}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-md",
+                        "w-12 h-12 flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-md",
                         automation.gradient
-                      )}>
+                      )}
+                      style={{ borderRadius: RADIUS.button }}
+                      >
                         <automation.icon className="w-6 h-6 text-white" />
                       </div>
 
@@ -272,19 +295,35 @@ export default function AgentAutomations() {
               { name: "Task Auto-Creation", icon: CheckCircle2, description: "Create tasks based on triggers", gradient: "from-emerald-400 to-green-500" },
               { name: "SMS Notifications", icon: MessageSquare, description: "Send text alerts automatically", gradient: "from-violet-400 to-purple-500" },
             ].map((template, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", template.gradient)}>
-                      <template.icon className="w-5 h-5 text-white" />
+              <motion.div
+                key={index}
+                variants={scaleIn}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card
+                  className="border-0 transition-all cursor-pointer group"
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.card
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn("w-10 h-10 bg-gradient-to-br flex items-center justify-center shadow-md", template.gradient)}
+                        style={{ borderRadius: RADIUS.button }}
+                      >
+                        <template.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">{template.name}</h3>
+                        <p className="text-xs text-gray-500">{template.description}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{template.name}</h3>
-                      <p className="text-xs text-gray-500">{template.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </motion.div>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import {
   Lock,
   Mail,
@@ -94,11 +95,11 @@ export default function AgentLogin() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] bg-[#292966] relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0">
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#292966] via-[#3d3d8f] to-[#292966]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-600/90 via-purple-600/90 to-indigo-600/90" />
 
           {/* Floating orbs */}
           <div className="absolute top-20 left-20 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl" />
@@ -117,54 +118,68 @@ export default function AgentLogin() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="relative z-10 flex flex-col justify-between w-full"
+          style={{ padding: spacing(4) }}
+        >
           {/* Logo & Brand */}
           <Link href="/">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
               className="flex items-center gap-3 cursor-pointer group"
+              style={{ transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}` }}
             >
-              <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-colors">
+              <div
+                className="w-12 h-12 bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-colors"
+                style={{ borderRadius: RADIUS.button }}
+              >
                 <Shield className="w-6 h-6 text-amber-400" />
               </div>
             </motion.div>
           </Link>
 
           {/* Main Content */}
-          <div className="space-y-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <h1 className="text-6xl xl:text-7xl font-black tracking-tight mb-6">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 drop-shadow-lg">
+          <div style={{ marginTop: spacing(5), marginBottom: spacing(5) }}>
+            <motion.div variants={fadeInUp}>
+              <h1
+                className="font-black tracking-tight"
+                style={{ fontSize: TYPE.display, marginBottom: spacing(3) }}
+              >
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 drop-shadow-lg text-6xl xl:text-7xl">
                   Heritage
                 </span>
               </h1>
-              <p className="text-2xl text-white/80 font-light max-w-sm leading-relaxed">
+              <p
+                className="text-white/80 font-light max-w-sm leading-relaxed"
+                style={{ fontSize: TYPE.section }}
+              >
                 Build your legacy with the tools to succeed.
               </p>
             </motion.div>
 
             {/* Benefits */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-wrap gap-3"
+              variants={fadeInUp}
+              className="flex flex-wrap"
+              style={{ gap: spacing(1.5), marginTop: spacing(5) }}
             >
-              {benefits.map((benefit, index) => (
+              {benefits.map((benefit) => (
                 <motion.div
                   key={benefit.text}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10"
+                  variants={scaleIn}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  className="flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10"
+                  style={{
+                    padding: `${spacing(1.25)}px ${spacing(2)}px`,
+                    transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                  }}
                 >
                   <benefit.icon className="w-4 h-4 text-amber-400" />
-                  <span className="text-white/90 text-sm font-medium">{benefit.text}</span>
+                  <span className="text-white/90 font-medium" style={{ fontSize: TYPE.meta }}>{benefit.text}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -172,93 +187,121 @@ export default function AgentLogin() {
 
           {/* Footer */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="flex items-center gap-6 text-white/40 text-sm"
+            variants={fadeInUp}
+            className="flex items-center text-white/40"
+            style={{ gap: spacing(3), fontSize: TYPE.meta }}
           >
             <span>&copy; 2025 Heritage Life Solutions</span>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 xl:w-[45%] flex items-center justify-center p-6 sm:p-12 bg-gray-50">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 xl:w-[45%] flex items-center justify-center bg-gray-50" style={{ padding: spacing(3) }}>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-md"
+        >
           {/* Mobile Logo */}
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="lg:hidden flex items-center justify-center gap-3 mb-8"
+            variants={fadeInUp}
+            className="lg:hidden flex items-center justify-center gap-3"
+            style={{ marginBottom: spacing(4) }}
           >
-            <div className="w-10 h-10 bg-[#292966] rounded-xl flex items-center justify-center">
+            <div
+              className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center"
+              style={{ borderRadius: RADIUS.button }}
+            >
               <Shield className="w-5 h-5 text-amber-400" />
             </div>
             <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600">Heritage</span>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
+            variants={fadeInUp}
+            className="text-center"
+            style={{ marginBottom: spacing(4) }}
           >
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900" style={{ marginBottom: spacing(1) }}>
               Welcome back
             </h2>
-            <p className="text-gray-500">
+            <p className="text-gray-500" style={{ fontSize: TYPE.body }}>
               Sign in to access your Heritage CRM
             </p>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-gray-200/50 border border-gray-100"
+            variants={fadeInUp}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            className="bg-white border border-gray-100"
+            style={{
+              borderRadius: RADIUS.card,
+              padding: spacing(3),
+              boxShadow: SHADOW.hero,
+              transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+            }}
           >
             {user ? (
-              <div className="text-center space-y-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
+              <div className="text-center" style={{ display: 'flex', flexDirection: 'column', gap: spacing(3) }}>
+                <div
+                  className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center mx-auto"
+                  style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.level3 }}
+                >
                   <CheckCircle className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">You're signed in</h3>
-                  <p className="text-gray-500 text-sm">{user.email}</p>
+                  <h3 className="font-bold text-gray-900" style={{ fontSize: TYPE.title, marginBottom: spacing(1) }}>You're signed in</h3>
+                  <p className="text-gray-500" style={{ fontSize: TYPE.meta }}>{user.email}</p>
                 </div>
-                <div className="space-y-3">
-                  <button
+                <div style={{ display: 'flex', flexDirection: 'column', gap: spacing(1.5) }}>
+                  <motion.button
                     onClick={() => setLocation("/crm")}
-                    className="w-full bg-[#292966] hover:bg-[#3d3d8f] text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    className="w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold flex items-center justify-center gap-2"
+                    style={{
+                      padding: `${spacing(1.75)}px ${spacing(2)}px`,
+                      borderRadius: RADIUS.button,
+                      transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                    }}
                   >
                     Go to CRM <ArrowRight className="w-5 h-5" />
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     onClick={handleSignOut}
-                    className="w-full border border-gray-200 hover:bg-gray-50 text-gray-700 py-3.5 rounded-xl font-semibold transition-colors"
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    className="w-full border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold"
+                    style={{
+                      padding: `${spacing(1.75)}px ${spacing(2)}px`,
+                      borderRadius: RADIUS.button,
+                      transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                    }}
                   >
                     Sign Out
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             ) : (
               <>
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: spacing(2.5) }}>
                   <AnimatePresence>
                     {error && (
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700"
+                        className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700"
+                        style={{ padding: spacing(2), borderRadius: RADIUS.input }}
                       >
                         <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                        <span className="text-sm">{error}</span>
+                        <span style={{ fontSize: TYPE.meta }}>{error}</span>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block font-medium text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: spacing(1) }}>
                       Email Address
                     </label>
                     <div className="relative">
@@ -269,13 +312,21 @@ export default function AgentLogin() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#292966]/20 focus:border-[#292966] transition-all bg-gray-50/50 hover:bg-white"
+                        className="w-full border border-gray-200 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 bg-gray-50/50 hover:bg-white"
+                        style={{
+                          paddingLeft: spacing(6),
+                          paddingRight: spacing(2),
+                          paddingTop: spacing(1.75),
+                          paddingBottom: spacing(1.75),
+                          borderRadius: RADIUS.input,
+                          transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                        }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block font-medium text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: spacing(1) }}>
                       Password
                     </label>
                     <div className="relative">
@@ -286,7 +337,15 @@ export default function AgentLogin() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter your password"
-                        className="w-full pl-12 pr-12 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#292966]/20 focus:border-[#292966] transition-all bg-gray-50/50 hover:bg-white"
+                        className="w-full border border-gray-200 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 bg-gray-50/50 hover:bg-white"
+                        style={{
+                          paddingLeft: spacing(6),
+                          paddingRight: spacing(6),
+                          paddingTop: spacing(1.75),
+                          paddingBottom: spacing(1.75),
+                          borderRadius: RADIUS.input,
+                          transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                        }}
                       />
                       <button
                         type="button"
@@ -302,14 +361,15 @@ export default function AgentLogin() {
                     <label className="flex items-center gap-2 cursor-pointer group">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300 text-[#292966] focus:ring-[#292966]"
+                        className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
                       />
-                      <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Remember me</span>
+                      <span className="text-gray-600 group-hover:text-gray-900 transition-colors" style={{ fontSize: TYPE.meta }}>Remember me</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-[#292966] hover:text-[#3d3d8f] font-medium transition-colors"
+                      className="text-violet-600 hover:text-violet-700 font-medium transition-colors"
+                      style={{ fontSize: TYPE.meta }}
                     >
                       Forgot password?
                     </button>
@@ -318,9 +378,14 @@ export default function AgentLogin() {
                   <motion.button
                     type="submit"
                     disabled={isLoading}
-                    whileHover={{ scale: isLoading ? 1 : 1.01 }}
+                    whileHover={{ y: isLoading ? 0 : MOTION.hover.y, scale: isLoading ? 1 : MOTION.hover.scale }}
                     whileTap={{ scale: isLoading ? 1 : 0.99 }}
-                    className="w-full bg-[#292966] hover:bg-[#3d3d8f] text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shadow-lg shadow-[#292966]/25"
+                    className="w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-violet-500/25"
+                    style={{
+                      padding: `${spacing(2)}px ${spacing(3)}px`,
+                      borderRadius: RADIUS.button,
+                      transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                    }}
                   >
                     {isLoading ? (
                       <>
@@ -336,11 +401,11 @@ export default function AgentLogin() {
                 </form>
 
                 {/* Divider */}
-                <div className="relative my-8">
+                <div className="relative" style={{ marginTop: spacing(4), marginBottom: spacing(4) }}>
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200" />
                   </div>
-                  <div className="relative flex justify-center text-sm">
+                  <div className="relative flex justify-center" style={{ fontSize: TYPE.meta }}>
                     <span className="px-4 bg-white text-gray-500">New to Heritage?</span>
                   </div>
                 </div>
@@ -348,9 +413,14 @@ export default function AgentLogin() {
                 {/* Create Account */}
                 <Link href="/become-agent">
                   <motion.button
-                    whileHover={{ scale: 1.01 }}
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                     whileTap={{ scale: 0.99 }}
-                    className="w-full border-2 border-[#292966] text-[#292966] hover:bg-[#292966] hover:text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                    className="w-full border-2 border-violet-600 text-violet-600 hover:bg-gradient-to-r hover:from-violet-600 hover:via-purple-600 hover:to-indigo-600 hover:text-white hover:border-transparent font-semibold flex items-center justify-center gap-2"
+                    style={{
+                      padding: `${spacing(1.75)}px ${spacing(3)}px`,
+                      borderRadius: RADIUS.button,
+                      transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                    }}
                   >
                     <Sparkles className="w-5 h-5" />
                     Create an Account
@@ -362,27 +432,26 @@ export default function AgentLogin() {
 
           {/* Help text */}
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-center text-gray-500 text-sm mt-6"
+            variants={fadeInUp}
+            className="text-center text-gray-500"
+            style={{ fontSize: TYPE.meta, marginTop: spacing(3) }}
           >
             Need help?{" "}
-            <a href="tel:6307780800" className="text-[#292966] hover:underline font-medium">
+            <a href="tel:6307780800" className="text-violet-600 hover:underline font-medium">
               (630) 778-0800
             </a>
             {" "}or{" "}
-            <a href="mailto:support@heritagels.org" className="text-[#292966] hover:underline font-medium">
+            <a href="mailto:support@heritagels.org" className="text-violet-600 hover:underline font-medium">
               support@heritagels.org
             </a>
           </motion.p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Forgot Password Modal */}
       <AnimatePresence>
         {showForgotPassword && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ padding: spacing(2) }}>
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -390,60 +459,80 @@ export default function AgentLogin() {
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={closeForgotPasswordModal}
+              style={{ transition: `opacity ${MOTION.duration.normal}s ${MOTION.easingCSS}` }}
             />
 
             {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full"
+              variants={scaleIn}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="relative bg-white max-w-md w-full"
+              style={{
+                borderRadius: RADIUS.card,
+                padding: spacing(4),
+                boxShadow: SHADOW.hero
+              }}
             >
               {resetStatus === "success" ? (
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <div
+                    className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center mx-auto"
+                    style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.level3, marginBottom: spacing(3) }}
+                  >
                     <Mail className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="font-bold text-gray-900" style={{ fontSize: TYPE.section, marginBottom: spacing(1) }}>Check your email</h3>
+                  <p className="text-gray-600" style={{ fontSize: TYPE.body, marginBottom: spacing(3) }}>
                     We've sent a password reset link to <span className="font-medium">{resetEmail}</span>
                   </p>
-                  <button
+                  <motion.button
                     onClick={closeForgotPasswordModal}
-                    className="w-full bg-[#292966] hover:bg-[#3d3d8f] text-white py-3 rounded-xl font-semibold transition-colors"
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    className="w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold"
+                    style={{
+                      padding: `${spacing(1.5)}px ${spacing(2)}px`,
+                      borderRadius: RADIUS.button,
+                      transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                    }}
                   >
                     Back to Login
-                  </button>
+                  </motion.button>
                 </div>
               ) : (
                 <>
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-[#292966]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Lock className="w-8 h-8 text-[#292966]" />
+                  <div className="text-center" style={{ marginBottom: spacing(3) }}>
+                    <div
+                      className="w-16 h-16 bg-violet-100 flex items-center justify-center mx-auto"
+                      style={{ borderRadius: RADIUS.hero, marginBottom: spacing(2) }}
+                    >
+                      <Lock className="w-8 h-8 text-violet-600" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Reset your password</h3>
-                    <p className="text-gray-600">
+                    <h3 className="font-bold text-gray-900" style={{ fontSize: TYPE.section, marginBottom: spacing(1) }}>Reset your password</h3>
+                    <p className="text-gray-600" style={{ fontSize: TYPE.body }}>
                       Enter your email and we'll send you a link to reset your password.
                     </p>
                   </div>
 
-                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: spacing(2) }}>
                     <AnimatePresence>
                       {resetError && (
                         <motion.div
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700"
+                          className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700"
+                          style={{ padding: spacing(2), borderRadius: RADIUS.input }}
                         >
                           <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                          <span className="text-sm">{resetError}</span>
+                          <span style={{ fontSize: TYPE.meta }}>{resetError}</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block font-medium text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: spacing(1) }}>
                         Email Address
                       </label>
                       <div className="relative">
@@ -454,15 +543,29 @@ export default function AgentLogin() {
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
                           placeholder="you@example.com"
-                          className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#292966]/20 focus:border-[#292966] transition-all"
+                          className="w-full border border-gray-200 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                          style={{
+                            paddingLeft: spacing(6),
+                            paddingRight: spacing(2),
+                            paddingTop: spacing(1.5),
+                            paddingBottom: spacing(1.5),
+                            borderRadius: RADIUS.input,
+                            transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                          }}
                         />
                       </div>
                     </div>
 
-                    <button
+                    <motion.button
                       type="submit"
                       disabled={resetStatus === "loading"}
-                      className="w-full bg-[#292966] hover:bg-[#3d3d8f] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      className="w-full bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                      style={{
+                        padding: `${spacing(1.5)}px ${spacing(2)}px`,
+                        borderRadius: RADIUS.button,
+                        transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                      }}
                     >
                       {resetStatus === "loading" ? (
                         <>
@@ -472,12 +575,16 @@ export default function AgentLogin() {
                       ) : (
                         "Send Reset Link"
                       )}
-                    </button>
+                    </motion.button>
 
                     <button
                       type="button"
                       onClick={closeForgotPasswordModal}
-                      className="w-full text-gray-600 hover:text-gray-900 py-3 font-medium transition-colors"
+                      className="w-full text-gray-600 hover:text-gray-900 font-medium"
+                      style={{
+                        padding: `${spacing(1.5)}px ${spacing(2)}px`,
+                        transition: `color ${MOTION.duration.hover}s ${MOTION.easingCSS}`
+                      }}
                     >
                       Cancel
                     </button>

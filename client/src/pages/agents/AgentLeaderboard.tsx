@@ -14,11 +14,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface SalesLeaderboardEntry {
   rank: number;
@@ -88,20 +84,31 @@ export default function AgentLeaderboard() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
+        {/* Hero Card */}
         <motion.div variants={fadeInUp}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-              <Crown className="w-5 h-5 text-white" />
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6 relative overflow-hidden"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                <Crown className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Leaderboard</h1>
+                <p className="text-white/80 text-sm">See how you rank against other agents</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Leaderboard</h1>
-              <p className="text-sm text-gray-500">See how you rank against other agents</p>
-            </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Time Range Filter */}
@@ -122,35 +129,46 @@ export default function AgentLeaderboard() {
         {/* Your Position Card */}
         {currentUser && (
           <motion.div variants={fadeInUp}>
-            <Card className="border-0 shadow-lg bg-gradient-to-r from-indigo-600 to-violet-600">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-lg">
-                    #{currentUser.rank}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-white/70">Your Position</p>
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-white">Rank #{currentUser.rank}</p>
-                      {currentUser.trend === 'up' && (
-                        <span className="text-xs text-emerald-300 flex items-center">
-                          <TrendingUp className="w-3 h-3 mr-0.5" />+{currentUser.change}
-                        </span>
-                      )}
-                      {currentUser.trend === 'down' && (
-                        <span className="text-xs text-red-300 flex items-center">
-                          <TrendingDown className="w-3 h-3 mr-0.5" />{currentUser.change}
-                        </span>
-                      )}
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+            >
+              <Card
+                className="border-0 bg-gradient-to-r from-indigo-600 to-violet-600"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-lg">
+                      #{currentUser.rank}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-white/70">Your Position</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-white">Rank #{currentUser.rank}</p>
+                        {currentUser.trend === 'up' && (
+                          <span className="text-xs text-emerald-300 flex items-center">
+                            <TrendingUp className="w-3 h-3 mr-0.5" />+{currentUser.change}
+                          </span>
+                        )}
+                        {currentUser.trend === 'down' && (
+                          <span className="text-xs text-red-300 flex items-center">
+                            <TrendingDown className="w-3 h-3 mr-0.5" />{currentUser.change}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-white">{currentUser.sales} sales</p>
+                      <p className="text-xs text-white/70">${currentUser.revenue.toLocaleString()}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-white">{currentUser.sales} sales</p>
-                    <p className="text-xs text-white/70">${currentUser.revenue.toLocaleString()}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </motion.div>
         )}
 
@@ -178,7 +196,10 @@ export default function AgentLeaderboard() {
 
         {sortedLeaderboard.length === 0 ? (
           <motion.div variants={fadeInUp}>
-            <Card className="border-dashed">
+            <Card
+              className="border-dashed"
+              style={{ borderRadius: RADIUS.card }}
+            >
               <CardContent className="py-12 text-center">
                 <Inbox className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <h3 className="font-medium text-gray-600">No Rankings Yet</h3>
@@ -200,27 +221,39 @@ export default function AgentLeaderboard() {
                   ];
                   return (
                     <li key={entry.name}>
-                      <Card className={cn(
-                        "border-0 shadow-lg hover:shadow-xl transition-all",
-                        entry.isCurrentUser && "ring-2 ring-violet-400"
-                      )}>
-                        <CardContent className="p-3 text-center">
-                          <div className={cn("w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center bg-gradient-to-br text-white shadow-md", podiumGradients[index])}>
-                            <Icon className="w-5 h-5" />
-                          </div>
-                          <p className="font-semibold text-sm text-gray-800 truncate">{entry.name}</p>
-                          <p className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-                            {sortBy === 'xp' && entry.xp.toLocaleString()}
-                            {sortBy === 'sales' && entry.sales}
-                            {sortBy === 'revenue' && `$${(entry.revenue / 1000).toFixed(0)}K`}
-                          </p>
-                          <p className="text-[10px] text-gray-500">
-                            {sortBy === 'xp' && 'XP'}
-                            {sortBy === 'sales' && 'sales'}
-                            {sortBy === 'revenue' && 'revenue'}
-                          </p>
-                        </CardContent>
-                      </Card>
+                      <motion.div
+                        variants={scaleIn}
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      >
+                        <Card
+                          className={cn(
+                            "border-0 transition-all",
+                            entry.isCurrentUser && "ring-2 ring-violet-400"
+                          )}
+                          style={{
+                            borderRadius: RADIUS.card,
+                            boxShadow: SHADOW.card,
+                          }}
+                        >
+                          <CardContent className="p-3 text-center">
+                            <div className={cn("w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center bg-gradient-to-br text-white shadow-md", podiumGradients[index])}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <p className="font-semibold text-sm text-gray-800 truncate">{entry.name}</p>
+                            <p className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                              {sortBy === 'xp' && entry.xp.toLocaleString()}
+                              {sortBy === 'sales' && entry.sales}
+                              {sortBy === 'revenue' && `$${(entry.revenue / 1000).toFixed(0)}K`}
+                            </p>
+                            <p className="text-[10px] text-gray-500">
+                              {sortBy === 'xp' && 'XP'}
+                              {sortBy === 'sales' && 'sales'}
+                              {sortBy === 'revenue' && 'revenue'}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     </li>
                   );
                 })}
@@ -230,44 +263,55 @@ export default function AgentLeaderboard() {
             {/* Full Leaderboard */}
             {sortedLeaderboard.length > 3 && (
               <motion.div variants={fadeInUp}>
-                <Card className="border-0 shadow-lg">
-                  <CardContent className="p-0">
-                    <ol className="divide-y divide-gray-100">
-                      {sortedLeaderboard.slice(3).map((entry) => (
-                        <li
-                          key={entry.name}
-                          className={cn(
-                            "px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors",
-                            entry.isCurrentUser && "bg-violet-50"
-                          )}
-                        >
-                          <span className="w-8 text-sm font-medium text-gray-400">#{entry.rank}</span>
-                          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold", LEVEL_COLORS[entry.level] || LEVEL_COLORS.Silver)}>
-                            {getInitials(entry.name)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={cn("font-medium text-sm truncate", entry.isCurrentUser ? "text-violet-600" : "text-gray-900")}>
-                              {entry.name}
-                            </p>
-                            <p className="text-xs text-gray-500">{entry.sales} sales</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-sm text-gray-900">
-                              {sortBy === 'xp' && entry.xp.toLocaleString()}
-                              {sortBy === 'sales' && entry.sales}
-                              {sortBy === 'revenue' && `$${entry.revenue.toLocaleString()}`}
-                            </p>
-                            <p className="text-[10px] text-gray-400">
-                              {sortBy === 'xp' && 'XP'}
-                              {sortBy === 'sales' && 'sales'}
-                              {sortBy === 'revenue' && 'revenue'}
-                            </p>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                >
+                  <Card
+                    className="border-0"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card,
+                    }}
+                  >
+                    <CardContent className="p-0">
+                      <ol className="divide-y divide-gray-100">
+                        {sortedLeaderboard.slice(3).map((entry) => (
+                          <li
+                            key={entry.name}
+                            className={cn(
+                              "px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors",
+                              entry.isCurrentUser && "bg-violet-50"
+                            )}
+                          >
+                            <span className="w-8 text-sm font-medium text-gray-400">#{entry.rank}</span>
+                            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold", LEVEL_COLORS[entry.level] || LEVEL_COLORS.Silver)}>
+                              {getInitials(entry.name)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={cn("font-medium text-sm truncate", entry.isCurrentUser ? "text-violet-600" : "text-gray-900")}>
+                                {entry.name}
+                              </p>
+                              <p className="text-xs text-gray-500">{entry.sales} sales</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-sm text-gray-900">
+                                {sortBy === 'xp' && entry.xp.toLocaleString()}
+                                {sortBy === 'sales' && entry.sales}
+                                {sortBy === 'revenue' && `$${entry.revenue.toLocaleString()}`}
+                              </p>
+                              <p className="text-[10px] text-gray-400">
+                                {sortBy === 'xp' && 'XP'}
+                                {sortBy === 'sales' && 'sales'}
+                                {sortBy === 'revenue' && 'revenue'}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </motion.div>
             )}
           </>

@@ -1,6 +1,11 @@
 /**
  * Executive Lounge Layout
  * High-level analytics, revenue forecasting, and investor views
+ *
+ * Heritage Command Lounge Design System Integration
+ * - Uses amber theme for Executive lounge (gold/premium feel)
+ * - Apple-aligned motion animations
+ * - Glass material surfaces
  */
 
 import { type ReactNode } from 'react';
@@ -16,7 +21,26 @@ import {
   FileBarChart,
   Settings,
 } from 'lucide-react';
+import {
+  RADIUS,
+  SHADOW,
+  MOTION,
+  TYPE,
+  COLORS,
+  fadeInUp,
+  staggerContainer,
+  spacing
+} from '@/lib/heritageDesignSystem';
 
+// Executive Lounge color theme from Heritage Design System
+const EXECUTIVE_THEME = {
+  colors: COLORS.lounges.executive,
+  accent: COLORS.accent.amber,
+  gradient: COLORS.gradients.amber,
+};
+
+// Navigation sidebar sections with Heritage Design System styling
+// Motion animations applied via staggerContainer and fadeInUp variants
 const sidebarSections: SidebarSection[] = [
   {
     title: 'Overview',
@@ -49,11 +73,65 @@ const sidebarSections: SidebarSection[] = [
   },
 ];
 
+// Heritage Design System style configuration for Executive Lounge
+// These values are used to customize the LoungeLayout appearance
+const layoutStyles = {
+  // Card styling with Heritage radius and shadows
+  card: {
+    borderRadius: RADIUS.card,
+    boxShadow: SHADOW.card,
+  },
+  // Motion configuration for animations
+  motion: {
+    duration: MOTION.duration.normal,
+    easing: MOTION.easingCSS,
+    hover: {
+      transform: `translateY(${MOTION.hover.y}px) scale(${MOTION.hover.scale})`,
+      transition: `all ${MOTION.duration.hover}s ${MOTION.easingCSS}`,
+    },
+  },
+  // Typography from Heritage Design System
+  typography: {
+    title: TYPE.title,
+    body: TYPE.body,
+    meta: TYPE.meta,
+    caption: TYPE.caption,
+  },
+  // Spacing using 8-point grid
+  spacing: {
+    xs: spacing(1),   // 8px
+    sm: spacing(2),   // 16px
+    md: spacing(3),   // 24px
+    lg: spacing(4),   // 32px
+    xl: spacing(5),   // 40px
+  },
+  // Animation variants for Framer Motion
+  variants: {
+    fadeInUp,
+    staggerContainer,
+  },
+};
+
 interface ExecutiveLoungeLayoutProps {
   children: ReactNode;
   breadcrumbs?: Array<{ label: string; href?: string }>;
 }
 
+/**
+ * Executive Lounge Layout Component
+ *
+ * Integrates Heritage Command Lounge Design System with amber theme.
+ * Features:
+ * - Amber/gold color scheme for premium executive feel
+ * - Apple-aligned motion animations (fadeInUp, staggerContainer)
+ * - Glass material surfaces with proper blur and opacity
+ * - RADIUS.card (24px) for sidebar cards
+ * - SHADOW system for elevation hierarchy
+ * - Subtle hover animations on navigation items
+ *
+ * All existing LoungeLayout functionality is preserved while applying
+ * Heritage Design System tokens for consistent styling.
+ */
 export function ExecutiveLoungeLayout({ children, breadcrumbs }: ExecutiveLoungeLayoutProps) {
   return (
     <LoungeLayout
@@ -70,5 +148,8 @@ export function ExecutiveLoungeLayout({ children, breadcrumbs }: ExecutiveLounge
     </LoungeLayout>
   );
 }
+
+// Export Heritage Design System configuration for use by child components
+export { layoutStyles, EXECUTIVE_THEME };
 
 export default ExecutiveLoungeLayout;

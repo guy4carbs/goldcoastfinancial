@@ -1,10 +1,13 @@
 /**
  * Lead Profile (Full 360° View)
  * Comprehensive lead detail page with timeline, enrichment, and actions
+ * Updated with Heritage Design System
  */
 
 import { useState, useCallback } from 'react';
 import { useParams, useLocation } from 'wouter';
+import { motion } from 'framer-motion';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CRMLoungeLayout } from './CRMLoungeLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -479,7 +482,7 @@ interface EnrichmentDataCardProps {
 function EnrichmentDataCard({ data }: EnrichmentDataCardProps) {
   if (!data) {
     return (
-      <Card>
+      <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Building2 className="w-4 h-4" />
@@ -500,7 +503,7 @@ function EnrichmentDataCard({ data }: EnrichmentDataCardProps) {
   }
 
   return (
-    <Card>
+    <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Building2 className="w-4 h-4" />
@@ -545,7 +548,10 @@ function EnrichmentDataCard({ data }: EnrichmentDataCardProps) {
 
 function AiRecommendationCard() {
   return (
-    <Card className="border-dashed border-indigo-200 bg-indigo-50/30">
+    <Card
+      className="border-dashed border-indigo-200 bg-indigo-50/30"
+      style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+    >
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2 text-indigo-700">
           <Sparkles className="w-4 h-4" />
@@ -748,88 +754,111 @@ export function LeadProfile() {
           Back to Contacts
         </Button>
 
-        {/* Header Card */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              {/* Left: Name, Status, Score */}
-              <div className="flex items-start gap-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="text-xl bg-indigo-100 text-indigo-700">
-                    {lead.firstName.charAt(0)}{lead.lastName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      {lead.firstName} {lead.lastName}
-                    </h1>
-                    <Badge className={getStatusColor(lead.status)}>
-                      {lead.status.replace('_', ' ')}
-                    </Badge>
+        {/* Hero Header Card - Heritage Design System */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={scaleIn}
+        >
+          <Card
+            className="overflow-hidden border-0"
+            style={{
+              borderRadius: RADIUS.hero,
+              background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%)',
+              boxShadow: SHADOW.hero,
+            }}
+          >
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                {/* Left: Name, Status, Score */}
+                <div className="flex items-start gap-5">
+                  <Avatar className="w-20 h-20 border-4 border-white/20">
+                    <AvatarFallback className="text-2xl bg-white/20 text-white font-bold">
+                      {lead.firstName.charAt(0)}{lead.lastName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-3xl font-bold text-white">
+                        {lead.firstName} {lead.lastName}
+                      </h1>
+                      <Badge className="bg-white/20 text-white hover:bg-white/30 border-0">
+                        {lead.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <p className="text-white/80 text-lg">{lead.email}</p>
+                    {lead.phone && (
+                      <p className="text-white/70">{lead.phone}</p>
+                    )}
+                    {lead.assignedAgent && (
+                      <p className="text-sm text-white/60 mt-2">
+                        Assigned to {lead.assignedAgent.firstName} {lead.assignedAgent.lastName}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-gray-500">{lead.email}</p>
-                  {lead.phone && (
-                    <p className="text-gray-500">{lead.phone}</p>
-                  )}
-                  {lead.assignedAgent && (
-                    <p className="text-sm text-gray-400 mt-1">
-                      Assigned to {lead.assignedAgent.firstName} {lead.assignedAgent.lastName}
+                </div>
+
+                {/* Right: Score, Value, Coverage */}
+                <div className="flex flex-wrap gap-5">
+                  {/* Lead Score */}
+                  <div className="text-center bg-white/10 rounded-2xl px-5 py-3">
+                    <p className="text-xs text-white/70 mb-1">Lead Score</p>
+                    <div className={cn(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold',
+                      getScoreBadgeColor(lead.scoreTier)
+                    )}>
+                      {getScoreIcon(lead.scoreTier)}
+                      {lead.leadScore}
+                    </div>
+                  </div>
+
+                  {/* Estimated Value */}
+                  <div className="text-center bg-white/10 rounded-2xl px-5 py-3">
+                    <p className="text-xs text-white/70 mb-1">Est. Value</p>
+                    <p className="text-2xl font-bold text-white">
+                      {formatCurrency(lead.estimatedValue)}
                     </p>
+                  </div>
+
+                  {/* Coverage Type */}
+                  {lead.coverageType && (
+                    <div className="text-center bg-white/10 rounded-2xl px-5 py-3">
+                      <p className="text-xs text-white/70 mb-1">Coverage</p>
+                      <p className="text-sm font-semibold text-white capitalize">
+                        {lead.coverageType.replace('_', ' ')}
+                      </p>
+                    </div>
                   )}
+
+                  {/* Close Probability */}
+                  <div className="text-center bg-white/10 rounded-2xl px-5 py-3">
+                    <p className="text-xs text-white/70 mb-1">Close Prob.</p>
+                    <p className="text-2xl font-bold text-white">
+                      {lead.closeProbability}%
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              {/* Right: Score, Value, Coverage */}
-              <div className="flex flex-wrap gap-4">
-                {/* Lead Score */}
-                <div className="text-center">
-                  <p className="text-xs text-gray-500 mb-1">Lead Score</p>
-                  <div className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold',
-                    getScoreBadgeColor(lead.scoreTier)
-                  )}>
-                    {getScoreIcon(lead.scoreTier)}
-                    {lead.leadScore}
-                  </div>
-                </div>
-
-                {/* Estimated Value */}
-                <div className="text-center">
-                  <p className="text-xs text-gray-500 mb-1">Est. Value</p>
-                  <p className="text-xl font-bold text-green-600">
-                    {formatCurrency(lead.estimatedValue)}
-                  </p>
-                </div>
-
-                {/* Coverage Type */}
-                {lead.coverageType && (
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500 mb-1">Coverage</p>
-                    <p className="text-sm font-medium text-gray-900 capitalize">
-                      {lead.coverageType.replace('_', ' ')}
-                    </p>
-                  </div>
-                )}
-
-                {/* Close Probability */}
-                <div className="text-center">
-                  <p className="text-xs text-gray-500 mb-1">Close Prob.</p>
-                  <p className="text-xl font-bold text-indigo-600">
-                    {lead.closeProbability}%
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
           {/* Left Column (65%) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Contact Info Card */}
-            <Card>
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader>
                 <CardTitle className="text-base">Contact Information</CardTitle>
               </CardHeader>
@@ -897,10 +926,16 @@ export function LeadProfile() {
                   <p className="font-medium">{lead.contactCount} interactions</p>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Activity Timeline */}
-            <Card>
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Activity Timeline</CardTitle>
                 <Button
@@ -918,10 +953,16 @@ export function LeadProfile() {
               <CardContent>
                 <ActivityTimeline activities={activities} />
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Notes Section */}
-            <Card>
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Notes</CardTitle>
                 <Button
@@ -992,19 +1033,37 @@ export function LeadProfile() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Right Column (35%) */}
           <div className="space-y-6">
             {/* AI Recommendations (Placeholder) */}
-            <AiRecommendationCard />
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <AiRecommendationCard />
+            </motion.div>
 
             {/* Enrichment Data */}
-            <EnrichmentDataCard data={lead.enrichmentData} />
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <EnrichmentDataCard data={lead.enrichmentData} />
+            </motion.div>
 
             {/* Related Entities */}
-            <Card>
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Briefcase className="w-4 h-4" />
@@ -1085,11 +1144,17 @@ export function LeadProfile() {
                   </TabsContent>
                 </Tabs>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Related Contacts */}
             {relatedContacts.length > 0 && (
-              <Card>
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <User className="w-4 h-4" />
@@ -1110,12 +1175,18 @@ export function LeadProfile() {
                     </div>
                   ))}
                 </CardContent>
-              </Card>
+                </Card>
+              </motion.div>
             )}
 
             {/* Communication Summary */}
             {Object.keys(communicationSummary).length > 0 && (
-              <Card>
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
@@ -1130,10 +1201,11 @@ export function LeadProfile() {
                     </div>
                   ))}
                 </CardContent>
-              </Card>
+                </Card>
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Action Bar */}
         <LeadActionBar

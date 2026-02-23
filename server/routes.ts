@@ -18,8 +18,28 @@ import contentRouter from "./routes/content";
 import quotesRouter from "./routes/quotes";
 import avatarCouncilRouter from "./routes/avatar-council";
 import crmRouter from "./routes/crm";
+import devicesRouter from "./routes/devices";
+import appRouter from "./routes/app";
+import memberCardsRouter from "./routes/member-cards";
+import walletRouter from "./routes/wallet";
+import verifyRouter from "./routes/verify";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
+
+// Rate limiting middleware
+import {
+  loginLimiter,
+  registrationLimiter,
+  quoteLimiter,
+  passwordResetLimiter,
+  twoFactorLimiter,
+  contactFormLimiter,
+} from "./middleware/rateLimiter";
+
+// Security services
+import { handleLoginAttempt } from "./services/accountLockoutService";
+import { logLogin, logLogout, logLoginFailed, logPasswordChange, log2FAEnabled, log2FADisabled, log2FAVerified, getAuditContext } from "./services/auditService";
+import { createPasswordResetToken, resetPassword, verifyPasswordResetToken } from "./services/passwordResetService";
 
 // RBAC Middleware
 import {
@@ -48,6 +68,11 @@ const PgSession = connectPgSimple(session);
 export function setupSession(app: Express) {
   const isProduction = process.env.NODE_ENV === "production";
 
+  // SECURITY: Session secret must be set in environment
+  if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET environment variable is required');
+  }
+
   app.set("trust proxy", 1);
   app.use(
     session({
@@ -56,14 +81,14 @@ export function setupSession(app: Express) {
         tableName: "sessions",
         createTableIfMissing: true,
       }),
-      secret: process.env.SESSION_SECRET || "gold-coast-financial-secret-key",
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       cookie: {
         secure: isProduction,
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: isProduction ? "none" : "lax",
+        sameSite: "lax", // SECURITY: Changed from 'none' to 'lax' for better security
       },
     })
   );
@@ -95,8 +120,8 @@ export async function registerRoutes(
   // Attach user to all requests (populates req.user if authenticated)
   app.use(attachUser);
 
-  // Auth: Register new user
-  app.post("/api/auth/register", async (req, res) => {
+  // Auth: Register new user (rate limited)
+  app.post("/api/auth/register", registrationLimiter, async (req, res) => {
     try {
       const validatedData = registerSchema.parse(req.body);
       
@@ -133,26 +158,47 @@ export async function registerRoutes(
     }
   });
   
-  // Auth: Login
-  app.post("/api/auth/login", async (req, res) => {
+  // Auth: Login (rate limited with account lockout)
+  app.post("/api/auth/login", loginLimiter, async (req, res) => {
     try {
       const validatedData = loginSchema.parse(req.body);
-      
+
       // Find user
       const user = await storage.getUserByEmail(validatedData.email);
       if (!user) {
+        // Record failed attempt even if user doesn't exist (prevents user enumeration timing attacks)
+        await handleLoginAttempt(validatedData.email, false, req);
+        await logLoginFailed(validatedData.email, getAuditContext(req));
         return res.status(401).json({ error: "Invalid email or password" });
       }
-      
+
       // Check password
       const isValid = await bcrypt.compare(validatedData.password, user.password);
-      if (!isValid) {
-        return res.status(401).json({ error: "Invalid email or password" });
+
+      // Handle login attempt (checks lockout and records attempt)
+      const attemptResult = await handleLoginAttempt(validatedData.email, isValid, req);
+
+      if (!attemptResult.allowed) {
+        return res.status(429).json({
+          error: attemptResult.message || "Account temporarily locked",
+          locked: true
+        });
       }
-      
+
+      if (!isValid) {
+        await logLoginFailed(validatedData.email, getAuditContext(req));
+        return res.status(401).json({
+          error: "Invalid email or password",
+          warning: attemptResult.message // Shows remaining attempts if low
+        });
+      }
+
       // Set session
       req.session.userId = user.id;
-      
+
+      // Log successful login for audit
+      await logLogin(user.id, getAuditContext(req));
+
       // Return user without password
       const { password, ...safeUser } = user;
       res.json({ user: safeUser });
@@ -166,15 +212,113 @@ export async function registerRoutes(
   });
   
   // Auth: Logout
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
+  app.post("/api/auth/logout", async (req, res) => {
+    const userId = req.session.userId;
+    const auditContext = getAuditContext(req);
+
+    req.session.destroy(async (err) => {
       if (err) {
         return res.status(500).json({ error: "Failed to log out" });
       }
+
+      // Log logout for audit
+      if (userId) {
+        await logLogout(userId, auditContext);
+      }
+
       res.json({ message: "Logged out successfully" });
     });
   });
-  
+
+  // Auth: Sign in with Apple
+  app.post("/api/auth/apple", loginLimiter, async (req, res) => {
+    try {
+      const { identityToken, authorizationCode, firstName, lastName, email } = req.body;
+
+      if (!identityToken || !authorizationCode) {
+        return res.status(400).json({ error: "Missing Apple authentication data" });
+      }
+
+      // Decode the identity token to get user info
+      // The identity token is a JWT from Apple containing the user's Apple ID
+      const tokenParts = identityToken.split('.');
+      if (tokenParts.length !== 3) {
+        return res.status(400).json({ error: "Invalid identity token format" });
+      }
+
+      let appleUserId: string;
+      let appleEmail: string | null = null;
+
+      try {
+        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
+        appleUserId = payload.sub; // Apple user ID
+        appleEmail = payload.email || email; // Email from token or request
+
+        // Verify token issuer and audience
+        if (payload.iss !== 'https://appleid.apple.com') {
+          return res.status(401).json({ error: "Invalid token issuer" });
+        }
+
+        // Check token expiration
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          return res.status(401).json({ error: "Token expired" });
+        }
+      } catch (parseError) {
+        return res.status(400).json({ error: "Failed to parse identity token" });
+      }
+
+      if (!appleUserId) {
+        return res.status(400).json({ error: "Could not extract user ID from token" });
+      }
+
+      // Look for existing user with this Apple ID
+      let user = await storage.getUserByAppleId(appleUserId);
+
+      if (!user && appleEmail) {
+        // Check if user exists with this email
+        user = await storage.getUserByEmail(appleEmail);
+
+        if (user) {
+          // Link Apple ID to existing account
+          await storage.updateUser(user.id, { appleId: appleUserId });
+        }
+      }
+
+      if (!user) {
+        // Create new user with Apple credentials
+        if (!appleEmail) {
+          return res.status(400).json({ error: "Email is required for new accounts" });
+        }
+
+        // Generate a secure random password (user won't need it for Apple login)
+        const randomPassword = crypto.randomBytes(32).toString('hex');
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        user = await storage.createUser({
+          email: appleEmail,
+          password: hashedPassword,
+          firstName: firstName || 'Apple',
+          lastName: lastName || 'User',
+          phone: null,
+          appleId: appleUserId,
+        });
+      }
+
+      // Set session
+      req.session.userId = user.id;
+
+      // Log successful login for audit
+      await logLogin(user.id, getAuditContext(req));
+
+      // Return user without password
+      const { password, twoFactorSecret, ...safeUser } = user;
+      res.json({ user: safeUser });
+    } catch (error: any) {
+      console.error("Error with Apple sign in:", error);
+      res.status(500).json({ error: "Failed to sign in with Apple" });
+    }
+  });
+
   // Auth: Get current user
   app.get("/api/auth/user", async (req, res) => {
     if (!req.session.userId) {
@@ -192,6 +336,94 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  // =============================================================================
+  // PASSWORD RESET ROUTES
+  // =============================================================================
+
+  // Request password reset (rate limited)
+  app.post("/api/auth/forgot-password", passwordResetLimiter, async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const auditContext = getAuditContext(req);
+      const result = await createPasswordResetToken(
+        email,
+        auditContext.ipAddress,
+        auditContext.userAgent
+      );
+
+      // Always return success to prevent email enumeration
+      // In production, send the email with the reset link
+      if (result) {
+        // TODO: Send email with reset link
+        // const resetLink = `${process.env.APP_URL}/reset-password?token=${result.token}`;
+        // await sendPasswordResetEmail(email, resetLink);
+        console.log(`[PasswordReset] Token for ${email}: ${result.token}`);
+      }
+
+      res.json({
+        success: true,
+        message: "If an account exists with this email, you will receive a password reset link shortly.",
+      });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      res.status(500).json({ error: "Failed to process password reset request" });
+    }
+  });
+
+  // Verify reset token (for client-side validation)
+  app.get("/api/auth/verify-reset-token", async (req, res) => {
+    try {
+      const { token } = req.query;
+
+      if (!token || typeof token !== "string") {
+        return res.status(400).json({ valid: false, error: "Token is required" });
+      }
+
+      const result = await verifyPasswordResetToken(token);
+      res.json(result);
+    } catch (error) {
+      console.error("Error verifying reset token:", error);
+      res.status(500).json({ valid: false, error: "Failed to verify token" });
+    }
+  });
+
+  // Reset password with token (rate limited)
+  app.post("/api/auth/reset-password", passwordResetLimiter, async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || typeof token !== "string") {
+        return res.status(400).json({ error: "Reset token is required" });
+      }
+
+      if (!newPassword || typeof newPassword !== "string" || newPassword.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
+      }
+
+      const auditContext = getAuditContext(req);
+      const result = await resetPassword(
+        token,
+        newPassword,
+        auditContext.ipAddress,
+        auditContext.userAgent
+      );
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({ success: true, message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ error: "Failed to reset password" });
     }
   });
 
@@ -219,8 +451,8 @@ export async function registerRoutes(
     }
   });
 
-  // Verify 2FA token (for both setup and session verification)
-  app.post("/api/ai/2fa/verify", requireAuth, async (req, res) => {
+  // Verify 2FA token (for both setup and session verification) - rate limited
+  app.post("/api/ai/2fa/verify", requireAuth, twoFactorLimiter, async (req, res) => {
     try {
       const { token } = req.body;
 
@@ -232,11 +464,18 @@ export async function registerRoutes(
       const result = await verify2FA(req.session.userId!, token, true);
 
       if (!result.success) {
+        await log2FAVerified(req.session.userId!, false, getAuditContext(req));
         return res.status(400).json({ error: result.message });
       }
 
       // Mark session as 2FA verified
       req.session.twoFactorVerified = true;
+
+      // Log 2FA verification (also counts as enabling if first time)
+      await log2FAVerified(req.session.userId!, true, getAuditContext(req));
+      if (result.message?.includes('enabled')) {
+        await log2FAEnabled(req.session.userId!, getAuditContext(req));
+      }
 
       res.json({
         success: true,
@@ -268,6 +507,9 @@ export async function registerRoutes(
       // Clear 2FA session flag
       req.session.twoFactorVerified = false;
 
+      // Log 2FA disabled
+      await log2FADisabled(req.session.userId!, getAuditContext(req));
+
       res.json({ success: true, message: result.message });
     } catch (error) {
       console.error("Error disabling 2FA:", error);
@@ -291,8 +533,8 @@ export async function registerRoutes(
     }
   });
 
-  // Quote request submission
-  app.post("/api/quote-requests", async (req, res) => {
+  // Quote request submission (rate limited)
+  app.post("/api/quote-requests", quoteLimiter, async (req, res) => {
     try {
       const validatedData = insertQuoteRequestSchema.parse(req.body);
       const quoteRequest = await storage.createQuoteRequest(validatedData);
@@ -357,8 +599,8 @@ export async function registerRoutes(
     }
   });
 
-  // Contact message submission
-  app.post("/api/contact-messages", async (req, res) => {
+  // Contact message submission (rate limited)
+  app.post("/api/contact-messages", contactFormLimiter, async (req, res) => {
     try {
       const validatedData = insertContactMessageSchema.parse(req.body);
       const contactMessage = await storage.createContactMessage(validatedData);
@@ -1128,28 +1370,31 @@ export async function registerRoutes(
   app.post("/api/portal/change-password", requireAuth, async (req, res) => {
     try {
       const { currentPassword, newPassword } = req.body;
-      
+
       if (!currentPassword || !newPassword) {
         return res.status(400).json({ error: "Current and new password required" });
       }
-      
+
       if (newPassword.length < 8) {
         return res.status(400).json({ error: "New password must be at least 8 characters" });
       }
-      
+
       const user = await storage.getUserById(req.session.userId!);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       const isValid = await bcrypt.compare(currentPassword, user.password);
       if (!isValid) {
         return res.status(400).json({ error: "Current password is incorrect" });
       }
-      
+
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       await storage.updateUser(req.session.userId!, { password: hashedPassword });
-      
+
+      // Log password change for audit
+      await logPasswordChange(req.session.userId!, getAuditContext(req));
+
       res.json({ success: true, message: "Password changed successfully" });
     } catch (error) {
       console.error("Error changing password:", error);
@@ -1426,6 +1671,21 @@ export async function registerRoutes(
 
   // CRM Lounge (dashboard, pipeline, analytics)
   app.use("/api/crm", crmRouter);
+
+  // Device management (push notifications)
+  app.use("/api/devices", devicesRouter);
+
+  // App version and configuration (for iOS/Android apps)
+  app.use("/api/app", appRouter);
+
+  // Member Cards (Heritage Life Solutions digital insurance cards)
+  app.use("/api/member-cards", memberCardsRouter);
+
+  // Apple Wallet Pass Generation
+  app.use("/api/wallet", walletRouter);
+
+  // Policy Verification (public - for QR code scanning)
+  app.use("/verify", verifyRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

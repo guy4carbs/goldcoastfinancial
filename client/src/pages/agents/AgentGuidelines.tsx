@@ -25,11 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Core values
 const CORE_VALUES = [
@@ -212,19 +208,30 @@ export default function AgentGuidelines() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
+        {/* Hero Header - Agent Lounge violet gradient */}
         <motion.div variants={fadeInUp}>
-          <div className="bg-gradient-to-r from-primary to-violet-600 rounded-2xl p-6 text-white">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <motion.div
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden"
+            style={{
+              borderRadius: RADIUS.hero,
+              padding: spacing(4),
+              boxShadow: SHADOW.hero
+            }}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          >
+            {/* Decorative glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold mb-2 flex items-center gap-2 text-white">
                   <Scale className="w-7 h-7" aria-hidden="true" />
                   Guidelines & Expectations
                 </h1>
-                <p className="text-gray-100">
+                <p className="text-white/90">
                   Standards, policies, and best practices for Heritage Life agents
                 </p>
               </div>
@@ -241,13 +248,17 @@ export default function AgentGuidelines() {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Quick Links */}
         <motion.div variants={fadeInUp}>
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-4">
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          >
+            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+              <CardContent className="p-4">
               <div className="flex flex-wrap gap-2" role="group" aria-label="Quick navigation to guideline sections">
                 {[
                   { value: 'values', label: 'Core Values' },
@@ -274,6 +285,7 @@ export default function AgentGuidelines() {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
         </motion.div>
 
         {/* Tabs */}
@@ -308,48 +320,71 @@ export default function AgentGuidelines() {
 
             {/* Core Values Tab */}
             <TabsContent value="values" className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <motion.div
+                className="grid md:grid-cols-2 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {CORE_VALUES.map((value) => {
                   const Icon = value.icon;
                   return (
-                    <Card key={value.title} className="border-0 shadow-lg hover:shadow-xl transition-all">
-                      <CardContent className="p-6">
-                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg", value.color)}>
-                          <Icon className="w-6 h-6 text-white" aria-hidden="true" />
-                        </div>
-                        <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">{value.title}</h3>
-                        <p className="text-gray-600">{value.description}</p>
-                      </CardContent>
-                    </Card>
+                    <motion.div key={value.title} variants={fadeInUp}>
+                      <motion.div
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      >
+                        <Card className="border-0 h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                          <CardContent className="p-6">
+                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg", value.color)}>
+                              <Icon className="w-6 h-6 text-white" aria-hidden="true" />
+                            </div>
+                            <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">{value.title}</h3>
+                            <p className="text-gray-600">{value.description}</p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
 
-              <Card className="border-0 shadow-xl overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <CardContent className="p-6 relative z-10">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-                      <Award className="w-6 h-6 text-white" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-white mb-2">Our Mission</h3>
-                      <p className="text-white/90">
-                        To protect families across America by providing accessible, affordable life insurance
-                        solutions while building a community of ethical, professional agents who prioritize
-                        client needs above all else.
-                      </p>
+              <motion.div variants={fadeInUp}>
+                <motion.div
+                  className="overflow-hidden relative"
+                  style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.hero }}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                  <div className="p-6 relative z-10">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                        <Award className="w-6 h-6 text-white" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-white mb-2">Our Mission</h3>
+                        <p className="text-white/90">
+                          To protect families across America by providing accessible, affordable life insurance
+                          solutions while building a community of ethical, professional agents who prioritize
+                          client needs above all else.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </motion.div>
+              </motion.div>
             </TabsContent>
 
             {/* Performance Tab */}
             <TabsContent value="performance" className="space-y-4">
               {/* Daily Expectations */}
-              <Card className="border-0 shadow-lg">
+              <motion.div
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
@@ -390,9 +425,14 @@ export default function AgentGuidelines() {
                   </div>
                 </CardContent>
               </Card>
+              </motion.div>
 
               {/* Daily Schedule */}
-              <Card className="border-0 shadow-lg">
+              <motion.div
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md">
@@ -421,11 +461,16 @@ export default function AgentGuidelines() {
                   </div>
                 </CardContent>
               </Card>
+              </motion.div>
             </TabsContent>
 
             {/* Commission Tab */}
             <TabsContent value="commission" className="space-y-4">
-              <Card className="border-0 shadow-lg">
+              <motion.div
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-md">
@@ -499,14 +544,20 @@ export default function AgentGuidelines() {
                   </div>
                 </CardContent>
               </Card>
+              </motion.div>
             </TabsContent>
 
             {/* Compliance Tab */}
             <TabsContent value="compliance" className="space-y-4">
-              <Card className="border-0 shadow-xl overflow-hidden relative mb-4">
+              <motion.div
+                className="overflow-hidden relative mb-4"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.hero }}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500 via-rose-500 to-red-600" />
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <CardContent className="p-4 relative z-10">
+                <div className="p-4 relative z-10">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
                       <AlertTriangle className="w-5 h-5 text-white" aria-hidden="true" />
@@ -519,10 +570,15 @@ export default function AgentGuidelines() {
                       </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <motion.div
+                className="grid md:grid-cols-3 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {COMPLIANCE_ITEMS.map((section, sectionIdx) => {
                   const gradients = [
                     'from-blue-500 to-cyan-500',
@@ -530,49 +586,66 @@ export default function AgentGuidelines() {
                     'from-amber-500 to-orange-500',
                   ];
                   return (
-                    <Card key={section.category} className="border-0 shadow-lg hover:shadow-xl transition-all">
-                      <CardHeader>
-                        <CardTitle className={cn("text-lg bg-gradient-to-r bg-clip-text text-transparent", gradients[sectionIdx % gradients.length])}>{section.category}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2">
-                          {section.items.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
+                    <motion.div key={section.category} variants={fadeInUp}>
+                      <motion.div
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      >
+                        <Card className="border-0 h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                          <CardHeader>
+                            <CardTitle className={cn("text-lg bg-gradient-to-r bg-clip-text text-transparent", gradients[sectionIdx % gradients.length])}>{section.category}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-2">
+                              {section.items.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-sm">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
 
-              <Card className="border-0 shadow-lg">
-                <CardContent className="p-4">
-                  <h4 className="font-medium mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Need Compliance Help?</h4>
-                  <div className="flex flex-wrap gap-3">
-                    <Button className="gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-md" asChild>
-                      <a href="tel:8005550199" aria-label="Call compliance department at (800) 555-0199">
-                        <Phone className="w-4 h-4" aria-hidden="true" />
-                        Call Compliance: (800) 555-0199
-                      </a>
-                    </Button>
-                    <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 shadow-md" asChild>
-                      <a href="mailto:compliance@heritagels.org" aria-label="Email compliance at compliance@heritagels.org">
-                        <Mail className="w-4 h-4" aria-hidden="true" />
-                        compliance@heritagels.org
-                      </a>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
+                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardContent className="p-4">
+                    <h4 className="font-medium mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Need Compliance Help?</h4>
+                    <div className="flex flex-wrap gap-3">
+                      <Button className="gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-md" asChild>
+                        <a href="tel:8005550199" aria-label="Call compliance department at (800) 555-0199">
+                          <Phone className="w-4 h-4" aria-hidden="true" />
+                          Call Compliance: (800) 555-0199
+                        </a>
+                      </Button>
+                      <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 shadow-md" asChild>
+                        <a href="mailto:compliance@heritagels.org" aria-label="Email compliance at compliance@heritagels.org">
+                          <Mail className="w-4 h-4" aria-hidden="true" />
+                          compliance@heritagels.org
+                        </a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </TabsContent>
 
             {/* Best Practices Tab */}
             <TabsContent value="practices" className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
+              <motion.div
+                className="grid md:grid-cols-3 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {BEST_PRACTICES.map((section, sectionIdx) => {
                   const gradients = [
                     { icon: 'from-amber-400 to-orange-500', text: 'from-amber-600 to-orange-600' },
@@ -581,36 +654,47 @@ export default function AgentGuidelines() {
                   ];
                   const gradient = gradients[sectionIdx % gradients.length];
                   return (
-                    <Card key={section.title} className="border-0 shadow-lg hover:shadow-xl transition-all">
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", gradient.icon)}>
-                            <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
-                          </div>
-                          <span className={cn("bg-gradient-to-r bg-clip-text text-transparent", gradient.text)}>{section.title}</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-3">
-                          {section.practices.map((practice, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <div className={cn("w-5 h-5 rounded-full bg-gradient-to-br text-white flex items-center justify-center flex-shrink-0 text-xs font-medium shadow-sm", gradient.icon)}>
-                                {idx + 1}
+                    <motion.div key={section.title} variants={fadeInUp}>
+                      <motion.div
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      >
+                        <Card className="border-0 h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                          <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", gradient.icon)}>
+                                <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
                               </div>
-                              <span>{practice}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
+                              <span className={cn("bg-gradient-to-r bg-clip-text text-transparent", gradient.text)}>{section.title}</span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="space-y-3">
+                              {section.practices.map((practice, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-sm">
+                                  <div className={cn("w-5 h-5 rounded-full bg-gradient-to-br text-white flex items-center justify-center flex-shrink-0 text-xs font-medium shadow-sm", gradient.icon)}>
+                                    {idx + 1}
+                                  </div>
+                                  <span>{practice}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             </TabsContent>
 
             {/* Documents Tab */}
             <TabsContent value="documents" className="space-y-4">
-              <Card className="border-0 shadow-lg">
+              <motion.div
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
@@ -664,6 +748,7 @@ export default function AgentGuidelines() {
                   )}
                 </CardContent>
               </Card>
+              </motion.div>
             </TabsContent>
           </Tabs>
         </motion.div>

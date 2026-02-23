@@ -29,11 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Product guides data with detailed content
 const productGuides = [
@@ -247,26 +243,44 @@ export default function AgentResources() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <Folder className="w-5 h-5 text-white" />
+        {/* Hero Card */}
+        <motion.div variants={fadeInUp}>
+          <Card
+            className="border-0 overflow-hidden relative"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600" />
+            <CardContent className="relative z-10 p-6 md:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center"
+                    style={{ boxShadow: SHADOW.level2 }}
+                  >
+                    <Folder className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+                      Resources
+                    </h1>
+                    <p className="text-white/80 mt-1">Guides, training, marketing materials, and support</p>
+                  </div>
+                </div>
+                <Button variant="secondary" asChild className="bg-white/20 backdrop-blur border-white/30 text-white hover:bg-white/30">
+                  <a href="tel:6307780800" aria-label="Call support at (630) 778-0800">
+                    <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
+                    (630) 778-0800
+                  </a>
+                </Button>
               </div>
-              Resources
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">Guides, training, marketing materials, and support</p>
-          </div>
-          <Button variant="outline" asChild className="border-violet-200 text-violet-600 hover:bg-violet-50">
-            <a href="tel:6307780800" aria-label="Call support at (630) 778-0800">
-              <Phone className="w-4 h-4 mr-2" aria-hidden="true" />
-              (630) 778-0800
-            </a>
-          </Button>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Quick Stats */}
@@ -276,19 +290,31 @@ export default function AgentResources() {
             { label: 'Carrier Partners', value: carriers.length, icon: Building, gradient: 'from-blue-500 to-cyan-500' },
             { label: 'Downloads', value: marketingMaterials.reduce((acc, m) => acc + m.count, 0), icon: Download, gradient: 'from-emerald-500 to-green-500' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shadow-md bg-gradient-to-br", stat.gradient)}>
-                    <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
+            <motion.div
+              key={stat.label}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shadow-md bg-gradient-to-br", stat.gradient)}>
+                      <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
+                      <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
-                    <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </motion.div>
 
@@ -329,7 +355,19 @@ export default function AgentResources() {
                 ];
                 const gradient = gradients[idx % gradients.length];
                 return (
-                  <Card key={guide.id} className="border-0 shadow-lg hover:shadow-xl transition-all overflow-hidden">
+                  <motion.div
+                    key={guide.id}
+                    variants={fadeInUp}
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    transition={{ duration: MOTION.duration.hover }}
+                  >
+                  <Card
+                    className="border-0 overflow-hidden"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card
+                    }}
+                  >
                     <CardContent className="p-0">
                       <button
                         onClick={() => setExpandedGuide(isExpanded ? null : guide.id)}
@@ -434,6 +472,7 @@ export default function AgentResources() {
                       </AnimatePresence>
                     </CardContent>
                   </Card>
+                  </motion.div>
                 );
               })}
             </TabsContent>
@@ -444,28 +483,43 @@ export default function AgentResources() {
                 {marketingMaterials.map((category) => {
                   const Icon = category.icon;
                   return (
-                    <Card
+                    <motion.div
                       key={category.category}
-                      className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                      onClick={() => handleDownloadMarketing(category.category, category.count)}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
-                            <Icon className="w-6 h-6 text-white" aria-hidden="true" />
+                      <Card
+                        className="border-0 cursor-pointer h-full"
+                        style={{
+                          borderRadius: RADIUS.card,
+                          boxShadow: SHADOW.card
+                        }}
+                        onClick={() => handleDownloadMarketing(category.category, category.count)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                              <Icon className="w-6 h-6 text-white" aria-hidden="true" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{category.category}</h3>
+                              <p className="text-sm text-gray-600">{category.count} files available</p>
+                            </div>
+                            <Download className="w-5 h-5 text-gray-400" aria-hidden="true" />
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{category.category}</h3>
-                            <p className="text-sm text-gray-600">{category.count} files available</p>
-                          </div>
-                          <Download className="w-5 h-5 text-gray-400" aria-hidden="true" />
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   );
                 })}
               </div>
-              <Card className="border-0 shadow-lg mt-6">
+              <Card
+                className="border-0 mt-6"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card
+                }}
+              >
                 <CardContent className="p-6">
                   <h3 className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">Custom Marketing Requests</h3>
                   <p className="text-sm text-gray-600 mb-4">Need personalized materials with your contact information?</p>
@@ -488,6 +542,7 @@ export default function AgentResources() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
+                  style={{ borderRadius: RADIUS.input }}
                   aria-label="Search carriers by name or product"
                 />
               </div>
@@ -507,7 +562,18 @@ export default function AgentResources() {
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredCarriers.map((carrier) => (
-                    <Card key={carrier.name} className="border-0 shadow-lg hover:shadow-xl transition-all">
+                    <motion.div
+                      key={carrier.name}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
+                    >
+                    <Card
+                      className="border-0 h-full"
+                      style={{
+                        borderRadius: RADIUS.card,
+                        boxShadow: SHADOW.card
+                      }}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <h3 className="font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{carrier.name}</h3>
@@ -538,6 +604,7 @@ export default function AgentResources() {
                         </Button>
                       </CardContent>
                     </Card>
+                    </motion.div>
                   ))}
                 </div>
               )}
@@ -549,7 +616,18 @@ export default function AgentResources() {
                 {supportContacts.map((contact, idx) => {
                   const gradients = ['from-amber-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-emerald-500 to-green-500', 'from-violet-500 to-purple-500'];
                   return (
-                    <Card key={contact.department} className="border-0 shadow-lg hover:shadow-xl transition-all">
+                    <motion.div
+                      key={contact.department}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
+                    >
+                    <Card
+                      className="border-0 h-full"
+                      style={{
+                        borderRadius: RADIUS.card,
+                        boxShadow: SHADOW.card
+                      }}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md bg-gradient-to-br", gradients[idx % gradients.length])}>
@@ -579,10 +657,17 @@ export default function AgentResources() {
                         </div>
                       </CardContent>
                     </Card>
+                    </motion.div>
                   );
                 })}
               </div>
-              <Card className="border-0 shadow-lg overflow-hidden relative">
+              <Card
+                className="border-0 overflow-hidden relative"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card
+                }}
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500" />
                 <CardContent className="p-4 relative z-10">
                   <div className="flex items-center gap-3">

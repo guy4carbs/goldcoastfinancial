@@ -1,9 +1,11 @@
 /**
  * Contact Database
  * Unified view of leads and clients with search, filters, and bulk actions
+ * Updated with Heritage Design System
  */
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { CRMLoungeLayout } from './CRMLoungeLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,6 +55,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS, TABLE,
+  fadeInUp, staggerContainer, fadeIn
+} from '@/lib/heritageDesignSystem';
 
 // =============================================================================
 // TYPES
@@ -177,6 +183,20 @@ async function addActivity(id: string, data: { type: string; title: string; desc
 }
 
 // =============================================================================
+// STATUS BADGE STYLES (with gradients)
+// =============================================================================
+
+const statusBadgeStyles: Record<string, string> = {
+  new: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0',
+  contacted: 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-0',
+  quoted: 'bg-gradient-to-r from-violet-500 to-violet-600 text-white border-0',
+  follow_up: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-0',
+  won: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0',
+  lost: 'bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0',
+  client: 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white border-0',
+};
+
+// =============================================================================
 // CONTACT TABLE
 // =============================================================================
 
@@ -195,19 +215,9 @@ function ContactTable({
   onSelectAll: () => void;
   onRowClick: (contact: Contact) => void;
 }) {
-  const statusColors: Record<string, string> = {
-    new: 'bg-blue-100 text-blue-700',
-    contacted: 'bg-cyan-100 text-cyan-700',
-    quoted: 'bg-violet-100 text-violet-700',
-    follow_up: 'bg-amber-100 text-amber-700',
-    won: 'bg-emerald-100 text-emerald-700',
-    lost: 'bg-gray-100 text-gray-700',
-    client: 'bg-indigo-100 text-indigo-700',
-  };
-
   if (isLoading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-2 p-4">
         {[1, 2, 3, 4, 5].map((i) => (
           <Skeleton key={i} className="h-16 w-full" />
         ))}
@@ -228,28 +238,29 @@ function ContactTable({
   return (
     <Table>
       <TableHeader>
-        <TableRow>
-          <TableHead className="w-12">
+        <TableRow className="border-b border-gray-100">
+          <TableHead className="w-12" style={{ height: TABLE.headerHeight }}>
             <Checkbox
               checked={selectedIds.size === contacts.length && contacts.length > 0}
               onCheckedChange={onSelectAll}
             />
           </TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Source</TableHead>
-          <TableHead className="text-right">Value</TableHead>
-          <TableHead>Last Activity</TableHead>
+          <TableHead className="font-semibold text-gray-700">Name</TableHead>
+          <TableHead className="font-semibold text-gray-700">Type</TableHead>
+          <TableHead className="font-semibold text-gray-700">Email</TableHead>
+          <TableHead className="font-semibold text-gray-700">Phone</TableHead>
+          <TableHead className="font-semibold text-gray-700">Status</TableHead>
+          <TableHead className="font-semibold text-gray-700">Source</TableHead>
+          <TableHead className="text-right font-semibold text-gray-700">Value</TableHead>
+          <TableHead className="font-semibold text-gray-700">Last Activity</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {contacts.map((contact) => (
           <TableRow
             key={contact.id}
-            className="cursor-pointer hover:bg-gray-50"
+            className="cursor-pointer transition-colors duration-150 hover:bg-indigo-50/50 border-b border-gray-50"
+            style={{ height: TABLE.rowHeight }}
             onClick={() => onRowClick(contact)}
           >
             <TableCell onClick={(e) => e.stopPropagation()}>
@@ -258,12 +269,15 @@ function ContactTable({
                 onCheckedChange={() => onSelect(contact.id)}
               />
             </TableCell>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium text-gray-900">
               {contact.firstName} {contact.lastName}
             </TableCell>
             <TableCell>
               <Badge variant="outline" className={cn(
-                contact.contactType === 'client' ? 'border-indigo-200 text-indigo-600' : 'border-gray-200'
+                'font-medium',
+                contact.contactType === 'client'
+                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                  : 'border-gray-200 bg-gray-50 text-gray-600'
               )}>
                 {contact.contactType === 'client' ? (
                   <><Building2 className="w-3 h-3 mr-1" />Client</>
@@ -275,14 +289,17 @@ function ContactTable({
             <TableCell className="text-gray-600">{contact.email}</TableCell>
             <TableCell className="text-gray-600">{contact.phone}</TableCell>
             <TableCell>
-              <Badge className={statusColors[contact.status] || 'bg-gray-100 text-gray-700'}>
-                {contact.status}
+              <Badge className={cn(
+                'font-medium shadow-sm',
+                statusBadgeStyles[contact.status] || 'bg-gray-100 text-gray-700'
+              )}>
+                {contact.status.replace('_', ' ')}
               </Badge>
             </TableCell>
             <TableCell className="text-gray-600 capitalize">
               {contact.source?.replace('_', ' ') || '-'}
             </TableCell>
-            <TableCell className="text-right font-medium">
+            <TableCell className="text-right font-semibold text-emerald-600">
               {contact.estimatedValue ? `$${contact.estimatedValue.toLocaleString()}` : '-'}
             </TableCell>
             <TableCell className="text-gray-500 text-sm">
@@ -343,8 +360,8 @@ function ContactDetailDrawer({
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-[500px] sm:max-w-[500px] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
+        <SheetHeader className="border-b border-gray-100 pb-4">
+          <SheetTitle className="text-xl">
             {isLoading ? (
               <Skeleton className="h-6 w-40" />
             ) : (
@@ -355,7 +372,15 @@ function ContactDetailDrawer({
             {isLoading ? (
               <Skeleton className="h-4 w-24" />
             ) : (
-              <Badge variant="outline">
+              <Badge
+                variant="outline"
+                className={cn(
+                  'mt-1',
+                  data?.contact.contactType === 'client'
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                    : 'border-gray-200 bg-gray-50 text-gray-600'
+                )}
+              >
                 {data?.contact.contactType === 'client' ? 'Client' : 'Lead'}
               </Badge>
             )}
@@ -369,31 +394,42 @@ function ContactDetailDrawer({
             <Skeleton className="h-40 w-full" />
           </div>
         ) : data ? (
-          <div className="mt-6 space-y-6">
+          <motion.div
+            className="mt-6 space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
             {/* Contact Info */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Contact Information</h3>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+            <motion.div variants={fadeInUp} className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-violet-500 rounded-full" />
+                Contact Information
+              </h3>
+              <div
+                className="grid grid-cols-2 gap-3 text-sm p-4 bg-gray-50 rounded-xl"
+                style={{ borderRadius: RADIUS.card }}
+              >
                 <div>
                   <span className="text-gray-500">Email</span>
-                  <p className="font-medium">{data.contact.email}</p>
+                  <p className="font-medium text-gray-900">{data.contact.email}</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Phone</span>
-                  <p className="font-medium">{data.contact.phone || '-'}</p>
+                  <p className="font-medium text-gray-900">{data.contact.phone || '-'}</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Status</span>
-                  <p className="font-medium capitalize">{data.contact.status}</p>
+                  <p className="font-medium capitalize text-gray-900">{data.contact.status}</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Source</span>
-                  <p className="font-medium capitalize">{data.contact.source?.replace('_', ' ') || '-'}</p>
+                  <p className="font-medium capitalize text-gray-900">{data.contact.source?.replace('_', ' ') || '-'}</p>
                 </div>
                 {data.contact.estimatedValue && (
                   <div>
                     <span className="text-gray-500">Estimated Value</span>
-                    <p className="font-medium text-emerald-600">
+                    <p className="font-semibold text-emerald-600">
                       ${data.contact.estimatedValue.toLocaleString()}
                     </p>
                   </div>
@@ -401,14 +437,14 @@ function ContactDetailDrawer({
                 {data.contact.coverageType && (
                   <div>
                     <span className="text-gray-500">Coverage Type</span>
-                    <p className="font-medium capitalize">{data.contact.coverageType}</p>
+                    <p className="font-medium capitalize text-gray-900">{data.contact.coverageType}</p>
                   </div>
                 )}
               </div>
               {(data.contact.streetAddress || data.contact.city) && (
-                <div>
+                <div className="p-3 bg-gray-50 rounded-lg">
                   <span className="text-gray-500 text-sm">Address</span>
-                  <p className="font-medium text-sm">
+                  <p className="font-medium text-sm text-gray-900">
                     {data.contact.streetAddress}
                     {data.contact.city && `, ${data.contact.city}`}
                     {data.contact.state && `, ${data.contact.state}`}
@@ -417,32 +453,49 @@ function ContactDetailDrawer({
                 </div>
               )}
               {data.contact.notes && (
-                <div>
-                  <span className="text-gray-500 text-sm">Notes</span>
-                  <p className="text-sm bg-gray-50 p-2 rounded mt-1">{data.contact.notes}</p>
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <span className="text-amber-700 text-sm font-medium">Notes</span>
+                  <p className="text-sm text-amber-900 mt-1">{data.contact.notes}</p>
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Quick Actions */}
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => window.location.href = `tel:${data.contact.phone}`}>
+            <motion.div variants={fadeInUp} className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.href = `tel:${data.contact.phone}`}
+                className="flex-1 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+              >
                 <Phone className="w-4 h-4 mr-1" />
                 Call
               </Button>
-              <Button size="sm" variant="outline" onClick={() => window.location.href = `mailto:${data.contact.email}`}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.href = `mailto:${data.contact.email}`}
+                className="flex-1 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+              >
                 <Mail className="w-4 h-4 mr-1" />
                 Email
               </Button>
-              <Button size="sm" variant="outline">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+              >
                 <Calendar className="w-4 h-4 mr-1" />
                 Schedule
               </Button>
-            </div>
+            </motion.div>
 
             {/* Add Activity */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-900">Add Activity</h3>
+            <motion.div variants={fadeInUp} className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-violet-500 rounded-full" />
+                Add Activity
+              </h3>
               <div className="flex gap-2">
                 <Select value={activityType} onValueChange={setActivityType}>
                   <SelectTrigger className="w-[120px]">
@@ -461,26 +514,40 @@ function ContactDetailDrawer({
                   onChange={(e) => setActivityNote(e.target.value)}
                   className="flex-1"
                 />
-                <Button size="sm" onClick={handleAddActivity} disabled={!activityNote.trim()}>
+                <Button
+                  size="sm"
+                  onClick={handleAddActivity}
+                  disabled={!activityNote.trim()}
+                  className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
+                >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Activity History */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Activity History</h3>
+            <motion.div variants={fadeInUp} className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-violet-500 rounded-full" />
+                Activity History
+              </h3>
               {data.activities.length === 0 ? (
-                <p className="text-sm text-gray-500">No activities yet</p>
+                <p className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg text-center">No activities yet</p>
               ) : (
                 <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {data.activities.map((activity) => (
-                    <div key={activity.id} className="flex gap-3 text-sm">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-4 h-4 text-gray-500" />
+                  {data.activities.map((activity, index) => (
+                    <motion.div
+                      key={activity.id}
+                      className="flex gap-3 text-sm p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-4 h-4 text-indigo-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">{activity.title}</p>
+                        <p className="font-medium text-gray-900">{activity.title}</p>
                         {activity.description && (
                           <p className="text-gray-500">{activity.description}</p>
                         )}
@@ -488,56 +555,79 @@ function ContactDetailDrawer({
                           {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                         </p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Policies (for clients) */}
             {data.policies.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900">Policies</h3>
+              <motion.div variants={fadeInUp} className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full" />
+                  Policies
+                </h3>
                 <div className="space-y-2">
                   {data.policies.map((policy) => (
-                    <div key={policy.id} className="p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={policy.id}
+                      className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200"
+                      style={{ borderRadius: RADIUS.card }}
+                    >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium">{policy.type}</p>
+                          <p className="font-medium text-gray-900">{policy.type}</p>
                           <p className="text-sm text-gray-500">{policy.policyNumber}</p>
                         </div>
-                        <Badge variant={policy.status === 'active' ? 'default' : 'secondary'}>
+                        <Badge
+                          className={cn(
+                            'font-medium',
+                            policy.status === 'active'
+                              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-0'
+                              : 'bg-gray-100 text-gray-600'
+                          )}
+                        >
                           {policy.status}
                         </Badge>
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
-                        Coverage: ${policy.coverageAmount?.toLocaleString()} | Premium: ${policy.monthlyPremium}/mo
+                        Coverage: <span className="font-medium">${policy.coverageAmount?.toLocaleString()}</span> |
+                        Premium: <span className="font-medium text-emerald-600">${policy.monthlyPremium}/mo</span>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Related Contacts */}
             {data.relatedContacts.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900">Related Contacts</h3>
+              <motion.div variants={fadeInUp} className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-gradient-to-b from-indigo-500 to-violet-500 rounded-full" />
+                  Related Contacts
+                </h3>
                 <div className="space-y-2">
                   {data.relatedContacts.map((related) => (
-                    <div key={related.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                      <User className="w-4 h-4 text-gray-400" />
+                    <div
+                      key={related.id}
+                      className="flex items-center gap-3 p-3 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
+                        <User className="w-4 h-4 text-indigo-600" />
+                      </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">{related.firstName} {related.lastName}</p>
+                        <p className="text-sm font-medium text-gray-900">{related.firstName} {related.lastName}</p>
                         <p className="text-xs text-gray-500">{related.email}</p>
                       </div>
                       <Badge variant="outline" className="text-xs">{related.status}</Badge>
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         ) : null}
       </SheetContent>
     </Sheet>
@@ -616,134 +706,178 @@ export function ContactDatabase() {
 
   return (
     <CRMLoungeLayout breadcrumbs={[{ label: 'CRM Lounge' }, { label: 'Contacts' }]}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Contact Database</h1>
-            <p className="text-gray-500 mt-1">
-              {data?.pagination.total ?? 0} contacts
-            </p>
-          </div>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Contact
-          </Button>
-        </div>
+      <motion.div
+        className="space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+      >
+        {/* Hero Card */}
+        <motion.div variants={fadeInUp}>
+          <Card
+            className="border-0 overflow-hidden"
+            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+          >
+            <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
+              {/* Background decorations */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+              <div className="relative z-10 flex justify-between items-center">
+                <div>
+                  <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Contact Database</h1>
+                  <p className="text-indigo-100 text-lg">{data?.pagination.total ?? 0} contacts</p>
+                </div>
+                <Button className="bg-white text-indigo-700 hover:bg-white/90 font-semibold shadow-lg">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Contact
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
 
         {/* Search & Filters */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex flex-wrap gap-4">
-              {/* Search */}
-              <div className="flex-1 min-w-[300px]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Search by name, email, or phone..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="pl-10"
-                  />
+        <motion.div variants={fadeInUp}>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+            <CardContent className="py-4">
+              <div className="flex flex-wrap gap-4">
+                {/* Search */}
+                <div className="flex-1 min-w-[300px]">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Search by name, email, or phone..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      className="pl-10"
+                      style={{ borderRadius: RADIUS.input }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Type Filter */}
-              <Select value={type} onValueChange={(v) => { setType(v); setPage(1); }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="both">All Types</SelectItem>
-                  <SelectItem value="lead">Leads</SelectItem>
-                  <SelectItem value="client">Clients</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Type Filter */}
+                <Select value={type} onValueChange={(v) => { setType(v); setPage(1); }}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">All Types</SelectItem>
+                    <SelectItem value="lead">Leads</SelectItem>
+                    <SelectItem value="client">Clients</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Status Filter */}
-              <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="quoted">Quoted</SelectItem>
-                  <SelectItem value="follow_up">Follow Up</SelectItem>
-                  <SelectItem value="won">Won</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Status Filter */}
+                <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="quoted">Quoted</SelectItem>
+                    <SelectItem value="follow_up">Follow Up</SelectItem>
+                    <SelectItem value="won">Won</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Source Filter */}
-              <Select value={source} onValueChange={(v) => { setSource(v); setPage(1); }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Source" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="quote_form">Quote Form</SelectItem>
-                  <SelectItem value="contact_form">Contact Form</SelectItem>
-                  <SelectItem value="phone">Phone</SelectItem>
-                  <SelectItem value="referral">Referral</SelectItem>
-                  <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="social_media">Social Media</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Source Filter */}
+                <Select value={source} onValueChange={(v) => { setSource(v); setPage(1); }}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    <SelectItem value="quote_form">Quote Form</SelectItem>
+                    <SelectItem value="contact_form">Contact Form</SelectItem>
+                    <SelectItem value="phone">Phone</SelectItem>
+                    <SelectItem value="referral">Referral</SelectItem>
+                    <SelectItem value="website">Website</SelectItem>
+                    <SelectItem value="social_media">Social Media</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Button variant="outline" onClick={handleSearch}>
-                <Filter className="w-4 h-4 mr-2" />
-                Apply
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Bulk Actions */}
-        {selectedIds.size > 0 && (
-          <Card className="border-indigo-200 bg-indigo-50">
-            <CardContent className="py-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-indigo-700">
-                  {selectedIds.size} contact(s) selected
-                </span>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={handleExport}>
-                    <Download className="w-4 h-4 mr-1" />
-                    Export
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Mail className="w-4 h-4 mr-1" />
-                    Bulk Email
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleSearch}
+                  className="hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Apply
+                </Button>
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Bulk Actions */}
+        {selectedIds.size > 0 && (
+          <motion.div variants={fadeIn}>
+            <Card
+              className="border-indigo-200 bg-gradient-to-r from-indigo-50 to-violet-50"
+              style={{ borderRadius: RADIUS.card }}
+            >
+              <CardContent className="py-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-indigo-700">
+                    {selectedIds.size} contact(s) selected
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleExport}
+                      className="hover:bg-white"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Export
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="hover:bg-white"
+                    >
+                      <Mail className="w-4 h-4 mr-1" />
+                      Bulk Email
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setSelectedIds(new Set())}
+                      className="hover:bg-white/50"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         {/* Table */}
-        <Card>
-          <CardContent className="p-0">
-            <ContactTable
-              contacts={data?.contacts ?? []}
-              isLoading={isLoading}
-              selectedIds={selectedIds}
-              onSelect={handleSelect}
-              onSelectAll={handleSelectAll}
-              onRowClick={handleRowClick}
-            />
-          </CardContent>
-        </Card>
+        <motion.div variants={fadeInUp}>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+            <CardContent className="p-0">
+              <ContactTable
+                contacts={data?.contacts ?? []}
+                isLoading={isLoading}
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
+                onSelectAll={handleSelectAll}
+                onRowClick={handleRowClick}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Pagination */}
         {data && data.pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between">
+          <motion.div variants={fadeInUp} className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
               Showing {((page - 1) * 25) + 1} to {Math.min(page * 25, data.pagination.total)} of {data.pagination.total}
             </p>
@@ -753,6 +887,7 @@ export function ContactDatabase() {
                 size="sm"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
+                className="hover:bg-indigo-50 hover:border-indigo-200 disabled:opacity-50"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -762,14 +897,15 @@ export function ContactDatabase() {
                 size="sm"
                 onClick={() => setPage(p => Math.min(data.pagination.totalPages, p + 1))}
                 disabled={page === data.pagination.totalPages}
+                className="hover:bg-indigo-50 hover:border-indigo-200 disabled:opacity-50"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Detail Drawer */}
       <ContactDetailDrawer

@@ -101,9 +101,29 @@ import AgentStudyPracticeExam from "@/pages/agents/study/AgentStudyPracticeExam"
 import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
 import AgentAvatarCouncil from "@/pages/agents/AgentAvatarCouncil";
 import AgentLeadInbox from "@/pages/agents/AgentLeadInbox";
-import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentDataEncryption from "@/pages/agents/AgentDataEncryption";
+// Onboarding Lounge Pages
+import OnboardingDashboard from "@/pages/onboarding/OnboardingDashboard";
+import OnboardingDay1 from "@/pages/onboarding/OnboardingDay1";
+import OnboardingDay2 from "@/pages/onboarding/OnboardingDay2";
+import OnboardingDay3 from "@/pages/onboarding/OnboardingDay3";
+import OnboardingDay4 from "@/pages/onboarding/OnboardingDay4";
+import OnboardingDay5 from "@/pages/onboarding/OnboardingDay5";
+import OnboardingDay6 from "@/pages/onboarding/OnboardingDay6";
+import OnboardingDay7 from "@/pages/onboarding/OnboardingDay7";
+import OnboardingDays3to7 from "@/pages/onboarding/OnboardingDays3to7";
+import OnboardingDays8to30 from "@/pages/onboarding/OnboardingDays8to30";
+import OnboardingDays31to90 from "@/pages/onboarding/OnboardingDays31to90";
+import OnboardingDays91to180 from "@/pages/onboarding/OnboardingDays91to180";
+import OnboardingDays181to365 from "@/pages/onboarding/OnboardingDays181to365";
+import OnboardingHelp from "@/pages/onboarding/OnboardingHelp";
+import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentAutomations from "@/pages/agents/AgentAutomations";
+// Onboarding Study Resources
+import StudyFundamentals from "@/pages/onboarding/StudyFundamentals";
+import StudyPracticeExam from "@/pages/onboarding/StudyPracticeExam";
+import StudyFlashcards from "@/pages/onboarding/StudyFlashcards";
+import StudyCourse from "@/pages/onboarding/StudyCourse";
 import BookAppointment from "@/pages/BookAppointment";
 import AdminAvatarCouncil from "@/pages/admin/AdminAvatarCouncil";
 import AgentOps from "@/pages/admin/AgentOps";
@@ -321,7 +341,106 @@ function Router() {
             <AgentAutomations />
           </AgentProtectedRoute>
         </Route>
-        <Route path="/agents/onboarding" component={AgentOnboarding} />
+        <Route path="/agents/onboarding/resources">
+          <AgentProtectedRoute>
+            <AgentOnboarding />
+          </AgentProtectedRoute>
+        </Route>
+
+        {/* New Agent Onboarding Lounge Routes */}
+        <Route path="/agents/onboarding/lounge">
+          <AgentProtectedRoute>
+            <OnboardingDashboard />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-1">
+          <AgentProtectedRoute>
+            <OnboardingDay1 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-2">
+          <AgentProtectedRoute>
+            <OnboardingDay2 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-3">
+          <AgentProtectedRoute>
+            <OnboardingDay3 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-4">
+          <AgentProtectedRoute>
+            <OnboardingDay4 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-5">
+          <AgentProtectedRoute>
+            <OnboardingDay5 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-6">
+          <AgentProtectedRoute>
+            <OnboardingDay6 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/day-7">
+          <AgentProtectedRoute>
+            <OnboardingDay7 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/days-3-7">
+          <AgentProtectedRoute>
+            <OnboardingDays3to7 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/days-8-30">
+          <AgentProtectedRoute>
+            <OnboardingDays8to30 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/days-31-90">
+          <AgentProtectedRoute>
+            <OnboardingDays31to90 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/days-91-180">
+          <AgentProtectedRoute>
+            <OnboardingDays91to180 />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/days-181-365">
+          <AgentProtectedRoute>
+            <OnboardingDays181to365 />
+          </AgentProtectedRoute>
+        </Route>
+
+        {/* Onboarding Study Resources */}
+        <Route path="/agents/onboarding/study/fundamentals">
+          <AgentProtectedRoute>
+            <StudyFundamentals />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/study/practice-exam">
+          <AgentProtectedRoute>
+            <StudyPracticeExam />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/study/flashcards">
+          <AgentProtectedRoute>
+            <StudyFlashcards />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/study/course">
+          <AgentProtectedRoute>
+            <StudyCourse />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/onboarding/help">
+          <AgentProtectedRoute>
+            <OnboardingHelp />
+          </AgentProtectedRoute>
+        </Route>
+
         {/* Two-Factor Authentication Routes */}
         <Route path="/ai/2fa-setup" component={TwoFactorSetup} />
         <Route path="/ai/2fa-verify" component={TwoFactorVerify} />

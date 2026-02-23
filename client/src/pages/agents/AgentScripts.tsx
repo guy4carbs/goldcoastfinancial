@@ -29,11 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/agent/primitives";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Script {
   id: string;
@@ -193,18 +189,30 @@ export default function AgentScripts() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
-              <FileText className="w-6 h-6 text-white" aria-hidden="true" />
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+            padding: spacing(4)
+          }}
+        >
+          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
+          <div className="relative z-10 flex items-center gap-4">
+            <div
+              className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
+              style={{ borderRadius: RADIUS.card }}
+            >
+              <FileText className="w-7 h-7 text-white" aria-hidden="true" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Sales Scripts</h1>
-              <p className="text-sm text-gray-600">Proven scripts to help you close more deals</p>
+              <h1 className="text-2xl font-bold text-white">Sales Scripts</h1>
+              <p className="text-white/80 text-sm">Proven scripts to help you close more deals</p>
             </div>
           </div>
         </motion.div>
@@ -216,19 +224,32 @@ export default function AgentScripts() {
             { label: 'Favorites', value: stats.favorites, icon: Star, gradient: 'from-amber-400 to-orange-500' },
             { label: 'Avg Success', value: `${stats.avgSuccess}%`, icon: TrendingUp, gradient: 'from-emerald-400 to-green-500' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", stat.gradient)}>
-                    <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
+            <motion.div
+              key={stat.label}
+              variants={scaleIn}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card
+                className="border-0 transition-all"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", stat.gradient)}>
+                      <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
+                      <p className="text-xs text-gray-500">{stat.label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </motion.div>
 
@@ -267,7 +288,7 @@ export default function AgentScripts() {
         {/* Scripts List */}
         <motion.div variants={fadeInUp} className="space-y-4">
           {filteredScripts.length === 0 ? (
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardContent className="p-0">
                 {searchQuery || filterCategory !== 'all' ? (
                   <div className="text-center py-12">
@@ -298,73 +319,83 @@ export default function AgentScripts() {
               const CategoryIcon = category.icon;
               const isFav = favorites.has(script.id);
               return (
-                <Card
+                <motion.div
                   key={script.id}
-                  className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                  onClick={() => setSelectedScript(script)}
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)}>
-                        <CategoryIcon className="w-5 h-5 text-white" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-primary">{script.title}</h3>
-                          <Badge className={cn("text-[10px]", category.color)}>
-                            {category.label}
-                          </Badge>
+                  <Card
+                    className="border-0 transition-all cursor-pointer"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card
+                    }}
+                    onClick={() => setSelectedScript(script)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)}>
+                          <CategoryIcon className="w-5 h-5 text-white" aria-hidden="true" />
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{script.description}</p>
-                        <p className="text-xs text-gray-500 line-clamp-2 bg-gray-50 p-2 rounded">
-                          {script.content}
-                        </p>
-                        <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                            {script.successRate}% success
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
-                            {script.usageCount} uses
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" aria-hidden="true" />
-                            {formatRelativeLastUsed(script.lastUsed)}
-                          </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-primary">{script.title}</h3>
+                            <Badge className={cn("text-[10px]", category.color)}>
+                              {category.label}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{script.description}</p>
+                          <p className="text-xs text-gray-500 line-clamp-2 bg-gray-50 p-2 rounded">
+                            {script.content}
+                          </p>
+                          <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <TrendingUp className="w-3 h-3" aria-hidden="true" />
+                              {script.successRate}% success
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
+                              {script.usageCount} uses
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" aria-hidden="true" />
+                              {formatRelativeLastUsed(script.lastUsed)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(script.id);
+                            }}
+                            aria-label={isFav ? `Remove ${script.title} from favorites` : `Add ${script.title} to favorites`}
+                          >
+                            {isFav ? (
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            ) : (
+                              <StarOff className="w-4 h-4 text-gray-400" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopy(script.content, script.title);
+                            }}
+                            aria-label={`Copy ${script.title} to clipboard`}
+                          >
+                            <Copy className="w-4 h-4 text-gray-400" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(script.id);
-                          }}
-                          aria-label={isFav ? `Remove ${script.title} from favorites` : `Add ${script.title} to favorites`}
-                        >
-                          {isFav ? (
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          ) : (
-                            <StarOff className="w-4 h-4 text-gray-400" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopy(script.content, script.title);
-                          }}
-                          aria-label={`Copy ${script.title} to clipboard`}
-                        >
-                          <Copy className="w-4 h-4 text-gray-400" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               );
             })
           )}

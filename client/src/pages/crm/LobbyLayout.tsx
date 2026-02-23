@@ -9,6 +9,7 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, spacing } from '@/lib/heritageDesignSystem';
 import {
   Home,
   Users,
@@ -36,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedNotificationSystem } from "@/components/notifications/UnifiedNotificationSystem";
 import { UniversalSearch } from "@/components/search/UniversalSearch";
+import { AgentLoungeSelectorModal } from "@/components/agent/AgentLoungeSelectorModal";
 
 // =============================================================================
 // CONSTANTS
@@ -151,6 +153,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [agentSelectorOpen, setAgentSelectorOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every minute
@@ -196,9 +199,18 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
     <>
       {/* Logo */}
       <div className={cn("flex items-center gap-3 px-4 mb-6", sidebarCollapsed && "justify-center px-2")}>
-        <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+        <motion.div
+          whileHover={{ scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover }}
+          className="w-10 h-10 flex items-center justify-center"
+          style={{
+            background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 100%)`,
+            borderRadius: RADIUS.input,
+            boxShadow: SHADOW.level3,
+          }}
+        >
           <Leaf className="w-5 h-5 text-white" />
-        </div>
+        </motion.div>
         {!sidebarCollapsed && (
           <div>
             <p className="font-bold text-gray-900">Heritage</p>
@@ -210,7 +222,17 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
       {/* Welcome Card */}
       {!sidebarCollapsed && (
         <div className="px-4 mb-6">
-          <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-xl p-4 text-white shadow-lg">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            className="p-4 text-white"
+            style={{
+              background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 50%, ${COLORS.primary.purple[700]} 100%)`,
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.hero,
+            }}
+          >
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="w-4 h-4 text-amber-300" />
               <span className="text-sm font-medium">{greeting()}</span>
@@ -225,7 +247,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                 day: 'numeric',
               })}
             </p>
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -233,14 +255,29 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
       <div className="px-3 mb-4">
         <Link href="/crm">
           <motion.div
-            whileHover={{ x: 2 }}
+            whileHover={{
+              x: 4,
+              boxShadow: location !== '/crm' ? SHADOW.level2 : undefined,
+            }}
             whileTap={{ scale: 0.98 }}
+            transition={{
+              type: 'spring',
+              damping: MOTION.spring.damping,
+              stiffness: MOTION.spring.stiffness,
+            }}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all",
+              "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
               location === '/crm'
-                ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "text-white"
+                : "text-gray-600 hover:bg-indigo-50/80"
             )}
+            style={{
+              borderRadius: RADIUS.button,
+              ...(location === '/crm' && {
+                background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 100%)`,
+                boxShadow: SHADOW.level3,
+              }),
+            }}
             onClick={() => setMobileMenuOpen(false)}
           >
             <Home className="w-5 h-5 flex-shrink-0" />
@@ -258,50 +295,124 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
             Your Lounges
           </p>
         )}
-        <div className="space-y-1">
-          {accessibleLounges.map((lounge) => (
-            <Link key={lounge.id} href={lounge.href}>
-              <motion.div
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.98 }}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all",
-                  "text-gray-600 hover:bg-gray-100"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", lounge.color)}>
-                  <lounge.icon className="w-4 h-4" />
-                </div>
-                {!sidebarCollapsed && (
-                  <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
-                )}
-              </motion.div>
-            </Link>
-          ))}
-        </div>
+        <motion.div
+          className="space-y-1"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          {accessibleLounges.map((lounge, index) => {
+            // Special handling for Agent Lounge - open selector modal
+            if (lounge.id === 'agent') {
+              return (
+                <motion.div
+                  key={lounge.id}
+                  variants={fadeInUp}
+                  whileHover={{
+                    x: 4,
+                    y: MOTION.hover.y / 2,
+                    boxShadow: SHADOW.level2,
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{
+                    type: 'spring',
+                    damping: MOTION.spring.damping,
+                    stiffness: MOTION.spring.stiffness,
+                  }}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
+                    "text-gray-600 hover:bg-indigo-50/80"
+                  )}
+                  style={{ borderRadius: RADIUS.button }}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setAgentSelectorOpen(true);
+                  }}
+                >
+                  <div
+                    className={cn("w-8 h-8 flex items-center justify-center", lounge.color)}
+                    style={{ borderRadius: RADIUS.input }}
+                  >
+                    <lounge.icon className="w-4 h-4" />
+                  </div>
+                  {!sidebarCollapsed && (
+                    <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
+                  )}
+                </motion.div>
+              );
+            }
+
+            // Default: regular Link navigation for other lounges
+            return (
+              <Link key={lounge.id} href={lounge.href}>
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{
+                    x: 4,
+                    y: MOTION.hover.y / 2,
+                    boxShadow: SHADOW.level2,
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{
+                    type: 'spring',
+                    damping: MOTION.spring.damping,
+                    stiffness: MOTION.spring.stiffness,
+                  }}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
+                    "text-gray-600 hover:bg-indigo-50/80"
+                  )}
+                  style={{ borderRadius: RADIUS.button }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <div
+                    className={cn("w-8 h-8 flex items-center justify-center", lounge.color)}
+                    style={{ borderRadius: RADIUS.input }}
+                  >
+                    <lounge.icon className="w-4 h-4" />
+                  </div>
+                  {!sidebarCollapsed && (
+                    <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
+                  )}
+                </motion.div>
+              </Link>
+            );
+          })}
+        </motion.div>
 
       </nav>
 
       {/* Bottom Actions */}
       <div className="border-t border-gray-200 pt-4 px-3 mt-auto">
         <Link href="/crm/settings">
-          <div className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all",
-            sidebarCollapsed && "justify-center"
-          )}>
+          <motion.div
+            whileHover={{ x: 2, backgroundColor: COLORS.lounges.crm.light }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: MOTION.duration.hover }}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 cursor-pointer text-gray-500 hover:text-indigo-700 transition-colors",
+              sidebarCollapsed && "justify-center"
+            )}
+            style={{ borderRadius: RADIUS.input }}
+          >
             <Settings className="w-4 h-4" />
             {!sidebarCollapsed && <span className="text-sm">Settings</span>}
-          </div>
+          </motion.div>
         </Link>
         <Link href="/crm/help">
-          <div className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all",
-            sidebarCollapsed && "justify-center"
-          )}>
+          <motion.div
+            whileHover={{ x: 2, backgroundColor: COLORS.lounges.crm.light }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: MOTION.duration.hover }}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 cursor-pointer text-gray-500 hover:text-indigo-700 transition-colors",
+              sidebarCollapsed && "justify-center"
+            )}
+            style={{ borderRadius: RADIUS.input }}
+          >
             <HelpCircle className="w-4 h-4" />
             {!sidebarCollapsed && <span className="text-sm">Help</span>}
-          </div>
+          </motion.div>
         </Link>
       </div>
     </>
@@ -316,26 +427,34 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
       {/* Universal Search Modal */}
       <UniversalSearch open={searchOpen} onOpenChange={setSearchOpen} />
 
+      {/* Agent Lounge Selector Modal */}
+      <AgentLoungeSelectorModal open={agentSelectorOpen} onOpenChange={setAgentSelectorOpen} />
+
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: MOTION.duration.expand, ease: MOTION.easingCSS }}
         className="hidden lg:flex flex-col bg-white/80 backdrop-blur-sm border-r border-gray-200/60 py-6 fixed h-screen z-30"
+        style={{ boxShadow: SHADOW.level1 }}
       >
         <SidebarContent />
 
         {/* Collapse Toggle */}
-        <button
+        <motion.button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
+          whileHover={{ scale: 1.1, boxShadow: SHADOW.level3 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: MOTION.duration.hover }}
+          className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center transition-colors hover:bg-indigo-50 hover:border-indigo-200"
+          style={{ boxShadow: SHADOW.level2 }}
         >
           {sidebarCollapsed ? (
             <ChevronRight className="w-3 h-3 text-gray-600" />
           ) : (
             <ChevronLeft className="w-3 h-3 text-gray-600" />
           )}
-        </button>
+        </motion.button>
       </motion.aside>
 
       {/* Mobile Sidebar Overlay */}
@@ -353,8 +472,13 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              transition={{
+                type: MOTION.spring.type,
+                damping: MOTION.spring.damping,
+                stiffness: MOTION.spring.stiffness,
+              }}
               className="lg:hidden fixed left-0 top-0 bottom-0 w-[280px] bg-white py-6 flex flex-col z-50"
+              style={{ boxShadow: SHADOW.hero }}
             >
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -385,16 +509,20 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                 <Menu className="w-5 h-5 text-gray-600" />
               </button>
 
-              <button
+              <motion.button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100/80 rounded-xl text-gray-500 hover:bg-gray-200/80 transition-colors"
+                whileHover={{ scale: 1.02, boxShadow: SHADOW.level2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: MOTION.duration.hover }}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100/80 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <Search className="w-4 h-4" />
                 <span className="hidden sm:inline text-sm">Search anything...</span>
                 <kbd className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium bg-white rounded border border-gray-300">
                   <span>⌘</span>K
                 </kbd>
-              </button>
+              </motion.button>
             </div>
 
             {/* Right: Notifications + User */}
@@ -410,9 +538,18 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                     {user?.role?.replace('_', ' ') || 'Guest'}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold shadow-md">
+                <motion.div
+                  whileHover={{ scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                  className="w-10 h-10 flex items-center justify-center text-white font-bold"
+                  style={{
+                    borderRadius: RADIUS.input,
+                    background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 100%)`,
+                    boxShadow: SHADOW.level3,
+                  }}
+                >
                   {user?.displayName?.charAt(0) || user?.email?.charAt(0) || '?'}
-                </div>
+                </motion.div>
               </div>
 
               <Button
@@ -434,32 +571,71 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
       </div>
 
       {/* Mobile Bottom Navigation - Just lounges */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 z-30">
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 z-30"
+        style={{ boxShadow: SHADOW.level2 }}
+      >
         <div className="flex items-center justify-around py-2">
           <Link href="/crm">
-            <div className={cn(
-              "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors",
-              location === '/crm' ? "text-indigo-600" : "text-gray-500"
-            )}>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y / 2 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: MOTION.duration.hover }}
+              className={cn(
+                "flex flex-col items-center gap-1 px-3 py-2 transition-colors",
+                location === '/crm' ? "text-indigo-600" : "text-gray-500"
+              )}
+              style={{ borderRadius: RADIUS.input }}
+            >
               <Home className="w-5 h-5" />
               <span className="text-[10px] font-medium">Lobby</span>
-            </div>
+            </motion.div>
           </Link>
-          {accessibleLounges.slice(0, 3).map((lounge) => (
-            <Link key={lounge.id} href={lounge.href}>
-              <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors text-gray-500">
-                <lounge.icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium">{lounge.label.split(' ')[0]}</span>
-              </div>
-            </Link>
-          ))}
-          <button
+          {accessibleLounges.slice(0, 3).map((lounge) => {
+            // Special handling for Agent Lounge in mobile nav
+            if (lounge.id === 'agent') {
+              return (
+                <motion.div
+                  key={lounge.id}
+                  whileHover={{ y: MOTION.hover.y / 2 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: MOTION.duration.hover }}
+                  className="flex flex-col items-center gap-1 px-3 py-2 transition-colors text-gray-500 hover:text-indigo-600 cursor-pointer"
+                  style={{ borderRadius: RADIUS.input }}
+                  onClick={() => setAgentSelectorOpen(true)}
+                >
+                  <lounge.icon className="w-5 h-5" />
+                  <span className="text-[10px] font-medium">{lounge.label.split(' ')[0]}</span>
+                </motion.div>
+              );
+            }
+
+            return (
+              <Link key={lounge.id} href={lounge.href}>
+                <motion.div
+                  whileHover={{ y: MOTION.hover.y / 2 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: MOTION.duration.hover }}
+                  className="flex flex-col items-center gap-1 px-3 py-2 transition-colors text-gray-500 hover:text-indigo-600"
+                  style={{ borderRadius: RADIUS.input }}
+                >
+                  <lounge.icon className="w-5 h-5" />
+                  <span className="text-[10px] font-medium">{lounge.label.split(' ')[0]}</span>
+                </motion.div>
+              </Link>
+            );
+          })}
+          <motion.button
             onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors text-gray-500"
+            whileHover={{ y: MOTION.hover.y / 2 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: MOTION.duration.hover }}
+            className="flex flex-col items-center gap-1 px-3 py-2 transition-colors text-gray-500 hover:text-indigo-600"
+            style={{ borderRadius: RADIUS.input }}
           >
             <Menu className="w-5 h-5" />
             <span className="text-[10px] font-medium">More</span>
-          </button>
+          </motion.button>
         </div>
       </nav>
     </div>

@@ -35,6 +35,10 @@ export const users = pgTable("users", {
   twoFactorSecret: varchar("two_factor_secret", { length: 255 }),
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
 
+  // OAuth / Social Login
+  appleId: varchar("apple_id", { length: 255 }),
+  googleId: varchar("google_id", { length: 255 }),
+
   // Profile & Preferences
   avatarUrl: varchar("avatar_url", { length: 500 }),
   timezone: varchar("timezone", { length: 100 }).default("America/Chicago"),

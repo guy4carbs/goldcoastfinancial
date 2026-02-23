@@ -5,6 +5,10 @@ import React from "react";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
 import { useCelebration } from "@/lib/celebrationContext";
+import {
+  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
+  fadeInUp, staggerContainer, staggerFast
+} from '@/lib/heritageDesignSystem';
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { DailyChallenge } from "@/components/agent/DailyChallenge";
 import { ActivityFeed } from "@/components/agent/ActivityFeed";
@@ -45,16 +49,6 @@ import {
   Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
 
 // Generate upcoming events relative to today so they never go stale
 function getUpcomingEvents() {
@@ -253,17 +247,20 @@ export default function AgentDashboard() {
       >
         {/* Command Center Banner */}
         <motion.div variants={fadeInUp}>
-          <Card className={cn(
-            "border-0 overflow-hidden shadow-xl",
-            directive.urgency === 'critical'
-              ? "bg-gradient-to-r from-red-600 via-rose-600 to-pink-600"
-              : "bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700"
-          )}>
+          <Card
+            className={cn(
+              "border-0 overflow-hidden",
+              directive.urgency === 'critical'
+                ? "bg-gradient-to-r from-red-600 via-rose-600 to-pink-600"
+                : "bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700"
+            )}
+            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+          >
             {/* Background decorations */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
-            <CardContent className="p-6 lg:p-8 relative">
+            <CardContent className="relative" style={{ padding: GRID.spacing.xl }}>
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 {/* Left: Command Directive */}
                 <div className="flex-1">
@@ -281,10 +278,10 @@ export default function AgentDashboard() {
                     </div>
                   </div>
 
-                  <h1 className="text-3xl lg:text-5xl font-black text-white tracking-tight mb-2">
+                  <h1 className="font-black text-white tracking-tight mb-2" style={{ fontSize: TYPE.hero }}>
                     {directive.main}
                   </h1>
-                  <p className="text-indigo-100 text-lg font-medium">
+                  <p className="text-indigo-100 font-medium" style={{ fontSize: TYPE.body }}>
                     {directive.sub}
                   </p>
 
@@ -361,8 +358,12 @@ export default function AgentDashboard() {
         {/* Enhanced KPI Cards with Trends & Coaching */}
         <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Calls Card */}
-          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
-            <CardContent className="p-4">
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+              <CardContent style={{ padding: GRID.spacing.sm }}>
               <div className="flex items-start justify-between mb-2">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
                   <Phone className="w-5 h-5 text-white" />
@@ -390,12 +391,17 @@ export default function AgentDashboard() {
                   />
                 ))}
               </div>
-                          </CardContent>
+            </CardContent>
           </Card>
+          </motion.div>
 
           {/* Closes Card */}
-          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
-            <CardContent className="p-4">
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+              <CardContent style={{ padding: GRID.spacing.sm }}>
               <div className="flex items-start justify-between mb-2">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
                   <Target className="w-5 h-5 text-white" />
@@ -423,12 +429,17 @@ export default function AgentDashboard() {
                   />
                 ))}
               </div>
-                          </CardContent>
+            </CardContent>
           </Card>
+          </motion.div>
 
           {/* Conversion Rate Card */}
-          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
-            <CardContent className="p-4">
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+              <CardContent style={{ padding: GRID.spacing.sm }}>
               <div className="flex items-start justify-between mb-2">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
                   <BarChart3 className="w-5 h-5 text-white" />
@@ -454,12 +465,17 @@ export default function AgentDashboard() {
                   style={{ width: `${Math.min(performance.conversionRate * 5, 100)}%` }}
                 />
               </div>
-                          </CardContent>
+            </CardContent>
           </Card>
+          </motion.div>
 
           {/* Earnings Card */}
-          <Card className="hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden border-0 shadow-md">
-            <CardContent className="p-4">
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+              <CardContent style={{ padding: GRID.spacing.sm }}>
               <div className="flex items-start justify-between mb-2">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
                   <DollarSign className="w-5 h-5 text-white" />
@@ -480,8 +496,9 @@ export default function AgentDashboard() {
                   <span className="text-[9px] font-semibold text-amber-700">${pendingEarnings.toLocaleString()} pending</span>
                 </div>
               </div>
-                          </CardContent>
+            </CardContent>
           </Card>
+          </motion.div>
         </motion.div>
 
         {/* Main Content Grid */}
@@ -495,10 +512,10 @@ export default function AgentDashboard() {
 
             {/* Pipeline Snapshot */}
             <motion.div variants={fadeInUp}>
-              <Card className="border-0 shadow-md overflow-hidden">
+              <Card className="border-0 overflow-hidden" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3 bg-gradient-to-r from-violet-50 to-purple-50">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                         <Users className="w-4 h-4 text-white" />
                       </div>
@@ -563,10 +580,10 @@ export default function AgentDashboard() {
 
             {/* Priority Tasks */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md">
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       </div>
@@ -634,9 +651,9 @@ export default function AgentDashboard() {
 
             {/* Recent Activity */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
                       <Zap className="w-4 h-4 text-white" />
                     </div>
@@ -654,14 +671,14 @@ export default function AgentDashboard() {
           <div className="space-y-6">
             {/* Leaderboard Preview */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 p-4">
+              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500" style={{ padding: GRID.spacing.sm }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
                         <Trophy className="w-5 h-5 text-white" />
                       </div>
-                      <span className="text-lg font-bold text-white">Leaderboard</span>
+                      <span className="font-bold text-white" style={{ fontSize: TYPE.title }}>Leaderboard</span>
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => setShowLeaderboard(true)} className="text-white hover:bg-white/20">
                       View All
@@ -713,10 +730,10 @@ export default function AgentDashboard() {
 
             {/* Announcements */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-md">
                         <Bell className="w-4 h-4 text-white" />
                       </div>
@@ -762,10 +779,10 @@ export default function AgentDashboard() {
 
             {/* Upcoming Events */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-md">
                         <Calendar className="w-4 h-4 text-white" />
                       </div>
@@ -802,12 +819,12 @@ export default function AgentDashboard() {
 
             {/* Earnings Summary */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-xl relative">
+              <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600" />
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
                 <CardHeader className="pb-3 relative z-10">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2 text-white">
+                  <CardTitle className="font-semibold flex items-center gap-2 text-white" style={{ fontSize: TYPE.title }}>
                     <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
                       <DollarSign className="w-4 h-4 text-white" />
                     </div>
@@ -840,8 +857,8 @@ export default function AgentDashboard() {
 
             {/* Need Help */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardContent className="p-4">
+              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent style={{ padding: GRID.spacing.sm }}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md">
                       <Phone className="w-4 h-4 text-white" />

@@ -27,6 +27,7 @@ import { LeadInboxCard } from "@/components/agent/LeadInboxCard";
 import { LeadDetailDrawer } from "@/components/agent/LeadDetailDrawer";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { EnhancedActivityModal } from "@/components/agent/EnhancedActivityModal";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface InboxSection {
   id: string;
@@ -216,34 +217,57 @@ export default function AgentLeadInbox() {
   return (
     <AgentLoungeLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
-                <Inbox className="w-5 h-5 text-white" />
-              </div>
-              Lead Inbox
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {totalLeadsCount} active leads requiring action
-            </p>
-          </div>
+        {/* Header - Hero Card */}
+        <motion.div
+          variants={scaleIn}
+          initial="hidden"
+          animate="visible"
+          className="p-6 text-white"
+          style={{
+            background: `linear-gradient(135deg, ${COLORS.lounges.agent.main} 0%, ${COLORS.primary.purple[600]} 50%, ${COLORS.lounges.agent.dark} 100%)`,
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+          }}
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Inbox className="w-5 h-5 text-white" />
+                </div>
+                Lead Inbox
+              </h1>
+              <p className="text-sm text-white/80 mt-1">
+                {totalLeadsCount} active leads requiring action
+              </p>
+            </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={() => setAddLeadOpen(true)} className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 border-0 shadow-md">
-            <UserPlus className="w-4 h-4" />
-            Add Lead
-          </Button>
-        </div>
-      </div>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setAddLeadOpen(true)}
+                className="gap-2 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <UserPlus className="w-4 h-4" />
+                Add Lead
+              </Button>
+            </div>
+          </div>
+        </motion.div>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          className={`p-4 rounded-[${RADIUS.card}px] bg-white hover:shadow-xl transition-all`}
+          style={{ boxShadow: SHADOW.card, borderRadius: RADIUS.card }}
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-md", overdueCount > 0 ? "bg-gradient-to-br from-red-400 to-rose-500" : "bg-gradient-to-br from-green-400 to-emerald-500")}>
@@ -257,10 +281,11 @@ export default function AgentLeadInbox() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          className="p-4 bg-white hover:shadow-xl transition-all"
+          style={{ boxShadow: SHADOW.card, borderRadius: RADIUS.card }}
         >
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
@@ -272,10 +297,11 @@ export default function AgentLeadInbox() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          className="p-4 bg-white hover:shadow-xl transition-all"
+          style={{ boxShadow: SHADOW.card, borderRadius: RADIUS.card }}
         >
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
@@ -287,10 +313,11 @@ export default function AgentLeadInbox() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="p-4 rounded-xl shadow-lg border-0 bg-white hover:shadow-xl transition-all"
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          className="p-4 bg-white hover:shadow-xl transition-all"
+          style={{ boxShadow: SHADOW.card, borderRadius: RADIUS.card }}
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-md", categorizedLeads['no-followup'].length > 0 ? "bg-gradient-to-br from-gray-400 to-slate-500" : "bg-gradient-to-br from-green-400 to-emerald-500")}>
@@ -309,7 +336,7 @@ export default function AgentLeadInbox() {
             {categorizedLeads['no-followup'].length}
           </p>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Search & Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -350,12 +377,16 @@ export default function AgentLeadInbox() {
               onOpenChange={() => toggleSection(section.id)}
             >
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                 className={cn(
-                  "rounded-xl border-2 overflow-hidden",
+                  "border-2 overflow-hidden",
                   section.borderColor
                 )}
+                style={{ borderRadius: RADIUS.card }}
               >
                 <CollapsibleTrigger asChild>
                   <button

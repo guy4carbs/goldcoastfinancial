@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import type { LucideIcon } from "lucide-react";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 type AchievementCategory = 'sales' | 'onboarding' | 'consistency' | 'referral' | 'revenue' | 'calls' | 'level' | 'satisfaction';
 type FilterKey = 'all' | 'unlocked' | 'in_progress' | 'locked';
@@ -38,14 +39,7 @@ interface DisplayAchievement {
   locked?: boolean;
 }
 
-const FADE_IN_UP = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
-const STAGGER_CHILDREN = {
-  visible: { transition: { staggerChildren: 0.1 } }
-};
+// Using Heritage Design System animations: fadeInUp, staggerContainer, scaleIn
 
 const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -120,53 +114,59 @@ export default function AgentAchievements() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={STAGGER_CHILDREN}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={FADE_IN_UP}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-              <Trophy className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Achievements</h1>
-              <p className="text-sm text-gray-500">Track your milestones and rewards</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Quick Stats */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-8">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-emerald-600">{unlockedCount}</p>
-                  <p className="text-xs text-gray-500">Unlocked</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">{inProgressCount}</p>
-                  <p className="text-xs text-gray-500">In Progress</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-400">{lockedCount}</p>
-                  <p className="text-xs text-gray-500">Locked</p>
-                </div>
+        {/* Hero Card with Violet Gradient */}
+        <motion.div variants={fadeInUp}>
+          <motion.div
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+            <div className="flex items-center gap-4">
+              <div
+                className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                style={{ borderRadius: RADIUS.card }}
+              >
+                <Trophy className="w-7 h-7 text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h1 className="text-2xl font-bold" style={{ fontSize: TYPE.section }}>Achievements</h1>
+                <p className="text-white/80 mt-1" style={{ fontSize: TYPE.meta }}>Track your milestones and rewards</p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold">{unlockedCount}</p>
+                <p className="text-white/70 text-sm">Unlocked</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold">{inProgressCount}</p>
+                <p className="text-white/70 text-sm">In Progress</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-white/60">{lockedCount}</p>
+                <p className="text-white/70 text-sm">Locked</p>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
 
         {/* Filters */}
-        <motion.div variants={FADE_IN_UP} className="flex gap-2">
+        <motion.div variants={fadeInUp} className="flex gap-2 flex-wrap">
           {FILTER_OPTIONS.map((option) => (
             <Button
               key={option.key}
               variant={filter === option.key ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter(option.key)}
-              className={filter === option.key ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-0 shadow-md' : ''}
+              className={filter === option.key ? 'bg-gradient-to-r from-violet-600 to-purple-600 border-0 shadow-md' : ''}
+              style={{ borderRadius: RADIUS.button }}
             >
               {option.label}
             </Button>
@@ -175,8 +175,8 @@ export default function AgentAchievements() {
 
         {/* Empty State */}
         {filteredAchievements.length === 0 && (
-          <motion.div variants={FADE_IN_UP}>
-            <Card className="border-dashed">
+          <motion.div variants={fadeInUp}>
+            <Card className="border-dashed" style={{ borderRadius: RADIUS.card }}>
               <CardContent className="py-12 text-center">
                 <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 font-medium">No achievements found</p>
@@ -197,54 +197,72 @@ export default function AgentAchievements() {
 
         {/* Achievements Grid */}
         {filteredAchievements.length > 0 && (
-          <motion.div variants={FADE_IN_UP}>
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredAchievements.map((achievement) => {
+          <motion.div variants={fadeInUp}>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAchievements.map((achievement, index) => {
                 const Icon = achievement.icon;
                 const isInProgress = !achievement.unlocked && !achievement.locked && achievement.progress !== undefined;
                 const progressPercent = isInProgress ? Math.round((achievement.progress! / achievement.target!) * 100) : 0;
 
                 return (
-                  <li key={achievement.id}>
-                    <Card className={cn(
-                      "border-0 shadow-md hover:shadow-lg transition-all h-full",
-                      achievement.locked && "opacity-50"
-                    )}>
-                      <CardContent className="p-3">
-                        <div className="flex items-start gap-3">
-                          <div className={cn(
-                            "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
-                            achievement.unlocked ? "bg-gradient-to-br from-emerald-400 to-green-500 text-white" :
-                            achievement.locked ? "bg-gray-100 text-gray-400" : "bg-violet-100 text-violet-600"
-                          )}>
-                            {achievement.locked ? (
-                              <Lock className="w-5 h-5" />
-                            ) : (
-                              <Icon className="w-5 h-5" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-sm text-gray-900 truncate">{achievement.title}</h3>
-                            <p className="text-xs text-gray-500 line-clamp-2">{achievement.description}</p>
+                  <motion.li
+                    key={achievement.id}
+                    variants={scaleIn}
+                    custom={index}
+                  >
+                    <motion.div
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
+                    >
+                      <Card
+                        className={cn(
+                          "border-0 h-full",
+                          achievement.locked && "opacity-50"
+                        )}
+                        style={{
+                          borderRadius: RADIUS.card,
+                          boxShadow: SHADOW.card,
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={cn(
+                                "w-12 h-12 flex items-center justify-center flex-shrink-0",
+                                achievement.unlocked ? "bg-gradient-to-br from-emerald-400 to-green-500 text-white" :
+                                achievement.locked ? "bg-gray-100 text-gray-400" : "bg-violet-100 text-violet-600"
+                              )}
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              {achievement.locked ? (
+                                <Lock className="w-5 h-5" />
+                              ) : (
+                                <Icon className="w-5 h-5" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 truncate" style={{ fontSize: TYPE.meta }}>{achievement.title}</h3>
+                              <p className="text-gray-500 line-clamp-2 mt-1" style={{ fontSize: TYPE.caption }}>{achievement.description}</p>
 
-                            {isInProgress && (
-                              <div className="mt-2">
-                                <Progress value={progressPercent} className="h-1.5" />
-                                <p className="text-[10px] text-gray-400 mt-0.5">{progressPercent}% complete</p>
-                              </div>
-                            )}
+                              {isInProgress && (
+                                <div className="mt-3">
+                                  <Progress value={progressPercent} className="h-2" />
+                                  <p className="text-gray-400 mt-1" style={{ fontSize: TYPE.micro }}>{progressPercent}% complete</p>
+                                </div>
+                              )}
 
-                            {achievement.unlocked && (
-                              <p className="text-[10px] text-emerald-600 mt-1 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Unlocked {achievement.unlockedDate && `on ${achievement.unlockedDate}`}
-                              </p>
-                            )}
+                              {achievement.unlocked && (
+                                <p className="text-emerald-600 mt-2 flex items-center gap-1" style={{ fontSize: TYPE.micro }}>
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Unlocked {achievement.unlockedDate && `on ${achievement.unlockedDate}`}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </li>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </motion.li>
                 );
               })}
             </ul>

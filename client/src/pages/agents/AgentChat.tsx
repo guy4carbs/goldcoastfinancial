@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DemoBadge } from "@/components/agent/primitives";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Import Social Learning Components
 import {
@@ -653,10 +654,17 @@ export default function AgentChat() {
             {studyGroups.map((group) => (
               <motion.div
                 key={group.id}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={scaleIn}
+                initial="hidden"
+                animate="visible"
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: group.isJoined ? SHADOW.level2 : SHADOW.level1,
+                }}
                 className={cn(
-                  "p-3 rounded-lg border transition-colors cursor-pointer",
+                  "p-3 border transition-colors cursor-pointer",
                   group.isJoined
                     ? "border-primary/30 bg-primary/5"
                     : "border-gray-200 hover:border-gray-300"
@@ -730,7 +738,55 @@ export default function AgentChat() {
 
   return (
     <AgentLoungeLayout>
-      <div className="h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)] flex gap-0 -m-4 lg:-m-6">
+      {/* Hero Card - Agent Lounge Theme */}
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="mb-6"
+      >
+        <motion.div
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover }}
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+            background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 50%, ${COLORS.primary.violet[700]} 100%)`,
+            padding: spacing(4),
+          }}
+          className="text-white"
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center"
+              style={{ boxShadow: SHADOW.level2 }}
+            >
+              <MessageSquare className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1
+                className="font-bold text-white"
+                style={{ fontSize: TYPE.section, lineHeight: TYPE.lineHeight }}
+              >
+                Agent Chat
+              </h1>
+              <p
+                className="text-white/80"
+                style={{ fontSize: TYPE.meta }}
+              >
+                Connect with your team, share insights, and collaborate in real-time
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="h-[calc(100vh-14rem)] lg:h-[calc(100vh-12rem)] flex gap-0 -mx-4 lg:-mx-6"
+      >
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
           {mobileSidebarOpen && (
@@ -753,7 +809,14 @@ export default function AgentChat() {
               >
                 <div className="p-3 border-b border-gray-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-sm">
+                    <div
+                      className="w-7 h-7 flex items-center justify-center"
+                      style={{
+                        borderRadius: RADIUS.input,
+                        background: `linear-gradient(135deg, ${COLORS.primary.violet[400]} 0%, ${COLORS.primary.purple[500]} 100%)`,
+                        boxShadow: SHADOW.level1,
+                      }}
+                    >
                       <MessageSquare className="w-4 h-4 text-white" aria-hidden="true" />
                     </div>
                     <span className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Chat</span>
@@ -777,12 +840,23 @@ export default function AgentChat() {
 
         {/* Desktop Sidebar */}
         {/* #89: Responsive sidebar width - narrower on tablets */}
-        <div className="hidden lg:flex lg:w-64 xl:w-72 flex-col bg-white border-r border-gray-200">
+        <motion.div
+          variants={fadeInUp}
+          className="hidden lg:flex lg:w-64 xl:w-72 flex-col bg-white border-r border-gray-200"
+          style={{ borderRadius: `${RADIUS.card}px 0 0 ${RADIUS.card}px` }}
+        >
           <SidebarContent />
-        </div>
+        </motion.div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-white">
+        <motion.div
+          variants={fadeInUp}
+          className="flex-1 flex flex-col bg-white"
+          style={{
+            borderRadius: `0 ${RADIUS.card}px ${RADIUS.card}px 0`,
+            boxShadow: SHADOW.card,
+          }}
+        >
           {/* Chat Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
             <div className="flex items-center gap-3">
@@ -797,7 +871,14 @@ export default function AgentChat() {
                 <Menu className="w-5 h-5" aria-hidden="true" />
               </Button>
               {selectedChannel.type === 'channel' ? (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                <div
+                  className="w-10 h-10 flex items-center justify-center"
+                  style={{
+                    borderRadius: RADIUS.button,
+                    background: `linear-gradient(135deg, ${COLORS.primary.violet[400]} 0%, ${COLORS.primary.purple[500]} 100%)`,
+                    boxShadow: SHADOW.level2,
+                  }}
+                >
                   <Hash className="w-5 h-5 text-white" aria-hidden="true" />
                 </div>
               ) : (
@@ -892,9 +973,10 @@ export default function AgentChat() {
               {filteredMessages.map((message, idx) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+                  variants={fadeInUp}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ delay: idx * 0.05, duration: MOTION.duration.normal, ease: MOTION.easing }}
                   className={cn(
                     "group flex gap-3",
                     message.isOwn && "flex-row-reverse"
@@ -1144,8 +1226,8 @@ export default function AgentChat() {
               </Button>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </AgentLoungeLayout>
   );
 }

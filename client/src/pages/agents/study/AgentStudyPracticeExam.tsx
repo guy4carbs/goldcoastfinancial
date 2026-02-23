@@ -51,11 +51,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Question {
   id: string;
@@ -511,86 +507,110 @@ export default function AgentStudyPracticeExam() {
         <motion.div
           initial="hidden"
           animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+          variants={staggerContainer}
           className="space-y-6 pb-20 lg:pb-0"
         >
-          {/* Header */}
+          {/* Hero Card */}
           <motion.div variants={fadeInUp}>
-            <div className="flex items-center gap-4 mb-4">
-              <Link href="/agents/getting-started">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-              <div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                  <Target className="w-4 h-4" />
-                  <span>Heritage Life</span>
-                  <Badge className="bg-green-100 text-green-700">Free</Badge>
+            <Card
+              className="border-0 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white overflow-hidden"
+              style={{
+                borderRadius: RADIUS.hero,
+                boxShadow: SHADOW.hero
+              }}
+            >
+              <CardContent className="p-8">
+                <div className="flex items-center gap-4">
+                  <Link href="/agents/getting-started">
+                    <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10">
+                      <ArrowLeft className="w-5 h-5" />
+                    </Button>
+                  </Link>
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-white/80 mb-1">
+                      <Target className="w-4 h-4" />
+                      <span>Heritage Life</span>
+                      <Badge className="bg-white/20 text-white border-0">Free</Badge>
+                    </div>
+                    <h1 className="text-2xl font-bold text-white">Practice Exam Simulator</h1>
+                    <p className="text-white/80 mt-1">Master your insurance knowledge with realistic exam practice</p>
+                  </div>
                 </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Practice Exam Simulator</h1>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           {/* Stats */}
           <motion.div variants={fadeInUp}>
             <div className="grid sm:grid-cols-4 gap-4">
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{EXAM_QUESTIONS.length}</p>
-                  <p className="text-xs text-gray-500">Total Questions</p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">6</p>
-                  <p className="text-xs text-gray-500">Categories</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="flex items-center justify-center gap-1 text-amber-500">
-                    <Star className="w-5 h-5 fill-current" />
-                    <span className="text-3xl font-bold">4.9</span>
-                  </div>
-                  <p className="text-xs text-gray-500">Rating</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-violet-600">890</p>
-                  <p className="text-xs text-gray-500">Enrolled</p>
-                </CardContent>
-              </Card>
+              <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}>
+                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{EXAM_QUESTIONS.length}</p>
+                    <p className="text-xs text-gray-500">Total Questions</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}>
+                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">6</p>
+                    <p className="text-xs text-gray-500">Categories</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}>
+                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardContent className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-1 text-amber-500">
+                      <Star className="w-5 h-5 fill-current" />
+                      <span className="text-3xl font-bold">4.9</span>
+                    </div>
+                    <p className="text-xs text-gray-500">Rating</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}>
+                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-3xl font-bold text-violet-600">890</p>
+                    <p className="text-xs text-gray-500">Enrolled</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
           </motion.div>
 
           {/* Exam Modes */}
           <motion.div variants={fadeInUp}>
-            <Card>
+            <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader>
                 <CardTitle>Select Exam Mode</CardTitle>
                 <CardDescription>Choose how you want to practice</CardDescription>
               </CardHeader>
               <CardContent className="grid md:grid-cols-3 gap-4">
                 {EXAM_MODES.map(mode => (
-                  <Card
+                  <motion.div
                     key={mode.id}
-                    className={cn(
-                      "cursor-pointer hover:border-violet-300 hover:shadow-md transition-all",
-                      examMode === mode.id && "border-violet-500 bg-violet-50"
-                    )}
-                    onClick={() => setExamMode(mode.id)}
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   >
-                    <CardContent className="p-4 text-center">
-                      {mode.id === 'practice' && <BookOpen className="w-10 h-10 text-green-500 mx-auto mb-3" />}
-                      {mode.id === 'timed' && <Timer className="w-10 h-10 text-red-500 mx-auto mb-3" />}
-                      {mode.id === 'quick' && <Shuffle className="w-10 h-10 text-blue-500 mx-auto mb-3" />}
-                      <h3 className="font-semibold">{mode.label}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{mode.description}</p>
-                    </CardContent>
-                  </Card>
+                    <Card
+                      className={cn(
+                        "cursor-pointer hover:border-violet-300 transition-all h-full",
+                        examMode === mode.id && "border-violet-500 bg-violet-50"
+                      )}
+                      style={{ borderRadius: RADIUS.card }}
+                      onClick={() => setExamMode(mode.id)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        {mode.id === 'practice' && <BookOpen className="w-10 h-10 text-green-500 mx-auto mb-3" />}
+                        {mode.id === 'timed' && <Timer className="w-10 h-10 text-red-500 mx-auto mb-3" />}
+                        {mode.id === 'quick' && <Shuffle className="w-10 h-10 text-blue-500 mx-auto mb-3" />}
+                        <h3 className="font-semibold">{mode.label}</h3>
+                        <p className="text-sm text-gray-500 mt-1">{mode.description}</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </CardContent>
             </Card>
@@ -611,17 +631,17 @@ export default function AgentStudyPracticeExam() {
 
           {/* Tips */}
           <motion.div variants={fadeInUp}>
-            <Card className="bg-amber-50 border-amber-200">
+            <Card className="bg-amber-50 border-amber-200" style={{ borderRadius: RADIUS.card }}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <Lightbulb className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-medium text-amber-800">Exam Tips</h4>
                     <ul className="text-sm text-amber-700 mt-2 space-y-1">
-                      <li>• Read each question carefully before selecting an answer</li>
-                      <li>• Flag difficult questions to review later</li>
-                      <li>• The real exam typically requires 70% to pass</li>
-                      <li>• Practice under timed conditions when you feel ready</li>
+                      <li>Read each question carefully before selecting an answer</li>
+                      <li>Flag difficult questions to review later</li>
+                      <li>The real exam typically requires 70% to pass</li>
+                      <li>Practice under timed conditions when you feel ready</li>
                     </ul>
                   </div>
                 </div>
@@ -685,7 +705,7 @@ export default function AgentStudyPracticeExam() {
         </div>
 
         {/* Progress */}
-        <Card>
+        <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
           <CardContent className="p-3">
             <div className="flex items-center justify-between text-sm mb-2">
               <span>Progress: {score.answered}/{questions.length} answered</span>
@@ -697,7 +717,7 @@ export default function AgentStudyPracticeExam() {
 
         {/* Question */}
         {currentQuestion && (
-          <Card>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <Badge className={cn(

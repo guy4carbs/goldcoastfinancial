@@ -1,10 +1,12 @@
 /**
  * Segments & Tags
  * Organize leads with tags and smart segments
+ * Updated with Heritage Design System
  */
 
 import { useState } from 'react';
 import { useLocation } from 'wouter';
+import { motion } from 'framer-motion';
 import { CRMLoungeLayout } from './CRMLoungeLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,6 +51,10 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
+  fadeInUp, staggerContainer, scaleIn
+} from '@/lib/heritageDesignSystem';
 
 // =============================================================================
 // TYPES
@@ -163,40 +169,47 @@ function SegmentCard({
   };
 
   return (
-    <Card
-      className={cn(
-        "cursor-pointer transition-all",
-        colorMap[segment.color] || colorMap.gray,
-        isSelected && "ring-2 ring-violet-500"
-      )}
-      onClick={onClick}
+    <motion.div
+      variants={scaleIn}
+      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+      transition={{ duration: MOTION.duration.hover }}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center",
-              `bg-${segment.color}-100`
-            )}>
-              <SegmentIcon
-                icon={segment.icon}
-                className={cn("w-5 h-5", iconColorMap[segment.color] || iconColorMap.gray)}
-              />
+      <Card
+        className={cn(
+          "cursor-pointer transition-all",
+          colorMap[segment.color] || colorMap.gray,
+          isSelected && "ring-2 ring-indigo-500"
+        )}
+        onClick={onClick}
+        style={{ borderRadius: RADIUS.card }}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-10 h-10 rounded-lg flex items-center justify-center",
+                `bg-${segment.color}-100`
+              )}>
+                <SegmentIcon
+                  icon={segment.icon}
+                  className={cn("w-5 h-5", iconColorMap[segment.color] || iconColorMap.gray)}
+                />
+              </div>
+              <div>
+                <h3 className="font-semibold">{segment.name}</h3>
+                <p className="text-sm text-gray-500">{segment.description}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">{segment.name}</h3>
-              <p className="text-sm text-gray-500">{segment.description}</p>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="font-mono">
+                {segment.count}
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-mono">
-              {segment.count}
-            </Badge>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -234,30 +247,42 @@ function TagCloud({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
+          style={{ borderRadius: RADIUS.input }}
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {filteredTags.map((tag) => (
-          <Badge
+      <motion.div
+        className="flex flex-wrap gap-2"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {filteredTags.map((tag, index) => (
+          <motion.div
             key={tag.name}
-            variant="outline"
-            className="px-3 py-1.5 cursor-pointer hover:bg-gray-100 group"
-            onClick={() => onTagClick(tag.name)}
+            variants={scaleIn}
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: MOTION.duration.hover }}
           >
-            <Hash className="w-3 h-3 mr-1 text-gray-400" />
-            {tag.name}
-            <span className="ml-2 text-gray-400">{tag.count}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDeleteDialog(tag.name);
-              }}
-              className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            <Badge
+              variant="outline"
+              className="px-3 py-1.5 cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 group transition-colors"
+              onClick={() => onTagClick(tag.name)}
             >
-              <X className="w-3 h-3 text-gray-400 hover:text-red-500" />
-            </button>
-          </Badge>
+              <Hash className="w-3 h-3 mr-1 text-indigo-400" />
+              {tag.name}
+              <span className="ml-2 text-gray-400">{tag.count}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteDialog(tag.name);
+                }}
+                className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3 h-3 text-gray-400 hover:text-red-500" />
+              </button>
+            </Badge>
+          </motion.div>
         ))}
 
         {filteredTags.length === 0 && tags.length > 0 && (
@@ -267,7 +292,7 @@ function TagCloud({
         {tags.length === 0 && (
           <p className="text-gray-500 text-sm">No tags created yet</p>
         )}
-      </div>
+      </motion.div>
 
       {untaggedCount > 0 && (
         <div className="text-sm text-gray-500">
@@ -447,20 +472,33 @@ export function SegmentsTags() {
 
   return (
     <CRMLoungeLayout>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold">Segments & Tags</h1>
-          <p className="text-gray-500">Organize your leads with smart segments and custom tags</p>
-        </div>
+      <motion.div
+        className="p-6 space-y-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Hero Header */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0 overflow-hidden mb-6" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+            <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+              <div className="relative z-10">
+                <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Segments & Tags</h1>
+                <p className="text-indigo-100 text-lg">Organize your leads with smart segments and custom tags</p>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
 
         <div className="grid grid-cols-3 gap-6">
           {/* Segments Column */}
-          <div className="col-span-2 space-y-6">
-            <Card>
+          <motion.div className="col-span-2 space-y-6" variants={fadeInUp}>
+            <Card style={{ borderRadius: RADIUS.card }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-violet-600" />
+                  <Filter className="w-5 h-5 text-indigo-600" />
                   Smart Segments
                 </CardTitle>
                 <CardDescription>
@@ -475,7 +513,12 @@ export function SegmentsTags() {
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
+                  <motion.div
+                    className="grid grid-cols-2 gap-4"
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                  >
                     {segmentsData?.segments.map((segment) => (
                       <SegmentCard
                         key={segment.id}
@@ -484,30 +527,36 @@ export function SegmentsTags() {
                         isSelected={selectedSegment?.id === segment.id}
                       />
                     ))}
-                  </div>
+                  </motion.div>
                 )}
               </CardContent>
             </Card>
 
             {/* Segment Leads */}
             {selectedSegment && (
-              <Card>
-                <CardContent className="p-6">
-                  <SegmentLeadsList
-                    segment={selectedSegment}
-                    onClose={() => setSelectedSegment(null)}
-                  />
-                </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
+              >
+                <Card style={{ borderRadius: RADIUS.card }}>
+                  <CardContent className="p-6">
+                    <SegmentLeadsList
+                      segment={selectedSegment}
+                      onClose={() => setSelectedSegment(null)}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
           {/* Tags Column */}
-          <div className="space-y-6">
-            <Card>
+          <motion.div className="space-y-6" variants={fadeInUp}>
+            <Card style={{ borderRadius: RADIUS.card }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Tags className="w-5 h-5 text-violet-600" />
+                  <Tags className="w-5 h-5 text-indigo-600" />
                   Tags
                 </CardTitle>
                 <CardDescription>
@@ -529,30 +578,35 @@ export function SegmentsTags() {
             </Card>
 
             {/* Quick Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Quick Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Total Tags</span>
-                  <Badge variant="secondary">{tagsData?.tags.length || 0}</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Tagged Leads</span>
-                  <Badge variant="secondary">
-                    {tagsData?.tags.reduce((sum, t) => sum + t.count, 0) || 0}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Untagged Leads</span>
-                  <Badge variant="outline">{tagsData?.untaggedCount || 0}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card style={{ borderRadius: RADIUS.card }}>
+                <CardHeader>
+                  <CardTitle className="text-base">Quick Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Total Tags</span>
+                    <Badge variant="secondary">{tagsData?.tags.length || 0}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Tagged Leads</span>
+                    <Badge variant="secondary">
+                      {tagsData?.tags.reduce((sum, t) => sum + t.count, 0) || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Untagged Leads</span>
+                    <Badge variant="outline">{tagsData?.untaggedCount || 0}</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </CRMLoungeLayout>
   );
 }

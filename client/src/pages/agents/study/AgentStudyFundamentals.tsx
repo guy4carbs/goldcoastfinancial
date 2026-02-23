@@ -31,11 +31,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Lesson {
   id: string;
@@ -185,55 +181,78 @@ export default function AgentStudyFundamentals() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={fadeInUp}>
-          <div className="flex items-center gap-4 mb-4">
-            <Link href="/agents/getting-started">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <BookOpen className="w-4 h-4" />
-                <span>Heritage Life Academy</span>
-                <Badge className="bg-green-100 text-green-700">Free</Badge>
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover }}
+          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-8"
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero
+          }}
+        >
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-4">
+              <Link href="/agents/getting-started">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 text-sm text-white/80 mb-1">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Heritage Life Academy</span>
+                  <Badge className="bg-white/20 text-white border-white/30">Free</Badge>
+                </div>
+                <h1 className="text-2xl font-bold text-white">Life Insurance Fundamentals</h1>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Life Insurance Fundamentals</h1>
+              <div className="text-right hidden sm:block">
+                <div className="flex items-center gap-1 text-amber-300 mb-1">
+                  <Star className="w-4 h-4 fill-current" />
+                  <span className="font-medium">4.8</span>
+                  <span className="text-white/70 text-sm">(1,240 enrolled)</span>
+                </div>
+                <p className="text-sm text-white/80">6 hours total</p>
+              </div>
             </div>
-            <div className="text-right hidden sm:block">
-              <div className="flex items-center gap-1 text-amber-500 mb-1">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="font-medium">4.8</span>
-                <span className="text-gray-400 text-sm">(1,240 enrolled)</span>
+
+            {/* Progress Bar in Hero */}
+            <div className="mt-6 bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-white">Course Progress</span>
+                <span className="text-sm text-white/80">{completedLessons} of {totalLessons} lessons</span>
               </div>
-              <p className="text-sm text-gray-500">6 hours total</p>
+              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-300"
+                  style={{ width: `${overallProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-white/70 mt-2">
+                {overallProgress}% complete · {totalLessons - completedLessons} lessons remaining
+              </p>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Course Progress</span>
-                <span className="text-sm text-gray-500">{completedLessons} of {totalLessons} lessons</span>
-              </div>
-              <Progress value={overallProgress} className="h-2" />
-              <p className="text-xs text-gray-500 mt-2">
-                {overallProgress}% complete · {totalLessons - completedLessons} lessons remaining
-              </p>
-            </CardContent>
-          </Card>
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         </motion.div>
 
         {/* Main Content */}
         <motion.div variants={fadeInUp} className="grid lg:grid-cols-3 gap-6">
           {/* Video Player / Content Area */}
           <div className="lg:col-span-2 space-y-4">
-            <Card className="overflow-hidden">
+            <motion.div
+              variants={scaleIn}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+            <Card className="overflow-hidden" style={{ borderRadius: RADIUS.card }}>
               {activeLesson?.type === 'video' ? (
                 <>
                   {/* Video Player */}
@@ -383,9 +402,15 @@ export default function AgentStudyFundamentals() {
                 </div>
               )}
             </Card>
+            </motion.div>
 
             {/* Course Description */}
-            <Card>
+            <motion.div
+              variants={scaleIn}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+            <Card style={{ borderRadius: RADIUS.card }}>
               <CardHeader>
                 <CardTitle className="text-lg">About This Course</CardTitle>
               </CardHeader>
@@ -415,11 +440,17 @@ export default function AgentStudyFundamentals() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           </div>
 
           {/* Course Outline Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
+            <motion.div
+              variants={scaleIn}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+            <Card className="sticky top-4" style={{ borderRadius: RADIUS.card }}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Course Content</CardTitle>
                 <CardDescription>
@@ -497,6 +528,7 @@ export default function AgentStudyFundamentals() {
                 </ScrollArea>
               </CardContent>
             </Card>
+            </motion.div>
           </div>
         </motion.div>
       </motion.div>

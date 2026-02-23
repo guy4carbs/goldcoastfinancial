@@ -45,12 +45,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
 import { DemoBadge } from "@/components/agent/primitives";
-
-// Animation variants
-const FADE_IN_UP = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Email folder types
 type FolderType = 'inbox' | 'sent' | 'drafts' | 'trash' | 'starred' | 'archive';
@@ -529,31 +524,74 @@ export default function AgentEmail() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={FADE_IN_UP}
+        variants={staggerContainer}
         className="flex flex-col"
-        style={{ height: 'calc(100vh - 4rem)' }}
+        style={{ height: 'calc(100vh - 4rem)', gap: spacing(2) }}
       >
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6 flex items-center justify-between"
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <motion.div
+              variants={scaleIn}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+              className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
+            >
+              <Mail className="w-7 h-7 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-2xl font-bold" style={{ fontSize: TYPE.section }}>Agent Email</h1>
+              <p className="text-white/80 text-sm">Manage your communications</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <DemoBadge className="bg-white/20 text-white border-white/30" />
+            <Button
+              onClick={() => setShowCompose(true)}
+              className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
+              variant="outline"
+            >
+              <PenSquare className="w-4 h-4" />
+              Compose
+            </Button>
+          </div>
+        </motion.div>
+
         {/* Main Email Interface */}
-        <div className="flex-1 flex overflow-hidden min-h-0 bg-white -m-4 lg:-m-6">
+        <motion.div
+          variants={fadeInUp}
+          className="flex-1 flex overflow-hidden min-h-0 bg-white"
+          style={{
+            borderRadius: RADIUS.card,
+            boxShadow: SHADOW.card,
+          }}
+        >
           {/* Sidebar - Folders */}
           <nav
             className={cn(
               "w-56 border-r bg-gray-50 flex-col",
               "hidden md:flex"
             )}
+            style={{ borderTopLeftRadius: RADIUS.card, borderBottomLeftRadius: RADIUS.card }}
             aria-label="Email folders"
           >
             <div className="p-3 space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
                   <Mail className="w-4 h-4 text-white" aria-hidden="true" />
                 </div>
-                <span className="font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent text-sm">Email</span>
-                <DemoBadge className="ml-auto" />
+                <span className="font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent text-sm">Email</span>
               </div>
               <Button
                 onClick={() => setShowCompose(true)}
-                className="w-full gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md"
+                className="w-full gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-md"
                 aria-label="Compose new email"
               >
                 <PenSquare className="w-4 h-4" aria-hidden="true" />
@@ -570,7 +608,9 @@ export default function AgentEmail() {
 
                   return (
                     <li key={folder.id}>
-                      <button
+                      <motion.button
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover }}
                         onClick={() => {
                           setSelectedFolder(folder.id);
                           setSelectedEmail(null);
@@ -578,7 +618,7 @@ export default function AgentEmail() {
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors",
                           isActive
-                            ? "bg-primary/10 text-primary"
+                            ? "bg-violet-100 text-violet-700"
                             : "text-gray-600 hover:bg-gray-100"
                         )}
                         aria-current={isActive ? 'page' : undefined}
@@ -591,14 +631,14 @@ export default function AgentEmail() {
                             className={cn(
                               "text-xs h-5 px-1.5",
                               unread > 0
-                                ? "bg-primary text-white"
+                                ? "bg-violet-600 text-white"
                                 : "bg-gray-200 text-gray-600"
                             )}
                           >
                             {total}
                           </Badge>
                         )}
-                      </button>
+                      </motion.button>
                     </li>
                   );
                 })}
@@ -607,10 +647,12 @@ export default function AgentEmail() {
           </nav>
 
           {/* Email List */}
-          <div className={cn(
-            "w-80 border-r flex flex-col",
-            selectedEmail && "hidden md:flex"
-          )}>
+          <motion.div
+            variants={fadeInUp}
+            className={cn(
+              "w-80 border-r flex flex-col",
+              selectedEmail && "hidden md:flex"
+            )}>
             {/* Search */}
             <div className="p-3 border-b">
               <div className="relative">
@@ -740,13 +782,16 @@ export default function AgentEmail() {
                 </ul>
               )}
             </ScrollArea>
-          </div>
+          </motion.div>
 
           {/* Email Detail */}
-          <div className={cn(
-            "flex-1 flex flex-col",
-            !selectedEmail && "hidden md:flex"
-          )}>
+          <motion.div
+            variants={fadeInUp}
+            className={cn(
+              "flex-1 flex flex-col",
+              !selectedEmail && "hidden md:flex"
+            )}
+            style={{ borderTopRightRadius: RADIUS.card, borderBottomRightRadius: RADIUS.card }}>
             {selectedEmail ? (
               <>
                 {/* Detail Header */}
@@ -759,7 +804,7 @@ export default function AgentEmail() {
                   </div>
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="text-lg font-semibold text-primary">{selectedEmail.subject}</h2>
+                      <h2 className="text-lg font-semibold text-violet-700">{selectedEmail.subject}</h2>
                       <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
                         <span className="font-medium">{selectedEmail.from.name}</span>
                         <span className="text-gray-400">&lt;{selectedEmail.from.email}&gt;</span>
@@ -857,8 +902,8 @@ export default function AgentEmail() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Compose Modal */}
         <Dialog open={showCompose} onOpenChange={setShowCompose}>

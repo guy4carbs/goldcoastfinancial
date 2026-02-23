@@ -1,10 +1,23 @@
 /**
  * Manager Lounge Layout
  * Team management, coaching, and pipeline oversight
+ *
+ * Uses Heritage Design System for consistent styling
  */
 
 import { type ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { LoungeLayout, type SidebarSection } from '@/components/layout/LoungeLayout';
+import {
+  RADIUS,
+  SHADOW,
+  MOTION,
+  TYPE,
+  COLORS,
+  fadeInUp,
+  staggerContainer,
+  spacing
+} from '@/lib/heritageDesignSystem';
 import {
   LayoutDashboard,
   Users,
@@ -17,6 +30,16 @@ import {
   Settings,
   TrendingUp,
 } from 'lucide-react';
+
+// Manager lounge uses emerald theme from Heritage Design System
+// These theme values are available for child components and page-level styling
+export const managerTheme = {
+  colors: COLORS.lounges.manager,
+  radius: RADIUS.card,
+  shadow: SHADOW.card,
+  motion: MOTION,
+  typography: TYPE,
+};
 
 const sidebarSections: SidebarSection[] = [
   {
@@ -68,7 +91,26 @@ export function ManagerLoungeLayout({ children, breadcrumbs }: ManagerLoungeLayo
       showAgentIndicator={true}
       breadcrumbs={breadcrumbs}
     >
-      {children}
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: spacing(3), // 24px - 3U spacing
+        }}
+      >
+        <motion.div
+          variants={fadeInUp}
+          style={{
+            borderRadius: RADIUS.card,
+            boxShadow: SHADOW.level1,
+          }}
+        >
+          {children}
+        </motion.div>
+      </motion.div>
     </LoungeLayout>
   );
 }

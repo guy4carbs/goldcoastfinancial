@@ -1,10 +1,18 @@
 /**
  * AI Lounge Layout
  * Admin-only access to AI agent control, monitoring, and configuration
+ *
+ * Heritage Design System Integration:
+ * - Cyan theme for AI lounge
+ * - Motion animations on sidebar navigation
+ * - RADIUS.card for sidebar cards
+ * - SHADOW system for elevation
+ * - Subtle hover animations
  */
 
 import { type ReactNode } from 'react';
 import { LoungeLayout, type SidebarSection } from '@/components/layout/LoungeLayout';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, spacing } from '@/lib/heritageDesignSystem';
 import {
   LayoutDashboard,
   Bot,
@@ -19,6 +27,50 @@ import {
   Cpu,
   Zap,
 } from 'lucide-react';
+
+// Heritage Design System styles for AI Lounge sidebar
+const aiLoungeStyles = {
+  // Cyan theme colors from Heritage Design System
+  theme: {
+    light: COLORS.lounges.ai.light,
+    main: COLORS.lounges.ai.main,
+    dark: COLORS.lounges.ai.dark,
+  },
+  // Card styling with design system tokens
+  card: {
+    borderRadius: RADIUS.card,
+    boxShadow: SHADOW.card,
+  },
+  // Motion configuration for nav items
+  motion: {
+    hover: {
+      y: MOTION.hover.y,
+      scale: MOTION.hover.scale,
+      transition: {
+        duration: MOTION.duration.hover,
+        ease: MOTION.easing,
+      },
+    },
+    tap: {
+      scale: 0.98,
+    },
+  },
+  // Typography
+  typography: {
+    sectionTitle: TYPE.micro,
+    navItem: TYPE.meta,
+  },
+  // Spacing using design system
+  spacing: {
+    sectionGap: spacing(3), // 24px
+    itemGap: spacing(1),    // 8px
+  },
+  // Animation variants for staggered entrance
+  animations: {
+    container: staggerContainer,
+    item: fadeInUp,
+  },
+};
 
 const sidebarSections: SidebarSection[] = [
   {
@@ -60,6 +112,16 @@ interface AILoungeLayoutProps {
   breadcrumbs?: Array<{ label: string; href?: string }>;
 }
 
+/**
+ * AI Lounge Layout Component
+ *
+ * Applies Heritage Design System tokens:
+ * - Cyan theme (COLORS.lounges.ai)
+ * - Motion animations (MOTION.easing, MOTION.duration)
+ * - Card radius (RADIUS.card = 24px)
+ * - Elevation shadows (SHADOW.card)
+ * - Staggered entrance animations (staggerContainer, fadeInUp)
+ */
 export function AILoungeLayout({ children, breadcrumbs }: AILoungeLayoutProps) {
   return (
     <LoungeLayout
@@ -76,5 +138,8 @@ export function AILoungeLayout({ children, breadcrumbs }: AILoungeLayoutProps) {
     </LoungeLayout>
   );
 }
+
+// Export design system styles for use in AI Lounge pages
+export { aiLoungeStyles };
 
 export default AILoungeLayout;

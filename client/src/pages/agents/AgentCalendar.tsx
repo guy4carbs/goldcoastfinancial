@@ -53,11 +53,10 @@ import { useConfirm } from "@/components/agent/primitives/ConfirmDialog";
 import { toast } from "sonner";
 import { DemoBadge } from "@/components/agent/primitives";
 import { useAgentStore } from "@/lib/agentStore";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+// Agent lounge gradient (violet-purple-indigo)
+const HERO_GRADIENT = 'from-violet-600 via-purple-600 to-indigo-600';
 
 // Calendar provider configs
 const calendarProviders = [
@@ -479,35 +478,67 @@ export default function AgentCalendar() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg">
-              <CalendarIcon className="w-6 h-6 text-white" aria-hidden="true" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Calendar</h1>
-                <DemoBadge />
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          className={`bg-gradient-to-r ${HERO_GRADIENT} p-6 text-white relative overflow-hidden`}
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+          }}
+        >
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                style={{ borderRadius: RADIUS.card }}
+              >
+                <CalendarIcon className="w-7 h-7 text-white" aria-hidden="true" />
               </div>
-              <p className="text-sm text-gray-600">Manage your schedule and sync with your email calendar</p>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold text-white">Calendar</h1>
+                  <DemoBadge />
+                </div>
+                <p className="text-sm text-white/80">Manage your schedule and sync with your email calendar</p>
+              </div>
             </div>
+            <Button
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+              style={{ borderRadius: RADIUS.button }}
+              onClick={() => setShowAddEvent(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Button>
           </div>
-          <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md" onClick={() => setShowAddEvent(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4" />
         </motion.div>
 
         {/* Calendar Integrations */}
-        <motion.div variants={fadeInUp}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card
+            className="border-0"
+            style={{
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+            }}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-sm">
+                <div
+                  className={`w-8 h-8 bg-gradient-to-br ${HERO_GRADIENT} flex items-center justify-center shadow-sm`}
+                  style={{ borderRadius: RADIUS.input }}
+                >
                   <Link2 className="w-4 h-4 text-white" />
                 </div>
                 <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Connected Calendars</span>
@@ -518,18 +549,23 @@ export default function AgentCalendar() {
                 {calendarProviders.map((provider) => {
                   const isConnected = connectedProviders.includes(provider.id);
                   return (
-                    <div
+                    <motion.div
                       key={provider.id}
+                      whileHover={{ y: -2, scale: 1.01 }}
                       className={cn(
-                        "p-4 rounded-xl border-2 transition-all cursor-pointer",
+                        "p-4 border-2 transition-all cursor-pointer",
                         isConnected
                           ? "border-green-500 bg-green-50"
                           : "border-gray-200 hover:border-gray-300 bg-white"
                       )}
+                      style={{ borderRadius: RADIUS.card }}
                       onClick={() => handleConnectProvider(provider.id)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center text-white", provider.color)}>
+                        <div
+                          className={cn("w-10 h-10 flex items-center justify-center text-white", provider.color)}
+                          style={{ borderRadius: RADIUS.input }}
+                        >
                           <Mail className="w-5 h-5" />
                         </div>
                         <div className="flex-1">
@@ -546,11 +582,16 @@ export default function AgentCalendar() {
                         </div>
                       </div>
                       {!isConnected && (
-                        <Button size="sm" variant="outline" className="w-full mt-3 h-8">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full mt-3 h-8"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
                           Connect
                         </Button>
                       )}
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -560,8 +601,12 @@ export default function AgentCalendar() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar */}
-          <motion.div variants={fadeInUp} className="lg:col-span-2">
-            <Card>
+          <motion.div
+            variants={fadeInUp}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            className="lg:col-span-2"
+          >
+            <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -583,6 +628,7 @@ export default function AgentCalendar() {
                         size="sm"
                         onClick={() => handleViewChange(v)}
                         className={cn("h-8 text-xs capitalize", view === v && "bg-primary")}
+                        style={{ borderRadius: RADIUS.button }}
                       >
                         {v}
                       </Button>
@@ -647,8 +693,11 @@ export default function AgentCalendar() {
           </motion.div>
 
           {/* Selected Day Events */}
-          <motion.div variants={fadeInUp}>
-            <Card className="h-full">
+          <motion.div
+            variants={fadeInUp}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          >
+            <Card className="h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4 text-violet-500" />
@@ -775,12 +824,21 @@ export default function AgentCalendar() {
         </div>
 
         {/* Send Booking Link Section */}
-        <motion.div variants={fadeInUp}>
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-violet-50 to-amber-50">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card
+            className="border-0 bg-gradient-to-r from-violet-50 to-amber-50"
+            style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+          >
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center shadow-lg">
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-br ${HERO_GRADIENT} flex items-center justify-center`}
+                    style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level3 }}
+                  >
                     <Send className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -794,6 +852,7 @@ export default function AgentCalendar() {
                     size="sm"
                     onClick={() => handleSendBookingLink('copy')}
                     className="gap-2"
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     <Copy className="w-4 h-4" />
                     Copy Link
@@ -801,7 +860,8 @@ export default function AgentCalendar() {
                   <Button
                     size="sm"
                     onClick={() => setShowBookingLinkModal(true)}
-                    className="gap-2 bg-gradient-to-r from-violet-500 to-amber-500 hover:from-violet-600 hover:to-amber-600"
+                    className={`gap-2 bg-gradient-to-r ${HERO_GRADIENT} hover:opacity-90`}
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     <Send className="w-4 h-4" />
                     Send to Customer
@@ -809,7 +869,10 @@ export default function AgentCalendar() {
                 </div>
               </div>
               {/* Quick preview of booking link */}
-              <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200 flex items-center justify-between">
+              <div
+                className="mt-4 p-3 bg-white border border-gray-200 flex items-center justify-between"
+                style={{ borderRadius: RADIUS.input }}
+              >
                 <code className="text-sm text-gray-600 truncate flex-1">{agentBookingLink}</code>
                 <Button variant="ghost" size="sm" onClick={() => window.open(agentBookingLink, '_blank')}>
                   <ExternalLink className="w-4 h-4" />
@@ -820,8 +883,11 @@ export default function AgentCalendar() {
         </motion.div>
 
         {/* Upcoming Events List */}
-        <motion.div variants={fadeInUp}>
-          <Card>
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Clock className="w-4 h-4 text-violet-500" />
@@ -835,9 +901,11 @@ export default function AgentCalendar() {
                   const TypeIcon = typeConfig.icon;
                   const eventDate = new Date(event.date);
                   return (
-                    <div
+                    <motion.div
                       key={event.id}
-                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                      whileHover={{ x: 4, backgroundColor: COLORS.gray[50] }}
+                      className="flex items-center gap-4 p-3 transition-colors group"
+                      style={{ borderRadius: RADIUS.input }}
                     >
                       <div className="text-center min-w-[50px]">
                         <p className="text-[10px] text-gray-500 uppercase">
@@ -884,7 +952,7 @@ export default function AgentCalendar() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>

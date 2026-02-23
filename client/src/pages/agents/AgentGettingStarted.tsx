@@ -46,11 +46,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Licensing steps checklist with real links
 interface LicensingStep {
@@ -283,12 +279,20 @@ export default function AgentGettingStarted() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
+        {/* Hero Header */}
         <motion.div variants={fadeInUp}>
-          <div className="bg-gradient-to-r from-primary to-violet-600 rounded-2xl p-6 text-white">
+          <motion.div
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-6 text-white"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
@@ -317,12 +321,16 @@ export default function AgentGettingStarted() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* State Selector */}
         <motion.div variants={fadeInUp}>
-          <Card>
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+          >
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -405,6 +413,7 @@ export default function AgentGettingStarted() {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
         </motion.div>
 
         {/* Tabs */}
@@ -431,7 +440,7 @@ export default function AgentGettingStarted() {
 
             {/* Checklist Tab */}
             <TabsContent value="checklist" className="space-y-4">
-              <Card>
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="w-5 h-5 text-violet-500" />
@@ -553,9 +562,19 @@ export default function AgentGettingStarted() {
 
             {/* Study Resources Tab */}
             <TabsContent value="study" className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <motion.div
+                className="grid md:grid-cols-2 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {STUDY_RESOURCES.map(resource => (
-                  <Card key={resource.id} className="hover:shadow-md transition-shadow">
+                  <motion.div key={resource.id} variants={fadeInUp}>
+                  <motion.div
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    transition={{ duration: MOTION.duration.hover }}
+                  >
+                  <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <Badge className={cn(
@@ -603,20 +622,32 @@ export default function AgentGettingStarted() {
                       )}
                     </CardContent>
                   </Card>
+                  </motion.div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </TabsContent>
 
             {/* Video Tutorials Tab */}
             <TabsContent value="videos" className="space-y-4">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <motion.div
+                className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
                 {VIDEO_TUTORIALS.map(video => (
+                  <motion.div key={video.id} variants={scaleIn}>
+                  <motion.div
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    transition={{ duration: MOTION.duration.hover }}
+                  >
                   <Card
-                    key={video.id}
                     role="button"
                     tabIndex={0}
                     aria-label={`Watch: ${video.title} (${video.duration})`}
-                    className="cursor-pointer hover:shadow-md transition-shadow group"
+                    className="cursor-pointer group"
+                    style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                     onClick={() => handleWatchVideo(video.title)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleWatchVideo(video.title); } }}
                   >
@@ -634,14 +665,26 @@ export default function AgentGettingStarted() {
                       </div>
                     </CardContent>
                   </Card>
+                  </motion.div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </TabsContent>
 
             {/* Exam Tips Tab */}
             <TabsContent value="tips" className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <Card>
+              <motion.div
+                className="grid md:grid-cols-2 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
+                <motion.div variants={fadeInUp}>
+                <motion.div
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Lightbulb className="w-5 h-5 text-amber-500" />
@@ -663,8 +706,15 @@ export default function AgentGettingStarted() {
                     ))}
                   </CardContent>
                 </Card>
+                </motion.div>
+                </motion.div>
 
-                <Card>
+                <motion.div variants={fadeInUp}>
+                <motion.div
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Shield className="w-5 h-5 text-blue-500" />
@@ -686,8 +736,15 @@ export default function AgentGettingStarted() {
                     ))}
                   </CardContent>
                 </Card>
+                </motion.div>
+                </motion.div>
 
-                <Card className="md:col-span-2">
+                <motion.div variants={fadeInUp} className="md:col-span-2">
+                <motion.div
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <HelpCircle className="w-5 h-5 text-violet-500" />
@@ -708,7 +765,9 @@ export default function AgentGettingStarted() {
                     ))}
                   </CardContent>
                 </Card>
-              </div>
+                </motion.div>
+                </motion.div>
+              </motion.div>
             </TabsContent>
           </Tabs>
         </motion.div>

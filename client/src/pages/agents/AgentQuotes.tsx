@@ -33,6 +33,7 @@ import { EmptyState } from "@/components/agent/primitives";
 import { CreateQuoteModal } from "@/components/agent/CreateQuoteModal";
 import { QuoteDetailDrawer } from "@/components/agent/QuoteDetailDrawer";
 import { toast } from "sonner";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Maximum quotes that can be compared at once
 const MAX_COMPARE = 3;
@@ -46,10 +47,7 @@ const QUOTE_TEMPLATES = [
   { id: 't5', name: 'Final Expense Basic', product: 'final_expense' as const, coverageAmount: 15000, monthlyPremium: 30 },
 ];
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+// Using fadeInUp from heritageDesignSystem
 
 type QuoteStatus = Quote['status'];
 
@@ -264,17 +262,22 @@ export default function AgentQuotes() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Header */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+            <motion.div
+              className={`w-12 h-12 rounded-[${RADIUS.card}px] bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center`}
+              style={{ boxShadow: SHADOW.level3 }}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
               <FileText className="w-6 h-6 text-white" aria-hidden="true" />
-            </div>
+            </motion.div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Quotes</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Quotes</h1>
               <p className="text-sm text-gray-600">Create and manage insurance quotes for your clients</p>
             </div>
           </div>
@@ -289,7 +292,7 @@ export default function AgentQuotes() {
                 Compare ({compareQuotes.length})
               </Button>
             )}
-            <Button className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-md" onClick={() => setShowCreateQuote(true)}>
+            <Button className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 shadow-md" onClick={() => setShowCreateQuote(true)}>
               <Plus className="w-4 h-4 mr-2" />
               New Quote
             </Button>
@@ -304,19 +307,25 @@ export default function AgentQuotes() {
             { label: 'Sent / Viewed', value: stats.sent, icon: Send, gradient: 'from-blue-400 to-cyan-500' },
             { label: 'Accepted', value: stats.accepted, icon: CheckCircle2, gradient: 'from-emerald-400 to-green-500' },
           ].map((stat) => (
-            <Card key={stat.label} className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", stat.gradient)}>
-                    <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
+            <motion.div
+              key={stat.label}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className={`border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.level2 }}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(`w-10 h-10 rounded-[${RADIUS.button}px] bg-gradient-to-br flex items-center justify-center`, stat.gradient)} style={{ boxShadow: SHADOW.level2 }}>
+                      <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
+                      <p className="text-xs text-gray-500">{stat.label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </motion.div>
 
@@ -351,7 +360,7 @@ export default function AgentQuotes() {
 
         {/* Quotes List */}
         <motion.div variants={fadeInUp}>
-          <Card className="border-0 shadow-lg">
+          <Card className={`border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.level2 }}>
             <CardContent className="p-0">
               {filteredQuotes.length === 0 ? (
                 searchQuery || filterStatus !== 'all' ? (
@@ -470,7 +479,7 @@ export default function AgentQuotes() {
 
       {/* Quick Templates Modal */}
       <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={`sm:max-w-md rounded-[${RADIUS.card}px]`}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-violet-500" />
@@ -479,10 +488,12 @@ export default function AgentQuotes() {
           </DialogHeader>
           <div className="space-y-2 mt-4">
             {QUOTE_TEMPLATES.map((template) => (
-              <button
+              <motion.button
                 key={template.id}
-                className="w-full p-4 rounded-lg border hover:border-violet-300 hover:bg-violet-50 cursor-pointer transition-all text-left"
+                className={`w-full p-4 rounded-[${RADIUS.button}px] border hover:border-violet-300 hover:bg-violet-50 cursor-pointer transition-all text-left`}
                 onClick={() => handleUseTemplate(template)}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
                 aria-label={`Use ${template.name} template: $${template.monthlyPremium}/mo, $${template.coverageAmount.toLocaleString()} coverage`}
               >
                 <div className="flex items-center justify-between">
@@ -497,7 +508,7 @@ export default function AgentQuotes() {
                     <p className="text-xs text-gray-500">${template.coverageAmount.toLocaleString()}</p>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </DialogContent>
@@ -505,7 +516,7 @@ export default function AgentQuotes() {
 
       {/* Quote Comparison Modal */}
       <Dialog open={showComparison} onOpenChange={setShowComparison}>
-        <DialogContent className="sm:max-w-4xl">
+        <DialogContent className={`sm:max-w-4xl rounded-[${RADIUS.card}px]`}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <GitCompare className="w-5 h-5 text-violet-500" />

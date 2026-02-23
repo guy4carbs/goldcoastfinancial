@@ -58,6 +58,7 @@ import {
   analyticsEvents,
 } from "@shared/schema";
 import { leads } from "@shared/models/crm";
+import { memberCards } from "@shared/models/memberCards";
 import { db } from "./db";
 import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -72,6 +73,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | null>;
   getUserById(id: string): Promise<User | null>;
+  getUserByAppleId(appleId: string): Promise<User | null>;
   updateUser(id: string, data: Partial<User>): Promise<User | null>;
   
   getPoliciesByUserId(userId: string): Promise<Policy[]>;
@@ -157,6 +159,17 @@ export interface IStorage {
 
   // CRM Test Data
   initializeCRMTestData(): Promise<void>;
+
+  // Member Cards
+  createMemberCard(card: any): Promise<any>;
+  getMemberCardById(id: string): Promise<any | null>;
+  getMemberCardByNumber(cardNumber: string): Promise<any | null>;
+  getMemberCardsByAgent(agentId: string, filters?: { status?: string; search?: string }): Promise<any[]>;
+  getMemberCardsByMember(memberId: string): Promise<any[]>;
+  updateMemberCard(id: string, data: any): Promise<any | null>;
+  revokeMemberCard(id: string): Promise<boolean>;
+  deleteMemberCard(id: string): Promise<boolean>;
+  getMemberCardStats(agentId: string): Promise<{ total: number; active: number; pending: number; revoked: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -190,6 +203,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserById(id: string): Promise<User | null> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || null;
+  }
+
+  async getUserByAppleId(appleId: string): Promise<User | null> {
+    const [user] = await db.select().from(users).where(eq(users.appleId, appleId));
     return user || null;
   }
 
@@ -940,6 +958,92 @@ export class DatabaseStorage implements IStorage {
     }
 
     console.log("CRM test data seeded: 10 leads created");
+  }
+
+  // ==========================================================================
+  // MEMBER CARDS
+  // ==========================================================================
+
+  async createMemberCard(card: any): Promise<any> {
+    const [newCard] = await db.insert(memberCards).values(card).returning();
+    return newCard;
+  }
+
+  async getMemberCardById(id: string): Promise<any | null> {
+    const [card] = await db.select().from(memberCards).where(eq(memberCards.id, id));
+    return card || null;
+  }
+
+  async getMemberCardByNumber(cardNumber: string): Promise<any | null> {
+    const [card] = await db.select().from(memberCards).where(eq(memberCards.memberCardNumber, cardNumber));
+    return card || null;
+  }
+
+  async getMemberCardsByAgent(agentId: string, filters?: { status?: string; search?: string }): Promise<any[]> {
+    let query = db.select().from(memberCards).where(eq(memberCards.agentId, agentId));
+
+    // Note: Additional filtering would be applied here with proper Drizzle conditions
+    // For now, we filter in JS after the query
+    const cards = await query.orderBy(desc(memberCards.createdAt));
+
+    let result = cards;
+
+    if (filters?.status) {
+      result = result.filter(c => c.status === filters.status);
+    }
+
+    if (filters?.search) {
+      const searchLower = filters.search.toLowerCase();
+      result = result.filter(c =>
+        c.memberFullName.toLowerCase().includes(searchLower) ||
+        c.memberCardNumber.toLowerCase().includes(searchLower) ||
+        c.policyNumber.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return result;
+  }
+
+  async getMemberCardsByMember(memberId: string): Promise<any[]> {
+    return db.select().from(memberCards)
+      .where(eq(memberCards.memberId, memberId))
+      .orderBy(desc(memberCards.createdAt));
+  }
+
+  async updateMemberCard(id: string, data: any): Promise<any | null> {
+    const [updated] = await db.update(memberCards)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(memberCards.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async revokeMemberCard(id: string): Promise<boolean> {
+    const [revoked] = await db.update(memberCards)
+      .set({
+        status: "revoked",
+        revokedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(memberCards.id, id))
+      .returning();
+    return !!revoked;
+  }
+
+  async deleteMemberCard(id: string): Promise<boolean> {
+    const result = await db.delete(memberCards).where(eq(memberCards.id, id));
+    return true; // Drizzle delete doesn't return count easily, assume success
+  }
+
+  async getMemberCardStats(agentId: string): Promise<{ total: number; active: number; pending: number; revoked: number }> {
+    const cards = await db.select().from(memberCards).where(eq(memberCards.agentId, agentId));
+
+    return {
+      total: cards.length,
+      active: cards.filter(c => c.status === "active").length,
+      pending: cards.filter(c => c.status === "pending").length,
+      revoked: cards.filter(c => c.status === "revoked").length,
+    };
   }
 }
 

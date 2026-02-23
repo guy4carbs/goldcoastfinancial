@@ -31,10 +31,12 @@ import {
   Download,
   Upload,
   CreditCard,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import { toast } from "sonner";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Type definitions
 interface NotificationSettings {
@@ -80,12 +82,6 @@ interface NotificationOption {
   label: string;
   description: string;
 }
-
-// Constants
-const FADE_IN_UP = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
 
 const NOTIFICATION_PREFERENCES: NotificationOption[] = [
   { key: 'email', label: 'Email Notifications', description: 'Receive updates via email' },
@@ -263,39 +259,54 @@ export default function AgentSettings() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={FADE_IN_UP} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center shadow-lg">
-              <User className="w-6 h-6 text-white" aria-hidden="true" />
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+            padding: spacing(4),
+          }}
+        >
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Settings className="w-7 h-7 text-white" aria-hidden="true" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Settings</h1>
+                <p className="text-white/80 text-sm">Manage your account and preferences</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">Settings</h1>
-              <p className="text-sm text-gray-600">Manage your account and preferences</p>
-            </div>
+            <Button
+              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm shadow-lg"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>Saving...</>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Save Changes
+                </>
+              )}
+            </Button>
           </div>
-          <Button
-            className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-md"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>Saving...</>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" aria-hidden="true" />
-                Save Changes
-              </>
-            )}
-          </Button>
         </motion.div>
 
         {/* Profile Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
@@ -392,8 +403,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Notifications Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
@@ -422,8 +436,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Security Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
@@ -468,8 +485,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Bank / Direct Deposit Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
@@ -543,8 +563,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Tax Documents Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-md">
@@ -598,8 +621,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Two-Factor Authentication Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
@@ -676,8 +702,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Preferences Section */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-md">
@@ -711,8 +740,11 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Danger Zone */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-lg overflow-hidden relative">
+        <motion.div
+          variants={fadeInUp}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        >
+          <Card className="border-0 overflow-hidden relative" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-rose-500/5 to-red-600/5" />
             <CardHeader className="relative z-10">
               <CardTitle className="text-lg flex items-center gap-2">

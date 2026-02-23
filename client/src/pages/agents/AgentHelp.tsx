@@ -20,6 +20,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Type definitions
 interface HelpCategory {
@@ -38,11 +39,6 @@ interface QuickLink {
 }
 
 // Constants
-const FADE_IN_UP = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
 const HELP_CATEGORIES: HelpCategory[] = [
   {
     id: 'getting-started',
@@ -157,34 +153,56 @@ export default function AgentHelp() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
-        <motion.div variants={FADE_IN_UP} className="text-center max-w-2xl mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <HelpCircle className="w-8 h-8 text-white" aria-hidden="true" />
-          </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Help & Support</h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Find answers to your questions or contact our support team
-          </p>
+        {/* Hero Card - Agent Lounge Violet Gradient */}
+        <motion.div variants={fadeInUp}>
+          <Card
+            className="border-0 overflow-hidden relative"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+            <CardContent className="p-8 relative z-10 text-center">
+              <div
+                className="w-16 h-16 bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4"
+                style={{ borderRadius: RADIUS.card }}
+              >
+                <HelpCircle className="w-8 h-8 text-white" aria-hidden="true" />
+              </div>
+              <h1
+                className="font-bold text-white mb-2"
+                style={{ fontSize: TYPE.section }}
+              >
+                Help & Support
+              </h1>
+              <p className="text-white/80 text-sm max-w-md mx-auto">
+                Find answers to your questions or contact our support team
+              </p>
 
-          {/* Search */}
-          <div className="relative mt-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
-            <Input
-              placeholder="Search for help..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-12 h-12 text-base border-gray-200 focus:border-violet-400 focus:ring-violet-400"
-              aria-label="Search help articles"
-            />
-          </div>
+              {/* Search */}
+              <div className="relative mt-6 max-w-lg mx-auto">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
+                <Input
+                  placeholder="Search for help..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="pl-12 h-12 text-base bg-white/95 border-0 focus:ring-2 focus:ring-white/50"
+                  style={{ borderRadius: RADIUS.button }}
+                  aria-label="Search help articles"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Quick Links */}
-        <motion.div variants={FADE_IN_UP} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {QUICK_LINKS.map((link, idx) => {
             const gradients = [
               'from-violet-500 to-purple-500',
@@ -193,27 +211,35 @@ export default function AgentHelp() {
               'from-emerald-500 to-green-500'
             ];
             return (
-              <a
+              <motion.a
                 key={link.label}
                 href={link.href}
                 className="block"
                 aria-label={link.label}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
               >
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer h-full">
+                <Card
+                  className="border-0 cursor-pointer h-full"
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.card
+                  }}
+                >
                   <CardContent className="p-4 flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-md bg-gradient-to-br", gradients[idx % gradients.length])}>
+                    <div className={cn("w-10 h-10 flex items-center justify-center shadow-md bg-gradient-to-br", gradients[idx % gradients.length])} style={{ borderRadius: RADIUS.button }}>
                       <link.icon className="w-5 h-5 text-white" aria-hidden="true" />
                     </div>
                     <span className="font-semibold text-sm text-gray-800">{link.label}</span>
                   </CardContent>
                 </Card>
-              </a>
+              </motion.a>
             );
           })}
         </motion.div>
 
         {/* Help Categories */}
-        <motion.div variants={FADE_IN_UP}>
+        <motion.div variants={fadeInUp}>
           <h2 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">Browse by Topic</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {filteredCategories.length === 0 ? (
@@ -221,111 +247,137 @@ export default function AgentHelp() {
                 <p>No help articles found for "{searchQuery}"</p>
               </div>
             ) : filteredCategories.map((category) => (
-              <Card
+              <motion.div
                 key={category.id}
-                className={cn(
-                  "border-0 shadow-lg hover:shadow-xl cursor-pointer transition-all",
-                  expandedCategory === category.id && "ring-2 ring-violet-400"
-                )}
-                onClick={() => handleCategoryToggle(category.id)}
-                role="button"
-                aria-expanded={expandedCategory === category.id}
-                aria-label={`${category.title} - ${category.description}`}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shadow-md", category.color)}>
-                      <category.icon className="w-5 h-5 text-white" aria-hidden="true" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800">{category.title}</h3>
-                      <p className="text-xs text-gray-500">{category.description}</p>
-                    </div>
-                    <ChevronRight className={cn(
-                      "w-5 h-5 text-gray-400 transition-transform",
-                      expandedCategory === category.id && "rotate-90"
-                    )} aria-hidden="true" />
-                  </div>
-
-                  {expandedCategory === category.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="mt-4 pt-4 border-t border-gray-100"
-                    >
-                      <ul className="space-y-2">
-                        {category.articles.map((article, idx) => (
-                          <li key={idx}>
-                            <a
-                              href="#"
-                              className="flex items-center gap-2 text-sm text-gray-600 hover:text-violet-600 transition-colors"
-                              onClick={(e) => e.stopPropagation()}
-                              aria-label={`Read article: ${article}`}
-                            >
-                              <FileText className="w-4 h-4" aria-hidden="true" />
-                              {article}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
+                <Card
+                  className={cn(
+                    "border-0 cursor-pointer transition-all",
+                    expandedCategory === category.id && "ring-2 ring-violet-400"
                   )}
-                </CardContent>
-              </Card>
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.card
+                  }}
+                  onClick={() => handleCategoryToggle(category.id)}
+                  role="button"
+                  aria-expanded={expandedCategory === category.id}
+                  aria-label={`${category.title} - ${category.description}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={cn("w-11 h-11 flex items-center justify-center shadow-md", category.color)} style={{ borderRadius: RADIUS.button }}>
+                        <category.icon className="w-5 h-5 text-white" aria-hidden="true" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800">{category.title}</h3>
+                        <p className="text-xs text-gray-500">{category.description}</p>
+                      </div>
+                      <ChevronRight className={cn(
+                        "w-5 h-5 text-gray-400 transition-transform",
+                        expandedCategory === category.id && "rotate-90"
+                      )} aria-hidden="true" />
+                    </div>
+
+                    {expandedCategory === category.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ duration: MOTION.duration.expand }}
+                        className="mt-4 pt-4 border-t border-gray-100"
+                      >
+                        <ul className="space-y-2">
+                          {category.articles.map((article, idx) => (
+                            <li key={idx}>
+                              <a
+                                href="#"
+                                className="flex items-center gap-2 text-sm text-gray-600 hover:text-violet-600 transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={`Read article: ${article}`}
+                              >
+                                <FileText className="w-4 h-4" aria-hidden="true" />
+                                {article}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </motion.div>
 
         {/* Contact Support */}
-        <motion.div variants={FADE_IN_UP}>
-          <Card className="border-0 shadow-xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
+        <motion.div variants={fadeInUp}>
+          <Card
+            className="border-0 overflow-hidden relative"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
             <CardContent className="p-6 relative z-10">
               <h2 className="text-lg font-semibold text-white mb-4">Still need help?</h2>
               <p className="text-sm text-white/80 mb-6">
                 Our support team is available Monday through Friday, 9am to 6pm PT.
               </p>
               <div className="grid sm:grid-cols-3 gap-4">
-                <a
+                <motion.a
                   href="tel:6307780800"
-                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur rounded-xl hover:bg-white/20 transition-colors"
+                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur hover:bg-white/20 transition-colors"
+                  style={{ borderRadius: RADIUS.button }}
                   aria-label="Call support at (630) 778-0800"
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg" style={{ borderRadius: RADIUS.button }}>
                     <Phone className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-medium text-sm text-white">Call Us</p>
                     <p className="text-xs text-white/70">(630) 778-0800</p>
                   </div>
-                </a>
-                <a
+                </motion.a>
+                <motion.a
                   href="mailto:agents@heritagels.org"
-                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur rounded-xl hover:bg-white/20 transition-colors"
+                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur hover:bg-white/20 transition-colors"
+                  style={{ borderRadius: RADIUS.button }}
                   aria-label="Email support at agents@heritagels.org"
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg" style={{ borderRadius: RADIUS.button }}>
                     <Mail className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-medium text-sm text-white">Email</p>
                     <p className="text-xs text-white/70">agents@heritagels.org</p>
                   </div>
-                </a>
-                <a
+                </motion.a>
+                <motion.a
                   href="#"
-                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur rounded-xl hover:bg-white/20 transition-colors"
+                  className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur hover:bg-white/20 transition-colors"
+                  style={{ borderRadius: RADIUS.button }}
                   aria-label="Start a live chat conversation"
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg" style={{ borderRadius: RADIUS.button }}>
                     <MessageSquare className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-medium text-sm text-white">Live Chat</p>
                     <p className="text-xs text-white/70">Start a conversation</p>
                   </div>
-                </a>
+                </motion.a>
               </div>
             </CardContent>
           </Card>

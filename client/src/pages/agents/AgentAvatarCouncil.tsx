@@ -1,84 +1,198 @@
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
-import { Sparkles, Clock, Users } from "lucide-react";
+import { Sparkles, Clock, Users, MessageSquare, Brain, Zap } from "lucide-react";
+import { RADIUS, SHADOW, MOTION, fadeInUp, staggerContainer, scaleIn, spacing } from "@/lib/heritageDesignSystem";
 
 export default function AgentAvatarCouncil() {
+  const featureCards = [
+    {
+      icon: MessageSquare,
+      title: "AI Debates",
+      description: "Watch legendary minds debate sales strategies in real-time",
+    },
+    {
+      icon: Brain,
+      title: "Expert Councils",
+      description: "Consult with multiple advisors for comprehensive insights",
+    },
+    {
+      icon: Zap,
+      title: "Strategy Sessions",
+      description: "Get personalized guidance for your unique challenges",
+    },
+  ];
+
   return (
     <AgentLoungeLayout>
-      <div className="flex-1 flex items-center justify-center min-h-[calc(100vh-200px)]">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-6"
+        style={{ gap: spacing(4) }}
+      >
+        {/* Hero Card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-lg px-6"
+          variants={fadeInUp}
+          className="w-full max-w-3xl text-center"
+          style={{
+            background: "linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #6366f1 100%)",
+            borderRadius: RADIUS.hero,
+            padding: spacing(5),
+            boxShadow: SHADOW.hero,
+          }}
         >
           {/* Icon */}
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-600/30 border border-amber-600 flex items-center justify-center"
+            variants={scaleIn}
+            className="w-24 h-24 mx-auto mb-6 flex items-center justify-center"
+            style={{
+              background: "rgba(255, 255, 255, 0.2)",
+              borderRadius: RADIUS.card,
+              border: "1px solid rgba(255, 255, 255, 0.3)",
+            }}
           >
-            <Users className="w-12 h-12 text-amber-700" />
+            <Users className="w-12 h-12 text-white" />
           </motion.div>
 
-          {/* Title */}
+          {/* Title with Gradient Text Effect */}
           <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-3xl font-bold text-gray-900 mb-4"
+            variants={fadeInUp}
+            className="text-4xl font-bold mb-4"
+            style={{
+              background: "linear-gradient(135deg, #ffffff 0%, #e9d5ff 50%, #ffffff 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
           >
             Avatar Council
           </motion.h1>
 
           {/* Coming Soon Badge */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 border border-amber-600 mb-6"
+            variants={scaleIn}
+            whileHover={{
+              scale: 1.05,
+              transition: { duration: MOTION.duration.hover }
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 mb-6"
+            style={{
+              background: "rgba(255, 255, 255, 0.95)",
+              borderRadius: RADIUS.pill,
+              boxShadow: SHADOW.level2,
+            }}
           >
-            <Clock className="w-4 h-4 text-amber-700" />
-            <span className="text-amber-700 font-medium text-sm">Coming Soon</span>
+            <motion.div
+              animate={{
+                rotate: [0, 360],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            >
+              <Clock className="w-4 h-4 text-violet-600" />
+            </motion.div>
+            <span
+              className="font-semibold text-sm"
+              style={{
+                background: "linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Coming Soon
+            </span>
           </motion.div>
 
           {/* Description */}
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-gray-700 text-lg leading-relaxed mb-8"
+            variants={fadeInUp}
+            className="text-white/90 text-lg leading-relaxed max-w-xl mx-auto"
           >
             Summon legendary sales minds for live debates and strategic advice.
             Warren Buffett, Patrick Bet-David, Ben Feldman, and more will be ready
             to guide your insurance career.
           </motion.p>
+        </motion.div>
 
-          {/* Feature Preview */}
+        {/* Feature Cards */}
+        <motion.div
+          variants={staggerContainer}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl"
+        >
+          {featureCards.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              variants={fadeInUp}
+              whileHover={{
+                y: MOTION.hover.y,
+                scale: MOTION.hover.scale,
+                transition: { duration: MOTION.duration.hover }
+              }}
+              className="text-center p-6 cursor-pointer"
+              style={{
+                background: "white",
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+                border: "1px solid rgba(139, 92, 246, 0.1)",
+              }}
+            >
+              <motion.div
+                whileHover={{ rotate: 5 }}
+                transition={{ duration: MOTION.duration.hover }}
+                className="w-12 h-12 mx-auto mb-4 flex items-center justify-center"
+                style={{
+                  background: "linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)",
+                  borderRadius: RADIUS.button,
+                }}
+              >
+                <feature.icon className="w-6 h-6 text-violet-600" />
+              </motion.div>
+              <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+              <p className="text-sm text-gray-600">{feature.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Animated Sparkles Indicator */}
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center gap-3 text-gray-500"
+        >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="flex items-center justify-center gap-6 text-sm text-gray-800"
+            animate={{
+              opacity: [0.5, 1, 0.5],
+              scale: [0.95, 1.05, 0.95],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
           >
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>AI Debates</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-gray-400" />
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>Expert Councils</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-gray-400" />
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>Strategy Sessions</span>
-            </div>
+            <Sparkles className="w-5 h-5 text-violet-500" />
+          </motion.div>
+          <span className="text-sm font-medium">Powered by Heritage AI</span>
+          <motion.div
+            animate={{
+              opacity: [0.5, 1, 0.5],
+              scale: [0.95, 1.05, 0.95],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+          >
+            <Sparkles className="w-5 h-5 text-violet-500" />
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
     </AgentLoungeLayout>
   );
 }

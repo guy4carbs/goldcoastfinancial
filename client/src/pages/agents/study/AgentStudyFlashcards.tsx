@@ -40,11 +40,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Flashcard {
   id: string;
@@ -219,90 +215,121 @@ export default function AgentStudyFlashcards() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Header */}
+        {/* Hero Card */}
         <motion.div variants={fadeInUp}>
-          <div className="flex items-center gap-4 mb-4">
-            <Link href="/agents/getting-started">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <Layers className="w-4 h-4" />
-                <span>Heritage Life</span>
-                <Badge className="bg-green-100 text-green-700">Free</Badge>
+          <motion.div
+            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={{ duration: MOTION.duration.hover }}
+            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6 sm:p-8"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <Link href="/agents/getting-started">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 text-sm text-white/80 mb-1">
+                  <Layers className="w-4 h-4" />
+                  <span>Heritage Life</span>
+                  <Badge className="bg-white/20 text-white border-0">Free</Badge>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">Insurance Terminology Flashcards</h1>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Insurance Terminology Flashcards</h1>
-            </div>
-            <div className="text-right hidden sm:block">
-              <div className="flex items-center gap-1 text-amber-500 mb-1">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="font-medium">4.7</span>
+              <div className="text-right hidden sm:block">
+                <div className="flex items-center gap-1 text-amber-300 mb-1">
+                  <Star className="w-4 h-4 fill-current" />
+                  <span className="font-medium">4.7</span>
+                </div>
+                <p className="text-sm text-white/80">{stats.total} cards</p>
               </div>
-              <p className="text-sm text-gray-500">{stats.total} cards</p>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Stats & Controls */}
         <motion.div variants={fadeInUp}>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
-                  <Layers className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{filteredCards.length}</p>
-                  <p className="text-xs text-gray-500">Cards to Study</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
-                  <Check className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.mastered}</p>
-                  <p className="text-xs text-gray-500">Mastered</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-                  <Star className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stats.starred}</p>
-                  <p className="text-xs text-gray-500">Starred</p>
-                </div>
-              </CardContent>
-            </Card>
-            {studySessionStarted && (
-              <Card className="bg-gradient-to-r from-violet-500 to-violet-600 text-white">
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                    <Flame className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
+                    <Layers className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{knownCount}/{knownCount + unknownCount}</p>
-                    <p className="text-xs text-white/80">Session Progress</p>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{filteredCards.length}</p>
+                    <p className="text-xs text-gray-500">Cards to Study</p>
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.mastered}</p>
+                    <p className="text-xs text-gray-500">Mastered</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
+                    <Star className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{stats.starred}</p>
+                    <p className="text-xs text-gray-500">Starred</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            {studySessionStarted && (
+              <motion.div
+                variants={scaleIn}
+                initial="hidden"
+                animate="visible"
+              >
+                <Card className="bg-gradient-to-r from-violet-500 to-violet-600 text-white" style={{ borderRadius: RADIUS.card }}>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                      <Flame className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{knownCount}/{knownCount + unknownCount}</p>
+                      <p className="text-xs text-white/80">Session Progress</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
           </div>
         </motion.div>
 
         {/* Filters */}
         <motion.div variants={fadeInUp}>
-          <Card>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-4">
               <div className="flex flex-wrap items-center gap-3">
                 <Select value={category} onValueChange={(value) => {
@@ -358,7 +385,7 @@ export default function AgentStudyFlashcards() {
         {/* Flashcard */}
         <motion.div variants={fadeInUp}>
           {filteredCards.length === 0 ? (
-            <Card className="p-12 text-center">
+            <Card className="p-12 text-center" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <Layers className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">No cards found</h3>
               <p className="text-gray-500">Try adjusting your filters</p>
@@ -391,7 +418,7 @@ export default function AgentStudyFlashcards() {
                   {/* Front */}
                   <Card
                     className="absolute inset-0 backface-hidden flex flex-col"
-                    style={{ backfaceVisibility: 'hidden' }}
+                    style={{ backfaceVisibility: 'hidden', borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -414,7 +441,7 @@ export default function AgentStudyFlashcards() {
                   {/* Back */}
                   <Card
                     className="absolute inset-0 backface-hidden flex flex-col rotate-y-180"
-                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -535,7 +562,7 @@ export default function AgentStudyFlashcards() {
 
         {/* Tips */}
         <motion.div variants={fadeInUp}>
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 border-blue-200" style={{ borderRadius: RADIUS.card }}>
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />

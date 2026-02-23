@@ -1,11 +1,18 @@
 /**
  * Client Management
  * View and manage insurance clients with their policies, billing, and renewals
+ *
+ * Uses Heritage Design System - INDIGO theme (COLORS.lounges.crm)
  */
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { CRMLoungeLayout } from './CRMLoungeLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
+  fadeInUp, staggerContainer, fadeIn
+} from '@/lib/heritageDesignSystem';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -292,117 +299,119 @@ function ClientTable({
     return (
       <div className="text-center py-12 text-gray-500">
         <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p>No clients found</p>
+        <p className="text-base">No clients found</p>
       </div>
     );
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Client</TableHead>
-          <TableHead>Contact</TableHead>
-          <TableHead className="text-center">Policies</TableHead>
-          <TableHead className="text-right">Total Coverage</TableHead>
-          <TableHead className="text-right">Monthly Premium</TableHead>
-          <TableHead>Next Renewal</TableHead>
-          <TableHead>Last Contact</TableHead>
-          <TableHead className="w-8"></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {clients.map((client) => {
-          const daysUntilRenewal = client.nextRenewalDate
-            ? differenceInDays(new Date(client.nextRenewalDate), new Date())
-            : null;
-          const isRenewalUrgent = daysUntilRenewal !== null && daysUntilRenewal <= 7;
-          const isRenewalSoon = daysUntilRenewal !== null && daysUntilRenewal <= 30;
+    <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+      <Table>
+        <TableHeader>
+          <TableRow className="border-b border-gray-100">
+            <TableHead className="text-sm font-semibold text-gray-700">Client</TableHead>
+            <TableHead className="text-sm font-semibold text-gray-700">Contact</TableHead>
+            <TableHead className="text-center text-sm font-semibold text-gray-700">Policies</TableHead>
+            <TableHead className="text-right text-sm font-semibold text-gray-700">Total Coverage</TableHead>
+            <TableHead className="text-right text-sm font-semibold text-gray-700">Monthly Premium</TableHead>
+            <TableHead className="text-sm font-semibold text-gray-700">Next Renewal</TableHead>
+            <TableHead className="text-sm font-semibold text-gray-700">Last Contact</TableHead>
+            <TableHead className="w-8"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {clients.map((client, index) => {
+            const daysUntilRenewal = client.nextRenewalDate
+              ? differenceInDays(new Date(client.nextRenewalDate), new Date())
+              : null;
+            const isRenewalUrgent = daysUntilRenewal !== null && daysUntilRenewal <= 7;
+            const isRenewalSoon = daysUntilRenewal !== null && daysUntilRenewal <= 30;
 
-          return (
-            <TableRow
-              key={client.id}
-              className="cursor-pointer hover:bg-gray-50"
-              onClick={() => onSelectClient(client)}
-            >
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-violet-100 text-violet-600 text-sm">
-                      {client.firstName[0]}{client.lastName[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">
-                      {client.firstName} {client.lastName}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Client since {format(new Date(client.createdAt), 'MMM yyyy')}
+            return (
+              <TableRow
+                key={client.id}
+                className="cursor-pointer hover:bg-indigo-50/50 transition-colors duration-150"
+                onClick={() => onSelectClient(client)}
+              >
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className="bg-indigo-100 text-indigo-600 text-sm font-medium">
+                        {client.firstName[0]}{client.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {client.firstName} {client.lastName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Client since {format(new Date(client.createdAt), 'MMM yyyy')}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="text-sm">
-                  <div className="flex items-center gap-1 text-gray-600">
-                    <Mail className="w-3 h-3" />
-                    {client.email}
-                  </div>
-                  {client.phone && (
-                    <div className="flex items-center gap-1 text-gray-500">
-                      <Phone className="w-3 h-3" />
-                      {client.phone}
+                </TableCell>
+                <TableCell>
+                  <div className="text-sm">
+                    <div className="flex items-center gap-1 text-gray-600">
+                      <Mail className="w-3 h-3" />
+                      {client.email}
                     </div>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="text-center">
-                <Badge variant="secondary" className="font-mono">
-                  {client.policyCount}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right font-medium">
-                ${client.totalCoverage.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right">
-                ${client.totalMonthlyPremium.toFixed(2)}/mo
-              </TableCell>
-              <TableCell>
-                {client.nextRenewalDate ? (
-                  <div className={cn(
-                    "text-sm",
-                    isRenewalUrgent && "text-red-600 font-medium",
-                    isRenewalSoon && !isRenewalUrgent && "text-amber-600"
-                  )}>
-                    {format(new Date(client.nextRenewalDate), 'MMM d, yyyy')}
-                    {isRenewalUrgent && (
-                      <div className="flex items-center gap-1 text-xs">
-                        <AlertCircle className="w-3 h-3" />
-                        {daysUntilRenewal} days
+                    {client.phone && (
+                      <div className="flex items-center gap-1 text-gray-500">
+                        <Phone className="w-3 h-3" />
+                        {client.phone}
                       </div>
                     )}
                   </div>
-                ) : (
-                  <span className="text-gray-400">—</span>
-                )}
-              </TableCell>
-              <TableCell>
-                {client.lastContact ? (
-                  <span className="text-sm text-gray-500">
-                    {formatDistanceToNow(new Date(client.lastContact), { addSuffix: true })}
-                  </span>
-                ) : (
-                  <span className="text-gray-400">—</span>
-                )}
-              </TableCell>
-              <TableCell>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge variant="secondary" className="font-mono bg-indigo-100 text-indigo-700">
+                    {client.policyCount}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-semibold text-gray-900">
+                  ${client.totalCoverage.toLocaleString()}
+                </TableCell>
+                <TableCell className="text-right text-gray-700">
+                  ${client.totalMonthlyPremium.toFixed(2)}/mo
+                </TableCell>
+                <TableCell>
+                  {client.nextRenewalDate ? (
+                    <div className={cn(
+                      "text-sm",
+                      isRenewalUrgent && "text-red-600 font-medium",
+                      isRenewalSoon && !isRenewalUrgent && "text-amber-600"
+                    )}>
+                      {format(new Date(client.nextRenewalDate), 'MMM d, yyyy')}
+                      {isRenewalUrgent && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <AlertCircle className="w-3 h-3" />
+                          {daysUntilRenewal} days
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {client.lastContact ? (
+                    <span className="text-sm text-gray-500">
+                      {formatDistanceToNow(new Date(client.lastContact), { addSuffix: true })}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <ChevronRight className="w-4 h-4 text-indigo-400" />
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }
 
@@ -436,30 +445,37 @@ function RenewalAlertsList({ onSelectClient }: { onSelectClient: (clientId: stri
     },
   };
 
-  const renderRenewalCard = (renewal: Renewal, urgencyLevel: 'urgent' | 'soon' | 'upcoming') => {
+  const renderRenewalCard = (renewal: Renewal, urgencyLevel: 'urgent' | 'soon' | 'upcoming', index: number) => {
     const colors = {
       urgent: 'border-red-200 bg-red-50',
       soon: 'border-amber-200 bg-amber-50',
-      upcoming: 'border-blue-200 bg-blue-50',
+      upcoming: 'border-indigo-200 bg-indigo-50',
     };
 
     return (
-      <div
+      <motion.div
         key={renewal.policyId}
-        className={cn("border rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow", colors[urgencyLevel])}
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        transition={{ delay: index * 0.05 }}
+        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        className={cn("border p-3 cursor-pointer transition-shadow", colors[urgencyLevel])}
+        style={{ borderRadius: RADIUS.card / 2, boxShadow: SHADOW.level1 }}
         onClick={() => onSelectClient(renewal.client.id)}
       >
         <div className="flex justify-between items-start">
           <div>
-            <div className="font-medium">
+            <div className="font-medium text-gray-900">
               {renewal.client.firstName} {renewal.client.lastName}
             </div>
             <div className="text-sm text-gray-600">
-              {renewal.policyNumber} • {renewal.policyType}
+              {renewal.policyNumber} - {renewal.policyType}
             </div>
           </div>
           <Badge
             variant={urgencyLevel === 'urgent' ? 'destructive' : urgencyLevel === 'soon' ? 'default' : 'secondary'}
+            className={urgencyLevel === 'upcoming' ? 'bg-indigo-100 text-indigo-700' : ''}
           >
             {renewal.daysUntilRenewal} days
           </Badge>
@@ -472,58 +488,79 @@ function RenewalAlertsList({ onSelectClient }: { onSelectClient: (clientId: stri
             {format(new Date(renewal.renewalDate), 'MMM d, yyyy')}
           </span>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-sm text-gray-600">Urgent (7 days)</span>
-            </div>
-            <div className="text-2xl font-bold text-red-600 mt-1">{summary.urgentCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-amber-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" />
-              <span className="text-sm text-gray-600">Soon (14 days)</span>
-            </div>
-            <div className="text-2xl font-bold text-amber-600 mt-1">{summary.soonCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-500" />
-              <span className="text-sm text-gray-600">30 Days</span>
-            </div>
-            <div className="text-2xl font-bold text-blue-600 mt-1">{summary.total30Days}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-3 gap-3"
+      >
+        <motion.div variants={fadeInUp}>
+          <Card className="border-red-200" style={{ borderRadius: RADIUS.card / 2 }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm text-gray-600">Urgent (7 days)</span>
+              </div>
+              <div className="text-2xl font-bold text-red-600 mt-1">{summary.urgentCount}</div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-amber-200" style={{ borderRadius: RADIUS.card / 2 }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm text-gray-600">Soon (14 days)</span>
+              </div>
+              <div className="text-2xl font-bold text-amber-600 mt-1">{summary.soonCount}</div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-indigo-200" style={{ borderRadius: RADIUS.card / 2 }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm text-gray-600">30 Days</span>
+              </div>
+              <div className="text-2xl font-bold text-indigo-600 mt-1">{summary.total30Days}</div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
 
       {/* Revenue at Risk */}
       {summary.revenueAtRisk30Days > 0 && (
-        <Card className="bg-gradient-to-r from-red-50 to-amber-50 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm text-gray-600">Revenue at Risk (30 days)</div>
-                <div className="text-2xl font-bold text-red-600">
-                  ${summary.revenueAtRisk30Days.toLocaleString()}/mo
+        <motion.div variants={fadeInUp} initial="hidden" animate="visible">
+          <Card className="bg-gradient-to-r from-red-50 to-amber-50 border-red-200" style={{ borderRadius: RADIUS.card / 2 }}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-gray-600">Revenue at Risk (30 days)</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    ${summary.revenueAtRisk30Days.toLocaleString()}/mo
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-amber-500 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-white" />
                 </div>
               </div>
-              <DollarSign className="w-8 h-8 text-red-400" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       {/* Renewal Time Filter */}
@@ -561,7 +598,7 @@ function RenewalAlertsList({ onSelectClient }: { onSelectClient: (clientId: stri
                 Urgent - Within 7 Days
               </h4>
               <div className="space-y-2">
-                {renewals.urgent.map(r => renderRenewalCard(r, 'urgent'))}
+                {renewals.urgent.map((r, i) => renderRenewalCard(r, 'urgent', i))}
               </div>
             </div>
           )}
@@ -573,19 +610,19 @@ function RenewalAlertsList({ onSelectClient }: { onSelectClient: (clientId: stri
                 Soon - 7-14 Days
               </h4>
               <div className="space-y-2">
-                {renewals.soon.map(r => renderRenewalCard(r, 'soon'))}
+                {renewals.soon.map((r, i) => renderRenewalCard(r, 'soon', i))}
               </div>
             </div>
           )}
 
           {renewals.upcoming.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-blue-600 mb-2 flex items-center gap-1">
+              <h4 className="text-sm font-medium text-indigo-600 mb-2 flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
                 Upcoming - 14+ Days
               </h4>
               <div className="space-y-2">
-                {renewals.upcoming.map(r => renderRenewalCard(r, 'upcoming'))}
+                {renewals.upcoming.map((r, i) => renderRenewalCard(r, 'upcoming', i))}
               </div>
             </div>
           )}
@@ -675,20 +712,30 @@ function ClientDetailView({
 
   return (
     <>
-      {/* Header */}
-      <div className="p-6 border-b bg-gradient-to-r from-violet-50 to-blue-50">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16">
+      {/* Header - Enhanced with Design System */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
+        className="border-b bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 relative overflow-hidden"
+        style={{ padding: GRID.spacing.md }}
+      >
+        {/* Background decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+        <div className="relative z-10 flex items-start gap-4">
+          <Avatar className="h-16 w-16 ring-4 ring-white/20">
             <AvatarImage src={client.avatarUrl || undefined} />
-            <AvatarFallback className="bg-violet-600 text-white text-xl">
+            <AvatarFallback className="bg-white/20 text-white text-xl font-bold">
               {client.firstName[0]}{client.lastName[0]}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-white">
               {client.firstName} {client.lastName}
             </h2>
-            <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+            <div className="flex items-center gap-4 mt-1 text-sm text-indigo-100">
               <span className="flex items-center gap-1">
                 <Mail className="w-4 h-4" />
                 {client.email}
@@ -701,26 +748,26 @@ function ClientDetailView({
               )}
             </div>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline">
+              <Badge variant="outline" className="bg-white/10 border-white/30 text-white">
                 Client since {format(new Date(metrics.memberSince), 'MMM yyyy')}
               </Badge>
               {metrics.policyTypes.map(type => (
-                <Badge key={type} variant="secondary">
+                <Badge key={type} className="bg-white/20 text-white border-0">
                   {formatPolicyType(type)}
                 </Badge>
               ))}
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowNoteDialog(true)}>
+            <Button variant="secondary" size="sm" onClick={() => setShowNoteDialog(true)} className="bg-white/10 hover:bg-white/20 text-white border-white/30">
               <Plus className="w-4 h-4 mr-1" />
               Add Note
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-white/30">
               <Mail className="w-4 h-4 mr-1" />
               Email
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-white/30">
               <Phone className="w-4 h-4 mr-1" />
               Call
             </Button>
@@ -728,49 +775,54 @@ function ClientDetailView({
         </div>
 
         {/* Quick Metrics */}
-        <div className="grid grid-cols-4 gap-4 mt-6">
-          <div className="bg-white rounded-lg p-3 border">
-            <div className="text-sm text-gray-500">Total Coverage</div>
-            <div className="text-xl font-bold text-violet-600">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-4 gap-4 mt-6 relative z-10"
+        >
+          <motion.div variants={fadeInUp} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+            <div className="text-sm text-indigo-100">Total Coverage</div>
+            <div className="text-xl font-bold text-white">
               ${metrics.totalCoverage.toLocaleString()}
             </div>
-          </div>
-          <div className="bg-white rounded-lg p-3 border">
-            <div className="text-sm text-gray-500">Monthly Premium</div>
-            <div className="text-xl font-bold text-green-600">
+          </motion.div>
+          <motion.div variants={fadeInUp} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+            <div className="text-sm text-indigo-100">Monthly Premium</div>
+            <div className="text-xl font-bold text-white">
               ${metrics.totalMonthlyPremium.toFixed(2)}
             </div>
-          </div>
-          <div className="bg-white rounded-lg p-3 border">
-            <div className="text-sm text-gray-500">Active Policies</div>
-            <div className="text-xl font-bold">{metrics.activePolicies}</div>
-          </div>
-          <div className="bg-white rounded-lg p-3 border">
-            <div className="text-sm text-gray-500">Lifetime Value</div>
-            <div className="text-xl font-bold text-blue-600">
+          </motion.div>
+          <motion.div variants={fadeInUp} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+            <div className="text-sm text-indigo-100">Active Policies</div>
+            <div className="text-xl font-bold text-white">{metrics.activePolicies}</div>
+          </motion.div>
+          <motion.div variants={fadeInUp} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+            <div className="text-sm text-indigo-100">Lifetime Value</div>
+            <div className="text-xl font-bold text-white">
               ${metrics.lifetimeValue.toLocaleString()}
             </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <div className="border-b px-6">
           <TabsList className="bg-transparent border-none h-12">
-            <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none">
+            <TabsTrigger value="overview" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="policies" className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none">
+            <TabsTrigger value="policies" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none">
               Policies ({policies.length})
             </TabsTrigger>
-            <TabsTrigger value="billing" className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none">
+            <TabsTrigger value="billing" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none">
               Billing ({billing.length})
             </TabsTrigger>
-            <TabsTrigger value="communications" className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none">
+            <TabsTrigger value="communications" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none">
               Communications ({communications.length})
             </TabsTrigger>
-            <TabsTrigger value="documents" className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none">
+            <TabsTrigger value="documents" className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 rounded-none">
               Documents ({documents.length})
             </TabsTrigger>
           </TabsList>
@@ -782,29 +834,39 @@ function ClientDetailView({
             <TabsContent value="overview" className="mt-0 space-y-6">
               {/* Upsell Opportunities */}
               {upsellOpportunities.length > 0 && (
-                <Card className="border-violet-200 bg-violet-50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-violet-600" />
-                      Upsell Opportunities
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {upsellOpportunities.map((opp, i) => (
-                        <div key={i} className="bg-white rounded-lg p-3 border">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">{opp.title}</span>
-                            <Badge variant={opp.priority === 'high' ? 'destructive' : opp.priority === 'medium' ? 'default' : 'secondary'}>
-                              {opp.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">{opp.description}</p>
+                <motion.div variants={fadeInUp} initial="hidden" animate="visible">
+                  <Card className="border-indigo-200 bg-indigo-50" style={{ borderRadius: RADIUS.card }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                          <Sparkles className="w-4 h-4 text-white" />
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                        Upsell Opportunities
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {upsellOpportunities.map((opp, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="bg-white rounded-lg p-3 border"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-gray-900">{opp.title}</span>
+                              <Badge variant={opp.priority === 'high' ? 'destructive' : opp.priority === 'medium' ? 'default' : 'secondary'}>
+                                {opp.priority}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{opp.description}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
 
               {/* Recent Activity */}
@@ -874,51 +936,60 @@ function ClientDetailView({
 
             {/* Policies Tab */}
             <TabsContent value="policies" className="mt-0">
-              <div className="space-y-4">
-                {policies.map(policy => (
-                  <Card key={policy.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-violet-600" />
-                            <span className="font-semibold">{policy.policyNumber}</span>
-                            {getPolicyStatusBadge(policy.status)}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="space-y-4"
+              >
+                {policies.map((policy, index) => (
+                  <motion.div key={policy.id} variants={fadeInUp}>
+                    <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                                <Shield className="w-4 h-4 text-white" />
+                              </div>
+                              <span className="font-semibold text-gray-900">{policy.policyNumber}</span>
+                              {getPolicyStatusBadge(policy.status)}
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1 ml-10">
+                              {formatPolicyType(policy.type)}
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {formatPolicyType(policy.type)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xl font-bold">${policy.coverageAmount.toLocaleString()}</div>
-                          <div className="text-sm text-gray-500">${policy.monthlyPremium.toFixed(2)}/mo</div>
-                        </div>
-                      </div>
-                      <Separator className="my-4" />
-                      <div className="grid grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <div className="text-gray-500">Start Date</div>
-                          <div className="font-medium">{format(new Date(policy.startDate), 'MMM d, yyyy')}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-500">Next Payment</div>
-                          <div className="font-medium">
-                            {policy.nextPaymentDate
-                              ? format(new Date(policy.nextPaymentDate), 'MMM d, yyyy')
-                              : '—'}
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-gray-900">${policy.coverageAmount.toLocaleString()}</div>
+                            <div className="text-sm text-gray-500">${policy.monthlyPremium.toFixed(2)}/mo</div>
                           </div>
                         </div>
-                        <div>
-                          <div className="text-gray-500">Beneficiary</div>
-                          <div className="font-medium">{policy.beneficiaryName || '—'}</div>
+                        <Separator className="my-4" />
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <div className="text-gray-500">Start Date</div>
+                            <div className="font-medium text-gray-900">{format(new Date(policy.startDate), 'MMM d, yyyy')}</div>
+                          </div>
+                          <div>
+                            <div className="text-gray-500">Next Payment</div>
+                            <div className="font-medium text-gray-900">
+                              {policy.nextPaymentDate
+                                ? format(new Date(policy.nextPaymentDate), 'MMM d, yyyy')
+                                : '-'}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-gray-500">Beneficiary</div>
+                            <div className="font-medium text-gray-900">{policy.beneficiaryName || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-gray-500">Payments Made</div>
+                            <div className="font-medium text-gray-900">{policy.paymentCount}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-gray-500">Payments Made</div>
-                          <div className="font-medium">{policy.paymentCount}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
                 {policies.length === 0 && (
                   <div className="text-center py-12 text-gray-500">
@@ -926,7 +997,7 @@ function ClientDetailView({
                     <p>No policies found</p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             </TabsContent>
 
             {/* Billing Tab */}
@@ -1153,80 +1224,144 @@ export function ClientManagement() {
       <div className="flex h-full">
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold">Client Management</h1>
-                <p className="text-gray-500">
-                  Manage your insurance clients and their policies
-                </p>
-              </div>
-            </div>
+          {/* Header with Hero Card */}
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="p-6 border-b"
+          >
+            {/* Hero Card */}
+            <motion.div variants={fadeInUp}>
+              <Card className="border-0 overflow-hidden mb-6" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+                <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+                  <div className="relative z-10">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Client Management</h1>
+                    <p className="text-indigo-100 text-lg">Manage your insurance clients and their policies</p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
 
             {/* Summary Cards */}
             {clientsData?.summary && (
-              <div className="grid grid-cols-5 gap-4 mb-6">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Users className="w-8 h-8 text-violet-600" />
-                      <div>
-                        <div className="text-sm text-gray-500">Total Clients</div>
-                        <div className="text-2xl font-bold">{clientsData.summary.totalClients}</div>
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-5 gap-4 mb-6"
+              >
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                  <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                          <Users className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Total Clients</div>
+                          <div className="text-2xl font-bold text-gray-900">{clientsData.summary.totalClients}</div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Shield className="w-8 h-8 text-blue-600" />
-                      <div>
-                        <div className="text-sm text-gray-500">Active Policies</div>
-                        <div className="text-2xl font-bold">{clientsData.summary.totalPolicies}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                  <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Active Policies</div>
+                          <div className="text-2xl font-bold text-gray-900">{clientsData.summary.totalPolicies}</div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Shield className="w-8 h-8 text-green-600" />
-                      <div>
-                        <div className="text-sm text-gray-500">Total Coverage</div>
-                        <div className="text-2xl font-bold">${(clientsData.summary.totalCoverage / 1000000).toFixed(1)}M</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                  <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Total Coverage</div>
+                          <div className="text-2xl font-bold text-gray-900">${(clientsData.summary.totalCoverage / 1000000).toFixed(1)}M</div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <DollarSign className="w-8 h-8 text-emerald-600" />
-                      <div>
-                        <div className="text-sm text-gray-500">Monthly Revenue</div>
-                        <div className="text-2xl font-bold">${clientsData.summary.totalMonthlyPremium.toLocaleString()}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                  <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                          <DollarSign className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Monthly Revenue</div>
+                          <div className="text-2xl font-bold text-gray-900">${clientsData.summary.totalMonthlyPremium.toLocaleString()}</div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className={cn(clientsData.summary.renewalsNext30Days > 0 && "border-amber-300 bg-amber-50")}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Clock className={cn("w-8 h-8", clientsData.summary.renewalsNext30Days > 0 ? "text-amber-600" : "text-gray-400")} />
-                      <div>
-                        <div className="text-sm text-gray-500">Renewals (30d)</div>
-                        <div className="text-2xl font-bold">{clientsData.summary.renewalsNext30Days}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+                <motion.div
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                  <Card
+                    className={cn(clientsData.summary.renewalsNext30Days > 0 && "border-amber-300 bg-amber-50")}
+                    style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-xl flex items-center justify-center",
+                          clientsData.summary.renewalsNext30Days > 0
+                            ? "bg-gradient-to-br from-amber-500 to-orange-600"
+                            : "bg-gradient-to-br from-gray-400 to-gray-500"
+                        )}>
+                          <Clock className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Renewals (30d)</div>
+                          <div className="text-2xl font-bold text-gray-900">{clientsData.summary.renewalsNext30Days}</div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </motion.div>
             )}
 
             {/* Filters */}
-            <div className="flex items-center gap-4">
+            <motion.div variants={fadeInUp} className="flex items-center gap-4">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -1237,10 +1372,11 @@ export function ClientManagement() {
                     setPage(1);
                   }}
                   className="pl-10"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1251,7 +1387,7 @@ export function ClientManagement() {
                 </SelectContent>
               </Select>
               <Select value={sort} onValueChange={(v) => { setSort(v); setPage(1); }}>
-                <SelectTrigger className="w-44">
+                <SelectTrigger className="w-44" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1263,11 +1399,17 @@ export function ClientManagement() {
                   <SelectItem value="renewal_asc">Renewal Date</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Client Table */}
-          <div className="flex-1 overflow-auto p-6">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.3 }}
+            className="flex-1 overflow-auto p-6"
+          >
             <ClientTable
               clients={clientsData?.clients || []}
               onSelectClient={handleSelectClient}
@@ -1286,11 +1428,12 @@ export function ClientManagement() {
                     size="sm"
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
                   </Button>
-                  <span className="text-sm px-2">
+                  <span className="text-sm px-2 font-medium text-gray-600">
                     Page {page} of {clientsData.pagination.totalPages}
                   </span>
                   <Button
@@ -1298,6 +1441,7 @@ export function ClientManagement() {
                     size="sm"
                     onClick={() => setPage(p => Math.min(clientsData.pagination.totalPages, p + 1))}
                     disabled={page === clientsData.pagination.totalPages}
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     Next
                     <ChevronRight className="w-4 h-4" />
@@ -1305,19 +1449,26 @@ export function ClientManagement() {
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Renewal Alerts Sidebar */}
-        <div className="w-96 border-l bg-gray-50 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5 text-amber-500" />
-            Renewal Alerts
-          </h2>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing, delay: 0.2 }}
+          className="w-96 border-l bg-gradient-to-b from-gray-50 to-white p-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Renewal Alerts</h2>
+          </div>
           <RenewalAlertsList
             onSelectClient={(clientId) => setSelectedClientId(clientId)}
           />
-        </div>
+        </motion.div>
       </div>
 
       {/* Client Detail Sheet */}

@@ -4,16 +4,19 @@
  * NO personal lead data - just business health metrics
  */
 
+import { useState } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { LobbyLayout } from './LobbyLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AgentLoungeSelectorModal } from '@/components/agent/AgentLoungeSelectorModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import {
   Users,
   Bot,
@@ -296,11 +299,17 @@ function MetricCard({ metric, index }: { metric: BusinessMetric; index: number }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
+      variants={fadeInUp}
+      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+      transition={{ duration: MOTION.duration.hover }}
     >
-      <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
+      <Card
+        className="relative overflow-hidden border-0 transition-shadow"
+        style={{
+          borderRadius: RADIUS.card,
+          boxShadow: SHADOW.card,
+        }}
+      >
         <CardContent className="p-5">
           <div className="flex items-start justify-between">
             <div>
@@ -329,50 +338,74 @@ function MetricCard({ metric, index }: { metric: BusinessMetric; index: number }
   );
 }
 
-function LoungeNavigationCard({ lounge, canAccess, index }: { lounge: LoungeCard; canAccess: boolean; index: number }) {
+function LoungeNavigationCard({ lounge, canAccess, index, onCustomClick }: { lounge: LoungeCard; canAccess: boolean; index: number; onCustomClick?: () => void }) {
   const Icon = lounge.icon;
 
   if (!canAccess) return null;
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
+  const cardContent = (
+    <Card
+      className="group h-full cursor-pointer border-0 transition-all duration-300 overflow-hidden"
+      style={{
+        borderRadius: RADIUS.card,
+        boxShadow: SHADOW.card,
+      }}
     >
-      <Link href={lounge.path}>
-        <Card className="group h-full cursor-pointer border-0 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
-          <div className={cn('h-1.5 bg-gradient-to-r', lounge.gradient)} />
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4">
-              <div className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform',
-                lounge.gradient
-              )}>
-                <Icon className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                    {lounge.name}
-                  </h3>
-                  <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">{lounge.description}</p>
-                {lounge.stat && (
-                  <div className="flex items-center gap-2 mt-3">
-                    <Badge variant="secondary" className="text-xs font-medium">
-                      {lounge.stat.value} {lounge.stat.label}
-                    </Badge>
-                    {lounge.stat.trend === 'up' && (
-                      <TrendingUp className="w-3 h-3 text-emerald-500" />
-                    )}
-                  </div>
+      <div className={cn('h-1.5 bg-gradient-to-r', lounge.gradient)} />
+      <CardContent className="p-5">
+        <div className="flex items-start gap-4">
+          <div className={cn(
+            'w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform',
+            lounge.gradient
+          )}>
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                {lounge.name}
+              </h3>
+              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+            </div>
+            <p className="text-sm text-gray-500 mt-0.5">{lounge.description}</p>
+            {lounge.stat && (
+              <div className="flex items-center gap-2 mt-3">
+                <Badge variant="secondary" className="text-xs font-medium">
+                  {lounge.stat.value} {lounge.stat.label}
+                </Badge>
+                {lounge.stat.trend === 'up' && (
+                  <TrendingUp className="w-3 h-3 text-emerald-500" />
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // If custom click handler provided, use div with onClick instead of Link
+  if (onCustomClick) {
+    return (
+      <motion.div
+        variants={scaleIn}
+        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        transition={{ duration: MOTION.duration.hover }}
+        onClick={onCustomClick}
+      >
+        {cardContent}
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      variants={scaleIn}
+      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+      transition={{ duration: MOTION.duration.hover }}
+    >
+      <Link href={lounge.path}>
+        {cardContent}
       </Link>
     </motion.div>
   );
@@ -400,9 +433,11 @@ function QuickActionButton({ icon: Icon, label, href, color }: { icon: LucideIco
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.02 }}
+        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
         whileTap={{ scale: 0.98 }}
-        className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200 hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer"
+        transition={{ duration: MOTION.duration.hover }}
+        className="flex items-center gap-3 p-3 bg-white border border-gray-200 hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer"
+        style={{ borderRadius: RADIUS.button }}
       >
         <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', color)}>
           <Icon className="w-5 h-5" />
@@ -420,6 +455,7 @@ function QuickActionButton({ icon: Icon, label, href, color }: { icon: LucideIco
 
 export function LobbyLanding() {
   const { user } = useAuth();
+  const [agentSelectorOpen, setAgentSelectorOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['lobby-health'],
@@ -467,14 +503,25 @@ export function LobbyLanding() {
 
   return (
     <LobbyLayout>
-      <div className="space-y-8 max-w-7xl mx-auto">
+      <motion.div
+        className="max-w-7xl mx-auto"
+        style={{ display: 'flex', flexDirection: 'column', gap: spacing(4) }}
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Hero Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={fadeInUp}
           className="relative"
         >
-          <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-3xl p-8 lg:p-10 text-white overflow-hidden">
+          <div
+            className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-8 lg:p-10 text-white overflow-hidden"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+          >
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
@@ -495,7 +542,7 @@ export function LobbyLanding() {
         </motion.section>
 
         {/* Business Metrics */}
-        <section>
+        <motion.section variants={fadeInUp}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Business Health</h2>
             <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">
@@ -508,33 +555,49 @@ export function LobbyLanding() {
               {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32" />)}
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <motion.div
+              className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {data?.metrics.map((metric, idx) => (
                 <MetricCard key={metric.label} metric={metric} index={idx} />
               ))}
-            </div>
+            </motion.div>
           )}
-        </section>
+        </motion.section>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Lounges Section */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Your Lounges</h2>
               <p className="text-sm text-gray-500">{accessibleLounges.length} available</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {accessibleLounges.map((lounge, idx) => (
-                <LoungeNavigationCard key={lounge.id} lounge={lounge} canAccess={true} index={idx} />
+                <LoungeNavigationCard
+                  key={lounge.id}
+                  lounge={lounge}
+                  canAccess={true}
+                  index={idx}
+                  onCustomClick={lounge.id === 'agent' ? () => setAgentSelectorOpen(true) : undefined}
+                />
               ))}
-            </div>
+            </motion.div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Zap className="w-4 h-4 text-amber-500" />
@@ -564,7 +627,7 @@ export function LobbyLanding() {
             </Card>
 
             {/* Announcements */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Bell className="w-4 h-4 text-indigo-500" />
@@ -579,7 +642,7 @@ export function LobbyLanding() {
             </Card>
 
             {/* Performance Snapshot */}
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-violet-50">
+            <Card className="border-0 bg-gradient-to-br from-indigo-50 to-violet-50" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-amber-500" />
@@ -620,11 +683,14 @@ export function LobbyLanding() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* AI Concierge - Luxury Hotel Style */}
       <LobbyConcierge />
+
+      {/* Agent Lounge Selector Modal */}
+      <AgentLoungeSelectorModal open={agentSelectorOpen} onOpenChange={setAgentSelectorOpen} />
     </LobbyLayout>
   );
 }

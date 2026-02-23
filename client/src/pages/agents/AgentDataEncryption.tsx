@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -51,11 +52,6 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
 import { CARRIER_BRANDING } from "@shared/carrierBranding";
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
 
 // Get carrier color from branding
 const getCarrierColor = (carrierId: string): string => {
@@ -1452,26 +1448,38 @@ export default function AgentDataEncryption() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        variants={staggerContainer}
         className="space-y-6"
       >
-        {/* Header */}
-        <motion.div variants={fadeInUp}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Shield className="w-6 h-6 text-white" />
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
+          style={{
+            borderRadius: RADIUS.hero,
+            padding: spacing(4),
+            boxShadow: SHADOW.hero,
+          }}
+        >
+          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                style={{ borderRadius: RADIUS.card }}
+              >
+                <Shield className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Secure Data Collection</h1>
-                <p className="text-gray-500 text-sm">Send encrypted forms to collect sensitive client information</p>
+                <h1 className="text-2xl font-bold text-white">Secure Data Collection</h1>
+                <p className="text-white/80 text-sm mt-1">Send encrypted forms to collect sensitive client information</p>
               </div>
             </div>
             {/* Agent Account Indicator */}
             <div className="text-right text-sm">
-              <div className="text-gray-500">Sending as</div>
-              <div className="font-medium text-gray-900">{agentName}</div>
-              <div className="text-xs text-gray-400">{agentEmail} • {agentPhone}</div>
+              <div className="text-white/70">Sending as</div>
+              <div className="font-medium text-white">{agentName}</div>
+              <div className="text-xs text-white/60">{agentEmail} • {agentPhone}</div>
             </div>
           </div>
         </motion.div>
@@ -1482,47 +1490,56 @@ export default function AgentDataEncryption() {
           <h2 className="text-lg font-semibold mb-4">Send Secure Form</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {SECURE_FORM_TYPES.map((formType) => (
-              <Card
+              <motion.div
                 key={formType.id}
-                className="hover:shadow-lg transition-all cursor-pointer group border-2 hover:border-primary/30"
-                onClick={() => openSendDialog(formType)}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
               >
-                <CardContent className="p-5">
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110",
-                    formType.id === "ssn" ? "bg-blue-100" :
-                    formType.id === "banking" ? "bg-emerald-100" : "bg-violet-100"
-                  )}>
-                    <formType.icon className={cn(
-                      "w-6 h-6",
-                      formType.id === "ssn" ? "text-blue-600" :
-                      formType.id === "banking" ? "text-emerald-600" : "text-violet-600"
-                    )} />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{formType.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{formType.description}</p>
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {formType.fields.slice(0, 3).map((field, i) => (
-                      <Badge key={i} variant="outline" className="text-[10px] text-gray-500">
-                        {field}
-                      </Badge>
-                    ))}
-                    {formType.fields.length > 3 && (
-                      <Badge variant="outline" className="text-[10px] text-gray-400">
-                        +{formType.fields.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                  <Button className={cn(
-                    "w-full gap-2",
-                    formType.id === "banking" ? "bg-emerald-600 hover:bg-emerald-700" :
-                    formType.id === "full_application" ? "bg-violet-600 hover:bg-violet-700" : ""
-                  )}>
-                    <Send className="w-4 h-4" />
-                    Send to Client
-                  </Button>
-                </CardContent>
-              </Card>
+                <Card
+                  className="cursor-pointer group border-2 hover:border-primary/30 h-full"
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.card,
+                  }}
+                  onClick={() => openSendDialog(formType)}
+                >
+                  <CardContent className="p-5">
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110",
+                      formType.id === "ssn" ? "bg-blue-100" :
+                      formType.id === "banking" ? "bg-emerald-100" : "bg-violet-100"
+                    )}>
+                      <formType.icon className={cn(
+                        "w-6 h-6",
+                        formType.id === "ssn" ? "text-blue-600" :
+                        formType.id === "banking" ? "text-emerald-600" : "text-violet-600"
+                      )} />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{formType.name}</h3>
+                    <p className="text-sm text-gray-500 mb-4">{formType.description}</p>
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {formType.fields.slice(0, 3).map((field, i) => (
+                        <Badge key={i} variant="outline" className="text-[10px] text-gray-500">
+                          {field}
+                        </Badge>
+                      ))}
+                      {formType.fields.length > 3 && (
+                        <Badge variant="outline" className="text-[10px] text-gray-400">
+                          +{formType.fields.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                    <Button className={cn(
+                      "w-full gap-2",
+                      formType.id === "banking" ? "bg-emerald-600 hover:bg-emerald-700" :
+                      formType.id === "full_application" ? "bg-violet-600 hover:bg-violet-700" : ""
+                    )}>
+                      <Send className="w-4 h-4" />
+                      Send to Client
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </motion.div>
@@ -1530,7 +1547,7 @@ export default function AgentDataEncryption() {
         {/* Recent Sent Links */}
         <motion.div variants={fadeInUp}>
           <h2 className="text-lg font-semibold mb-4">Recent Secure Links</h2>
-          <Card>
+          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-0">
               {isLoadingLinks ? (
                 <div className="flex items-center justify-center py-12">
@@ -1667,15 +1684,21 @@ export default function AgentDataEncryption() {
               { icon: Key, title: "One-Time Use", description: "Each link works once" },
               { icon: FileCheck, title: "HIPAA Compliant", description: "Meets all regulations" },
             ].map((feature, index) => (
-              <Card key={index}>
-                <CardContent className="p-4 text-center">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <feature.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <h3 className="font-medium text-gray-900 text-sm">{feature.title}</h3>
-                  <p className="text-xs text-gray-500">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={index}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardContent className="p-4 text-center">
+                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                      <feature.icon className="w-5 h-5 text-violet-600" />
+                    </div>
+                    <h3 className="font-medium text-gray-900 text-sm">{feature.title}</h3>
+                    <p className="text-xs text-gray-500">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </motion.div>

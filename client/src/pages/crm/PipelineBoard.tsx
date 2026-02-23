@@ -5,8 +5,13 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { CRMLoungeLayout } from './CRMLoungeLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
+  fadeInUp, staggerContainer, fadeIn
+} from '@/lib/heritageDesignSystem';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -296,16 +301,22 @@ function PipelineCard({ lead, isDragging, onQuickAction, onClick }: PipelineCard
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || `all ${MOTION.duration.fast}s ${MOTION.easingCSS}`,
     opacity: isSortableDragging ? 0.5 : 1,
+    borderRadius: RADIUS.card - 8, // Slightly smaller radius for cards within columns
   };
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
+      whileHover={!isDragging && !isSortableDragging ? {
+        y: -2,
+        boxShadow: SHADOW.level3,
+        transition: { duration: MOTION.duration.hover }
+      } : undefined}
       className={cn(
-        'bg-white rounded-lg border shadow-sm p-3 cursor-pointer hover:shadow-md transition-shadow',
+        'bg-white border shadow-sm p-3 cursor-pointer',
         isDragging && 'shadow-lg ring-2 ring-indigo-500',
         isSortableDragging && 'opacity-50'
       )}
@@ -456,7 +467,7 @@ function PipelineCard({ lead, isDragging, onQuickAction, onClick }: PipelineCard
           </DropdownMenu>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -476,24 +487,26 @@ function PipelineColumn({ stage, onQuickAction, onLeadClick }: PipelineColumnPro
   });
 
   return (
-    <div
+    <motion.div
+      variants={fadeInUp}
       className={cn(
-        'flex flex-col min-w-[280px] max-w-[320px] rounded-lg border-2 transition-colors',
+        'flex flex-col min-w-[280px] max-w-[320px] border-2 transition-colors',
         getStageColor(stage.id),
         isOver && 'ring-2 ring-indigo-500 border-indigo-400'
       )}
+      style={{ borderRadius: RADIUS.card }}
     >
       {/* Column Header */}
-      <div className={cn('px-3 py-2 border-b', getStageColor(stage.id))}>
+      <div className={cn('px-3 py-2 border-b', getStageColor(stage.id))} style={{ borderTopLeftRadius: RADIUS.card - 2, borderTopRightRadius: RADIUS.card - 2 }}>
         <div className="flex items-center justify-between">
-          <h3 className={cn('font-semibold text-sm', getStageHeaderColor(stage.id))}>
+          <h3 className={cn('font-semibold', getStageHeaderColor(stage.id))} style={{ fontSize: TYPE.meta }}>
             {stage.label}
           </h3>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" style={{ fontSize: TYPE.micro }}>
             {stage.count}
           </Badge>
         </div>
-        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mt-1 text-gray-500" style={{ fontSize: TYPE.micro }}>
           <span>{formatCurrency(stage.value)}</span>
           <span className="text-gray-300">|</span>
           <span className="text-green-600">{formatCurrency(stage.weightedValue)} weighted</span>
@@ -520,12 +533,12 @@ function PipelineColumn({ stage, onQuickAction, onLeadClick }: PipelineColumnPro
         </SortableContext>
 
         {stage.leads.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-sm text-gray-400 border-2 border-dashed rounded-lg">
+          <div className="flex items-center justify-center h-20 text-gray-400 border-2 border-dashed rounded-lg" style={{ fontSize: TYPE.meta }}>
             Drop leads here
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -544,7 +557,7 @@ function PipelineSummaryBar({ data, forecast, isLoading }: PipelineSummaryBarPro
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
         {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="h-20 rounded-lg" />
+          <Skeleton key={i} className="h-20" style={{ borderRadius: RADIUS.card }} />
         ))}
       </div>
     );
@@ -556,24 +569,28 @@ function PipelineSummaryBar({ data, forecast, isLoading }: PipelineSummaryBarPro
       value: formatCurrency(data?.summary.totalValue || 0),
       icon: DollarSign,
       color: 'text-green-600',
+      isAccent: false,
     },
     {
       label: 'Weighted Value',
       value: formatCurrency(data?.summary.totalWeightedValue || 0),
       icon: Target,
       color: 'text-indigo-600',
+      isAccent: true, // Key metric - indigo accent
     },
     {
       label: 'Active Deals',
       value: data?.summary.totalLeads || 0,
       icon: Kanban,
-      color: 'text-blue-600',
+      color: 'text-indigo-600',
+      isAccent: true, // Key metric - indigo accent
     },
     {
       label: 'Avg Deal Size',
       value: formatCurrency(data?.summary.avgDealSize || 0),
       icon: TrendingUp,
       color: 'text-violet-600',
+      isAccent: false,
     },
     {
       label: 'Expected This Month',
@@ -581,32 +598,52 @@ function PipelineSummaryBar({ data, forecast, isLoading }: PipelineSummaryBarPro
       subValue: `${forecast?.forecast.thisMonth.expectedDeals || 0} deals`,
       icon: Calendar,
       color: 'text-amber-600',
+      isAccent: false,
     },
     {
       label: 'Win Rate',
       value: `${forecast?.metrics.winRate || 0}%`,
       icon: CheckCircle2,
       color: 'text-emerald-600',
+      isAccent: false,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-      {stats.map((stat) => (
-        <Card key={stat.label}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <stat.icon className={cn('w-4 h-4', stat.color)} />
-              <span className="text-xs text-gray-500">{stat.label}</span>
-            </div>
-            <p className={cn('text-xl font-bold mt-1', stat.color)}>{stat.value}</p>
-            {stat.subValue && (
-              <p className="text-xs text-gray-400">{stat.subValue}</p>
+    <motion.div
+      variants={fadeInUp}
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6"
+    >
+      {stats.map((stat, index) => (
+        <motion.div
+          key={stat.label}
+          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={{ duration: MOTION.duration.hover }}
+        >
+          <Card
+            className={cn(
+              'border-0 h-full',
+              stat.isAccent && 'bg-indigo-50/50'
             )}
-          </CardContent>
-        </Card>
+            style={{
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+            }}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <stat.icon className={cn('w-4 h-4', stat.color)} />
+                <span className="text-gray-500" style={{ fontSize: TYPE.micro }}>{stat.label}</span>
+              </div>
+              <p className={cn('font-bold mt-1', stat.color)} style={{ fontSize: TYPE.title }}>{stat.value}</p>
+              {stat.subValue && (
+                <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>{stat.subValue}</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -643,16 +680,17 @@ function PipelineFilters({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
+          style={{ borderRadius: RADIUS.input }}
         />
       </div>
 
       {/* Assigned To Filter */}
       <Select value={assignedTo} onValueChange={onAssignedToChange}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px]" style={{ borderRadius: RADIUS.input }}>
           <User className="w-4 h-4 mr-2" />
           <SelectValue placeholder="Assigned to" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent style={{ borderRadius: RADIUS.input }}>
           <SelectItem value="all">All Agents</SelectItem>
           <SelectItem value="unassigned">Unassigned</SelectItem>
           {/* Would populate from agents list */}
@@ -660,12 +698,13 @@ function PipelineFilters({
       </Select>
 
       {/* View Toggle */}
-      <div className="flex items-center bg-gray-100 rounded-lg p-1">
+      <div className="flex items-center bg-gray-100 p-1" style={{ borderRadius: RADIUS.button }}>
         <Button
           variant={view === 'kanban' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => onViewChange('kanban')}
-          className={cn(view === 'kanban' && 'shadow-sm')}
+          className={cn(view === 'kanban' && 'shadow-sm bg-indigo-600 hover:bg-indigo-700')}
+          style={{ borderRadius: RADIUS.input }}
         >
           <Kanban className="w-4 h-4 mr-1" />
           Kanban
@@ -674,7 +713,8 @@ function PipelineFilters({
           variant={view === 'table' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => onViewChange('table')}
-          className={cn(view === 'table' && 'shadow-sm')}
+          className={cn(view === 'table' && 'shadow-sm bg-indigo-600 hover:bg-indigo-700')}
+          style={{ borderRadius: RADIUS.input }}
         >
           <Table className="w-4 h-4 mr-1" />
           Table
@@ -682,7 +722,7 @@ function PipelineFilters({
       </div>
 
       {/* Refresh */}
-      <Button variant="outline" size="icon" onClick={onRefresh}>
+      <Button variant="outline" size="icon" onClick={onRefresh} style={{ borderRadius: RADIUS.input }}>
         <RefreshCcw className="w-4 h-4" />
       </Button>
     </div>
@@ -722,33 +762,37 @@ function TableView({ data, onLeadClick, onQuickAction, search }: TableViewProps)
   }, [allLeads, search]);
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden">
+    <div
+      className="bg-white border overflow-hidden"
+      style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+    >
       <table className="w-full">
         <thead className="bg-gray-50 border-b">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stage</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Name</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Stage</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Score</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Value</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Source</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Agent</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Days</th>
+            <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase" style={{ fontSize: TYPE.micro }}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {filteredLeads.map((lead) => (
             <tr
               key={lead.id}
-              className="hover:bg-gray-50 cursor-pointer"
+              className="hover:bg-indigo-50/50 cursor-pointer transition-colors"
+              style={{ transition: `background-color ${MOTION.duration.hover}s ${MOTION.easingCSS}` }}
               onClick={() => onLeadClick(lead)}
             >
               <td className="px-4 py-3">
                 <div>
-                  <p className="font-medium text-sm text-gray-900">
+                  <p className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
                     {lead.firstName} {lead.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">{lead.email}</p>
+                  <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>{lead.email}</p>
                 </div>
               </td>
               <td className="px-4 py-3">
@@ -757,25 +801,27 @@ function TableView({ data, onLeadClick, onQuickAction, search }: TableViewProps)
                 </Badge>
               </td>
               <td className="px-4 py-3">
-                <Badge className={cn('text-xs', getScoreBadgeColor(lead.scoreTier))}>
+                <Badge className={cn(getScoreBadgeColor(lead.scoreTier))} style={{ fontSize: TYPE.micro }}>
                   {lead.leadScore}
                 </Badge>
               </td>
-              <td className="px-4 py-3 text-sm font-medium text-green-600">
+              <td className="px-4 py-3 font-medium text-green-600" style={{ fontSize: TYPE.meta }}>
                 {formatCurrency(lead.estimatedValue)}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-500 capitalize">
+              <td className="px-4 py-3 text-gray-500 capitalize" style={{ fontSize: TYPE.meta }}>
                 {lead.source?.replace('_', ' ')}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-500">
+              <td className="px-4 py-3 text-gray-500" style={{ fontSize: TYPE.meta }}>
                 {lead.assignedAgent?.name || 'Unassigned'}
               </td>
               <td className="px-4 py-3">
-                <span className={cn(
-                  'text-sm',
-                  lead.daysInStage > 14 ? 'text-red-600 font-medium' :
-                  lead.daysInStage > 7 ? 'text-amber-600' : 'text-gray-500'
-                )}>
+                <span
+                  className={cn(
+                    lead.daysInStage > 14 ? 'text-red-600 font-medium' :
+                    lead.daysInStage > 7 ? 'text-amber-600' : 'text-gray-500'
+                  )}
+                  style={{ fontSize: TYPE.meta }}
+                >
                   {lead.daysInStage}d
                 </span>
               </td>
@@ -811,7 +857,7 @@ function TableView({ data, onLeadClick, onQuickAction, search }: TableViewProps)
       </table>
 
       {filteredLeads.length === 0 && (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500" style={{ fontSize: TYPE.body }}>
           No leads found
         </div>
       )}
@@ -966,14 +1012,27 @@ export function PipelineBoard() {
         { label: 'Pipeline' },
       ]}
     >
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pipeline Board</h1>
-          <p className="text-gray-500 mt-1">
-            Manage your sales pipeline with drag-and-drop simplicity
-          </p>
-        </div>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+      >
+        {/* Hero Card */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0 overflow-hidden" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+            <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
+              {/* Background decorations */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+              <div className="relative z-10">
+                <h1 className="font-bold text-white mb-2" style={{ fontSize: TYPE.hero }}>Pipeline Board</h1>
+                <p className="text-indigo-100" style={{ fontSize: TYPE.body }}>Manage your sales pipeline with drag-and-drop simplicity</p>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
 
         {/* Summary Bar */}
         <PipelineSummaryBar
@@ -983,43 +1042,51 @@ export function PipelineBoard() {
         />
 
         {/* Filters */}
-        <PipelineFilters
-          search={search}
-          onSearchChange={setSearch}
-          assignedTo={assignedTo}
-          onAssignedToChange={setAssignedTo}
-          view={view}
-          onViewChange={setView}
-          onRefresh={() => refetch()}
-        />
+        <motion.div variants={fadeInUp}>
+          <PipelineFilters
+            search={search}
+            onSearchChange={setSearch}
+            assignedTo={assignedTo}
+            onAssignedToChange={setAssignedTo}
+            view={view}
+            onViewChange={setView}
+            onRefresh={() => refetch()}
+          />
+        </motion.div>
 
         {/* Main Content */}
         {pipelineLoading ? (
           <div className="flex gap-4 overflow-x-auto pb-4">
             {[...Array(7)].map((_, i) => (
-              <Skeleton key={i} className="min-w-[280px] h-[400px] rounded-lg" />
+              <Skeleton key={i} className="min-w-[280px] h-[400px]" style={{ borderRadius: RADIUS.card }} />
             ))}
           </div>
         ) : view === 'kanban' ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              {filteredStages
-                .filter((s) => !['placed', 'lost'].includes(s.id))
-                .map((stage) => (
-                  <PipelineColumn
-                    key={stage.id}
-                    stage={stage}
-                    onQuickAction={handleQuickAction}
-                    onLeadClick={(lead) => setSelectedLead(lead)}
-                  />
-                ))}
-            </div>
+          <motion.div variants={fadeInUp}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="flex gap-4 overflow-x-auto pb-4"
+              >
+                {filteredStages
+                  .filter((s) => !['placed', 'lost'].includes(s.id))
+                  .map((stage) => (
+                    <PipelineColumn
+                      key={stage.id}
+                      stage={stage}
+                      onQuickAction={handleQuickAction}
+                      onLeadClick={(lead) => setSelectedLead(lead)}
+                    />
+                  ))}
+              </motion.div>
 
             <DragOverlay>
               {activeLead && (
@@ -1027,25 +1094,28 @@ export function PipelineBoard() {
               )}
             </DragOverlay>
           </DndContext>
+        </motion.div>
         ) : (
-          <TableView
-            data={pipelineData}
-            onLeadClick={(lead) => setSelectedLead(lead)}
-            onQuickAction={handleQuickAction}
-            search={search}
-          />
+          <motion.div variants={fadeInUp}>
+            <TableView
+              data={pipelineData}
+              onLeadClick={(lead) => setSelectedLead(lead)}
+              onQuickAction={handleQuickAction}
+              search={search}
+            />
+          </motion.div>
         )}
 
         {/* Lead Detail Dialog */}
         <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl" style={{ borderRadius: RADIUS.hero }}>
             {selectedLead && (
               <>
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle style={{ fontSize: TYPE.section }}>
                     {selectedLead.firstName} {selectedLead.lastName}
                   </DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription style={{ fontSize: TYPE.meta }}>
                     {selectedLead.email} | {selectedLead.phone || 'No phone'}
                   </DialogDescription>
                 </DialogHeader>
@@ -1053,24 +1123,24 @@ export function PipelineBoard() {
                 <div className="space-y-4 mt-4">
                   {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500">Estimated Value</p>
-                      <p className="text-lg font-bold text-green-600">
+                    <div className="bg-gray-50 p-3" style={{ borderRadius: RADIUS.input }}>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>Estimated Value</p>
+                      <p className="font-bold text-green-600" style={{ fontSize: TYPE.body }}>
                         {formatCurrency(selectedLead.estimatedValue)}
                       </p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500">Lead Score</p>
-                      <p className="text-lg font-bold text-indigo-600">{selectedLead.leadScore}</p>
+                    <div className="bg-indigo-50 p-3" style={{ borderRadius: RADIUS.input }}>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>Lead Score</p>
+                      <p className="font-bold text-indigo-600" style={{ fontSize: TYPE.body }}>{selectedLead.leadScore}</p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500">Close Probability</p>
-                      <p className="text-lg font-bold text-violet-600">{selectedLead.closeProbability}%</p>
+                    <div className="bg-violet-50 p-3" style={{ borderRadius: RADIUS.input }}>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>Close Probability</p>
+                      <p className="font-bold text-violet-600" style={{ fontSize: TYPE.body }}>{selectedLead.closeProbability}%</p>
                     </div>
                   </div>
 
                   {/* Details */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4" style={{ fontSize: TYPE.meta }}>
                     <div>
                       <p className="text-gray-500">Pipeline Stage</p>
                       <p className="font-medium capitalize">{selectedLead.pipelineStage?.replace('_', ' ')}</p>
@@ -1103,15 +1173,16 @@ export function PipelineBoard() {
                       onClick={() => {
                         window.location.href = `/crm/contacts?id=${selectedLead.id}`;
                       }}
+                      style={{ borderRadius: RADIUS.button }}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       View Full Details
                     </Button>
-                    <Button variant="outline" onClick={() => handleQuickAction('call', selectedLead)}>
+                    <Button variant="outline" onClick={() => handleQuickAction('call', selectedLead)} style={{ borderRadius: RADIUS.button }}>
                       <Phone className="w-4 h-4 mr-2" />
                       Call
                     </Button>
-                    <Button variant="outline" onClick={() => handleQuickAction('email', selectedLead)}>
+                    <Button variant="outline" onClick={() => handleQuickAction('email', selectedLead)} style={{ borderRadius: RADIUS.button }}>
                       <Mail className="w-4 h-4 mr-2" />
                       Email
                     </Button>
@@ -1121,7 +1192,7 @@ export function PipelineBoard() {
             )}
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
     </CRMLoungeLayout>
   );
 }

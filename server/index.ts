@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -8,6 +10,12 @@ import { initializeDatabase } from "./db";
 import { setupWebSocket } from "./websocket";
 import { setupAvatarWebSocket, initializeAvatarNetwork } from "./websocket-avatars";
 import { avatarRegistry } from "./services/avatarRegistry";
+
+// Security middleware
+import { generalApiLimiter } from "./middleware/rateLimiter";
+
+// Error tracking
+import { initializeSentry, sentryUserMiddleware, sentryErrorMiddleware, close as closeSentry } from "./services/errorTracking";
 
 // Agent System imports
 import { bootstrapAgentSystem, AgentRegistry } from "./agents";
@@ -30,6 +38,56 @@ declare module "http" {
     rawBody: unknown;
   }
 }
+
+// =============================================================================
+// SECURITY MIDDLEWARE
+// =============================================================================
+
+const isProduction = process.env.NODE_ENV === "production";
+
+// Initialize Sentry for error tracking (before other middleware)
+initializeSentry(app);
+
+// CORS configuration
+const corsOptions = {
+  origin: isProduction
+    ? ['https://heritagels.org', 'https://www.heritagels.org']
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4500'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+};
+app.use(cors(corsOptions));
+
+// Security headers with Helmet
+app.use(helmet({
+  contentSecurityPolicy: isProduction ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "wss:", "https://api.openai.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  } : false, // Disable CSP in development for easier debugging
+  crossOriginEmbedderPolicy: false, // Required for some external resources
+  hsts: isProduction ? {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
+  } : false,
+}));
+
+// General API rate limiting
+app.use('/api', generalApiLimiter);
+
+// =============================================================================
+// REQUEST PARSING
+// =============================================================================
 
 app.use(
   express.json({
@@ -77,6 +135,9 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Sentry user context middleware (attaches user to error reports)
+app.use(sentryUserMiddleware);
 
 (async () => {
   // Initialize database tables first
@@ -151,6 +212,9 @@ app.use((req, res, next) => {
     console.log('[SERVER] Agent System disabled via AGENT_SYSTEM_ENABLED=false');
   }
 
+  // Sentry error middleware (must be before custom error handler)
+  app.use(sentryErrorMiddleware);
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -201,6 +265,9 @@ app.use((req, res, next) => {
         console.error('[SERVER] Error stopping agents:', error);
       }
     }
+
+    // Close Sentry (flush pending events)
+    await closeSentry(2000);
 
     httpServer.close(() => {
       console.log('[SERVER] HTTP server closed');

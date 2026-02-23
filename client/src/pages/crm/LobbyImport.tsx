@@ -35,6 +35,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import {
   Upload,
   FileSpreadsheet,
@@ -183,27 +184,32 @@ function FileUploadZone({ onFileSelect, isUploading }: { onFileSelect: (file: Fi
 
   return (
     <motion.div
-      whileHover={{ scale: 1.01 }}
+      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+      transition={{ duration: MOTION.duration.hover }}
       className={cn(
-        'border-2 border-dashed rounded-xl p-12 text-center transition-all',
+        'border-2 border-dashed p-12 text-center transition-all',
         isDragOver ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300',
         isUploading && 'opacity-50 pointer-events-none'
       )}
+      style={{ borderRadius: RADIUS.card }}
       onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
     >
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
+      <div
+        className="w-16 h-16 mx-auto mb-4 bg-indigo-100 flex items-center justify-center"
+        style={{ borderRadius: RADIUS.button }}
+      >
         <FileUp className="w-8 h-8 text-indigo-600" />
       </div>
-      <p className="text-lg font-semibold text-gray-900 mb-2">
+      <p className="font-semibold text-gray-900 mb-2" style={{ fontSize: TYPE.body }}>
         {isUploading ? 'Uploading...' : 'Drop your file here'}
       </p>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-gray-500 mb-6" style={{ fontSize: TYPE.meta }}>
         Supports CSV and Excel files up to 10MB
       </p>
       <label className="cursor-pointer">
-        <Button variant="outline" disabled={isUploading} asChild>
+        <Button variant="outline" disabled={isUploading} asChild style={{ borderRadius: RADIUS.button }}>
           <span>
             <FileSpreadsheet className="w-4 h-4 mr-2" />
             Browse Files
@@ -251,21 +257,21 @@ function ColumnMapper({
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-50 rounded-xl p-4">
-        <h4 className="font-medium text-sm mb-4">Map your columns to CRM fields</h4>
+      <div className="bg-gray-50 p-4" style={{ borderRadius: RADIUS.button }}>
+        <h4 className="font-medium mb-4" style={{ fontSize: TYPE.meta }}>Map your columns to CRM fields</h4>
         <div className="space-y-3">
           {headers.map(header => (
             <div key={header} className="flex items-center gap-4">
               <div className="w-1/3">
-                <p className="font-medium text-sm truncate">{header}</p>
-                <p className="text-xs text-gray-500 truncate">{getSampleValues(header)}</p>
+                <p className="font-medium truncate" style={{ fontSize: TYPE.meta }}>{header}</p>
+                <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>{getSampleValues(header)}</p>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <Select
                 value={mapping[header] || ''}
                 onValueChange={(value) => handleChange(header, value)}
               >
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-48" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue placeholder="Select field..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -285,9 +291,9 @@ function ColumnMapper({
       </div>
 
       {/* Preview Table */}
-      <div className="border rounded-xl overflow-hidden">
+      <div className="border overflow-hidden" style={{ borderRadius: RADIUS.button }}>
         <div className="bg-gray-50 px-4 py-2 border-b">
-          <h4 className="font-medium text-sm">Preview (first 3 rows)</h4>
+          <h4 className="font-medium" style={{ fontSize: TYPE.meta }}>Preview (first 3 rows)</h4>
         </div>
         <div className="overflow-x-auto">
           <Table>
@@ -493,123 +499,175 @@ export function LobbyImport() {
 
   return (
     <LobbyLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Import Data</h1>
-          <p className="text-gray-500 mt-1">
-            Bulk import contacts from CSV or Excel files
-          </p>
-        </div>
+      <motion.div
+        className="space-y-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Hero Card */}
+        <motion.div
+          variants={fadeInUp}
+          className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 text-white p-8"
+          style={{
+            borderRadius: RADIUS.hero,
+            boxShadow: SHADOW.hero,
+          }}
+        >
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+              <div
+                className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <Upload className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1
+                  className="font-bold text-white"
+                  style={{ fontSize: TYPE.hero }}
+                >
+                  Import Data
+                </h1>
+                <p className="text-white/80" style={{ fontSize: TYPE.body }}>
+                  Bulk import contacts from CSV or Excel files
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-white/5 rounded-full translate-y-1/2" />
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Import Area */}
           <div className="lg:col-span-2 space-y-6">
             {!uploadData ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Upload className="w-5 h-5 text-indigo-600" />
-                    Upload File
-                  </CardTitle>
-                  <CardDescription>
-                    Upload a CSV or Excel file to import contacts
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FileUploadZone
-                    onFileSelect={handleFileSelect}
-                    isUploading={uploadMutation.isPending}
-                  />
-                </CardContent>
-              </Card>
-            ) : importResult ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {importResult.results.errors === 0 ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                    ) : (
-                      <AlertTriangle className="w-5 h-5 text-amber-500" />
-                    )}
-                    Import Complete
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-4 bg-gray-50 rounded-xl">
-                      <p className="text-2xl font-bold text-gray-900">{importResult.results.total}</p>
-                      <p className="text-sm text-gray-500">Total Rows</p>
-                    </div>
-                    <div className="text-center p-4 bg-emerald-50 rounded-xl">
-                      <p className="text-2xl font-bold text-emerald-600">{importResult.results.imported}</p>
-                      <p className="text-sm text-gray-500">Imported</p>
-                    </div>
-                    <div className="text-center p-4 bg-amber-50 rounded-xl">
-                      <p className="text-2xl font-bold text-amber-600">{importResult.results.skipped}</p>
-                      <p className="text-sm text-gray-500">Skipped</p>
-                    </div>
-                    <div className="text-center p-4 bg-red-50 rounded-xl">
-                      <p className="text-2xl font-bold text-red-600">{importResult.results.errors}</p>
-                      <p className="text-sm text-gray-500">Errors</p>
-                    </div>
-                  </div>
-
-                  {importResult.results.errorDetails.length > 0 && (
-                    <Alert className="mb-4">
-                      <AlertTriangle className="w-4 h-4" />
-                      <AlertTitle>Import Errors</AlertTitle>
-                      <AlertDescription>
-                        <ul className="mt-2 space-y-1 text-sm max-h-32 overflow-y-auto">
-                          {importResult.results.errorDetails.slice(0, 10).map((err, i) => (
-                            <li key={i}>{err}</li>
-                          ))}
-                          {importResult.results.errorDetails.length > 10 && (
-                            <li>...and {importResult.results.errorDetails.length - 10} more</li>
-                          )}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  <Button onClick={handleReset} className="w-full">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Import Another File
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-                        {uploadData.fileName}
-                      </CardTitle>
-                      <CardDescription>
-                        {uploadData.rowCount} rows found
-                      </CardDescription>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={handleReset}>
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Remove
-                    </Button>
+              <motion.div
+                variants={scaleIn}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-indigo-600" />
+                      Upload File
+                    </CardTitle>
+                    <CardDescription>
+                      Upload a CSV or Excel file to import contacts
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ColumnMapper
-                      headers={uploadData.headers}
-                      sampleRows={uploadData.sampleRows}
-                      mapping={columnMapping}
-                      onMappingChange={setColumnMapping}
+                    <FileUploadZone
+                      onFileSelect={handleFileSelect}
+                      isUploading={uploadMutation.isPending}
                     />
                   </CardContent>
                 </Card>
+              </motion.div>
+            ) : importResult ? (
+              <motion.div
+                variants={scaleIn}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      {importResult.results.errors === 0 ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                      )}
+                      Import Complete
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div className="text-center p-4 bg-gray-50" style={{ borderRadius: RADIUS.button }}>
+                        <p className="text-2xl font-bold text-gray-900">{importResult.results.total}</p>
+                        <p className="text-sm text-gray-500">Total Rows</p>
+                      </div>
+                      <div className="text-center p-4 bg-emerald-50" style={{ borderRadius: RADIUS.button }}>
+                        <p className="text-2xl font-bold text-emerald-600">{importResult.results.imported}</p>
+                        <p className="text-sm text-gray-500">Imported</p>
+                      </div>
+                      <div className="text-center p-4 bg-amber-50" style={{ borderRadius: RADIUS.button }}>
+                        <p className="text-2xl font-bold text-amber-600">{importResult.results.skipped}</p>
+                        <p className="text-sm text-gray-500">Skipped</p>
+                      </div>
+                      <div className="text-center p-4 bg-red-50" style={{ borderRadius: RADIUS.button }}>
+                        <p className="text-2xl font-bold text-red-600">{importResult.results.errors}</p>
+                        <p className="text-sm text-gray-500">Errors</p>
+                      </div>
+                    </div>
 
-                <DuplicatePreview
-                  duplicates={uploadData.duplicates}
-                  totalDuplicates={uploadData.duplicateCount}
-                />
+                    {importResult.results.errorDetails.length > 0 && (
+                      <Alert className="mb-4" style={{ borderRadius: RADIUS.button }}>
+                        <AlertTriangle className="w-4 h-4" />
+                        <AlertTitle>Import Errors</AlertTitle>
+                        <AlertDescription>
+                          <ul className="mt-2 space-y-1 text-sm max-h-32 overflow-y-auto">
+                            {importResult.results.errorDetails.slice(0, 10).map((err, i) => (
+                              <li key={i}>{err}</li>
+                            ))}
+                            {importResult.results.errorDetails.length > 10 && (
+                              <li>...and {importResult.results.errorDetails.length - 10} more</li>
+                            )}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    <Button onClick={handleReset} className="w-full" style={{ borderRadius: RADIUS.button }}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import Another File
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <>
+                <motion.div
+                  variants={scaleIn}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover }}
+                >
+                  <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+                          {uploadData.fileName}
+                        </CardTitle>
+                        <CardDescription>
+                          {uploadData.rowCount} rows found
+                        </CardDescription>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={handleReset}>
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Remove
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <ColumnMapper
+                        headers={uploadData.headers}
+                        sampleRows={uploadData.sampleRows}
+                        mapping={columnMapping}
+                        onMappingChange={setColumnMapping}
+                      />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                <motion.div variants={fadeInUp}>
+                  <DuplicatePreview
+                    duplicates={uploadData.duplicates}
+                    totalDuplicates={uploadData.duplicateCount}
+                  />
+                </motion.div>
               </>
             )}
           </div>
@@ -617,96 +675,109 @@ export function LobbyImport() {
           {/* Sidebar */}
           <div className="space-y-6">
             {uploadData && !importResult && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Import Options</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="skipDuplicates"
-                      checked={skipDuplicates}
-                      onCheckedChange={(c) => setSkipDuplicates(c as boolean)}
-                    />
-                    <Label htmlFor="skipDuplicates" className="text-sm">
-                      Skip duplicate emails
-                    </Label>
-                  </div>
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover }}
+              >
+                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                  <CardHeader>
+                    <CardTitle className="text-base">Import Options</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="skipDuplicates"
+                        checked={skipDuplicates}
+                        onCheckedChange={(c) => setSkipDuplicates(c as boolean)}
+                      />
+                      <Label htmlFor="skipDuplicates" className="text-sm">
+                        Skip duplicate emails
+                      </Label>
+                    </div>
 
-                  <div>
-                    <Label className="text-sm">Lead Source</Label>
-                    <Select value={importSource} onValueChange={setImportSource}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="import">CSV Import</SelectItem>
-                        <SelectItem value="purchased_list">Purchased List</SelectItem>
-                        <SelectItem value="referral">Referral</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div>
+                      <Label className="text-sm">Lead Source</Label>
+                      <Select value={importSource} onValueChange={setImportSource}>
+                        <SelectTrigger className="mt-1" style={{ borderRadius: RADIUS.input }}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="import">CSV Import</SelectItem>
+                          <SelectItem value="purchased_list">Purchased List</SelectItem>
+                          <SelectItem value="referral">Referral</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <Separator />
+                    <Separator />
 
-                  <div className="text-sm">
-                    <p className="font-medium mb-2">Mapped Fields:</p>
-                    <ul className="space-y-1 text-gray-600">
-                      {Object.entries(columnMapping).map(([header, field]) => (
-                        <li key={header} className="flex justify-between">
-                          <span className="truncate">{header}</span>
-                          <span className="text-indigo-600 ml-2">{field}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                    <div className="text-sm">
+                      <p className="font-medium mb-2">Mapped Fields:</p>
+                      <ul className="space-y-1 text-gray-600">
+                        {Object.entries(columnMapping).map(([header, field]) => (
+                          <li key={header} className="flex justify-between">
+                            <span className="truncate">{header}</span>
+                            <span className="text-indigo-600 ml-2">{field}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
-                  <Button
-                    className="w-full"
-                    onClick={handleImport}
-                    disabled={!hasRequiredMappings || importMutation.isPending}
-                  >
-                    {importMutation.isPending ? (
-                      <>
-                        <RefreshCcw className="w-4 h-4 mr-2 animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      <>
-                        <Database className="w-4 h-4 mr-2" />
-                        Import {uploadData.rowCount} Contacts
-                      </>
+                    <Button
+                      className="w-full"
+                      onClick={handleImport}
+                      disabled={!hasRequiredMappings || importMutation.isPending}
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      {importMutation.isPending ? (
+                        <>
+                          <RefreshCcw className="w-4 h-4 mr-2 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Database className="w-4 h-4 mr-2" />
+                          Import {uploadData.rowCount} Contacts
+                        </>
+                      )}
+                    </Button>
+
+                    {!hasRequiredMappings && (
+                      <p className="text-xs text-amber-600 text-center">
+                        Map at least first name, last name, or email
+                      </p>
                     )}
-                  </Button>
-
-                  {!hasRequiredMappings && (
-                    <p className="text-xs text-amber-600 text-center">
-                      Map at least first name, last name, or email
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
 
             {/* Import History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <History className="w-4 h-4 text-indigo-600" />
-                  Recent Imports
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ImportHistory
-                  history={historyData?.history.slice(0, 5) || []}
-                  isLoading={historyLoading}
-                />
-              </CardContent>
-            </Card>
+            <motion.div
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <History className="w-4 h-4 text-indigo-600" />
+                    Recent Imports
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ImportHistory
+                    history={historyData?.history.slice(0, 5) || []}
+                    isLoading={historyLoading}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </LobbyLayout>
   );
 }
