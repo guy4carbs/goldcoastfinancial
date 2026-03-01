@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LeadDetailDrawer } from "@/components/agent/LeadDetailDrawer";
@@ -45,12 +46,12 @@ const STALE_DAYS = 7;
 const AVG_DEAL_VALUE = 1850;
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-  new: { label: "New", color: "text-blue-600", bgColor: "bg-blue-500" },
-  contacted: { label: "Contacted", color: "text-yellow-600", bgColor: "bg-yellow-500" },
-  qualified: { label: "Qualified", color: "text-purple-600", bgColor: "bg-purple-500" },
-  proposal: { label: "Proposal", color: "text-green-600", bgColor: "bg-green-500" },
-  closed: { label: "Closed", color: "text-emerald-600", bgColor: "bg-emerald-500" },
-  lost: { label: "Lost", color: "text-gray-600", bgColor: "bg-gray-500" },
+  new: { label: "New", color: COLORS.semantic.info, bgColor: COLORS.semantic.info },
+  contacted: { label: "Contacted", color: COLORS.semantic.warning, bgColor: COLORS.semantic.warning },
+  qualified: { label: "Qualified", color: COLORS.primary.violet[600], bgColor: COLORS.primary.violet[500] },
+  proposal: { label: "Proposal", color: COLORS.semantic.success, bgColor: COLORS.semantic.success },
+  closed: { label: "Closed", color: COLORS.semantic.success, bgColor: COLORS.semantic.success },
+  lost: { label: "Lost", color: COLORS.gray[600], bgColor: COLORS.gray[500] },
 };
 
 type TimePeriod = 'week' | 'month' | 'quarter' | 'year';
@@ -123,7 +124,7 @@ export default function AgentPerformance() {
   const { leads, earnings, addLead, updateLeadStatus, addActivityToLead } = useAgentStore();
   const { trackAgentPipelineUpdated, trackAgentLeadStatusChanged } = useAnalytics();
 
-  const [activeTab, setActiveTab] = useState('pipeline');
+  const [activeTab, setActiveTab] = useState('earnings');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
   const [showAddLead, setShowAddLead] = useState(false);
   const [initialStage, setInitialStage] = useState<string>('new');
@@ -282,79 +283,117 @@ export default function AgentPerformance() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Header */}
-        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
-                <Activity className="w-5 h-5 text-white" />
-              </div>
-              Performance
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">Track your pipeline, earnings, and analytics</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={timePeriod} onValueChange={(v) => setTimePeriod(v as TimePeriod)}>
-              <SelectTrigger className="w-[140px] border-indigo-200 focus:ring-violet-500">
-                <Calendar className="w-4 h-4 mr-2 text-indigo-500" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="quarter">This Quarter</SelectItem>
-                <SelectItem value="year">This Year</SelectItem>
-              </SelectContent>
-            </Select>
-            {activeTab === 'earnings' && (
-              <Button variant="outline" onClick={handleExport} className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            )}
-          </div>
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={Activity}
+            title="Performance"
+            subtitle="Track your pipeline, earnings, and analytics"
+          >
+            <div className="flex items-center gap-3">
+              <Select value={timePeriod} onValueChange={(v) => setTimePeriod(v as TimePeriod)}>
+                <SelectTrigger
+                  className="w-[150px] text-white font-medium transition-all hover:bg-white/30"
+                  style={{
+                    borderRadius: RADIUS.button,
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                  }}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent style={{ borderRadius: RADIUS.card }}>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="year">This Year</SelectItem>
+                </SelectContent>
+              </Select>
+              {activeTab === 'earnings' && (
+                <Button
+                  variant="ghost"
+                  onClick={handleExport}
+                  className="text-white font-medium transition-all hover:bg-white/30"
+                  style={{
+                    borderRadius: RADIUS.button,
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              )}
+            </div>
+          </AgentPageHero>
         </motion.div>
 
         {/* Tab Navigation */}
         <motion.div variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full max-w-md grid-cols-3 bg-gray-100/80 p-1">
-              <TabsTrigger value="pipeline" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <BarChart3 className="w-4 h-4" />
-                Pipeline
-              </TabsTrigger>
-              <TabsTrigger value="earnings" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <DollarSign className="w-4 h-4" />
-                Earnings
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <Activity className="w-4 h-4" />
-                Analytics
-              </TabsTrigger>
-            </TabsList>
+            <div
+              className="flex gap-1 p-1 w-fit"
+              style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
+            >
+              {[
+                { value: 'earnings', label: 'Earnings', icon: DollarSign },
+                { value: 'pipeline', label: 'Pipeline', icon: BarChart3 },
+                { value: 'analytics', label: 'Analytics', icon: Activity },
+              ].map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-1.5 text-sm font-medium transition-all",
+                    activeTab === tab.value
+                      ? "bg-white text-violet-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  )}
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
             {/* Pipeline Tab */}
             <TabsContent value="pipeline" className="space-y-6 mt-6">
               {/* Summary Stats */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { icon: Users, label: "Total Pipeline", value: pipelineMetrics.totalLeads, subtext: `active leads`, gradient: "from-blue-500 to-cyan-500" },
-                      { icon: DollarSign, label: "Pipeline Value", value: `$${(pipelineMetrics.totalPipelineValue / 1000).toFixed(1)}K`, subtext: "potential revenue", gradient: "from-emerald-500 to-green-500" },
-                      { icon: Target, label: "Conversion Rate", value: `${pipelineMetrics.overallConversion}%`, subtext: "overall", gradient: "from-violet-500 to-purple-500" },
-                      { icon: Clock, label: "Avg. Cycle Time", value: `${pipelineMetrics.avgCycleTime}`, subtext: "days to close", gradient: "from-orange-500 to-amber-500" }
+                      { icon: Users, label: "Total Pipeline", value: pipelineMetrics.totalLeads, subtext: `active leads` },
+                      { icon: DollarSign, label: "Pipeline Value", value: `$${(pipelineMetrics.totalPipelineValue / 1000).toFixed(1)}K`, subtext: "potential revenue" },
+                      { icon: Target, label: "Conversion Rate", value: `${pipelineMetrics.overallConversion}%`, subtext: "overall" },
+                      { icon: Clock, label: "Avg. Cycle Time", value: `${pipelineMetrics.avgCycleTime}`, subtext: "days to close" }
                     ].map((stat, idx) => (
                       <motion.div
                         key={idx}
                         whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                         transition={{ duration: MOTION.duration.hover }}
                       >
-                        <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                          <CardContent className="p-4">
-                            <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-lg bg-gradient-to-br", stat.gradient)}>
-                              <stat.icon className="w-5 h-5 text-white" />
+                        <Card
+                          className="overflow-hidden border-0 relative h-full"
+                          style={{
+                            borderRadius: RADIUS.card,
+                            boxShadow: SHADOW.hero,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                          }}
+                        >
+                          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                          <CardContent className="p-4 relative z-10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                                <stat.icon className="w-4 h-4 text-white" />
+                              </div>
+                              <span className="text-xs font-semibold text-white/90">{stat.label}</span>
                             </div>
-                            <p className={cn("text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent", stat.gradient)}>{stat.value}</p>
-                            <p className="text-xs font-medium text-gray-600">{stat.label}</p>
-                            <p className="text-[10px] text-gray-400 mt-1">{stat.subtext}</p>
+                            <p className="text-2xl font-bold text-white">{stat.value}</p>
+                            <p className="text-xs text-white/70 mt-1">{stat.subtext}</p>
                           </CardContent>
                         </Card>
                       </motion.div>
@@ -362,38 +401,66 @@ export default function AgentPerformance() {
                   </div>
 
                   {/* Funnel Visualization */}
-                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md">
-                          <BarChart3 className="w-4 h-4 text-white" />
+                  <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <BarChart3 className="w-5 h-5 text-white" />
                         </div>
-                        <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Sales Funnel</span>
+                        <span className="text-lg font-semibold text-gray-800">Sales Funnel</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         {pipelineMetrics.stages.map((stage, idx) => {
-                          const widthPercent = Math.max((stage.count / maxCount) * 100, 10);
+                          const widthPercent = Math.max((stage.count / maxCount) * 100, 15);
+                          // Gradient from violet to amber based on stage
+                          const stageColors = [
+                            'linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%)', // New - violet
+                            'linear-gradient(90deg, #7c3aed 0%, #8b5cf6 100%)', // Contacted - purple
+                            'linear-gradient(90deg, #6d28d9 0%, #7c3aed 100%)', // Qualified - deep purple
+                            'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)', // Proposal - amber
+                            'linear-gradient(90deg, #d97706 0%, #f59e0b 100%)', // Closed - dark amber
+                          ];
                           return (
                             <div key={stage.name} className="flex items-center gap-4">
-                              <div className="w-24 text-sm font-medium text-gray-700">{stage.name}</div>
+                              <div className="w-24 text-sm font-semibold text-gray-700">{stage.name}</div>
                               <div className="flex-1">
                                 <motion.div
                                   initial={{ width: 0 }}
                                   animate={{ width: `${widthPercent}%` }}
                                   transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                  className={cn("h-10 rounded-lg flex items-center justify-between px-4", stage.color)}
+                                  className="h-10 flex items-center justify-between px-4"
+                                  style={{
+                                    background: stageColors[idx],
+                                    borderRadius: RADIUS.button,
+                                  }}
                                 >
-                                  <span className="text-white font-medium text-sm">{stage.count} leads</span>
-                                  <span className="text-white/80 text-sm">${(stage.value / 1000).toFixed(1)}K</span>
+                                  <span className="text-white font-semibold text-sm">{stage.count} leads</span>
+                                  <span className="text-white/90 text-sm font-medium">${(stage.value / 1000).toFixed(1)}K</span>
                                 </motion.div>
                               </div>
                               <div className="w-20 text-right">
                                 {stage.conversionRate !== null ? (
-                                  <span className="text-sm text-gray-600">{stage.conversionRate}%</span>
+                                  <Badge
+                                    className="bg-violet-100 text-violet-700 font-medium"
+                                    style={{ borderRadius: RADIUS.pill }}
+                                  >
+                                    {stage.conversionRate}%
+                                  </Badge>
                                 ) : (
-                                  <span className="text-sm text-gray-400">-</span>
+                                  <Badge
+                                    className="bg-amber-100 text-amber-700 font-medium"
+                                    style={{ borderRadius: RADIUS.pill }}
+                                  >
+                                    Won
+                                  </Badge>
                                 )}
                               </div>
                             </div>
@@ -405,37 +472,65 @@ export default function AgentPerformance() {
 
                   {/* At-Risk Deals */}
                   {atRiskDeals.length > 0 ? (
-                    <Card className="border-orange-200 bg-orange-50/50">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-orange-700">
-                          <AlertTriangle className="w-5 h-5" />
-                          At-Risk Deals
-                          <Badge variant="outline" className="ml-2 border-orange-300 text-orange-700">
+                    <Card
+                      className="overflow-hidden border-0"
+                      style={{
+                        borderRadius: RADIUS.card,
+                        boxShadow: SHADOW.card,
+                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                      }}
+                    >
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-3">
+                          <div
+                            className="w-10 h-10 flex items-center justify-center shadow-lg"
+                            style={{
+                              borderRadius: RADIUS.button,
+                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            }}
+                          >
+                            <AlertTriangle className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-lg font-semibold text-gray-800">At-Risk Deals</span>
+                          <Badge
+                            className="bg-amber-600 text-white font-medium ml-auto"
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
                             {atRiskDeals.length} stale
                           </Badge>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-orange-700 mb-4">
+                        <p className="text-sm text-amber-800 mb-4">
                           These leads haven't been contacted in over {STALE_DAYS} days.
                         </p>
                         <div className="space-y-2">
                           {atRiskDeals.map((lead) => (
                             <div
                               key={lead.id}
-                              className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200 cursor-pointer hover:shadow-sm transition-shadow"
+                              className="flex items-center justify-between p-3 bg-white/80 backdrop-blur cursor-pointer hover:bg-white transition-colors"
+                              style={{ borderRadius: RADIUS.button }}
                               onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}
                               tabIndex={0}
                               role="button"
                             >
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-medium text-sm">
+                                <div
+                                  className="w-9 h-9 flex items-center justify-center text-white font-medium text-sm"
+                                  style={{
+                                    borderRadius: RADIUS.button,
+                                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                  }}
+                                >
                                   {lead.name.split(' ').map(n => n[0]).join('')}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-sm">{lead.name}</p>
-                                  <p className="text-xs text-gray-500">
-                                    <Badge variant="outline" className={cn("text-[10px] mr-1.5 px-1.5 py-0", statusConfig[lead.status]?.color)}>
+                                  <p className="font-semibold text-sm text-gray-800">{lead.name}</p>
+                                  <p className="text-xs text-gray-600">
+                                    <Badge
+                                      className="text-[10px] mr-1.5 px-1.5 py-0 bg-violet-100 text-violet-700"
+                                      style={{ borderRadius: RADIUS.pill }}
+                                    >
                                       {statusConfig[lead.status]?.label}
                                     </Badge>
                                     Last: {lead.lastContactDate ? formatRelativeDate(lead.lastContactDate) : 'Never'}
@@ -444,8 +539,11 @@ export default function AgentPerformance() {
                               </div>
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                                className="text-white font-medium shadow-md"
+                                style={{
+                                  borderRadius: RADIUS.button,
+                                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                                }}
                                 onClick={(e) => { e.stopPropagation(); window.location.href = `tel:${lead.phone}`; }}
                               >
                                 <Phone className="w-4 h-4 mr-1" /> Call
@@ -456,11 +554,26 @@ export default function AgentPerformance() {
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card className="border-green-200 bg-green-50/50">
+                    <Card
+                      className="overflow-hidden border-0"
+                      style={{
+                        borderRadius: RADIUS.card,
+                        boxShadow: SHADOW.card,
+                        background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+                      }}
+                    >
                       <CardContent className="p-6 text-center">
-                        <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                        <p className="font-medium text-green-700">All leads are healthy</p>
-                        <p className="text-sm text-green-600 mt-1">No stale leads. Keep up the good work!</p>
+                        <div
+                          className="w-12 h-12 mx-auto mb-3 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <CheckCircle2 className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="font-semibold text-violet-800">All leads are healthy</p>
+                        <p className="text-sm text-violet-600 mt-1">No stale leads. Keep up the good work!</p>
                       </CardContent>
                     </Card>
                   )}
@@ -471,67 +584,100 @@ export default function AgentPerformance() {
               {/* Summary Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
-                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                    <CardContent className="p-4">
+                  <Card
+                    className="overflow-hidden border-0 relative h-full"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.hero,
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                    <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-md">
+                        <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
                           <Clock className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-xs font-semibold text-amber-700">Pending</span>
+                        <span className="text-xs font-semibold text-white/90">Pending</span>
                       </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${earningsMetrics.pending.total.toLocaleString()}</p>
-                      <p className="text-xs text-amber-600 mt-1">{earningsMetrics.pending.count} policies</p>
+                      <p className="text-2xl font-bold text-white">${earningsMetrics.pending.total.toLocaleString()}</p>
+                      <p className="text-xs text-white/70 mt-1">{earningsMetrics.pending.count} policies</p>
                     </CardContent>
                   </Card>
                 </motion.div>
 
                 <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
-                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                    <CardContent className="p-4">
+                  <Card
+                    className="overflow-hidden border-0 relative h-full"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.hero,
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                    <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
+                        <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
                           <CheckCircle2 className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-xs font-semibold text-emerald-700">Paid</span>
+                        <span className="text-xs font-semibold text-white/90">Paid</span>
                       </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">${earningsMetrics.paid.total.toLocaleString()}</p>
-                      <p className="text-xs text-emerald-600 mt-1">{earningsMetrics.paid.count} policies</p>
+                      <p className="text-2xl font-bold text-white">${earningsMetrics.paid.total.toLocaleString()}</p>
+                      <p className="text-xs text-white/70 mt-1">{earningsMetrics.paid.count} policies</p>
                     </CardContent>
                   </Card>
                 </motion.div>
 
-                <Card className={`overflow-hidden border-0 relative rounded-[${RADIUS.hero}px]`} style={{ boxShadow: SHADOW.hero }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600" />
-                  <CardContent className="p-4 relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-white" />
+                <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
+                  <Card
+                    className="overflow-hidden border-0 relative h-full"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.hero,
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                    <CardContent className="p-4 relative z-10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                          <DollarSign className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-xs font-semibold text-white/90">Net Total</span>
                       </div>
-                      <span className="text-xs font-semibold text-white/90">Net Total</span>
-                    </div>
-                    <p className="text-2xl font-bold text-white">${earningsMetrics.netTotal.toLocaleString()}</p>
-                    <p className="text-xs text-white/70 mt-1">{periodLabel.toLowerCase()}</p>
-                    {earningsMetrics.clawback.total > 0 && (
-                      <p className="text-[10px] text-red-200 mt-0.5 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />-${earningsMetrics.clawback.total.toLocaleString()} clawbacks
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                      <p className="text-2xl font-bold text-white">${earningsMetrics.netTotal.toLocaleString()}</p>
+                      <p className="text-xs text-white/70 mt-1">{periodLabel.toLowerCase()}</p>
+                      {earningsMetrics.clawback.total > 0 && (
+                        <p className="text-[10px] text-red-200 mt-0.5 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />-${earningsMetrics.clawback.total.toLocaleString()} clawbacks
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
                 <motion.div whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }} transition={{ duration: MOTION.duration.hover }}>
-                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                    <CardContent className="p-4">
+                  <Card
+                    className="overflow-hidden border-0 relative h-full"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.hero,
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                    <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
+                        <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
                           <BarChart3 className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-xs font-semibold text-blue-700">YTD</span>
+                        <span className="text-xs font-semibold text-white/90">YTD</span>
                       </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">${earningsMetrics.ytd.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-white">${earningsMetrics.ytd.toLocaleString()}</p>
                       <div className="flex items-center gap-1 mt-1">
-                        <TrendingUp className="w-3 h-3 text-green-500" />
-                        <span className="text-xs text-green-600 font-medium">+18% YoY</span>
+                        <TrendingUp className="w-3 h-3 text-white/80" />
+                        <span className="text-xs text-white/80 font-medium">+18% YoY</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -541,33 +687,47 @@ export default function AgentPerformance() {
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   {/* Monthly Trend */}
-                  <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
-                          <TrendingUp className="w-4 h-4 text-white" />
+                  <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <TrendingUp className="w-5 h-5 text-white" />
                         </div>
-                        <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Earnings Trend (6 Months)</span>
+                        <span className="text-lg font-semibold text-gray-800">Earnings Trend (6 Months)</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-end gap-4 h-40">
+                      <div className="flex items-end gap-3 h-40">
                         {monthlyTrend.map((month, idx) => (
                           <div key={month.month} className="flex-1 h-full flex items-end">
                             <motion.div
                               initial={{ height: 0 }}
                               animate={{ height: `${(month.amount / maxMonthly) * 100}%` }}
                               transition={{ duration: 0.5, delay: idx * 0.1 }}
-                              className={cn("w-full rounded-t-lg min-h-[4px]", idx === monthlyTrend.length - 1 ? "bg-violet-500" : "bg-primary/20")}
+                              className="w-full min-h-[4px]"
+                              style={{
+                                borderRadius: `${RADIUS.button}px ${RADIUS.button}px 0 0`,
+                                background: idx === monthlyTrend.length - 1
+                                  ? 'linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%)'
+                                  : 'linear-gradient(180deg, #c4b5fd 0%, #a78bfa 100%)',
+                              }}
                             />
                           </div>
                         ))}
                       </div>
-                      <div className="flex gap-4 mt-2">
-                        {monthlyTrend.map((month) => (
+                      <div className="flex gap-3 mt-3">
+                        {monthlyTrend.map((month, idx) => (
                           <div key={month.month} className="flex-1 text-center">
-                            <p className="text-xs font-medium text-gray-600">${(month.amount / 1000).toFixed(1)}K</p>
-                            <p className="text-[10px] text-gray-400">{month.month}</p>
+                            <p className={cn("text-xs font-semibold", idx === monthlyTrend.length - 1 ? "text-violet-600" : "text-gray-600")}>
+                              ${(month.amount / 1000).toFixed(1)}K
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{month.month}</p>
                           </div>
                         ))}
                       </div>
@@ -575,9 +735,20 @@ export default function AgentPerformance() {
                   </Card>
 
                   {/* Recent Commissions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Recent Commissions</CardTitle>
+                  <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <DollarSign className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-lg font-semibold text-gray-800">Recent Commissions</span>
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {filteredEarnings.length === 0 ? (
@@ -591,31 +762,34 @@ export default function AgentPerformance() {
                           <table className="w-full">
                             <thead>
                               <tr className="border-b border-gray-200">
-                                <th className="text-left p-3 text-xs font-medium text-gray-500">Policy</th>
-                                <th className="text-left p-3 text-xs font-medium text-gray-500">Client</th>
-                                <th className="text-left p-3 text-xs font-medium text-gray-500">Product</th>
-                                <th className="text-right p-3 text-xs font-medium text-gray-500">Amount</th>
-                                <th className="text-center p-3 text-xs font-medium text-gray-500">Status</th>
-                                <th className="text-right p-3 text-xs font-medium text-gray-500">Date</th>
+                                <th className="text-left p-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Policy</th>
+                                <th className="text-left p-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Client</th>
+                                <th className="text-left p-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                                <th className="text-right p-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="text-center p-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="text-right p-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                               </tr>
                             </thead>
                             <tbody>
                               {filteredEarnings.slice(0, 10).map((entry) => (
-                                <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                <tr key={entry.id} className="border-b border-gray-100 hover:bg-violet-50/50 transition-colors">
                                   <td className="p-3"><span className="text-sm font-mono text-gray-600">{entry.policyNumber}</span></td>
-                                  <td className="p-3"><span className="text-sm font-medium">{entry.clientName}</span></td>
+                                  <td className="p-3"><span className="text-sm font-medium text-gray-800">{entry.clientName}</span></td>
                                   <td className="p-3"><span className="text-sm text-gray-600">{entry.product}</span></td>
                                   <td className="p-3 text-right">
-                                    <span className={cn("text-sm font-semibold", entry.status === 'clawback' ? "text-red-600" : "text-green-600")}>
+                                    <span className={cn("text-sm font-bold", entry.status === 'clawback' ? "text-red-600" : "text-violet-600")}>
                                       {entry.status === 'clawback' ? '-' : ''}${entry.amount.toLocaleString()}
                                     </span>
                                   </td>
                                   <td className="p-3 text-center">
-                                    <Badge variant="outline" className={cn("text-[10px]",
-                                      entry.status === 'paid' && "border-green-300 text-green-600 bg-green-50",
-                                      entry.status === 'pending' && "border-yellow-300 text-yellow-600 bg-yellow-50",
-                                      entry.status === 'clawback' && "border-red-300 text-red-600 bg-red-50"
-                                    )}>
+                                    <Badge
+                                      className={cn("text-[10px] font-medium",
+                                        entry.status === 'paid' && "bg-violet-100 text-violet-700 border-violet-200",
+                                        entry.status === 'pending' && "bg-amber-100 text-amber-700 border-amber-200",
+                                        entry.status === 'clawback' && "bg-red-100 text-red-700 border-red-200"
+                                      )}
+                                      style={{ borderRadius: RADIUS.pill }}
+                                    >
                                       {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                                     </Badge>
                                   </td>
@@ -632,24 +806,46 @@ export default function AgentPerformance() {
 
                 <div className="space-y-6">
                   {/* Product Breakdown */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <PieChart className="w-5 h-5 text-violet-500" />
-                        By Product
+                  <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <PieChart className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-lg font-semibold text-gray-800">By Product</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {DEMO_PRODUCT_BREAKDOWN.map((item) => (
+                        {DEMO_PRODUCT_BREAKDOWN.map((item, idx) => (
                           <div key={item.product}>
-                            <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-gray-700">{item.product}</span>
-                              <span className="text-sm text-gray-600">{item.percent}%</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">{item.percent}%</span>
+                                <span className="text-sm font-bold text-violet-600">${(item.amount / 1000).toFixed(1)}K</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <Progress value={item.percent} className="h-2 flex-1" />
-                              <span className="text-sm font-medium text-primary w-20 text-right">${(item.amount / 1000).toFixed(1)}K</span>
+                            <div
+                              className="h-2 w-full bg-gray-100 overflow-hidden"
+                              style={{ borderRadius: RADIUS.pill }}
+                            >
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${item.percent}%` }}
+                                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                className="h-full"
+                                style={{
+                                  background: 'linear-gradient(90deg, #8b5cf6 0%, #f59e0b 100%)',
+                                  borderRadius: RADIUS.pill,
+                                }}
+                              />
                             </div>
                           </div>
                         ))}
@@ -658,11 +854,19 @@ export default function AgentPerformance() {
                   </Card>
 
                   {/* Statements */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-violet-500" />
-                        Statements
+                  <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <FileText className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-lg font-semibold text-gray-800">Statements</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -670,16 +874,17 @@ export default function AgentPerformance() {
                         {statements.map((statement) => (
                           <button
                             key={statement.period}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer w-full text-left"
+                            className="flex items-center justify-between p-3 bg-gray-50 hover:bg-violet-50 transition-colors cursor-pointer w-full text-left group"
+                            style={{ borderRadius: RADIUS.button }}
                             onClick={() => handleDownloadStatement(statement.period, statement.amount)}
                           >
                             <div>
-                              <p className="font-medium text-sm">{statement.period}</p>
+                              <p className="font-semibold text-sm text-gray-800">{statement.period}</p>
                               <p className="text-xs text-gray-500">{statement.date}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className="font-semibold text-primary">${statement.amount.toLocaleString()}</span>
-                              <Download className="w-4 h-4 text-gray-400" />
+                              <span className="font-bold text-violet-600">${statement.amount.toLocaleString()}</span>
+                              <Download className="w-4 h-4 text-gray-400 group-hover:text-violet-500 transition-colors" />
                             </div>
                           </button>
                         ))}
@@ -688,21 +893,44 @@ export default function AgentPerformance() {
                   </Card>
 
                   {/* Commission Info */}
-                  <Card className="bg-primary/5">
+                  <Card
+                    className="overflow-hidden border-0 relative"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card,
+                      background: 'linear-gradient(135deg, #ede9fe 0%, #fef3c7 100%)',
+                    }}
+                  >
                     <CardContent className="p-4">
-                      <h4 className="font-semibold text-primary mb-2">Commission Info</h4>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex justify-between">
-                          <span>Payment Schedule</span>
-                          <span className="font-medium">Weekly (Fridays)</span>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center shadow-lg"
+                          style={{
+                            borderRadius: RADIUS.button,
+                            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                          }}
+                        >
+                          <DollarSign className="w-5 h-5 text-white" />
                         </div>
-                        <div className="flex justify-between">
-                          <span>Min. Payout</span>
-                          <span className="font-medium">$100</span>
+                        <span className="text-lg font-semibold text-gray-800">Commission Info</span>
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Payment Schedule</span>
+                          <span className="font-semibold text-gray-800">Weekly (Fridays)</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Direct Deposit</span>
-                          <Badge variant="outline" className="text-green-600 border-green-300">Active</Badge>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Min. Payout</span>
+                          <span className="font-semibold text-gray-800">$100</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Direct Deposit</span>
+                          <Badge
+                            className="bg-violet-100 text-violet-700 border-violet-200 font-medium"
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
+                            Active
+                          </Badge>
                         </div>
                       </div>
                     </CardContent>
@@ -714,50 +942,97 @@ export default function AgentPerformance() {
             {/* Analytics Tab */}
             <TabsContent value="analytics" className="space-y-6 mt-6">
               {/* Lead Source ROI */}
-              <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md">
-                      <Target className="w-4 h-4 text-white" />
+              <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center shadow-lg"
+                      style={{
+                        borderRadius: RADIUS.button,
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                      }}
+                    >
+                      <Target className="w-5 h-5 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Lead Source ROI Analysis</span>
+                    <span className="text-lg font-semibold text-gray-800">Lead Source ROI Analysis</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {DEMO_LEAD_SOURCE_ROI.map((source) => (
-                      <div key={source.source} className="p-4 bg-gray-50 rounded-lg">
+                    {DEMO_LEAD_SOURCE_ROI.map((source, idx) => (
+                      <div
+                        key={source.source}
+                        className="p-4 bg-gray-50 hover:bg-violet-50/50 transition-colors"
+                        style={{ borderRadius: RADIUS.button }}
+                      >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className={cn("w-3 h-3 rounded-full", source.color)} />
-                            <span className="font-medium">{source.source}</span>
+                            <div
+                              className="w-3 h-3"
+                              style={{
+                                borderRadius: RADIUS.pill,
+                                background: idx % 2 === 0 ? '#8b5cf6' : '#f59e0b',
+                              }}
+                            />
+                            <span className="font-semibold text-gray-800">{source.source}</span>
                           </div>
-                          <Badge className={cn("text-xs",
-                            source.roi === Infinity ? "bg-violet-100 text-violet-700" :
-                            source.roi >= 1000 ? "bg-green-100 text-green-700" :
-                            source.roi >= 500 ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
-                          )}>
+                          <Badge
+                            className={cn("font-medium",
+                              source.roi === Infinity ? "bg-violet-100 text-violet-700" :
+                              source.roi >= 1000 ? "bg-violet-100 text-violet-700" :
+                              "bg-amber-100 text-amber-700"
+                            )}
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
                             {source.roi === Infinity ? '∞' : `${source.roi}%`} ROI
                           </Badge>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
-                          <div><p className="text-gray-500 text-xs">Leads</p><p className="font-semibold">{source.leads}</p></div>
-                          <div><p className="text-gray-500 text-xs">Conversions</p><p className="font-semibold">{source.conversions}</p></div>
-                          <div><p className="text-gray-500 text-xs">Conv. Rate</p><p className={cn("font-semibold", source.conversionRate >= 30 ? "text-green-600" : "text-gray-600")}>{source.conversionRate}%</p></div>
-                          <div><p className="text-gray-500 text-xs">Cost</p><p className="font-semibold">${source.totalSpent.toLocaleString()}</p></div>
-                          <div><p className="text-gray-500 text-xs">Revenue</p><p className="font-semibold text-primary">${source.revenue.toLocaleString()}</p></div>
+                          <div><p className="text-gray-500 text-xs font-medium">Leads</p><p className="font-bold text-gray-800">{source.leads}</p></div>
+                          <div><p className="text-gray-500 text-xs font-medium">Conversions</p><p className="font-bold text-gray-800">{source.conversions}</p></div>
+                          <div><p className="text-gray-500 text-xs font-medium">Conv. Rate</p><p className={cn("font-bold", source.conversionRate >= 30 ? "text-violet-600" : "text-gray-800")}>{source.conversionRate}%</p></div>
+                          <div><p className="text-gray-500 text-xs font-medium">Cost</p><p className="font-bold text-gray-800">${source.totalSpent.toLocaleString()}</p></div>
+                          <div><p className="text-gray-500 text-xs font-medium">Revenue</p><p className="font-bold text-violet-600">${source.revenue.toLocaleString()}</p></div>
                         </div>
                         <div className="mt-3">
-                          <Progress value={(source.conversions / source.leads) * 100} className="h-2" />
+                          <div
+                            className="h-2 w-full bg-gray-200 overflow-hidden"
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(source.conversions / source.leads) * 100}%` }}
+                              transition={{ duration: 0.5, delay: idx * 0.1 }}
+                              className="h-full"
+                              style={{
+                                background: 'linear-gradient(90deg, #8b5cf6 0%, #f59e0b 100%)',
+                                borderRadius: RADIUS.pill,
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 p-3 bg-violet-50 rounded-lg border border-violet-200">
-                    <div className="flex items-center gap-2 text-sm">
-                      <TrendingUp className="w-4 h-4 text-violet-600" />
-                      <span className="text-violet-800">
-                        <strong>Recommendation:</strong> Referrals have the highest conversion rate (40%) and infinite ROI. Focus on building your referral network.
+                  <div
+                    className="mt-4 p-4"
+                    style={{
+                      borderRadius: RADIUS.button,
+                      background: 'linear-gradient(135deg, #ede9fe 0%, #fef3c7 100%)',
+                    }}
+                  >
+                    <div className="flex items-center gap-3 text-sm">
+                      <div
+                        className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+                        style={{
+                          borderRadius: RADIUS.button,
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                        }}
+                      >
+                        <TrendingUp className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-gray-700">
+                        <strong className="text-violet-700">Recommendation:</strong> Referrals have the highest conversion rate (40%) and infinite ROI. Focus on building your referral network.
                       </span>
                     </div>
                   </div>
@@ -765,32 +1040,58 @@ export default function AgentPerformance() {
               </Card>
 
               {/* Product Mix */}
-              <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
-                      <Layers className="w-4 h-4 text-white" />
+              <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center shadow-lg"
+                      style={{
+                        borderRadius: RADIUS.button,
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                      }}
+                    >
+                      <Layers className="w-5 h-5 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Product Mix Breakdown</span>
+                    <span className="text-lg font-semibold text-gray-800">Product Mix Breakdown</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid lg:grid-cols-2 gap-6">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-4">Revenue Distribution</h4>
-                      <div className="space-y-3">
-                        {DEMO_PRODUCT_BREAKDOWN.map((product) => (
+                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Revenue Distribution</h4>
+                      <div className="space-y-4">
+                        {DEMO_PRODUCT_BREAKDOWN.map((product, idx) => (
                           <div key={product.product}>
-                            <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <div className={cn("w-3 h-3 rounded-full", product.color)} />
-                                <span className="text-sm font-medium">{product.product}</span>
+                                <div
+                                  className="w-3 h-3"
+                                  style={{
+                                    borderRadius: RADIUS.pill,
+                                    background: idx % 2 === 0 ? '#8b5cf6' : '#f59e0b',
+                                  }}
+                                />
+                                <span className="text-sm font-medium text-gray-700">{product.product}</span>
                               </div>
-                              <span className="text-sm text-gray-600">{product.percent}%</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">{product.percent}%</span>
+                                <span className="text-sm font-bold text-violet-600">${(product.amount / 1000).toFixed(1)}K</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <Progress value={product.percent} className="h-3 flex-1" />
-                              <span className="text-sm font-bold text-primary w-16 text-right">${(product.amount / 1000).toFixed(1)}K</span>
+                            <div
+                              className="h-3 w-full bg-gray-100 overflow-hidden"
+                              style={{ borderRadius: RADIUS.pill }}
+                            >
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${product.percent}%` }}
+                                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                className="h-full"
+                                style={{
+                                  background: 'linear-gradient(90deg, #8b5cf6 0%, #f59e0b 100%)',
+                                  borderRadius: RADIUS.pill,
+                                }}
+                              />
                             </div>
                           </div>
                         ))}
@@ -798,22 +1099,31 @@ export default function AgentPerformance() {
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-4">Performance Metrics</h4>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Performance Metrics</h4>
                       <div className="space-y-3">
                         {DEMO_PRODUCT_BREAKDOWN.map((product) => (
-                          <div key={product.product} className="p-3 bg-gray-50 rounded-lg">
+                          <div
+                            key={product.product}
+                            className="p-3 bg-gray-50 hover:bg-violet-50/50 transition-colors"
+                            style={{ borderRadius: RADIUS.button }}
+                          >
                             <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-sm">{product.product}</span>
-                              <Badge variant="outline" className="text-[10px]">{product.policies} policies</Badge>
+                              <span className="font-semibold text-sm text-gray-800">{product.product}</span>
+                              <Badge
+                                className="bg-violet-100 text-violet-700 font-medium"
+                                style={{ borderRadius: RADIUS.pill }}
+                              >
+                                {product.policies} policies
+                              </Badge>
                             </div>
                             <div className="grid grid-cols-2 gap-4 text-xs">
                               <div>
-                                <span className="text-gray-500">Avg Premium</span>
-                                <p className="font-semibold">${product.avgPremium.toLocaleString()}</p>
+                                <span className="text-gray-500 font-medium">Avg Premium</span>
+                                <p className="font-bold text-gray-800">${product.avgPremium.toLocaleString()}</p>
                               </div>
                               <div>
-                                <span className="text-gray-500">Avg Commission</span>
-                                <p className="font-semibold text-green-600">${product.avgCommission.toLocaleString()}</p>
+                                <span className="text-gray-500 font-medium">Avg Commission</span>
+                                <p className="font-bold text-violet-600">${product.avgCommission.toLocaleString()}</p>
                               </div>
                             </div>
                           </div>
@@ -822,27 +1132,45 @@ export default function AgentPerformance() {
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Insights</h4>
+                  <div className="mt-6 pt-4 border-t border-gray-100">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Insights</h4>
                     <div className="grid sm:grid-cols-3 gap-3">
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div
+                        className="p-3"
+                        style={{
+                          borderRadius: RADIUS.button,
+                          background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-1">
-                          <BarChart3 className="w-4 h-4 text-blue-600" />
-                          <span className="text-xs font-medium text-blue-800">Top Volume</span>
+                          <BarChart3 className="w-4 h-4 text-violet-600" />
+                          <span className="text-xs font-semibold text-violet-800">Top Volume</span>
                         </div>
-                        <p className="text-sm text-blue-700">Term Life leads with 12 policies</p>
+                        <p className="text-sm text-violet-700">Term Life leads with 12 policies</p>
                       </div>
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div
+                        className="p-3"
+                        style={{
+                          borderRadius: RADIUS.button,
+                          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-1">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="text-xs font-medium text-green-800">Highest Commission</span>
+                          <DollarSign className="w-4 h-4 text-amber-600" />
+                          <span className="text-xs font-semibold text-amber-800">Highest Commission</span>
                         </div>
-                        <p className="text-sm text-green-700">IUL averages $760/policy</p>
+                        <p className="text-sm text-amber-700">IUL averages $760/policy</p>
                       </div>
-                      <div className="p-3 bg-violet-50 rounded-lg border border-violet-200">
+                      <div
+                        className="p-3"
+                        style={{
+                          borderRadius: RADIUS.button,
+                          background: 'linear-gradient(135deg, #ede9fe 0%, #fef3c7 100%)',
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-1">
                           <TrendingUp className="w-4 h-4 text-violet-600" />
-                          <span className="text-xs font-medium text-violet-800">Growth Opportunity</span>
+                          <span className="text-xs font-semibold text-violet-800">Growth Opportunity</span>
                         </div>
                         <p className="text-sm text-violet-700">Consider expanding Whole Life sales</p>
                       </div>
@@ -852,47 +1180,98 @@ export default function AgentPerformance() {
               </Card>
 
               {/* Performance Trends */}
-              <Card className={`overflow-hidden border-0 rounded-[${RADIUS.card}px]`} style={{ boxShadow: SHADOW.card }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-                      <Activity className="w-4 h-4 text-white" />
+              <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center shadow-lg"
+                      style={{
+                        borderRadius: RADIUS.button,
+                        background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                      }}
+                    >
+                      <Activity className="w-5 h-5 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Performance Trends</span>
+                    <span className="text-lg font-semibold text-gray-800">Performance Trends</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-600">New Leads</span>
-                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                          <TrendingUp className="w-3 h-3 text-green-500" />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">+23%</p>
-                      <p className="text-xs text-gray-500">vs last {timePeriod}</p>
-                    </div>
-                    <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-600">Close Rate</span>
-                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                          <TrendingUp className="w-3 h-3 text-blue-500" />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">+8%</p>
-                      <p className="text-xs text-gray-500">vs last {timePeriod}</p>
-                    </div>
-                    <div className="p-4 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-100">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-600">Avg Deal Size</span>
-                        <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
-                          <TrendingDown className="w-3 h-3 text-red-500" />
-                        </div>
-                      </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">-5%</p>
-                      <p className="text-xs text-gray-500">vs last {timePeriod}</p>
-                    </div>
+                    <motion.div
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
+                    >
+                      <Card
+                        className="overflow-hidden border-0 relative h-full"
+                        style={{
+                          borderRadius: RADIUS.card,
+                          boxShadow: SHADOW.hero,
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                        }}
+                      >
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                        <CardContent className="p-4 relative z-10">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-white/90">New Leads</span>
+                            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                              <TrendingUp className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
+                          <p className="text-2xl font-bold text-white">+23%</p>
+                          <p className="text-xs text-white/70 mt-1">vs last {timePeriod}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
+                    >
+                      <Card
+                        className="overflow-hidden border-0 relative h-full"
+                        style={{
+                          borderRadius: RADIUS.card,
+                          boxShadow: SHADOW.hero,
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                        }}
+                      >
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                        <CardContent className="p-4 relative z-10">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-white/90">Close Rate</span>
+                            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                              <TrendingUp className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
+                          <p className="text-2xl font-bold text-white">+8%</p>
+                          <p className="text-xs text-white/70 mt-1">vs last {timePeriod}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover }}
+                    >
+                      <Card
+                        className="overflow-hidden border-0 relative h-full"
+                        style={{
+                          borderRadius: RADIUS.card,
+                          boxShadow: SHADOW.hero,
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
+                        }}
+                      >
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                        <CardContent className="p-4 relative z-10">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-white/90">Avg Deal Size</span>
+                            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                              <TrendingDown className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
+                          <p className="text-2xl font-bold text-white">-5%</p>
+                          <p className="text-xs text-white/70 mt-1">vs last {timePeriod}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   </div>
                 </CardContent>
               </Card>

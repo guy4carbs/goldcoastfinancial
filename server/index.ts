@@ -25,6 +25,12 @@ import { startAllBridges, stopAllBridges } from "./agents/integrations";
 // Real-time WebSocket Server (GCF channels with RBAC)
 import { GCFWebSocketServer, bridgeEventBus } from "./websocket/index";
 
+// Automation Engine
+import { automationEngine } from "./services/automation-engine";
+
+// Workflow Engine (Visual Workflow Builder execution)
+import { workflowEngine } from "./services/workflow-engine";
+
 // Global agent registry for graceful shutdown
 let agentRegistry: AgentRegistry | null = null;
 let gcfWebSocketServer: GCFWebSocketServer | null = null;
@@ -212,6 +218,24 @@ app.use(sentryUserMiddleware);
     console.log('[SERVER] Agent System disabled via AGENT_SYSTEM_ENABLED=false');
   }
 
+  // Initialize Automation Engine (listens to EventBus for triggers)
+  try {
+    await automationEngine.initialize();
+    console.log('[SERVER] ✅ Automation Engine initialized');
+  } catch (error) {
+    console.error('[SERVER] ❌ Failed to initialize Automation Engine:', error);
+    // Continue running - automation engine is optional
+  }
+
+  // Initialize Workflow Engine (Visual Workflow Builder execution)
+  try {
+    await workflowEngine.initialize();
+    console.log('[SERVER] ✅ Workflow Engine initialized');
+  } catch (error) {
+    console.error('[SERVER] ❌ Failed to initialize Workflow Engine:', error);
+    // Continue running - workflow engine is optional
+  }
+
   // Sentry error middleware (must be before custom error handler)
   app.use(sentryErrorMiddleware);
 
@@ -264,6 +288,20 @@ app.use(sentryUserMiddleware);
       } catch (error) {
         console.error('[SERVER] Error stopping agents:', error);
       }
+    }
+
+    // Stop automation engine
+    try {
+      automationEngine.shutdown();
+    } catch (error) {
+      console.error('[SERVER] Error stopping automation engine:', error);
+    }
+
+    // Stop workflow engine
+    try {
+      workflowEngine.shutdown();
+    } catch (error) {
+      console.error('[SERVER] Error stopping workflow engine:', error);
     }
 
     // Close Sentry (flush pending events)

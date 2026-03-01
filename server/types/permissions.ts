@@ -141,6 +141,12 @@ export const Permission = {
   CLAIMS_VIEW_OWN: 'claims:view:own',
   CLAIMS_VIEW_ALL: 'claims:view:all',
   CLAIMS_MANAGE: 'claims:manage',
+
+  // ===== HIERARCHY =====
+  HIERARCHY_VIEW_OWN: 'hierarchy:view:own',
+  HIERARCHY_VIEW_TEAM: 'hierarchy:view:team',
+  HIERARCHY_VIEW_ALL: 'hierarchy:view:all',
+  HIERARCHY_MANAGE: 'hierarchy:manage',
 } as const;
 
 export type PermissionType = typeof Permission[keyof typeof Permission];
@@ -228,6 +234,9 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     // Claims
     Permission.CLAIMS_VIEW_ALL,
     Permission.CLAIMS_MANAGE,
+    // Hierarchy
+    Permission.HIERARCHY_VIEW_ALL,
+    Permission.HIERARCHY_MANAGE,
   ],
 
   // ===== AGENCY MANAGER - Team and operations management =====
@@ -285,6 +294,9 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     // Claims
     Permission.CLAIMS_VIEW_ALL,
     Permission.CLAIMS_MANAGE,
+    // Hierarchy
+    Permission.HIERARCHY_VIEW_TEAM,
+    Permission.HIERARCHY_MANAGE,
   ],
 
   // ===== SALES AGENT - Lead work and own data =====
@@ -317,6 +329,8 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     Permission.TRAINING_VIEW,
     // Claims
     Permission.CLAIMS_VIEW_OWN,
+    // Hierarchy
+    Permission.HIERARCHY_VIEW_OWN,
   ],
 
   // ===== MARKETING STAFF - Content and marketing focus =====

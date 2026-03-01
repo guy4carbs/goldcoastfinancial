@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Licensing steps checklist with real links
@@ -284,44 +285,29 @@ export default function AgentGettingStarted() {
       >
         {/* Hero Header */}
         <motion.div variants={fadeInUp}>
-          <motion.div
-            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-6 text-white"
-            style={{
-              borderRadius: RADIUS.hero,
-              boxShadow: SHADOW.hero,
-            }}
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover }}
+          <AgentPageHero
+            icon={GraduationCap}
+            title="Getting Started"
+            subtitle="Your roadmap to becoming a licensed insurance agent with Heritage Life"
           >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                  <GraduationCap className="w-7 h-7 text-white" />
-                  Getting Started
-                </h1>
-                <p className="text-gray-100">
-                  Your roadmap to becoming a licensed insurance agent with Heritage Life
-                </p>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">{progress}%</p>
+                <p className="text-xs text-white/70">Complete</p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-white">{progress}%</p>
-                  <p className="text-xs text-gray-200">Complete</p>
-                </div>
-                <div className="w-24 h-24 relative">
-                  <svg className="w-full h-full -rotate-90">
-                    <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="8" />
-                    <circle
-                      cx="48" cy="48" r="40" fill="none" stroke="white" strokeWidth="8"
-                      strokeDasharray={`${progress * 2.51} 251`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <Award className="w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white" />
-                </div>
+              <div className="w-16 h-16 relative">
+                <svg className="w-full h-full -rotate-90">
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
+                  <circle
+                    cx="32" cy="32" r="26" fill="none" stroke="white" strokeWidth="6"
+                    strokeDasharray={`${progress * 1.63} 163`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <Award className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white" />
               </div>
             </div>
-          </motion.div>
+          </AgentPageHero>
         </motion.div>
 
         {/* State Selector */}

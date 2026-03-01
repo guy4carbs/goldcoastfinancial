@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import type { LucideIcon } from "lucide-react";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 type AchievementCategory = 'sales' | 'onboarding' | 'consistency' | 'referral' | 'revenue' | 'calls' | 'level' | 'satisfaction';
@@ -119,57 +120,48 @@ export default function AgentAchievements() {
       >
         {/* Hero Card with Violet Gradient */}
         <motion.div variants={fadeInUp}>
-          <motion.div
-            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6"
-            style={{
-              borderRadius: RADIUS.hero,
-              boxShadow: SHADOW.hero,
-            }}
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover }}
+          <AgentPageHero
+            icon={Trophy}
+            title="Achievements"
+            subtitle="Track your milestones and rewards"
           >
-            <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                style={{ borderRadius: RADIUS.card }}
-              >
-                <Trophy className="w-7 h-7 text-white" />
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">{unlockedCount}</p>
+                <p className="text-white/70 text-xs">Unlocked</p>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold" style={{ fontSize: TYPE.section }}>Achievements</h1>
-                <p className="text-white/80 mt-1" style={{ fontSize: TYPE.meta }}>Track your milestones and rewards</p>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white">{inProgressCount}</p>
+                <p className="text-white/70 text-xs">In Progress</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-white/60">{lockedCount}</p>
+                <p className="text-white/70 text-xs">Locked</p>
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold">{unlockedCount}</p>
-                <p className="text-white/70 text-sm">Unlocked</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold">{inProgressCount}</p>
-                <p className="text-white/70 text-sm">In Progress</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-white/60">{lockedCount}</p>
-                <p className="text-white/70 text-sm">Locked</p>
-              </div>
-            </div>
-          </motion.div>
+          </AgentPageHero>
         </motion.div>
 
         {/* Filters */}
-        <motion.div variants={fadeInUp} className="flex gap-2 flex-wrap">
+        <motion.div
+          variants={fadeInUp}
+          className="flex gap-1 p-1 w-fit"
+          style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
+        >
           {FILTER_OPTIONS.map((option) => (
-            <Button
+            <button
               key={option.key}
-              variant={filter === option.key ? 'default' : 'outline'}
-              size="sm"
               onClick={() => setFilter(option.key)}
-              className={filter === option.key ? 'bg-gradient-to-r from-violet-600 to-purple-600 border-0 shadow-md' : ''}
+              className={cn(
+                "px-4 py-1.5 text-sm font-medium transition-all",
+                filter === option.key
+                  ? "bg-white text-violet-700 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
               style={{ borderRadius: RADIUS.button }}
             >
               {option.label}
-            </Button>
+            </button>
           ))}
         </motion.div>
 
@@ -216,43 +208,55 @@ export default function AgentAchievements() {
                     >
                       <Card
                         className={cn(
-                          "border-0 h-full",
-                          achievement.locked && "opacity-50"
+                          "border-0 h-full overflow-hidden relative",
+                          achievement.locked
+                            ? "opacity-50"
+                            : "bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
                         )}
                         style={{
                           borderRadius: RADIUS.card,
                           boxShadow: SHADOW.card,
                         }}
                       >
-                        <CardContent className="p-4">
+                        {/* Decorative blobs */}
+                        {!achievement.locked && (
+                          <>
+                            <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full blur-xl" />
+                            <div className="absolute -bottom-3 -left-3 w-14 h-14 bg-amber-400/15 rounded-full blur-lg" />
+                          </>
+                        )}
+                        <CardContent className="p-4 relative z-10">
                           <div className="flex items-start gap-3">
                             <div
                               className={cn(
                                 "w-12 h-12 flex items-center justify-center flex-shrink-0",
-                                achievement.unlocked ? "bg-gradient-to-br from-emerald-400 to-green-500 text-white" :
-                                achievement.locked ? "bg-gray-100 text-gray-400" : "bg-violet-100 text-violet-600"
+                                achievement.locked
+                                  ? "bg-gray-100 text-gray-400"
+                                  : "bg-white/20 backdrop-blur"
                               )}
                               style={{ borderRadius: RADIUS.button }}
                             >
                               {achievement.locked ? (
                                 <Lock className="w-5 h-5" />
                               ) : (
-                                <Icon className="w-5 h-5" />
+                                <Icon className="w-5 h-5 text-amber-200" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate" style={{ fontSize: TYPE.meta }}>{achievement.title}</h3>
-                              <p className="text-gray-500 line-clamp-2 mt-1" style={{ fontSize: TYPE.caption }}>{achievement.description}</p>
+                              <h3 className={cn("font-semibold truncate", achievement.locked ? "text-gray-900" : "text-white")} style={{ fontSize: TYPE.meta }}>{achievement.title}</h3>
+                              <p className={cn("line-clamp-2 mt-1", achievement.locked ? "text-gray-500" : "text-white/70")} style={{ fontSize: TYPE.caption }}>{achievement.description}</p>
 
                               {isInProgress && (
                                 <div className="mt-3">
-                                  <Progress value={progressPercent} className="h-2" />
-                                  <p className="text-gray-400 mt-1" style={{ fontSize: TYPE.micro }}>{progressPercent}% complete</p>
+                                  <div className="h-2 rounded-full overflow-hidden bg-white/20">
+                                    <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-300" style={{ width: `${progressPercent}%` }} />
+                                  </div>
+                                  <p className="text-white/60 mt-1" style={{ fontSize: TYPE.micro }}>{progressPercent}% complete</p>
                                 </div>
                               )}
 
                               {achievement.unlocked && (
-                                <p className="text-emerald-600 mt-2 flex items-center gap-1" style={{ fontSize: TYPE.micro }}>
+                                <p className="text-emerald-300 mt-2 flex items-center gap-1" style={{ fontSize: TYPE.micro }}>
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   Unlocked {achievement.unlockedDate && `on ${achievement.unlockedDate}`}
                                 </p>

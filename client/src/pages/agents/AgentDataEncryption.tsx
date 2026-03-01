@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, GLASS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -45,8 +46,10 @@ import {
   Users,
   DollarSign,
   CheckCircle,
+  CheckCircle2,
   AlertCircle,
   Fingerprint,
+  IdCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -107,6 +110,14 @@ const SECURE_FORM_TYPES: SecureFormType[] = [
     icon: Building,
     color: "emerald",
     fields: ["Bank Name", "Routing Number", "Account Number", "Account Type"]
+  },
+  {
+    id: "drivers_license",
+    name: "Driver's License / State ID",
+    description: "Collect ID details for identity verification",
+    icon: IdCard,
+    color: "violet",
+    fields: ["Full Legal Name", "License Number", "State", "Expiration Date", "Date of Birth"]
   },
   {
     id: "full_application",
@@ -198,6 +209,7 @@ export default function AgentDataEncryption() {
             id: form.linkId,
             type: form.formType === 'ssn' ? 'Social Security Number'
                 : form.formType === 'banking' ? 'Banking Information'
+                : form.formType === 'drivers_license' ? "Driver's License / State ID"
                 : form.formType === 'full_application' ? 'Full Application'
                 : form.formType,
             clientName: form.clientName,
@@ -393,16 +405,14 @@ export default function AgentDataEncryption() {
   };
 
   const getStatusBadge = (status: SentLink["status"]) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="text-amber-600 border-amber-200">Pending</Badge>;
-      case "opened":
-        return <Badge variant="outline" className="text-blue-600 border-blue-200">Opened</Badge>;
-      case "completed":
-        return <Badge className="bg-emerald-500 text-white">Completed</Badge>;
-      case "expired":
-        return <Badge variant="outline" className="text-gray-400 border-gray-200">Expired</Badge>;
-    }
+    const styles = {
+      pending: "bg-amber-100 text-amber-700 border-0",
+      opened: "bg-violet-100 text-violet-700 border-0",
+      completed: "bg-emerald-100 text-emerald-700 border-0",
+      expired: "bg-gray-100 text-gray-600 border-0",
+    };
+    const labels = { pending: "Pending", opened: "Opened", completed: "Completed", expired: "Expired" };
+    return <Badge className={styles[status]} style={{ borderRadius: RADIUS.pill }}>{labels[status]}</Badge>;
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -428,6 +438,8 @@ export default function AgentDataEncryption() {
         return "Social Security Number";
       case "banking":
         return "Banking Information";
+      case "drivers_license":
+        return "Driver's License / State ID";
       case "full_application":
         return "Full Application";
       default:
@@ -442,6 +454,8 @@ export default function AgentDataEncryption() {
         return "Your insurance agent has requested your Social Security Number to process your application";
       case "banking":
         return "Your insurance agent has requested your banking information to set up premium payments";
+      case "drivers_license":
+        return "Your insurance agent has requested your driver's license or state ID details for identity verification";
       case "full_application":
         return "Your insurance agent has requested you complete a full application";
       default:
@@ -464,6 +478,12 @@ export default function AgentDataEncryption() {
           line1: `To complete your policy setup with ${carrierDisplayName}, we'll need your banking information for the initial premium draft and ongoing billing authorization.`,
           line2: `You can submit this securely using the link below, or we can complete it together over the phone — whichever you prefer.`,
           line3: `Once received, I'll confirm and finalize your submission right away.`
+        };
+      case "drivers_license":
+        return {
+          line1: `To verify your identity for your ${carrierDisplayName} application, we'll need your driver's license or state-issued ID information.`,
+          line2: `Please submit this through the secure link below — your data is encrypted and protected.`,
+          line3: `Once received, I'll confirm and continue processing your application.`
         };
       case "full_application":
         return {
@@ -1035,6 +1055,132 @@ export default function AgentDataEncryption() {
     );
   };
 
+  // Driver's License Form Preview Component
+  const DriverLicenseFormPreview = ({ isPhone }: { isPhone: boolean }) => {
+    if (isPhone) {
+      return (
+        <div className="bg-[#f2f2f7] min-h-[440px]">
+          <div className="bg-[#f2f2f7] px-3 py-2 flex items-center gap-2 border-b border-gray-300">
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="bg-white/80 rounded-lg px-3 py-1.5 flex items-center gap-2 text-center">
+                <Lock className="w-3 h-3 text-gray-500 mx-auto" />
+                <span className="text-xs text-gray-600 flex-1">secure.heritagels.org</span>
+              </div>
+            </div>
+            <div className="text-[#007aff]">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+          </div>
+          <div className="bg-white">
+            <div
+              className="p-4 text-white text-center"
+              style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+            >
+              <IdCard className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-bold text-base">Secure ID Submission</h3>
+              <p className="text-xs mt-1 opacity-90">{getCarrierName()}</p>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Full Legal Name</label>
+                <div className={cn("border rounded-xl p-3 bg-gray-50 text-sm", formClientName ? "text-gray-900" : "text-gray-400")}>
+                  {formClientName || "Enter your full name"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Date of Birth</label>
+                <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm">MM/DD/YYYY</div>
+              </div>
+              <div>
+                <label className="block text-gray-600 mb-1.5 text-xs font-medium">Driver's License / State ID Number</label>
+                <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Enter license number
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-600 mb-1.5 text-xs font-medium">Issuing State</label>
+                  <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm">Select state</div>
+                </div>
+                <div>
+                  <label className="block text-gray-600 mb-1.5 text-xs font-medium">Expiration Date</label>
+                  <div className="border rounded-xl p-3 bg-gray-50 text-gray-400 text-sm">MM/DD/YYYY</div>
+                </div>
+              </div>
+              <div className="pt-3">
+                <div className="text-white rounded-xl text-center font-semibold py-3.5 text-sm" style={{ backgroundColor: getCarrierColor(formCarrier) }}>
+                  Submit Securely
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-400 pt-2">
+                <Lock className="w-3 h-3" />
+                <span className="text-xs">256-bit encryption</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden min-h-[350px]">
+        <div
+          className="p-6 text-white text-center"
+          style={{ background: `linear-gradient(135deg, ${getCarrierGradient(formCarrier).from} 0%, ${getCarrierGradient(formCarrier).to} 100%)` }}
+        >
+          <IdCard className="w-10 h-10 mx-auto mb-3" />
+          <h3 className="font-bold text-xl">Secure ID Submission</h3>
+          <p className="text-sm mt-1 opacity-90">{getCarrierName()}</p>
+        </div>
+        <div className="p-6 space-y-5">
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Full Legal Name</label>
+            <div className={cn("border rounded-lg p-3 bg-gray-50", formClientName ? "text-gray-900" : "text-gray-400")}>
+              {formClientName || "Enter your full name"}
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Date of Birth</label>
+            <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">MM/DD/YYYY</div>
+          </div>
+          <div>
+            <label className="block text-gray-600 mb-2 font-medium">Driver's License / State ID Number</label>
+            <div className="border rounded-lg p-3 bg-gray-50 text-gray-400 flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Enter license number
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-600 mb-2 font-medium">Issuing State</label>
+              <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">Select state</div>
+            </div>
+            <div>
+              <label className="block text-gray-600 mb-2 font-medium">Expiration Date</label>
+              <div className="border rounded-lg p-3 bg-gray-50 text-gray-400">MM/DD/YYYY</div>
+            </div>
+          </div>
+          <div className="pt-3">
+            <div className="text-white rounded-lg text-center font-semibold py-4 text-base cursor-pointer hover:opacity-90 transition-opacity" style={{ backgroundColor: getCarrierColor(formCarrier) }}>
+              Submit Securely
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-gray-400">
+            <Lock className="w-4 h-4" />
+            <span className="text-sm">256-bit encryption</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Banking Form Preview Component
   const BankingFormPreview = ({ isPhone }: { isPhone: boolean }) => {
     if (isPhone) {
@@ -1195,6 +1341,7 @@ export default function AgentDataEncryption() {
       { icon: User, label: "Personal Information", status: "current" },
       { icon: Shield, label: "Social Security Number", status: "pending" },
       { icon: Building, label: "Banking Details", status: "pending" },
+      { icon: IdCard, label: "Driver's License / State ID", status: "pending" },
       { icon: DollarSign, label: "Coverage Details", status: "pending" },
       { icon: Users, label: "Beneficiary Information", status: "pending" },
     ];
@@ -1422,6 +1569,8 @@ export default function AgentDataEncryption() {
         return <SSNFormPreview isPhone={isPhone} />;
       case "banking":
         return <BankingFormPreview isPhone={isPhone} />;
+      case "drivers_license":
+        return <DriverLicenseFormPreview isPhone={isPhone} />;
       case "full_application":
         return <FullApplicationFormPreview isPhone={isPhone} />;
       default:
@@ -1436,6 +1585,8 @@ export default function AgentDataEncryption() {
         return "primary";
       case "banking":
         return "emerald";
+      case "drivers_license":
+        return "violet";
       case "full_application":
         return "violet";
       default:
@@ -1452,43 +1603,31 @@ export default function AgentDataEncryption() {
         className="space-y-6"
       >
         {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
-          style={{
-            borderRadius: RADIUS.hero,
-            padding: spacing(4),
-            boxShadow: SHADOW.hero,
-          }}
-        >
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                style={{ borderRadius: RADIUS.card }}
-              >
-                <Shield className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Secure Data Collection</h1>
-                <p className="text-white/80 text-sm mt-1">Send encrypted forms to collect sensitive client information</p>
-              </div>
-            </div>
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={Shield}
+            title="Secure Data Collection"
+            subtitle="Send encrypted forms to collect sensitive client information"
+          >
             {/* Agent Account Indicator */}
-            <div className="text-right text-sm">
-              <div className="text-white/70">Sending as</div>
-              <div className="font-medium text-white">{agentName}</div>
-              <div className="text-xs text-white/60">{agentEmail} • {agentPhone}</div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-2.5">
+              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold text-sm">
+                {agentName?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </div>
+              <div className="text-left">
+                <div className="text-xs text-white/60 font-medium">Sending as</div>
+                <div className="text-sm font-semibold text-white leading-tight">{agentName}</div>
+                <div className="text-xs text-white/70 mt-0.5">{agentEmail} • {agentPhone}</div>
+              </div>
             </div>
-          </div>
+          </AgentPageHero>
         </motion.div>
 
 
         {/* Send Secure Form Cards */}
         <motion.div variants={fadeInUp}>
           <h2 className="text-lg font-semibold mb-4">Send Secure Form</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-4 gap-4">
             {SECURE_FORM_TYPES.map((formType) => (
               <motion.div
                 key={formType.id}
@@ -1496,44 +1635,38 @@ export default function AgentDataEncryption() {
                 transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
               >
                 <Card
-                  className="cursor-pointer group border-2 hover:border-primary/30 h-full"
+                  className="cursor-pointer group relative overflow-hidden border-0 h-full"
                   style={{
                     borderRadius: RADIUS.card,
                     boxShadow: SHADOW.card,
                   }}
                   onClick={() => openSendDialog(formType)}
                 >
-                  <CardContent className="p-5">
-                    <div className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110",
-                      formType.id === "ssn" ? "bg-blue-100" :
-                      formType.id === "banking" ? "bg-emerald-100" : "bg-violet-100"
-                    )}>
-                      <formType.icon className={cn(
-                        "w-6 h-6",
-                        formType.id === "ssn" ? "text-blue-600" :
-                        formType.id === "banking" ? "text-emerald-600" : "text-violet-600"
-                      )} />
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                  <div style={{ width: 80, height: 80 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/3 translate-x-1/3" />
+                  <div style={{ width: 50, height: 50 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/3 -translate-x-1/4" />
+                  <CardContent className="relative z-10 p-5 flex flex-col h-full">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ borderRadius: RADIUS.button }}>
+                      <formType.icon className="w-5 h-5 text-amber-200" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{formType.name}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{formType.description}</p>
+                    <h3 className="font-semibold text-white mb-1">{formType.name}</h3>
+                    <p className="text-sm text-white/70 mb-4">{formType.description}</p>
                     <div className="flex flex-wrap gap-1 mb-4">
                       {formType.fields.slice(0, 3).map((field, i) => (
-                        <Badge key={i} variant="outline" className="text-[10px] text-gray-500">
+                        <Badge key={i} className="text-[10px] bg-white/15 text-white/90 border-0 backdrop-blur-sm" style={{ borderRadius: RADIUS.pill }}>
                           {field}
                         </Badge>
                       ))}
                       {formType.fields.length > 3 && (
-                        <Badge variant="outline" className="text-[10px] text-gray-400">
+                        <Badge className="text-[10px] bg-white/15 text-white/70 border-0 backdrop-blur-sm" style={{ borderRadius: RADIUS.pill }}>
                           +{formType.fields.length - 3} more
                         </Badge>
                       )}
                     </div>
-                    <Button className={cn(
-                      "w-full gap-2",
-                      formType.id === "banking" ? "bg-emerald-600 hover:bg-emerald-700" :
-                      formType.id === "full_application" ? "bg-violet-600 hover:bg-violet-700" : ""
-                    )}>
+                    <Button
+                      className="w-full gap-2 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm mt-auto"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
                       <Send className="w-4 h-4" />
                       Send to Client
                     </Button>
@@ -1547,11 +1680,19 @@ export default function AgentDataEncryption() {
         {/* Recent Sent Links */}
         <motion.div variants={fadeInUp}>
           <h2 className="text-lg font-semibold mb-4">Recent Secure Links</h2>
-          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+          <Card
+            className="border-0"
+            style={{
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
             <CardContent className="p-0">
               {isLoadingLinks ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
                 </div>
               ) : sentLinks.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -1560,41 +1701,24 @@ export default function AgentDataEncryption() {
                   <p className="text-sm">Send your first secure form to get started</p>
                 </div>
               ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-gray-100">
                 {sentLinks.map((link) => (
-                  <div key={link.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div key={link.id} className="px-5 py-4 hover:bg-violet-50/40 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center",
-                          link.status === "completed" ? "bg-emerald-100" :
-                          link.status === "expired" ? "bg-gray-100" : "bg-blue-100"
-                        )}>
+                        <div
+                          className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
                           {link.method === "email" ? (
-                            <Mail className={cn(
-                              "w-5 h-5",
-                              link.status === "completed" ? "text-emerald-600" :
-                              link.status === "expired" ? "text-gray-400" : "text-blue-600"
-                            )} />
+                            <Mail className="w-5 h-5 text-amber-200" />
                           ) : link.method === "both" ? (
                             <div className="flex items-center gap-0.5">
-                              <Mail className={cn(
-                                "w-3.5 h-3.5",
-                                link.status === "completed" ? "text-emerald-600" :
-                                link.status === "expired" ? "text-gray-400" : "text-blue-600"
-                              )} />
-                              <MessageSquare className={cn(
-                                "w-3.5 h-3.5",
-                                link.status === "completed" ? "text-emerald-600" :
-                                link.status === "expired" ? "text-gray-400" : "text-blue-600"
-                              )} />
+                              <Mail className="w-3.5 h-3.5 text-amber-200" />
+                              <MessageSquare className="w-3.5 h-3.5 text-amber-200" />
                             </div>
                           ) : (
-                            <MessageSquare className={cn(
-                              "w-5 h-5",
-                              link.status === "completed" ? "text-emerald-600" :
-                              link.status === "expired" ? "text-gray-400" : "text-blue-600"
-                            )} />
+                            <MessageSquare className="w-5 h-5 text-amber-200" />
                           )}
                         </div>
                         <div>
@@ -1626,7 +1750,8 @@ export default function AgentDataEncryption() {
                               variant="ghost"
                               size="sm"
                               onClick={() => copyLink(link.id)}
-                              className="text-gray-500"
+                              className="text-violet-700"
+                              style={{ borderRadius: RADIUS.button }}
                             >
                               <Copy className="w-4 h-4" />
                             </Button>
@@ -1634,6 +1759,8 @@ export default function AgentDataEncryption() {
                               variant="outline"
                               size="sm"
                               onClick={() => resendLink(link)}
+                              className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                              style={{ borderRadius: RADIUS.button }}
                             >
                               Resend
                             </Button>
@@ -1649,6 +1776,8 @@ export default function AgentDataEncryption() {
                                 openSendDialog(formType);
                               }
                             }}
+                            className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                            style={{ borderRadius: RADIUS.button }}
                           >
                             Send New Link
                           </Button>
@@ -1657,8 +1786,9 @@ export default function AgentDataEncryption() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-emerald-600"
+                            className="text-violet-700"
                             onClick={() => viewFormData(link.id)}
+                            style={{ borderRadius: RADIUS.button }}
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View Data
@@ -1689,10 +1819,13 @@ export default function AgentDataEncryption() {
                 whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                 transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
               >
-                <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                   <CardContent className="p-4 text-center">
-                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                      <feature.icon className="w-5 h-5 text-violet-600" />
+                    <div
+                      className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-violet-500/25"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <feature.icon className="w-5 h-5 text-amber-200" />
                     </div>
                     <h3 className="font-medium text-gray-900 text-sm">{feature.title}</h3>
                     <p className="text-xs text-gray-500">{feature.description}</p>
@@ -1706,20 +1839,34 @@ export default function AgentDataEncryption() {
 
       {/* Enhanced Two-Column Dialog for All Form Types */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              {selectedFormType?.id === "ssn" && <User className="w-6 h-6" style={{ color: getCarrierColor(formCarrier) }} />}
-              {selectedFormType?.id === "banking" && <Building className="w-6 h-6" style={{ color: getCarrierColor(formCarrier) }} />}
-              {selectedFormType?.id === "full_application" && <FileText className="w-6 h-6" style={{ color: getCarrierColor(formCarrier) }} />}
-              Send Secure {getFormTitle()} Form
+        <DialogContent
+          className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 border-0 [&>button.absolute]:hidden"
+          style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: RADIUS.card,
+            boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
+                {selectedFormType?.id === "ssn" && <User className="w-5 h-5 text-amber-200" />}
+                {selectedFormType?.id === "banking" && <Building className="w-5 h-5 text-amber-200" />}
+                {selectedFormType?.id === "drivers_license" && <IdCard className="w-5 h-5 text-amber-200" />}
+                {selectedFormType?.id === "full_application" && <FileText className="w-5 h-5 text-amber-200" />}
+              </div>
+              <div>
+                <span className="text-gray-900">Send Secure {getFormTitle()} Form</span>
+                <p className="text-sm font-normal text-gray-500 mt-0.5">
+                  Your client will receive a secure, encrypted link to submit their information.
+                </p>
+              </div>
             </DialogTitle>
-            <DialogDescription>
-              Your client will receive a secure, encrypted link to submit their information.
-            </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
             {/* Left Side - Form */}
             <div className="space-y-4">
               {/* Client Name */}
@@ -1733,6 +1880,7 @@ export default function AgentDataEncryption() {
                   value={formClientName}
                   onChange={(e) => setFormClientName(e.target.value)}
                   className="mt-1"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
@@ -1746,6 +1894,7 @@ export default function AgentDataEncryption() {
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   className="mt-1"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
@@ -1759,6 +1908,7 @@ export default function AgentDataEncryption() {
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
                   className="mt-1"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
@@ -1768,7 +1918,7 @@ export default function AgentDataEncryption() {
                   Insurance Carrier <span className="text-red-500">*</span>
                 </Label>
                 <Select value={formCarrier} onValueChange={setFormCarrier}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1" style={{ borderRadius: RADIUS.input }}>
                     <SelectValue placeholder="Select a carrier" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1786,41 +1936,35 @@ export default function AgentDataEncryption() {
                 <Label className="flex items-center gap-1 mb-2">
                   Send Via <span className="text-red-500">*</span>
                 </Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={formSendMethod === "email" ? "default" : "outline"}
-                    className="flex-1 gap-2"
-                    style={formSendMethod === "email" ? { backgroundColor: getCarrierColor(formCarrier) } : {}}
-                    onClick={() => setFormSendMethod("email")}
-                  >
-                    <Mail className="w-4 h-4" />
-                    Email
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={formSendMethod === "sms" ? "default" : "outline"}
-                    className="flex-1 gap-2"
-                    style={formSendMethod === "sms" ? { backgroundColor: getCarrierColor(formCarrier) } : {}}
-                    onClick={() => setFormSendMethod("sms")}
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    SMS
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={formSendMethod === "both" ? "default" : "outline"}
-                    className="flex-1 gap-2"
-                    style={formSendMethod === "both" ? { backgroundColor: getCarrierColor(formCarrier) } : {}}
-                    onClick={() => setFormSendMethod("both")}
-                  >
-                    <div className="flex items-center gap-1">
-                      <Mail className="w-3.5 h-3.5" />
-                      <span className="text-xs opacity-60">&</span>
-                      <MessageSquare className="w-3.5 h-3.5" />
-                    </div>
-                    Both
-                  </Button>
+                <div className="flex gap-1 p-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+                  {([
+                    { id: "email" as const, label: "Email", icon: Mail },
+                    { id: "sms" as const, label: "SMS", icon: MessageSquare },
+                    { id: "both" as const, label: "Both", icon: null },
+                  ]).map((method) => (
+                    <button
+                      key={method.id}
+                      type="button"
+                      onClick={() => setFormSendMethod(method.id)}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-all",
+                        formSendMethod === method.id
+                          ? "bg-white text-violet-700 shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      )}
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      {method.id === "both" ? (
+                        <div className="flex items-center gap-0.5">
+                          <Mail className="w-3.5 h-3.5" />
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </div>
+                      ) : method.icon ? (
+                        <method.icon className="w-4 h-4" />
+                      ) : null}
+                      {method.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -1834,27 +1978,30 @@ export default function AgentDataEncryption() {
                       ? "Hi John, I need your SSN to complete your life insurance application..."
                       : selectedFormType?.id === "banking"
                       ? "Hi John, please provide your banking information to set up automatic premium payments..."
+                      : selectedFormType?.id === "drivers_license"
+                      ? "Hi John, I need your driver's license details for identity verification..."
                       : "Hi John, please complete this application for your life insurance policy..."
                   }
                   value={formCustomMessage}
                   onChange={(e) => setFormCustomMessage(e.target.value)}
                   rows={3}
                   className="mt-1"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
               {/* Sending From Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs font-medium text-blue-800 mb-2">Sending From Your Account</p>
+              <div className="bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
+                <p className="text-xs font-medium text-gray-900 mb-2">Sending From Your Account</p>
                 <div className="space-y-1">
                   {(formSendMethod === "email" || formSendMethod === "both") && (
-                    <div className="flex items-center gap-2 text-xs text-blue-700">
+                    <div className="flex items-center gap-2 text-xs text-violet-700">
                       <Mail className="w-3.5 h-3.5" />
                       <span>{agentEmail}</span>
                     </div>
                   )}
                   {(formSendMethod === "sms" || formSendMethod === "both") && (
-                    <div className="flex items-center gap-2 text-xs text-blue-700">
+                    <div className="flex items-center gap-2 text-xs text-violet-700">
                       <MessageSquare className="w-3.5 h-3.5" />
                       <span>{agentPhone}</span>
                     </div>
@@ -1863,20 +2010,21 @@ export default function AgentDataEncryption() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-4 border-t border-gray-100">
                 <Button
                   variant="outline"
                   onClick={() => setSendDialogOpen(false)}
-                  className="flex-1"
+                  className="flex-1 text-violet-700 border-violet-200 hover:bg-violet-50"
                   disabled={isSending}
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSendForm}
                   disabled={isSending}
-                  className="flex-1 gap-2"
-                  style={{ backgroundColor: getCarrierColor(formCarrier) }}
+                  className="flex-1 gap-2 bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   {isSending ? (
                     <>
@@ -1898,15 +2046,16 @@ export default function AgentDataEncryption() {
               {/* Device Toggle */}
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Preview</Label>
-                <div className="flex bg-gray-100 rounded-lg p-1">
+                <div className="flex gap-1 p-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
                   <button
                     onClick={() => setDevicePreview("phone")}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
+                      "px-3 py-1.5 text-sm font-medium transition-all flex items-center gap-1.5",
                       devicePreview === "phone"
-                        ? "bg-white shadow text-gray-900"
+                        ? "bg-white shadow-sm text-violet-700"
                         : "text-gray-500 hover:text-gray-700"
                     )}
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     <Smartphone className="w-4 h-4" />
                     Phone
@@ -1914,11 +2063,12 @@ export default function AgentDataEncryption() {
                   <button
                     onClick={() => setDevicePreview("desktop")}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
+                      "px-3 py-1.5 text-sm font-medium transition-all flex items-center gap-1.5",
                       devicePreview === "desktop"
-                        ? "bg-white shadow text-gray-900"
+                        ? "bg-white shadow-sm text-violet-700"
                         : "text-gray-500 hover:text-gray-700"
                     )}
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     <Monitor className="w-4 h-4" />
                     Desktop
@@ -2100,35 +2250,46 @@ export default function AgentDataEncryption() {
 
       {/* View Submitted Data Dialog */}
       <Dialog open={viewDataDialogOpen} onOpenChange={setViewDataDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileCheck className="w-5 h-5 text-emerald-600" />
-              Submitted Form Data
+        <DialogContent
+          className="max-w-2xl max-h-[80vh] overflow-y-auto p-0 border-0"
+          style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: RADIUS.card,
+            boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100">
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
+                <FileCheck className="w-5 h-5 text-amber-200" />
+              </div>
+              <div>
+                <span className="text-gray-900">Submitted Form Data</span>
+                {viewingFormData && (
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">
+                    {viewingFormData.clientName} • {viewingFormData.carrierName} • {viewingFormData.formType}
+                  </p>
+                )}
+              </div>
             </DialogTitle>
-            <DialogDescription>
-              {viewingFormData && (
-                <span>
-                  {viewingFormData.clientName} • {viewingFormData.carrierName} • {viewingFormData.formType}
-                </span>
-              )}
-            </DialogDescription>
           </DialogHeader>
 
           {isLoadingFormData ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
             </div>
           ) : viewingFormData?.submittedData ? (
-            <div className="space-y-6">
+            <div className="space-y-6 p-6">
               {/* Personal Information */}
               {(viewingFormData.submittedData.fullName || viewingFormData.submittedData.dateOfBirth) && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4 text-violet-500" />
                     Personal Information
                   </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
                     {viewingFormData.submittedData.fullName && (
                       <div><span className="text-gray-500">Full Name:</span> <span className="font-medium">{viewingFormData.submittedData.fullName}</span></div>
                     )}
@@ -2152,10 +2313,10 @@ export default function AgentDataEncryption() {
               {(viewingFormData.submittedData.address || viewingFormData.submittedData.phone || viewingFormData.submittedData.email) && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
+                    <Building2 className="w-4 h-4 text-violet-500" />
                     Contact Information
                   </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
                     {viewingFormData.submittedData.address && (
                       <div className="col-span-2"><span className="text-gray-500">Address:</span> <span className="font-medium">{viewingFormData.submittedData.address}, {viewingFormData.submittedData.city}, {viewingFormData.submittedData.state} {viewingFormData.submittedData.zipCode}</span></div>
                     )}
@@ -2173,11 +2334,35 @@ export default function AgentDataEncryption() {
               {viewingFormData.submittedData.ssn && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Fingerprint className="w-4 h-4" />
+                    <Fingerprint className="w-4 h-4 text-violet-500" />
                     Social Security Number
                   </h3>
-                  <div className="text-sm">
+                  <div className="text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
                     <span className="text-gray-500">SSN:</span> <span className="font-medium font-mono">{viewingFormData.submittedData.ssn}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Driver's License / State ID */}
+              {(viewingFormData.submittedData.licenseNumber || viewingFormData.submittedData.issuingState) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <IdCard className="w-4 h-4 text-violet-500" />
+                    Driver's License / State ID
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
+                    {viewingFormData.submittedData.licenseNumber && (
+                      <div><span className="text-gray-500">License Number:</span> <span className="font-medium font-mono">{viewingFormData.submittedData.licenseNumber}</span></div>
+                    )}
+                    {viewingFormData.submittedData.issuingState && (
+                      <div><span className="text-gray-500">Issuing State:</span> <span className="font-medium">{viewingFormData.submittedData.issuingState}</span></div>
+                    )}
+                    {viewingFormData.submittedData.licenseExpiration && (
+                      <div><span className="text-gray-500">Expiration:</span> <span className="font-medium">{viewingFormData.submittedData.licenseExpiration}</span></div>
+                    )}
+                    {viewingFormData.submittedData.licenseType && (
+                      <div><span className="text-gray-500">ID Type:</span> <span className="font-medium">{viewingFormData.submittedData.licenseType === 'state_id' ? 'State ID' : "Driver's License"}</span></div>
+                    )}
                   </div>
                 </div>
               )}
@@ -2186,10 +2371,10 @@ export default function AgentDataEncryption() {
               {(viewingFormData.submittedData.bankName || viewingFormData.submittedData.routingNumber) && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Building className="w-4 h-4" />
+                    <Building className="w-4 h-4 text-violet-500" />
                     Banking Information
                   </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
                     {viewingFormData.submittedData.accountHolderName && (
                       <div><span className="text-gray-500">Account Holder:</span> <span className="font-medium">{viewingFormData.submittedData.accountHolderName}</span></div>
                     )}
@@ -2213,18 +2398,18 @@ export default function AgentDataEncryption() {
               {(viewingFormData.submittedData.coverageType || viewingFormData.submittedData.coverageAmount) && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
+                    <Shield className="w-4 h-4 text-violet-500" />
                     Coverage Details
                   </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
                     {viewingFormData.submittedData.coverageType && (
                       <div><span className="text-gray-500">Coverage Type:</span> <span className="font-medium">{viewingFormData.submittedData.coverageType}</span></div>
                     )}
                     {viewingFormData.submittedData.coverageAmount && (
-                      <div><span className="text-gray-500">Coverage Amount:</span> <span className="font-medium">${viewingFormData.submittedData.coverageAmount}</span></div>
+                      <div><span className="text-gray-500">Coverage Amount:</span> <span className="font-medium">${Number(viewingFormData.submittedData.coverageAmount).toLocaleString()}</span></div>
                     )}
                     {viewingFormData.submittedData.monthlyPremium && (
-                      <div><span className="text-gray-500">Monthly Premium:</span> <span className="font-medium">${viewingFormData.submittedData.monthlyPremium}</span></div>
+                      <div><span className="text-gray-500">Monthly Premium:</span> <span className="font-medium">${Number(viewingFormData.submittedData.monthlyPremium).toLocaleString()}/mo</span></div>
                     )}
                   </div>
                 </div>
@@ -2234,10 +2419,10 @@ export default function AgentDataEncryption() {
               {(viewingFormData.submittedData.tobaccoUse || viewingFormData.submittedData.healthConditions) && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Stethoscope className="w-4 h-4" />
+                    <Stethoscope className="w-4 h-4 text-violet-500" />
                     Health Information
                   </h3>
-                  <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div className="grid grid-cols-1 gap-3 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
                     {viewingFormData.submittedData.tobaccoUse && (
                       <div><span className="text-gray-500">Tobacco Use:</span> <span className="font-medium capitalize">{viewingFormData.submittedData.tobaccoUse}</span></div>
                     )}
@@ -2261,26 +2446,50 @@ export default function AgentDataEncryption() {
               {viewingFormData.submittedData.beneficiaries && viewingFormData.submittedData.beneficiaries.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Users className="w-4 h-4" />
+                    <Users className="w-4 h-4 text-violet-500" />
                     Beneficiaries
                   </h3>
                   <div className="space-y-2">
                     {viewingFormData.submittedData.beneficiaries.map((b: any, i: number) => (
-                      <div key={i} className="text-sm p-2 bg-gray-50 rounded-lg">
-                        <span className="font-medium">{b.name}</span> • {b.relationship} • DOB: {b.dob} • <span className="text-emerald-600 font-medium">{b.percentage}%</span>
+                      <div key={i} className="text-sm p-2 bg-violet-50" style={{ borderRadius: RADIUS.button }}>
+                        <span className="font-medium">{b.name}</span> • {b.relationship} • DOB: {b.dob} • <span className="text-violet-700 font-medium">{b.percentage}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
+              {/* Consent */}
+              {(viewingFormData.submittedData.consentToProcess || viewingFormData.submittedData.consentToContact) && (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-violet-500" />
+                    Consent & Authorization
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2 text-sm bg-violet-50 p-3" style={{ borderRadius: RADIUS.button }}>
+                    {viewingFormData.submittedData.consentToProcess && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <span className="text-gray-700">Authorized processing of information</span>
+                      </div>
+                    )}
+                    {viewingFormData.submittedData.consentToContact && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <span className="text-gray-700">Consented to contact regarding application</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Submission Info */}
-              <div className="pt-4 border-t text-xs text-gray-500">
+              <div className="pt-4 border-t border-gray-100 text-xs text-gray-500">
                 Submitted on {new Date(viewingFormData.submittedAt).toLocaleString()}
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 px-6 text-gray-500">
               No data available
             </div>
           )}

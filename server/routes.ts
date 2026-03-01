@@ -23,6 +23,12 @@ import appRouter from "./routes/app";
 import memberCardsRouter from "./routes/member-cards";
 import walletRouter from "./routes/wallet";
 import verifyRouter from "./routes/verify";
+import hierarchyRouter from "./routes/hierarchy";
+import clientChatRouter from "./routes/client-chat";
+import automationsRouter from "./routes/automations";
+import workflowAutomationsRouter from "./routes/workflow-automations";
+import licensesRouter from "./routes/licenses";
+import policiesRouter from "./routes/policies";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -1686,6 +1692,25 @@ export async function registerRoutes(
 
   // Policy Verification (public - for QR code scanning)
   app.use("/verify", verifyRouter);
+
+  // Agent Hierarchy
+  app.use("/api/hierarchy", hierarchyRouter);
+
+  // Client Chat (Agent-Client Messaging)
+  app.use("/api/client-chat", clientChatRouter);
+  app.use("/api/app/chat", clientChatRouter);
+
+  // Automations
+  app.use("/api/automations", automationsRouter);
+
+  // Workflow Automations (Visual Builder)
+  app.use("/api/workflow-automations", workflowAutomationsRouter);
+
+  // License & Territory management
+  app.use("/api/licenses", licensesRouter);
+
+  // Policy management
+  app.use("/api/policies", policiesRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

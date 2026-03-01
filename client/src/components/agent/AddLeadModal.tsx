@@ -23,6 +23,7 @@ import { UserPlus, User, Mail, Phone, MapPin, FileText, Sparkles, Loader2, Calen
 import { cn } from "@/lib/utils";
 import type { Lead } from "@/lib/agentStore";
 import { useCelebration } from "@/lib/celebrationContext";
+import { RADIUS, SHADOW } from "@/lib/heritageDesignSystem";
 
 const FOLLOW_UP_TYPES = [
   { value: 'call', label: 'Call', icon: Phone },
@@ -192,11 +193,17 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        style={{ borderRadius: RADIUS.card }}
+      >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-serif">
-            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-violet-600" />
+          <DialogTitle className="flex items-center gap-4 font-serif">
+            <div
+              className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              <UserPlus className="w-5 h-5 text-white" />
             </div>
             Add New Lead
           </DialogTitle>
@@ -205,25 +212,26 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <Label htmlFor="name" className="text-xs font-medium flex items-center gap-1">
-                <User className="w-3 h-3" /> Full Name *
+              <Label htmlFor="name" className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                <User className="w-3 h-3 text-violet-500" /> Full Name *
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="John Smith"
-                className={errors.name ? 'border-red-500' : ''}
+                className={cn("h-9", errors.name ? 'border-red-500' : '')}
+                style={{ borderRadius: RADIUS.input }}
               />
               {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
             </div>
 
             <div>
-              <Label htmlFor="email" className="text-xs font-medium flex items-center gap-1">
-                <Mail className="w-3 h-3" /> Email *
+              <Label htmlFor="email" className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                <Mail className="w-3 h-3 text-violet-500" /> Email *
               </Label>
               <Input
                 id="email"
@@ -231,14 +239,15 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="john@email.com"
-                className={errors.email ? 'border-red-500' : ''}
+                className={cn("h-9", errors.email ? 'border-red-500' : '')}
+                style={{ borderRadius: RADIUS.input }}
               />
               {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
             </div>
 
             <div>
-              <Label htmlFor="phone" className="text-xs font-medium flex items-center gap-1">
-                <Phone className="w-3 h-3" /> Phone *
+              <Label htmlFor="phone" className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                <Phone className="w-3 h-3 text-violet-500" /> Phone *
               </Label>
               <Input
                 id="phone"
@@ -246,17 +255,18 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(555) 123-4567"
-                className={errors.phone ? 'border-red-500' : ''}
+                className={cn("h-9", errors.phone ? 'border-red-500' : '')}
+                style={{ borderRadius: RADIUS.input }}
               />
               {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
             </div>
 
             <div>
-              <Label className="text-xs font-medium flex items-center gap-1">
-                <MapPin className="w-3 h-3" /> State
+              <Label className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                <MapPin className="w-3 h-3 text-violet-500" /> State
               </Label>
               <Select value={formData.state} onValueChange={(v) => setFormData({ ...formData, state: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,11 +278,11 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
             </div>
 
             <div>
-              <Label className="text-xs font-medium flex items-center gap-1">
-                <FileText className="w-3 h-3" /> Product Interest
+              <Label className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                <FileText className="w-3 h-3 text-violet-500" /> Product Interest
               </Label>
               <Select value={formData.product} onValueChange={(v) => setFormData({ ...formData, product: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue placeholder="Select product" />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,11 +294,11 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
             </div>
 
             <div className="col-span-2">
-              <Label className="text-xs font-medium flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Lead Source
+              <Label className="text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                <Sparkles className="w-3 h-3 text-violet-500" /> Lead Source
               </Label>
               <Select value={formData.source} onValueChange={(v) => setFormData({ ...formData, source: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,28 +310,32 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
             </div>
 
             <div className="col-span-2">
-              <Label htmlFor="notes" className="text-xs font-medium">Initial Notes</Label>
+              <Label htmlFor="notes" className="text-xs font-medium mb-1.5 block">Initial Notes</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Any additional information about this lead..."
-                className="min-h-[80px]"
+                className="min-h-[64px] resize-none"
+                style={{ borderRadius: RADIUS.input }}
               />
             </div>
           </div>
 
           {/* Follow-up Section - Required */}
-          <div className="bg-amber-50 rounded-lg p-4 space-y-3 border border-amber-200 mt-4">
-            <div className="flex items-center gap-2 text-amber-800">
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm font-medium">First Follow-Up *</span>
+          <div
+            className="bg-violet-50 p-3 space-y-2.5 border border-violet-200"
+            style={{ borderRadius: RADIUS.input }}
+          >
+            <div className="flex items-center gap-2 text-violet-700">
+              <Calendar className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">First Follow-Up *</span>
             </div>
-            <p className="text-xs text-amber-700">Every new lead requires a scheduled follow-up to ensure no leads are forgotten.</p>
+            <p className="text-[11px] text-violet-600">Every new lead requires a scheduled follow-up.</p>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="followUpDate" className="text-xs font-medium mb-1 block text-amber-800">Date</Label>
+                <Label htmlFor="followUpDate" className="text-xs font-medium mb-1.5 block text-violet-700">Date</Label>
                 <Input
                   id="followUpDate"
                   type="date"
@@ -329,9 +343,10 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
                   onChange={(e) => setFormData({ ...formData, nextFollowUpDate: e.target.value })}
                   min={new Date().toISOString().split('T')[0]}
                   className={cn(
-                    "bg-white",
+                    "bg-white h-9",
                     errors.nextFollowUpDate && "border-red-300"
                   )}
+                  style={{ borderRadius: RADIUS.input }}
                 />
                 {errors.nextFollowUpDate && (
                   <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
@@ -341,19 +356,19 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
                 )}
               </div>
               <div>
-                <Label className="text-xs font-medium mb-1 block text-amber-800">Type</Label>
+                <Label className="text-xs font-medium mb-1.5 block text-violet-700">Type</Label>
                 <Select
                   value={formData.nextFollowUpType}
                   onValueChange={(v) => setFormData({ ...formData, nextFollowUpType: v as Lead['nextFollowUpType'] })}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white h-9" style={{ borderRadius: RADIUS.input }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {FOLLOW_UP_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         <div className="flex items-center gap-2">
-                          <type.icon className="w-4 h-4" />
+                          <type.icon className="w-3.5 h-3.5" />
                           {type.label}
                         </div>
                       </SelectItem>
@@ -364,7 +379,7 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
             </div>
 
             {/* Quick date buttons */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
               {[
                 { label: 'Today', days: 0 },
                 { label: 'Tomorrow', days: 1 },
@@ -380,11 +395,12 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
                     type="button"
                     onClick={() => setFormData({ ...formData, nextFollowUpDate: dateStr })}
                     className={cn(
-                      "text-xs px-2 py-1 rounded border transition-all",
+                      "text-[11px] px-2.5 py-1 transition-all",
                       formData.nextFollowUpDate === dateStr
-                        ? "bg-amber-600 text-white border-amber-600"
-                        : "bg-white text-amber-800 border-amber-300 hover:bg-amber-100"
+                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white border-transparent"
+                        : "bg-white text-violet-700 border border-violet-300 hover:bg-violet-100"
                     )}
+                    style={{ borderRadius: RADIUS.input }}
                   >
                     {option.label}
                   </button>
@@ -394,11 +410,21 @@ export function AddLeadModal({ open, onOpenChange, onAddLead, existingLeads = []
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+            style={{ borderRadius: RADIUS.button }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="gap-2 bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+          <Button
+            onClick={handleSubmit}
+            className="gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90"
+            disabled={isSubmitting}
+            style={{ borderRadius: RADIUS.button }}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />

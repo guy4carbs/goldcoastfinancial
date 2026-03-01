@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   FileText,
   DollarSign,
@@ -31,22 +30,23 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { RADIUS, GLASS } from "@/lib/heritageDesignSystem";
 
 type QuoteStatus = Quote['status'];
 
 const statusConfig: Record<QuoteStatus, { label: string; icon: typeof Clock; color: string }> = {
-  draft: { label: 'Draft', icon: FileText, color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200' },
-  sent: { label: 'Sent', icon: Send, color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
-  viewed: { label: 'Viewed', icon: Eye, color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
-  accepted: { label: 'Accepted', icon: CheckCircle2, color: 'bg-green-500/10 text-green-600 border-green-200' },
-  expired: { label: 'Expired', icon: XCircle, color: 'bg-gray-500/10 text-gray-600 border-gray-200' },
+  draft: { label: 'Draft', icon: FileText, color: 'bg-amber-100 text-amber-700 border-0' },
+  sent: { label: 'Sent', icon: Send, color: 'bg-violet-100 text-violet-700 border-0' },
+  viewed: { label: 'Viewed', icon: Eye, color: 'bg-purple-100 text-purple-700 border-0' },
+  accepted: { label: 'Accepted', icon: CheckCircle2, color: 'bg-emerald-100 text-emerald-700 border-0' },
+  expired: { label: 'Expired', icon: XCircle, color: 'bg-gray-100 text-gray-600 border-0' },
 };
 
 const signatureConfig = {
-  pending: { label: 'Not Sent', color: 'bg-gray-100 text-gray-600' },
-  sent: { label: 'Awaiting Signature', color: 'bg-amber-100 text-amber-600' },
-  signed: { label: 'Signed', color: 'bg-green-100 text-green-600' },
-  declined: { label: 'Declined', color: 'bg-red-100 text-red-600' },
+  pending: { label: 'Not Sent', color: 'bg-gray-100 text-gray-600 border-0' },
+  sent: { label: 'Awaiting Signature', color: 'bg-amber-100 text-amber-700 border-0' },
+  signed: { label: 'Signed', color: 'bg-emerald-100 text-emerald-700 border-0' },
+  declined: { label: 'Declined', color: 'bg-red-100 text-red-700 border-0' },
 };
 
 const productLabels: Record<Quote['product'], string> = {
@@ -129,105 +129,171 @@ export function QuoteDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-violet-500 flex items-center justify-center text-white font-bold">
-              {quote.clientName.split(' ').map(n => n[0]).join('')}
-            </div>
-            <div>
-              <SheetTitle className="text-left">{quote.clientName}</SheetTitle>
-              <Badge className={cn("mt-1", status.color)} aria-label={`Status: ${status.label}`}>
-                <StatusIcon className="w-3 h-3 mr-1" aria-hidden="true" />
-                {status.label}
-              </Badge>
-            </div>
-          </div>
-        </SheetHeader>
+      <SheetContent
+        className="w-full sm:max-w-md overflow-y-auto border-0 p-0"
+        style={{
+          background: GLASS.backgroundLight,
+          backdropFilter: `blur(${GLASS.blur}px)`,
+          WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+        }}
+      >
+        {/* Heritage header with gradient */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+          <div style={{ width: 100, height: 100 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+          <div style={{ width: 60, height: 60 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
 
-        <div className="space-y-6">
+          <SheetHeader className="relative z-10 p-6 pb-5">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 bg-white/20 backdrop-blur flex items-center justify-center text-white font-bold shadow-lg"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                {quote.clientName.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div>
+                <SheetTitle className="text-left text-white">{quote.clientName}</SheetTitle>
+                <Badge
+                  className={cn("mt-1", status.color)}
+                  style={{ borderRadius: RADIUS.pill }}
+                  aria-label={`Status: ${status.label}`}
+                >
+                  <StatusIcon className="w-3 h-3 mr-1" aria-hidden="true" />
+                  {status.label}
+                </Badge>
+              </div>
+            </div>
+          </SheetHeader>
+        </div>
+
+        <div className="space-y-5 p-6">
           {/* Quote Details */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Quote Details</h3>
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-900">Quote Details</h3>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Shield className="w-5 h-5 text-violet-500" aria-hidden="true" />
-                <div>
-                  <p className="text-xs text-gray-500">Product</p>
-                  <p className="font-medium text-primary">
-                    {productLabels[quote.product]}{quote.term ? ` - ${quote.term} Year` : ''}
-                  </p>
+            <div className="space-y-2">
+              <div
+                className="relative overflow-hidden p-3"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                <div style={{ width: 60, height: 60 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/3" />
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/70">Product</p>
+                    <p className="font-medium text-white">
+                      {productLabels[quote.product]}{quote.term ? ` - ${quote.term} Year` : ''}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <DollarSign className="w-5 h-5 text-emerald-500" aria-hidden="true" />
-                <div>
-                  <p className="text-xs text-gray-500">Coverage Amount</p>
-                  <p className="font-medium text-primary">${quote.coverageAmount.toLocaleString()}</p>
+              <div
+                className="relative overflow-hidden p-3"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                <div style={{ width: 60, height: 60 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/3" />
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/70">Coverage Amount</p>
+                    <p className="font-medium text-white">${quote.coverageAmount.toLocaleString()}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
-                <DollarSign className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-                <div>
-                  <p className="text-xs text-emerald-600">Monthly Premium</p>
-                  <p className="font-bold text-emerald-700 text-lg">${quote.monthlyPremium.toLocaleString()}/mo</p>
+              {/* Premium highlight card */}
+              <div
+                className="relative overflow-hidden p-3"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                <div style={{ width: 60, height: 60 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/3" />
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/70">Monthly Premium</p>
+                    <p className="font-bold text-white text-lg">${quote.monthlyPremium.toLocaleString()}/mo</p>
+                  </div>
                 </div>
               </div>
 
               {quote.carrier && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Shield className="w-5 h-5 text-blue-500" aria-hidden="true" />
+                <div
+                  className="flex items-center gap-3 p-3 bg-violet-50"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+                    <Shield className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                  </div>
                   <div>
                     <p className="text-xs text-gray-500">Carrier</p>
-                    <p className="font-medium text-primary">{quote.carrier}</p>
+                    <p className="font-medium text-gray-900">{quote.carrier}</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t border-gray-100" />
 
           {/* Dates */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Timeline</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Timeline</h3>
 
-            <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-400" aria-hidden="true" />
-              <div>
-                <p className="text-xs text-gray-500">Created</p>
-                <p className="text-sm font-medium">{formatQuoteDate(quote.createdDate)}</p>
+            <div
+              className="p-3 bg-violet-50 space-y-3"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-violet-500" aria-hidden="true" />
+                <div>
+                  <p className="text-xs text-gray-500">Created</p>
+                  <p className="text-sm font-medium text-gray-900">{formatQuoteDate(quote.createdDate)}</p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <Clock className="w-4 h-4 text-gray-400" aria-hidden="true" />
-              <div>
-                <p className="text-xs text-gray-500">Expires</p>
-                <p className={cn(
-                  "text-sm font-medium",
-                  (quote.status === 'expired' || new Date(quote.expiresDate) < new Date()) && "text-red-600"
-                )}>
-                  {formatQuoteDate(quote.expiresDate)}
-                </p>
+              <div className="flex items-center gap-3">
+                <Clock className="w-4 h-4 text-violet-500" aria-hidden="true" />
+                <div>
+                  <p className="text-xs text-gray-500">Expires</p>
+                  <p className={cn(
+                    "text-sm font-medium text-gray-900",
+                    (quote.status === 'expired' || new Date(quote.expiresDate) < new Date()) && "text-red-600"
+                  )}>
+                    {formatQuoteDate(quote.expiresDate)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t border-gray-100" />
 
           {/* E-Signature Status */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-              <FileSignature className="w-4 h-4" aria-hidden="true" />
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <FileSignature className="w-4 h-4 text-violet-500" aria-hidden="true" />
               E-Signature
             </h3>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div
+              className="flex items-center justify-between p-3 bg-violet-50"
+              style={{ borderRadius: RADIUS.button }}
+            >
               <div className="flex items-center gap-2">
-                <Badge className={sigStatus.color} aria-label={`Signature status: ${sigStatus.label}`}>
+                <Badge
+                  className={sigStatus.color}
+                  style={{ borderRadius: RADIUS.pill }}
+                  aria-label={`Signature status: ${sigStatus.label}`}
+                >
                   {sigStatus.label}
                 </Badge>
                 {quote.signedDate && (
@@ -240,6 +306,8 @@ export function QuoteDetailDrawer({
                 <Button
                   size="sm"
                   variant="outline"
+                  className="text-violet-700 border-violet-200 hover:bg-violet-100"
+                  style={{ borderRadius: RADIUS.button }}
                   onClick={handleSendForSignature}
                   aria-label={quote.signatureStatus === 'sent' ? 'Resend for signature' : 'Send for signature'}
                 >
@@ -250,13 +318,13 @@ export function QuoteDetailDrawer({
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t border-gray-100" />
 
           {/* Version History */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                <GitBranch className="w-4 h-4" aria-hidden="true" />
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <GitBranch className="w-4 h-4 text-violet-500" aria-hidden="true" />
                 Versions
               </h3>
               <div className="flex gap-2">
@@ -264,6 +332,8 @@ export function QuoteDetailDrawer({
                   <Button
                     size="sm"
                     variant="ghost"
+                    className="text-violet-700 hover:bg-violet-50"
+                    style={{ borderRadius: RADIUS.button }}
                     onClick={() => setShowVersions(!showVersions)}
                     aria-label={showVersions ? 'Hide version history' : 'Show version history'}
                   >
@@ -274,6 +344,8 @@ export function QuoteDetailDrawer({
                 <Button
                   size="sm"
                   variant="outline"
+                  className="text-violet-700 border-violet-200 hover:bg-violet-100"
+                  style={{ borderRadius: RADIUS.button }}
                   onClick={handleCreateVersion}
                   disabled={isTerminal}
                   aria-label="Create new version of this quote"
@@ -283,17 +355,28 @@ export function QuoteDetailDrawer({
                 </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-2 bg-violet-50 rounded-lg">
-              <Badge variant="secondary">v{quote.currentVersion || 1}</Badge>
+            <div
+              className="flex items-center gap-2 p-3 bg-violet-50"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              <Badge className="bg-violet-100 text-violet-700 border-0" style={{ borderRadius: RADIUS.pill }}>
+                v{quote.currentVersion || 1}
+              </Badge>
               <span className="text-sm text-gray-600">Current version</span>
             </div>
             {showVersions && (quote.versions || []).length > 0 && (
               <div className="space-y-2 mt-2">
                 {(quote.versions || []).map((ver) => (
-                  <div key={ver.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                  <div
+                    key={ver.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 text-sm"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">v{ver.version}</Badge>
-                      <span>${ver.coverageAmount.toLocaleString()} @ ${ver.monthlyPremium.toLocaleString()}/mo</span>
+                      <Badge className="bg-gray-100 text-gray-600 border-0" style={{ borderRadius: RADIUS.pill }}>
+                        v{ver.version}
+                      </Badge>
+                      <span className="text-gray-900">${ver.coverageAmount.toLocaleString()} @ ${ver.monthlyPremium.toLocaleString()}/mo</span>
                     </div>
                     <span className="text-xs text-gray-400">{formatQuoteDate(ver.createdDate)}</span>
                   </div>
@@ -302,18 +385,19 @@ export function QuoteDetailDrawer({
             )}
           </div>
 
-          <Separator />
+          <div className="border-t border-gray-100" />
 
           {/* Update Status */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Update Status</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Update Status</h3>
 
             <div className="grid grid-cols-2 gap-2">
               {quote.status !== 'sent' && quote.status !== 'expired' && quote.status !== 'accepted' && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                  style={{ borderRadius: RADIUS.button }}
                   onClick={() => {
                     onUpdateStatus(quote.id, 'sent');
                     toast.success('Quote marked as sent');
@@ -329,7 +413,8 @@ export function QuoteDetailDrawer({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 text-green-600 border-green-200 hover:bg-green-50"
+                  className="gap-2 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                  style={{ borderRadius: RADIUS.button }}
                   onClick={() => {
                     onUpdateStatus(quote.id, 'accepted');
                     toast.success('Quote marked as accepted');
@@ -345,7 +430,8 @@ export function QuoteDetailDrawer({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 text-gray-600"
+                  className="gap-2 text-gray-600 border-gray-200 hover:bg-gray-50"
+                  style={{ borderRadius: RADIUS.button }}
                   onClick={() => {
                     onUpdateStatus(quote.id, 'expired');
                     toast.info('Quote marked as expired');
@@ -361,7 +447,8 @@ export function QuoteDetailDrawer({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                  style={{ borderRadius: RADIUS.button }}
                   onClick={() => {
                     onUpdateStatus(quote.id, 'draft');
                     toast.success('Quote reopened');
@@ -375,22 +462,43 @@ export function QuoteDetailDrawer({
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t border-gray-100" />
 
           {/* Actions */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Actions</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Actions</h3>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleSendEmail} aria-label="Email quote details">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                style={{ borderRadius: RADIUS.button }}
+                onClick={handleSendEmail}
+                aria-label="Email quote details"
+              >
                 <Mail className="w-4 h-4" aria-hidden="true" />
                 Email Quote
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleCopyQuote} aria-label="Copy quote details to clipboard">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                style={{ borderRadius: RADIUS.button }}
+                onClick={handleCopyQuote}
+                aria-label="Copy quote details to clipboard"
+              >
                 <Copy className="w-4 h-4" aria-hidden="true" />
                 Copy Details
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint} aria-label="Print quote">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                style={{ borderRadius: RADIUS.button }}
+                onClick={handlePrint}
+                aria-label="Print quote"
+              >
                 <Printer className="w-4 h-4" aria-hidden="true" />
                 Print
               </Button>
@@ -398,6 +506,7 @@ export function QuoteDetailDrawer({
                 variant="outline"
                 size="sm"
                 className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                style={{ borderRadius: RADIUS.button }}
                 onClick={handleDelete}
                 aria-label="Delete this quote"
               >

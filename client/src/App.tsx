@@ -94,6 +94,9 @@ import AgentHelp from "@/pages/agents/AgentHelp";
 import AgentGettingStarted from "@/pages/agents/AgentGettingStarted";
 import AgentGuidelines from "@/pages/agents/AgentGuidelines";
 import AgentEmail from "@/pages/agents/AgentEmail";
+import AgentCommunications from "@/pages/agents/AgentCommunications";
+import AgentDialer from "@/pages/agents/AgentDialer";
+import AgentHierarchy from "@/pages/agents/AgentHierarchy";
 // Study Resources
 import AgentStudyFundamentals from "@/pages/agents/study/AgentStudyFundamentals";
 import AgentStudyExamPrep from "@/pages/agents/study/AgentStudyExamPrep";
@@ -102,6 +105,7 @@ import AgentStudyFlashcards from "@/pages/agents/study/AgentStudyFlashcards";
 import AgentAvatarCouncil from "@/pages/agents/AgentAvatarCouncil";
 import AgentLeadInbox from "@/pages/agents/AgentLeadInbox";
 import AgentDataEncryption from "@/pages/agents/AgentDataEncryption";
+import AgentMemberCards from "@/pages/agents/AgentMemberCards";
 // Onboarding Lounge Pages
 import OnboardingDashboard from "@/pages/onboarding/OnboardingDashboard";
 import OnboardingDay1 from "@/pages/onboarding/OnboardingDay1";
@@ -119,6 +123,7 @@ import OnboardingDays181to365 from "@/pages/onboarding/OnboardingDays181to365";
 import OnboardingHelp from "@/pages/onboarding/OnboardingHelp";
 import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentAutomations from "@/pages/agents/AgentAutomations";
+import AgentWorkflowBuilder from "@/pages/agents/AgentWorkflowBuilder";
 // Onboarding Study Resources
 import StudyFundamentals from "@/pages/onboarding/StudyFundamentals";
 import StudyPracticeExam from "@/pages/onboarding/StudyPracticeExam";
@@ -251,6 +256,21 @@ function Router() {
             <AgentChat />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/dialer">
+          <AgentProtectedRoute>
+            <AgentDialer />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/communications">
+          <AgentProtectedRoute>
+            <AgentCommunications />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/hierarchy">
+          <AgentProtectedRoute>
+            <AgentHierarchy />
+          </AgentProtectedRoute>
+        </Route>
         <Route path="/agents/quotes">
           <AgentProtectedRoute>
             <AgentQuotes />
@@ -336,9 +356,24 @@ function Router() {
             <AgentDataEncryption />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/member-cards">
+          <AgentProtectedRoute>
+            <AgentMemberCards />
+          </AgentProtectedRoute>
+        </Route>
         <Route path="/agents/automations">
           <AgentProtectedRoute>
             <AgentAutomations />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/workflows/new">
+          <AgentProtectedRoute>
+            <AgentWorkflowBuilder />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/workflows/:workflowId">
+          <AgentProtectedRoute>
+            <AgentWorkflowBuilder />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/onboarding/resources">

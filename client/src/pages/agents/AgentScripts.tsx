@@ -14,21 +14,16 @@ import {
 import {
   FileText,
   Search,
-  Copy,
   Star,
   StarOff,
   Phone,
-  Mail,
-  MessageSquare,
   BookOpen,
-  TrendingUp,
   Clock,
   CheckCircle2,
   Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/agent/primitives";
-import { toast } from "sonner";
+import { EmptyState, AgentPageHero, DemoBadge } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Script {
@@ -36,94 +31,58 @@ interface Script {
   title: string;
   category: ScriptCategory;
   description: string;
-  content: string;
+  pdfUrl?: string; // Will be populated with actual PDF URLs later
   isFavorite: boolean;
   usageCount: number;
-  successRate: number;
   lastUsed: string;
 }
 
-type ScriptCategory = 'phone' | 'email' | 'sms';
+type ScriptCategory = 'phone';
 
 const categoryConfig: Record<ScriptCategory, { label: string; icon: typeof Phone; color: string; gradient: string }> = {
-  phone: { label: 'Phone', icon: Phone, color: 'bg-green-500/10 text-green-600', gradient: 'from-emerald-400 to-green-500' },
-  email: { label: 'Email', icon: Mail, color: 'bg-blue-500/10 text-blue-600', gradient: 'from-blue-400 to-cyan-500' },
-  sms: { label: 'SMS', icon: MessageSquare, color: 'bg-purple-500/10 text-purple-600', gradient: 'from-violet-400 to-purple-500' },
+  phone: { label: 'Phone Script', icon: Phone, color: 'bg-violet-500/10 text-violet-600', gradient: 'from-violet-400 to-violet-500' },
 };
-
-const FILTER_OPTIONS: { value: string; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'email', label: 'Email' },
-  { value: 'sms', label: 'SMS' },
-];
 
 // Demo scripts data - replace with API data when available
 const DEMO_SCRIPTS: Script[] = [
   {
     id: '1',
-    title: 'Initial Call Introduction',
+    title: 'Consolidation Leads Script',
     category: 'phone',
-    description: 'Opening script for first contact with new leads',
-    content: 'Hi [Name], this is [Your Name] from Heritage Life Solutions. I\'m reaching out because you recently expressed interest in protecting your family\'s financial future...',
+    description: 'Script for leads with multiple existing policies',
+    pdfUrl: undefined, // PDF will be added later
     isFavorite: true,
     usageCount: 156,
-    successRate: 78,
     lastUsed: new Date(Date.now() - 2 * 3600000).toISOString(),
   },
   {
     id: '2',
-    title: 'Term Life Explanation',
+    title: 'Mortgage Protection Leads Script',
     category: 'phone',
-    description: 'Explaining term life benefits and options',
-    content: 'Term life insurance provides coverage for a specific period, usually 10, 20, or 30 years. It\'s the most affordable way to get substantial coverage...',
-    isFavorite: true,
-    usageCount: 89,
-    successRate: 82,
-    lastUsed: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Follow-up Email Template',
-    category: 'email',
-    description: 'Email template for following up after initial call',
-    content: 'Subject: Great speaking with you, [Name]!\n\nHi [Name],\n\nThank you for taking the time to speak with me today about your life insurance needs...',
-    isFavorite: false,
-    usageCount: 67,
-    successRate: 45,
-    lastUsed: new Date(Date.now() - 3 * 86400000).toISOString(),
-  },
-  {
-    id: '4',
-    title: 'Objection Handler - Price',
-    category: 'phone',
-    description: 'Handling price objections effectively',
-    content: 'I completely understand that budget is important. Let me ask you this - if something happened to you tomorrow, how would your family handle the mortgage, bills, and daily expenses?',
+    description: 'Script for homeowners interested in mortgage protection coverage',
+    pdfUrl: undefined, // PDF will be added later
     isFavorite: true,
     usageCount: 203,
-    successRate: 71,
     lastUsed: new Date(Date.now() - 4 * 3600000).toISOString(),
   },
   {
-    id: '5',
-    title: 'SMS Check-in Message',
-    category: 'sms',
-    description: 'Quick text message to check in with prospects',
-    content: 'Hi [Name]! Just wanted to follow up on our conversation about life insurance. Do you have any questions I can help answer? - [Your Name], Heritage Life',
-    isFavorite: false,
-    usageCount: 45,
-    successRate: 62,
-    lastUsed: new Date(Date.now() - 7 * 86400000).toISOString(),
+    id: '3',
+    title: 'IUL Leads Script',
+    category: 'phone',
+    description: 'Script for Indexed Universal Life insurance prospects',
+    pdfUrl: undefined, // PDF will be added later
+    isFavorite: true,
+    usageCount: 89,
+    lastUsed: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: '6',
-    title: 'Closing Script',
+    id: '4',
+    title: 'Inbound Leads Script',
     category: 'phone',
-    description: 'Final closing script to seal the deal',
-    content: 'Based on everything we\'ve discussed, I recommend the [Product] plan with [Coverage] coverage. This gives your family the protection they need at a premium that fits your budget...',
-    isFavorite: true,
+    description: 'Script for warm inbound leads who requested a callback',
+    pdfUrl: undefined, // PDF will be added later
+    isFavorite: false,
     usageCount: 124,
-    successRate: 89,
     lastUsed: new Date(Date.now() - 1 * 3600000).toISOString(),
   },
 ];
@@ -145,7 +104,6 @@ function formatRelativeLastUsed(dateStr: string): string {
 
 export default function AgentScripts() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [favorites, setFavorites] = useState<Set<string>>(
     () => new Set(DEMO_SCRIPTS.filter(s => s.isFavorite).map(s => s.id))
   );
@@ -163,25 +121,15 @@ export default function AgentScripts() {
     });
   }, []);
 
-  const handleCopy = useCallback((content: string, title: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success(`"${title}" copied to clipboard`);
-  }, []);
-
   const filteredScripts = useMemo(() => DEMO_SCRIPTS.filter(script => {
     const matchesSearch = script.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         script.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         script.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || script.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  }), [searchQuery, filterCategory]);
+                         script.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  }), [searchQuery]);
 
   const stats = useMemo(() => ({
     total: filteredScripts.length,
     favorites: filteredScripts.filter(s => favorites.has(s.id)).length,
-    avgSuccess: filteredScripts.length > 0
-      ? Math.round(filteredScripts.reduce((acc, s) => acc + s.successRate, 0) / filteredScripts.length)
-      : 0,
   }), [filteredScripts, favorites]);
 
   return (
@@ -193,58 +141,54 @@ export default function AgentScripts() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
-          style={{
-            borderRadius: RADIUS.hero,
-            boxShadow: SHADOW.hero,
-            padding: spacing(4)
-          }}
-        >
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
-          <div className="relative z-10 flex items-center gap-4">
-            <div
-              className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
-              style={{ borderRadius: RADIUS.card }}
-            >
-              <FileText className="w-7 h-7 text-white" aria-hidden="true" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">Sales Scripts</h1>
-              <p className="text-white/80 text-sm">Proven scripts to help you close more deals</p>
-            </div>
-          </div>
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={FileText}
+            title="Sales Scripts"
+            subtitle="Proven scripts to help you close more deals"
+            badge={<DemoBadge className="bg-white/20 text-white border-white/30" />}
+          />
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={fadeInUp} className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <motion.div variants={fadeInUp} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {[
-            { label: 'Scripts', value: stats.total, icon: BookOpen, gradient: 'from-indigo-400 to-violet-500' },
-            { label: 'Favorites', value: stats.favorites, icon: Star, gradient: 'from-amber-400 to-orange-500' },
-            { label: 'Avg Success', value: `${stats.avgSuccess}%`, icon: TrendingUp, gradient: 'from-emerald-400 to-green-500' },
+            { label: 'Total Scripts', value: stats.total, icon: BookOpen },
+            { label: 'Favorites', value: stats.favorites, icon: Star },
           ].map((stat) => (
             <motion.div
               key={stat.label}
               variants={scaleIn}
               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover }}
+              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
             >
               <Card
-                className="border-0 transition-all"
+                className="border-0 transition-all overflow-hidden"
                 style={{
                   borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card
+                  boxShadow: SHADOW.card,
+                  background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)",
                 }}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", stat.gradient)}>
+                <CardContent className="p-4 relative">
+                  {/* Background pattern */}
+                  <div
+                    className="absolute inset-0 opacity-10"
+                    style={{
+                      backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px)`,
+                      backgroundSize: "20px 20px",
+                    }}
+                  />
+                  <div className="relative flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
                       <stat.icon className="w-5 h-5 text-white" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</p>
-                      <p className="text-xs text-gray-500">{stat.label}</p>
+                      <p className="text-2xl font-bold text-white">{stat.value}</p>
+                      <p className="text-xs text-white/80">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -253,35 +197,18 @@ export default function AgentScripts() {
           ))}
         </motion.div>
 
-        {/* Filters */}
-        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+        {/* Search */}
+        <motion.div variants={fadeInUp}>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
             <Input
               placeholder="Search scripts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-              aria-label="Search scripts by title, description, or content"
+              className="pl-10 h-11 border-gray-200 focus:border-violet-400 focus:ring-violet-400"
+              style={{ borderRadius: RADIUS.input }}
+              aria-label="Search scripts by title or description"
             />
-          </div>
-          <div className="flex gap-2" role="group" aria-label="Filter scripts by category">
-            {FILTER_OPTIONS.map((opt) => (
-              <Button
-                key={opt.value}
-                variant={filterCategory === opt.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterCategory(opt.value)}
-                className={cn(
-                  "transition-all",
-                  filterCategory === opt.value && 'bg-gradient-to-r from-indigo-500 to-violet-500 border-0 shadow-md'
-                )}
-                aria-pressed={filterCategory === opt.value}
-                aria-label={`Filter by ${opt.label}`}
-              >
-                {opt.label}
-              </Button>
-            ))}
           </div>
         </motion.div>
 
@@ -290,17 +217,17 @@ export default function AgentScripts() {
           {filteredScripts.length === 0 ? (
             <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardContent className="p-0">
-                {searchQuery || filterCategory !== 'all' ? (
+                {searchQuery ? (
                   <div className="text-center py-12">
                     <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                    <p className="text-gray-600 font-medium">No scripts match your filters</p>
-                    <p className="text-sm text-gray-400 mt-1">Try a different search term or category</p>
+                    <p className="text-gray-600 font-medium">No scripts match your search</p>
+                    <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
                     <Button
                       variant="link"
                       className="mt-2 text-violet-600"
-                      onClick={() => { setSearchQuery(''); setFilterCategory('all'); }}
+                      onClick={() => setSearchQuery('')}
                     >
-                      Clear Filters
+                      Clear Search
                     </Button>
                   </div>
                 ) : (
@@ -323,7 +250,7 @@ export default function AgentScripts() {
                   key={script.id}
                   variants={fadeInUp}
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                  transition={{ duration: MOTION.duration.hover }}
+                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                 >
                   <Card
                     className="border-0 transition-all cursor-pointer"
@@ -335,7 +262,7 @@ export default function AgentScripts() {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
-                        <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)}>
+                        <div className={cn("w-10 h-10 bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)} style={{ borderRadius: RADIUS.button }}>
                           <CategoryIcon className="w-5 h-5 text-white" aria-hidden="true" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -345,15 +272,8 @@ export default function AgentScripts() {
                               {category.label}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{script.description}</p>
-                          <p className="text-xs text-gray-500 line-clamp-2 bg-gray-50 p-2 rounded">
-                            {script.content}
-                          </p>
-                          <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                              {script.successRate}% success
-                            </span>
+                          <p className="text-sm text-gray-600 mb-3">{script.description}</p>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
                               {script.usageCount} uses
@@ -364,34 +284,22 @@ export default function AgentScripts() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(script.id);
-                            }}
-                            aria-label={isFav ? `Remove ${script.title} from favorites` : `Add ${script.title} to favorites`}
-                          >
-                            {isFav ? (
-                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                            ) : (
-                              <StarOff className="w-4 h-4 text-gray-400" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopy(script.content, script.title);
-                            }}
-                            aria-label={`Copy ${script.title} to clipboard`}
-                          >
-                            <Copy className="w-4 h-4 text-gray-400" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(script.id);
+                          }}
+                          aria-label={isFav ? `Remove ${script.title} from favorites` : `Add ${script.title} to favorites`}
+                        >
+                          {isFav ? (
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          ) : (
+                            <StarOff className="w-4 h-4 text-gray-400" />
+                          )}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -402,9 +310,9 @@ export default function AgentScripts() {
         </motion.div>
       </motion.div>
 
-      {/* Script Detail Modal */}
+      {/* Script PDF Modal */}
       <Dialog open={!!selectedScript} onOpenChange={(open) => !open && setSelectedScript(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh]">
           {selectedScript && (() => {
             const cat = categoryConfig[selectedScript.category];
             const CatIcon = cat.icon;
@@ -412,53 +320,55 @@ export default function AgentScripts() {
               <>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <div className={cn("w-8 h-8 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", cat.gradient)}>
+                    <div className={cn("w-8 h-8 bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", cat.gradient)} style={{ borderRadius: RADIUS.button }}>
                       <CatIcon className="w-4 h-4 text-white" aria-hidden="true" />
                     </div>
                     <span className="bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{selectedScript.title}</span>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-2">
-                  <div className="flex items-center gap-3">
-                    <Badge className={cn("text-xs", cat.color)}>{cat.label}</Badge>
-                    <span className="text-xs text-gray-500 flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                      {selectedScript.successRate}% success
-                    </span>
-                    <span className="text-xs text-gray-500 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
-                      {selectedScript.usageCount} uses
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">{selectedScript.description}</p>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                      {selectedScript.content}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge className={cn("text-xs", cat.color)}>{cat.label}</Badge>
+                      <span className="text-xs text-gray-500">{selectedScript.description}</span>
+                    </div>
                     <Button
-                      className="flex-1 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 shadow-md"
-                      onClick={() => {
-                        handleCopy(selectedScript.content, selectedScript.title);
-                      }}
-                    >
-                      <Copy className="w-4 h-4 mr-2" aria-hidden="true" />
-                      Copy Script
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        toggleFavorite(selectedScript.id);
-                      }}
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleFavorite(selectedScript.id)}
                       aria-label={favorites.has(selectedScript.id) ? 'Remove from favorites' : 'Add to favorites'}
                     >
                       {favorites.has(selectedScript.id) ? (
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       ) : (
-                        <StarOff className="w-4 h-4" />
+                        <StarOff className="w-4 h-4 text-gray-400" />
                       )}
                     </Button>
+                  </div>
+
+                  {/* PDF Viewer Area */}
+                  <div
+                    className="bg-gray-100 flex items-center justify-center"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      height: '60vh',
+                      minHeight: '400px',
+                    }}
+                  >
+                    {selectedScript.pdfUrl ? (
+                      <iframe
+                        src={selectedScript.pdfUrl}
+                        className="w-full h-full"
+                        style={{ borderRadius: RADIUS.card }}
+                        title={selectedScript.title}
+                      />
+                    ) : (
+                      <div className="text-center text-gray-400">
+                        <FileText className="w-16 h-16 mx-auto mb-3 opacity-50" />
+                        <p className="text-sm font-medium">PDF Coming Soon</p>
+                        <p className="text-xs mt-1">Script content will be available here</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>

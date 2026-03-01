@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Core values
@@ -33,25 +34,21 @@ const CORE_VALUES = [
     icon: Heart,
     title: 'Client First',
     description: 'Every decision we make starts with what\'s best for the client and their family.',
-    color: 'bg-gradient-to-br from-red-400 to-rose-500'
   },
   {
     icon: Shield,
     title: 'Integrity',
     description: 'We do the right thing, even when no one is watching. Honesty is non-negotiable.',
-    color: 'bg-gradient-to-br from-blue-400 to-cyan-500'
   },
   {
     icon: Target,
     title: 'Excellence',
     description: 'We strive for excellence in everything we do, continuously improving our skills.',
-    color: 'bg-gradient-to-br from-violet-400 to-purple-500'
   },
   {
     icon: Users,
     title: 'Teamwork',
     description: 'We support each other, share knowledge, and celebrate wins together.',
-    color: 'bg-gradient-to-br from-emerald-400 to-green-500'
   }
 ];
 
@@ -89,28 +86,36 @@ const DAILY_SCHEDULE = [
   { time: '6:00 - 9:00 PM', activity: 'Dial / Teaching / Character Development', type: 'elite' },
 ];
 
-const SCHEDULE_STYLES: Record<string, string> = {
-  arrival: 'bg-blue-100 text-blue-700 border-blue-200',
-  meeting: 'bg-purple-100 text-purple-700 border-purple-200',
-  dial: 'bg-green-100 text-green-700 border-green-200',
-  break: 'bg-gray-100 text-gray-600 border-gray-200',
-  elite: 'bg-amber-100 text-amber-700 border-amber-200',
-};
 
 // Commission structure
 const COMMISSION_TIERS = [
-  { tier: 'New Agent', apRange: '$0 - $10K/mo', rate: '75%', bonus: '-' },
-  { tier: 'Agent', apRange: '$10K - $25K/mo', rate: '85%', bonus: '2% Override' },
-  { tier: 'Senior Agent', apRange: '$25K - $50K/mo', rate: '95%', bonus: '5% Override' },
-  { tier: 'Elite Agent', apRange: '$50K+/mo', rate: '105%', bonus: '10% Override' }
+  { ap: 'Starting', rate: '65%', downlines: null },
+  { ap: '$5,000', rate: '70%', downlines: null },
+  { ap: '$10,000', rate: '75%', downlines: null },
+  { ap: '$15,000', rate: '80%', downlines: null },
+  { ap: '$25,000', rate: '85%', downlines: null },
+  { ap: '$50,000', rate: '90%', downlines: null },
+  { ap: '$75,000', rate: '95%', downlines: null },
+  { ap: '$100,000', rate: '100%', downlines: null },
+  { ap: '$150,000', rate: '105%', downlines: '5 active downlines at $10K each' },
+  { ap: '$200,000', rate: '110%', downlines: '8 active downlines at $10K each' },
+  { ap: '$250,000', rate: '115%', downlines: '10 active downlines at $10K each' },
+  { ap: '$300,000', rate: '120%', downlines: '15 active downlines at $10K each' },
+  { ap: '$500,000', rate: '125%', downlines: '20 active downlines at $10K each' },
+  { ap: '$750,000', rate: '130%', downlines: '25 active downlines at $10K each' },
 ];
 
-const TIER_STAR_COLORS = [
-  'text-gray-300',
-  'text-blue-500',
-  'text-purple-500',
-  'text-amber-500',
+const AGENCY_TIERS = [
+  { ap: '$1,000,000', rate: '135%', downlines: '50 active downlines at $10K each' },
+  { ap: '$1,500,000', rate: '140%', downlines: '40 active downlines at $10K each' },
+  { ap: '$2,000,000', rate: '145%', downlines: '80 active downlines at $10K each' },
 ];
+
+const COMP_GUIDELINES = [
+  'Before reaching 80%, only one month of hitting numbers is required. After 80%, numbers must be achieved for two consecutive months.',
+  'If targets are missed for two consecutive months after a comp change, compensation will be adjusted downward.',
+];
+
 
 // Compliance requirements
 const COMPLIANCE_ITEMS = [
@@ -213,109 +218,56 @@ export default function AgentGuidelines() {
       >
         {/* Hero Header - Agent Lounge violet gradient */}
         <motion.div variants={fadeInUp}>
-          <motion.div
-            className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden"
-            style={{
-              borderRadius: RADIUS.hero,
-              padding: spacing(4),
-              boxShadow: SHADOW.hero
-            }}
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          <AgentPageHero
+            icon={Scale}
+            title="Guidelines & Expectations"
+            subtitle="Standards, policies, and best practices for Heritage Life agents"
           >
-            {/* Decorative glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold mb-2 flex items-center gap-2 text-white">
-                  <Scale className="w-7 h-7" aria-hidden="true" />
-                  Guidelines & Expectations
-                </h1>
-                <p className="text-white/90">
-                  Standards, policies, and best practices for Heritage Life agents
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {acknowledgment ? (
-                  <Badge className="bg-emerald-500 text-white px-4 py-2">
-                    <CheckCircle2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                    Acknowledged
-                  </Badge>
-                ) : (
-                  <Button variant="secondary" onClick={handleAcknowledge}>
-                    Acknowledge Guidelines
-                  </Button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Quick Links */}
-        <motion.div variants={fadeInUp}>
-          <motion.div
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-          >
-            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardContent className="p-4">
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Quick navigation to guideline sections">
-                {[
-                  { value: 'values', label: 'Core Values' },
-                  { value: 'performance', label: 'Performance' },
-                  { value: 'commission', label: 'Commission' },
-                  { value: 'compliance', label: 'Compliance' },
-                  { value: 'practices', label: 'Best Practices' },
-                  { value: 'documents', label: 'Documents' },
-                ].map((link) => (
-                  <Button
-                    key={link.value}
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "transition-all hover:shadow-md",
-                      activeTab === link.value && "bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 shadow-md"
-                    )}
-                    onClick={() => setActiveTab(link.value)}
-                    aria-label={`Go to ${link.label} section`}
-                  >
-                    {link.label}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          </motion.div>
+            {acknowledgment ? (
+              <Badge
+                className="bg-emerald-500/20 text-emerald-200 border-0 px-4 py-2 backdrop-blur"
+                style={{ borderRadius: RADIUS.pill }}
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" aria-hidden="true" />
+                Acknowledged
+              </Badge>
+            ) : (
+              <Button
+                onClick={handleAcknowledge}
+                className="bg-white/20 backdrop-blur text-white border-0 hover:bg-white/30 transition-colors"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                Acknowledge Guidelines
+              </Button>
+            )}
+          </AgentPageHero>
         </motion.div>
 
         {/* Tabs */}
         <motion.div variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4 flex-wrap h-auto gap-1 bg-white/50 shadow-md p-1">
-              <TabsTrigger value="values" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <Heart className="w-4 h-4" aria-hidden="true" />
-                Values
-              </TabsTrigger>
-              <TabsTrigger value="performance" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <Target className="w-4 h-4" aria-hidden="true" />
-                Performance
-              </TabsTrigger>
-              <TabsTrigger value="commission" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <DollarSign className="w-4 h-4" aria-hidden="true" />
-                Commission
-              </TabsTrigger>
-              <TabsTrigger value="compliance" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <Shield className="w-4 h-4" aria-hidden="true" />
-                Compliance
-              </TabsTrigger>
-              <TabsTrigger value="practices" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <Sparkles className="w-4 h-4" aria-hidden="true" />
-                Best Practices
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md">
-                <FileText className="w-4 h-4" aria-hidden="true" />
-                Documents
-              </TabsTrigger>
+            <TabsList
+              className="mb-4 flex-wrap h-auto gap-1 p-1"
+              style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
+            >
+              {[
+                { value: 'values', icon: Heart, label: 'Values' },
+                { value: 'performance', icon: Target, label: 'Performance' },
+                { value: 'commission', icon: DollarSign, label: 'Commission' },
+                { value: 'compliance', icon: Shield, label: 'Compliance' },
+                { value: 'practices', icon: Sparkles, label: 'Best Practices' },
+                { value: 'documents', icon: FileText, label: 'Documents' },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="gap-2 data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <tab.icon className="w-4 h-4" aria-hidden="true" />
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {/* Core Values Tab */}
@@ -334,13 +286,21 @@ export default function AgentGuidelines() {
                         whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                         transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                       >
-                        <Card className="border-0 h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                          <CardContent className="p-6">
-                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg", value.color)}>
-                              <Icon className="w-6 h-6 text-white" aria-hidden="true" />
+                        <Card
+                          className="border-0 h-full overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+                          style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+                        >
+                          <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full blur-xl" />
+                          <div className="absolute -bottom-3 -left-3 w-14 h-14 bg-amber-400/15 rounded-full blur-lg" />
+                          <CardContent className="p-6 relative z-10">
+                            <div
+                              className="w-12 h-12 flex items-center justify-center mb-4 bg-white/20 backdrop-blur"
+                              style={{ borderRadius: RADIUS.button }}
+                            >
+                              <Icon className="w-6 h-6 text-amber-200" aria-hidden="true" />
                             </div>
-                            <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">{value.title}</h3>
-                            <p className="text-gray-600">{value.description}</p>
+                            <h3 className="text-lg font-semibold text-white mb-2">{value.title}</h3>
+                            <p className="text-white/80">{value.description}</p>
                           </CardContent>
                         </Card>
                       </motion.div>
@@ -351,28 +311,37 @@ export default function AgentGuidelines() {
 
               <motion.div variants={fadeInUp}>
                 <motion.div
-                  className="overflow-hidden relative"
-                  style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.hero }}
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700" />
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                  <div className="p-6 relative z-10">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-                        <Award className="w-6 h-6 text-white" aria-hidden="true" />
+                  <Card
+                    className="border-0"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card,
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          <Award className="w-6 h-6 text-amber-200" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-2">Our Mission</h3>
+                          <p className="text-gray-600">
+                            To protect families across America by providing accessible, affordable life insurance
+                            solutions while building a community of ethical, professional agents who prioritize
+                            client needs above all else.
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-white mb-2">Our Mission</h3>
-                        <p className="text-white/90">
-                          To protect families across America by providing accessible, affordable life insurance
-                          solutions while building a community of ethical, professional agents who prioritize
-                          client needs above all else.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               </motion.div>
             </TabsContent>
@@ -380,43 +349,43 @@ export default function AgentGuidelines() {
             {/* Performance Tab */}
             <TabsContent value="performance" className="space-y-4">
               {/* Daily Expectations */}
-              <motion.div
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                }}
               >
-              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md">
-                      <Target className="w-5 h-5 text-white" aria-hidden="true" />
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Target className="w-5 h-5 text-amber-200" aria-hidden="true" />
                     </div>
-                    <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Daily Expectations</span>
+                    <div>
+                      <span className="text-gray-900">Daily Expectations</span>
+                      <p className="text-sm font-normal text-gray-500 mt-0.5">What's expected of every Heritage Life agent, every day</p>
+                    </div>
                   </CardTitle>
-                  <CardDescription>
-                    What's expected of every Heritage Life agent, every day
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                <CardContent className="pt-0">
+                  <div className="divide-y divide-gray-100">
                     {DAILY_EXPECTATIONS.map((item, idx) => {
                       const Icon = EXPECTATION_ICONS[item.icon] || Target;
-                      const gradients = [
-                        'from-violet-400 to-purple-500',
-                        'from-blue-400 to-cyan-500',
-                        'from-emerald-400 to-green-500',
-                        'from-amber-400 to-orange-500',
-                        'from-red-400 to-rose-500',
-                        'from-indigo-400 to-violet-500',
-                        'from-pink-400 to-rose-500',
-                        'from-teal-400 to-cyan-500',
-                      ];
                       return (
-                        <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white shadow-md hover:shadow-lg transition-all">
-                          <div className={cn("w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-sm", gradients[idx % gradients.length])}>
-                            <Icon className="w-4 h-4 text-white" aria-hidden="true" />
+                        <div key={idx} className="flex items-center gap-3 px-2 py-3 hover:bg-violet-50/40 transition-colors" style={{ borderRadius: RADIUS.button }}>
+                          <div
+                            className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            <Icon className="w-4 h-4 text-amber-200" aria-hidden="true" />
                           </div>
-                          <div>
-                            <p className="font-medium text-sm">{item.rule}</p>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm text-gray-900">{item.rule}</p>
                             <p className="text-xs text-gray-500">{item.detail}</p>
                           </div>
                         </div>
@@ -425,330 +394,421 @@ export default function AgentGuidelines() {
                   </div>
                 </CardContent>
               </Card>
-              </motion.div>
 
               {/* Daily Schedule */}
-              <motion.div
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                }}
               >
-              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md">
-                      <Clock className="w-5 h-5 text-white" aria-hidden="true" />
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Clock className="w-5 h-5 text-amber-200" aria-hidden="true" />
                     </div>
-                    <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Daily Schedule</span>
+                    <div>
+                      <span className="text-gray-900">Daily Schedule</span>
+                      <p className="text-sm font-normal text-gray-500 mt-0.5">Our standard day — stay till 9 PM to be elite</p>
+                    </div>
                   </CardTitle>
-                  <CardDescription>
-                    Our standard day — stay till 9 PM to be elite
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {DAILY_SCHEDULE.map((block, idx) => {
-                      const style = SCHEDULE_STYLES[block.type] || SCHEDULE_STYLES.dial;
-                      return (
-                        <div key={idx} className={cn("flex items-center gap-4 p-3 rounded-lg border", style)}>
-                          <time className="text-sm font-semibold w-36 flex-shrink-0">{block.time}</time>
-                          <span className="font-medium text-sm">{block.activity}</span>
-                          {block.type === 'elite' && (
-                            <Badge className="ml-auto bg-amber-500 text-white text-xs">Elite</Badge>
-                          )}
-                        </div>
-                      );
-                    })}
+                <CardContent className="pt-0">
+                  <div className="divide-y divide-gray-100">
+                    {DAILY_SCHEDULE.map((block, idx) => (
+                      <div key={idx} className="flex items-center gap-4 px-2 py-3">
+                        <time className="text-sm font-semibold text-violet-700 w-36 flex-shrink-0">{block.time}</time>
+                        <span className="font-medium text-sm text-gray-900 flex-1">{block.activity}</span>
+                        {block.type === 'elite' && (
+                          <Badge
+                            className="bg-amber-100 text-amber-700 border-0 text-xs"
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
+                            Elite
+                          </Badge>
+                        )}
+                        {block.type === 'dial' && (
+                          <Badge
+                            className="bg-emerald-100 text-emerald-700 border-0 text-xs"
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
+                            Dial
+                          </Badge>
+                        )}
+                        {block.type === 'meeting' && (
+                          <Badge
+                            className="bg-violet-100 text-violet-700 border-0 text-xs"
+                            style={{ borderRadius: RADIUS.pill }}
+                          >
+                            Meeting
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-              </motion.div>
             </TabsContent>
 
             {/* Commission Tab */}
             <TabsContent value="commission" className="space-y-4">
-              <motion.div
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              {/* Comp Guidelines — top, gradient */}
+              <Card
+                className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
               >
-              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-md">
-                      <DollarSign className="w-5 h-5 text-white" aria-hidden="true" />
+                <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full blur-xl" />
+                <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-amber-400/15 rounded-full blur-lg" />
+                <CardHeader className="relative z-10">
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <AlertTriangle className="w-5 h-5 text-amber-200" aria-hidden="true" />
                     </div>
-                    <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Commission Structure</span>
+                    <div>
+                      <span className="text-white">Compensation Guidelines</span>
+                      <p className="text-sm font-normal text-white/60 mt-0.5">Important rules to understand</p>
+                    </div>
                   </CardTitle>
-                  <CardDescription>
-                    Your earnings grow as your production increases
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <caption className="sr-only">Commission tiers showing monthly AP range, rate, and team bonus</caption>
-                      <thead>
-                        <tr className="border-b bg-gray-50">
-                          <th scope="col" className="text-left p-3 text-sm font-medium text-gray-500">Tier</th>
-                          <th scope="col" className="text-left p-3 text-sm font-medium text-gray-500">Monthly AP</th>
-                          <th scope="col" className="text-center p-3 text-sm font-medium text-gray-500">Commission Rate</th>
-                          <th scope="col" className="text-center p-3 text-sm font-medium text-gray-500">Team Bonus</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {COMMISSION_TIERS.map((tier, idx) => (
-                          <tr key={idx} className="border-b last:border-0 hover:bg-gray-50">
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <Star
-                                  className={cn("w-4 h-4", TIER_STAR_COLORS[idx] || 'text-gray-300')}
-                                  aria-hidden="true"
-                                />
-                                <span className="font-medium">{tier.tier}</span>
-                              </div>
-                            </td>
-                            <td className="p-3 text-gray-600">{tier.apRange}</td>
-                            <td className="p-3 text-center">
-                              <Badge className="bg-emerald-100 text-emerald-700 text-lg px-4">
-                                {tier.rate}
-                              </Badge>
-                            </td>
-                            <td className="p-3 text-center text-gray-600">{tier.bonus}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <CardContent className="pt-0 space-y-3 relative z-10">
+                  {COMP_GUIDELINES.map((guideline, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 p-3 bg-white/10 backdrop-blur"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-amber-200 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <p className="text-sm text-white/90">{guideline}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
 
-                  <div className="mt-6 pt-6 border-t grid sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                        <Clock className="w-5 h-5 text-white" aria-hidden="true" />
-                      </div>
-                      <p className="font-medium">Payment Schedule</p>
-                      <p className="text-sm text-gray-600">Weekly on Fridays</p>
+              {/* Agent Comp Tiers */}
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <DollarSign className="w-5 h-5 text-amber-200" aria-hidden="true" />
                     </div>
-                    <div className="text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                        <DollarSign className="w-5 h-5 text-white" aria-hidden="true" />
-                      </div>
-                      <p className="font-medium">Minimum Payout</p>
-                      <p className="text-sm text-gray-600">$100</p>
+                    <div>
+                      <span className="text-gray-900">Compensation Tiers</span>
+                      <p className="text-sm font-normal text-gray-500 mt-0.5">65% starting contract — climb the ladder as your production grows</p>
                     </div>
-                    <div className="text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center mx-auto mb-2 shadow-sm">
-                        <CheckCircle2 className="w-5 h-5 text-white" aria-hidden="true" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="divide-y divide-gray-100">
+                    {COMMISSION_TIERS.map((tier, idx) => (
+                      <div key={idx} className="flex items-center gap-4 px-2 py-3 hover:bg-violet-50/40 transition-colors">
+                        <div
+                          className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          <Star className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-900">{tier.ap}</p>
+                          {tier.downlines && (
+                            <p className="text-xs text-gray-500">{tier.downlines}</p>
+                          )}
+                        </div>
+                        <Badge
+                          className="bg-emerald-100 text-emerald-700 border-0 text-sm font-bold px-3"
+                          style={{ borderRadius: RADIUS.pill }}
+                        >
+                          {tier.rate}
+                        </Badge>
                       </div>
-                      <p className="font-medium">Direct Deposit</p>
-                      <p className="text-sm text-gray-600">Available</p>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-              </motion.div>
+
+              {/* Agency Tiers */}
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Award className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <span className="text-gray-900">Agency Level</span>
+                      <p className="text-sm font-normal text-gray-500 mt-0.5">For agency owners building teams</p>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="divide-y divide-gray-100">
+                    {AGENCY_TIERS.map((tier, idx) => (
+                      <div key={idx} className="flex items-center gap-4 px-2 py-3 hover:bg-violet-50/40 transition-colors">
+                        <div
+                          className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          <Star className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-900">{tier.ap}</p>
+                          <p className="text-xs text-gray-500">{tier.downlines}</p>
+                        </div>
+                        <Badge
+                          className="bg-emerald-100 text-emerald-700 border-0 text-sm font-bold px-3"
+                          style={{ borderRadius: RADIUS.pill }}
+                        >
+                          {tier.rate}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Compliance Tab */}
             <TabsContent value="compliance" className="space-y-4">
-              <motion.div
-                className="overflow-hidden relative mb-4"
-                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.hero }}
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              {/* Non-Negotiable Banner */}
+              <Card
+                className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500 via-rose-500 to-red-600" />
-                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <div className="p-4 relative z-10">
+                <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full blur-xl" />
+                <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-amber-400/15 rounded-full blur-lg" />
+                <CardContent className="p-5 relative z-10">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-                      <AlertTriangle className="w-5 h-5 text-white" aria-hidden="true" />
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur flex-shrink-0"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <AlertTriangle className="w-5 h-5 text-amber-200" aria-hidden="true" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-white">Compliance is Non-Negotiable</h4>
-                      <p className="text-sm text-white/90">
+                      <h4 className="font-semibold text-white">Compliance is Non-Negotiable</h4>
+                      <p className="text-sm text-white/80 mt-1">
                         Violations of compliance standards may result in immediate termination and
                         reporting to state insurance departments. When in doubt, always ask.
                       </p>
                     </div>
                   </div>
-                </div>
-              </motion.div>
+                </CardContent>
+              </Card>
 
-              <motion.div
-                className="grid md:grid-cols-3 gap-4"
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-              >
-                {COMPLIANCE_ITEMS.map((section, sectionIdx) => {
-                  const gradients = [
-                    'from-blue-500 to-cyan-500',
-                    'from-violet-500 to-purple-500',
-                    'from-amber-500 to-orange-500',
-                  ];
-                  return (
-                    <motion.div key={section.category} variants={fadeInUp}>
-                      <motion.div
-                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                      >
-                        <Card className="border-0 h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                          <CardHeader>
-                            <CardTitle className={cn("text-lg bg-gradient-to-r bg-clip-text text-transparent", gradients[sectionIdx % gradients.length])}>{section.category}</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ul className="space-y-2">
-                              {section.items.map((item, idx) => (
-                                <li key={idx} className="flex items-start gap-2 text-sm">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
+              {/* Compliance Sections */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {COMPLIANCE_ITEMS.map((section) => (
+                  <Card
+                    key={section.category}
+                    className="border-0 h-full"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card,
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          <Shield className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                        </div>
+                        <span className="text-gray-900">{section.category}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <ul className="space-y-2">
+                        {section.items.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="w-4 h-4 text-violet-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
 
-              <motion.div
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              {/* Need Help */}
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                }}
               >
-                <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                  <CardContent className="p-4">
-                    <h4 className="font-medium mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Need Compliance Help?</h4>
-                    <div className="flex flex-wrap gap-3">
-                      <Button className="gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-md" asChild>
-                        <a href="tel:8005550199" aria-label="Call compliance department at (800) 555-0199">
-                          <Phone className="w-4 h-4" aria-hidden="true" />
-                          Call Compliance: (800) 555-0199
-                        </a>
-                      </Button>
-                      <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 shadow-md" asChild>
-                        <a href="mailto:compliance@heritagels.org" aria-label="Email compliance at compliance@heritagels.org">
-                          <Mail className="w-4 h-4" aria-hidden="true" />
-                          compliance@heritagels.org
-                        </a>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                <CardContent className="p-5">
+                  <h4 className="font-semibold text-gray-900 mb-3">Need Compliance Help?</h4>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      className="gap-2 bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0"
+                      style={{ borderRadius: RADIUS.button }}
+                      asChild
+                    >
+                      <a href="tel:6307780800" aria-label="Call compliance at (630) 778-0800">
+                        <Phone className="w-4 h-4" aria-hidden="true" />
+                        (630) 778-0800
+                      </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                      style={{ borderRadius: RADIUS.button }}
+                      asChild
+                    >
+                      <a href="mailto:compliance@heritagels.org" aria-label="Email compliance at compliance@heritagels.org">
+                        <Mail className="w-4 h-4" aria-hidden="true" />
+                        compliance@heritagels.org
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Best Practices Tab */}
             <TabsContent value="practices" className="space-y-4">
-              <motion.div
-                className="grid md:grid-cols-3 gap-4"
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-              >
-                {BEST_PRACTICES.map((section, sectionIdx) => {
-                  const gradients = [
-                    { icon: 'from-amber-400 to-orange-500', text: 'from-amber-600 to-orange-600' },
-                    { icon: 'from-violet-400 to-purple-500', text: 'from-violet-600 to-purple-600' },
-                    { icon: 'from-emerald-400 to-green-500', text: 'from-emerald-600 to-green-600' },
-                  ];
-                  const gradient = gradients[sectionIdx % gradients.length];
-                  return (
-                    <motion.div key={section.title} variants={fadeInUp}>
-                      <motion.div
-                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                      >
-                        <Card className="border-0 h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                          <CardHeader>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-md", gradient.icon)}>
-                                <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
-                              </div>
-                              <span className={cn("bg-gradient-to-r bg-clip-text text-transparent", gradient.text)}>{section.title}</span>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ul className="space-y-3">
-                              {section.practices.map((practice, idx) => (
-                                <li key={idx} className="flex items-start gap-2 text-sm">
-                                  <div className={cn("w-5 h-5 rounded-full bg-gradient-to-br text-white flex items-center justify-center flex-shrink-0 text-xs font-medium shadow-sm", gradient.icon)}>
-                                    {idx + 1}
-                                  </div>
-                                  <span>{practice}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
+              <div className="grid md:grid-cols-3 gap-4">
+                {BEST_PRACTICES.map((section) => (
+                  <Card
+                    key={section.title}
+                    className="border-0 h-full"
+                    style={{
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card,
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          <Sparkles className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                        </div>
+                        <span className="text-gray-900">{section.title}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <ul className="space-y-3">
+                        {section.practices.map((practice, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <div
+                              className="w-5 h-5 flex items-center justify-center flex-shrink-0 text-xs font-medium bg-violet-100 text-violet-700"
+                              style={{ borderRadius: RADIUS.pill }}
+                            >
+                              {idx + 1}
+                            </div>
+                            <span className="text-gray-700">{practice}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </TabsContent>
 
             {/* Documents Tab */}
             <TabsContent value="documents" className="space-y-4">
-              <motion.div
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              <Card
+                className="border-0"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                }}
               >
-              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
-                      <FileText className="w-5 h-5 text-white" aria-hidden="true" />
+                  <CardTitle className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <FileText className="w-5 h-5 text-amber-200" aria-hidden="true" />
                     </div>
-                    <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Downloadable Resources</span>
+                    <div>
+                      <span className="text-gray-900">Downloadable Resources</span>
+                      <p className="text-sm font-normal text-gray-500 mt-0.5">Official documents and guides for Heritage Life agents</p>
+                    </div>
                   </CardTitle>
-                  <CardDescription>
-                    Official documents and guides for Heritage Life agents
-                  </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   {DOCUMENTS.length === 0 ? (
                     <div className="text-center py-8">
                       <FileText className="w-10 h-10 mx-auto mb-3 text-gray-300" />
                       <p className="text-gray-600 font-medium">No documents available</p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      {DOCUMENTS.map((doc, idx) => {
-                        const gradients = [
-                          'from-red-400 to-rose-500',
-                          'from-blue-400 to-cyan-500',
-                          'from-emerald-400 to-green-500',
-                          'from-violet-400 to-purple-500',
-                          'from-amber-400 to-orange-500',
-                        ];
-                        return (
-                          <button
-                            key={doc.title}
-                            className="w-full flex items-center justify-between p-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all text-left"
-                            onClick={() => handleDownload(doc.title)}
-                            aria-label={`Download ${doc.title} (${doc.type}, ${doc.size})`}
+                    <div className="divide-y divide-gray-100">
+                      {DOCUMENTS.map((doc) => (
+                        <button
+                          key={doc.title}
+                          className="w-full flex items-center gap-3 px-2 py-3 hover:bg-violet-50/40 transition-colors text-left"
+                          onClick={() => handleDownload(doc.title)}
+                          style={{ borderRadius: RADIUS.button }}
+                          aria-label={`Download ${doc.title} (${doc.type}, ${doc.size})`}
+                        >
+                          <div
+                            className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600"
+                            style={{ borderRadius: RADIUS.button }}
                           >
-                            <div className="flex items-center gap-3">
-                              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-sm", gradients[idx % gradients.length])}>
-                                <FileText className="w-5 h-5 text-white" aria-hidden="true" />
-                              </div>
-                              <div>
-                                <p className="font-medium">{doc.title}</p>
-                                <p className="text-xs text-gray-500">{doc.type} - {doc.size}</p>
-                              </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                              <Download className="w-4 h-4 text-gray-500" aria-hidden="true" />
-                            </div>
-                          </button>
-                        );
-                      })}
+                            <FileText className="w-4 h-4 text-amber-200" aria-hidden="true" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-gray-900">{doc.title}</p>
+                            <p className="text-xs text-gray-500">{doc.type} · {doc.size}</p>
+                          </div>
+                          <div
+                            className="w-8 h-8 flex items-center justify-center bg-violet-100 hover:bg-violet-200 transition-colors"
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            <Download className="w-4 h-4 text-violet-600" aria-hidden="true" />
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </CardContent>
               </Card>
-              </motion.div>
             </TabsContent>
           </Tabs>
         </motion.div>

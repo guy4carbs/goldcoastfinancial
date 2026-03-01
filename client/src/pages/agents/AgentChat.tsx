@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { DemoBadge } from "@/components/agent/primitives";
+import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Import Social Learning Components
@@ -745,40 +745,11 @@ export default function AgentChat() {
         animate="visible"
         className="mb-6"
       >
-        <motion.div
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-          transition={{ duration: MOTION.duration.hover }}
-          style={{
-            borderRadius: RADIUS.hero,
-            boxShadow: SHADOW.hero,
-            background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 50%, ${COLORS.primary.violet[700]} 100%)`,
-            padding: spacing(4),
-          }}
-          className="text-white"
-        >
-          <div className="flex items-center gap-4">
-            <div
-              className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center"
-              style={{ boxShadow: SHADOW.level2 }}
-            >
-              <MessageSquare className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h1
-                className="font-bold text-white"
-                style={{ fontSize: TYPE.section, lineHeight: TYPE.lineHeight }}
-              >
-                Agent Chat
-              </h1>
-              <p
-                className="text-white/80"
-                style={{ fontSize: TYPE.meta }}
-              >
-                Connect with your team, share insights, and collaborate in real-time
-              </p>
-            </div>
-          </div>
-        </motion.div>
+        <AgentPageHero
+          icon={MessageSquare}
+          title="Agent Chat"
+          subtitle="Connect with your team, share insights, and collaborate in real-time"
+        />
       </motion.div>
 
       <motion.div

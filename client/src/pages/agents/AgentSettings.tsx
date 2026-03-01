@@ -1,13 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import {
   User,
   Mail,
@@ -15,7 +14,6 @@ import {
   MapPin,
   Bell,
   Shield,
-  Palette,
   Globe,
   Key,
   Camera,
@@ -30,12 +28,12 @@ import {
   QrCode,
   Download,
   Upload,
-  CreditCard,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import { toast } from "sonner";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Type definitions
@@ -91,6 +89,13 @@ const NOTIFICATION_PREFERENCES: NotificationOption[] = [
   { key: 'weeklyReport', label: 'Weekly Report', description: 'Summary of your weekly performance' },
   { key: 'achievements', label: 'Achievement Alerts', description: 'Get notified when you unlock achievements' },
 ];
+
+const glassCard = {
+  borderRadius: RADIUS.card,
+  boxShadow: SHADOW.card,
+  background: 'rgba(255, 255, 255, 0.85)',
+  backdropFilter: 'blur(20px)',
+};
 
 export default function AgentSettings() {
   const logout = useAgentStore((state) => state.logout);
@@ -199,17 +204,14 @@ export default function AgentSettings() {
     });
   }, [profile, createOrUpdateProfile]);
 
-  // TODO: Implement photo upload functionality
   const handleChangePhoto = useCallback(() => {
     toast.info('Photo upload coming soon');
   }, []);
 
-  // TODO: Implement password change modal
   const handleChangePassword = useCallback(() => {
     toast.info('Password change coming soon');
   }, []);
 
-  // TODO: Implement session management view
   const handleViewSessions = useCallback(() => {
     toast.info('Session management coming soon');
   }, []);
@@ -225,14 +227,6 @@ export default function AgentSettings() {
 
   const handleNotificationChange = useCallback((key: keyof NotificationSettings, checked: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: checked }));
-  }, []);
-
-  const handleProfileChange = useCallback((field: keyof ProfileSettings, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleBankInfoChange = useCallback((field: keyof BankInfo, value: string) => {
-    setBankInfo(prev => ({ ...prev, [field]: value }));
   }, []);
 
   const handleVerifyBank = useCallback(() => {
@@ -263,31 +257,17 @@ export default function AgentSettings() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-          className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
-          style={{
-            borderRadius: RADIUS.hero,
-            boxShadow: SHADOW.hero,
-            padding: spacing(4),
-          }}
-        >
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Settings className="w-7 h-7 text-white" aria-hidden="true" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Settings</h1>
-                <p className="text-white/80 text-sm">Manage your account and preferences</p>
-              </div>
-            </div>
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={Settings}
+            title="Settings"
+            subtitle="Manage your account and preferences"
+          >
             <Button
-              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm shadow-lg"
+              className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur"
               onClick={handleSave}
               disabled={isSaving}
+              style={{ borderRadius: RADIUS.button }}
             >
               {isSaving ? (
                 <>Saving...</>
@@ -298,43 +278,54 @@ export default function AgentSettings() {
                 </>
               )}
             </Button>
-          </div>
+          </AgentPageHero>
         </motion.div>
 
         {/* Profile Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
-                  <User className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <User className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Profile Information</span>
+                <div>
+                  <span className="text-gray-900">Profile Information</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Update your personal details</p>
+                </div>
               </CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
               {currentUser ? (
-                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                  <CheckCircle2 className="w-3 h-3 text-green-500" />
-                  <span>Synced: {currentUser.name} • {currentUser.email} • {currentUser.phone || 'No phone'}</span>
+                <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                  <span>Synced: {currentUser.name} · {currentUser.email} · {currentUser.phone || 'No phone'}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mt-2 text-xs text-amber-600">
                   <AlertTriangle className="w-3 h-3" />
-                  <span>No profile saved yet - fill in your details and click Save</span>
+                  <span>No profile saved yet — fill in your details and click Save</span>
                 </div>
               )}
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar */}
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold text-2xl">
+                <div
+                  className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl"
+                  style={{ borderRadius: RADIUS.card }}
+                >
                   {(profile.firstName[0] || '?')}{(profile.lastName[0] || '?')}
                 </div>
                 <div>
-                  <Button variant="outline" size="sm" onClick={handleChangePhoto}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleChangePhoto}
+                    className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
                     <Camera className="w-4 h-4 mr-2" aria-hidden="true" />
                     Change Photo
                   </Button>
@@ -342,28 +333,30 @@ export default function AgentSettings() {
                 </div>
               </div>
 
-              <Separator />
+              <div className="border-t border-gray-100" />
 
               {/* Form Fields */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="text-gray-900">First Name</Label>
                   <Input
                     id="firstName"
                     value={profile.firstName}
                     onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-gray-900">Last Name</Label>
                   <Input
                     id="lastName"
                     value={profile.lastName}
                     onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
+                  <Label htmlFor="email" className="flex items-center gap-2 text-gray-900">
                     <Mail className="w-3 h-3" aria-hidden="true" />
                     Email
                   </Label>
@@ -372,10 +365,11 @@ export default function AgentSettings() {
                     type="email"
                     value={profile.email}
                     onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2 text-gray-900">
                     <Phone className="w-3 h-3" aria-hidden="true" />
                     Phone
                   </Label>
@@ -384,10 +378,11 @@ export default function AgentSettings() {
                     type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="location" className="flex items-center gap-2">
+                  <Label htmlFor="location" className="flex items-center gap-2 text-gray-900">
                     <MapPin className="w-3 h-3" aria-hidden="true" />
                     Location
                   </Label>
@@ -395,6 +390,7 @@ export default function AgentSettings() {
                     id="location"
                     value={profile.location}
                     onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
               </div>
@@ -403,156 +399,199 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Notifications Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-                  <Bell className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Bell className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Notification Preferences</span>
+                <div>
+                  <span className="text-gray-900">Notification Preferences</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Choose how you want to be notified</p>
+                </div>
               </CardTitle>
-              <CardDescription>Choose how you want to be notified</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {NOTIFICATION_PREFERENCES.map((item) => (
-                <div key={item.key} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium text-sm text-primary">{item.label}</p>
-                    <p className="text-xs text-gray-500">{item.description}</p>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                {NOTIFICATION_PREFERENCES.map((item) => (
+                  <div key={item.key} className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="font-medium text-sm text-gray-900">{item.label}</p>
+                      <p className="text-xs text-gray-500">{item.description}</p>
+                    </div>
+                    <Switch
+                      checked={notifications[item.key]}
+                      onCheckedChange={(checked) => handleNotificationChange(item.key, checked)}
+                      aria-label={`Toggle ${item.label}`}
+                    />
                   </div>
-                  <Switch
-                    checked={notifications[item.key]}
-                    onCheckedChange={(checked) => handleNotificationChange(item.key, checked)}
-                    aria-label={`Toggle ${item.label}`}
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
 
         {/* Security Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md">
-                  <Shield className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Shield className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Security</span>
+                <div>
+                  <span className="text-gray-900">Security</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Manage your account security</p>
+                </div>
               </CardTitle>
-              <CardDescription>Manage your account security</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">Password</p>
-                  <p className="text-xs text-gray-500">Last changed 30 days ago</p>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">Password</p>
+                    <p className="text-xs text-gray-500">Last changed 30 days ago</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleChangePassword}
+                    className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                    style={{ borderRadius: RADIUS.button }}
+                    aria-label="Change your password"
+                  >
+                    <Key className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Change Password
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleChangePassword} aria-label="Change your password">
-                  <Key className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Change Password
-                </Button>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">Two-Factor Authentication</p>
-                  <p className="text-xs text-gray-500">Add an extra layer of security</p>
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">Two-Factor Authentication</p>
+                    <p className="text-xs text-gray-500">Add an extra layer of security</p>
+                  </div>
+                  <Badge
+                    className="bg-emerald-100 text-emerald-700 border-0"
+                    style={{ borderRadius: RADIUS.pill }}
+                  >
+                    <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />
+                    Enabled
+                  </Badge>
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-600">
-                  <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />
-                  Enabled
-                </Badge>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">Active Sessions</p>
-                  <p className="text-xs text-gray-500">Manage devices logged into your account</p>
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">Active Sessions</p>
+                    <p className="text-xs text-gray-500">Manage devices logged into your account</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleViewSessions}
+                    className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    View Sessions
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleViewSessions}>View Sessions</Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         {/* Bank / Direct Deposit Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md">
-                  <Building2 className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Building2 className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Direct Deposit</span>
+                <div>
+                  <span className="text-gray-900">Direct Deposit</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Manage your commission payment method</p>
+                </div>
               </CardTitle>
-              <CardDescription>Manage your commission payment method</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {bankInfo.isVerified ? (
-                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                <div
+                  className="flex items-center justify-between p-3 bg-violet-50"
+                  style={{ borderRadius: RADIUS.button }}
+                >
                   <div className="flex items-center gap-3">
-                    <CreditCard className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+                    <Building2 className="w-5 h-5 text-violet-600" aria-hidden="true" />
                     <div>
-                      <p className="font-medium text-sm text-emerald-700">Bank Account Connected</p>
-                      <p className="text-xs text-emerald-600">{bankInfo.bankName} ••••{bankInfo.accountNumber.slice(-4)}</p>
+                      <p className="font-medium text-sm text-gray-900">Bank Account Connected</p>
+                      <p className="text-xs text-gray-500">{bankInfo.bankName} ····{bankInfo.accountNumber.slice(-4)}</p>
                     </div>
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-700">Verified</Badge>
+                  <Badge
+                    className="bg-emerald-100 text-emerald-700 border-0"
+                    style={{ borderRadius: RADIUS.pill }}
+                  >
+                    Verified
+                  </Badge>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="bankName">Bank Name</Label>
+                      <Label htmlFor="bankName" className="text-gray-900">Bank Name</Label>
                       <Input
                         id="bankName"
                         value={bankInfo.bankName}
                         onChange={(e) => setBankInfo({ ...bankInfo, bankName: e.target.value })}
                         placeholder="Chase, Bank of America, etc."
+                        style={{ borderRadius: RADIUS.input }}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="accountType">Account Type</Label>
+                      <Label htmlFor="accountType" className="text-gray-900">Account Type</Label>
                       <Input
                         id="accountType"
                         value={bankInfo.accountType}
                         onChange={(e) => setBankInfo({ ...bankInfo, accountType: e.target.value })}
                         placeholder="Checking or Savings"
+                        style={{ borderRadius: RADIUS.input }}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="routingNumber">Routing Number</Label>
+                      <Label htmlFor="routingNumber" className="text-gray-900">Routing Number</Label>
                       <Input
                         id="routingNumber"
                         value={bankInfo.routingNumber}
                         onChange={(e) => setBankInfo({ ...bankInfo, routingNumber: e.target.value })}
                         placeholder="9 digits"
+                        style={{ borderRadius: RADIUS.input }}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="accountNumber">Account Number</Label>
+                      <Label htmlFor="accountNumber" className="text-gray-900">Account Number</Label>
                       <Input
                         id="accountNumber"
                         value={bankInfo.accountNumber}
                         onChange={(e) => setBankInfo({ ...bankInfo, accountNumber: e.target.value })}
                         placeholder="Your account number"
                         type="password"
+                        style={{ borderRadius: RADIUS.input }}
                       />
                     </div>
                   </div>
-                  <Button onClick={handleVerifyBank} aria-label="Verify and save bank account">
+                  <Button
+                    onClick={handleVerifyBank}
+                    className="bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0"
+                    style={{ borderRadius: RADIUS.button }}
+                    aria-label="Verify and save bank account"
+                  >
                     <CheckCircle2 className="w-4 h-4 mr-2" aria-hidden="true" />
                     Verify & Save
                   </Button>
@@ -563,57 +602,81 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Tax Documents Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center shadow-md">
-                  <FileText className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <FileText className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Tax Documents</span>
+                <div>
+                  <span className="text-gray-900">Tax Documents</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Manage your W-9 and tax information</p>
+                </div>
               </CardTitle>
-              <CardDescription>Manage your W-9 and tax information</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">Tax ID (SSN/EIN)</p>
-                  <p className="text-xs text-gray-500">Your tax identification number</p>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">Tax ID (SSN/EIN)</p>
+                    <p className="text-xs text-gray-500">Your tax identification number</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-mono text-gray-700">{taxInfo.taxId}</span>
+                    <Badge
+                      className="bg-violet-100 text-violet-700 border-0 text-xs"
+                      style={{ borderRadius: RADIUS.pill }}
+                    >
+                      On file
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono">{taxInfo.taxId}</span>
-                  <Badge variant="outline" className="text-xs">On file</Badge>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">W-9 Form</p>
-                  <p className="text-xs text-gray-500">
-                    {taxInfo.hasW9 ? `Uploaded on ${taxInfo.w9UploadDate}` : 'Required for commission payments'}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {taxInfo.hasW9 ? (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => toast.info('Downloading W-9...')} aria-label="Download W-9 form">
-                        <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-                        Download
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">W-9 Form</p>
+                    <p className="text-xs text-gray-500">
+                      {taxInfo.hasW9 ? `Uploaded on ${taxInfo.w9UploadDate}` : 'Required for commission payments'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {taxInfo.hasW9 ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toast.info('Downloading W-9...')}
+                          className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                          style={{ borderRadius: RADIUS.button }}
+                          aria-label="Download W-9 form"
+                        >
+                          <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                          Download
+                        </Button>
+                        <Badge
+                          className="bg-emerald-100 text-emerald-700 border-0"
+                          style={{ borderRadius: RADIUS.pill }}
+                        >
+                          <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />
+                          Complete
+                        </Badge>
+                      </>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={handleUploadW9}
+                        className="bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0"
+                        style={{ borderRadius: RADIUS.button }}
+                        aria-label="Upload W-9 form"
+                      >
+                        <Upload className="w-4 h-4 mr-2" aria-hidden="true" />
+                        Upload W-9
                       </Button>
-                      <Badge className="bg-emerald-100 text-emerald-700">
-                        <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />
-                        Complete
-                      </Badge>
-                    </>
-                  ) : (
-                    <Button size="sm" onClick={handleUploadW9} aria-label="Upload W-9 form">
-                      <Upload className="w-4 h-4 mr-2" aria-hidden="true" />
-                      Upload W-9
-                    </Button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -621,161 +684,204 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Two-Factor Authentication Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-md">
-                  <Smartphone className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Smartphone className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Two-Factor Authentication</span>
-              </CardTitle>
-              <CardDescription>Add an extra layer of security to your account</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2">
                 <div>
-                  <p className="font-medium text-sm text-primary">2FA Status</p>
-                  <p className="text-xs text-gray-500">
-                    {twoFactor.enabled ? `Using ${twoFactor.method === 'app' ? 'Authenticator App' : 'SMS'}` : 'Not enabled'}
-                  </p>
+                  <span className="text-gray-900">Two-Factor Authentication</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Add an extra layer of security to your account</p>
                 </div>
-                <Switch
-                  checked={twoFactor.enabled}
-                  onCheckedChange={handleTwoFactorToggle}
-                  aria-label="Toggle two-factor authentication"
-                />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">2FA Status</p>
+                    <p className="text-xs text-gray-500">
+                      {twoFactor.enabled ? `Using ${twoFactor.method === 'app' ? 'Authenticator App' : 'SMS'}` : 'Not enabled'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={twoFactor.enabled}
+                    onCheckedChange={handleTwoFactorToggle}
+                    aria-label="Toggle two-factor authentication"
+                  />
+                </div>
               </div>
               {twoFactor.enabled && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <Label>Authentication Method</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        className={cn(
-                          "p-3 rounded-lg border-2 cursor-pointer transition-all text-left",
-                          twoFactor.method === 'app' ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                        )}
-                        onClick={() => handleTwoFactorMethodChange('app')}
-                        aria-pressed={twoFactor.method === 'app'}
-                        aria-label="Use Authenticator App for two-factor authentication"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <QrCode className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <span className="font-medium text-sm">Authenticator App</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Use Google Authenticator or similar</p>
-                      </button>
-                      <button
-                        type="button"
-                        className={cn(
-                          "p-3 rounded-lg border-2 cursor-pointer transition-all text-left",
-                          twoFactor.method === 'sms' ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                        )}
-                        onClick={() => handleTwoFactorMethodChange('sms')}
-                        aria-pressed={twoFactor.method === 'sms'}
-                        aria-label="Use SMS for two-factor authentication"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <Phone className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <span className="font-medium text-sm">SMS Code</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Receive codes via text message</p>
-                      </button>
-                    </div>
+                <div className="mt-4 space-y-4">
+                  <Label className="text-gray-900">Authentication Method</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      className={cn(
+                        "p-3 border-2 cursor-pointer transition-all text-left",
+                        twoFactor.method === 'app'
+                          ? "border-violet-500 bg-violet-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      )}
+                      style={{ borderRadius: RADIUS.button }}
+                      onClick={() => handleTwoFactorMethodChange('app')}
+                      aria-pressed={twoFactor.method === 'app'}
+                      aria-label="Use Authenticator App for two-factor authentication"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <QrCode className="w-4 h-4 text-violet-600" aria-hidden="true" />
+                        <span className="font-medium text-sm text-gray-900">Authenticator App</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Use Google Authenticator or similar</p>
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        "p-3 border-2 cursor-pointer transition-all text-left",
+                        twoFactor.method === 'sms'
+                          ? "border-violet-500 bg-violet-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      )}
+                      style={{ borderRadius: RADIUS.button }}
+                      onClick={() => handleTwoFactorMethodChange('sms')}
+                      aria-pressed={twoFactor.method === 'sms'}
+                      aria-label="Use SMS for two-factor authentication"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Phone className="w-4 h-4 text-violet-600" aria-hidden="true" />
+                        <span className="font-medium text-sm text-gray-900">SMS Code</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Receive codes via text message</p>
+                    </button>
                   </div>
                   {twoFactor.method === 'sms' && (
-                    <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                      <Phone className="w-4 h-4 text-gray-400" aria-hidden="true" />
-                      <span className="text-sm">Codes sent to: {twoFactor.phoneNumber}</span>
+                    <div
+                      className="flex items-center gap-2 p-3 bg-violet-50"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Phone className="w-4 h-4 text-violet-500" aria-hidden="true" />
+                      <span className="text-sm text-gray-700">Codes sent to: {twoFactor.phoneNumber}</span>
                     </div>
                   )}
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
         </motion.div>
 
         {/* Preferences Section */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-md">
-                  <Palette className="w-5 h-5 text-white" aria-hidden="true" />
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Globe className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Preferences</span>
+                <div>
+                  <span className="text-gray-900">Preferences</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Customize your experience</p>
+                </div>
               </CardTitle>
-              <CardDescription>Customize your experience</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">Language</p>
-                  <p className="text-xs text-gray-500">Select your preferred language</p>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">Language</p>
+                    <p className="text-xs text-gray-500">Select your preferred language</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                    style={{ borderRadius: RADIUS.button }}
+                    aria-label="Change language, currently English (US)"
+                  >
+                    <Globe className="w-4 h-4 mr-2" aria-hidden="true" />
+                    English (US)
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" aria-label="Change language, currently English (US)">
-                  <Globe className="w-4 h-4 mr-2" aria-hidden="true" />
-                  English (US)
-                </Button>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-primary">Timezone</p>
-                  <p className="text-xs text-gray-500">Set your local timezone</p>
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">Timezone</p>
+                    <p className="text-xs text-gray-500">Set your local timezone</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                    style={{ borderRadius: RADIUS.button }}
+                    aria-label="Change timezone, currently Pacific Time"
+                  >
+                    Pacific Time (PT)
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" aria-label="Change timezone, currently Pacific Time">Pacific Time (PT)</Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         {/* Danger Zone */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-        >
-          <Card className="border-0 overflow-hidden relative" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-rose-500/5 to-red-600/5" />
-            <CardHeader className="relative z-10">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-md">
-                  <AlertTriangle className="w-5 h-5 text-white" aria-hidden="true" />
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-red-100"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
                 </div>
-                <span className="bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">Danger Zone</span>
+                <div>
+                  <span className="text-red-600">Danger Zone</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Irreversible account actions</p>
+                </div>
               </CardTitle>
-              <CardDescription>Irreversible account actions</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-red-600">Sign Out</p>
-                  <p className="text-xs text-gray-500">Log out of your account on this device</p>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-red-600">Sign Out</p>
+                    <p className="text-xs text-gray-500">Log out of your account on this device</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={handleSignOut}
+                    style={{ borderRadius: RADIUS.button }}
+                    aria-label="Sign out of your account"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Sign Out
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={handleSignOut} aria-label="Sign out of your account">
-                  <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Sign Out
-                </Button>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <p className="font-medium text-sm text-red-600">Delete Account</p>
-                  <p className="text-xs text-gray-500">Permanently delete your account and all data</p>
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-red-600">Delete Account</p>
+                    <p className="text-xs text-gray-500">Permanently delete your account and all data</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={handleDeleteAccount}
+                    style={{ borderRadius: RADIUS.button }}
+                    aria-label="Delete your account permanently"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Delete Account
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={handleDeleteAccount} aria-label="Delete your account permanently">
-                  <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Delete Account
-                </Button>
               </div>
             </CardContent>
           </Card>

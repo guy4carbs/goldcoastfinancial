@@ -52,11 +52,11 @@ interface LeadDetailDrawerProps {
 const PRESET_TAGS = ['Hot Lead', 'Referral', 'Priority', 'Follow Up', 'Cold', 'VIP', 'Needs Quote', 'Budget Concern'];
 
 const statusConfig = {
-  new: { label: 'New', color: 'bg-blue-500 text-white', icon: Sparkles },
-  contacted: { label: 'Contacted', color: 'bg-yellow-500 text-white', icon: Phone },
-  qualified: { label: 'Qualified', color: 'bg-purple-500 text-white', icon: Target },
-  proposal: { label: 'Proposal', color: 'bg-green-500 text-white', icon: FileText },
-  closed: { label: 'Closed', color: 'bg-emerald-500 text-white', icon: Trophy },
+  new: { label: 'New', color: 'bg-purple-600 text-white', icon: Sparkles },
+  contacted: { label: 'Contacted', color: 'bg-amber-500 text-white', icon: Phone },
+  qualified: { label: 'Qualified', color: 'bg-violet-600 text-white', icon: Target },
+  proposal: { label: 'Proposal', color: 'bg-emerald-500 text-white', icon: FileText },
+  closed: { label: 'Closed', color: 'bg-emerald-600 text-white', icon: Trophy },
   lost: { label: 'Lost', color: 'bg-gray-500 text-white', icon: X },
 };
 
@@ -202,10 +202,10 @@ export function LeadDetailDrawer({
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-6">
             {/* Contact Info */}
-            <div className="grid gap-3">
+            <div className="grid gap-4">
               <a
                 href={`tel:${lead.phone}`}
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
+                className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
               >
                 <Phone className="w-5 h-5 text-primary" />
                 <div className="flex-1">
@@ -217,7 +217,7 @@ export function LeadDetailDrawer({
 
               <a
                 href={`mailto:${lead.email}?subject=Following up on your life insurance inquiry`}
-                className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
+                className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
               >
                 <Mail className="w-5 h-5 text-violet-600" />
                 <div className="flex-1">
@@ -342,7 +342,7 @@ export function LeadDetailDrawer({
               )}
               <div className="space-y-2">
                 {(lead.reminders || []).filter(r => !r.completed).map(reminder => (
-                  <div key={reminder.id} className="flex items-center gap-3 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                  <div key={reminder.id} className="flex items-center gap-4 p-2 rounded-lg bg-amber-50 border border-amber-200">
                     <BellRing className="w-4 h-4 text-amber-600" />
                     <div className="flex-1">
                       <p className="text-sm font-medium">{reminder.message}</p>
@@ -449,7 +449,7 @@ export function LeadDetailDrawer({
                     className="mb-4 overflow-hidden"
                   >
                     <div className="p-4 rounded-lg border bg-muted/30 space-y-4">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label className="text-xs">Type</Label>
                           <Select value={activityType} onValueChange={(v) => setActivityType(v as ActivityLog['type'])}>

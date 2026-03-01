@@ -22,6 +22,20 @@
       "when": 1769729626015,
       "tag": "0002_short_the_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772129313868,
+      "tag": "0003_cold_dexter_bennett",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772234874892,
+      "tag": "0004_majestic_black_tom",
+      "breakpoints": true
     }
   ]
 }

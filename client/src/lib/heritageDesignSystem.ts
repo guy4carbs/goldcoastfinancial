@@ -91,6 +91,15 @@ export const SHADOW = {
     const opacity = level * 0.02;
     return `0 ${y}px ${blur}px rgba(0, 0, 0, ${opacity})`;
   },
+  // Colored glow shadows for icons and accents
+  glow: {
+    violet: '0 4px 14px rgba(139, 92, 246, 0.25)',
+    emerald: '0 4px 14px rgba(34, 197, 94, 0.25)',
+    amber: '0 4px 14px rgba(245, 158, 11, 0.25)',
+    cyan: '0 4px 14px rgba(6, 182, 212, 0.25)',
+    rose: '0 4px 14px rgba(244, 63, 94, 0.25)',
+    teal: '0 4px 14px rgba(20, 184, 166, 0.25)',
+  },
 } as const;
 
 // ============================================
@@ -302,6 +311,7 @@ export const COLORS = {
     heroWithAccent: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)',
     subtle: 'linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(147, 51, 234, 0.08) 100%)',
     amber: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+    critical: 'linear-gradient(135deg, #ef4444 0%, #be123c 50%, #9f1239 100%)',
   },
 } as const;
 

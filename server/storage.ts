@@ -57,8 +57,42 @@ import {
   pageViews,
   analyticsEvents,
 } from "@shared/schema";
-import { leads } from "@shared/models/crm";
+import { leads, leadActivities, type Lead, type InsertLead, type LeadActivity, type InsertLeadActivity } from "@shared/models/crm";
 import { memberCards } from "@shared/models/memberCards";
+import {
+  agentLicenses,
+  agentTerritories,
+  type AgentLicense,
+  type InsertAgentLicense,
+  type AgentTerritory,
+  type InsertAgentTerritory,
+} from "@shared/models/licenses";
+import {
+  agentPolicies,
+  type AgentPolicy,
+  type InsertAgentPolicy,
+} from "@shared/models/policies";
+import {
+  clientConversations,
+  clientMessages,
+  type ClientConversation,
+  type InsertClientConversation,
+  type ClientMessage,
+  type InsertClientMessage,
+} from "@shared/models/clientChat";
+import {
+  automations,
+  automationExecutions,
+  type Automation,
+  type InsertAutomation,
+  type AutomationExecution,
+  type InsertAutomationExecution,
+} from "@shared/models/automations";
+import {
+  workflowAutomations,
+  type WorkflowAutomation,
+  type InsertWorkflowAutomation,
+} from "@shared/models/workflow-automations";
 import { db } from "./db";
 import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -170,6 +204,66 @@ export interface IStorage {
   revokeMemberCard(id: string): Promise<boolean>;
   deleteMemberCard(id: string): Promise<boolean>;
   getMemberCardStats(agentId: string): Promise<{ total: number; active: number; pending: number; revoked: number }>;
+
+  // Automations
+  createAutomation(automation: InsertAutomation): Promise<Automation>;
+  getAutomationById(id: string): Promise<Automation | null>;
+  getAutomationsByAgentId(agentId: string): Promise<Automation[]>;
+  getEnabledAutomations(): Promise<Automation[]>;
+  getAutomationsByTriggerType(triggerType: string): Promise<Automation[]>;
+  updateAutomation(id: string, data: Partial<Automation>): Promise<Automation | null>;
+  deleteAutomation(id: string): Promise<boolean>;
+  toggleAutomation(id: string, enabled: boolean): Promise<Automation | null>;
+  incrementAutomationStats(id: string, success: boolean): Promise<void>;
+
+  // Automation Executions
+  createAutomationExecution(execution: InsertAutomationExecution): Promise<AutomationExecution>;
+  getExecutionById(id: string): Promise<AutomationExecution | null>;
+  getExecutionsByAutomationId(automationId: string, limit?: number): Promise<AutomationExecution[]>;
+  updateExecution(id: string, data: Partial<AutomationExecution>): Promise<AutomationExecution | null>;
+  getRecentExecutions(agentId: string, limit?: number): Promise<AutomationExecution[]>;
+
+  // Workflow Automations (Visual Builder)
+  createWorkflowAutomation(workflow: InsertWorkflowAutomation): Promise<WorkflowAutomation>;
+  getWorkflowAutomationById(id: string): Promise<WorkflowAutomation | null>;
+  getWorkflowAutomationsByAgentId(agentId: string): Promise<WorkflowAutomation[]>;
+  updateWorkflowAutomation(id: string, data: Partial<WorkflowAutomation>): Promise<WorkflowAutomation | null>;
+  deleteWorkflowAutomation(id: string): Promise<boolean>;
+  getEnabledWorkflowAutomations(): Promise<WorkflowAutomation[]>;
+  createWorkflowExecution(data: {
+    workflowAutomationId: string;
+    status: string;
+    triggeredBy: Record<string, unknown>;
+    startedAt: Date;
+  }): Promise<{ id: string }>;
+  updateWorkflowExecution(id: string, data: {
+    status?: string;
+    nodeResults?: unknown;
+    errorMessage?: string;
+    completedAt?: Date;
+    duration?: number;
+  }): Promise<void>;
+  incrementWorkflowStats(workflowId: string, success: boolean): Promise<void>;
+  getWorkflowExecutionsByWorkflowId(workflowId: string, limit?: number): Promise<any[]>;
+
+  // Agent Licenses
+  getAgentLicenses(userId: string): Promise<AgentLicense[]>;
+  getAgentLicenseById(id: string): Promise<AgentLicense | null>;
+  createAgentLicense(license: InsertAgentLicense): Promise<AgentLicense>;
+  updateAgentLicense(id: string, data: Partial<AgentLicense>): Promise<AgentLicense | null>;
+  deleteAgentLicense(id: string): Promise<boolean>;
+
+  // Agent Territories
+  getAgentTerritories(userId: string): Promise<AgentTerritory[]>;
+  createAgentTerritory(territory: InsertAgentTerritory): Promise<AgentTerritory>;
+  deleteAgentTerritory(id: string): Promise<boolean>;
+
+  // Agent Policies
+  getAgentPolicies(userId: string): Promise<AgentPolicy[]>;
+  getAgentPolicyById(id: string): Promise<AgentPolicy | null>;
+  createAgentPolicy(policy: InsertAgentPolicy): Promise<AgentPolicy>;
+  updateAgentPolicy(id: string, data: Partial<AgentPolicy>): Promise<AgentPolicy | null>;
+  deleteAgentPolicy(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -367,18 +461,149 @@ export class DatabaseStorage implements IStorage {
   async getUnreadChatCount(userId: string): Promise<number> {
     const participations = await db.select().from(chatParticipants).where(eq(chatParticipants.userId, userId));
     let unreadCount = 0;
-    
+
     for (const p of participations) {
       const messages = await db.select().from(chatMessages)
         .where(eq(chatMessages.conversationId, p.conversationId));
-      const unread = messages.filter(m => 
-        m.senderId !== userId && 
+      const unread = messages.filter(m =>
+        m.senderId !== userId &&
         (!p.lastReadAt || new Date(m.createdAt) > new Date(p.lastReadAt))
       );
       unreadCount += unread.length;
     }
-    
+
     return unreadCount;
+  }
+
+  // ============================================
+  // CLIENT CHAT METHODS (Agent-Client Messaging)
+  // ============================================
+
+  async createClientConversation(conversation: InsertClientConversation): Promise<ClientConversation> {
+    const [newConversation] = await db.insert(clientConversations).values(conversation).returning();
+    return newConversation;
+  }
+
+  async getClientConversationById(id: string): Promise<ClientConversation | null> {
+    const [conversation] = await db.select().from(clientConversations).where(eq(clientConversations.id, id));
+    return conversation || null;
+  }
+
+  async getClientConversationByPair(clientId: string, agentId: string): Promise<ClientConversation | null> {
+    const [conversation] = await db.select().from(clientConversations)
+      .where(and(
+        eq(clientConversations.clientId, clientId),
+        eq(clientConversations.agentId, agentId)
+      ));
+    return conversation || null;
+  }
+
+  async getOrCreateClientConversation(
+    clientId: string,
+    agentId: string,
+    clientName: string,
+    agentName: string
+  ): Promise<ClientConversation> {
+    const existing = await this.getClientConversationByPair(clientId, agentId);
+    if (existing) return existing;
+
+    return this.createClientConversation({
+      clientId,
+      agentId,
+      clientName,
+      agentName,
+      unreadCountAgent: 0,
+      unreadCountClient: 0,
+      isActive: true,
+    });
+  }
+
+  async getClientConversationsByAgentId(agentId: string): Promise<ClientConversation[]> {
+    return db.select().from(clientConversations)
+      .where(and(
+        eq(clientConversations.agentId, agentId),
+        eq(clientConversations.isActive, true)
+      ))
+      .orderBy(desc(clientConversations.lastMessageAt));
+  }
+
+  async getClientConversationsByClientId(clientId: string): Promise<ClientConversation[]> {
+    return db.select().from(clientConversations)
+      .where(and(
+        eq(clientConversations.clientId, clientId),
+        eq(clientConversations.isActive, true)
+      ))
+      .orderBy(desc(clientConversations.lastMessageAt));
+  }
+
+  async createClientMessage(message: InsertClientMessage): Promise<ClientMessage> {
+    const [newMessage] = await db.insert(clientMessages).values(message).returning();
+
+    // Update conversation with last message info
+    const preview = message.content.length > 100
+      ? message.content.substring(0, 100) + '...'
+      : message.content;
+
+    // Increment unread count for the recipient
+    const incrementField = message.senderType === 'client'
+      ? { unreadCountAgent: sql`unread_count_agent + 1` }
+      : { unreadCountClient: sql`unread_count_client + 1` };
+
+    await db.update(clientConversations)
+      .set({
+        lastMessageAt: new Date(),
+        lastMessagePreview: preview,
+        updatedAt: new Date(),
+        ...incrementField,
+      })
+      .where(eq(clientConversations.id, message.conversationId));
+
+    return newMessage;
+  }
+
+  async getClientMessages(conversationId: string, limit: number = 100): Promise<ClientMessage[]> {
+    return db.select().from(clientMessages)
+      .where(eq(clientMessages.conversationId, conversationId))
+      .orderBy(asc(clientMessages.createdAt))
+      .limit(limit);
+  }
+
+  async markClientConversationReadByAgent(conversationId: string): Promise<void> {
+    await db.update(clientConversations)
+      .set({ unreadCountAgent: 0, updatedAt: new Date() })
+      .where(eq(clientConversations.id, conversationId));
+
+    await db.update(clientMessages)
+      .set({ isRead: true })
+      .where(and(
+        eq(clientMessages.conversationId, conversationId),
+        eq(clientMessages.senderType, 'client')
+      ));
+  }
+
+  async markClientConversationReadByClient(conversationId: string): Promise<void> {
+    await db.update(clientConversations)
+      .set({ unreadCountClient: 0, updatedAt: new Date() })
+      .where(eq(clientConversations.id, conversationId));
+
+    await db.update(clientMessages)
+      .set({ isRead: true })
+      .where(and(
+        eq(clientMessages.conversationId, conversationId),
+        eq(clientMessages.senderType, 'agent')
+      ));
+  }
+
+  async getUnreadClientChatCountForAgent(agentId: string): Promise<number> {
+    const conversations = await db.select().from(clientConversations)
+      .where(eq(clientConversations.agentId, agentId));
+    return conversations.reduce((sum, c) => sum + (c.unreadCountAgent || 0), 0);
+  }
+
+  async getUnreadClientChatCountForClient(clientId: string): Promise<number> {
+    const conversations = await db.select().from(clientConversations)
+      .where(eq(clientConversations.clientId, clientId));
+    return conversations.reduce((sum, c) => sum + (c.unreadCountClient || 0), 0);
   }
 
   async getAllAgentUsers(): Promise<User[]> {
@@ -1044,6 +1269,372 @@ export class DatabaseStorage implements IStorage {
       pending: cards.filter(c => c.status === "pending").length,
       revoked: cards.filter(c => c.status === "revoked").length,
     };
+  }
+
+  // =============================================================================
+  // LEADS
+  // =============================================================================
+
+  async getLeadById(id: string): Promise<Lead | null> {
+    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+    return lead || null;
+  }
+
+  async getLeadsByAgentId(agentId: string): Promise<Lead[]> {
+    return db.select().from(leads)
+      .where(eq(leads.assignedTo, agentId))
+      .orderBy(desc(leads.createdAt));
+  }
+
+  async createLead(lead: InsertLead): Promise<Lead> {
+    const [newLead] = await db.insert(leads).values(lead).returning();
+    return newLead;
+  }
+
+  async updateLead(id: string, data: Partial<Lead>): Promise<Lead | null> {
+    const [updated] = await db.update(leads)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(leads.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async createLeadActivity(activity: InsertLeadActivity): Promise<LeadActivity> {
+    const [newActivity] = await db.insert(leadActivities).values(activity).returning();
+    return newActivity;
+  }
+
+  async getLeadActivities(leadId: string, limit: number = 50): Promise<LeadActivity[]> {
+    return db.select().from(leadActivities)
+      .where(eq(leadActivities.leadId, leadId))
+      .orderBy(desc(leadActivities.createdAt))
+      .limit(limit);
+  }
+
+  // =============================================================================
+  // TASKS (Simple in-memory for now, can be moved to database)
+  // =============================================================================
+
+  async createTask(task: {
+    userId: string;
+    title: string;
+    description?: string;
+    dueDate?: Date;
+    priority?: string;
+    status?: string;
+    leadId?: string;
+    category?: string;
+  }): Promise<{ id: string; title: string }> {
+    // For now, create as a lead activity instead of a separate task table
+    // This can be enhanced with a proper tasks table later
+    if (task.leadId) {
+      const activity = await this.createLeadActivity({
+        leadId: task.leadId,
+        type: "task",
+        title: task.title,
+        description: task.description || `Due: ${task.dueDate?.toISOString()} | Priority: ${task.priority}`,
+        performedBy: task.userId,
+      });
+      return { id: activity.id, title: task.title };
+    }
+
+    // If no lead, log and return a mock ID
+    console.log(`[Storage] Task created: ${task.title} for user ${task.userId}`);
+    return { id: `task-${Date.now()}`, title: task.title };
+  }
+
+  // =============================================================================
+  // AUTOMATIONS
+  // =============================================================================
+
+  async createAutomation(automation: InsertAutomation): Promise<Automation> {
+    const [newAutomation] = await db.insert(automations).values(automation as any).returning();
+    return newAutomation;
+  }
+
+  async getAutomationById(id: string): Promise<Automation | null> {
+    const [automation] = await db.select().from(automations).where(eq(automations.id, id));
+    return automation || null;
+  }
+
+  async getAutomationsByAgentId(agentId: string): Promise<Automation[]> {
+    return db.select().from(automations)
+      .where(eq(automations.agentId, agentId))
+      .orderBy(desc(automations.createdAt));
+  }
+
+  async getEnabledAutomations(): Promise<Automation[]> {
+    return db.select().from(automations)
+      .where(eq(automations.enabled, true))
+      .orderBy(desc(automations.createdAt));
+  }
+
+  async getAutomationsByTriggerType(triggerType: string): Promise<Automation[]> {
+    return db.select().from(automations)
+      .where(and(
+        eq(automations.enabled, true),
+        eq(automations.triggerType, triggerType)
+      ))
+      .orderBy(desc(automations.createdAt));
+  }
+
+  async updateAutomation(id: string, data: Partial<Automation>): Promise<Automation | null> {
+    const [updated] = await db.update(automations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(automations.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteAutomation(id: string): Promise<boolean> {
+    await db.delete(automations).where(eq(automations.id, id));
+    return true;
+  }
+
+  async toggleAutomation(id: string, enabled: boolean): Promise<Automation | null> {
+    const [updated] = await db.update(automations)
+      .set({ enabled, updatedAt: new Date() })
+      .where(eq(automations.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async incrementAutomationStats(id: string, success: boolean): Promise<void> {
+    const automation = await this.getAutomationById(id);
+    if (!automation) return;
+
+    await db.update(automations)
+      .set({
+        executedCount: (automation.executedCount || 0) + 1,
+        successCount: success ? (automation.successCount || 0) + 1 : automation.successCount,
+        failedCount: !success ? (automation.failedCount || 0) + 1 : automation.failedCount,
+        lastExecutedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(automations.id, id));
+  }
+
+  // =============================================================================
+  // AUTOMATION EXECUTIONS
+  // =============================================================================
+
+  async createAutomationExecution(execution: InsertAutomationExecution): Promise<AutomationExecution> {
+    const [newExecution] = await db.insert(automationExecutions).values(execution as any).returning();
+    return newExecution;
+  }
+
+  async getExecutionById(id: string): Promise<AutomationExecution | null> {
+    const [execution] = await db.select().from(automationExecutions).where(eq(automationExecutions.id, id));
+    return execution || null;
+  }
+
+  async getExecutionsByAutomationId(automationId: string, limit: number = 50): Promise<AutomationExecution[]> {
+    return db.select().from(automationExecutions)
+      .where(eq(automationExecutions.automationId, automationId))
+      .orderBy(desc(automationExecutions.startedAt))
+      .limit(limit);
+  }
+
+  async updateExecution(id: string, data: Partial<AutomationExecution>): Promise<AutomationExecution | null> {
+    const [updated] = await db.update(automationExecutions)
+      .set(data)
+      .where(eq(automationExecutions.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async getRecentExecutions(agentId: string, limit: number = 50): Promise<AutomationExecution[]> {
+    // Get all automation IDs for this agent first
+    const agentAutomations = await this.getAutomationsByAgentId(agentId);
+    const automationIds = agentAutomations.map(a => a.id);
+
+    if (automationIds.length === 0) return [];
+
+    return db.select().from(automationExecutions)
+      .where(inArray(automationExecutions.automationId, automationIds))
+      .orderBy(desc(automationExecutions.startedAt))
+      .limit(limit);
+  }
+
+  // =============================================================================
+  // WORKFLOW AUTOMATIONS (Visual Builder)
+  // =============================================================================
+
+  async createWorkflowAutomation(workflow: InsertWorkflowAutomation): Promise<WorkflowAutomation> {
+    const [newWorkflow] = await db.insert(workflowAutomations).values(workflow as any).returning();
+    return newWorkflow;
+  }
+
+  async getWorkflowAutomationById(id: string): Promise<WorkflowAutomation | null> {
+    const [workflow] = await db.select().from(workflowAutomations).where(eq(workflowAutomations.id, id));
+    return workflow || null;
+  }
+
+  async getWorkflowAutomationsByAgentId(agentId: string): Promise<WorkflowAutomation[]> {
+    return db.select().from(workflowAutomations)
+      .where(eq(workflowAutomations.agentId, agentId))
+      .orderBy(desc(workflowAutomations.createdAt));
+  }
+
+  async updateWorkflowAutomation(id: string, data: Partial<WorkflowAutomation>): Promise<WorkflowAutomation | null> {
+    const [updated] = await db.update(workflowAutomations)
+      .set(data as any)
+      .where(eq(workflowAutomations.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteWorkflowAutomation(id: string): Promise<boolean> {
+    await db.delete(workflowAutomations).where(eq(workflowAutomations.id, id));
+    return true;
+  }
+
+  async getEnabledWorkflowAutomations(): Promise<WorkflowAutomation[]> {
+    return db.select().from(workflowAutomations)
+      .where(eq(workflowAutomations.enabled, true));
+  }
+
+  async createWorkflowExecution(data: {
+    workflowAutomationId: string;
+    status: string;
+    triggeredBy: Record<string, unknown>;
+    startedAt: Date;
+  }): Promise<{ id: string }> {
+    // Store execution in automationExecutions with a special marker
+    const [execution] = await db.insert(automationExecutions).values({
+      automationId: data.workflowAutomationId,
+      status: data.status,
+      triggeredBy: data.triggeredBy,
+      startedAt: data.startedAt,
+    } as any).returning();
+    return execution;
+  }
+
+  async updateWorkflowExecution(id: string, data: {
+    status?: string;
+    nodeResults?: unknown;
+    errorMessage?: string;
+    completedAt?: Date;
+    duration?: number;
+  }): Promise<void> {
+    await db.update(automationExecutions)
+      .set({
+        status: data.status,
+        actionResults: data.nodeResults,
+        errorMessage: data.errorMessage,
+        completedAt: data.completedAt,
+        duration: data.duration,
+      } as any)
+      .where(eq(automationExecutions.id, id));
+  }
+
+  async incrementWorkflowStats(workflowId: string, success: boolean): Promise<void> {
+    const workflow = await this.getWorkflowAutomationById(workflowId);
+    if (!workflow) return;
+
+    const updates: {
+      executedCount: number;
+      successCount?: number;
+      failedCount?: number;
+      lastExecutedAt: Date;
+    } = {
+      executedCount: (workflow.executedCount || 0) + 1,
+      lastExecutedAt: new Date(),
+    };
+
+    if (success) {
+      updates.successCount = (workflow.successCount || 0) + 1;
+    } else {
+      updates.failedCount = (workflow.failedCount || 0) + 1;
+    }
+
+    await this.updateWorkflowAutomation(workflowId, updates);
+  }
+
+  async getWorkflowExecutionsByWorkflowId(workflowId: string, limit = 50): Promise<any[]> {
+    return db.select().from(automationExecutions)
+      .where(eq(automationExecutions.automationId, workflowId))
+      .orderBy(desc(automationExecutions.startedAt))
+      .limit(limit);
+  }
+
+  // Agent Licenses
+  async getAgentLicenses(userId: string): Promise<AgentLicense[]> {
+    return db.select().from(agentLicenses)
+      .where(eq(agentLicenses.userId, userId))
+      .orderBy(asc(agentLicenses.stateCode));
+  }
+
+  async getAgentLicenseById(id: string): Promise<AgentLicense | null> {
+    const [license] = await db.select().from(agentLicenses)
+      .where(eq(agentLicenses.id, id));
+    return license || null;
+  }
+
+  async createAgentLicense(license: InsertAgentLicense): Promise<AgentLicense> {
+    const [created] = await db.insert(agentLicenses).values(license).returning();
+    return created;
+  }
+
+  async updateAgentLicense(id: string, data: Partial<AgentLicense>): Promise<AgentLicense | null> {
+    const [updated] = await db.update(agentLicenses)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(agentLicenses.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteAgentLicense(id: string): Promise<boolean> {
+    const result = await db.delete(agentLicenses).where(eq(agentLicenses.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Agent Territories
+  async getAgentTerritories(userId: string): Promise<AgentTerritory[]> {
+    return db.select().from(agentTerritories)
+      .where(eq(agentTerritories.userId, userId))
+      .orderBy(asc(agentTerritories.stateCode));
+  }
+
+  async createAgentTerritory(territory: InsertAgentTerritory): Promise<AgentTerritory> {
+    const [created] = await db.insert(agentTerritories).values(territory).returning();
+    return created;
+  }
+
+  async deleteAgentTerritory(id: string): Promise<boolean> {
+    const result = await db.delete(agentTerritories).where(eq(agentTerritories.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Agent Policies
+  async getAgentPolicies(userId: string): Promise<AgentPolicy[]> {
+    return db.select().from(agentPolicies)
+      .where(eq(agentPolicies.userId, userId))
+      .orderBy(desc(agentPolicies.createdAt));
+  }
+
+  async getAgentPolicyById(id: string): Promise<AgentPolicy | null> {
+    const [policy] = await db.select().from(agentPolicies)
+      .where(eq(agentPolicies.id, id));
+    return policy || null;
+  }
+
+  async createAgentPolicy(policy: InsertAgentPolicy): Promise<AgentPolicy> {
+    const [created] = await db.insert(agentPolicies).values(policy).returning();
+    return created;
+  }
+
+  async updateAgentPolicy(id: string, data: Partial<AgentPolicy>): Promise<AgentPolicy | null> {
+    const [updated] = await db.update(agentPolicies)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(agentPolicies.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async deleteAgentPolicy(id: string): Promise<boolean> {
+    const result = await db.delete(agentPolicies).where(eq(agentPolicies.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

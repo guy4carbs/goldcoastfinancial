@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { AgentPageHero } from "@/components/agent/primitives";
 
 // Type definitions
 interface HelpCategory {
@@ -28,7 +29,6 @@ interface HelpCategory {
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  color: string;
   articles: string[];
 }
 
@@ -45,7 +45,6 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Getting Started',
     description: 'New to the platform? Start here',
     icon: Lightbulb,
-    color: 'bg-gradient-to-br from-amber-400 to-orange-500',
     articles: [
       'How to navigate the Agent Lounge',
       'Setting up your profile',
@@ -58,7 +57,6 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Managing Leads',
     description: 'Learn how to work with leads',
     icon: Users,
-    color: 'bg-gradient-to-br from-blue-400 to-cyan-500',
     articles: [
       'Adding and importing leads',
       'Lead status workflow',
@@ -71,7 +69,6 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Creating Quotes',
     description: 'Generate quotes for clients',
     icon: FileText,
-    color: 'bg-gradient-to-br from-emerald-400 to-green-500',
     articles: [
       'How to create a new quote',
       'Understanding coverage options',
@@ -84,11 +81,10 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Training & Certification',
     description: 'Complete your training modules',
     icon: GraduationCap,
-    color: 'bg-gradient-to-br from-violet-500 to-purple-600',
     articles: [
       'Completing training modules',
       'Tracking your certifications',
-      'Earning XP and leveling up',
+      'Advancing through agent tiers',
       'Compliance requirements',
     ]
   },
@@ -97,7 +93,6 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Commissions & Earnings',
     description: 'Track your income',
     icon: DollarSign,
-    color: 'bg-gradient-to-br from-green-400 to-emerald-500',
     articles: [
       'Understanding your commissions',
       'When payments are processed',
@@ -110,7 +105,6 @@ const HELP_CATEGORIES: HelpCategory[] = [
     title: 'Account & Security',
     description: 'Manage your account settings',
     icon: Shield,
-    color: 'bg-gradient-to-br from-red-400 to-rose-500',
     articles: [
       'Updating your profile',
       'Changing your password',
@@ -156,91 +150,64 @@ export default function AgentHelp() {
         variants={staggerContainer}
         className="space-y-6 pb-20 lg:pb-0"
       >
-        {/* Hero Card - Agent Lounge Violet Gradient */}
+        {/* Hero Card */}
         <motion.div variants={fadeInUp}>
-          <Card
-            className="border-0 overflow-hidden relative"
-            style={{
-              borderRadius: RADIUS.hero,
-              boxShadow: SHADOW.hero
-            }}
+          <AgentPageHero
+            icon={HelpCircle}
+            title="Help & Support"
+            subtitle="Find answers to your questions or contact our support team"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600" />
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
-            <CardContent className="p-8 relative z-10 text-center">
-              <div
-                className="w-16 h-16 bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4"
-                style={{ borderRadius: RADIUS.card }}
-              >
-                <HelpCircle className="w-8 h-8 text-white" aria-hidden="true" />
-              </div>
-              <h1
-                className="font-bold text-white mb-2"
-                style={{ fontSize: TYPE.section }}
-              >
-                Help & Support
-              </h1>
-              <p className="text-white/80 text-sm max-w-md mx-auto">
-                Find answers to your questions or contact our support team
-              </p>
-
-              {/* Search */}
-              <div className="relative mt-6 max-w-lg mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
-                <Input
-                  placeholder="Search for help..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="pl-12 h-12 text-base bg-white/95 border-0 focus:ring-2 focus:ring-white/50"
-                  style={{ borderRadius: RADIUS.button }}
-                  aria-label="Search help articles"
-                />
-              </div>
-            </CardContent>
-          </Card>
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" aria-hidden="true" />
+              <Input
+                placeholder="Search help articles..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="pl-10 h-11 bg-white/25 backdrop-blur-md border-white/30 text-white placeholder:text-white/80 focus:bg-white/30 focus:border-white/40 focus:ring-0"
+                style={{ borderRadius: RADIUS.button }}
+                aria-label="Search help articles"
+              />
+            </div>
+          </AgentPageHero>
         </motion.div>
 
         {/* Quick Links */}
         <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {QUICK_LINKS.map((link, idx) => {
-            const gradients = [
-              'from-violet-500 to-purple-500',
-              'from-blue-500 to-cyan-500',
-              'from-amber-500 to-orange-500',
-              'from-emerald-500 to-green-500'
-            ];
-            return (
-              <motion.a
-                key={link.label}
-                href={link.href}
-                className="block"
-                aria-label={link.label}
-                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                transition={{ duration: MOTION.duration.hover }}
+          {QUICK_LINKS.map((link) => (
+            <motion.a
+              key={link.label}
+              href={link.href}
+              className="block"
+              aria-label={link.label}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover }}
+            >
+              <Card
+                className="border-0 cursor-pointer h-full overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                }}
               >
-                <Card
-                  className="border-0 cursor-pointer h-full"
-                  style={{
-                    borderRadius: RADIUS.card,
-                    boxShadow: SHADOW.card
-                  }}
-                >
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className={cn("w-10 h-10 flex items-center justify-center shadow-md bg-gradient-to-br", gradients[idx % gradients.length])} style={{ borderRadius: RADIUS.button }}>
-                      <link.icon className="w-5 h-5 text-white" aria-hidden="true" />
-                    </div>
-                    <span className="font-semibold text-sm text-gray-800">{link.label}</span>
-                  </CardContent>
-                </Card>
-              </motion.a>
-            );
-          })}
+                <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+                <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+                <CardContent className="p-4 flex items-center gap-3 relative z-10">
+                  <div
+                    className="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <link.icon className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                  </div>
+                  <span className="font-semibold text-sm text-white">{link.label}</span>
+                </CardContent>
+              </Card>
+            </motion.a>
+          ))}
         </motion.div>
 
         {/* Help Categories */}
         <motion.div variants={fadeInUp}>
-          <h2 className="text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4">Browse by Topic</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Browse by Topic</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {filteredCategories.length === 0 ? (
               <div className="col-span-2 text-center py-8 text-gray-500">
@@ -259,7 +226,9 @@ export default function AgentHelp() {
                   )}
                   style={{
                     borderRadius: RADIUS.card,
-                    boxShadow: SHADOW.card
+                    boxShadow: SHADOW.card,
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(20px)',
                   }}
                   onClick={() => handleCategoryToggle(category.id)}
                   role="button"
@@ -268,11 +237,14 @@ export default function AgentHelp() {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className={cn("w-11 h-11 flex items-center justify-center shadow-md", category.color)} style={{ borderRadius: RADIUS.button }}>
-                        <category.icon className="w-5 h-5 text-white" aria-hidden="true" />
+                      <div
+                        className="w-11 h-11 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                        style={{ borderRadius: RADIUS.button }}
+                      >
+                        <category.icon className="w-5 h-5 text-amber-200" aria-hidden="true" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{category.title}</h3>
+                        <h3 className="font-semibold text-gray-900">{category.title}</h3>
                         <p className="text-xs text-gray-500">{category.description}</p>
                       </div>
                       <ChevronRight className={cn(
@@ -315,21 +287,20 @@ export default function AgentHelp() {
         {/* Contact Support */}
         <motion.div variants={fadeInUp}>
           <Card
-            className="border-0 overflow-hidden relative"
+            className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
             style={{
-              borderRadius: RADIUS.hero,
-              boxShadow: SHADOW.hero
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.hero,
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600" />
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+            <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-amber-400/15 rounded-full blur-xl" />
             <CardContent className="p-6 relative z-10">
-              <h2 className="text-lg font-semibold text-white mb-4">Still need help?</h2>
-              <p className="text-sm text-white/80 mb-6">
-                Our support team is available Monday through Friday, 9am to 6pm PT.
+              <h2 className="text-lg font-semibold text-white mb-2">Still need help?</h2>
+              <p className="text-sm text-white/70 mb-6">
+                Our support team is available Monday through Friday, 9am to 6pm CT.
               </p>
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-3 gap-3">
                 <motion.a
                   href="tel:6307780800"
                   className="flex items-center gap-3 p-4 bg-white/10 backdrop-blur hover:bg-white/20 transition-colors"
@@ -338,8 +309,11 @@ export default function AgentHelp() {
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   transition={{ duration: MOTION.duration.hover }}
                 >
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg" style={{ borderRadius: RADIUS.button }}>
-                    <Phone className="w-5 h-5 text-white" aria-hidden="true" />
+                  <div
+                    className="w-10 h-10 bg-white/20 backdrop-blur flex items-center justify-center"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <Phone className="w-5 h-5 text-amber-200" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-medium text-sm text-white">Call Us</p>
@@ -354,8 +328,11 @@ export default function AgentHelp() {
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   transition={{ duration: MOTION.duration.hover }}
                 >
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg" style={{ borderRadius: RADIUS.button }}>
-                    <Mail className="w-5 h-5 text-white" aria-hidden="true" />
+                  <div
+                    className="w-10 h-10 bg-white/20 backdrop-blur flex items-center justify-center"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <Mail className="w-5 h-5 text-amber-200" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-medium text-sm text-white">Email</p>
@@ -370,8 +347,11 @@ export default function AgentHelp() {
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   transition={{ duration: MOTION.duration.hover }}
                 >
-                  <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg" style={{ borderRadius: RADIUS.button }}>
-                    <MessageSquare className="w-5 h-5 text-white" aria-hidden="true" />
+                  <div
+                    className="w-10 h-10 bg-white/20 backdrop-blur flex items-center justify-center"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <MessageSquare className="w-5 h-5 text-amber-200" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-medium text-sm text-white">Live Chat</p>

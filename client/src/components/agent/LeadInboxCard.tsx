@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
+import { MOTION, RADIUS } from "@/lib/heritageDesignSystem";
 
 interface LeadInboxCardProps {
   lead: Lead;
@@ -31,10 +32,10 @@ const URGENCY_CONFIG = {
     iconColor: 'text-amber-500',
   },
   upcoming: {
-    bg: 'bg-green-50 border-green-200',
-    badge: 'bg-green-100 text-green-700',
+    bg: 'bg-violet-50 border-violet-200',
+    badge: 'bg-violet-100 text-violet-700',
     icon: Calendar,
-    iconColor: 'text-green-500',
+    iconColor: 'text-violet-500',
   },
   'no-followup': {
     bg: 'bg-gray-50 border-gray-300 border-dashed',
@@ -45,11 +46,11 @@ const URGENCY_CONFIG = {
 };
 
 const STATUS_COLORS: Record<Lead['status'], string> = {
-  new: 'bg-blue-100 text-blue-700',
-  contacted: 'bg-yellow-100 text-yellow-700',
-  qualified: 'bg-purple-100 text-purple-700',
-  proposal: 'bg-pink-100 text-pink-700',
-  closed: 'bg-green-100 text-green-700',
+  new: 'bg-purple-100 text-purple-700',
+  contacted: 'bg-amber-100 text-amber-700',
+  qualified: 'bg-violet-100 text-violet-700',
+  proposal: 'bg-emerald-100 text-emerald-700',
+  closed: 'bg-emerald-100 text-emerald-700',
   lost: 'bg-gray-100 text-gray-500',
 };
 
@@ -103,15 +104,17 @@ export function LeadInboxCard({ lead, urgency, onClick, onQuickCall, onQuickActi
 
   return (
     <motion.div
-      whileHover={{ scale: 1.01 }}
+      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
       whileTap={{ scale: 0.99 }}
+      transition={MOTION.spring}
       className={cn(
-        "p-4 rounded-xl border cursor-pointer transition-all",
+        "p-4 border cursor-pointer transition-all",
         config.bg
       )}
+      style={{ borderRadius: RADIUS.input }}
       onClick={onClick}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
           <User className="w-6 h-6 text-primary" />
@@ -119,18 +122,18 @@ export function LeadInboxCard({ lead, urgency, onClick, onQuickCall, onQuickActi
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-2">
             <h3 className="font-semibold text-gray-900 truncate">{lead.name}</h3>
             <Badge className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[lead.status])}>
               {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
             </Badge>
             {showUrgencyScore && (
               <Badge className={cn(
-                "text-[10px] px-1.5 py-0 flex items-center gap-0.5",
+                "text-[10px] px-1.5 py-0 flex items-center gap-1",
                 urgencyScore >= 80 ? "bg-red-500 text-white" :
                 urgencyScore >= 60 ? "bg-orange-500 text-white" :
-                urgencyScore >= 40 ? "bg-yellow-500 text-black" :
-                "bg-green-500 text-white"
+                urgencyScore >= 40 ? "bg-amber-500 text-white" :
+                "bg-emerald-500 text-white"
               )}>
                 <Zap className="w-2.5 h-2.5" />
                 {urgencyScore}
@@ -139,7 +142,7 @@ export function LeadInboxCard({ lead, urgency, onClick, onQuickCall, onQuickActi
           </div>
 
           {/* Meta info */}
-          <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+          <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
             {lead.product && (
               <span className="flex items-center gap-1">
                 <FileText className="w-3 h-3" />
@@ -163,7 +166,8 @@ export function LeadInboxCard({ lead, urgency, onClick, onQuickCall, onQuickActi
               <span className={cn(
                 "text-sm font-medium",
                 urgency === 'overdue' ? "text-red-700" :
-                urgency === 'today' ? "text-amber-700" : "text-gray-600"
+                urgency === 'today' ? "text-amber-700" :
+                urgency === 'upcoming' ? "text-violet-700" : "text-gray-600"
               )}>
                 {urgency === 'overdue' && overdueDays > 0
                   ? `${overdueDays} day${overdueDays > 1 ? 's' : ''} overdue`
@@ -216,16 +220,16 @@ export function LeadInboxCard({ lead, urgency, onClick, onQuickCall, onQuickActi
 
       {/* Policy status (if applicable) */}
       {lead.policyStatus && (
-        <div className="mt-3 pt-3 border-t border-gray-200/50">
+        <div className="mt-4 pt-4 border-t border-gray-200/50">
           <div className="flex items-center gap-2">
             <Badge
               className={cn(
                 "text-[10px]",
-                lead.policyStatus === 'issued' ? 'bg-green-100 text-green-700' :
+                lead.policyStatus === 'issued' ? 'bg-emerald-100 text-emerald-700' :
                 lead.policyStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                lead.policyStatus === 'pending_underwriting' ? 'bg-yellow-100 text-yellow-700' :
-                lead.policyStatus === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                lead.policyStatus === 'quoted' ? 'bg-purple-100 text-purple-700' :
+                lead.policyStatus === 'pending_underwriting' ? 'bg-amber-100 text-amber-700' :
+                lead.policyStatus === 'submitted' ? 'bg-purple-100 text-purple-700' :
+                lead.policyStatus === 'quoted' ? 'bg-violet-100 text-violet-700' :
                 'bg-red-100 text-red-700'
               )}
             >

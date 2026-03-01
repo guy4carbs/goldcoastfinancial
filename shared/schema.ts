@@ -12,6 +12,9 @@ export * from "./models/crm";
 export * from "./models/avatarCouncil";
 export * from "./models/enterprise";
 export * from "./models/security";
+export * from "./models/automations";
+export * from "./models/licenses";
+export * from "./models/memberCards";
 
 export const guideRequests = pgTable("guide_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

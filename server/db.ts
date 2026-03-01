@@ -672,6 +672,98 @@ export async function initializeDatabase() {
       WHERE confirm_token IS NULL;
     `);
 
+    // ============================================
+    // CLIENT CHAT TABLES (Agent-Client Messaging)
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS client_conversations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        client_id UUID NOT NULL,
+        agent_id UUID NOT NULL,
+        client_name TEXT NOT NULL,
+        agent_name TEXT NOT NULL,
+        last_message_at TIMESTAMP,
+        last_message_preview TEXT,
+        unread_count_agent INTEGER NOT NULL DEFAULT 0,
+        unread_count_client INTEGER NOT NULL DEFAULT 0,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        UNIQUE(client_id, agent_id)
+      );
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_client_conversations_agent ON client_conversations (agent_id);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_client_conversations_client ON client_conversations (client_id);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_client_conversations_last_message ON client_conversations (last_message_at DESC);
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS client_messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        conversation_id UUID NOT NULL REFERENCES client_conversations(id) ON DELETE CASCADE,
+        sender_id UUID NOT NULL,
+        sender_type TEXT NOT NULL,
+        sender_name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        message_type TEXT NOT NULL DEFAULT 'text',
+        attachments JSONB,
+        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_client_messages_conversation ON client_messages (conversation_id);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_client_messages_created ON client_messages (created_at);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_client_messages_sender ON client_messages (sender_id);
+    `);
+
+    // Agent Licenses table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_licenses (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT NOT NULL,
+        state_code VARCHAR(2) NOT NULL,
+        license_number TEXT,
+        license_type TEXT DEFAULT 'life_health',
+        status TEXT NOT NULL DEFAULT 'active',
+        effective_date DATE,
+        expiration_date DATE,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_licenses_user_id ON agent_licenses (user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_licenses_state ON agent_licenses (state_code);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_licenses_status ON agent_licenses (status);`);
+
+    // Agent Territories table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_territories (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT NOT NULL,
+        state_code VARCHAR(2) NOT NULL,
+        is_primary BOOLEAN DEFAULT FALSE,
+        assigned_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        assigned_by TEXT,
+        notes TEXT
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_territories_user_id ON agent_territories (user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_territories_state ON agent_territories (state_code);`);
+
     console.log("Database tables initialized successfully.");
   } catch (error) {
     console.error("Error initializing database:", error);

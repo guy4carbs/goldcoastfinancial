@@ -44,7 +44,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
-import { DemoBadge } from "@/components/agent/primitives";
+import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Email folder types
@@ -529,30 +529,13 @@ export default function AgentEmail() {
         style={{ height: 'calc(100vh - 4rem)', gap: spacing(2) }}
       >
         {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6 flex items-center justify-between"
-          style={{
-            borderRadius: RADIUS.hero,
-            boxShadow: SHADOW.hero,
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <motion.div
-              variants={scaleIn}
-              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover }}
-              className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
-            >
-              <Mail className="w-7 h-7 text-white" />
-            </motion.div>
-            <div>
-              <h1 className="text-2xl font-bold" style={{ fontSize: TYPE.section }}>Agent Email</h1>
-              <p className="text-white/80 text-sm">Manage your communications</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <DemoBadge className="bg-white/20 text-white border-white/30" />
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={Mail}
+            title="Agent Email"
+            subtitle="Manage your communications"
+            badge={<DemoBadge className="bg-white/20 text-white border-white/30" />}
+          >
             <Button
               onClick={() => setShowCompose(true)}
               className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
@@ -561,7 +544,7 @@ export default function AgentEmail() {
               <PenSquare className="w-4 h-4" />
               Compose
             </Button>
-          </div>
+          </AgentPageHero>
         </motion.div>
 
         {/* Main Email Interface */}

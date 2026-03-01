@@ -657,7 +657,7 @@ const CARRIER_EMAIL_BRANDING: Record<string, {
 export async function sendSecureFormEmail(data: {
   clientName: string;
   clientEmail: string;
-  formType: 'ssn' | 'banking' | 'full_application';
+  formType: 'ssn' | 'banking' | 'drivers_license' | 'full_application';
   secureLink: string;
   expiresAt: Date;
   carrier?: string;
@@ -674,6 +674,7 @@ export async function sendSecureFormEmail(data: {
   const formTypeLabels: Record<string, string> = {
     ssn: 'Social Security Number',
     banking: 'Banking Information',
+    drivers_license: "Driver's License / State ID",
     full_application: 'Full Application'
   };
 
@@ -705,6 +706,8 @@ export async function sendSecureFormEmail(data: {
         return `To finalize and submit your application with ${carrierName}, we'll need your Social Security number for identity verification and underwriting purposes.\n\nFor security, please provide this through our secure submission link below (or feel free to call me directly if you prefer).\n\nLet me know once it's sent so I can confirm receipt and move your application forward immediately.`;
       case 'banking':
         return `To complete your policy setup with ${carrierName}, we'll need your banking information for the initial premium draft and ongoing billing authorization.\n\nYou can submit this securely using the link below, or we can complete it together over the phone — whichever you prefer.\n\nOnce received, I'll confirm and finalize your submission right away.`;
+      case 'drivers_license':
+        return `To verify your identity for your ${carrierName} application, we'll need your driver's license or state-issued ID information.\n\nPlease submit this through the secure link below — your data is encrypted and protected.\n\nOnce received, I'll confirm and continue processing your application.`;
       case 'full_application':
         return `To move forward with your policy submission to ${carrierName}, I'll need your completed application on file.\n\nPlease send it over at your earliest convenience so we can keep everything on track for underwriting.\n\nIf you have any questions while completing it, let me know — happy to help.`;
       default:
@@ -747,7 +750,7 @@ export async function sendSecureFormEmail(data: {
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding-right: 16px; vertical-align: middle;">
-                    <span style="font-size: 32px;">${data.formType === 'ssn' ? '🔐' : data.formType === 'banking' ? '🏦' : '📋'}</span>
+                    <span style="font-size: 32px;">${data.formType === 'ssn' ? '🔐' : data.formType === 'banking' ? '🏦' : data.formType === 'drivers_license' ? '🪪' : '📋'}</span>
                   </td>
                   <td style="vertical-align: middle;">
                     <p style="color: ${primaryColor}; font-size: 18px; font-weight: 700; margin: 0;">${formTypeLabel} Request</p>

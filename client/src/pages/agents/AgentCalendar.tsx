@@ -51,12 +51,9 @@ import { cn } from "@/lib/utils";
 import { AddEventModal, EventData } from "@/components/agent/AddEventModal";
 import { useConfirm } from "@/components/agent/primitives/ConfirmDialog";
 import { toast } from "sonner";
-import { DemoBadge } from "@/components/agent/primitives";
+import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
 import { useAgentStore } from "@/lib/agentStore";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
-
-// Agent lounge gradient (violet-purple-indigo)
-const HERO_GRADIENT = 'from-violet-600 via-purple-600 to-indigo-600';
 
 // Calendar provider configs
 const calendarProviders = [
@@ -64,21 +61,21 @@ const calendarProviders = [
     id: 'google',
     name: 'Google Calendar',
     icon: '/icons/google-calendar.svg',
-    color: 'bg-blue-500',
+    color: 'bg-gradient-to-br from-violet-500 to-purple-600',
     description: 'Connect your Google Calendar to sync events',
   },
   {
     id: 'outlook',
     name: 'Microsoft Outlook',
     icon: '/icons/outlook.svg',
-    color: 'bg-[#0078d4]',
+    color: 'bg-gradient-to-br from-violet-500 to-purple-600',
     description: 'Sync with Outlook Calendar and Microsoft 365',
   },
   {
     id: 'apple',
     name: 'Apple Calendar',
     icon: '/icons/apple-calendar.svg',
-    color: 'bg-gray-800',
+    color: 'bg-gradient-to-br from-violet-500 to-purple-600',
     description: 'Connect your iCloud Calendar',
   },
 ];
@@ -133,9 +130,9 @@ const initialEvents: EventData[] = [
 ];
 
 const eventTypeConfig = {
-  call: { icon: Phone, color: 'bg-green-500/10 text-green-600' },
-  meeting: { icon: User, color: 'bg-blue-500/10 text-blue-600' },
-  video: { icon: Video, color: 'bg-violet-500/10 text-violet-600' },
+  call: { icon: Phone, color: 'bg-amber-100 text-amber-700' },
+  meeting: { icon: User, color: 'bg-purple-100 text-purple-700' },
+  video: { icon: Video, color: 'bg-violet-100 text-violet-700' },
 };
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -482,31 +479,13 @@ export default function AgentCalendar() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-          className={`bg-gradient-to-r ${HERO_GRADIENT} p-6 text-white relative overflow-hidden`}
-          style={{
-            borderRadius: RADIUS.hero,
-            boxShadow: SHADOW.hero,
-          }}
-        >
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                style={{ borderRadius: RADIUS.card }}
-              >
-                <CalendarIcon className="w-7 h-7 text-white" aria-hidden="true" />
-              </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-white">Calendar</h1>
-                  <DemoBadge />
-                </div>
-                <p className="text-sm text-white/80">Manage your schedule and sync with your email calendar</p>
-              </div>
-            </div>
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={CalendarIcon}
+            title="Calendar"
+            subtitle="Manage your schedule and sync with your email calendar"
+            badge={<DemoBadge />}
+          >
             <Button
               className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
               style={{ borderRadius: RADIUS.button }}
@@ -515,16 +494,14 @@ export default function AgentCalendar() {
               <Plus className="w-4 h-4 mr-2" />
               Add Event
             </Button>
-          </div>
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4" />
+          </AgentPageHero>
         </motion.div>
 
         {/* Calendar Integrations */}
         <motion.div
           variants={fadeInUp}
           whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={MOTION.spring}
         >
           <Card
             className="border-0"
@@ -534,58 +511,73 @@ export default function AgentCalendar() {
             }}
           >
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-3">
                 <div
-                  className={`w-8 h-8 bg-gradient-to-br ${HERO_GRADIENT} flex items-center justify-center shadow-sm`}
-                  style={{ borderRadius: RADIUS.input }}
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
                 >
-                  <Link2 className="w-4 h-4 text-white" />
+                  <Link2 className="w-5 h-5 text-amber-200" />
                 </div>
-                <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Connected Calendars</span>
+                <span className="text-gray-900">Connected Calendars</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {calendarProviders.map((provider) => {
                   const isConnected = connectedProviders.includes(provider.id);
                   return (
                     <motion.div
                       key={provider.id}
-                      whileHover={{ y: -2, scale: 1.01 }}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={MOTION.spring}
                       className={cn(
-                        "p-4 border-2 transition-all cursor-pointer",
+                        "p-4 border-0 transition-all cursor-pointer overflow-hidden relative",
                         isConnected
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200 hover:border-gray-300 bg-white"
+                          ? "bg-emerald-50 ring-2 ring-emerald-400"
+                          : "bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
                       )}
                       style={{ borderRadius: RADIUS.card }}
                       onClick={() => handleConnectProvider(provider.id)}
                     >
-                      <div className="flex items-center gap-3">
+                      {!isConnected && (
+                        <>
+                          <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+                          <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+                        </>
+                      )}
+                      <div className="flex items-center gap-3 relative z-10">
                         <div
-                          className={cn("w-10 h-10 flex items-center justify-center text-white", provider.color)}
-                          style={{ borderRadius: RADIUS.input }}
+                          className={cn(
+                            "w-10 h-10 flex items-center justify-center",
+                            isConnected
+                              ? "bg-emerald-100 text-emerald-600"
+                              : "bg-white/20 backdrop-blur"
+                          )}
+                          style={{ borderRadius: RADIUS.button }}
                         >
-                          <Mail className="w-5 h-5" />
+                          <Mail className={cn("w-5 h-5", isConnected ? "text-emerald-600" : "text-amber-200")} />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm text-primary">{provider.name}</p>
+                            <p className={cn("font-medium text-sm", isConnected ? "text-gray-900" : "text-white")}>{provider.name}</p>
                             {isConnected && (
-                              <Badge className="bg-green-500 text-white text-[10px] h-5">
+                              <Badge
+                                className="bg-emerald-100 text-emerald-700 border-0 text-[10px] h-5"
+                                style={{ borderRadius: RADIUS.pill }}
+                              >
                                 <Check className="w-3 h-3 mr-1" />
                                 Connected
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500">{provider.description}</p>
+                          <p className={cn("text-xs", isConnected ? "text-gray-500" : "text-white/70")}>{provider.description}</p>
                         </div>
                       </div>
                       {!isConnected && (
                         <Button
                           size="sm"
                           variant="outline"
-                          className="w-full mt-3 h-8"
+                          className="w-full mt-3 h-8 bg-white/20 backdrop-blur text-white border-white/30 hover:bg-white/30"
                           style={{ borderRadius: RADIUS.button }}
                         >
                           Connect
@@ -604,20 +596,21 @@ export default function AgentCalendar() {
           <motion.div
             variants={fadeInUp}
             whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={MOTION.spring}
             className="lg:col-span-2"
           >
             <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={prevMonth}>
-                      <ChevronLeft className="w-4 h-4" />
+                  <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={prevMonth} className="hover:bg-violet-50">
+                      <ChevronLeft className="w-4 h-4 text-violet-600" />
                     </Button>
-                    <h2 className="text-lg font-semibold text-primary">
+                    <h2 className="text-lg font-serif font-semibold text-gray-900 min-w-[140px] text-center">
                       {months[month]} {year}
                     </h2>
-                    <Button variant="ghost" size="icon" onClick={nextMonth}>
-                      <ChevronRight className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" onClick={nextMonth} className="hover:bg-violet-50">
+                      <ChevronRight className="w-4 h-4 text-violet-600" />
                     </Button>
                   </div>
                   <div className="flex gap-1">
@@ -627,7 +620,10 @@ export default function AgentCalendar() {
                         variant={view === v ? 'default' : 'ghost'}
                         size="sm"
                         onClick={() => handleViewChange(v)}
-                        className={cn("h-8 text-xs capitalize", view === v && "bg-primary")}
+                        className={cn(
+                          "h-8 text-xs capitalize",
+                          view === v && "bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:opacity-90"
+                        )}
                         style={{ borderRadius: RADIUS.button }}
                       >
                         {v}
@@ -638,9 +634,9 @@ export default function AgentCalendar() {
               </CardHeader>
               <CardContent>
                 {/* Days of week header */}
-                <div className="grid grid-cols-7 mb-2">
+                <div className="grid grid-cols-7 mb-4">
                   {daysOfWeek.map((day, idx) => (
-                    <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                    <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
                       <span className="hidden sm:inline">{day}</span>
                       <span className="sm:hidden">{daysOfWeekMobile[idx]}</span>
                     </div>
@@ -648,7 +644,7 @@ export default function AgentCalendar() {
                 </div>
 
                 {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {calendarDays.map((day, idx) => {
                     if (day === null) {
                       return <div key={`empty-${idx}`} className="aspect-square" />;
@@ -664,23 +660,24 @@ export default function AgentCalendar() {
                         key={day}
                         onClick={() => setSelectedDate(date)}
                         className={cn(
-                          "aspect-square p-0.5 sm:p-1 rounded-md sm:rounded-lg cursor-pointer transition-all",
-                          "hover:bg-gray-100 active:scale-95 touch-manipulation",
+                          "aspect-square p-1 sm:p-2 cursor-pointer transition-all",
+                          "hover:bg-violet-50 active:scale-95 touch-manipulation",
                           "min-h-[40px] sm:min-h-0",
                           isToday && "bg-violet-100",
                           isSelected && "ring-2 ring-violet-500 bg-violet-50"
                         )}
+                        style={{ borderRadius: RADIUS.input }}
                       >
                         <div className={cn(
                           "text-xs sm:text-sm font-medium text-center",
-                          isToday ? "text-violet-600" : "text-primary"
+                          isToday ? "text-violet-600 font-semibold" : "text-gray-700"
                         )}>
                           {day}
                         </div>
                         {events.length > 0 && (
-                          <div className="flex justify-center gap-0.5 mt-0.5 sm:mt-1">
+                          <div className="flex justify-center gap-1 mt-1 sm:mt-2">
                             {events.slice(0, 3).map((_, i) => (
-                              <div key={i} className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-violet-500" />
+                              <div key={i} className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-violet-500" />
                             ))}
                           </div>
                         )}
@@ -696,6 +693,7 @@ export default function AgentCalendar() {
           <motion.div
             variants={fadeInUp}
             whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+            transition={MOTION.spring}
           >
             <Card className="h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="pb-3">
@@ -725,18 +723,22 @@ export default function AgentCalendar() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {selectedDateEvents.map((event) => {
                       const typeConfig = eventTypeConfig[event.type as keyof typeof eventTypeConfig];
                       const TypeIcon = typeConfig.icon;
                       return (
                         <div
                           key={event.id}
-                          className="p-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors group"
+                          className="p-4 border border-gray-100 hover:border-violet-200 transition-colors group"
+                          style={{ borderRadius: RADIUS.input }}
                         >
-                          <div className="flex items-start gap-3">
-                            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", typeConfig.color)}>
-                              <TypeIcon className="w-4 h-4" />
+                          <div className="flex items-start gap-4">
+                            <div
+                              className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-md"
+                              style={{ borderRadius: RADIUS.input }}
+                            >
+                              <TypeIcon className="w-5 h-5 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm text-primary truncate">{event.title}</p>
@@ -810,7 +812,7 @@ export default function AgentCalendar() {
                               </Badge>
                             )}
                             {event.status === 'completed' && (
-                              <Badge className="bg-green-100 text-green-700 text-[10px]">Completed</Badge>
+                              <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">Completed</Badge>
                             )}
                           </div>
                         </div>
@@ -827,6 +829,7 @@ export default function AgentCalendar() {
         <motion.div
           variants={fadeInUp}
           whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={MOTION.spring}
         >
           <Card
             className="border-0 bg-gradient-to-r from-violet-50 to-amber-50"
@@ -836,7 +839,7 @@ export default function AgentCalendar() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-12 h-12 bg-gradient-to-br ${HERO_GRADIENT} flex items-center justify-center`}
+                    className={`w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center`}
                     style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level3 }}
                   >
                     <Send className="w-6 h-6 text-white" />
@@ -860,7 +863,7 @@ export default function AgentCalendar() {
                   <Button
                     size="sm"
                     onClick={() => setShowBookingLinkModal(true)}
-                    className={`gap-2 bg-gradient-to-r ${HERO_GRADIENT} hover:opacity-90`}
+                    className={`gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90`}
                     style={{ borderRadius: RADIUS.button }}
                   >
                     <Send className="w-4 h-4" />
@@ -886,6 +889,7 @@ export default function AgentCalendar() {
         <motion.div
           variants={fadeInUp}
           whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+          transition={MOTION.spring}
         >
           <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader className="pb-3">
@@ -904,6 +908,7 @@ export default function AgentCalendar() {
                     <motion.div
                       key={event.id}
                       whileHover={{ x: 4, backgroundColor: COLORS.gray[50] }}
+                      transition={MOTION.spring}
                       className="flex items-center gap-4 p-3 transition-colors group"
                       style={{ borderRadius: RADIUS.input }}
                     >
@@ -1008,15 +1013,20 @@ export default function AgentCalendar() {
         </DialogContent>
       </Dialog>
 
-      {/* Send Booking Link Modal - Matching SSN/Banking Style */}
+      {/* Send Booking Link Modal - Heritage Design System */}
       <Dialog open={showBookingLinkModal} onOpenChange={setShowBookingLinkModal}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto" style={{ borderRadius: RADIUS.card }}>
           <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <CalendarIcon className="w-6 h-6" style={{ color: gradientFrom }} />
+            <DialogTitle className="flex items-center gap-4 text-lg font-serif">
+              <div
+                className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <CalendarIcon className="w-5 h-5 text-white" />
+              </div>
               Send Booking Link
             </DialogTitle>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 ml-14">
               Your customer will receive a link to schedule an appointment with you.
             </p>
           </DialogHeader>
@@ -1026,7 +1036,7 @@ export default function AgentCalendar() {
             <div className="space-y-4">
               {/* Customer Name */}
               <div>
-                <Label htmlFor="customerName" className="flex items-center gap-1">
+                <Label htmlFor="customerName" className="text-xs font-medium flex items-center gap-1 mb-1.5">
                   Customer Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -1034,43 +1044,47 @@ export default function AgentCalendar() {
                   placeholder="John Smith"
                   value={bookingLinkData.customerName}
                   onChange={(e) => setBookingLinkData(prev => ({ ...prev, customerName: e.target.value }))}
-                  className="mt-1"
+                  className="h-9"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
               {/* Email Address */}
               <div>
-                <Label htmlFor="customerEmail">Email Address</Label>
+                <Label htmlFor="customerEmail" className="text-xs font-medium mb-1.5 block">Email Address</Label>
                 <Input
                   id="customerEmail"
                   type="email"
                   placeholder="john.smith@email.com"
                   value={bookingLinkData.customerEmail}
                   onChange={(e) => setBookingLinkData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                  className="mt-1"
+                  className="h-9"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
               {/* Phone Number */}
               <div>
-                <Label htmlFor="customerPhone">Phone Number</Label>
+                <Label htmlFor="customerPhone" className="text-xs font-medium mb-1.5 block">Phone Number</Label>
                 <Input
                   id="customerPhone"
                   type="tel"
                   placeholder="(555) 123-4567"
                   value={bookingLinkData.customerPhone}
                   onChange={(e) => setBookingLinkData(prev => ({ ...prev, customerPhone: e.target.value }))}
-                  className="mt-1"
+                  className="h-9"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
               {/* Meeting Options */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="meetingDuration">Duration</Label>
+                  <Label htmlFor="meetingDuration" className="text-xs font-medium mb-1.5 block">Duration</Label>
                   <select
                     id="meetingDuration"
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-1"
+                    className="w-full h-9 px-3 border border-input bg-background text-sm"
+                    style={{ borderRadius: RADIUS.input }}
                     value={bookingLinkData.meetingDuration}
                     onChange={(e) => setBookingLinkData(prev => ({ ...prev, meetingDuration: e.target.value }))}
                   >
@@ -1081,10 +1095,11 @@ export default function AgentCalendar() {
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="meetingType">Meeting Type</Label>
+                  <Label htmlFor="meetingType" className="text-xs font-medium mb-1.5 block">Meeting Type</Label>
                   <select
                     id="meetingType"
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-1"
+                    className="w-full h-9 px-3 border border-input bg-background text-sm"
+                    style={{ borderRadius: RADIUS.input }}
                     value={bookingLinkData.meetingType}
                     onChange={(e) => setBookingLinkData(prev => ({ ...prev, meetingType: e.target.value as 'call' | 'video' | 'meeting' }))}
                   >
@@ -1097,19 +1112,20 @@ export default function AgentCalendar() {
 
               {/* Custom Message */}
               <div>
-                <Label htmlFor="message">Custom Message (optional)</Label>
+                <Label htmlFor="message" className="text-xs font-medium mb-1.5 block">Custom Message (optional)</Label>
                 <Textarea
                   id="message"
                   placeholder="Hi John, I'd love to schedule a time to discuss your insurance needs..."
                   value={bookingLinkData.message}
                   onChange={(e) => setBookingLinkData(prev => ({ ...prev, message: e.target.value }))}
                   rows={3}
-                  className="mt-1"
+                  className="min-h-[64px] resize-none text-sm"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
 
               {/* Sending From Info */}
-              <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+              <div className="bg-violet-50 border border-violet-200 p-3" style={{ borderRadius: RADIUS.input }}>
                 <p className="text-xs font-medium text-violet-800 mb-2">Sending From Your Account</p>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-xs text-violet-700">
@@ -1124,23 +1140,24 @@ export default function AgentCalendar() {
               </div>
 
               {/* Booking Link */}
-              <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
+              <div className="p-3 bg-gray-50 border flex items-center gap-2" style={{ borderRadius: RADIUS.input }}>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500 mb-1">Your Booking Link</p>
                   <code className="text-sm text-violet-600 truncate block">{agentBookingLink}</code>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => handleSendBookingLink('copy')} className="h-8 px-2">
+                <Button variant="ghost" size="sm" onClick={() => handleSendBookingLink('copy')} className="h-8 px-2" style={{ borderRadius: RADIUS.input }}>
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2 pt-4 border-t mt-2">
                 <Button
                   variant="outline"
                   onClick={() => setShowBookingLinkModal(false)}
-                  className="flex-1"
+                  className="flex-1 h-9"
                   disabled={isSending}
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   Cancel
                 </Button>
@@ -1148,7 +1165,8 @@ export default function AgentCalendar() {
                   variant="outline"
                   onClick={() => handleSendBookingLink('sms')}
                   disabled={!bookingLinkData.customerName || !bookingLinkData.customerPhone || isSending}
-                  className="flex-1 gap-2"
+                  className="flex-1 h-9 gap-2"
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   <MessageSquare className="w-4 h-4" />
                   Send SMS
@@ -1156,8 +1174,8 @@ export default function AgentCalendar() {
                 <Button
                   onClick={() => handleSendBookingLink('email')}
                   disabled={!bookingLinkData.customerName || !bookingLinkData.customerEmail || isSending}
-                  className="flex-1 gap-2"
-                  style={{ backgroundColor: gradientFrom }}
+                  className="flex-1 h-9 gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90"
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   {isSending ? (
                     <>
@@ -1178,16 +1196,17 @@ export default function AgentCalendar() {
             <div className="space-y-4">
               {/* Device Toggle */}
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Preview</Label>
-                <div className="flex bg-gray-100 rounded-lg p-1">
+                <Label className="text-xs font-medium">Preview</Label>
+                <div className="flex bg-gray-100 p-1" style={{ borderRadius: RADIUS.input }}>
                   <button
                     onClick={() => setDevicePreview("phone")}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
+                      "px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5",
                       devicePreview === "phone"
-                        ? "bg-white shadow text-gray-900"
+                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow"
                         : "text-gray-500 hover:text-gray-700"
                     )}
+                    style={{ borderRadius: RADIUS.input }}
                   >
                     <Smartphone className="w-4 h-4" />
                     Phone
@@ -1195,11 +1214,12 @@ export default function AgentCalendar() {
                   <button
                     onClick={() => setDevicePreview("desktop")}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5",
+                      "px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5",
                       devicePreview === "desktop"
-                        ? "bg-white shadow text-gray-900"
+                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow"
                         : "text-gray-500 hover:text-gray-700"
                     )}
+                    style={{ borderRadius: RADIUS.input }}
                   >
                     <Monitor className="w-4 h-4" />
                     Desktop
@@ -1210,21 +1230,19 @@ export default function AgentCalendar() {
               {/* Preview Tabs */}
               <div className="flex border-b">
                 {[
-                  { id: "email" as PreviewTab, label: "Email Preview", icon: Mail },
-                  { id: "sms" as PreviewTab, label: "SMS Preview", icon: MessageSquare },
-                  { id: "form" as PreviewTab, label: "Form Preview", icon: FileText },
+                  { id: "email" as PreviewTab, label: "Email", icon: Mail },
+                  { id: "sms" as PreviewTab, label: "SMS", icon: MessageSquare },
+                  { id: "form" as PreviewTab, label: "Form", icon: FileText },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setPreviewTab(tab.id)}
                     className={cn(
-                      "flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors",
-                      previewTab !== tab.id && "border-transparent text-gray-500 hover:text-gray-700"
+                      "flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors",
+                      previewTab === tab.id
+                        ? "border-violet-600 text-violet-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
                     )}
-                    style={previewTab === tab.id ? {
-                      borderColor: gradientFrom,
-                      color: gradientFrom
-                    } : {}}
                   >
                     <tab.icon className="w-4 h-4" />
                     {tab.label}
@@ -1233,10 +1251,13 @@ export default function AgentCalendar() {
               </div>
 
               {/* Preview Content */}
-              <div className={cn(
-                "bg-gray-100 rounded-xl p-4 flex items-start justify-center",
-                devicePreview === "phone" ? "py-6 min-h-[580px]" : "py-4 min-h-[400px]"
-              )}>
+              <div
+                className={cn(
+                  "bg-gray-100 p-4 flex items-start justify-center",
+                  devicePreview === "phone" ? "py-6 min-h-[580px]" : "py-4 min-h-[400px]"
+                )}
+                style={{ borderRadius: RADIUS.input }}
+              >
                 {devicePreview === "phone" ? (
                   // iPhone 17 Style Frame
                   <div className="relative">
@@ -1392,7 +1413,7 @@ export default function AgentCalendar() {
                                       </div>
                                       <div className="flex items-center gap-2 ml-2 mt-1">
                                         <span className="text-[10px] text-gray-400">Now</span>
-                                        <CheckCircle2 className="w-3 h-3 text-blue-500" />
+                                        <CheckCircle2 className="w-3 h-3 text-violet-500" />
                                       </div>
                                     </div>
                                   </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Bell, Check, CheckCheck, Trophy, MessageSquare, 
+import {
+  Bell, Check, CheckCheck, Trophy, MessageSquare,
   AlertTriangle, Calendar, DollarSign, GraduationCap,
   X, Clock
 } from "lucide-react";
@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { COLORS } from "@/lib/heritageDesignSystem";
 
 export interface Notification {
   id: string;
@@ -30,23 +31,23 @@ interface NotificationDropdownProps {
 
 const getNotificationIcon = (type: Notification['type']) => {
   switch (type) {
-    case 'achievement': return <Trophy className="w-4 h-4 text-violet-600" />;
+    case 'achievement': return <Trophy className="w-4 h-4" style={{ color: COLORS.primary.violet[600] }} />;
     case 'message': return <MessageSquare className="w-4 h-4 text-primary" />;
-    case 'alert': return <AlertTriangle className="w-4 h-4 text-orange-500" />;
+    case 'alert': return <AlertTriangle className="w-4 h-4" style={{ color: COLORS.semantic.warning }} />;
     case 'reminder': return <Calendar className="w-4 h-4 text-primary" />;
-    case 'earning': return <DollarSign className="w-4 h-4 text-violet-600" />;
+    case 'earning': return <DollarSign className="w-4 h-4" style={{ color: COLORS.accent.amber[500] }} />;
     case 'training': return <GraduationCap className="w-4 h-4 text-primary" />;
     default: return <Bell className="w-4 h-4" />;
   }
 };
 
-const getNotificationBg = (type: Notification['type'], read: boolean) => {
-  if (read) return 'bg-muted/30';
+const getNotificationBgStyle = (type: Notification['type'], read: boolean): React.CSSProperties => {
+  if (read) return { backgroundColor: 'rgba(0,0,0,0.03)' };
   switch (type) {
-    case 'achievement': return 'bg-violet-50';
-    case 'alert': return 'bg-orange-500/10';
-    case 'earning': return 'bg-violet-50';
-    default: return 'bg-primary/5';
+    case 'achievement': return { backgroundColor: COLORS.primary.violet[50] };
+    case 'alert': return { backgroundColor: `${COLORS.semantic.warning}15` };
+    case 'earning': return { backgroundColor: COLORS.accent.amber[50] };
+    default: return { backgroundColor: `${COLORS.primary.violet[600]}08` };
   }
 };
 
@@ -71,8 +72,9 @@ export function NotificationDropdown({
           <Bell className="w-5 h-5" />
           <AnimatePresence>
             {unreadCount > 0 && (
-              <motion.span 
-                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1"
+              <motion.span
+                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-white text-[10px] font-bold rounded-full px-1"
+                style={{ backgroundColor: COLORS.semantic.error }}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
@@ -130,9 +132,9 @@ export function NotificationDropdown({
                     transition={{ delay: idx * 0.05 }}
                     className={cn(
                       "relative px-4 py-3 border-b last:border-0 group cursor-pointer transition-colors",
-                      getNotificationBg(notification.type, notification.read),
                       !notification.read && "hover:bg-muted/50"
                     )}
+                    style={getNotificationBgStyle(notification.type, notification.read)}
                     onClick={() => !notification.read && onMarkAsRead(notification.id)}
                   >
                     <div className="flex gap-3">

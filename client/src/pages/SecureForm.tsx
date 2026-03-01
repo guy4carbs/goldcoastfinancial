@@ -40,12 +40,125 @@ import {
   Trash2,
   DollarSign,
   Percent,
+  IdCard,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { CARRIER_BRANDING, type CarrierBranding } from "@shared/carrierBranding";
 
-type FormType = "ssn" | "banking" | "full_application";
+type FormType = "ssn" | "banking" | "drivers_license" | "full_application";
+
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"
+];
+
+const MONTHS = [
+  { value: "01", label: "January" }, { value: "02", label: "February" }, { value: "03", label: "March" },
+  { value: "04", label: "April" }, { value: "05", label: "May" }, { value: "06", label: "June" },
+  { value: "07", label: "July" }, { value: "08", label: "August" }, { value: "09", label: "September" },
+  { value: "10", label: "October" }, { value: "11", label: "November" }, { value: "12", label: "December" },
+];
+
+function getDaysInMonth(month: number, year: number) {
+  return new Date(year, month, 0).getDate();
+}
+
+function DateSelect({
+  value,
+  onChange,
+  error,
+  minYear = 1930,
+  maxYear,
+  size = "default",
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  error?: boolean;
+  minYear?: number;
+  maxYear?: number;
+  size?: "default" | "small";
+}) {
+  const currentYear = new Date().getFullYear();
+  const endYear = maxYear || currentYear + 10;
+  const years = Array.from({ length: endYear - minYear + 1 }, (_, i) => endYear - i);
+
+  const parts = value ? value.split("-") : ["", "", ""];
+  const [selYear, selMonth, selDay] = parts;
+
+  const numMonth = parseInt(selMonth) || 0;
+  const numYear = parseInt(selYear) || currentYear;
+  const daysCount = numMonth ? getDaysInMonth(numMonth, numYear) : 31;
+  const days = Array.from({ length: daysCount }, (_, i) => i + 1);
+
+  const update = (field: "year" | "month" | "day", val: string) => {
+    let y = selYear, m = selMonth, d = selDay;
+    if (field === "year") y = val;
+    if (field === "month") m = val;
+    if (field === "day") d = val;
+
+    // Clamp day if needed
+    if (y && m && d) {
+      const maxDay = getDaysInMonth(parseInt(m), parseInt(y));
+      if (parseInt(d) > maxDay) d = String(maxDay).padStart(2, "0");
+    }
+
+    if (y && m && d) {
+      onChange(`${y}-${m}-${d}`);
+    } else if (y || m || d) {
+      onChange(`${y || ""}-${m || ""}-${d || ""}`);
+    }
+  };
+
+  const h = size === "small" ? "h-10" : "h-12";
+  const borderCls = error ? "border-red-300" : "border-gray-200";
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <Select value={selMonth} onValueChange={(v) => update("month", v)}>
+        <SelectTrigger className={cn(h, "border-2 rounded-xl text-sm", borderCls)}>
+          <SelectValue placeholder="Month" />
+        </SelectTrigger>
+        <SelectContent>
+          {MONTHS.map((m) => (
+            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={selDay} onValueChange={(v) => update("day", v)}>
+        <SelectTrigger className={cn(h, "border-2 rounded-xl text-sm", borderCls)}>
+          <SelectValue placeholder="Day" />
+        </SelectTrigger>
+        <SelectContent>
+          {days.map((d) => (
+            <SelectItem key={d} value={String(d).padStart(2, "0")}>{d}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={selYear} onValueChange={(v) => update("year", v)}>
+        <SelectTrigger className={cn(h, "border-2 rounded-xl text-sm", borderCls)}>
+          <SelectValue placeholder="Year" />
+        </SelectTrigger>
+        <SelectContent>
+          {years.map((y) => (
+            <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 interface Beneficiary {
   id: string;
@@ -67,6 +180,12 @@ interface FormData {
   accountNumber?: string;
   confirmAccountNumber?: string;
   accountHolderName?: string;
+
+  // Driver's License / State ID
+  licenseNumber?: string;
+  issuingState?: string;
+  licenseExpiration?: string;
+  licenseType?: "drivers_license" | "state_id";
 
   // Full Application
   fullName?: string;
@@ -156,6 +275,7 @@ export default function SecureForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSsn, setShowSsn] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
+  const [showLicense, setShowLicense] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
   const [formMeta, setFormMeta] = useState<FormMetadata | null>(null);
@@ -167,19 +287,29 @@ export default function SecureForm() {
   ]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     personal: true,
-    coverage: false,
     ssn: false,
     banking: false,
+    identification: false,
+    coverage: false,
     beneficiary: false,
     additional: false,
   });
   const [autoAdvancedSections, setAutoAdvancedSections] = useState<Set<string>>(new Set());
   const [manuallyOpened, setManuallyOpened] = useState<string | null>(null);
+  const [showAddBeneficiaryPrompt, setShowAddBeneficiaryPrompt] = useState(false);
 
-  const sectionOrder = ['personal', 'ssn', 'banking', 'coverage', 'beneficiary', 'additional'];
+  const sectionOrder = ['personal', 'ssn', 'banking', 'identification', 'coverage', 'beneficiary', 'additional'];
 
   const toggleSection = (section: string) => {
     setManuallyOpened(section);
+    // When closing beneficiary section, prompt to add another if at least one is complete
+    if (section === 'beneficiary' && expandedSections.beneficiary) {
+      const hasCompleteBeneficiary = beneficiaries.some(b => b.name && b.relationship && b.dob && b.percentage > 0);
+      if (hasCompleteBeneficiary) {
+        setShowAddBeneficiaryPrompt(true);
+        return;
+      }
+    }
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
@@ -187,6 +317,12 @@ export default function SecureForm() {
   };
 
   const advanceToNextSection = (currentSection: string) => {
+    // When beneficiary section auto-completes, show the add-another prompt
+    if (currentSection === 'beneficiary') {
+      setAutoAdvancedSections(prev => new Set(prev).add(currentSection));
+      setShowAddBeneficiaryPrompt(true);
+      return;
+    }
     const currentIndex = sectionOrder.indexOf(currentSection);
     if (currentIndex < sectionOrder.length - 1) {
       const nextSection = sectionOrder[currentIndex + 1];
@@ -250,10 +386,20 @@ export default function SecureForm() {
         return !!(formData.ssn && formData.ssn.length === 11);
       case 'banking':
         return !!(formData.accountHolderName && formData.bankName && formData.routingNumber && formData.routingNumber.length === 9 && formData.accountNumber && formData.accountNumber.length >= 4 && formData.accountType);
-      case 'beneficiary':
+      case 'identification': {
+        const expParts = (formData.licenseExpiration || "").split("-");
+        const expComplete = expParts.length === 3 && expParts.every(p => p.length > 0);
+        return !!(formData.licenseNumber && formData.issuingState && expComplete && formData.dateOfBirth);
+      }
+      case 'beneficiary': {
+        const isDateComplete = (d: string) => {
+          const parts = (d || "").split("-");
+          return parts.length === 3 && parts.every(p => p.length > 0);
+        };
         return beneficiaries.length > 0 &&
-               beneficiaries.every(b => b.name && b.relationship && b.dob && b.percentage > 0) &&
+               beneficiaries.every(b => b.name && b.relationship && isDateComplete(b.dob) && b.percentage > 0) &&
                getTotalPercentage() === 100;
+      }
       case 'additional':
         if (!carrier?.additionalFields) return true;
         return carrier.additionalFields
@@ -374,6 +520,27 @@ export default function SecureForm() {
       }
     }
 
+    if (formMeta?.formType === "drivers_license") {
+      if (!formData.fullName?.trim()) {
+        newErrors.fullName = "Full legal name is required";
+      }
+      if (!formData.dateOfBirth) {
+        newErrors.dateOfBirth = "Date of birth is required";
+      }
+      if (!formData.licenseNumber?.trim()) {
+        newErrors.licenseNumber = "License / ID number is required";
+      }
+      if (!formData.issuingState) {
+        newErrors.issuingState = "Issuing state is required";
+      }
+      if (!formData.licenseExpiration) {
+        newErrors.licenseExpiration = "Expiration date is required";
+      }
+      if (!formData.consentToProcess) {
+        newErrors.consentToProcess = "You must consent to proceed";
+      }
+    }
+
     if (formMeta?.formType === "full_application") {
       // Personal Information - ALL required
       if (!formData.fullName?.trim()) newErrors.fullName = "Full name is required";
@@ -417,6 +584,11 @@ export default function SecureForm() {
       if (!formData.accountNumber || formData.accountNumber.length < 4) {
         newErrors.accountNumber = "Please enter a valid account number";
       }
+
+      // Identification
+      if (!formData.licenseNumber?.trim()) newErrors.licenseNumber = "License / ID number is required";
+      if (!formData.issuingState) newErrors.issuingState = "Issuing state is required";
+      if (!formData.licenseExpiration) newErrors.licenseExpiration = "Expiration date is required";
 
       // Coverage Details - ALL required except monthly premium
       if (!formData.coverageType) newErrors.coverageType = "Coverage type is required";
@@ -465,7 +637,10 @@ export default function SecureForm() {
       const response = await fetch(`/api/secure-forms/${id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          beneficiaries: formMeta?.formType === 'full_application' ? beneficiaries : undefined,
+        }),
       });
 
       if (!response.ok) {
@@ -758,6 +933,7 @@ export default function SecureForm() {
                 <h2 className="font-bold text-gray-900">
                   {formMeta?.formType === "ssn" && carrier?.ssnFormTitle}
                   {formMeta?.formType === "banking" && carrier?.bankingFormTitle}
+                  {formMeta?.formType === "drivers_license" && "Secure ID Verification"}
                   {formMeta?.formType === "full_application" && carrier?.applicationFormTitle}
                 </h2>
                 <p className="text-sm text-gray-500">{formStyles.description}</p>
@@ -985,6 +1161,185 @@ export default function SecureForm() {
                 </div>
               )}
 
+              {/* Driver's License / State ID Form */}
+              {formMeta?.formType === "drivers_license" && (
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-sm font-semibold text-gray-700">
+                      Full Legal Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="fullName"
+                      placeholder="As it appears on your ID"
+                      value={formData.fullName || ""}
+                      onChange={(e) => handleChange("fullName", e.target.value)}
+                      className={cn("h-12 border-2 rounded-xl", errors.fullName ? "border-red-300" : "border-gray-200")}
+                    />
+                    {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      Date of Birth <span className="text-red-500">*</span>
+                    </Label>
+                    <DateSelect
+                      value={formData.dateOfBirth || ""}
+                      onChange={(val) => handleChange("dateOfBirth", val)}
+                      error={!!errors.dateOfBirth}
+                      maxYear={new Date().getFullYear()}
+                    />
+                    {errors.dateOfBirth && <p className="text-red-500 text-xs">{errors.dateOfBirth}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700">
+                      ID Type
+                    </Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleChange("licenseType", "drivers_license")}
+                        className={cn(
+                          "h-12 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-medium transition-all",
+                          (!formData.licenseType || formData.licenseType === "drivers_license")
+                            ? "border-gray-900 bg-gray-900 text-white"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        )}
+                        style={
+                          (!formData.licenseType || formData.licenseType === "drivers_license") && carrier?.primaryColor
+                            ? { borderColor: carrier.primaryColor, backgroundColor: carrier.primaryColor }
+                            : {}
+                        }
+                      >
+                        <IdCard className="w-5 h-5" />
+                        Driver's License
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleChange("licenseType", "state_id")}
+                        className={cn(
+                          "h-12 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-medium transition-all",
+                          formData.licenseType === "state_id"
+                            ? "border-gray-900 bg-gray-900 text-white"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        )}
+                        style={
+                          formData.licenseType === "state_id" && carrier?.primaryColor
+                            ? { borderColor: carrier.primaryColor, backgroundColor: carrier.primaryColor }
+                            : {}
+                        }
+                      >
+                        <BadgeCheck className="w-5 h-5" />
+                        State ID
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="licenseNumber" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-gray-400" />
+                      {formData.licenseType === "state_id" ? "State ID Number" : "Driver's License Number"} <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="licenseNumber"
+                        type={showLicense ? "text" : "password"}
+                        placeholder="Enter your ID number"
+                        value={formData.licenseNumber || ""}
+                        onChange={(e) => handleChange("licenseNumber", e.target.value)}
+                        className={cn("h-12 font-mono pr-12 border-2 rounded-xl", errors.licenseNumber ? "border-red-300" : "border-gray-200")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLicense(!showLicense)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showLicense ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {errors.licenseNumber && <p className="text-red-500 text-xs">{errors.licenseNumber}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="issuingState" className="text-sm font-semibold text-gray-700">
+                        Issuing State <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={formData.issuingState || ""}
+                        onValueChange={(value) => handleChange("issuingState", value)}
+                      >
+                        <SelectTrigger className={cn("h-12 border-2 rounded-xl", errors.issuingState ? "border-red-300" : "border-gray-200")}>
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {US_STATES.map((st) => (
+                            <SelectItem key={st} value={st}>{st}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.issuingState && <p className="text-red-500 text-xs">{errors.issuingState}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        Expiration Date <span className="text-red-500">*</span>
+                      </Label>
+                      <DateSelect
+                        value={formData.licenseExpiration || ""}
+                        onChange={(val) => handleChange("licenseExpiration", val)}
+                        error={!!errors.licenseExpiration}
+                        minYear={new Date().getFullYear()}
+                        maxYear={new Date().getFullYear() + 15}
+                      />
+                      {errors.licenseExpiration && <p className="text-red-500 text-xs">{errors.licenseExpiration}</p>}
+                    </div>
+                  </div>
+
+                  {/* Security Notice */}
+                  <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                        <ShieldCheck className="w-4 h-4 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Your data is protected</p>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                          Your ID information is encrypted end-to-end and only accessible by your authorized agent.
+                          This data is used solely for identity verification purposes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Consent */}
+                  <div
+                    className={cn(
+                      "flex items-start gap-3 p-4 rounded-xl border-2 transition-colors",
+                      formData.consentToProcess
+                        ? "border-emerald-300 bg-emerald-50"
+                        : errors.consentToProcess
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-200"
+                    )}
+                  >
+                    <Checkbox
+                      id="consent"
+                      checked={formData.consentToProcess || false}
+                      onCheckedChange={(checked) => handleChange("consentToProcess", checked as boolean)}
+                      className="mt-0.5"
+                    />
+                    <Label htmlFor="consent" className="text-sm text-gray-600 leading-relaxed cursor-pointer">
+                      I authorize the collection and verification of my identification information for
+                      insurance underwriting purposes. I confirm that the information provided is accurate
+                      and matches my government-issued ID.
+                    </Label>
+                  </div>
+                  {errors.consentToProcess && <p className="text-red-500 text-xs -mt-3">{errors.consentToProcess}</p>}
+                </div>
+              )}
+
               {/* Full Application Form */}
               {formMeta?.formType === "full_application" && (
                 <div className="space-y-3">
@@ -1012,7 +1367,7 @@ export default function SecureForm() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900">Personal Information</h3>
-                        <p className="text-xs text-gray-500">Step 1 of 6 • Basic details & health questions</p>
+                        <p className="text-xs text-gray-500">Step 1 of 7 • Basic details & health questions</p>
                       </div>
                       <ChevronDown
                         className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.personal && "rotate-180")}
@@ -1044,11 +1399,11 @@ export default function SecureForm() {
                                   <Calendar className="w-4 h-4 text-gray-400" />
                                   Date of Birth <span className="text-red-500">*</span>
                                 </Label>
-                                <Input
-                                  type="date"
+                                <DateSelect
                                   value={formData.dateOfBirth || ""}
-                                  onChange={(e) => handleChange("dateOfBirth", e.target.value)}
-                                  className={cn("h-12 border-2 rounded-xl", errors.dateOfBirth ? "border-red-300" : "border-gray-200")}
+                                  onChange={(val) => handleChange("dateOfBirth", val)}
+                                  error={!!errors.dateOfBirth}
+                                  maxYear={new Date().getFullYear()}
                                 />
                                 {errors.dateOfBirth && <p className="text-red-500 text-xs">{errors.dateOfBirth}</p>}
                               </div>
@@ -1401,7 +1756,7 @@ export default function SecureForm() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900">Social Security Number</h3>
-                        <p className="text-xs text-gray-500">Step 2 of 6 • Required for identity verification</p>
+                        <p className="text-xs text-gray-500">Step 2 of 7 • Required for identity verification</p>
                       </div>
                       <ChevronDown
                         className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.ssn && "rotate-180")}
@@ -1475,7 +1830,7 @@ export default function SecureForm() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900">Banking Details</h3>
-                        <p className="text-xs text-gray-500">Step 3 of 6 • For premium payments</p>
+                        <p className="text-xs text-gray-500">Step 3 of 7 • For premium payments</p>
                       </div>
                       <ChevronDown
                         className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.banking && "rotate-180")}
@@ -1553,7 +1908,156 @@ export default function SecureForm() {
                     </AnimatePresence>
                   </div>
 
-                  {/* Section 4: Coverage Details */}
+                  {/* Section 4: Identification (Driver's License / State ID) */}
+                  <div
+                    className="rounded-2xl border-2 overflow-hidden transition-all"
+                    style={{
+                      borderColor: expandedSections.identification ? carrier?.primaryColor : '#e5e7eb',
+                      backgroundColor: expandedSections.identification ? `${carrier?.primaryColor}05` : 'white'
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSection('identification')}
+                      className="w-full flex items-center gap-3 p-4 text-left"
+                    >
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          backgroundColor: isSectionComplete('identification') ? '#10b981' : expandedSections.identification ? carrier?.primaryColor : '#f3f4f6',
+                          color: isSectionComplete('identification') || expandedSections.identification ? '#ffffff' : '#9ca3af'
+                        }}
+                      >
+                        {isSectionComplete('identification') ? <Check className="w-5 h-5" /> : <IdCard className="w-5 h-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900">Driver's License / State ID</h3>
+                        <p className="text-xs text-gray-500">Step 4 of 7 • Government-issued identification</p>
+                      </div>
+                      <ChevronDown
+                        className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.identification && "rotate-180")}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {expandedSections.identification && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 grid gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-semibold text-gray-700">ID Type</Label>
+                              <div className="grid grid-cols-2 gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleChange("licenseType", "drivers_license")}
+                                  className={cn(
+                                    "h-12 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-medium transition-all",
+                                    (!formData.licenseType || formData.licenseType === "drivers_license")
+                                      ? "border-gray-900 bg-gray-900 text-white"
+                                      : "border-gray-200 text-gray-600 hover:border-gray-300"
+                                  )}
+                                  style={
+                                    (!formData.licenseType || formData.licenseType === "drivers_license") && carrier?.primaryColor
+                                      ? { borderColor: carrier.primaryColor, backgroundColor: carrier.primaryColor }
+                                      : {}
+                                  }
+                                >
+                                  <IdCard className="w-5 h-5" />
+                                  Driver's License
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleChange("licenseType", "state_id")}
+                                  className={cn(
+                                    "h-12 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-medium transition-all",
+                                    formData.licenseType === "state_id"
+                                      ? "border-gray-900 bg-gray-900 text-white"
+                                      : "border-gray-200 text-gray-600 hover:border-gray-300"
+                                  )}
+                                  style={
+                                    formData.licenseType === "state_id" && carrier?.primaryColor
+                                      ? { borderColor: carrier.primaryColor, backgroundColor: carrier.primaryColor }
+                                      : {}
+                                  }
+                                >
+                                  <BadgeCheck className="w-5 h-5" />
+                                  State ID
+                                </button>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <Lock className="w-4 h-4 text-gray-400" />
+                                {formData.licenseType === "state_id" ? "State ID Number" : "Driver's License Number"} <span className="text-red-500">*</span>
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  type={showLicense ? "text" : "password"}
+                                  placeholder="Enter your ID number"
+                                  value={formData.licenseNumber || ""}
+                                  onChange={(e) => handleChange("licenseNumber", e.target.value)}
+                                  className={cn("h-12 font-mono pr-12 border-2 rounded-xl", errors.licenseNumber ? "border-red-300" : "border-gray-200")}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowLicense(!showLicense)}
+                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                  {showLicense ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                              </div>
+                              {errors.licenseNumber && <p className="text-red-500 text-xs">{errors.licenseNumber}</p>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-semibold text-gray-700">Issuing State <span className="text-red-500">*</span></Label>
+                                <Select
+                                  value={formData.issuingState || ""}
+                                  onValueChange={(value) => handleChange("issuingState", value)}
+                                >
+                                  <SelectTrigger className={cn("h-12 border-2 rounded-xl", errors.issuingState ? "border-red-300" : "border-gray-200")}>
+                                    <SelectValue placeholder="Select state" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {US_STATES.map((st) => (
+                                      <SelectItem key={st} value={st}>{st}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {errors.issuingState && <p className="text-red-500 text-xs">{errors.issuingState}</p>}
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                  <Calendar className="w-4 h-4 text-gray-400" />
+                                  Expiration Date <span className="text-red-500">*</span>
+                                </Label>
+                                <DateSelect
+                                  value={formData.licenseExpiration || ""}
+                                  onChange={(val) => handleChange("licenseExpiration", val)}
+                                  error={!!errors.licenseExpiration}
+                                  minYear={new Date().getFullYear()}
+                                  maxYear={new Date().getFullYear() + 15}
+                                />
+                                {errors.licenseExpiration && <p className="text-red-500 text-xs">{errors.licenseExpiration}</p>}
+                              </div>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+                              <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-gray-500" />
+                                <p className="text-xs text-gray-500">Your ID information is encrypted and used solely for identity verification.</p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Section 5: Coverage Details */}
                   <div
                     className="rounded-2xl border-2 overflow-hidden transition-all"
                     style={{
@@ -1577,7 +2081,7 @@ export default function SecureForm() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900">Coverage Details</h3>
-                        <p className="text-xs text-gray-500">Step 4 of 6 • Type and amount of coverage</p>
+                        <p className="text-xs text-gray-500">Step 5 of 7 • Type and amount of coverage</p>
                       </div>
                       <ChevronDown
                         className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.coverage && "rotate-180")}
@@ -1692,7 +2196,7 @@ export default function SecureForm() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900">Beneficiary Information</h3>
-                        <p className="text-xs text-gray-500">Step 5 of 6 • Who receives the benefit</p>
+                        <p className="text-xs text-gray-500">Step 6 of 7 • Who receives the benefit</p>
                       </div>
                       <ChevronDown
                         className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.beneficiary && "rotate-180")}
@@ -1786,11 +2290,12 @@ export default function SecureForm() {
                                 <div className="grid grid-cols-2 gap-3">
                                   <div className="space-y-1.5">
                                     <Label className="text-xs font-medium text-gray-600">Date of Birth <span className="text-red-500">*</span></Label>
-                                    <Input
-                                      type="date"
+                                    <DateSelect
                                       value={beneficiary.dob}
-                                      onChange={(e) => updateBeneficiary(beneficiary.id, 'dob', e.target.value)}
-                                      className="h-10 border-2 border-gray-200 rounded-lg text-sm"
+                                      onChange={(val) => updateBeneficiary(beneficiary.id, 'dob', val)}
+                                      error={false}
+                                      maxYear={new Date().getFullYear()}
+                                      size="small"
                                     />
                                   </div>
                                   <div className="space-y-1.5">
@@ -1859,7 +2364,7 @@ export default function SecureForm() {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-bold text-gray-900">Additional Information</h3>
-                          <p className="text-xs text-gray-500">Step 6 of 6 • {carrier.shortName} specific questions</p>
+                          <p className="text-xs text-gray-500">Step 7 of 7 • {carrier.shortName} specific questions</p>
                         </div>
                         <ChevronDown
                           className={cn("w-5 h-5 text-gray-400 transition-transform", expandedSections.additional && "rotate-180")}
@@ -2094,6 +2599,68 @@ export default function SecureForm() {
           </p>
         </motion.div>
       </div>
+
+      {/* Add Another Beneficiary Prompt */}
+      <AlertDialog open={showAddBeneficiaryPrompt} onOpenChange={setShowAddBeneficiaryPrompt}>
+        <AlertDialogContent className="p-0 border-0 overflow-hidden" style={{ borderRadius: 24, background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)' }}>
+          {/* Gradient Header */}
+          <div
+            className="px-6 py-5 flex items-center gap-3"
+            style={{
+              background: `linear-gradient(135deg, ${carrier?.gradientFrom || carrier?.primaryColor || '#7c3aed'} 0%, ${carrier?.gradientTo || '#f59e0b'} 100%)`,
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <AlertDialogTitle className="text-white font-bold text-base">Add Another Beneficiary?</AlertDialogTitle>
+              <p className="text-white/70 text-xs mt-0.5">Split your benefit between multiple people</p>
+            </div>
+          </div>
+
+          <div className="px-6 py-5">
+            <AlertDialogDescription className="text-gray-600 text-sm leading-relaxed">
+              Would you like to add another beneficiary to your policy? You can designate multiple beneficiaries and split the benefit percentage between them.
+            </AlertDialogDescription>
+
+            {/* Current beneficiary summary */}
+            <div className="mt-4 p-3 rounded-xl" style={{ backgroundColor: `${carrier?.primaryColor || '#7c3aed'}08`, border: `1px solid ${carrier?.primaryColor || '#7c3aed'}15` }}>
+              <p className="text-xs font-semibold text-gray-700 mb-1">Current beneficiaries: {beneficiaries.length}</p>
+              <p className="text-xs text-gray-500">Total allocation: {getTotalPercentage()}%</p>
+            </div>
+          </div>
+
+          <div className="px-6 pb-5 flex gap-3">
+            <AlertDialogCancel
+              onClick={() => {
+                setShowAddBeneficiaryPrompt(false);
+                const benIndex = sectionOrder.indexOf('beneficiary');
+                const nextSection = sectionOrder[benIndex + 1];
+                setExpandedSections(prev => ({
+                  ...prev,
+                  beneficiary: false,
+                  ...(nextSection ? { [nextSection]: true } : {})
+                }));
+              }}
+              className="flex-1 h-11 border-2 font-semibold"
+              style={{ borderRadius: 16, borderColor: `${carrier?.primaryColor || '#7c3aed'}30`, color: carrier?.primaryColor || '#7c3aed' }}
+            >
+              No, continue
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowAddBeneficiaryPrompt(false);
+                addBeneficiary();
+              }}
+              className="flex-1 h-11 border-0 font-semibold text-white"
+              style={{ borderRadius: 16, background: `linear-gradient(135deg, ${carrier?.gradientFrom || carrier?.primaryColor || '#7c3aed'} 0%, ${carrier?.gradientTo || '#f59e0b'} 100%)` }}
+            >
+              Yes, add another
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

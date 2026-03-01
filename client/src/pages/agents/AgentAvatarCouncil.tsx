@@ -34,25 +34,29 @@ export default function AgentAvatarCouncil() {
         {/* Hero Card */}
         <motion.div
           variants={fadeInUp}
-          className="w-full max-w-3xl text-center"
+          className="w-full max-w-3xl text-center relative overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #6366f1 100%)",
+            background: "linear-gradient(135deg, #7c3aed 0%, #9333ea 40%, #f59e0b 100%)",
             borderRadius: RADIUS.hero,
             padding: spacing(5),
             boxShadow: SHADOW.hero,
           }}
         >
+          {/* Decorative blobs */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-amber-400/15 rounded-full blur-xl" />
+
           {/* Icon */}
           <motion.div
             variants={scaleIn}
-            className="w-24 h-24 mx-auto mb-6 flex items-center justify-center"
+            className="w-24 h-24 mx-auto mb-6 flex items-center justify-center relative z-10"
             style={{
               background: "rgba(255, 255, 255, 0.2)",
+              backdropFilter: "blur(10px)",
               borderRadius: RADIUS.card,
-              border: "1px solid rgba(255, 255, 255, 0.3)",
             }}
           >
-            <Users className="w-12 h-12 text-white" />
+            <Users className="w-12 h-12 text-amber-200" />
           </motion.div>
 
           {/* Title with Gradient Text Effect */}
@@ -138,19 +142,17 @@ export default function AgentAvatarCouncil() {
                 background: "white",
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
-                border: "1px solid rgba(139, 92, 246, 0.1)",
               }}
             >
               <motion.div
                 whileHover={{ rotate: 5 }}
                 transition={{ duration: MOTION.duration.hover }}
-                className="w-12 h-12 mx-auto mb-4 flex items-center justify-center"
+                className="w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
                 style={{
-                  background: "linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)",
                   borderRadius: RADIUS.button,
                 }}
               >
-                <feature.icon className="w-6 h-6 text-violet-600" />
+                <feature.icon className="w-6 h-6 text-amber-200" />
               </motion.div>
               <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
               <p className="text-sm text-gray-600">{feature.description}</p>
@@ -174,9 +176,9 @@ export default function AgentAvatarCouncil() {
               ease: "easeInOut"
             }}
           >
-            <Sparkles className="w-5 h-5 text-violet-500" />
+            <Sparkles className="w-5 h-5 text-amber-500" />
           </motion.div>
-          <span className="text-sm font-medium">Powered by Heritage AI</span>
+          <span className="text-sm font-medium text-gray-500">Powered by Heritage AI</span>
           <motion.div
             animate={{
               opacity: [0.5, 1, 0.5],
@@ -189,7 +191,7 @@ export default function AgentAvatarCouncil() {
               delay: 1,
             }}
           >
-            <Sparkles className="w-5 h-5 text-violet-500" />
+            <Sparkles className="w-5 h-5 text-amber-500" />
           </motion.div>
         </motion.div>
       </motion.div>

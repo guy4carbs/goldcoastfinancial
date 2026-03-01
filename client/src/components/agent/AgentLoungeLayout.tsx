@@ -45,6 +45,9 @@ import {
   Inbox,
   Shield,
   CreditCard,
+  FolderOpen,
+  Network,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,119 +56,18 @@ import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
 import { ErrorBoundary } from "./primitives/ErrorBoundary";
 
-// =============================================================================
-// HERITAGE COMMAND LOUNGE DESIGN SYSTEM
-// =============================================================================
-
-// 8-Point Modular Grid
-const GRID = {
-  unit: 8,
-  spacing: {
-    xs: 8,
-    sm: 16,
-    md: 24,
-    lg: 32,
-    xl: 40,
-    xxl: 48,
-    xxxl: 64,
-    xxxxl: 80,
-    section: 96,
-  },
-};
-
-// Typography Scale
-const TYPE = {
-  display: 40,
-  hero: 34,
-  section: 24,
-  title: 20,
-  body: 17,
-  meta: 14,
-  caption: 13,
-  micro: 11,
-  lineHeight: 1.4,
-};
-
-// Corner Radius System
-const RADIUS = {
-  button: 16,
-  card: 24,
-  hero: 32,
-  pill: 9999,
-};
-
-// Elevation-Based Shadow System
-const SHADOW = {
-  level1: '0 4px 6px rgba(0, 0, 0, 0.02)',
-  level2: '0 8px 12px rgba(0, 0, 0, 0.04)',
-  level3: '0 12px 18px rgba(0, 0, 0, 0.06)',
-  hero: '0 16px 24px rgba(0, 0, 0, 0.08)',
-};
-
-// Glass Material System
-const GLASS = {
-  blur: 20,
-  background: 'rgba(255, 255, 255, 0.72)',
-  backgroundDark: 'rgba(255, 255, 255, 0.85)',
-  border: 'rgba(0, 0, 0, 0.06)',
-};
-
-// Motion System (Apple-style curves)
-const MOTION = {
-  easing: [0.22, 1, 0.36, 1],
-  duration: {
-    hover: 0.12,
-    expand: 0.22,
-    transition: 0.35,
-    modal: 0.4,
-  },
-  hover: {
-    y: -4,
-    scale: 1.01,
-  },
-};
-
-// Layout Dimensions
-const LAYOUT = {
-  sidebar: {
-    expanded: 280,
-    collapsed: 88,
-    rowHeight: 48,
-    iconSize: 24,
-  },
-  header: {
-    height: 64,
-  },
-};
-
-// Heritage Brand Colors
-const COLORS = {
-  primary: {
-    violet: {
-      50: '#f5f3ff',
-      100: '#ede9fe',
-      500: '#8b5cf6',
-      600: '#7c3aed',
-      700: '#6d28d9',
-    },
-    purple: {
-      50: '#faf5ff',
-      100: '#f3e8ff',
-      500: '#a855f7',
-      600: '#9333ea',
-      700: '#7e22ce',
-    },
-  },
-  accent: {
-    amber: {
-      50: '#fffbeb',
-      100: '#fef3c7',
-      400: '#fbbf24',
-      500: '#f59e0b',
-      600: '#d97706',
-    },
-  },
-};
+// Import centralized design system
+import {
+  GRID,
+  TYPE,
+  RADIUS,
+  SHADOW,
+  GLASS,
+  MOTION,
+  LAYOUT,
+  COLORS,
+  getHoverBg,
+} from "@/lib/heritageDesignSystem";
 
 const SIDEBAR_EXPANDED = LAYOUT.sidebar.expanded;
 const SIDEBAR_COLLAPSED = LAYOUT.sidebar.collapsed;
@@ -180,32 +82,37 @@ interface NavItem {
   badge?: number;
 }
 
-const mainNavItems: NavItem[] = [
+// COMMAND CENTER - Daily operations hub
+const commandCenterItems: NavItem[] = [
   { icon: Home, label: "Dashboard", href: "/agents/dashboard" },
+  { icon: BarChart3, label: "Performance", href: "/agents/performance" },
   { icon: Inbox, label: "Lead Inbox", href: "/agents/inbox" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
-  { icon: BarChart3, label: "Performance", href: "/agents/performance" },
 ];
 
-const toolsNavItems: NavItem[] = [
+// OUTREACH - All communication & engagement
+const outreachItems: NavItem[] = [
+  { icon: Phone, label: "Dialer", href: "/agents/dialer" },
+  { icon: MessageSquare, label: "Communications", href: "/agents/communications" },
+  { icon: Zap, label: "Automations", href: "/agents/automations" },
+  { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
+];
+
+// SALES TOOLKIT - Selling tools
+const toolkitItems: NavItem[] = [
+  { icon: FileText, label: "Quotes", href: "/agents/quotes" },
   { icon: CreditCard, label: "Member Cards", href: "/agents/member-cards" },
   { icon: Shield, label: "Data Encryption", href: "/agents/data-encryption" },
-  { icon: Zap, label: "Automations", href: "/agents/automations" },
+  { icon: FolderOpen, label: "Resources", href: "/agents/resources" },
   { icon: Bot, label: "AI Avatar Council", href: "/agents/avatar-council" },
-  { icon: FileText, label: "Quotes", href: "/agents/quotes" },
-  { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
-  { icon: BookOpen, label: "Resources", href: "/agents/resources" },
-  { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
 ];
 
-const growthNavItems: NavItem[] = [
+// GROWTH - Development & gamification
+const growthItems: NavItem[] = [
   { icon: Trophy, label: "Leaderboard", href: "/agents/leaderboard" },
   { icon: Star, label: "Achievements", href: "/agents/achievements" },
-];
-
-const teamNavItems: NavItem[] = [
-  { icon: Mail, label: "Email", href: "/agents/email" },
-  { icon: MessageSquare, label: "Chat", href: "/agents/chat" },
+  { icon: Network, label: "My Hierarchy", href: "/agents/hierarchy" },
+  { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
 ];
 
 interface AgentLoungeLayoutProps {
@@ -264,18 +171,19 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       'getting-started': '/agents/getting-started',
       calendar: '/agents/calendar',
       performance: '/agents/performance',
-      chat: '/agents/chat',
-      email: '/agents/email',
+      dialer: '/agents/dialer',
+      communications: '/agents/communications',
       quotes: '/agents/quotes',
       scripts: '/agents/scripts',
       resources: '/agents/resources',
       guidelines: '/agents/guidelines',
       leaderboard: '/agents/leaderboard',
       achievements: '/agents/achievements',
+      hierarchy: '/agents/hierarchy',
       settings: '/agents/settings',
       'avatar-council': '/agents/avatar-council',
       automations: '/agents/automations',
-      'data-encryption': '/agents/data-encryption',
+      'member-cards': '/agents/member-cards',
     };
     if (routes[tab]) {
       setLocation(routes[tab]);
@@ -313,15 +221,12 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               <motion.div
                 whileHover={{
                   x: 2,
-                  backgroundColor: isActive ? undefined : 'rgba(139, 92, 246, 0.08)',
+                  backgroundColor: isActive ? undefined : getHoverBg(COLORS.primary.violet[500], 0.08),
                 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                 className={cn(
                   "flex items-center cursor-pointer transition-all",
-                  isActive
-                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white"
-                    : "text-gray-600",
                   sidebarCollapsed && "justify-center"
                 )}
                 style={{
@@ -329,7 +234,11 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                   padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
                   borderRadius: RADIUS.button,
                   minHeight: ROW_HEIGHT,
-                  boxShadow: isActive ? SHADOW.level2 : undefined,
+                  background: isActive
+                    ? `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 100%)`
+                    : undefined,
+                  color: isActive ? 'white' : COLORS.gray[600],
+                  boxShadow: isActive ? `${SHADOW.level2}, 0 4px 12px rgba(124, 58, 237, 0.3)` : undefined,
                 }}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -349,12 +258,17 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                       <Badge
                         className={cn(
                           "text-white",
-                          isOverdueBadge ? "bg-red-500 animate-pulse" : isActive ? "bg-white/20" : "bg-gradient-to-r from-violet-500 to-purple-500"
+                          isOverdueBadge && "animate-pulse"
                         )}
                         style={{
                           fontSize: TYPE.micro,
                           padding: '2px 6px',
                           height: 'auto',
+                          background: isOverdueBadge
+                            ? COLORS.semantic.error
+                            : isActive
+                            ? 'rgba(255, 255, 255, 0.2)'
+                            : `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.purple[500]} 100%)`,
                         }}
                       >
                         {dynamicBadge}
@@ -382,15 +296,16 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         }}
       >
         <div
-          className="bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center"
+          className="flex items-center justify-center"
           style={{
             width: GRID.spacing.xl,
             height: GRID.spacing.xl,
             borderRadius: RADIUS.button,
             boxShadow: SHADOW.level2,
+            background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 100%)`,
           }}
         >
-          <Leaf className="text-white" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
+          <Leaf style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4, color: 'white' }} />
         </div>
         {!sidebarCollapsed && (
           <div>
@@ -400,44 +315,38 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         )}
       </div>
 
-      {/* User Level & XP Card */}
+      {/* Performance Card */}
       {!sidebarCollapsed && (
         <div style={{ padding: `0 ${GRID.spacing.sm}px`, marginBottom: GRID.spacing.lg }}>
           <motion.div
             whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
             transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-purple-700 text-white"
             style={{
               borderRadius: RADIUS.card,
               padding: GRID.spacing.sm,
-              boxShadow: SHADOW.hero,
+              boxShadow: `${SHADOW.hero}, 0 0 0 1px rgba(255,255,255,0.1) inset`,
+              background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 50%, ${COLORS.primary.violet[700]} 100%)`,
+              color: 'white',
             }}
           >
             <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs }}>
               <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                <Zap className="text-amber-300" style={{ width: 16, height: 16 }} />
+                <Zap style={{ width: 16, height: 16, color: COLORS.accent.amber[300] }} />
                 <span className="font-medium" style={{ fontSize: TYPE.meta }}>Level {performance.level}</span>
               </div>
               <div className="flex items-center" style={{ gap: 4 }}>
-                <Flame className="text-orange-400" style={{ width: 16, height: 16 }} />
+                <Flame style={{ width: 16, height: 16, color: COLORS.accent.amber[400] }} />
                 <span className="font-medium" style={{ fontSize: TYPE.meta }}>{performance.currentStreak}</span>
               </div>
             </div>
-            <div
-              className="w-full bg-white/20"
-              style={{ borderRadius: RADIUS.pill, height: 8 }}
-            >
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(performance.xp % 1000) / 10}%` }}
-                transition={{ duration: 0.8, ease: MOTION.easing }}
-                className="bg-gradient-to-r from-amber-400 to-orange-500"
-                style={{ height: 8, borderRadius: RADIUS.pill, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
-              />
+            <div className="flex items-center justify-between" style={{ marginTop: GRID.spacing.xs }}>
+              <div className="flex items-center" style={{ gap: 4 }}>
+                <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>${(performance.revenue || 0).toLocaleString()} AP</span>
+              </div>
+              <span style={{ fontSize: TYPE.caption, color: COLORS.primary.violet[200] }}>
+                {performance.sales || 0} sales
+              </span>
             </div>
-            <p className="text-violet-200" style={{ fontSize: TYPE.caption, marginTop: GRID.spacing.xs }}>
-              {1000 - (performance.xp % 1000)} XP to next level
-            </p>
           </motion.div>
         </div>
       )}
@@ -447,10 +356,10 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         className="flex-1 overflow-y-auto"
         style={{ padding: `0 ${GRID.spacing.xs}px` }}
       >
-        <NavSection title="Main" items={mainNavItems} />
-        <NavSection title="Tools" items={toolsNavItems} />
-        <NavSection title="Growth" items={growthNavItems} />
-        <NavSection title="Team" items={teamNavItems} />
+        <NavSection title="Command Center" items={commandCenterItems} />
+        <NavSection title="Outreach" items={outreachItems} />
+        <NavSection title="Sales Toolkit" items={toolkitItems} />
+        <NavSection title="Growth" items={growthItems} />
       </nav>
 
       {/* Bottom Actions */}
@@ -464,7 +373,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       >
         <Link href="/agents/settings">
           <motion.div
-            whileHover={{ x: 2, backgroundColor: 'rgba(139, 92, 246, 0.08)' }}
+            whileHover={{ x: 2, backgroundColor: getHoverBg(COLORS.primary.violet[500], 0.08) }}
             transition={{ duration: MOTION.duration.hover }}
             className={cn(
               "flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors",
@@ -483,7 +392,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         </Link>
         <Link href="/agents/help">
           <motion.div
-            whileHover={{ x: 2, backgroundColor: 'rgba(139, 92, 246, 0.08)' }}
+            whileHover={{ x: 2, backgroundColor: getHoverBg(COLORS.primary.violet[500], 0.08) }}
             transition={{ duration: MOTION.duration.hover }}
             className={cn(
               "flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors",
@@ -695,17 +604,18 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                       {currentUser?.name || 'Agent'}
                     </p>
                     <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>
-                      Level {performance.level} · {performance.xp} XP
+                      Level {performance.level} · ${(performance.revenue || 0).toLocaleString()} AP
                     </p>
                   </div>
                   <div
-                    className="bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold"
+                    className="flex items-center justify-center text-white font-bold"
                     style={{
                       width: GRID.spacing.xl,
                       height: GRID.spacing.xl,
                       borderRadius: RADIUS.button,
                       boxShadow: SHADOW.level2,
                       fontSize: TYPE.meta,
+                      background: `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.purple[600]} 100%)`,
                     }}
                   >
                     {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'A'}
@@ -760,8 +670,8 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
           {[
             { icon: Home, label: "Home", href: "/agents/dashboard" },
             { icon: Inbox, label: "Inbox", href: "/agents/inbox" },
-            { icon: BarChart3, label: "Performance", href: "/agents/performance" },
-            { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
+            { icon: MessageSquare, label: "Outreach", href: "/agents/communications" },
+            { icon: FileText, label: "Quotes", href: "/agents/quotes" },
           ].map((item) => {
             const isActive = location === item.href;
             return (
@@ -769,15 +679,13 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                 <motion.div
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: MOTION.duration.hover }}
-                  className={cn(
-                    "flex flex-col items-center transition-colors",
-                    isActive ? "text-violet-600" : "text-gray-500"
-                  )}
+                  className="flex flex-col items-center transition-colors"
                   style={{
                     gap: 4,
                     padding: `${GRID.spacing.xs}px ${GRID.spacing.sm - 4}px`,
                     borderRadius: RADIUS.button,
                     backgroundColor: isActive ? COLORS.primary.violet[50] : 'transparent',
+                    color: isActive ? COLORS.primary.violet[600] : COLORS.gray[500],
                   }}
                   role="link"
                   aria-current={isActive ? "page" : undefined}

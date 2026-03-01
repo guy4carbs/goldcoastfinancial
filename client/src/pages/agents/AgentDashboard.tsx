@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
 import { useCelebration } from "@/lib/celebrationContext";
 import {
-  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
-  fadeInUp, staggerContainer, staggerFast
+  GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS, GLASS, PHI,
+  fadeInUp, staggerContainer, staggerFast,
+  golden, goldenInverse
 } from '@/lib/heritageDesignSystem';
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { DailyChallenge } from "@/components/agent/DailyChallenge";
@@ -17,6 +18,7 @@ import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LogCallModal } from "@/components/agent/LogCallModal";
 import { AddTaskModal } from "@/components/agent/AddTaskModal";
 import { LeaderboardModal } from "@/components/agent/LeaderboardModal";
+import { StateMapWidget } from "@/components/agent/StateMapWidget";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,7 @@ import {
   Lightbulb,
   AlertCircle,
   Mail,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -82,10 +85,30 @@ const STATIC_ANNOUNCEMENTS = [
   }
 ];
 
+// Get greeting based on time of day
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 const DemoModeIndicator = React.memo(() => (
   <div className="fixed bottom-24 lg:bottom-4 right-4 z-50">
-    <div className="bg-amber-100 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-full text-xs font-medium shadow-lg flex items-center gap-2">
-      <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+    <div
+      className="px-3 py-1.5 rounded-full text-xs font-medium shadow-lg flex items-center gap-2"
+      style={{
+        backgroundColor: COLORS.accent.amber[100],
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: COLORS.accent.amber[300],
+        color: COLORS.accent.amber[800],
+      }}
+    >
+      <span
+        className="w-2 h-2 rounded-full animate-pulse"
+        style={{ backgroundColor: COLORS.accent.amber[500] }}
+      />
       Demo Mode
     </div>
   </div>
@@ -116,14 +139,10 @@ export default function AgentDashboard() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  // Handle task completion with XP celebration
+  // Handle task completion
   const handleCompleteTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     completeTask(taskId);
-
-    // Show XP popup
-    const xp = task?.performanceImpact || 10;
-    showXP(xp);
 
     // Check for achievements (first task of the day, etc)
     const completedToday = tasks.filter(t => t.completed).length;
@@ -239,102 +258,170 @@ export default function AgentDashboard() {
         currentUserId={currentUser?.id || ''}
       />
 
+      {/* Background gradient flow: violet (left/work) → amber (right/rewards)
+          Sizes follow Fibonacci sequence: 377, 233, 144 (scaled to viewport) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-20 -left-32 w-[377px] h-[377px] bg-violet-300/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 w-[233px] h-[233px] bg-purple-200/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[144px] h-[144px] bg-amber-200/10 rounded-full blur-3xl" />
+      </div>
+
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="space-y-6 pb-20 lg:pb-0"
+        className="relative z-10"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: GRID.spacing.md,  // 24px - 3U on 8-point grid
+          paddingBottom: 80      // 10U - matches GRID.spacing.xxxxl
+        }}
       >
-        {/* Command Center Banner */}
+        {/* Command Center Banner - Premium Hero */}
         <motion.div variants={fadeInUp}>
           <Card
-            className={cn(
-              "border-0 overflow-hidden",
-              directive.urgency === 'critical'
-                ? "bg-gradient-to-r from-red-600 via-rose-600 to-pink-600"
-                : "bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700"
-            )}
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+            className="border-0 overflow-hidden relative"
+            style={{
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+              background: directive.urgency === 'critical'
+                ? COLORS.gradients.critical
+                : COLORS.gradients.heroWithAccent,
+            }}
           >
-            {/* Background decorations */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+            {/* Dot pattern overlay */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
+                backgroundSize: '24px 24px',
+              }}
+            />
 
-            <CardContent className="relative" style={{ padding: GRID.spacing.xl }}>
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                {/* Left: Command Directive */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={cn(
-                      "w-2.5 h-2.5 rounded-full",
-                      directive.urgency === 'critical' ? "bg-white animate-pulse" : "bg-amber-300 animate-pulse"
-                    )} />
-                    <span className="text-white/80 text-sm font-semibold uppercase tracking-wider">
-                      {directive.urgency === 'critical' ? 'ACTION REQUIRED' : 'COMMAND CENTER'}
-                    </span>
-                    <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full ml-2">
-                      <Trophy className="w-4 h-4 text-amber-300" />
-                      <span className="text-sm font-bold text-amber-300">#{performance.rank}</span>
-                    </div>
-                  </div>
+            {/* Decorative floating circles - Fibonacci sizes: 89, 55, 34 (×4 for visibility) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: MOTION.duration.slow, delay: 0.1, ease: MOTION.easing }}
+              style={{ width: 89 * 4, height: 89 * 4 }}
+              className="absolute top-0 right-0 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: MOTION.duration.slow, delay: 0.2, ease: MOTION.easing }}
+              style={{ width: 55 * 4, height: 55 * 4 }}
+              className="absolute bottom-0 left-0 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: MOTION.duration.slow, delay: 0.3, ease: MOTION.easing }}
+              style={{ width: 34 * 4, height: 34 * 4 }}
+              className="absolute top-1/2 right-1/4 bg-purple-300/15 rounded-full blur-sm"
+            />
 
-                  <h1 className="font-black text-white tracking-tight mb-2" style={{ fontSize: TYPE.hero }}>
-                    {directive.main}
-                  </h1>
-                  <p className="text-indigo-100 font-medium" style={{ fontSize: TYPE.body }}>
-                    {directive.sub}
-                  </p>
+            <CardContent className="relative z-10" style={{ padding: GRID.spacing.lg }}>
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                {/* Left: Profile Icon + Greeting */}
+                <div className="flex items-center gap-4 flex-1">
+                  {/* Profile Icon Badge - Glass effect matching AgentPageHero */}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{
+                      type: "spring",
+                      damping: 15,
+                      stiffness: 200,
+                      delay: 0.2
+                    }}
+                    className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
+                    style={{
+                      width: GRID.spacing.xxxxl,
+                      height: GRID.spacing.xxxxl,
+                      borderRadius: RADIUS.card,
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    <User
+                      className="text-amber-200"
+                      style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }}
+                    />
+                  </motion.div>
 
-                  {/* Progress Bar */}
-                  <div className="mt-5 max-w-md">
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-white/80 font-medium">Today's Progress</span>
-                      <span className="text-white font-bold">{performance.dailyCalls}/{performance.dailyCallsTarget} calls</span>
-                    </div>
-                    <div className="h-4 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min((performance.dailyCalls / performance.dailyCallsTarget) * 100, 100)}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 shadow-lg"
-                      />
-                    </div>
+                  {/* Greeting Content */}
+                  <div className="flex-1 min-w-0">
+                    <h1
+                      className="font-bold tracking-tight text-white"
+                      style={{
+                        fontSize: '2.5rem',
+                        lineHeight: 1.2
+                      }}
+                    >
+                      {getGreeting()}, {currentUser?.name?.split(' ')[0] || 'Agent'}
+                    </h1>
+                    <p className="text-white/80 text-base mt-1">
+                      Your command center for success
+                    </p>
                   </div>
                 </div>
 
-                {/* Right: Action Buttons */}
-                <div className="flex flex-col gap-3">
-                  <Button
-                    onClick={() => setShowLogCall(true)}
-                    size="lg"
-                    className="bg-white text-indigo-700 hover:bg-white/90 font-bold text-base shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                {/* Right: AP Stat + Action Buttons */}
+                <div className="flex flex-col gap-3 flex-shrink-0">
+                  {/* Monthly AP - Liquid Glass */}
+                  <div
+                    className="flex items-center gap-3 px-4 py-3"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(8px)',
+                      borderRadius: RADIUS.button,
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                    }}
                   >
-                    <Phone className="w-5 h-5 mr-2" />
-                    LOG CALL NOW
-                  </Button>
+                    <DollarSign className="w-5 h-5 text-amber-200" />
+                    <div>
+                      <p className="text-[10px] text-white/70 uppercase tracking-wider font-medium">Monthly AP</p>
+                      <p className="text-lg font-bold text-white">
+                        ${(pendingEarnings + paidEarnings).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2">
                     <Button
                       onClick={() => setShowAddLead(true)}
-                      variant="outline"
-                      className="border-white/40 text-white hover:bg-white/20 flex-1 backdrop-blur-sm"
+                      size="lg"
+                      className="flex-1 font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:bg-white/30"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backdropFilter: 'blur(8px)',
+                        color: 'white',
+                        borderRadius: RADIUS.button,
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                      }}
                     >
-                      <UserPlus className="w-4 h-4 mr-1" />
+                      <UserPlus className="w-4 h-4 mr-2" />
                       Lead
                     </Button>
                     <Button
-                      variant="outline"
-                      className="border-white/40 text-white hover:bg-white/20 flex-1 backdrop-blur-sm"
+                      size="lg"
+                      className="flex-1 font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 hover:bg-white/30"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backdropFilter: 'blur(8px)',
+                        color: 'white',
+                        borderRadius: RADIUS.button,
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                      }}
                       asChild
                     >
                       <Link href="/agents/quotes">
-                        <FileText className="w-4 h-4 mr-1" />
+                        <FileText className="w-4 h-4 mr-2" />
                         Quote
                       </Link>
                     </Button>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 mt-1 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                    <Flame className="w-5 h-5 text-orange-400" />
-                    <span className="text-sm font-bold text-orange-300">{performance.currentStreak}-day streak</span>
                   </div>
                 </div>
               </div>
@@ -346,8 +433,8 @@ export default function AgentDashboard() {
         <motion.div variants={fadeInUp}>
           <QuickActions
             variant="horizontal"
-            onAddLead={() => setShowAddLead(true)}
-            onLogCall={() => setShowLogCall(true)}
+            onPersonalMetrics={() => navigate('/agents/performance')}
+            onDataEncryption={() => navigate('/agents/data-encryption')}
             onSchedule={() => setShowAddTask(true)}
             onSendEmail={() => navigate('/agents/email')}
             onCreateQuote={() => navigate('/agents/quotes')}
@@ -355,175 +442,129 @@ export default function AgentDashboard() {
           />
         </motion.div>
 
-        {/* Enhanced KPI Cards with Trends & Coaching */}
-        <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Calls Card */}
-          <motion.div
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover }}
-          >
-            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardContent style={{ padding: GRID.spacing.sm }}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <div className={cn(
-                  "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
-                  performance.dailyCalls >= 38 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                )}>
-                  {performance.dailyCalls >= 38 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {performance.dailyCalls >= 38 ? `+${performance.dailyCalls - 38}` : `${performance.dailyCalls - 38}`} vs avg
-                </div>
-              </div>
-              <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{performance.dailyCalls}</p>
-              <p className="text-xs text-gray-500 font-medium">Calls Today</p>
-              {/* Mini Sparkline */}
-              <div className="flex items-end gap-0.5 h-8 mt-2">
-                {performance.weeklyHistory.map((day, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex-1 rounded-sm transition-all",
-                      i === performance.weeklyHistory.length - 1 ? "bg-blue-500" : "bg-blue-200"
-                    )}
-                    style={{ height: `${Math.max((day.calls / 30) * 100, 10)}%` }}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          </motion.div>
+        {/* Your Progress Section - Wrapped */}
+        <motion.div variants={fadeInUp}>
+          {/* Section Header - Icon badge + title only */}
+          <div className="flex items-center gap-3 mb-4">
+            <div
+              className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20"
+              style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+            >
+              <TrendingUp className="w-5 h-5 text-amber-200" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900">Your Progress</h2>
+          </div>
 
-          {/* Closes Card */}
+          {/* Clean KPI Stats Grid */}
           <motion.div
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover }}
+            variants={staggerContainer}
+            className="grid grid-cols-2 lg:grid-cols-4"
+            style={{ gap: GRID.spacing.sm }}
           >
-            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardContent style={{ padding: GRID.spacing.sm }}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <div className={cn(
-                  "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
-                  performance.dailyCloses >= 1 ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
-                )}>
-                  {performance.dailyCloses >= 1 ? <TrendingUp className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
-                  {performance.dailyCloses >= 1 ? `+${performance.dailyCloses}` : "0"} this week
-                </div>
-              </div>
-              <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{performance.dailyCloses}</p>
-              <p className="text-xs text-gray-500 font-medium">Closes This Week</p>
-              {/* Mini Sparkline */}
-              <div className="flex items-end gap-0.5 h-8 mt-2">
-                {performance.weeklyHistory.map((day, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex-1 rounded-sm transition-all",
-                      day.deals > 0 ? "bg-gradient-to-t from-emerald-500 to-teal-400" : "bg-emerald-100"
-                    )}
-                    style={{ height: `${Math.max(day.deals * 33, 10)}%` }}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          </motion.div>
+          {[
+            { icon: Phone, value: performance.dailyCalls.toString(), label: "Calls Today", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
+            { icon: Target, value: performance.dailyCloses.toString(), label: "Closes This Week", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
+            { icon: BarChart3, value: `${performance.conversionRate}%`, label: "Conversion Rate", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
+            { icon: Flame, value: `${performance.currentStreak}`, label: "Day Streak", gradient: "from-amber-500 to-orange-500", shadow: "shadow-amber-500/20" },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              variants={fadeInUp}
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+            >
+              <Card
+                className="border-0 group cursor-pointer overflow-hidden relative"
+                style={{
+                  borderRadius: RADIUS.card,
+                  boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)',
+                }}
+              >
+                {/* Gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                {/* Decorative blobs */}
+                <div style={{ width: 80, height: 80 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+                <div style={{ width: 50, height: 50 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
 
-          {/* Conversion Rate Card */}
-          <motion.div
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover }}
-          >
-            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardContent style={{ padding: GRID.spacing.sm }}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <div className={cn(
-                  "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
-                  performance.conversionRate >= 12 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                )}>
-                  {performance.conversionRate >= 12 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {performance.conversionRate >= 12 ? `+${performance.conversionRate - 10}%` : `-${12 - performance.conversionRate}%`} vs baseline
-                </div>
-              </div>
-              <p className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{performance.conversionRate}%</p>
-              <p className="text-xs text-gray-500 font-medium">Conversion Rate</p>
-              {/* Visual gauge */}
-              <div className="mt-2 h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all",
-                    performance.conversionRate >= 15 ? "bg-gradient-to-r from-emerald-500 to-teal-500" :
-                    performance.conversionRate >= 10 ? "bg-gradient-to-r from-violet-500 to-purple-500" : "bg-gradient-to-r from-amber-500 to-orange-500"
-                  )}
-                  style={{ width: `${Math.min(performance.conversionRate * 5, 100)}%` }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          </motion.div>
+                <CardContent className="relative z-10" style={{ padding: GRID.spacing.md }}>
+                  <div className="flex items-center gap-4">
+                    {/* Icon Badge */}
+                    <div
+                      className="flex items-center justify-center bg-white/20 backdrop-blur shadow-lg"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: RADIUS.button,
+                      }}
+                    >
+                      <stat.icon className="w-5 h-5 text-amber-200" />
+                    </div>
 
-          {/* Earnings Card */}
-          <motion.div
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-            transition={{ duration: MOTION.duration.hover }}
-          >
-            <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardContent style={{ padding: GRID.spacing.sm }}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
-                  <DollarSign className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
-                  <TrendingUp className="w-3 h-3" />
-                  +${Math.round(pendingEarnings * 0.15).toLocaleString()} projected
-                </div>
-              </div>
-              <p className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">${pendingEarnings.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 font-medium">Pending Earnings</p>
-              {/* Earnings breakdown bar */}
-              <div className="mt-2 flex gap-1.5 h-8">
-                <div className="flex-1 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg flex items-center justify-center">
-                  <span className="text-[9px] font-semibold text-emerald-700">${paidEarnings.toLocaleString()} paid</span>
-                </div>
-                <div className="flex-1 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg flex items-center justify-center">
-                  <span className="text-[9px] font-semibold text-amber-700">${pendingEarnings.toLocaleString()} pending</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                    {/* Value + Label */}
+                    <div>
+                      <p className="text-3xl font-bold text-white">{stat.value}</p>
+                      <p className="text-sm text-white/70 font-medium">{stat.label}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
           </motion.div>
         </motion.div>
 
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - 2/3 width */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Main Content Grid - Golden Ratio: φ:1 ≈ 1.618:1
+            Desktop: 61.8% / 38.2% (golden ratio)
+            Tablet: 50% / 50%
+            Mobile: stacked */}
+        <div
+          className="grid dashboard-golden-grid"
+          style={{ gap: GRID.spacing.md }}
+        >
+          <style>{`
+            @media (min-width: 768px) {
+              .dashboard-golden-grid { grid-template-columns: 1fr 1fr !important; }
+            }
+            @media (min-width: 1024px) {
+              .dashboard-golden-grid { grid-template-columns: 1.618fr 1fr !important; }
+            }
+          `}</style>
+          {/* Left Column - φ proportion (≈61.8% on desktop) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
+            {/* State Coverage Map */}
+            <StateMapWidget agentId={currentUser?.id} />
+
             {/* Daily Challenges */}
             <motion.div variants={fadeInUp}>
               <DailyChallenge challenges={dailyChallenges} />
             </motion.div>
 
-            {/* Pipeline Snapshot */}
+            {/* Pipeline Snapshot - Regular Card */}
             <motion.div variants={fadeInUp}>
-              <Card className="border-0 overflow-hidden" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardHeader className="pb-3 bg-gradient-to-r from-violet-50 to-purple-50">
+              <Card
+                className="overflow-hidden border-0"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                }}
+              >
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                        <Users className="w-4 h-4 text-white" />
+                    <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
+                      <div
+                        className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20"
+                        style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      >
+                        <Users className="w-5 h-5 text-amber-200" />
                       </div>
                       Pipeline Snapshot
                     </CardTitle>
-                    <Button variant="ghost" size="sm" className="text-violet-600 hover:text-violet-700 hover:bg-violet-100" asChild>
+                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
                       <Link href="/agents/pipeline">
-                        View Pipeline <ChevronRight className="w-4 h-4 ml-1" />
+                        View All <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>
                   </div>
@@ -532,43 +573,61 @@ export default function AgentDashboard() {
                   {/* Stage Counts */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     {[
-                      { label: "New", count: pipelineStats.new, gradient: "from-blue-500 to-cyan-500", bg: "from-blue-50 to-cyan-50" },
-                      { label: "Contacted", count: pipelineStats.contacted, gradient: "from-amber-500 to-yellow-500", bg: "from-amber-50 to-yellow-50" },
-                      { label: "Qualified", count: pipelineStats.qualified, gradient: "from-violet-500 to-purple-500", bg: "from-violet-50 to-purple-50" },
-                      { label: "Proposal", count: pipelineStats.proposal, gradient: "from-emerald-500 to-teal-500", bg: "from-emerald-50 to-teal-50" }
+                      { label: "New", count: pipelineStats.new, filter: 'new' },
+                      { label: "Contacted", count: pipelineStats.contacted, filter: 'contacted' },
+                      { label: "Qualified", count: pipelineStats.qualified, filter: 'qualified' },
+                      { label: "Proposal", count: pipelineStats.proposal, filter: 'proposal' }
                     ].map((stage) => (
-                      <div key={stage.label} className={cn("text-center p-4 rounded-xl bg-gradient-to-br", stage.bg)}>
-                        <div className={cn("w-3 h-3 rounded-full mx-auto mb-2 bg-gradient-to-r", stage.gradient)} />
+                      <motion.div
+                        key={stage.label}
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                        onClick={() => navigate(`/agents/pipeline?status=${stage.filter}`)}
+                        className="text-center p-4 rounded-xl bg-violet-50 border border-violet-100 cursor-pointer hover:bg-violet-100 transition-colors"
+                      >
                         <p className="text-2xl font-bold text-gray-900">{stage.count}</p>
-                        <p className="text-xs text-gray-600 font-medium">{stage.label}</p>
-                      </div>
+                        <p className="text-xs text-gray-500 font-medium">{stage.label}</p>
+                      </motion.div>
                     ))}
                   </div>
 
                   {/* Hot Leads */}
                   {hotLeads.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">Hot Leads</p>
+                    <div className="pt-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Hot Leads</p>
+                      </div>
                       <div className="space-y-2">
                         {hotLeads.map((lead) => (
                           <Link key={lead.id} href={`/agents/leads?id=${lead.id}`}>
-                            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-transparent rounded-lg hover:from-orange-100 transition-colors cursor-pointer">
+                            <motion.div
+                              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                              className="group flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl hover:bg-violet-50 hover:border-violet-200 transition-all cursor-pointer"
+                            >
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
+                                <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center text-violet-700 font-semibold text-sm">
                                   {lead.name.split(' ').map(n => n[0]).join('')}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-sm text-gray-900">{lead.name}</p>
+                                  <p className="font-semibold text-sm text-gray-900">{lead.name}</p>
                                   <p className="text-[10px] text-gray-500">{lead.product} · {lead.state}</p>
                                 </div>
                               </div>
-                              <Badge variant="outline" className={cn(
-                                "text-[10px]",
-                                lead.status === 'proposal' ? "border-green-500 text-green-600" : "border-purple-500 text-purple-600"
-                              )}>
-                                {lead.status}
-                              </Badge>
-                            </div>
+                              <div className="flex items-center gap-1">
+                                <Badge className={cn(
+                                  "text-[10px] border-0",
+                                  lead.status === 'proposal'
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-amber-100 text-amber-700"
+                                )}>
+                                  {lead.status}
+                                </Badge>
+                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
+                              </div>
+                            </motion.div>
                           </Link>
                         ))}
                       </div>
@@ -578,70 +637,82 @@ export default function AgentDashboard() {
               </Card>
             </motion.div>
 
-            {/* Priority Tasks */}
+            {/* Priority Tasks - Gradient Card */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardHeader className="pb-3">
+              <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+                {/* Full gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                {/* Decorative elements */}
+                <div style={{ width: 120, height: 120 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+                <div style={{ width: 80, height: 80 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
+                <div style={{ width: 50, height: 50 }} className="absolute top-1/2 right-1/4 bg-purple-300/10 rounded-full blur-lg" />
+
+                <CardHeader className="pb-3 relative z-10" style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-md">
-                        <CheckCircle2 className="w-4 h-4 text-white" />
+                    <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-amber-200" />
                       </div>
-                      <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Priority Tasks</span>
+                      Priority Tasks
                     </CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => setShowAddTask(true)} className="border-violet-200 text-violet-600 hover:bg-violet-50">
+                    <Button variant="ghost" size="sm" onClick={() => setShowAddTask(true)} className="text-white/90 hover:text-white hover:bg-white/10">
                       + Add Task
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative z-10" style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
                   {todaysTasks.length === 0 ? (
                     <div className="text-center py-6">
-                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
-                        <CheckCircle2 className="w-7 h-7 text-white" />
+                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                        <CheckCircle2 className="w-7 h-7 text-emerald-300" />
                       </div>
-                      <p className="font-bold text-green-600">All caught up!</p>
-                      <p className="text-sm text-gray-500">No tasks due today</p>
+                      <p className="font-bold text-emerald-300">All caught up!</p>
+                      <p className="text-sm text-white/60">No tasks due today</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       {todaysTasks.map((task) => (
-                        <div
+                        <motion.div
                           key={task.id}
-                          className="flex items-start gap-3 p-3 bg-gradient-to-r from-gray-50 to-violet-50/30 rounded-xl hover:from-violet-50 hover:to-purple-50/50 transition-all border border-gray-100"
+                          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                          className="flex items-start gap-3 p-3 bg-white/15 backdrop-blur rounded-xl hover:bg-white/25 transition-colors border border-white/10 cursor-pointer group"
                         >
                           <Checkbox
                             checked={task.completed}
                             onCheckedChange={() => handleCompleteTask(task.id)}
-                            className="mt-0.5 border-violet-300 data-[state=checked]:bg-violet-500"
+                            className="mt-0.5 border-white/40 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                           />
                           <div className="flex-1">
                             <p className={cn(
-                              "font-medium text-sm",
-                              task.completed && "line-through text-gray-400"
+                              "font-semibold text-sm text-white group-hover:text-white transition-colors",
+                              task.completed && "line-through opacity-50"
                             )}>
                               {task.title}
                             </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="text-[10px] text-white/60 flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full">
                                 <Clock className="w-3 h-3" /> {task.dueDate}
                               </span>
                               <Badge
                                 className={cn(
-                                  "text-[10px] px-1.5 border-0",
-                                  task.priority === 'high' && "bg-red-100 text-red-600",
-                                  task.priority === 'medium' && "bg-amber-100 text-amber-600",
-                                  task.priority === 'low' && "bg-gray-100 text-gray-500"
+                                  "text-[10px] px-2 py-0.5 border-0 shadow-sm",
+                                  task.priority === 'high' && "bg-red-500/80 text-white",
+                                  task.priority === 'medium' && "bg-amber-400/80 text-amber-900",
+                                  task.priority === 'low' && "bg-white/20 text-white/70"
                                 )}
                               >
                                 {task.priority}
                               </Badge>
                             </div>
                           </div>
-                          <span className="text-[10px] bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent font-bold">
-                            +{task.performanceImpact} XP
-                          </span>
-                        </div>
+                          <div className="flex items-center gap-1 bg-white/20 backdrop-blur px-2 py-1 rounded-lg">
+                            <Zap className="w-3 h-3 text-amber-200" />
+                            <span className="text-[10px] text-white font-bold">
+                              +{task.performanceImpact}
+                            </span>
+                          </div>
+                        </motion.div>
                       ))}
                     </div>
                   )}
@@ -649,170 +720,166 @@ export default function AgentDashboard() {
               </Card>
             </motion.div>
 
-            {/* Recent Activity */}
-            <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
-                      <Zap className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Team Activity</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ActivityFeed activities={activities.slice(0, 5)} />
-                </CardContent>
-              </Card>
-            </motion.div>
           </div>
 
-          {/* Right Column - 1/3 width */}
-          <div className="space-y-6">
-            {/* Leaderboard Preview */}
+          {/* Right Column - 1 proportion (≈38.2% on desktop) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
+            {/* Leaderboard Preview - Full Gradient Card */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500" style={{ padding: GRID.spacing.sm }}>
+              <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+                {/* Full gradient background - violet to amber theme */}
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                {/* Decorative elements - Fibonacci sizes: 89, 55, 34 */}
+                <div style={{ width: 89, height: 89 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <div style={{ width: 55, height: 55 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+                <div style={{ width: 34, height: 34 }} className="absolute top-1/2 right-0 bg-purple-300/10 rounded-full blur-lg" />
+
+                <CardHeader className="pb-3 relative z-10">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
                       <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-                        <Trophy className="w-5 h-5 text-white" />
+                        <Trophy className="w-5 h-5 text-yellow-200" />
                       </div>
-                      <span className="font-bold text-white" style={{ fontSize: TYPE.title }}>Leaderboard</span>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => setShowLeaderboard(true)} className="text-white hover:bg-white/20">
+                      Leaderboard
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowLeaderboard(true)}
+                      className="text-white/90 hover:text-white hover:bg-white/10"
+                    >
                       View All
                     </Button>
                   </div>
-                </div>
-                <CardContent className="pt-4">
+                </CardHeader>
+                <CardContent className="relative z-10">
                   <div className="space-y-2">
                     {leaderboard.slice(0, 5).map((entry, idx) => (
-                      <div
+                      <motion.div
                         key={entry.id}
+                        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                        transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                         className={cn(
-                          "flex items-center gap-3 p-2.5 rounded-xl transition-all",
+                          "flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer backdrop-blur",
                           entry.id === currentUser?.id
-                            ? "bg-gradient-to-r from-violet-100 to-purple-100 ring-2 ring-violet-400"
-                            : "hover:bg-gray-50"
+                            ? "bg-white/30 ring-2 ring-white/50"
+                            : "bg-white/15 hover:bg-white/25"
                         )}
                       >
-                        <span className={cn(
-                          "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shadow-md",
-                          idx === 0 && "bg-gradient-to-br from-yellow-400 to-amber-500 text-white",
-                          idx === 1 && "bg-gradient-to-br from-gray-300 to-gray-400 text-white",
-                          idx === 2 && "bg-gradient-to-br from-amber-500 to-orange-600 text-white",
-                          idx > 2 && "bg-gray-100 text-gray-600"
+                        <div className={cn(
+                          "w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shadow-lg",
+                          idx === 0 && "bg-gradient-to-br from-yellow-300 to-amber-400 text-amber-900",
+                          idx === 1 && "bg-gradient-to-br from-gray-200 to-gray-400 text-gray-700",
+                          idx === 2 && "bg-gradient-to-br from-amber-600 to-orange-700 text-white",
+                          idx > 2 && "bg-white/30 text-white"
                         )}>
-                          {idx + 1}
-                        </span>
+                          {idx === 0 ? <Trophy className="w-4 h-4" /> : idx + 1}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">
+                          <p className="font-semibold text-sm truncate text-white">
                             {entry.name}
                             {entry.id === currentUser?.id && (
-                              <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent text-[10px] ml-1 font-bold">(You)</span>
+                              <Badge className="ml-2 text-[9px] px-1.5 py-0 bg-white/30 text-white border-0">
+                                You
+                              </Badge>
                             )}
                           </p>
-                          <p className="text-[10px] text-gray-500">Level {entry.level}</p>
+                          <p className="text-[10px] text-white/70 flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-yellow-300" /> Level {entry.level}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-sm bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                          <p className="font-bold text-sm text-yellow-200">
                             ${(entry.ap.weekly / 1000).toFixed(1)}K
                           </p>
-                          <p className="text-[10px] text-gray-400">AP</p>
+                          <p className="text-[10px] text-white/60 font-medium">AP</p>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* Announcements */}
+            {/* What's New - Consolidated Announcements & Events */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-md">
-                        <Bell className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">Announcements</span>
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" asChild className="text-pink-600 hover:bg-pink-50">
-                      <Link href="/agents/announcements">
-                        View All <ChevronRight className="w-4 h-4 ml-1" />
-                      </Link>
-                    </Button>
-                  </div>
+              <Card
+                className="overflow-hidden border-0"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                }}
+              >
+                <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                  <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+                    <div
+                      className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20"
+                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                    >
+                      <Bell className="w-5 h-5 text-amber-200" />
+                    </div>
+                    <span className="text-gray-900">What's New</span>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {staticAnnouncements.map((announcement, idx) => (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "pb-4",
-                          idx !== staticAnnouncements.length - 1 && "border-b border-gray-100"
-                        )}
-                      >
-                        <div className="flex items-start gap-2">
-                          {announcement.priority === 'high' && (
-                            <span className="w-2.5 h-2.5 bg-gradient-to-br from-red-500 to-rose-500 rounded-full mt-1.5 flex-shrink-0 shadow-sm animate-pulse" />
-                          )}
-                          <div>
-                            <p className="text-[10px] text-gray-400 mb-1">{announcement.date}</p>
-                            <h4 className="font-semibold text-sm bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-1">
-                              {announcement.title}
-                            </h4>
-                            <p className="text-xs text-gray-600 leading-relaxed">
-                              {announcement.description}
-                            </p>
-                          </div>
+                <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }} className="space-y-4">
+                  {/* Announcements */}
+                  {staticAnnouncements.slice(0, 1).map((announcement, idx) => (
+                    <div
+                      key={`ann-${idx}`}
+                      className={cn(
+                        "p-3 rounded-xl",
+                        announcement.priority === 'high'
+                          ? "bg-violet-50 border border-violet-200"
+                          : "bg-gray-50 border border-gray-100"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                          announcement.priority === 'high'
+                            ? "bg-gradient-to-br from-violet-500 to-purple-600"
+                            : "bg-gray-400"
+                        )}>
+                          <Bell className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] text-gray-500 font-medium mb-1">{announcement.date}</p>
+                          <h4 className="font-semibold text-sm text-gray-900">{announcement.title}</h4>
+                          <p className="text-xs text-gray-600 mt-1 leading-relaxed">{announcement.description}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                    </div>
+                  ))}
 
-            {/* Upcoming Events */}
-            <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="font-semibold flex items-center gap-2" style={{ fontSize: TYPE.title }}>
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-md">
-                        <Calendar className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Upcoming Events</span>
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" asChild className="text-cyan-600 hover:bg-cyan-50">
-                      <Link href="/agents/calendar">
-                        View All <ChevronRight className="w-4 h-4 ml-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {upcomingEvents.map((event, idx) => (
+                  {/* Upcoming Events */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Upcoming</p>
+                    {upcomingEvents.slice(0, 2).map((event, idx) => (
                       <div
-                        key={idx}
-                        className="flex items-center gap-3 p-3 bg-gradient-to-r from-cyan-50 to-blue-50/50 rounded-xl border border-cyan-100 hover:shadow-md transition-all"
+                        key={`evt-${idx}`}
+                        className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-violet-50 transition-colors cursor-pointer group"
                       >
-                        <div className="text-center min-w-[50px] bg-white rounded-lg p-2 shadow-sm">
-                          <p className="text-[10px] text-gray-500 uppercase font-medium">{event.date.split(' ')[0]}</p>
-                          <p className="font-bold text-xl bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">{event.date.split(' ')[1]}</p>
+                        <div className="text-center min-w-[44px] bg-white rounded-lg p-1.5 border border-violet-100 group-hover:border-violet-200 transition-colors">
+                          <p className="text-[8px] text-violet-400 uppercase font-semibold">{event.date.split(' ')[0]}</p>
+                          <p className="font-bold text-lg text-violet-600">{event.date.split(' ')[1]}</p>
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-sm text-gray-800">{event.title}</p>
+                          <p className="font-medium text-sm text-gray-900 group-hover:text-violet-900 transition-colors">{event.title}</p>
                           <p className="text-xs text-gray-500">{event.time}</p>
                         </div>
+                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-violet-500 transition-colors" />
                       </div>
                     ))}
                   </div>
+
+                  <Button variant="ghost" size="sm" asChild className="w-full text-violet-600 hover:bg-violet-50">
+                    <Link href="/agents/calendar">
+                      View All Events <ChevronRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
@@ -820,32 +887,33 @@ export default function AgentDashboard() {
             {/* Earnings Summary */}
             <motion.div variants={fadeInUp}>
               <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+                {/* Fibonacci: 89, 55 */}
+                <div style={{ width: 89, height: 89 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                <div style={{ width: 55, height: 55 }} className="absolute bottom-0 left-0 bg-amber-400/20 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
                 <CardHeader className="pb-3 relative z-10">
-                  <CardTitle className="font-semibold flex items-center gap-2 text-white" style={{ fontSize: TYPE.title }}>
-                    <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
-                      <DollarSign className="w-4 h-4 text-white" />
+                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-amber-200" />
                     </div>
                     Earnings Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="relative z-10">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-lg p-3">
+                    <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
                       <span className="text-sm text-white/80">Pending</span>
-                      <span className="font-bold text-xl text-white">
+                      <span className="font-bold text-xl text-amber-200">
                         ${pendingEarnings.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-lg p-3">
+                    <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
                       <span className="text-sm text-white/80">Paid this month</span>
                       <span className="font-bold text-xl text-white">
                         ${paidEarnings.toLocaleString()}
                       </span>
                     </div>
-                    <Button className="w-full mt-2 bg-white text-emerald-600 hover:bg-white/90 font-semibold shadow-lg" asChild>
+                    <Button className="w-full mt-2 bg-white text-violet-700 hover:bg-white/90 font-semibold shadow-lg" asChild>
                       <Link href="/agents/earnings">
                         View Statements <ArrowUpRight className="w-4 h-4 ml-1" />
                       </Link>
@@ -855,37 +923,49 @@ export default function AgentDashboard() {
               </Card>
             </motion.div>
 
-            {/* Need Help */}
+            {/* Team Activity */}
             <motion.div variants={fadeInUp}>
-              <Card className="overflow-hidden border-0 transition-shadow hover:shadow-xl" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardContent style={{ padding: GRID.spacing.sm }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-md">
-                      <Phone className="w-4 h-4 text-white" />
+              <Card
+                className="overflow-hidden border-0"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                }}
+              >
+                <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                  <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+                    <div
+                      className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20"
+                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                    >
+                      <Zap className="w-5 h-5 text-amber-200" />
                     </div>
-                    <h3 className="font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Need Help?</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Our agent support team is here to help you succeed.
-                  </p>
-                  <div className="space-y-2">
-                    <a
-                      href="tel:6307780800"
-                      className="flex items-center gap-2 text-sm font-medium bg-gradient-to-r from-indigo-50 to-violet-50 p-2.5 rounded-lg hover:from-indigo-100 hover:to-violet-100 transition-colors"
-                    >
-                      <Phone className="w-4 h-4 text-indigo-500" />
-                      <span className="text-indigo-600">(630) 778-0800</span>
-                    </a>
-                    <a
-                      href="mailto:agents@heritagels.org"
-                      className="flex items-center gap-2 text-sm font-medium bg-gradient-to-r from-indigo-50 to-violet-50 p-2.5 rounded-lg hover:from-indigo-100 hover:to-violet-100 transition-colors"
-                    >
-                      <Mail className="w-4 h-4 text-indigo-500" />
-                      <span className="text-indigo-600">agents@heritagels.org</span>
-                    </a>
-                  </div>
+                    <span className="text-gray-900">Team Activity</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                  <ActivityFeed activities={activities.slice(0, 5)} />
                 </CardContent>
               </Card>
+            </motion.div>
+
+            {/* Need Help - Simple Footer */}
+            <motion.div variants={fadeInUp} className="text-center py-4 border-t border-gray-100 mt-2">
+              <p className="text-sm text-gray-500 mb-2">Need help?</p>
+              <div className="flex items-center justify-center gap-4">
+                <a href="tel:6307780800" className="text-sm font-medium text-violet-600 hover:text-violet-700 flex items-center gap-1.5 transition-colors">
+                  <Phone className="w-3.5 h-3.5" />
+                  (630) 778-0800
+                </a>
+                <span className="text-gray-200">|</span>
+                <a href="mailto:agents@heritagels.org" className="text-sm font-medium text-violet-600 hover:text-violet-700 flex items-center gap-1.5 transition-colors">
+                  <Mail className="w-3.5 h-3.5" />
+                  Email Support
+                </a>
+              </div>
             </motion.div>
           </div>
         </div>

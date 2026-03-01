@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Phone, Mail, Calendar, UserPlus, FileText,
-  Calculator, MessageSquare, Send, Plus, Zap
+  Mail, Calendar, FileText, MessageSquare, Zap,
+  BarChart2, Shield, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
@@ -10,105 +10,134 @@ import { fadeInUp, staggerContainer } from "@/lib/animations";
 interface QuickAction {
   id: string;
   label: string;
-  icon: typeof Phone;
-  color: string;
-  bgColor: string;
+  icon: typeof Mail;
+  gradient: string;
+  shadowColor: string;
   onClick?: () => void;
   badge?: string;
 }
 
 interface QuickActionsProps {
-  onAddLead?: () => void;
-  onLogCall?: () => void;
   onSendEmail?: () => void;
   onSchedule?: () => void;
   onCreateQuote?: () => void;
   onOpenChat?: () => void;
+  onPersonalMetrics?: () => void;
+  onDataEncryption?: () => void;
   className?: string;
   variant?: 'grid' | 'horizontal' | 'compact';
 }
 
 export function QuickActions({
-  onAddLead,
-  onLogCall,
   onSendEmail,
   onSchedule,
   onCreateQuote,
   onOpenChat,
+  onPersonalMetrics,
+  onDataEncryption,
   className,
   variant = 'grid',
 }: QuickActionsProps) {
+  // Alternating violet/purple and amber/orange for visual balance
   const actions: QuickAction[] = [
     {
-      id: 'add-lead',
-      label: 'Add Lead',
-      icon: UserPlus,
-      color: 'text-violet-500',
-      bgColor: 'bg-violet-500/10 hover:bg-violet-500/20',
-      onClick: onAddLead,
+      id: 'personal-metrics',
+      label: 'Personal Metrics',
+      icon: BarChart2,
+      gradient: 'from-violet-500 to-purple-600',
+      shadowColor: 'shadow-violet-500/25',
+      onClick: onPersonalMetrics,
     },
     {
-      id: 'log-call',
-      label: 'Log Call',
-      icon: Phone,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10 hover:bg-primary/20',
-      onClick: onLogCall,
-      badge: '+15 XP',
+      id: 'data-encryption',
+      label: 'Data Encryption',
+      icon: Shield,
+      gradient: 'from-amber-500 to-orange-500',
+      shadowColor: 'shadow-amber-500/25',
+      onClick: onDataEncryption,
     },
     {
       id: 'send-email',
       label: 'Send Email',
       icon: Mail,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10 hover:bg-blue-500/20',
+      gradient: 'from-violet-500 to-purple-600',
+      shadowColor: 'shadow-violet-500/25',
       onClick: onSendEmail,
     },
     {
       id: 'schedule',
       label: 'Schedule',
       icon: Calendar,
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/10 hover:bg-green-500/20',
+      gradient: 'from-amber-500 to-orange-500',
+      shadowColor: 'shadow-amber-500/25',
       onClick: onSchedule,
     },
     {
       id: 'create-quote',
       label: 'Create Quote',
       icon: FileText,
-      color: 'text-[#E1B138]',
-      bgColor: 'bg-[#E1B138]/10 hover:bg-[#E1B138]/20',
+      gradient: 'from-violet-500 to-purple-600',
+      shadowColor: 'shadow-violet-500/25',
       onClick: onCreateQuote,
     },
     {
       id: 'open-chat',
       label: 'Team Chat',
       icon: MessageSquare,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10 hover:bg-purple-500/20',
+      gradient: 'from-amber-500 to-orange-500',
+      shadowColor: 'shadow-amber-500/25',
       onClick: onOpenChat,
     },
   ];
 
   if (variant === 'horizontal') {
     return (
-      <div className={cn("flex items-center gap-2 overflow-x-auto pb-2", className)}>
-        {actions.map((action) => {
+      <div className={cn("grid grid-cols-3 lg:grid-cols-6 gap-4", className)}>
+        {actions.map((action, index) => {
           const Icon = action.icon;
           return (
             <motion.button
               key={action.id}
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={{ scale: 1.05, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={action.onClick}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition-colors",
-                action.bgColor,
-                action.color
-              )}
+              className="group relative flex flex-col items-center justify-center gap-3 p-5 rounded-2xl font-medium text-sm transition-all overflow-hidden"
+              style={{
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+              }}
             >
-              <Icon className="w-4 h-4" />
-              {action.label}
+              {/* Hover gradient overlay */}
+              <div className={cn(
+                "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br",
+                action.gradient
+              )} style={{ opacity: 0 }} />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-br from-white/50 to-transparent" />
+
+              {/* Icon with gradient background */}
+              <div className={cn(
+                "relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 bg-gradient-to-br",
+                action.gradient,
+                action.shadowColor,
+                "group-hover:scale-110 group-hover:shadow-xl"
+              )}>
+                <Icon className="w-6 h-6 text-white" />
+              </div>
+
+              {/* Label */}
+              <span className="relative text-xs font-semibold text-gray-700 group-hover:text-gray-900 transition-colors text-center leading-tight">
+                {action.label}
+              </span>
+
+              {/* Subtle bottom accent line */}
+              <div className={cn(
+                "absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-0 group-hover:w-12 transition-all duration-300 rounded-full bg-gradient-to-r",
+                action.gradient
+              )} />
             </motion.button>
           );
         })}
@@ -118,23 +147,23 @@ export function QuickActions({
 
   if (variant === 'compact') {
     return (
-      <div className={cn("flex items-center gap-1", className)}>
+      <div className={cn("flex items-center gap-2", className)}>
         {actions.slice(0, 4).map((action) => {
           const Icon = action.icon;
           return (
             <motion.button
               key={action.id}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.15, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
               className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                action.bgColor,
-                action.color
+                "w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-all bg-gradient-to-br",
+                action.gradient,
+                action.shadowColor
               )}
               title={action.label}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5 h-5 text-white" />
             </motion.button>
           );
         })}
@@ -143,11 +172,21 @@ export function QuickActions({
   }
 
   return (
-    <Card className={cn("border-gray-100", className)}>
+    <Card
+      className={cn("border-0 overflow-hidden", className)}
+      style={{
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: 24,
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+      }}
+    >
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Zap className="w-5 h-5 text-violet-500" />
-          Quick Actions
+        <CardTitle className="text-lg flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
+            <Zap className="w-5 h-5 text-amber-200" />
+          </div>
+          <span className="font-semibold text-gray-900">Quick Actions</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -155,34 +194,32 @@ export function QuickActions({
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-3 gap-3"
+          className="grid grid-cols-3 gap-4"
         >
-          {actions.map((action) => {
+          {actions.map((action, index) => {
             const Icon = action.icon;
             return (
               <motion.button
                 key={action.id}
                 variants={fadeInUp}
-                whileHover={{ scale: 1.03, y: -2 }}
+                whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={action.onClick}
-                className={cn(
-                  "relative flex flex-col items-center gap-2 p-4 rounded-xl transition-all",
-                  action.bgColor
-                )}
+                className="group relative flex flex-col items-center gap-3 p-4 rounded-2xl transition-all bg-gray-50/80 hover:bg-white hover:shadow-lg"
               >
                 {action.badge && (
-                  <span className="absolute -top-1 -right-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-500 text-white">
+                  <span className="absolute -top-1 -right-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md">
                     {action.badge}
                   </span>
                 )}
                 <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm",
-                  action.color
+                  "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 bg-gradient-to-br",
+                  action.gradient,
+                  action.shadowColor
                 )}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xs font-medium text-gray-700">{action.label}</span>
+                <span className="text-xs font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">{action.label}</span>
               </motion.button>
             );
           })}

@@ -37,54 +37,55 @@ const simulatedActivities: Omit<ActivityItem, 'id' | 'timestamp'>[] = [
   { type: 'streak', agentName: 'Amanda Lee', message: 'reached a 14-day streak!' },
 ];
 
+// Unified violet/purple palette for consistent elegant styling
 const activityConfig = {
   deal: {
     icon: Trophy,
-    color: 'text-[#E1B138]',
-    bg: 'bg-[#E1B138]/10',
-    ring: 'ring-[#E1B138]/30',
+    color: 'text-amber-500',
+    bg: 'bg-amber-50',
+    ring: 'ring-amber-200',
     label: 'Deals'
   },
   call: {
     icon: Phone,
-    color: 'text-primary',
-    bg: 'bg-primary/10',
-    ring: 'ring-primary/30',
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+    ring: 'ring-violet-200',
     label: 'Calls'
   },
   lead: {
     icon: Users,
-    color: 'text-violet-500',
-    bg: 'bg-violet-500/10',
-    ring: 'ring-violet-500/30',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+    ring: 'ring-purple-200',
     label: 'Leads'
   },
   achievement: {
     icon: Award,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
-    ring: 'ring-purple-500/30',
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+    ring: 'ring-violet-200',
     label: 'Achievements'
   },
   streak: {
     icon: Flame,
-    color: 'text-orange-500',
-    bg: 'bg-orange-500/10',
-    ring: 'ring-orange-500/30',
+    color: 'text-amber-500',
+    bg: 'bg-amber-50',
+    ring: 'ring-amber-200',
     label: 'Streaks'
   },
   training: {
     icon: GraduationCap,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10',
-    ring: 'ring-blue-500/30',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+    ring: 'ring-purple-200',
     label: 'Training'
   },
   earning: {
     icon: DollarSign,
-    color: 'text-green-500',
-    bg: 'bg-green-500/10',
-    ring: 'ring-green-500/30',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    ring: 'ring-emerald-200',
     label: 'Earnings'
   },
 };
@@ -157,11 +158,11 @@ export function ActivityFeed({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="w-2 h-2 rounded-full bg-green-500"
+              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+              className="w-2 h-2 rounded-full bg-emerald-500"
             />
-            <span className="text-xs text-green-600 font-medium">Live</span>
+            <span className="text-xs text-emerald-600 font-medium">Live</span>
           </div>
           <Button
             variant="ghost"
@@ -257,18 +258,24 @@ export function ActivityFeed({
                       <span className="font-semibold text-primary">{activity.agentName}</span>{' '}
                       <span className="text-gray-600">{activity.message}</span>
                       {newActivityIds.has(activity.id) && (
-                        <Badge className="ml-2 bg-green-500 text-white text-[9px] px-1 py-0 animate-pulse">
-                          NEW
-                        </Badge>
+                        <motion.span
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                        >
+                          <Badge className="ml-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white text-[9px] px-1.5 py-0 shadow-sm">
+                            <motion.span
+                              animate={{ opacity: [1, 0.7, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                              NEW
+                            </motion.span>
+                          </Badge>
+                        </motion.span>
                       )}
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-[10px] text-gray-400">{activity.timestamp}</p>
-                      {activity.xp && (
-                        <span className="text-[10px] font-medium text-violet-500">
-                          +{activity.xp} XP
-                        </span>
-                      )}
                     </div>
                   </div>
                 </motion.div>

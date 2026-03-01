@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar, Phone, Video, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RADIUS } from "@/lib/heritageDesignSystem";
 
 interface AddEventModalProps {
   open: boolean;
@@ -50,9 +51,9 @@ export interface EventData {
 }
 
 const eventTypes = [
-  { value: 'call', label: 'Phone Call', icon: Phone, color: 'bg-green-500/10 text-green-600 border-green-200' },
-  { value: 'meeting', label: 'In-Person Meeting', icon: User, color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
-  { value: 'video', label: 'Video Call', icon: Video, color: 'bg-violet-500/10 text-violet-600 border-violet-200' },
+  { value: 'call', label: 'Phone', icon: Phone },
+  { value: 'meeting', label: 'In-Person', icon: User },
+  { value: 'video', label: 'Video', icon: Video },
 ];
 
 const durationOptions = [
@@ -205,30 +206,36 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" style={{ borderRadius: RADIUS.card }}>
         <DialogHeader className="pb-2">
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Calendar className="w-5 h-5 text-primary" />
+          <DialogTitle className="flex items-center gap-4 text-lg font-serif">
+            <div
+              className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
             Add Event
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto py-2">
           {/* Event Title */}
           <div>
-            <Label className="text-xs">Event Title *</Label>
+            <Label className="text-xs font-medium mb-1.5 block">Event Title *</Label>
             <Input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Client call with John Smith"
               className={cn("h-9", errors.title && 'border-red-500')}
+              style={{ borderRadius: RADIUS.input }}
             />
           </div>
 
           {/* Event Type */}
           <div>
-            <Label className="text-xs">Event Type</Label>
-            <div className="flex gap-2 mt-1">
+            <Label className="text-xs font-medium mb-1.5 block">Event Type</Label>
+            <div className="flex gap-2">
               {eventTypes.map((type) => {
                 const Icon = type.icon;
                 const isSelected = formData.type === type.value;
@@ -238,12 +245,15 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
                     type="button"
                     onClick={() => setFormData({ ...formData, type: type.value as 'call' | 'meeting' | 'video' })}
                     className={cn(
-                      "flex-1 flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all",
-                      isSelected ? type.color + " border-current" : "border-gray-200 hover:border-gray-300"
+                      "flex-1 flex flex-col items-center gap-1.5 p-3 border-2 transition-all",
+                      isSelected
+                        ? "bg-violet-50 text-violet-700 border-violet-500"
+                        : "border-gray-200 text-gray-600 hover:border-violet-300 hover:bg-violet-50/50"
                     )}
+                    style={{ borderRadius: RADIUS.input }}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-[10px] font-medium">{type.label.split(' ')[0]}</span>
+                    <Icon className={cn("w-5 h-5", isSelected && "text-violet-600")} />
+                    <span className="text-xs font-medium">{type.label}</span>
                   </button>
                 );
               })}
@@ -253,21 +263,23 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
           {/* Date & Time Row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Date *</Label>
+              <Label className="text-xs font-medium mb-1.5 block">Date *</Label>
               <Input
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 className={cn("h-9", errors.date && 'border-red-500')}
+                style={{ borderRadius: RADIUS.input }}
               />
             </div>
             <div>
-              <Label className="text-xs">Time *</Label>
+              <Label className="text-xs font-medium mb-1.5 block">Time *</Label>
               <Input
                 type="time"
                 value={formData.time}
                 onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                 className={cn("h-9", errors.time && 'border-red-500')}
+                style={{ borderRadius: RADIUS.input }}
               />
             </div>
           </div>
@@ -275,12 +287,12 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
           {/* Duration & Reminder */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Duration</Label>
+              <Label className="text-xs font-medium mb-1.5 block">Duration</Label>
               <Select
                 value={formData.duration}
                 onValueChange={(v) => setFormData({ ...formData, duration: v })}
               >
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-9" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -291,12 +303,12 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
               </Select>
             </div>
             <div>
-              <Label className="text-xs">Reminder</Label>
+              <Label className="text-xs font-medium mb-1.5 block">Reminder</Label>
               <Select
                 value={formData.reminderMinutes.toString()}
                 onValueChange={(v) => setFormData({ ...formData, reminderMinutes: parseInt(v) })}
               >
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-9" style={{ borderRadius: RADIUS.input }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,42 +326,56 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
           {/* Client Info (optional) */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Client Name (optional)</Label>
+              <Label className="text-xs font-medium mb-1.5 block">Client Name (optional)</Label>
               <Input
                 value={formData.clientName}
                 onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
                 placeholder="John Smith"
                 className="h-9"
+                style={{ borderRadius: RADIUS.input }}
               />
             </div>
             <div>
-              <Label className="text-xs">Client Phone (optional)</Label>
+              <Label className="text-xs font-medium mb-1.5 block">Client Phone (optional)</Label>
               <Input
                 value={formData.clientPhone}
                 onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
                 placeholder="(555) 123-4567"
                 className="h-9"
+                style={{ borderRadius: RADIUS.input }}
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <Label className="text-xs">Notes (optional)</Label>
+            <Label className="text-xs font-medium mb-1.5 block">Notes (optional)</Label>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Add any notes or details..."
-              className="h-20 resize-none text-sm"
+              className="min-h-[64px] resize-none text-sm"
+              style={{ borderRadius: RADIUS.input }}
             />
           </div>
         </div>
 
-        <div className="flex gap-2 pt-3 border-t mt-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-9" disabled={isSubmitting}>
+        <div className="flex gap-2 pt-3 border-t mt-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="flex-1 h-9"
+            disabled={isSubmitting}
+            style={{ borderRadius: RADIUS.button }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="flex-1 h-9 bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+          <Button
+            onClick={handleSubmit}
+            className="flex-1 h-9 bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90"
+            disabled={isSubmitting}
+            style={{ borderRadius: RADIUS.button }}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

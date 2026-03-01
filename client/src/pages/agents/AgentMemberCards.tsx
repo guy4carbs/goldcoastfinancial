@@ -3,10 +3,10 @@
  * Issue and manage Heritage Life Solutions digital insurance cards
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -23,8 +23,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Sheet,
@@ -39,22 +37,20 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Eye,
   Ban,
   Download,
   Mail,
   Smartphone,
-  Filter,
-  MoreVertical,
   Users,
-  TrendingUp,
   Shield,
-  AlertTriangle,
+  ChevronRight,
+  DollarSign,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/agent/primitives";
+import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
 import { toast } from "sonner";
-import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { RADIUS, SHADOW, GLASS, MOTION, COLORS, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // =============================================================================
@@ -154,12 +150,19 @@ const RELATIONSHIPS = [
 ];
 
 const STATUS_CONFIG = {
-  active: { label: "Active", icon: CheckCircle2, color: "bg-green-500/10 text-green-600 border-green-200" },
-  pending: { label: "Pending", icon: Clock, color: "bg-yellow-500/10 text-yellow-600 border-yellow-200" },
-  revoked: { label: "Revoked", icon: Ban, color: "bg-red-500/10 text-red-600 border-red-200" },
-  expired: { label: "Expired", icon: XCircle, color: "bg-gray-500/10 text-gray-600 border-gray-200" },
+  active: { label: "Active", icon: CheckCircle2, color: "bg-emerald-100 text-emerald-700 border-0" },
+  pending: { label: "Pending", icon: Clock, color: "bg-amber-100 text-amber-700 border-0" },
+  revoked: { label: "Revoked", icon: Ban, color: "bg-red-100 text-red-700 border-0" },
+  expired: { label: "Expired", icon: XCircle, color: "bg-gray-100 text-gray-600 border-0" },
 };
 
+const STATUS_FILTERS = [
+  { value: "all", label: "All" },
+  { value: "active", label: "Active" },
+  { value: "pending", label: "Pending" },
+  { value: "revoked", label: "Revoked" },
+  { value: "expired", label: "Expired" },
+];
 
 // =============================================================================
 // HELPERS
@@ -279,10 +282,10 @@ function useRevokeCard() {
 
 function StatsCards({ stats }: { stats?: CardStats }) {
   const items = [
-    { label: "Total Cards", value: stats?.total ?? 0, icon: CreditCard, color: "text-indigo-600" },
-    { label: "Active", value: stats?.active ?? 0, icon: CheckCircle2, color: "text-green-600" },
-    { label: "Pending", value: stats?.pending ?? 0, icon: Clock, color: "text-yellow-600" },
-    { label: "Revoked", value: stats?.revoked ?? 0, icon: Ban, color: "text-red-600" },
+    { label: "Total Cards", value: stats?.total ?? 0, icon: CreditCard },
+    { label: "Active", value: stats?.active ?? 0, icon: CheckCircle2 },
+    { label: "Pending", value: stats?.pending ?? 0, icon: Clock },
+    { label: "Revoked", value: stats?.revoked ?? 0, icon: Ban },
   ];
 
   return (
@@ -300,20 +303,20 @@ function StatsCards({ stats }: { stats?: CardStats }) {
           transition={{ duration: MOTION.duration.hover }}
         >
           <Card
-            className="border-0 bg-white/80 backdrop-blur cursor-pointer"
-            style={{
-              borderRadius: RADIUS.card,
-              boxShadow: SHADOW.card,
-            }}
+            className="border-0 overflow-hidden relative"
+            style={{ borderRadius: RADIUS.card, boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)' }}
           >
-            <CardContent className="p-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+            <div style={{ width: 80, height: 80 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+            <div style={{ width: 50, height: 50 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
+            <CardContent className="p-4 relative z-10">
               <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg bg-gray-50", item.color)}>
-                  <item.icon className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg bg-white/20 backdrop-blur">
+                  <item.icon className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">{item.value}</p>
-                  <p className="text-xs text-gray-500">{item.label}</p>
+                  <p className="text-2xl font-bold text-white">{item.value}</p>
+                  <p className="text-xs text-white/70">{item.label}</p>
                 </div>
               </div>
             </CardContent>
@@ -329,80 +332,90 @@ function CardRow({ card, onClick, onRevoke }: { card: MemberCard; onClick: () =>
   const StatusIcon = status.icon;
 
   return (
-    <motion.div
-      variants={fadeInUp}
-      className="group"
-      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-      transition={{ duration: MOTION.duration.hover }}
+    <div
+      className="group px-5 py-4 hover:bg-violet-50/40 transition-colors cursor-pointer"
+      onClick={onClick}
     >
-      <Card
-        className="border-0 hover:shadow-lg transition-all cursor-pointer bg-white/90 backdrop-blur"
-        style={{
-          borderRadius: RADIUS.card,
-          boxShadow: SHADOW.card,
-        }}
-        onClick={onClick}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Card Icon */}
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <CreditCard className="w-6 h-6 text-white" />
-              </div>
+      <div className="flex items-center gap-4">
+        <div
+          className="w-10 h-10 flex items-center justify-center shadow-lg shadow-violet-500/20 bg-gradient-to-br from-violet-500 to-purple-600"
+          style={{ borderRadius: RADIUS.button }}
+        >
+          <CreditCard className="w-5 h-5 text-amber-200" aria-hidden="true" />
+        </div>
 
-              {/* Card Info */}
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">{card.memberFullName}</h3>
-                  <Badge variant="outline" className={cn("text-xs", status.color)}>
-                    <StatusIcon className="w-3 h-3 mr-1" />
-                    {status.label}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                  <span>{card.memberCardNumber}</span>
-                  <span className="text-gray-300">|</span>
-                  <span>{getCarrierLabel(card.insuranceCarrier)}</span>
-                  <span className="text-gray-300">|</span>
-                  <span>{formatCurrency(card.coverageAmount)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Send to member
-                  toast.info("Notification sent to member");
-                }}
-              >
-                <Mail className="w-4 h-4" />
-              </Button>
-              {card.status === "active" && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRevoke();
-                  }}
-                >
-                  <Ban className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-gray-900">{card.memberFullName}</p>
+            <Badge
+              className={cn("text-[10px]", status.color)}
+              style={{ borderRadius: RADIUS.pill }}
+            >
+              <StatusIcon className="w-3 h-3 mr-1" aria-hidden="true" />
+              {status.label}
+            </Badge>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+          <p className="text-sm text-gray-500 truncate">
+            {card.memberCardNumber} &middot; {getCarrierLabel(card.insuranceCarrier)}
+          </p>
+        </div>
+
+        <div className="hidden sm:block text-right">
+          <p className="font-semibold text-violet-700">{formatCurrency(card.coverageAmount)}</p>
+          <p className="text-xs text-gray-400">{formatCurrency(card.monthlyPremium)}/mo</p>
+        </div>
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-violet-700 hover:bg-violet-50"
+            style={{ borderRadius: RADIUS.button }}
+            onClick={(e) => {
+              e.stopPropagation();
+              toast.info("Notification sent to member");
+            }}
+          >
+            <Mail className="w-4 h-4" />
+          </Button>
+          {card.status === "active" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:bg-red-50"
+              style={{ borderRadius: RADIUS.button }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRevoke();
+              }}
+            >
+              <Ban className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
+        <ChevronRight className="w-4 h-4 text-gray-300" />
+      </div>
+    </div>
   );
 }
+
+const EMPTY_FORM: IssueCardFormData = {
+  memberFullName: "",
+  memberEmail: "",
+  memberPhone: "",
+  insuranceCarrier: "",
+  insuranceCarrierOther: "",
+  policyNumber: "",
+  policyType: "",
+  coverageAmount: "",
+  monthlyPremium: "",
+  effectiveDate: "",
+  termLength: "",
+  coverageType: "individual",
+  beneficiaryName: "",
+  beneficiaryRelationship: "",
+};
 
 function IssueCardDialog({
   open,
@@ -415,24 +428,14 @@ function IssueCardDialog({
   onSubmit: (data: IssueCardFormData) => void;
   isLoading: boolean;
 }) {
-  const [formData, setFormData] = useState<IssueCardFormData>({
-    memberFullName: "",
-    memberEmail: "",
-    memberPhone: "",
-    insuranceCarrier: "",
-    insuranceCarrierOther: "",
-    policyNumber: "",
-    policyType: "",
-    coverageAmount: "",
-    monthlyPremium: "",
-    effectiveDate: "",
-    termLength: "",
-    coverageType: "individual",
-    beneficiaryName: "",
-    beneficiaryRelationship: "",
-  });
+  const [formData, setFormData] = useState<IssueCardFormData>(EMPTY_FORM);
 
   const isTermPolicy = formData.policyType === "term_life";
+
+  const handleClose = () => {
+    setFormData(EMPTY_FORM);
+    onOpenChange(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -444,23 +447,47 @@ function IssueCardDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-indigo-600" />
-            Issue Member Card
-          </DialogTitle>
-          <DialogDescription>
-            Create a new Heritage Life Solutions digital insurance card for a member.
-          </DialogDescription>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else onOpenChange(v); }}>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-0 [&>button.absolute]:hidden"
+        style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: RADIUS.card,
+          boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)',
+        }}
+      >
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
+                <CreditCard className="w-5 h-5 text-amber-200" />
+              </div>
+              <div>
+                <span className="text-lg font-semibold text-gray-900">Issue Member Card</span>
+                <p className="text-xs text-gray-500 font-normal">
+                  Create a new Heritage Life Solutions digital insurance card
+                </p>
+              </div>
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              style={{ borderRadius: RADIUS.button }}
+              onClick={handleClose}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Member Information */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Users className="w-4 h-4" />
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-violet-500" />
               Member Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -472,6 +499,7 @@ function IssueCardDialog({
                   onChange={(e) => updateField("memberFullName", e.target.value)}
                   placeholder="John Smith"
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div>
@@ -483,6 +511,7 @@ function IssueCardDialog({
                   onChange={(e) => updateField("memberEmail", e.target.value)}
                   placeholder="john@example.com"
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div>
@@ -492,6 +521,7 @@ function IssueCardDialog({
                   value={formData.memberPhone}
                   onChange={(e) => updateField("memberPhone", e.target.value)}
                   placeholder="(555) 123-4567"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
             </div>
@@ -499,8 +529,8 @@ function IssueCardDialog({
 
           {/* Policy Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Shield className="w-4 h-4" />
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-violet-500" />
               Policy Details
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -510,7 +540,7 @@ function IssueCardDialog({
                   value={formData.insuranceCarrier}
                   onValueChange={(v) => updateField("insuranceCarrier", v)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger style={{ borderRadius: RADIUS.input }}>
                     <SelectValue placeholder="Select carrier" />
                   </SelectTrigger>
                   <SelectContent>
@@ -531,6 +561,7 @@ function IssueCardDialog({
                     onChange={(e) => updateField("insuranceCarrierOther", e.target.value)}
                     placeholder="Enter carrier name"
                     required
+                    style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
               )}
@@ -542,6 +573,7 @@ function IssueCardDialog({
                   onChange={(e) => updateField("policyNumber", e.target.value)}
                   placeholder="POL-123456789"
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div>
@@ -550,7 +582,7 @@ function IssueCardDialog({
                   value={formData.policyType}
                   onValueChange={(v) => updateField("policyType", v)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger style={{ borderRadius: RADIUS.input }}>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -570,6 +602,7 @@ function IssueCardDialog({
                   onChange={(e) => updateField("coverageAmount", e.target.value)}
                   placeholder="$500,000"
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div>
@@ -580,6 +613,7 @@ function IssueCardDialog({
                   onChange={(e) => updateField("monthlyPremium", e.target.value)}
                   placeholder="$125.00"
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div>
@@ -590,6 +624,7 @@ function IssueCardDialog({
                   value={formData.effectiveDate}
                   onChange={(e) => updateField("effectiveDate", e.target.value)}
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               {isTermPolicy && (
@@ -599,7 +634,7 @@ function IssueCardDialog({
                     value={formData.termLength}
                     onValueChange={(v) => updateField("termLength", v)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger style={{ borderRadius: RADIUS.input }}>
                       <SelectValue placeholder="Select term" />
                     </SelectTrigger>
                     <SelectContent>
@@ -618,7 +653,7 @@ function IssueCardDialog({
                   value={formData.coverageType}
                   onValueChange={(v) => updateField("coverageType", v)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger style={{ borderRadius: RADIUS.input }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -633,8 +668,8 @@ function IssueCardDialog({
 
           {/* Beneficiary Information */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Users className="w-4 h-4" />
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-violet-500" />
               Beneficiary
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -646,6 +681,7 @@ function IssueCardDialog({
                   onChange={(e) => updateField("beneficiaryName", e.target.value)}
                   placeholder="Jane Smith"
                   required
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div>
@@ -654,7 +690,7 @@ function IssueCardDialog({
                   value={formData.beneficiaryRelationship}
                   onValueChange={(v) => updateField("beneficiaryRelationship", v)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger style={{ borderRadius: RADIUS.input }}>
                     <SelectValue placeholder="Select relationship" />
                   </SelectTrigger>
                   <SelectContent>
@@ -669,18 +705,25 @@ function IssueCardDialog({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="text-violet-700 border-violet-200 hover:bg-violet-50"
+              style={{ borderRadius: RADIUS.button }}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
+              className="bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+              style={{ borderRadius: RADIUS.button }}
             >
               {isLoading ? "Issuing..." : "Issue Card"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
@@ -696,51 +739,177 @@ function CardDetailSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [sendLoading, setSendLoading] = useState(false);
+
   if (!card) return null;
 
   const status = STATUS_CONFIG[card.status];
   const StatusIcon = status.icon;
 
+  const handleAddToWallet = async () => {
+    setWalletLoading(true);
+    try {
+      const res = await fetch("/api/wallet/pass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          memberId: card.memberId,
+          memberName: card.memberFullName,
+          policyNumber: card.policyNumber,
+          insuranceCarrier: getCarrierLabel(card.insuranceCarrier),
+          coverageAmount: formatCurrency(card.coverageAmount),
+          planType: getPolicyTypeLabel(card.policyType),
+          effectiveDate: card.effectiveDate,
+          expirationDate: card.expirationDate,
+          beneficiaryName: card.beneficiaryName,
+          agentName: "Heritage Agent",
+          dba: "heritage",
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        if (err.setupRequired) {
+          toast.info("Apple Wallet signing not configured yet");
+          return;
+        }
+        throw new Error(err.error || "Failed to generate pass");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `heritage-${card.memberId}.pkpass`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Wallet pass downloaded");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate wallet pass");
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`/api/member-cards/${card.id}/pdf`, {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to generate PDF");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `heritage-card-${card.memberId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("PDF downloaded");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to download PDF");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleSendToMember = async () => {
+    setSendLoading(true);
+    try {
+      const res = await fetch(`/api/member-cards/${card.id}/send`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to send notification");
+      }
+      const data = await res.json();
+      if (data.method === "mailto") {
+        window.location.href = data.mailto;
+        toast.info("Opening email client...");
+      } else {
+        toast.success(`Card details sent to ${card.memberEmail || "member"}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send to member");
+    } finally {
+      setSendLoading(false);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-indigo-600" />
-            Card Details
-          </SheetTitle>
-        </SheetHeader>
+      <SheetContent
+        className="w-full sm:max-w-md overflow-y-auto border-0 p-0"
+        style={{
+          background: GLASS.backgroundLight,
+          backdropFilter: `blur(${GLASS.blur}px)`,
+          WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+        }}
+      >
+        {/* Heritage gradient header */}
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+          <div style={{ width: 100, height: 100 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+          <div style={{ width: 60, height: 60 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
 
-        <div className="mt-6 space-y-6">
+          <SheetHeader className="relative z-10 p-6 pb-5">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 bg-white/20 backdrop-blur flex items-center justify-center shadow-lg"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <CreditCard className="w-6 h-6 text-amber-200" />
+              </div>
+              <div>
+                <SheetTitle className="text-left text-white">{card.memberFullName}</SheetTitle>
+                <Badge
+                  className={cn("mt-1", status.color)}
+                  style={{ borderRadius: RADIUS.pill }}
+                >
+                  <StatusIcon className="w-3 h-3 mr-1" />
+                  {status.label}
+                </Badge>
+              </div>
+            </div>
+          </SheetHeader>
+        </div>
+
+        <div className="space-y-5 p-6">
           {/* Card Preview */}
           <div
             className="relative overflow-hidden"
-            style={{
-              borderRadius: RADIUS.card,
-              boxShadow: SHADOW.hero,
-            }}
+            style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.hero }}
           >
-            <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 p-6 text-white">
+            <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 p-6 text-white">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">
                   <Shield className="w-8 h-8 text-amber-400" />
                   <div>
                     <p className="text-lg font-bold tracking-wide">HERITAGE</p>
-                    <p className="text-xs opacity-80">LIFE SOLUTIONS</p>
+                    <p className="text-xs text-white/80">LIFE SOLUTIONS</p>
                   </div>
                 </div>
-                <Badge variant="outline" className={cn("border-white/30 text-white", status.color.replace('text-', 'text-white'))}>
+                <Badge
+                  className="bg-white/20 text-white border-0 backdrop-blur"
+                  style={{ borderRadius: RADIUS.pill }}
+                >
                   {status.label}
                 </Badge>
               </div>
               <p className="text-xl font-semibold">{card.memberFullName}</p>
-              <p className="text-sm opacity-80 font-mono mt-1">{card.memberCardNumber}</p>
+              <p className="text-sm text-white/80 font-mono mt-1">{card.memberCardNumber}</p>
             </div>
             <div className="bg-white p-4 border-t">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500 text-xs">Coverage</p>
-                  <p className="font-semibold text-indigo-600">{formatCurrency(card.coverageAmount)}</p>
+                  <p className="font-semibold text-violet-700">{formatCurrency(card.coverageAmount)}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-xs">Effective</p>
@@ -750,23 +919,58 @@ function CardDetailSheet({
             </div>
           </div>
 
-          {/* Details */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700">Policy Information</h3>
-            <div className="space-y-3">
+          <div className="border-t border-gray-100" />
+
+          {/* Policy Information */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-900">Policy Information</h3>
+
+            {/* Premium highlight */}
+            <div className="relative overflow-hidden p-3" style={{ borderRadius: RADIUS.button }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+              <div style={{ width: 60, height: 60 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/3" />
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-amber-200" />
+                </div>
+                <div>
+                  <p className="text-xs text-white/70">Monthly Premium</p>
+                  <p className="font-bold text-white text-lg">{formatCurrency(card.monthlyPremium)}/mo</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Coverage highlight */}
+            <div className="relative overflow-hidden p-3" style={{ borderRadius: RADIUS.button }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
+              <div style={{ width: 60, height: 60 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/3" />
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-amber-200" />
+                </div>
+                <div>
+                  <p className="text-xs text-white/70">Coverage Amount</p>
+                  <p className="font-bold text-white text-lg">{formatCurrency(card.coverageAmount)}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-violet-50 space-y-3" style={{ borderRadius: RADIUS.button }}>
               <DetailRow label="Policy Number" value={card.policyNumber} />
               <DetailRow label="Carrier" value={getCarrierLabel(card.insuranceCarrier)} />
               <DetailRow label="Policy Type" value={getPolicyTypeLabel(card.policyType)} />
-              <DetailRow label="Monthly Premium" value={formatCurrency(card.monthlyPremium)} />
               {card.termLength && <DetailRow label="Term Length" value={card.termLength} />}
               {card.expirationDate && <DetailRow label="Expiration" value={formatDate(card.expirationDate)} />}
               <DetailRow label="Coverage Type" value={card.coverageType} className="capitalize" />
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700">Beneficiary</h3>
-            <div className="space-y-3">
+          <div className="border-t border-gray-100" />
+
+          {/* Beneficiary */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-900">Beneficiary</h3>
+            <div className="p-3 bg-violet-50 space-y-3" style={{ borderRadius: RADIUS.button }}>
               <DetailRow label="Name" value={card.beneficiaryName} />
               {card.beneficiaryRelationship && (
                 <DetailRow label="Relationship" value={card.beneficiaryRelationship} className="capitalize" />
@@ -774,24 +978,69 @@ function CardDetailSheet({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700">Member Contact</h3>
-            <div className="space-y-3">
+          <div className="border-t border-gray-100" />
+
+          {/* Member Contact */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-900">Member Contact</h3>
+            <div className="p-3 bg-violet-50 space-y-3" style={{ borderRadius: RADIUS.button }}>
               <DetailRow label="Email" value={card.memberEmail} />
               {card.memberPhone && <DetailRow label="Phone" value={card.memberPhone} />}
             </div>
           </div>
 
+          <div className="border-t border-gray-100" />
+
           {/* Actions */}
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" className="flex-1" onClick={() => toast.info("Sending notification...")}>
-              <Mail className="w-4 h-4 mr-2" />
-              Send to Member
-            </Button>
-            <Button variant="outline" className="flex-1" onClick={() => toast.info("Downloading PDF...")}>
-              <Download className="w-4 h-4 mr-2" />
-              Download PDF
-            </Button>
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-900">Actions</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                style={{ borderRadius: RADIUS.button }}
+                onClick={handleSendToMember}
+                disabled={sendLoading}
+              >
+                <Mail className="w-4 h-4" />
+                {sendLoading ? "Sending..." : "Send to Member"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                style={{ borderRadius: RADIUS.button }}
+                onClick={handleAddToWallet}
+                disabled={walletLoading}
+              >
+                <Smartphone className="w-4 h-4" />
+                {walletLoading ? "Generating..." : "Apple Wallet"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                style={{ borderRadius: RADIUS.button }}
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
+              >
+                <Download className="w-4 h-4" />
+                {pdfLoading ? "Generating..." : "Download PDF"}
+              </Button>
+              {card.status === "active" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                  style={{ borderRadius: RADIUS.button }}
+                  onClick={() => toast.info("Use the list to revoke cards")}
+                >
+                  <Ban className="w-4 h-4" />
+                  Revoke Card
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </SheetContent>
@@ -801,7 +1050,7 @@ function CardDetailSheet({
 
 function DetailRow({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+    <div className="flex justify-between items-center">
       <span className="text-sm text-gray-500">{label}</span>
       <span className={cn("text-sm font-medium text-gray-900", className)}>{value}</span>
     </div>
@@ -823,7 +1072,6 @@ export default function AgentMemberCards() {
   const issueCard = useIssueCard();
   const revokeCard = useRevokeCard();
 
-  // Filter cards
   const filteredCards = (cards || []).filter((card) => {
     const matchesSearch =
       searchQuery === "" ||
@@ -852,150 +1100,133 @@ export default function AgentMemberCards() {
         initial="hidden"
         animate="visible"
       >
-        {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-          transition={{ duration: MOTION.duration.hover }}
-        >
-          <Card
-            className="border-0 overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white"
-            style={{
-              borderRadius: RADIUS.hero,
-              boxShadow: SHADOW.hero,
-            }}
+        {/* Hero */}
+        <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={CreditCard}
+            title="Member Cards"
+            subtitle="Issue and manage Heritage Life Solutions digital insurance cards"
           >
-            <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 rounded-2xl bg-white/20 backdrop-blur">
-                    <CreditCard className="w-10 h-10 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold text-white">Member Cards</h1>
-                    <p className="text-white/80 mt-1">
-                      Issue and manage Heritage Life Solutions digital insurance cards
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => setShowIssueDialog(true)}
-                  className="bg-white text-violet-600 hover:bg-white/90 shadow-lg font-semibold"
-                  style={{ borderRadius: RADIUS.button }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Issue New Card
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <Button
+              onClick={() => setShowIssueDialog(true)}
+              className="gap-2 text-white border-0 backdrop-blur-sm hover:scale-105 transition-transform"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: RADIUS.button,
+              }}
+            >
+              <Plus className="w-4 h-4" />
+              Issue New Card
+            </Button>
+          </AgentPageHero>
         </motion.div>
 
         {/* Stats */}
         <StatsCards stats={stats} />
 
-        {/* Filters */}
+        {/* Search & Filter */}
+        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search by name, card number, or policy..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11"
+              style={{ borderRadius: RADIUS.input }}
+            />
+          </div>
+          <div
+            className="flex gap-1 p-1"
+            style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
+            role="group"
+            aria-label="Filter cards by status"
+          >
+            {STATUS_FILTERS.map((s) => (
+              <Button
+                key={s.value}
+                variant="ghost"
+                size="sm"
+                onClick={() => setStatusFilter(s.value)}
+                className={cn(
+                  "h-8 px-3 text-xs font-medium transition-all",
+                  statusFilter === s.value
+                    ? "bg-white text-violet-700 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                )}
+                style={{ borderRadius: RADIUS.button }}
+              >
+                {s.label}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Cards List */}
         <motion.div variants={fadeInUp}>
           <Card
-            className="border-0 bg-white/80 backdrop-blur"
+            className="border-0 overflow-hidden"
             style={{
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               borderRadius: RADIUS.card,
               boxShadow: SHADOW.card,
             }}
           >
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Search by name, card number, or policy..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                    style={{ borderRadius: RADIUS.input }}
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full md:w-40">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="revoked">Revoked</SelectItem>
-                    <SelectItem value="expired">Expired</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Cards List */}
-        <motion.div variants={fadeInUp} className="space-y-3">
-          {cardsLoading ? (
-            // Loading skeleton
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Card
-                  key={i}
-                  className="border-0 animate-pulse"
-                  style={{
-                    borderRadius: RADIUS.card,
-                    boxShadow: SHADOW.card,
-                  }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gray-200" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-1/3" />
-                        <div className="h-3 bg-gray-200 rounded w-1/2" />
+            <CardContent className="p-0">
+              {cardsLoading ? (
+                <div className="divide-y divide-gray-100">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="px-5 py-4 animate-pulse">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="w-10 h-10 bg-gray-200"
+                          style={{ borderRadius: RADIUS.button }}
+                        />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-1/3" />
+                          <div className="h-3 bg-gray-200 rounded w-1/2" />
+                        </div>
+                        <div className="hidden sm:block space-y-2 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-20 ml-auto" />
+                          <div className="h-3 bg-gray-200 rounded w-16 ml-auto" />
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : filteredCards.length === 0 ? (
-            <EmptyState
-              icon={CreditCard}
-              title={searchQuery || statusFilter !== "all" ? "No cards found" : "No cards issued yet"}
-              description={
-                searchQuery || statusFilter !== "all"
-                  ? "Try adjusting your search or filters"
-                  : "Issue your first member card to get started"
-              }
-              action={
-                !searchQuery && statusFilter === "all" ? (
-                  <Button onClick={() => setShowIssueDialog(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Issue First Card
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : (
-            <AnimatePresence mode="popLayout">
-              <motion.div
-                className="space-y-3"
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-              >
-                {filteredCards.map((card) => (
-                  <CardRow
-                    key={card.id}
-                    card={card}
-                    onClick={() => setSelectedCard(card)}
-                    onRevoke={() => revokeCard.mutate(card.id)}
+                  ))}
+                </div>
+              ) : filteredCards.length === 0 ? (
+                <div className="py-12">
+                  <EmptyState
+                    icon={CreditCard}
+                    title={searchQuery || statusFilter !== "all" ? "No cards found" : "No cards issued yet"}
+                    description={
+                      searchQuery || statusFilter !== "all"
+                        ? "Try adjusting your search or filters"
+                        : "Issue your first member card to get started"
+                    }
+                    action={
+                      !searchQuery && statusFilter === "all"
+                        ? { label: "Issue First Card", onClick: () => setShowIssueDialog(true), icon: Plus }
+                        : undefined
+                    }
                   />
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          )}
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {filteredCards.map((card) => (
+                    <CardRow
+                      key={card.id}
+                      card={card}
+                      onClick={() => setSelectedCard(card)}
+                      onRevoke={() => revokeCard.mutate(card.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       </motion.div>
 

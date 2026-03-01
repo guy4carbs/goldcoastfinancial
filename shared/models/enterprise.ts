@@ -1195,3 +1195,65 @@ export const scripts = pgTable("scripts", {
 });
 
 export type Script = typeof scripts.$inferSelect;
+
+// =============================================================================
+// AGENT HIERARCHY
+// =============================================================================
+
+export const agentHierarchy = pgTable("agent_hierarchy", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentUserId: uuid("agent_user_id").references(() => users.id).notNull().unique(),
+  directUplineId: uuid("direct_upline_id").references(() => users.id),
+
+  // Position in hierarchy
+  hierarchyLevel: integer("hierarchy_level").notNull().default(5), // 0=owner, 5=agent, 6=new agent
+  hierarchyTitle: varchar("hierarchy_title", { length: 100 }), // Custom title like "Senior Agent"
+
+  // Full upline chain for quick lookups (array of user IDs from direct upline to owner)
+  uplineChain: jsonb("upline_chain").$type<string[]>().default([]),
+
+  // Override commission settings
+  overrideEligible: boolean("override_eligible").default(false),
+  overridePercentage: decimal("override_percentage", { precision: 5, scale: 2 }),
+
+  // Effective dates (for historical tracking)
+  effectiveFrom: timestamp("effective_from").defaultNow().notNull(),
+  effectiveTo: timestamp("effective_to"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_hierarchy_agent_user_id").on(table.agentUserId),
+  index("idx_hierarchy_direct_upline_id").on(table.directUplineId),
+  index("idx_hierarchy_level").on(table.hierarchyLevel),
+]);
+
+export const insertAgentHierarchySchema = createInsertSchema(agentHierarchy).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AgentHierarchy = typeof agentHierarchy.$inferSelect;
+export type InsertAgentHierarchy = z.infer<typeof insertAgentHierarchySchema>;
+
+// Hierarchy level constants for reference
+export const HIERARCHY_LEVELS = {
+  AGENCY_OWNER: 0,
+  EXECUTIVE: 1,
+  REGIONAL_DIRECTOR: 2,
+  TEAM_LEAD: 3,
+  SENIOR_AGENT: 4,
+  AGENT: 5,
+  NEW_AGENT: 6,
+} as const;
+
+export const HIERARCHY_TITLES: Record<number, string> = {
+  0: 'Agency Owner',
+  1: 'Executive',
+  2: 'Regional Director',
+  3: 'Team Lead',
+  4: 'Senior Agent',
+  5: 'Agent',
+  6: 'New Agent',
+};

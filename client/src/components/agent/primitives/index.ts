@@ -20,3 +20,7 @@ export { LoadingOverlay, LoadingButtonContent, Spinner } from './LoadingOverlay'
 export { Pagination, usePagination } from './Pagination';
 export { ErrorBoundary, ErrorFallback, showErrorToast, withErrorHandling } from './ErrorBoundary';
 export { DemoBadge, DemoIndicator } from './DemoBadge';
+
+// Page-Level Components
+export { AgentPageHero, type AgentPageHeroProps } from './AgentPageHero';
+export { AgentStatCard, AgentStatCardGrid, type AgentStatCardProps } from './AgentStatCard';
