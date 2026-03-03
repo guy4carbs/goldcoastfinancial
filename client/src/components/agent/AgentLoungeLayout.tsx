@@ -48,9 +48,19 @@ import {
   FolderOpen,
   Network,
   Phone,
+  LayoutDashboard,
+  ChevronDown,
+  HeadphonesIcon,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
@@ -74,6 +84,19 @@ const SIDEBAR_COLLAPSED = LAYOUT.sidebar.collapsed;
 const ROW_HEIGHT = LAYOUT.sidebar.rowHeight;
 const ICON_SIZE = LAYOUT.sidebar.iconSize;
 const SIDEBAR_STATE_KEY = 'agent-lounge-sidebar-collapsed';
+
+const LOUNGE_OPTIONS = [
+  { id: 'agent', name: 'Agent Lounge', icon: Users, path: '/agents/dashboard', description: 'Sales, leads & performance', gradient: 'from-violet-500 to-purple-600' },
+  { id: 'crm', name: 'Lobby', icon: LayoutDashboard, path: '/crm', description: 'Welcome center & navigation', gradient: 'from-violet-600 to-purple-700' },
+  { id: 'ai', name: 'AI Lounge', icon: Bot, path: '/ai/dashboard', description: 'AI agents & automation', gradient: 'from-cyan-500 to-blue-600' },
+  { id: 'finance', name: 'Finance Lounge', icon: DollarSign, path: '/finance/dashboard', description: 'Commissions & financial reporting', gradient: 'from-blue-800 to-blue-950' },
+  { id: 'marketing', name: 'Marketing Lounge', icon: Megaphone, path: '/marketing/dashboard', description: 'Campaigns & content', gradient: 'from-rose-500 to-pink-600' },
+  { id: 'support', name: 'Support Lounge', icon: HeadphonesIcon, path: '/support/dashboard', description: 'Tickets & help desk', gradient: 'from-gray-700 to-gray-900' },
+  { id: 'manager', name: 'Manager Lounge', icon: Briefcase, path: '/manager/dashboard', description: 'Team coaching & pipeline oversight', gradient: 'from-emerald-500 to-emerald-700' },
+  { id: 'executive', name: 'Executive Lounge', icon: BarChart3, path: '/executive/dashboard', description: 'Strategic insights', gradient: 'from-orange-500 to-orange-700' },
+  { id: 'admin', name: 'Admin Lounge', icon: Shield, path: '/admin', description: 'System settings & users', gradient: 'from-slate-500 to-blue-700' },
+  { id: 'investor', name: 'Investor Lounge', icon: BarChart3, path: '/investor/dashboard', description: 'KPIs & executive dashboards', gradient: 'from-amber-500 to-yellow-600' },
+] as const;
 
 interface NavItem {
   icon: typeof Home;
@@ -286,13 +309,14 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
 
   const SidebarContent = () => (
     <>
-      {/* Logo */}
+      {/* Logo - height matches header so level card aligns with hero */}
       <div
         className={cn("flex items-center", sidebarCollapsed && "justify-center")}
         style={{
           gap: GRID.spacing.sm - 4,
           padding: `0 ${GRID.spacing.md - 8}px`,
-          marginBottom: GRID.spacing.lg,
+          minHeight: LAYOUT.header.height - GRID.spacing.md,
+          marginBottom: GRID.spacing.md,
         }}
       >
         <div
@@ -341,10 +365,10 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
             </div>
             <div className="flex items-center justify-between" style={{ marginTop: GRID.spacing.xs }}>
               <div className="flex items-center" style={{ gap: 4 }}>
-                <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>${(performance.revenue || 0).toLocaleString()} AP</span>
+                <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>{(performance.xp || 0).toLocaleString()} AP</span>
               </div>
               <span style={{ fontSize: TYPE.caption, color: COLORS.primary.violet[200] }}>
-                {performance.sales || 0} sales
+                {performance.dailyCloses || 0} sales
               </span>
             </div>
           </motion.div>
@@ -414,7 +438,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex">
       {/* Command Palette */}
       <CommandPalette
         open={commandPaletteOpen}
@@ -431,9 +455,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         transition={{ duration: MOTION.duration.expand, ease: MOTION.easing }}
         className="hidden lg:flex flex-col fixed h-screen z-30"
         style={{
-          backgroundColor: GLASS.backgroundDark,
-          backdropFilter: `blur(${GLASS.blur}px)`,
-          WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+          backgroundColor: '#ffffff',
           borderRight: `1px solid ${GLASS.border}`,
           paddingTop: GRID.spacing.md,
           paddingBottom: GRID.spacing.md,
@@ -486,9 +508,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               className="lg:hidden fixed left-0 top-0 bottom-0 flex flex-col z-50"
               style={{
                 width: SIDEBAR_EXPANDED,
-                backgroundColor: GLASS.backgroundDark,
-                backdropFilter: `blur(${GLASS.blur}px)`,
-                WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
+                backgroundColor: '#ffffff',
                 paddingTop: GRID.spacing.md,
                 paddingBottom: GRID.spacing.md,
               }}
@@ -581,8 +601,75 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               </motion.button>
             </div>
 
-            {/* Right: Notifications + User */}
+            {/* Right: Lounge Switcher + Notifications + User */}
             <div className="flex items-center" style={{ gap: GRID.spacing.sm - 4 }}>
+              {/* Lounge Switcher */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition-colors"
+                    style={{
+                      padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                      borderRadius: RADIUS.button,
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
+                    <Users style={{ width: 16, height: 16 }} />
+                    <span className="hidden sm:inline text-sm font-medium">Agent</span>
+                    <ChevronDown style={{ width: 14, height: 14 }} className="text-gray-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 p-1 border-0"
+                  style={{
+                    borderRadius: RADIUS.card,
+                    boxShadow: SHADOW.hero,
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                  }}
+                >
+                  {LOUNGE_OPTIONS.map((lounge) => {
+                    const Icon = lounge.icon;
+                    const isActive = lounge.id === 'agent';
+                    return (
+                      <DropdownMenuItem key={lounge.id} asChild>
+                        <Link
+                          href={lounge.path}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
+                            isActive ? "bg-violet-50" : "hover:bg-gray-50"
+                          )}
+                          style={{ borderRadius: RADIUS.button }}
+                        >
+                          <div
+                            className={cn(
+                              "w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-to-br",
+                              lounge.gradient
+                            )}
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            <Icon className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-sm font-medium", isActive ? "text-violet-700" : "text-gray-900")}>
+                              {lounge.name}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{lounge.description}</p>
+                          </div>
+                          {isActive && (
+                            <div
+                              className="w-2 h-2 bg-violet-500 flex-shrink-0"
+                              style={{ borderRadius: RADIUS.pill }}
+                            />
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <NotificationDropdown
                 notifications={notifications}
                 onMarkAsRead={markNotificationRead}
@@ -604,7 +691,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                       {currentUser?.name || 'Agent'}
                     </p>
                     <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>
-                      Level {performance.level} · ${(performance.revenue || 0).toLocaleString()} AP
+                      Level {performance.level} · {(performance.xp || 0).toLocaleString()} AP
                     </p>
                   </div>
                   <div

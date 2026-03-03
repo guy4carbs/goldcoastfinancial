@@ -137,7 +137,19 @@ import TwoFactorSetup from "@/pages/ai/TwoFactorSetup";
 import TwoFactorVerify from "@/pages/ai/TwoFactorVerify";
 // Lounge Pages
 import { AIDashboard } from "@/pages/ai";
-import { ManagerDashboard } from "@/pages/manager";
+import {
+  ManagerDashboard,
+  ManagerTeam,
+  ManagerPipeline,
+  ManagerPerformance,
+  ManagerTraining,
+  ManagerCoaching,
+  ManagerMeetings,
+  ManagerEscalations,
+  ManagerReports,
+  ManagerCommunications,
+  ManagerSettings,
+} from "@/pages/manager";
 import { ExecutiveDashboard } from "@/pages/executive";
 import { LobbyLanding, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
 import { MarketingDashboard } from "@/pages/marketing";
@@ -506,6 +518,56 @@ function Router() {
         <Route path="/manager/dashboard">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
             <ManagerDashboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/team">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerTeam />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/pipeline">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerPipeline />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/performance">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerPerformance />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/training">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerTraining />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/coaching">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerCoaching />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/meetings">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerMeetings />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/escalations">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerEscalations />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/reports">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerReports />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/communications">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerCommunications />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/settings">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerSettings />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/:rest*">

@@ -55,7 +55,7 @@ interface LoungeItem {
   icon: LucideIcon;
   label: string;
   href: string;
-  color: string;
+  gradient: string;
   description: string;
   requiredRoles: string[];
 }
@@ -70,7 +70,7 @@ const lounges: LoungeItem[] = [
     icon: Users,
     label: "Agent Lounge",
     href: "/agents/dashboard",
-    color: "text-violet-600 bg-violet-100",
+    gradient: "from-violet-500 to-purple-600",
     description: "Leads, quotes, pipeline",
     requiredRoles: ['owner', 'system_admin', 'manager', 'sales_agent', 'client'],
   },
@@ -79,7 +79,7 @@ const lounges: LoungeItem[] = [
     icon: DollarSign,
     label: "Finance Lounge",
     href: "/finance/dashboard",
-    color: "text-emerald-600 bg-emerald-100",
+    gradient: "from-blue-800 to-blue-950",
     description: "Commissions, revenue",
     requiredRoles: ['owner', 'system_admin', 'manager', 'investor'],
   },
@@ -88,7 +88,7 @@ const lounges: LoungeItem[] = [
     icon: Megaphone,
     label: "Marketing Lounge",
     href: "/marketing/dashboard",
-    color: "text-rose-600 bg-rose-100",
+    gradient: "from-rose-500 to-pink-600",
     description: "Campaigns, content",
     requiredRoles: ['owner', 'system_admin', 'manager', 'marketing_staff'],
   },
@@ -97,7 +97,7 @@ const lounges: LoungeItem[] = [
     icon: Bot,
     label: "AI Lounge",
     href: "/ai/dashboard",
-    color: "text-cyan-600 bg-cyan-100",
+    gradient: "from-cyan-500 to-blue-600",
     description: "AI agents, automation",
     requiredRoles: ['owner', 'system_admin'],
   },
@@ -106,7 +106,7 @@ const lounges: LoungeItem[] = [
     icon: Briefcase,
     label: "Manager Lounge",
     href: "/manager/dashboard",
-    color: "text-blue-600 bg-blue-100",
+    gradient: "from-emerald-500 to-emerald-700",
     description: "Team oversight",
     requiredRoles: ['owner', 'system_admin', 'manager'],
   },
@@ -115,7 +115,7 @@ const lounges: LoungeItem[] = [
     icon: HeadphonesIcon,
     label: "Support Lounge",
     href: "/support/dashboard",
-    color: "text-amber-600 bg-amber-100",
+    gradient: "from-gray-700 to-gray-900",
     description: "Tickets, help desk",
     requiredRoles: ['owner', 'system_admin', 'manager'],
   },
@@ -124,7 +124,7 @@ const lounges: LoungeItem[] = [
     icon: BarChart3,
     label: "Executive Lounge",
     href: "/executive/dashboard",
-    color: "text-indigo-600 bg-indigo-100",
+    gradient: "from-orange-500 to-orange-700",
     description: "KPIs, forecasting",
     requiredRoles: ['owner', 'system_admin', 'investor'],
   },
@@ -133,9 +133,18 @@ const lounges: LoungeItem[] = [
     icon: Shield,
     label: "Admin Lounge",
     href: "/admin",
-    color: "text-slate-600 bg-slate-100",
+    gradient: "from-slate-500 to-blue-700",
     description: "System settings",
     requiredRoles: ['owner', 'system_admin'],
+  },
+  {
+    id: 'investor',
+    icon: BarChart3,
+    label: "Investor Lounge",
+    href: "/investor/dashboard",
+    gradient: "from-amber-500 to-yellow-600",
+    description: "KPIs & dashboards",
+    requiredRoles: ['owner', 'investor'],
   },
 ];
 
@@ -197,15 +206,17 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
 
   const SidebarContent = () => (
     <>
-      {/* Logo */}
-      <div className={cn("flex items-center gap-3 px-4 mb-6", sidebarCollapsed && "justify-center px-2")}>
+      {/* Logo - total height matches header + main padding so welcome card aligns with hero */}
+      <div
+        className={cn("flex items-center gap-3 px-4", sidebarCollapsed && "justify-center px-2")}
+        style={{ minHeight: 48, marginBottom: 24 }}
+      >
         <motion.div
           whileHover={{ scale: MOTION.hover.scale }}
           transition={{ duration: MOTION.duration.hover }}
-          className="w-10 h-10 flex items-center justify-center"
+          className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
           style={{
-            background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 100%)`,
-            borderRadius: RADIUS.input,
+            borderRadius: RADIUS.button,
             boxShadow: SHADOW.level3,
           }}
         >
@@ -226,27 +237,31 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            className="p-4 text-white"
+            className="p-4 text-white relative overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 50%, ${COLORS.primary.purple[700]} 100%)`,
+              background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 50%, #f59e0b 100%)`,
               borderRadius: RADIUS.card,
               boxShadow: SHADOW.hero,
             }}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span className="text-sm font-medium">{greeting()}</span>
+            <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+            <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span className="text-sm font-medium">{greeting()}</span>
+              </div>
+              <p className="font-semibold">
+                {user?.displayName || user?.email?.split('@')[0] || 'Guest'}
+              </p>
+              <p className="text-xs text-white/70 mt-1">
+                {currentTime.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </p>
             </div>
-            <p className="font-semibold">
-              {user?.displayName || user?.email?.split('@')[0] || 'Guest'}
-            </p>
-            <p className="text-xs text-indigo-200 mt-1">
-              {currentTime.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </p>
           </motion.div>
         </div>
       )}
@@ -269,13 +284,13 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
               "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
               location === '/crm'
                 ? "text-white"
-                : "text-gray-600 hover:bg-indigo-50/80"
+                : "text-gray-600 hover:bg-violet-50/80"
             )}
             style={{
               borderRadius: RADIUS.button,
               ...(location === '/crm' && {
-                background: `linear-gradient(135deg, ${COLORS.lounges.crm.main} 0%, ${COLORS.primary.violet[600]} 100%)`,
-                boxShadow: SHADOW.level3,
+                background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 60%, #f59e0b 100%)`,
+                boxShadow: `${SHADOW.level3}, 0 4px 12px rgba(124, 58, 237, 0.3)`,
               }),
             }}
             onClick={() => setMobileMenuOpen(false)}
@@ -330,10 +345,10 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                   }}
                 >
                   <div
-                    className={cn("w-8 h-8 flex items-center justify-center", lounge.color)}
-                    style={{ borderRadius: RADIUS.input }}
+                    className={cn("w-8 h-8 flex items-center justify-center bg-gradient-to-br", lounge.gradient)}
+                    style={{ borderRadius: RADIUS.button }}
                   >
-                    <lounge.icon className="w-4 h-4" />
+                    <lounge.icon className="w-4 h-4 text-white" />
                   </div>
                   {!sidebarCollapsed && (
                     <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
@@ -366,10 +381,10 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <div
-                    className={cn("w-8 h-8 flex items-center justify-center", lounge.color)}
-                    style={{ borderRadius: RADIUS.input }}
+                    className={cn("w-8 h-8 flex items-center justify-center bg-gradient-to-br", lounge.gradient)}
+                    style={{ borderRadius: RADIUS.button }}
                   >
-                    <lounge.icon className="w-4 h-4" />
+                    <lounge.icon className="w-4 h-4 text-white" />
                   </div>
                   {!sidebarCollapsed && (
                     <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
@@ -423,7 +438,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
   // ==========================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex">
       {/* Universal Search Modal */}
       <UniversalSearch open={searchOpen} onOpenChange={setSearchOpen} />
 
@@ -434,9 +449,9 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
       <motion.aside
         initial={false}
         animate={{ width: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
-        transition={{ duration: MOTION.duration.expand, ease: MOTION.easingCSS }}
-        className="hidden lg:flex flex-col bg-white/80 backdrop-blur-sm border-r border-gray-200/60 py-6 fixed h-screen z-30"
-        style={{ boxShadow: SHADOW.level1 }}
+        transition={{ duration: MOTION.duration.expand, ease: MOTION.easing as unknown as [number, number, number, number] }}
+        className="hidden lg:flex flex-col border-r border-gray-200/60 py-6 fixed h-screen z-30"
+        style={{ boxShadow: SHADOW.level1, backgroundColor: '#ffffff' }}
       >
         <SidebarContent />
 

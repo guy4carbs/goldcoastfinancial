@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail } from "./gmail";
+import { sendSecureFormLink, sendBookingLink, isSmsAvailable } from "./services/smsService";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -29,6 +30,7 @@ import automationsRouter from "./routes/automations";
 import workflowAutomationsRouter from "./routes/workflow-automations";
 import licensesRouter from "./routes/licenses";
 import policiesRouter from "./routes/policies";
+import smsRouter from "./routes/sms";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -792,10 +794,29 @@ export async function registerRoutes(
         }
       }
 
-      // For SMS, we'll add this later
-      if (sendMethod === 'sms' || sendMethod === 'both') {
-        console.log(`[SecureForm] SMS sending not yet implemented for ${req.body.clientPhone}`);
-        // SMS will be added when Twilio is configured
+      // Send SMS with secure form link
+      let smsSent = false;
+      if ((sendMethod === 'sms' || sendMethod === 'both') && req.body.clientPhone && isSmsAvailable()) {
+        try {
+          await sendSecureFormLink(
+            req.body.clientPhone,
+            clientName,
+            formType,
+            secureLink,
+            agent.name
+          );
+          smsSent = true;
+          console.log(`[SecureForm] SMS sent successfully to ${req.body.clientPhone}`);
+        } catch (smsError: any) {
+          console.error("[SecureForm] Error sending SMS:", smsError?.message || smsError);
+          // Don't fail the whole request if SMS fails but email succeeded
+          if (sendMethod === 'sms') {
+            return res.status(500).json({
+              error: "Failed to send SMS.",
+              details: smsError?.message
+            });
+          }
+        }
       }
 
       res.status(201).json({
@@ -805,7 +826,7 @@ export async function registerRoutes(
         secureLink,
         expiresAt: expiresAt.toISOString(),
         emailSent: sendMethod === 'email' || sendMethod === 'both',
-        smsSent: false // Will be true when SMS is implemented
+        smsSent,
       });
     } catch (error: any) {
       console.error("[SecureForm] Error:", error);
@@ -1006,13 +1027,26 @@ export async function registerRoutes(
         });
       }
 
-      // For SMS, we'll add this later
-      if (customerPhone) {
-        console.log(`[BookingLink] SMS sending not yet implemented for ${customerPhone}`);
+      // Send SMS with booking link
+      let smsSent = false;
+      if (customerPhone && isSmsAvailable()) {
+        try {
+          await sendBookingLink(
+            customerPhone,
+            customerName,
+            bookingLink,
+            agent.name
+          );
+          smsSent = true;
+          console.log(`[BookingLink] SMS sent successfully to ${customerPhone}`);
+        } catch (smsError: any) {
+          console.error("[BookingLink] Error sending SMS:", smsError?.message || smsError);
+        }
       }
 
       res.status(201).json({
         success: true,
+        smsSent,
         message: "Booking link sent successfully",
         bookingLink,
         emailSent: true,
@@ -1711,6 +1745,9 @@ export async function registerRoutes(
 
   // Policy management
   app.use("/api/policies", policiesRouter);
+
+  // SMS / Twilio
+  app.use("/api/sms", smsRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

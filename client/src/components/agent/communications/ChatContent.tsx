@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { type CommColorScheme, getCommTheme } from './commTheme';
 
 // Constants
 // Apple Tapback reactions
@@ -380,7 +381,8 @@ const CONVERSATION_MESSAGES: Record<string, Message[]> = {
   ],
 };
 
-export default function AgentChatContent() {
+export default function AgentChatContent({ colorScheme = 'violet' as CommColorScheme }: { colorScheme?: CommColorScheme } = {}) {
+  const theme = getCommTheme(colorScheme);
   const { currentUser } = useAgentStore();
 
   const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS);
@@ -708,7 +710,7 @@ export default function AgentChatContent() {
             className={cn(
               "w-full flex items-center gap-3 px-2 py-2.5 text-left transition-all mb-0.5",
               isSelected
-                ? "bg-gradient-to-b from-violet-500 via-purple-500 to-amber-400 text-white shadow-md"
+                ? theme.selectedGradient
                 : "hover:bg-gray-100"
             )}
             style={{ borderRadius: RADIUS.input }}
@@ -721,8 +723,8 @@ export default function AgentChatContent() {
                   isSelected
                     ? "bg-white/20 text-white"
                     : conv.isGroup
-                      ? "bg-gradient-to-br from-violet-400 to-purple-500 text-white"
-                      : "bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600"
+                      ? theme.avatarOnline
+                      : theme.avatarOffline
                 )}>
                   {conv.initials}
                 </AvatarFallback>
@@ -730,7 +732,7 @@ export default function AgentChatContent() {
               {conv.online && !conv.isGroup && (
                 <div className={cn(
                   "w-2.5 h-2.5 absolute bottom-0 right-0 rounded-full border-2",
-                  isSelected ? "bg-emerald-400 border-purple-500" : "bg-emerald-500 border-white"
+                  isSelected ? cn("bg-emerald-400", theme.onlineDotBorder) : "bg-emerald-500 border-white"
                 )} />
               )}
             </div>
@@ -761,7 +763,7 @@ export default function AgentChatContent() {
                 {conv.unread > 0 && (
                   <div className={cn(
                     "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0",
-                    isSelected ? "bg-white/30 text-white" : "bg-violet-500 text-white"
+                    isSelected ? "bg-white/30 text-white" : theme.unreadBadge
                   )}>
                     {conv.unread}
                   </div>
@@ -807,10 +809,10 @@ export default function AgentChatContent() {
                 <h2 className="text-lg font-semibold text-gray-900 pl-2">Messages</h2>
                 <div className="flex items-center gap-2">
                   <button
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-violet-100 hover:bg-violet-200 transition-colors"
+                    className={cn("w-8 h-8 flex items-center justify-center rounded-full transition-colors", theme.bg100, theme.hoverBg200)}
                     onClick={handleNewMessage}
                   >
-                    <PenSquare className="w-4 h-4 text-violet-600" />
+                    <PenSquare className={cn("w-4 h-4", theme.activeIcon)} />
                   </button>
                   <button
                     className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
@@ -874,7 +876,7 @@ export default function AgentChatContent() {
                     placeholder="Search people..."
                     value={newConversationSearch}
                     onChange={(e) => setNewConversationSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-violet-200 transition-all"
+                    className={cn("w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl outline-none focus:ring-2 transition-all", theme.focusRing200)}
                     autoFocus
                   />
                 </div>
@@ -886,10 +888,10 @@ export default function AgentChatContent() {
                     <button
                       key={user}
                       onClick={() => handleStartConversation(user)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-violet-50 rounded-xl transition-colors text-left"
+                      className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left", theme.hoverBg50)}
                     >
                       <Avatar className="w-10 h-10">
-                        <AvatarFallback className="bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600 font-semibold">
+                        <AvatarFallback className={cn(theme.avatarOffline, "font-semibold")}>
                           {user.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
@@ -914,10 +916,10 @@ export default function AgentChatContent() {
         <div className="p-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 pl-2">Messages</h2>
           <button
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-violet-100 hover:bg-violet-200 transition-colors"
+            className={cn("w-8 h-8 flex items-center justify-center rounded-full transition-colors", theme.bg100, theme.hoverBg200)}
             onClick={handleNewMessage}
           >
-            <PenSquare className="w-4 h-4 text-violet-600" />
+            <PenSquare className={cn("w-4 h-4", theme.activeIcon)} />
           </button>
         </div>
         <div className="px-3 pb-3">
@@ -928,7 +930,7 @@ export default function AgentChatContent() {
               placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-gray-200/60 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-violet-100 transition-all placeholder-gray-500"
+              className={cn("w-full pl-9 pr-3 py-2 text-sm bg-gray-200/60 rounded-xl outline-none focus:bg-white focus:ring-2 transition-all placeholder-gray-500", theme.focusRing100)}
             />
           </div>
         </div>
@@ -949,15 +951,15 @@ export default function AgentChatContent() {
               className="lg:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
               onClick={() => setMobileSidebarOpen(true)}
             >
-              <ChevronLeft className="w-5 h-5 text-violet-500" />
+              <ChevronLeft className={cn("w-5 h-5", theme.accent500)} />
             </button>
             <div className="relative">
               <Avatar className="w-10 h-10">
                 <AvatarFallback className={cn(
                   "text-sm font-semibold",
                   selectedConversation.isGroup
-                    ? "bg-gradient-to-br from-violet-400 to-purple-500 text-white"
-                    : "bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600"
+                    ? theme.avatarOnline
+                    : theme.avatarOffline
                 )}>
                   {selectedConversation.initials}
                 </AvatarFallback>
@@ -980,19 +982,19 @@ export default function AgentChatContent() {
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
               onClick={handlePhoneCall}
             >
-              <Phone className="w-5 h-5 text-violet-500" />
+              <Phone className={cn("w-5 h-5", theme.accent500)} />
             </button>
             <button
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
               onClick={handleVideoCall}
             >
-              <Video className="w-5 h-5 text-violet-500" />
+              <Video className={cn("w-5 h-5", theme.accent500)} />
             </button>
             <button
               className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
               onClick={() => setShowInfoPanel(!showInfoPanel)}
             >
-              <Info className="w-5 h-5 text-violet-500" />
+              <Info className={cn("w-5 h-5", theme.accent500)} />
             </button>
           </div>
         </div>
@@ -1033,8 +1035,8 @@ export default function AgentChatContent() {
                 <AvatarFallback className={cn(
                   "text-2xl font-semibold",
                   selectedConversation.isGroup
-                    ? "bg-gradient-to-br from-violet-400 to-purple-500 text-white"
-                    : "bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600"
+                    ? theme.avatarOnline
+                    : theme.avatarOffline
                 )}>
                   {selectedConversation.initials}
                 </AvatarFallback>
@@ -1079,7 +1081,7 @@ export default function AgentChatContent() {
                     <div className="w-7 flex-shrink-0 self-end">
                       {isLastInGroup && (
                         <Avatar className="w-7 h-7">
-                          <AvatarFallback className="bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600 text-[10px] font-semibold">
+                          <AvatarFallback className={cn(theme.avatarOffline, "text-[10px] font-semibold")}>
                             {message.senderInitials}
                           </AvatarFallback>
                         </Avatar>
@@ -1129,7 +1131,7 @@ export default function AgentChatContent() {
                       className={cn(
                         "relative px-3 py-2 inline-block text-left cursor-pointer select-none",
                         message.isOwn
-                          ? "bg-gradient-to-br from-violet-500 via-purple-500 to-purple-600 text-white"
+                          ? theme.selectedMsgGradient
                           : "bg-[#e9e9eb] text-gray-900"
                       )}
                       style={{
@@ -1248,7 +1250,7 @@ export default function AgentChatContent() {
                   className="flex gap-2 items-end"
                 >
                   <Avatar className="w-7 h-7">
-                    <AvatarFallback className="bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600 text-[10px] font-semibold">
+                    <AvatarFallback className={cn(theme.avatarOffline, "text-[10px] font-semibold")}>
                       {selectedConversation.initials}
                     </AvatarFallback>
                   </Avatar>
@@ -1319,7 +1321,7 @@ export default function AgentChatContent() {
                                 }}
                                 className={cn(
                                   "text-2xl p-2 rounded-xl hover:bg-gray-100 transition-all hover:scale-110",
-                                  selectedSkinTone === idx && "bg-violet-100"
+                                  selectedSkinTone === idx && theme.bg100
                                 )}
                                 title={SKIN_TONE_LABELS[idx]}
                               >
@@ -1340,7 +1342,7 @@ export default function AgentChatContent() {
                           placeholder="Search emojis..."
                           value={emojiSearch}
                           onChange={(e) => setEmojiSearch(e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-violet-200"
+                          className={cn("w-full pl-8 pr-3 py-1.5 text-sm bg-gray-100 rounded-lg outline-none focus:ring-2", theme.focusRing200)}
                           autoFocus
                         />
                       </div>
@@ -1356,7 +1358,7 @@ export default function AgentChatContent() {
                             className={cn(
                               "px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-all",
                               emojiCategory === category
-                                ? "bg-violet-500 text-white"
+                                ? cn(theme.accentBg, "text-white")
                                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             )}
                           >
@@ -1377,7 +1379,7 @@ export default function AgentChatContent() {
                             className={cn(
                               "w-6 h-6 rounded-full flex items-center justify-center text-sm transition-all",
                               selectedSkinTone === idx
-                                ? "ring-2 ring-violet-500 ring-offset-1"
+                                ? cn("ring-2 ring-offset-1", theme.ring500)
                                 : "hover:bg-gray-200"
                             )}
                             title={SKIN_TONE_LABELS[idx]}
@@ -1436,7 +1438,7 @@ export default function AgentChatContent() {
           {/* Reply indicator - iMessage style */}
           {replyingTo && (
             <div className="flex items-center gap-2 px-3 py-2 bg-gray-200/60 backdrop-blur mb-2 rounded-2xl">
-              <div className="w-1 h-8 bg-violet-500 rounded-full" />
+              <div className={cn("w-1 h-8 rounded-full", theme.accentBg)} />
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-gray-500 font-medium">Replying to {replyingTo.sender}</p>
                 <p className="text-[13px] text-gray-700 truncate">{replyingTo.content}</p>
@@ -1482,10 +1484,10 @@ export default function AgentChatContent() {
                   <button
                     key={user}
                     onClick={() => handleSelectMention(user)}
-                    className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-violet-50 rounded-lg text-sm"
+                    className={cn("flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm", theme.hoverBg50)}
                   >
                     <Avatar className="w-6 h-6">
-                      <AvatarFallback className="text-[10px] bg-violet-100 text-violet-600">
+                      <AvatarFallback className={cn("text-[10px]", theme.bg100, theme.activeIcon)}>
                         {user.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
@@ -1538,7 +1540,7 @@ export default function AgentChatContent() {
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                     onClick={handleSendMessage}
-                    className="w-7 h-7 flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm"
+                    className={cn("w-7 h-7 flex items-center justify-center rounded-full shadow-sm", theme.selectedMsgGradient)}
                   >
                     <Send className="w-3.5 h-3.5 ml-0.5" />
                   </motion.button>
@@ -1579,8 +1581,8 @@ export default function AgentChatContent() {
                   <AvatarFallback className={cn(
                     "text-2xl font-semibold",
                     selectedConversation.isGroup
-                      ? "bg-gradient-to-br from-violet-400 to-purple-500 text-white"
-                      : "bg-gradient-to-br from-violet-100 to-purple-100 text-violet-600"
+                      ? theme.avatarOnline
+                      : theme.avatarOffline
                   )}>
                     {selectedConversation.initials}
                   </AvatarFallback>
@@ -1596,8 +1598,8 @@ export default function AgentChatContent() {
                     onClick={handlePhoneCall}
                     className="flex flex-col items-center gap-1"
                   >
-                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center hover:bg-violet-200 transition-colors">
-                      <Phone className="w-5 h-5 text-violet-600" />
+                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center transition-colors", theme.bg100, theme.hoverBg200)}>
+                      <Phone className={cn("w-5 h-5", theme.activeIcon)} />
                     </div>
                     <span className="text-xs text-gray-500">Call</span>
                   </button>
@@ -1605,8 +1607,8 @@ export default function AgentChatContent() {
                     onClick={handleVideoCall}
                     className="flex flex-col items-center gap-1"
                   >
-                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center hover:bg-violet-200 transition-colors">
-                      <Video className="w-5 h-5 text-violet-600" />
+                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center transition-colors", theme.bg100, theme.hoverBg200)}>
+                      <Video className={cn("w-5 h-5", theme.activeIcon)} />
                     </div>
                     <span className="text-xs text-gray-500">Video</span>
                   </button>
@@ -1614,8 +1616,8 @@ export default function AgentChatContent() {
                     onClick={handleToggleMute}
                     className="flex flex-col items-center gap-1"
                   >
-                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center hover:bg-violet-200 transition-colors">
-                      {isMuted ? <BellOff className="w-5 h-5 text-violet-600" /> : <Bell className="w-5 h-5 text-violet-600" />}
+                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center transition-colors", theme.bg100, theme.hoverBg200)}>
+                      {isMuted ? <BellOff className={cn("w-5 h-5", theme.activeIcon)} /> : <Bell className={cn("w-5 h-5", theme.activeIcon)} />}
                     </div>
                     <span className="text-xs text-gray-500">{isMuted ? 'Unmute' : 'Mute'}</span>
                   </button>
@@ -1678,8 +1680,8 @@ export default function AgentChatContent() {
                         key={i}
                         className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
-                          <File className="w-4 h-4 text-violet-600" />
+                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", theme.bg100)}>
+                          <File className={cn("w-4 h-4", theme.activeIcon)} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-700 truncate">{file}</p>

@@ -49,6 +49,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, spacing } from '@/lib/heritageDesignSystem';
+import { type CommColorScheme, getCommTheme } from './commTheme';
 
 // Email folder types
 type FolderType = 'inbox' | 'sent' | 'drafts' | 'trash' | 'starred' | 'archive';
@@ -199,7 +200,8 @@ Your Agent`,
   },
 ];
 
-export default function AgentEmailContent() {
+export default function AgentEmailContent({ colorScheme = 'violet' as CommColorScheme }: { colorScheme?: CommColorScheme } = {}) {
+  const theme = getCommTheme(colorScheme);
   const { currentUser } = useAgentStore();
   const agentName = currentUser?.name || 'Agent';
   const agentEmail = currentUser?.email || 'agent@heritagels.org';
@@ -434,10 +436,10 @@ export default function AgentEmailContent() {
           <Button
             onClick={() => setShowCompose(true)}
             variant="outline"
-            className="w-full gap-2 bg-violet-50 hover:bg-violet-100 border-violet-200 text-violet-700 hover:text-violet-800 shadow-sm"
+            className={cn("w-full gap-2 shadow-sm", theme.composeBtnBg)}
             style={{ borderRadius: RADIUS.button }}
           >
-            <PenSquare className="w-4 h-4 text-amber-500" />
+            <PenSquare className={cn("w-4 h-4", theme.composeBtnIcon)} />
             Compose
           </Button>
         </div>
@@ -461,19 +463,19 @@ export default function AgentEmailContent() {
                     className={cn(
                       "w-full flex items-center gap-4 px-4 py-2 text-left transition-colors",
                       isActive
-                        ? "bg-violet-100 text-violet-700"
+                        ? theme.activeBg
                         : "text-gray-600 hover:bg-gray-100"
                     )}
                     style={{ borderRadius: RADIUS.input }}
                   >
-                    <Icon className={cn("w-4 h-4", isActive ? "text-violet-600" : "text-gray-400")} />
+                    <Icon className={cn("w-4 h-4", isActive ? theme.activeIcon : "text-gray-400")} />
                     <span className="flex-1 text-sm font-medium">{folder.label}</span>
                     {total > 0 && (
                       <Badge
                         className={cn(
                           "text-xs h-5 px-1.5",
                           unread > 0
-                            ? "bg-violet-600 text-white"
+                            ? theme.unreadBadge
                             : "bg-gray-200 text-gray-600"
                         )}
                       >
@@ -552,9 +554,9 @@ export default function AgentEmailContent() {
                     className={cn(
                       "p-3 cursor-pointer transition-all w-full box-border",
                       selectedEmail?.id === email.id
-                        ? "bg-gradient-to-b from-violet-500 via-purple-500 to-amber-400 text-white shadow-lg [&_*]:text-white [&_.text-gray-500]:text-white/70 [&_.text-gray-400]:text-white/60 [&_.text-gray-300]:text-white/50"
+                        ? theme.selectedGradient
                         : !email.read
-                          ? "bg-violet-50/50 hover:bg-violet-50"
+                          ? `${theme.unreadBg} ${theme.unreadHover}`
                           : "hover:bg-gray-50"
                     )}
                     style={{ borderRadius: RADIUS.input }}
@@ -644,7 +646,7 @@ export default function AgentEmailContent() {
               </div>
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-violet-700">{selectedEmail.subject}</h2>
+                  <h2 className={cn("text-lg font-semibold", theme.heading)}>{selectedEmail.subject}</h2>
                   <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
                     <span className="font-medium">{selectedEmail.from.name}</span>
                     <span className="text-gray-400">&lt;{selectedEmail.from.email}&gt;</span>
@@ -728,7 +730,7 @@ export default function AgentEmailContent() {
                 <Button
                   type="submit"
                   disabled={!quickReply.trim()}
-                  className="bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 disabled:opacity-50"
+                  className={cn(theme.sendBtn, "disabled:opacity-50")}
                 >
                   <Send className="w-4 h-4" />
                 </Button>
@@ -793,7 +795,7 @@ export default function AgentEmailContent() {
                 <Button type="button" variant="outline" onClick={() => setShowCompose(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" className="gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90">
+                <Button type="submit" className={cn("gap-2", theme.sendBtn)}>
                   <Send className="w-4 h-4" />
                   Send
                 </Button>

@@ -4,6 +4,7 @@
  */
 
 import { BaseAgent, EventType, AgentEvent, memoryGraph, LeadData, analyticsLedger, MetricType } from '../core';
+import { sendSms, isSmsAvailable } from '../../services/smsService';
 
 export class SmsMessagingAgent extends BaseAgent {
   private conversations: Map<string, Array<{ direction: 'out' | 'in'; text: string; at: number }>> = new Map();
@@ -42,8 +43,16 @@ export class SmsMessagingAgent extends BaseAgent {
   }
 
   async sendSms(leadId: string, phone: string, message: string): Promise<void> {
-    // In production: Twilio, Vonage, etc.
-    console.log(`[SMS] 📱 → ${phone}: ${message.substring(0, 60)}...`);
+    if (isSmsAvailable()) {
+      try {
+        await sendSms(phone, message);
+        console.log(`[SMS] Sent to ${phone}: ${message.substring(0, 60)}...`);
+      } catch (error: any) {
+        console.error(`[SMS] Failed to send to ${phone}:`, error?.message || error);
+      }
+    } else {
+      console.warn(`[SMS] Twilio not configured, skipping send to ${phone}`);
+    }
 
     if (!this.conversations.has(leadId)) {
       this.conversations.set(leadId, []);

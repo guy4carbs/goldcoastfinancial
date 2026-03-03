@@ -8,15 +8,14 @@ import { useState } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { LobbyLayout } from './LobbyLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { AgentLoungeSelectorModal } from '@/components/agent/AgentLoungeSelectorModal';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { RADIUS, SHADOW, MOTION, TYPE, COLORS, GRID, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 import {
   Users,
   Bot,
@@ -33,11 +32,8 @@ import {
   Zap,
   Target,
   Trophy,
-  Star,
   Sparkles,
   CheckCircle2,
-  Clock,
-  Calendar,
   Bell,
   type LucideIcon,
 } from 'lucide-react';
@@ -64,8 +60,18 @@ interface BusinessMetric {
   change?: number;
   changeLabel?: string;
   icon: LucideIcon;
-  color: string;
 }
+
+// =============================================================================
+// SHARED STYLES
+// =============================================================================
+
+const glassCard = {
+  borderRadius: RADIUS.card,
+  boxShadow: SHADOW.card,
+  background: 'rgba(255, 255, 255, 0.85)',
+  backdropFilter: 'blur(20px)',
+};
 
 // =============================================================================
 // LOUNGE DEFINITIONS WITH STATS
@@ -87,7 +93,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     name: 'Finance Lounge',
     description: 'Revenue & commissions',
     icon: DollarSign,
-    gradient: 'from-emerald-500 to-teal-600',
+    gradient: 'from-blue-800 to-blue-950',
     path: '/finance/dashboard',
     requiredRoles: ['owner', 'system_admin', 'manager', 'investor'],
   },
@@ -114,7 +120,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     name: 'Manager Lounge',
     description: 'Team performance',
     icon: Briefcase,
-    gradient: 'from-blue-500 to-indigo-600',
+    gradient: 'from-emerald-500 to-emerald-700',
     path: '/manager/dashboard',
     requiredRoles: ['owner', 'system_admin', 'manager'],
   },
@@ -123,7 +129,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     name: 'Support Lounge',
     description: 'Client assistance',
     icon: HeadphonesIcon,
-    gradient: 'from-amber-500 to-orange-600',
+    gradient: 'from-gray-700 to-gray-900',
     path: '/support/dashboard',
     requiredRoles: ['owner', 'system_admin', 'manager'],
   },
@@ -132,7 +138,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     name: 'Executive Lounge',
     description: 'Strategic insights',
     icon: BarChart3,
-    gradient: 'from-indigo-500 to-violet-600',
+    gradient: 'from-orange-500 to-orange-700',
     path: '/executive/dashboard',
     requiredRoles: ['owner', 'system_admin', 'investor'],
   },
@@ -141,9 +147,18 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     name: 'Admin Lounge',
     description: 'System configuration',
     icon: Shield,
-    gradient: 'from-slate-600 to-gray-700',
+    gradient: 'from-slate-500 to-blue-700',
     path: '/admin',
     requiredRoles: ['owner', 'system_admin'],
+  },
+  {
+    id: 'investor',
+    name: 'Investor Lounge',
+    description: 'KPIs & executive dashboards',
+    icon: BarChart3,
+    gradient: 'from-amber-500 to-yellow-600',
+    path: '/investor/dashboard',
+    requiredRoles: ['owner', 'investor'],
   },
 ];
 
@@ -210,7 +225,6 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
 
     // Agent system metrics
     const activeAgents = agents?.summary?.active || 37;
-    const totalTasks = agents?.summary?.totalTasks || 0;
 
     return {
       metrics: [
@@ -220,7 +234,6 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
           change: leadChange,
           changeLabel: 'vs last week',
           icon: Target,
-          color: 'text-blue-600 bg-blue-100',
         },
         {
           label: 'Deals Closed',
@@ -228,7 +241,6 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
           change: crm.performance?.wonThisMonth > 0 ? 8 : 0,
           changeLabel: 'this month',
           icon: CheckCircle2,
-          color: 'text-emerald-600 bg-emerald-100',
         },
         {
           label: 'Revenue',
@@ -236,7 +248,6 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
           change: revenueThisMonth > 0 ? 15 : 0,
           changeLabel: 'vs last month',
           icon: DollarSign,
-          color: 'text-violet-600 bg-violet-100',
         },
         {
           label: 'Conversion',
@@ -244,7 +255,6 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
           change: conversionRate > 0 ? 3 : 0,
           changeLabel: 'overall rate',
           icon: TrendingUp,
-          color: 'text-amber-600 bg-amber-100',
         },
       ],
       performance: {
@@ -271,10 +281,10 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
     // Return zeros instead of fake data - be honest about empty state
     return {
       metrics: [
-        { label: 'Total Leads', value: 0, change: 0, changeLabel: 'vs last week', icon: Target, color: 'text-blue-600 bg-blue-100' },
-        { label: 'Deals Closed', value: 0, change: 0, changeLabel: 'this month', icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-100' },
-        { label: 'Revenue', value: '$0', change: 0, changeLabel: 'vs last month', icon: DollarSign, color: 'text-violet-600 bg-violet-100' },
-        { label: 'Conversion', value: '0%', change: 0, changeLabel: 'overall rate', icon: TrendingUp, color: 'text-amber-600 bg-amber-100' },
+        { label: 'Total Leads', value: 0, change: 0, changeLabel: 'vs last week', icon: Target },
+        { label: 'Deals Closed', value: 0, change: 0, changeLabel: 'this month', icon: CheckCircle2 },
+        { label: 'Revenue', value: '$0', change: 0, changeLabel: 'vs last month', icon: DollarSign },
+        { label: 'Conversion', value: '0%', change: 0, changeLabel: 'overall rate', icon: TrendingUp },
       ],
       performance: { leadsThisWeek: 0, leadsLastWeek: 0, dealsThisMonth: 0, revenueThisMonth: 0, conversionRate: 0 },
       loungeStats: {
@@ -294,7 +304,7 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
 // COMPONENTS
 // =============================================================================
 
-function MetricCard({ metric, index }: { metric: BusinessMetric; index: number }) {
+function MetricCard({ metric }: { metric: BusinessMetric }) {
   const Icon = metric.icon;
 
   return (
@@ -304,32 +314,37 @@ function MetricCard({ metric, index }: { metric: BusinessMetric; index: number }
       transition={{ duration: MOTION.duration.hover }}
     >
       <Card
-        className="relative overflow-hidden border-0 transition-shadow"
+        className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
         style={{
           borderRadius: RADIUS.card,
           boxShadow: SHADOW.card,
         }}
       >
-        <CardContent className="p-5">
+        <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+        <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+        <CardContent className="p-5 relative z-10">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">{metric.label}</p>
-              <p className="text-3xl font-bold text-gray-900">{metric.value}</p>
+              <p className="text-sm text-white/70 mb-1">{metric.label}</p>
+              <p className="text-3xl font-bold text-white">{metric.value}</p>
               {metric.change !== undefined && (
                 <div className="flex items-center gap-1 mt-2">
                   <span className={cn(
                     "text-xs font-medium flex items-center gap-0.5",
-                    metric.change >= 0 ? "text-emerald-600" : "text-red-600"
+                    metric.change >= 0 ? "text-emerald-300" : "text-red-300"
                   )}>
                     {metric.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                     {metric.change >= 0 ? '+' : ''}{metric.change}%
                   </span>
-                  <span className="text-xs text-gray-400">{metric.changeLabel}</span>
+                  <span className="text-xs text-white/50">{metric.changeLabel}</span>
                 </div>
               )}
             </div>
-            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", metric.color)}>
-              <Icon className="w-6 h-6" />
+            <div
+              className="w-12 h-12 flex items-center justify-center bg-white/20 backdrop-blur"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              <Icon className="w-6 h-6 text-amber-200" />
             </div>
           </div>
         </CardContent>
@@ -338,39 +353,41 @@ function MetricCard({ metric, index }: { metric: BusinessMetric; index: number }
   );
 }
 
-function LoungeNavigationCard({ lounge, canAccess, index, onCustomClick }: { lounge: LoungeCard; canAccess: boolean; index: number; onCustomClick?: () => void }) {
+function LoungeNavigationCard({ lounge, onCustomClick }: { lounge: LoungeCard; onCustomClick?: () => void }) {
   const Icon = lounge.icon;
-
-  if (!canAccess) return null;
 
   const cardContent = (
     <Card
-      className="group h-full cursor-pointer border-0 transition-all duration-300 overflow-hidden"
-      style={{
-        borderRadius: RADIUS.card,
-        boxShadow: SHADOW.card,
-      }}
+      className="group h-full cursor-pointer border-0 transition-all overflow-hidden"
+      style={glassCard}
     >
       <div className={cn('h-1.5 bg-gradient-to-r', lounge.gradient)} />
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <div className={cn(
-            'w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform',
-            lounge.gradient
-          )}>
-            <Icon className="w-6 h-6 text-white" />
+          <div
+            className={cn(
+              'w-11 h-11 flex items-center justify-center bg-gradient-to-br flex-shrink-0 group-hover:scale-110 transition-transform',
+              lounge.gradient
+            )}
+            style={{ borderRadius: RADIUS.button }}
+          >
+            <Icon className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+              <h3 className="font-semibold text-gray-900 group-hover:text-violet-700 transition-colors">
                 {lounge.name}
               </h3>
-              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-violet-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </div>
             <p className="text-sm text-gray-500 mt-0.5">{lounge.description}</p>
             {lounge.stat && (
               <div className="flex items-center gap-2 mt-3">
-                <Badge variant="secondary" className="text-xs font-medium">
+                <Badge
+                  variant="secondary"
+                  className="text-xs font-medium border-0"
+                  style={{ borderRadius: RADIUS.pill }}
+                >
                   {lounge.stat.value} {lounge.stat.label}
                 </Badge>
                 {lounge.stat.trend === 'up' && (
@@ -384,7 +401,6 @@ function LoungeNavigationCard({ lounge, canAccess, index, onCustomClick }: { lou
     </Card>
   );
 
-  // If custom click handler provided, use div with onClick instead of Link
   if (onCustomClick) {
     return (
       <motion.div
@@ -419,31 +435,40 @@ function AnnouncementItem({ announcement }: { announcement: { id: string; title:
   };
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-      <div className={cn('w-2 h-2 rounded-full mt-2 flex-shrink-0', typeColors[announcement.type as keyof typeof typeColors] || 'bg-gray-400')} />
+    <div
+      className="flex items-start gap-3 p-3 hover:bg-white/10 transition-colors cursor-pointer"
+      style={{ borderRadius: RADIUS.button }}
+    >
+      <div
+        className={cn('w-2 h-2 mt-2 flex-shrink-0', typeColors[announcement.type as keyof typeof typeColors] || 'bg-white/40')}
+        style={{ borderRadius: RADIUS.pill }}
+      />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900">{announcement.title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{announcement.date}</p>
+        <p className="text-sm font-medium text-white">{announcement.title}</p>
+        <p className="text-xs text-white/60 mt-0.5">{announcement.date}</p>
       </div>
     </div>
   );
 }
 
-function QuickActionButton({ icon: Icon, label, href, color }: { icon: LucideIcon; label: string; href: string; color: string }) {
+function QuickActionButton({ icon: Icon, label, href }: { icon: LucideIcon; label: string; href: string }) {
   return (
     <Link href={href}>
       <motion.div
         whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: MOTION.duration.hover }}
-        className="flex items-center gap-3 p-3 bg-white border border-gray-200 hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer"
+        className="flex items-center gap-3 p-4 bg-white/15 backdrop-blur hover:bg-white/25 border border-white/20 transition-all cursor-pointer"
         style={{ borderRadius: RADIUS.button }}
       >
-        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', color)}>
-          <Icon className="w-5 h-5" />
+        <div
+          className="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur"
+          style={{ borderRadius: RADIUS.button }}
+        >
+          <Icon className="w-5 h-5 text-amber-200" />
         </div>
-        <span className="font-medium text-sm text-gray-900">{label}</span>
-        <ArrowRight className="w-4 h-4 text-gray-400 ml-auto" />
+        <span className="font-medium text-sm text-white">{label}</span>
+        <ArrowRight className="w-4 h-4 text-white/50 ml-auto" />
       </motion.div>
     </Link>
   );
@@ -511,32 +536,81 @@ export function LobbyLanding() {
         animate="visible"
       >
         {/* Hero Section */}
-        <motion.section
-          variants={fadeInUp}
-          className="relative"
-        >
+        <motion.section variants={fadeInUp}>
           <div
-            className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-8 lg:p-10 text-white overflow-hidden"
+            className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white"
             style={{
               borderRadius: RADIUS.hero,
               boxShadow: SHADOW.hero,
+              padding: GRID.spacing.lg,
             }}
           >
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+            {/* Decorative dot pattern overlay */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
+                backgroundSize: '24px 24px',
+              }}
+            />
 
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-amber-300" />
-                <span className="text-sm text-white/90 font-medium">Welcome back</span>
+            {/* Decorative floating circles */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
+            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-purple-300/15 rounded-full blur-sm" />
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-4">
+                {/* Premium Icon Badge */}
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{
+                    type: "spring",
+                    damping: 15,
+                    stiffness: 200,
+                    delay: 0.2,
+                  }}
+                  className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
+                  style={{
+                    width: GRID.spacing.xxxxl,
+                    height: GRID.spacing.xxxxl,
+                    borderRadius: RADIUS.card,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                >
+                  <Sparkles
+                    className="text-amber-200"
+                    style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }}
+                  />
+                </motion.div>
+
+                <div className="flex-1">
+                  <p
+                    className="text-white/90 font-medium"
+                    style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}
+                  >
+                    Welcome back
+                  </p>
+                  <h1
+                    className="font-bold tracking-tight text-white font-serif"
+                    style={{
+                      fontSize: TYPE.display,
+                      marginBottom: GRID.spacing.xs,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {user?.displayName || user?.email?.split('@')[0] || 'Guest'}
+                  </h1>
+                  <p
+                    className="text-white/90 max-w-xl"
+                    style={{ fontSize: TYPE.body, lineHeight: 1.5 }}
+                  >
+                    Here's how your business is performing today
+                  </p>
+                </div>
               </div>
-              <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
-                {user?.displayName || user?.email?.split('@')[0] || 'Guest'}
-              </h1>
-              <p className="text-white/80 text-lg">
-                Here's how your business is performing today
-              </p>
             </div>
           </div>
         </motion.section>
@@ -545,14 +619,19 @@ export function LobbyLanding() {
         <motion.section variants={fadeInUp}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Business Health</h2>
-            <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
+            <Badge
+              className="text-emerald-600 border-0 bg-emerald-50"
+              style={{ borderRadius: RADIUS.pill }}
+            >
+              <span className="w-1.5 h-1.5 bg-emerald-500 mr-1.5 animate-pulse" style={{ borderRadius: RADIUS.pill }} />
               Live
             </Badge>
           </div>
           {isLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32" />)}
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-32" style={{ borderRadius: RADIUS.card }} />
+              ))}
             </div>
           ) : (
             <motion.div
@@ -561,8 +640,8 @@ export function LobbyLanding() {
               initial="hidden"
               animate="visible"
             >
-              {data?.metrics.map((metric, idx) => (
-                <MetricCard key={metric.label} metric={metric} index={idx} />
+              {data?.metrics.map((metric) => (
+                <MetricCard key={metric.label} metric={metric} />
               ))}
             </motion.div>
           )}
@@ -582,12 +661,10 @@ export function LobbyLanding() {
               initial="hidden"
               animate="visible"
             >
-              {accessibleLounges.map((lounge, idx) => (
+              {accessibleLounges.map((lounge) => (
                 <LoungeNavigationCard
                   key={lounge.id}
                   lounge={lounge}
-                  canAccess={true}
-                  index={idx}
                   onCustomClick={lounge.id === 'agent' ? () => setAgentSelectorOpen(true) : undefined}
                 />
               ))}
@@ -597,86 +674,133 @@ export function LobbyLanding() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <QuickActionButton
-                  icon={Users}
-                  label="View My Leads"
-                  href="/agents/dashboard"
-                  color="text-violet-600 bg-violet-100"
-                />
-                <QuickActionButton
-                  icon={DollarSign}
-                  label="Check Commissions"
-                  href="/finance/dashboard"
-                  color="text-emerald-600 bg-emerald-100"
-                />
-                <QuickActionButton
-                  icon={BarChart3}
-                  label="View Reports"
-                  href="/executive/dashboard"
-                  color="text-indigo-600 bg-indigo-100"
-                />
+            <Card
+              className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+              style={{
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+              <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center gap-2 mb-5">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center bg-white/20 backdrop-blur"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <Zap className="w-4 h-4 text-amber-200" />
+                  </div>
+                  <h3 className="font-semibold text-white">Quick Actions</h3>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <QuickActionButton
+                    icon={Users}
+                    label="View My Leads"
+                    href="/agents/dashboard"
+                  />
+                  <QuickActionButton
+                    icon={DollarSign}
+                    label="Check Commissions"
+                    href="/finance/dashboard"
+                  />
+                  <QuickActionButton
+                    icon={BarChart3}
+                    label="View Reports"
+                    href="/executive/dashboard"
+                  />
+                </div>
               </CardContent>
             </Card>
 
             {/* Announcements */}
-            <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-indigo-500" />
-                  Announcements
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {data?.announcements.map((announcement) => (
-                  <AnnouncementItem key={announcement.id} announcement={announcement} />
-                ))}
+            <Card
+              className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+              style={{
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+              <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center gap-2 mb-5">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center bg-white/20 backdrop-blur"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <Bell className="w-4 h-4 text-amber-200" />
+                  </div>
+                  <h3 className="font-semibold text-white">Announcements</h3>
+                </div>
+                <div className="space-y-2">
+                  {data?.announcements.map((announcement) => (
+                    <AnnouncementItem key={announcement.id} announcement={announcement} />
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
             {/* Performance Snapshot */}
-            <Card className="border-0 bg-gradient-to-br from-indigo-50 to-violet-50" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-amber-500" />
-                  This Week
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <Card
+              className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
+              style={{
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+              <div className="absolute -bottom-3 -left-3 w-12 h-12 bg-amber-400/15 rounded-full blur-lg" />
+              <CardContent className="p-5 relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center bg-white/20 backdrop-blur"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <Trophy className="w-4 h-4 text-amber-200" />
+                  </div>
+                  <h3 className="font-semibold text-white">This Week</h3>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-white rounded-xl">
-                    <p className="text-2xl font-bold text-indigo-600">
+                  <div
+                    className="text-center p-3 bg-white/15 backdrop-blur"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <p className="text-2xl font-bold text-white">
                       {data?.performance?.leadsThisWeek || 0}
                     </p>
-                    <p className="text-xs text-gray-500">New Leads</p>
+                    <p className="text-xs text-white/70">New Leads</p>
                   </div>
-                  <div className="text-center p-3 bg-white rounded-xl">
-                    <p className="text-2xl font-bold text-emerald-600">
+                  <div
+                    className="text-center p-3 bg-white/15 backdrop-blur"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <p className="text-2xl font-bold text-white">
                       {data?.performance?.dealsThisMonth || 0}
                     </p>
-                    <p className="text-xs text-gray-500">Deals Closed</p>
+                    <p className="text-xs text-white/70">Deals Closed</p>
                   </div>
                 </div>
-                <div className="mt-4 p-3 bg-white rounded-xl">
+                <div
+                  className="mt-4 p-3 bg-white/15 backdrop-blur"
+                  style={{ borderRadius: RADIUS.button }}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Conversion Rate</span>
-                    <span className="text-sm font-semibold text-indigo-600">
+                    <span className="text-sm text-white/80">Conversion Rate</span>
+                    <span className="text-sm font-semibold text-amber-200">
                       {data?.performance?.conversionRate || 0}%
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-2 bg-white/20 overflow-hidden"
+                    style={{ borderRadius: RADIUS.pill }}
+                  >
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${data?.performance?.conversionRate || 0}%` }}
                       transition={{ duration: 1, delay: 0.5 }}
-                      className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+                      className="h-full bg-amber-300"
+                      style={{ borderRadius: RADIUS.pill }}
                     />
                   </div>
                 </div>

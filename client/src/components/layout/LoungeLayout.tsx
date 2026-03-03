@@ -168,6 +168,12 @@ export interface LoungeLayoutProps {
   breadcrumbs?: BreadcrumbItem[];
   logo?: ReactNode;
   footer?: ReactNode;
+  /** Brand name shown above lounge name in sidebar (e.g., "Heritage") */
+  brandName?: string;
+  /** Custom search placeholder text */
+  searchPlaceholder?: string;
+  /** Custom user info section to replace default in header */
+  userInfo?: ReactNode;
 }
 
 // =============================================================================
@@ -187,6 +193,9 @@ export function LoungeLayout({
   breadcrumbs,
   logo,
   footer,
+  brandName,
+  searchPlaceholder = 'Search...',
+  userInfo,
 }: LoungeLayoutProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
@@ -401,15 +410,19 @@ export function LoungeLayout({
   const SidebarContent = () => (
     <>
       {/* Logo / Lounge Header */}
-      <div
-        className={cn('flex items-center', sidebarCollapsed && 'justify-center')}
-        style={{
-          gap: GRID.spacing.sm - 4,
-          padding: `0 ${GRID.spacing.md - 8}px`,
-          marginBottom: GRID.spacing.lg,
-        }}
-      >
-        {logo || (
+      {logo ? (
+        <div style={{ padding: `0 ${GRID.spacing.md - 8}px` }}>
+          {logo}
+        </div>
+      ) : (
+        <div
+          className={cn('flex items-center', sidebarCollapsed && 'justify-center')}
+          style={{
+            gap: GRID.spacing.sm - 4,
+            padding: `0 ${GRID.spacing.md - 8}px`,
+            marginBottom: GRID.spacing.lg,
+          }}
+        >
           <div
             className={cn(`flex items-center justify-center bg-gradient-to-br ${colors.gradient}`)}
             style={{
@@ -423,25 +436,33 @@ export function LoungeLayout({
               {loungeName.charAt(0)}
             </span>
           </div>
-        )}
-        {!sidebarCollapsed && (
-          <div className="flex-1 min-w-0">
-            <p
-              className="font-semibold text-gray-900 truncate"
-              style={{ fontSize: TYPE.body - 2 }}
-            >
-              {loungeName}
-            </p>
-            {showLoungeSwitcher && (
-              <LoungeSwitcher
-                variant="link"
-                className="text-gray-500 hover:text-gray-700"
-                style={{ fontSize: TYPE.micro }}
-              />
-            )}
-          </div>
-        )}
-      </div>
+          {!sidebarCollapsed && (
+            <div className="flex-1 min-w-0">
+              {brandName && (
+                <p
+                  className="font-bold text-gray-900"
+                  style={{ fontSize: TYPE.body - 2 }}
+                >
+                  {brandName}
+                </p>
+              )}
+              <p
+                className={cn(brandName ? "text-gray-500" : "font-semibold text-gray-900", "truncate")}
+                style={{ fontSize: brandName ? TYPE.caption : TYPE.body - 2 }}
+              >
+                {loungeName}
+              </p>
+              {showLoungeSwitcher && (
+                <LoungeSwitcher
+                  variant="link"
+                  className="text-gray-500 hover:text-gray-700"
+                  style={{ fontSize: TYPE.micro }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Navigation Sections */}
       <nav
@@ -639,7 +660,7 @@ export function LoungeLayout({
                   }}
                 >
                   <Search style={{ width: 16, height: 16 }} />
-                  <span className="hidden sm:inline" style={{ fontSize: TYPE.meta }}>Search...</span>
+                  <span className="hidden sm:inline" style={{ fontSize: TYPE.meta }}>{searchPlaceholder}</span>
                   <kbd
                     className="hidden md:inline-flex items-center font-medium bg-white border"
                     style={{
@@ -675,38 +696,40 @@ export function LoungeLayout({
               )}
 
               {/* User Menu */}
-              <div
-                className="hidden sm:flex items-center border-l"
-                style={{
-                  gap: GRID.spacing.sm - 4,
-                  paddingLeft: GRID.spacing.sm - 4,
-                  borderColor: GLASS.border,
-                }}
-              >
-                <div className="text-right">
-                  <p
-                    className="font-medium text-gray-900 truncate"
-                    style={{ fontSize: TYPE.meta, maxWidth: 120 }}
-                  >
-                    {user?.displayName || user?.email || 'User'}
-                  </p>
-                  <p className="text-gray-500 capitalize" style={{ fontSize: TYPE.micro }}>
-                    {user?.role || 'Guest'}
-                  </p>
-                </div>
+              {userInfo || (
                 <div
-                  className={cn(`flex items-center justify-center text-white font-medium bg-gradient-to-br ${colors.gradient}`)}
+                  className="hidden sm:flex items-center border-l"
                   style={{
-                    width: GRID.spacing.xl - 4,
-                    height: GRID.spacing.xl - 4,
-                    borderRadius: RADIUS.pill,
-                    fontSize: TYPE.meta,
-                    boxShadow: SHADOW.level1,
+                    gap: GRID.spacing.sm - 4,
+                    paddingLeft: GRID.spacing.sm - 4,
+                    borderColor: GLASS.border,
                   }}
                 >
-                  {user?.displayName?.charAt(0) || user?.email?.charAt(0) || '?'}
+                  <div className="text-right">
+                    <p
+                      className="font-medium text-gray-900 truncate"
+                      style={{ fontSize: TYPE.meta, maxWidth: 120 }}
+                    >
+                      {user?.displayName || user?.email || 'User'}
+                    </p>
+                    <p className="text-gray-500 capitalize" style={{ fontSize: TYPE.micro }}>
+                      {user?.role || 'Guest'}
+                    </p>
+                  </div>
+                  <div
+                    className={cn(`flex items-center justify-center text-white font-medium bg-gradient-to-br ${colors.gradient}`)}
+                    style={{
+                      width: GRID.spacing.xl - 4,
+                      height: GRID.spacing.xl - 4,
+                      borderRadius: RADIUS.pill,
+                      fontSize: TYPE.meta,
+                      boxShadow: SHADOW.level1,
+                    }}
+                  >
+                    {user?.displayName?.charAt(0) || user?.email?.charAt(0) || '?'}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Logout */}
               <Button
