@@ -228,10 +228,10 @@ export function ManagerTraining() {
                             <div
                               className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
                               style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: RADIUS.pill,
-                                fontSize: 12,
+                                width: LAYOUT.icon.xxl,
+                                height: LAYOUT.icon.xxl,
+                                borderRadius: RADIUS.button,
+                                fontSize: TYPE.caption,
                               }}
                             >
                               {member.avatar}
@@ -357,7 +357,7 @@ export function ManagerTraining() {
                         {/* Avatar */}
                         <div
                           className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
-                          style={{ width: 28, height: 28, borderRadius: RADIUS.pill, fontSize: 11 }}
+                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
                         >
                           {item.avatar}
                         </div>
@@ -408,7 +408,7 @@ export function ManagerTraining() {
 
             {/* Approval Queue — Gradient Card */}
             <div
-              className="relative overflow-hidden bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700"
+              className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400"
               style={{ borderRadius: RADIUS.card }}
             >
               <div className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl" style={{ width: 89, height: 89, transform: 'translate(30%, -40%)' }} />
@@ -456,11 +456,11 @@ export function ManagerTraining() {
                       <div
                         className="flex items-center justify-center text-white font-bold flex-shrink-0"
                         style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: RADIUS.pill,
+                          width: LAYOUT.icon.xl,
+                          height: LAYOUT.icon.xl,
+                          borderRadius: RADIUS.button,
                           background: 'rgba(255,255,255,0.2)',
-                          fontSize: 11,
+                          fontSize: TYPE.micro,
                         }}
                       >
                         {item.avatar}
@@ -476,9 +476,9 @@ export function ManagerTraining() {
                         <motion.button
                           className="flex items-center justify-center border-0 text-white"
                           style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: RADIUS.pill,
+                            width: LAYOUT.icon.xl,
+                            height: LAYOUT.icon.xl,
+                            borderRadius: RADIUS.button,
                             background: 'rgba(255,255,255,0.2)',
                           }}
                           whileHover={{ scale: 1.1, background: 'rgba(16,185,129,0.4)' }}
@@ -489,9 +489,9 @@ export function ManagerTraining() {
                         <motion.button
                           className="flex items-center justify-center border-0 text-white/60"
                           style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: RADIUS.pill,
+                            width: LAYOUT.icon.xl,
+                            height: LAYOUT.icon.xl,
+                            borderRadius: RADIUS.button,
                             background: 'rgba(255,255,255,0.1)',
                           }}
                           whileHover={{ scale: 1.1, background: 'rgba(239,68,68,0.3)' }}
@@ -555,7 +555,7 @@ export function ManagerTraining() {
                             <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
                               <div
                                 className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
-                                style={{ width: 24, height: 24, borderRadius: RADIUS.pill, fontSize: 9 }}
+                                style={{ width: LAYOUT.icon.lg, height: LAYOUT.icon.lg, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
                               >
                                 {member.avatar}
                               </div>
@@ -646,9 +646,9 @@ export function ManagerTraining() {
                       >
                         <div
                           className={`flex items-center justify-center flex-shrink-0 ${auditStyle.bg}`}
-                          style={{ width: 28, height: 28, borderRadius: RADIUS.pill }}
+                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
                         >
-                          <Icon className={auditStyle.color} style={{ width: 14, height: 14 }} />
+                          <Icon className={auditStyle.color} style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-900">

@@ -49,6 +49,15 @@ import {
   Zap,
   Flame,
   BookOpen,
+  Bell,
+  UserCheck,
+  Trophy,
+  Award,
+  ClipboardList,
+  CheckSquare,
+  Building2,
+  Activity,
+  LineChart,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -62,6 +71,7 @@ import {
   COLORS,
   getHoverBg,
 } from '@/lib/heritageDesignSystem';
+import { useManagerTier } from '@/hooks/useManagerTier';
 
 // ─── CONSTANTS ───
 const SIDEBAR_EXPANDED = LAYOUT.sidebar.expanded;
@@ -100,26 +110,45 @@ interface NavItem {
   href: string;
 }
 
-const overviewItems: NavItem[] = [
+const commandCenterItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/manager/dashboard' },
-  { icon: Users, label: 'Team Management', href: '/manager/team' },
-  { icon: MessageSquare, label: 'Communication', href: '/manager/communications' },
+  { icon: Activity, label: 'Activity Monitor', href: '/manager/activity-monitor' },
+  { icon: Bell, label: 'Activity Alerts', href: '/manager/alerts' },
+  { icon: FileBarChart, label: 'Reports', href: '/manager/reports' },
 ];
 
-const salesItems: NavItem[] = [
+const teamItems: NavItem[] = [
+  { icon: Users, label: 'Team Roster', href: '/manager/team' },
+  { icon: UserCheck, label: 'Agent Scorecard', href: '/manager/scorecard' },
+  { icon: Trophy, label: 'Leaderboard', href: '/manager/leaderboard' },
+  { icon: Award, label: 'Promotions & Roster', href: '/manager/promotions' },
+  { icon: Trophy, label: 'Contests & SPIFFs', href: '/manager/contests' },
+];
+
+const pipelineItems: NavItem[] = [
   { icon: Target, label: 'Pipeline Overview', href: '/manager/pipeline' },
+  { icon: LineChart, label: 'Forecasting', href: '/manager/forecasting' },
   { icon: TrendingUp, label: 'Performance', href: '/manager/performance' },
+  { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
 ];
 
 const developmentItems: NavItem[] = [
-  { icon: BookOpen, label: 'Training Oversight', href: '/manager/training' },
   { icon: GraduationCap, label: 'Coaching Center', href: '/manager/coaching' },
+  { icon: ClipboardList, label: 'Coaching Logs', href: '/manager/coaching-logs' },
+  { icon: BookOpen, label: 'Training Oversight', href: '/manager/training' },
   { icon: Calendar, label: 'Team Meetings', href: '/manager/meetings' },
+  { icon: UserCheck, label: '1:1 Meetings', href: '/manager/one-on-ones' },
 ];
 
 const operationsItems: NavItem[] = [
-  { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
-  { icon: FileBarChart, label: 'Reports', href: '/manager/reports' },
+  { icon: MessageSquare, label: 'Communication', href: '/manager/communications' },
+  { icon: DollarSign, label: 'Commissions', href: '/manager/commissions' },
+  { icon: CheckSquare, label: 'Approvals', href: '/manager/approvals' },
+  { icon: Settings, label: 'Settings', href: '/manager/settings' },
+];
+
+const directorItems: NavItem[] = [
+  { icon: Building2, label: 'Director Overview', href: '/manager/director' },
 ];
 
 // ─── MANAGER THEME ───
@@ -156,6 +185,8 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
     markAllNotificationsRead,
     clearNotification,
   } = useAgentStore();
+
+  const { isDirector } = useManagerTier();
 
   // Persist sidebar state
   useEffect(() => {
@@ -279,7 +310,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
               borderRadius: RADIUS.card,
               padding: GRID.spacing.sm,
               boxShadow: `${SHADOW.hero}, 0 0 0 1px rgba(255,255,255,0.1) inset`,
-              background: `linear-gradient(135deg, ${EMERALD[600]} 0%, ${EMERALD[700]} 50%, #0d9488 100%)`,
+              background: 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #fb7185 100%)',
               color: 'white',
             }}
           >
@@ -309,10 +340,12 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto" style={{ padding: `0 ${GRID.spacing.xs}px` }}>
-        <NavSection title="Overview" items={overviewItems} />
-        <NavSection title="Sales" items={salesItems} />
+        <NavSection title="Command Center" items={commandCenterItems} />
+        <NavSection title="Team" items={teamItems} />
+        <NavSection title="Pipeline" items={pipelineItems} />
         <NavSection title="Development" items={developmentItems} />
         <NavSection title="Operations" items={operationsItems} />
+        {isDirector && <NavSection title="Director" items={directorItems} />}
       </nav>
 
       {/* Bottom Actions */}
@@ -324,25 +357,6 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
           padding: `${GRID.spacing.sm}px ${GRID.spacing.xs}px 0`,
         }}
       >
-        <Link href="/manager/settings">
-          <motion.div
-            whileHover={{ x: 2, backgroundColor: getHoverBg(EMERALD[500], 0.08) }}
-            transition={{ duration: MOTION.duration.hover }}
-            className={cn(
-              'flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors',
-              sidebarCollapsed && 'justify-center',
-            )}
-            style={{
-              gap: GRID.spacing.sm - 4,
-              padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
-              borderRadius: RADIUS.button,
-              minHeight: ROW_HEIGHT,
-            }}
-          >
-            <Settings style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
-            {!sidebarCollapsed && <span className="font-medium" style={{ fontSize: TYPE.meta }}>Settings</span>}
-          </motion.div>
-        </Link>
         <Link href="/manager/settings">
           <motion.div
             whileHover={{ x: 2, backgroundColor: getHoverBg(EMERALD[500], 0.08) }}
@@ -394,7 +408,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
             top: GRID.spacing.xxxxl,
             width: GRID.spacing.md,
             height: GRID.spacing.md,
-            borderRadius: RADIUS.pill,
+            borderRadius: RADIUS.button,
             borderColor: GLASS.border,
             boxShadow: SHADOW.level2,
           }}
@@ -655,7 +669,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
             { icon: LayoutDashboard, label: 'Home', href: '/manager/dashboard' },
             { icon: Users, label: 'Team', href: '/manager/team' },
             { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
-            { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
+            { icon: Bell, label: 'Alerts', href: '/manager/alerts' },
           ].map((item) => {
             const isActive = location === item.href;
             return (

@@ -12,6 +12,7 @@ import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerStatCard, ManagerStatCardGrid } from './primitives';
 import { useAgentStore } from '@/lib/agentStore';
 import { Link } from 'wouter';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,10 @@ import {
   Trophy,
   BookOpen,
   ShieldCheck,
+  LineChart,
+  UserCheck,
+  Sparkles,
+  Activity,
 } from 'lucide-react';
 import {
   RADIUS,
@@ -47,18 +52,41 @@ import {
   LAYOUT,
   GLASS,
 } from '@/lib/heritageDesignSystem';
-import { MANAGER_GRADIENT_CSS } from './managerConstants';
+import { MANAGER_GRADIENT_CSS, DEMO_TEAM_MEMBERS } from './managerConstants';
 
 // Quick action items for manager
 const QUICK_ACTIONS = [
   { icon: BookOpen, label: 'Training', href: '/manager/training' },
   { icon: GraduationCap, label: 'Coach', href: '/manager/coaching' },
   { icon: Calendar, label: 'Meetings', href: '/manager/meetings' },
+  { icon: LineChart, label: 'Forecast', href: '/manager/forecasting' },
+  { icon: UserCheck, label: '1:1s', href: '/manager/one-on-ones' },
   { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
   { icon: FileBarChart, label: 'Reports', href: '/manager/reports' },
   { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
   { icon: MessageSquare, label: 'Communication', href: '/manager/communications' },
 ];
+
+// Deal risk alerts for dashboard
+const DEAL_RISK_ALERTS = [
+  { deal: 'Chen Annuity Package', agent: 'David Brown', avatar: 'DB', value: 89000, daysIdle: 12, riskType: 'stale' as const },
+  { deal: 'Adams Corporate Group', agent: 'Sarah Johnson', avatar: 'SJ', value: 125000, daysIdle: 8, riskType: 'no_activity' as const },
+  { deal: 'Davis Legacy Trust', agent: 'James Wilson', avatar: 'JW', value: 95000, daysIdle: 18, riskType: 'aging' as const },
+];
+
+// AI-surfaced coaching moments
+const COACHING_MOMENTS = [
+  { agent: 'Carlos Martinez', avatar: 'CM', trigger: '3 consecutive lost deals in 2 weeks', action: 'Schedule Coaching', href: '/manager/coaching' },
+  { agent: 'Ryan Taylor', avatar: 'RT', trigger: 'No activity for 2 days, cert overdue', action: 'Schedule 1:1', href: '/manager/one-on-ones' },
+  { agent: 'Anna Kim', avatar: 'AK', trigger: 'Close rate improving — ready for advanced leads', action: 'Assign Leads', href: '/manager/pipeline' },
+];
+
+// Agent status dots for activity pulse
+const AGENT_ACTIVITY_DOTS = DEMO_TEAM_MEMBERS.map((m) => ({
+  name: m.name,
+  status: m.status,
+  color: m.status === 'active' ? '#10b981' : m.status === 'away' ? '#f59e0b' : '#9ca3af',
+}));
 
 // Demo data
 const TEAM_ACTIVE = [
@@ -70,11 +98,11 @@ const TEAM_ACTIVE = [
 ];
 
 const TOP_PERFORMERS = [
-  { name: 'Sarah Johnson', sales: 8, revenue: '$42,500' },
-  { name: 'Mike Chen', sales: 6, revenue: '$38,200' },
-  { name: 'Emily Davis', sales: 5, revenue: '$31,800' },
-  { name: 'James Wilson', sales: 4, revenue: '$28,400' },
-  { name: 'Lisa Park', sales: 3, revenue: '$22,100' },
+  { name: 'Sarah Johnson', level: 7, apWeekly: 42500 },
+  { name: 'Mike Chen', level: 6, apWeekly: 38200 },
+  { name: 'Emily Davis', level: 5, apWeekly: 31800 },
+  { name: 'James Wilson', level: 4, apWeekly: 28400 },
+  { name: 'Lisa Park', level: 3, apWeekly: 22100 },
 ];
 
 const ESCALATIONS = [
@@ -96,6 +124,9 @@ const TEAM_ACTIVITY = [
   { agent: 'Emily D.', action: 'Completed 15 calls today', time: '45m ago', icon: Phone },
   { agent: 'James W.', action: 'Moved 3 leads to Qualified', time: '1h ago', icon: ArrowRight },
 ];
+
+// Fibonacci blob sizes for gradient cards
+const CARD_BLOBS = { large: 89, medium: 55, small: 34 };
 
 export function ManagerDashboard() {
   const { currentUser } = useAgentStore();
@@ -137,21 +168,21 @@ export function ManagerDashboard() {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: MOTION.duration.slow, delay: 0.1, ease: MOTION.easing }}
-              style={{ width: 89 * 4, height: 89 * 4 }}
+              style={{ width: CARD_BLOBS.large * 4, height: CARD_BLOBS.large * 4 }}
               className="absolute top-0 right-0 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: MOTION.duration.slow, delay: 0.2, ease: MOTION.easing }}
-              style={{ width: 55 * 4, height: 55 * 4 }}
+              style={{ width: CARD_BLOBS.medium * 4, height: CARD_BLOBS.medium * 4 }}
               className="absolute bottom-0 left-0 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: MOTION.duration.slow, delay: 0.3, ease: MOTION.easing }}
-              style={{ width: 34 * 4, height: 34 * 4 }}
+              style={{ width: CARD_BLOBS.small * 4, height: CARD_BLOBS.small * 4 }}
               className="absolute top-1/2 right-1/4 bg-teal-300/15 rounded-full blur-sm"
             />
 
@@ -189,15 +220,39 @@ export function ManagerDashboard() {
                     <h1
                       className="font-bold tracking-tight text-white"
                       style={{
-                        fontSize: '2.5rem',
+                        fontSize: TYPE.display,
                         lineHeight: 1.2,
                       }}
                     >
                       Good morning, {firstName}
                     </h1>
-                    <p className="text-white/80 text-base mt-1">
-                      Your team is performing well today. 8 of 12 agents are active.
+                    <p className="text-white/80 mt-1" style={{ fontSize: TYPE.body }}>
+                      Your team is performing well today.
                     </p>
+                    {/* Activity Pulse — 12 agent status dots */}
+                    <div className="flex items-center mt-3" style={{ gap: GRID.spacing.xs }}>
+                      <div className="flex items-center" style={{ gap: 6 }}>
+                        {AGENT_ACTIVITY_DOTS.map((dot, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.4 + i * 0.05, type: 'spring', stiffness: 300 }}
+                            title={`${dot.name} — ${dot.status}`}
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: RADIUS.pill,
+                              backgroundColor: dot.color,
+                              boxShadow: dot.status === 'active' ? `0 0 6px ${dot.color}` : undefined,
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-white/60 font-medium" style={{ fontSize: TYPE.caption }}>
+                        {AGENT_ACTIVITY_DOTS.filter((d) => d.status === 'active').length} of {AGENT_ACTIVITY_DOTS.length} active
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -215,8 +270,8 @@ export function ManagerDashboard() {
                   >
                     <DollarSign className="w-5 h-5 text-amber-200" />
                     <div>
-                      <p className="text-[10px] text-white/70 uppercase tracking-wider font-medium">MTD Revenue</p>
-                      <p className="text-lg font-bold text-white">$124,800</p>
+                      <p className="text-white/70 uppercase tracking-wider font-medium" style={{ fontSize: TYPE.micro }}>MTD Revenue</p>
+                      <p className="font-bold text-white" style={{ fontSize: TYPE.body }}>$124,800</p>
                     </div>
                   </div>
 
@@ -290,6 +345,109 @@ export function ManagerDashboard() {
           })}
         </motion.div>
 
+        {/* ─── DEAL RISK ALERTS ─── */}
+        <motion.div variants={fadeInUp}>
+          <Card
+            className="overflow-hidden border-0"
+            style={{
+              background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+              border: '1px solid rgba(245, 158, 11, 0.15)',
+            }}
+          >
+            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 0 }}>
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
+                  <div
+                    className="flex items-center justify-center bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20"
+                    style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                  >
+                    <AlertTriangle className="w-5 h-5 text-white" />
+                  </div>
+                  Deal Risk Alerts
+                </CardTitle>
+                <span
+                  className="font-semibold text-amber-700"
+                  style={{
+                    fontSize: TYPE.caption,
+                    padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.sm}px`,
+                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                    borderRadius: RADIUS.pill,
+                  }}
+                >
+                  {DEAL_RISK_ALERTS.length} at risk
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent style={{ padding: GRID.spacing.md }}>
+              <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: GRID.spacing.sm }}>
+                {DEAL_RISK_ALERTS.map((deal) => (
+                  <motion.div
+                    key={deal.deal}
+                    className="flex flex-col"
+                    style={{
+                      padding: GRID.spacing.sm,
+                      borderRadius: RADIUS.button,
+                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                      border: '1px solid rgba(245, 158, 11, 0.1)',
+                    }}
+                    whileHover={{ y: MOTION.hover.y, boxShadow: SHADOW.level2, transition: { duration: MOTION.duration.hover } }}
+                  >
+                    <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.xs }}>
+                      <div
+                        className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                      >
+                        {deal.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate" style={{ fontSize: TYPE.meta }}>{deal.deal}</p>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{deal.agent}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs }}>
+                      <span className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                        ${(deal.value / 1000).toFixed(0)}K
+                      </span>
+                      <span
+                        className={cn(
+                          'font-semibold',
+                          deal.riskType === 'aging' ? 'text-red-600 bg-red-50' :
+                          deal.riskType === 'stale' ? 'text-amber-700 bg-amber-50' :
+                          'text-orange-700 bg-orange-50',
+                        )}
+                        style={{
+                          fontSize: TYPE.caption,
+                          padding: `2px ${GRID.spacing.xs}px`,
+                          borderRadius: RADIUS.pill,
+                        }}
+                      >
+                        {deal.riskType === 'aging' ? 'Aging' : deal.riskType === 'stale' ? 'Stale' : 'No Activity'} · {deal.daysIdle}d
+                      </span>
+                    </div>
+                    <motion.button
+                      className="flex items-center justify-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 w-full"
+                      style={{
+                        fontSize: TYPE.caption,
+                        gap: GRID.unit,
+                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                        borderRadius: RADIUS.button,
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {deal.riskType === 'aging' ? 'Reassign' : deal.riskType === 'stale' ? 'Schedule Follow-up' : 'Review in 1:1'}
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* ─── STAT CARDS ─── */}
         <motion.div variants={fadeInUp}>
           <ManagerStatCardGrid>
@@ -313,9 +471,7 @@ export function ManagerDashboard() {
             <Card
               className="overflow-hidden border-0"
               style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                ...GLASS.css.light,
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -325,7 +481,7 @@ export function ManagerDashboard() {
                   <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
                     <div
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
                       <Users className="w-5 h-5 text-amber-200" />
                     </div>
@@ -345,26 +501,26 @@ export function ManagerDashboard() {
                       key={idx}
                       className="flex items-center"
                       style={{
-                        gap: 12,
-                        padding: 12,
+                        gap: GRID.spacing.sm,
+                        padding: GRID.spacing.sm,
                         borderRadius: RADIUS.button,
                       }}
                       whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                     >
                       <div
-                        className="flex items-center justify-center text-white font-semibold bg-gradient-to-br from-emerald-500 to-teal-600 text-sm"
-                        style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill }}
+                        className="flex items-center justify-center text-white font-semibold bg-gradient-to-br from-emerald-500 to-teal-600"
+                        style={{ fontSize: TYPE.meta, width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                       >
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-900">{member.name}</p>
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{member.name}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">{member.calls} calls</span>
+                        <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>{member.calls} calls</span>
                         <div className="flex items-center gap-1">
                           <div className={`w-2 h-2 ${member.statusColor}`} style={{ borderRadius: RADIUS.pill }} />
-                          <span className="text-xs text-gray-500">{member.status}</span>
+                          <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>{member.status}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -377,9 +533,7 @@ export function ManagerDashboard() {
             <Card
               className="overflow-hidden border-0"
               style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                ...GLASS.css.light,
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -389,7 +543,7 @@ export function ManagerDashboard() {
                   <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
                     <div
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
                       <Target className="w-5 h-5 text-amber-200" />
                     </div>
@@ -412,8 +566,8 @@ export function ManagerDashboard() {
                       transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
                       className="text-center p-4 rounded-xl bg-emerald-50 border border-emerald-100 cursor-pointer hover:bg-emerald-100 transition-colors"
                     >
-                      <p className="text-2xl font-bold text-gray-900">{s.count}</p>
-                      <p className="text-xs text-gray-500 font-medium">{s.stage}</p>
+                      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.section }}>{s.count}</p>
+                      <p className="text-gray-500 font-medium" style={{ fontSize: TYPE.caption }}>{s.stage}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -422,10 +576,10 @@ export function ManagerDashboard() {
                   style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button }}
                 >
                   <div>
-                    <p className="font-semibold text-sm text-gray-900">Total Pipeline Value</p>
-                    <p className="text-xs text-gray-500">61 active deals</p>
+                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Total Pipeline Value</p>
+                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>61 active deals</p>
                   </div>
-                  <p className="font-bold text-xl text-emerald-700">$847K</p>
+                  <p className="font-bold text-emerald-700" style={{ fontSize: TYPE.title }}>$847K</p>
                 </div>
               </CardContent>
             </Card>
@@ -433,16 +587,16 @@ export function ManagerDashboard() {
             {/* Coaching Queue — Gradient Card */}
             <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
               {/* Full gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700" />
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
               {/* Fibonacci blobs */}
-              <div style={{ width: 89, height: 89 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: 55, height: 55 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: 34, height: 34 }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
 
               <CardHeader className="pb-3 relative z-10">
                 <div className="flex items-center justify-between">
                   <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
-                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
                       <GraduationCap className="w-5 h-5 text-amber-200" />
                     </div>
                     Coaching Queue
@@ -465,28 +619,107 @@ export function ManagerDashboard() {
                       key={idx}
                       className="flex items-center"
                       style={{
-                        gap: 12,
-                        padding: 12,
+                        gap: GRID.spacing.sm,
+                        padding: GRID.spacing.sm,
                         borderRadius: RADIUS.button,
                         background: 'rgba(255,255,255,0.1)',
                         backdropFilter: 'blur(4px)',
                       }}
                     >
                       <div
-                        className="flex items-center justify-center text-white font-bold text-xs"
-                        style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.2)' }}
+                        className="flex items-center justify-center text-white font-bold"
+                        style={{ fontSize: TYPE.caption, width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.2)' }}
                       >
                         {session.agent.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-white">{session.agent}</p>
-                        <p className="text-[10px] text-white/70">{session.topic}</p>
+                        <p className="font-semibold text-white" style={{ fontSize: TYPE.meta }}>{session.agent}</p>
+                        <p className="text-white/70" style={{ fontSize: TYPE.micro }}>{session.topic}</p>
                       </div>
                       <div className="flex items-center gap-1 text-amber-200/80">
                         <Clock style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
-                        <span className="text-[10px]">{session.time}</span>
+                        <span style={{ fontSize: TYPE.micro }}>{session.time}</span>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ─── COACHING MOMENTS — AI-Surfaced ─── */}
+            <Card
+              className="overflow-hidden border-0"
+              style={{
+                ...GLASS.css.light,
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
+                    <div
+                      className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                    >
+                      <Sparkles className="w-5 h-5 text-amber-200" />
+                    </div>
+                    Coaching Moments
+                  </CardTitle>
+                  <span
+                    className="font-medium text-emerald-700"
+                    style={{
+                      fontSize: TYPE.micro,
+                      padding: `2px ${GRID.spacing.xs}px`,
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      borderRadius: RADIUS.pill,
+                    }}
+                  >
+                    AI Coach (Beta)
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                  {COACHING_MOMENTS.map((moment, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="flex items-center"
+                      style={{
+                        gap: GRID.spacing.sm,
+                        padding: GRID.spacing.sm,
+                        borderRadius: RADIUS.button,
+                        backgroundColor: COLORS.gray[50],
+                        border: `1px solid ${COLORS.gray[100]}`,
+                      }}
+                      whileHover={{ backgroundColor: COLORS.gray[100], transition: { duration: MOTION.duration.hover } }}
+                    >
+                      <div
+                        className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                      >
+                        {moment.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{moment.agent}</p>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{moment.trigger}</p>
+                      </div>
+                      <Link href={moment.href}>
+                        <motion.button
+                          className="flex items-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 flex-shrink-0"
+                          style={{
+                            fontSize: TYPE.caption,
+                            gap: GRID.unit,
+                            padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                            borderRadius: RADIUS.button,
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          {moment.action}
+                        </motion.button>
+                      </Link>
+                    </motion.div>
                   ))}
                 </div>
               </CardContent>
@@ -499,65 +732,58 @@ export function ManagerDashboard() {
             {/* Top Performers — Gradient Card */}
             <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
               {/* Full gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700" />
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
               {/* Fibonacci blobs */}
-              <div style={{ width: 89, height: 89 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: 55, height: 55 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: 34, height: 34 }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
 
               <CardHeader className="pb-3 relative z-10">
                 <div className="flex items-center justify-between">
                   <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
-                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
                       <Trophy className="w-5 h-5 text-amber-200" />
                     </div>
-                    Top Performers
+                    Leaderboard
                   </CardTitle>
                   <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
                     <Link href="/manager/performance">
-                      View All <ChevronRight className="w-4 h-4 ml-1" />
+                      View All
                     </Link>
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                <div className="space-y-2">
                   {TOP_PERFORMERS.map((agent, idx) => (
-                    <div
+                    <motion.div
                       key={idx}
-                      className="flex items-center"
-                      style={{
-                        gap: 12,
-                        padding: 12,
-                        borderRadius: RADIUS.button,
-                        background: idx === 0 ? 'rgba(255,255,255,0.15)' : 'transparent',
-                      }}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      className="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer backdrop-blur bg-white/15 hover:bg-white/25"
                     >
-                      <div
-                        className={`flex items-center justify-center text-white font-bold text-xs ${
-                          idx === 0
-                            ? 'bg-gradient-to-br from-amber-400 to-amber-600'
-                            : idx === 1
-                              ? 'bg-gradient-to-br from-gray-300 to-gray-500'
-                              : idx === 2
-                                ? 'bg-gradient-to-br from-amber-600 to-amber-800'
-                                : 'bg-white/20'
-                        }`}
-                        style={{
-                          width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill,
-                          boxShadow: idx < 3 ? SHADOW.level2 : 'none',
-                        }}
-                      >
-                        {idx + 1}
+                      <div className={cn(
+                        "rounded-xl flex items-center justify-center font-bold shadow-lg",
+                        idx === 0 && "bg-gradient-to-br from-yellow-300 to-amber-400 text-amber-900",
+                        idx === 1 && "bg-gradient-to-br from-gray-200 to-gray-400 text-gray-700",
+                        idx === 2 && "bg-gradient-to-br from-amber-600 to-orange-700 text-white",
+                        idx > 2 && "bg-white/30 text-white"
+                      )} style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, fontSize: TYPE.caption }}>
+                        {idx === 0 ? <Trophy className="w-4 h-4" /> : idx + 1}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate text-white">{agent.name}</p>
-                        <p className="text-[10px] text-white/70">{agent.sales} sales · {agent.revenue}</p>
+                        <p className="font-semibold truncate text-white" style={{ fontSize: TYPE.meta }}>{agent.name}</p>
+                        <p className="text-white/70 flex items-center gap-1" style={{ fontSize: TYPE.micro }}>
+                          <Zap className="w-3 h-3 text-amber-300" /> Level {agent.level}
+                        </p>
                       </div>
-                      <span className="font-bold text-sm text-amber-200">
-                        {agent.revenue}
-                      </span>
-                    </div>
+                      <div className="text-right">
+                        <p className="font-bold text-amber-200" style={{ fontSize: TYPE.meta }}>
+                          ${(agent.apWeekly / 1000).toFixed(1)}K
+                        </p>
+                        <p className="text-white/60 font-medium" style={{ fontSize: TYPE.micro }}>AP</p>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </CardContent>
@@ -567,9 +793,7 @@ export function ManagerDashboard() {
             <Card
               className="overflow-hidden border-0"
               style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                ...GLASS.css.light,
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -579,7 +803,7 @@ export function ManagerDashboard() {
                   <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
                     <div
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
                       <AlertTriangle className="w-5 h-5 text-amber-200" />
                     </div>
@@ -599,8 +823,8 @@ export function ManagerDashboard() {
                       key={idx}
                       className="flex items-center cursor-pointer"
                       style={{
-                        gap: 12,
-                        padding: 12,
+                        gap: GRID.spacing.sm,
+                        padding: GRID.spacing.sm,
                         borderRadius: RADIUS.button,
                         backgroundColor: COLORS.gray[50],
                         border: `1px solid ${COLORS.gray[100]}`,
@@ -612,13 +836,14 @@ export function ManagerDashboard() {
                         style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill, flexShrink: 0 }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-900">{esc.type}</p>
-                        <p className="text-xs text-gray-500">{esc.agent} · {esc.time}</p>
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{esc.type}</p>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{esc.agent} · {esc.time}</p>
                       </div>
                       <motion.button
-                        className="flex items-center text-xs font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700"
+                        className="flex items-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700"
                         style={{
-                          gap: 2,
+                          fontSize: TYPE.caption,
+                          gap: GRID.unit,
                           padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
                           borderRadius: RADIUS.button,
                         }}
@@ -634,13 +859,128 @@ export function ManagerDashboard() {
               </CardContent>
             </Card>
 
+            {/* ─── SALES VELOCITY — Gradient Card ─── */}
+            <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
+
+              <CardHeader className="pb-0 relative z-10">
+                <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                  <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                    <Activity className="w-5 h-5 text-amber-200" />
+                  </div>
+                  Sales Velocity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10" style={{ padding: GRID.spacing.md }}>
+                {/* Formula visualization */}
+                <div className="flex flex-wrap items-center justify-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.md }}>
+                  {[
+                    { label: 'Deals', value: '62' },
+                    { op: '×' },
+                    { label: 'Win Rate', value: '42%' },
+                    { op: '×' },
+                    { label: 'Avg Size', value: '$13.7K' },
+                    { op: '÷' },
+                    { label: 'Cycle', value: '18d' },
+                  ].map((item, i) =>
+                    'op' in item ? (
+                      <span key={i} className="text-white/50 font-bold" style={{ fontSize: TYPE.title }}>
+                        {item.op}
+                      </span>
+                    ) : (
+                      <div
+                        key={i}
+                        className="text-center bg-white/10 backdrop-blur"
+                        style={{
+                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                          borderRadius: RADIUS.button,
+                          border: '1px solid rgba(255,255,255,0.15)',
+                        }}
+                      >
+                        <p className="font-bold text-white" style={{ fontSize: TYPE.body }}>{item.value}</p>
+                        <p className="text-white/60" style={{ fontSize: TYPE.micro }}>{item.label}</p>
+                      </div>
+                    ),
+                  )}
+                </div>
+                {/* Result */}
+                <div
+                  className="text-center bg-white/15 backdrop-blur"
+                  style={{
+                    padding: GRID.spacing.sm,
+                    borderRadius: RADIUS.button,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                  }}
+                >
+                  <p className="text-white/70 font-medium" style={{ fontSize: TYPE.caption }}>Velocity</p>
+                  <p className="font-bold text-amber-200" style={{ fontSize: TYPE.section }}>$19.8K / day</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ─── FORECAST MINI-WIDGET ─── */}
+            <Card
+              className="overflow-hidden border-0"
+              style={{
+                ...GLASS.css.light,
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <CardContent style={{ padding: GRID.spacing.md }}>
+                <div className="flex items-center" style={{ gap: GRID.spacing.sm, marginBottom: GRID.spacing.sm }}>
+                  <div
+                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
+                    style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                  >
+                    <LineChart className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.title }}>Revenue Forecast</p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                  <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.xs}px 0` }}>
+                    <span className="text-gray-500" style={{ fontSize: TYPE.meta }}>Weighted Forecast</span>
+                    <span className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>$312K</span>
+                  </div>
+                  <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.xs}px 0` }}>
+                    <span className="text-gray-500" style={{ fontSize: TYPE.meta }}>Coverage Ratio</span>
+                    <span className="font-bold text-emerald-600" style={{ fontSize: TYPE.body }}>3.2x</span>
+                  </div>
+                  <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.xs}px 0` }}>
+                    <span className="text-gray-500" style={{ fontSize: TYPE.meta }}>Accuracy</span>
+                    <span className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>87%</span>
+                  </div>
+                </div>
+                <Link href="/manager/forecasting">
+                  <motion.button
+                    className="flex items-center justify-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 w-full"
+                    style={{
+                      fontSize: TYPE.meta,
+                      gap: GRID.spacing.xs,
+                      padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px`,
+                      borderRadius: RADIUS.button,
+                      marginTop: GRID.spacing.sm,
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    View Full Forecast
+                    <ArrowRight style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                  </motion.button>
+                </Link>
+              </CardContent>
+            </Card>
+
             {/* Training & Compliance */}
             <Card
               className="overflow-hidden border-0"
               style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                ...GLASS.css.light,
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -650,7 +990,7 @@ export function ManagerDashboard() {
                   <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
                     <div
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
                       <ShieldCheck className="w-5 h-5 text-amber-200" />
                     </div>
@@ -680,9 +1020,9 @@ export function ManagerDashboard() {
                           className={item.dot}
                           style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill, flexShrink: 0 }}
                         />
-                        <span className="text-sm text-gray-600">{item.label}</span>
+                        <span className="text-gray-600" style={{ fontSize: TYPE.meta }}>{item.label}</span>
                       </div>
-                      <span className="font-semibold text-sm text-gray-900">
+                      <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
                         {item.value}
                       </span>
                     </div>
@@ -694,15 +1034,15 @@ export function ManagerDashboard() {
             {/* Revenue Summary — Gradient Card */}
             <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
               {/* Full gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700" />
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
               {/* Fibonacci blobs */}
-              <div style={{ width: 89, height: 89 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: 55, height: 55 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: 34, height: 34 }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
 
               <CardHeader className="pb-3 relative z-10">
                 <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
-                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                  <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
                     <DollarSign className="w-5 h-5 text-amber-200" />
                   </div>
                   Revenue Summary
@@ -711,16 +1051,16 @@ export function ManagerDashboard() {
               <CardContent className="relative z-10">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
-                    <span className="text-sm text-white/80">Closed Revenue</span>
-                    <span className="font-bold text-xl text-white">$124,800</span>
+                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Closed Revenue</span>
+                    <span className="font-bold text-white" style={{ fontSize: TYPE.title }}>$124,800</span>
                   </div>
                   <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
-                    <span className="text-sm text-white/80">Pending Commissions</span>
-                    <span className="font-bold text-xl text-amber-200">$18,720</span>
+                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Pending Commissions</span>
+                    <span className="font-bold text-amber-200" style={{ fontSize: TYPE.title }}>$18,720</span>
                   </div>
                   <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
-                    <span className="text-sm text-white/80">Target Remaining</span>
-                    <span className="font-bold text-xl text-white/90">$39,200</span>
+                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Target Remaining</span>
+                    <span className="font-bold text-white/90" style={{ fontSize: TYPE.title }}>$39,200</span>
                   </div>
                   <Button
                     className="w-full font-semibold text-emerald-700 bg-white hover:bg-white/90"
@@ -740,18 +1080,16 @@ export function ManagerDashboard() {
             <Card
               className="overflow-hidden border-0"
               style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                ...GLASS.css.light,
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
             >
-              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                 <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                   <div
                     className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                    style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                    style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                   >
                     <Zap className="w-5 h-5 text-amber-200" />
                   </div>
@@ -770,16 +1108,16 @@ export function ManagerDashboard() {
                       >
                         <div
                           className="flex items-center justify-center bg-emerald-50 flex-shrink-0"
-                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill }}
+                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
                         >
                           <Icon className="text-emerald-600" style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900">
+                          <p className="text-gray-900" style={{ fontSize: TYPE.meta }}>
                             <span className="font-semibold">{activity.agent}</span>{' '}
                             {activity.action}
                           </p>
-                          <p className="text-xs text-gray-500">{activity.time}</p>
+                          <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{activity.time}</p>
                         </div>
                       </div>
                     );

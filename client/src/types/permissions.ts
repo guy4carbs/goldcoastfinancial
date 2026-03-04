@@ -192,7 +192,7 @@ export type RoleGroup = keyof typeof RoleGroups;
 export const DEFAULT_ROUTE_BY_ROLE: Record<Role, string> = {
   [Roles.OWNER]: '/admin',
   [Roles.SYSTEM_ADMIN]: '/admin',
-  [Roles.AGENCY_MANAGER]: '/admin',
+  [Roles.AGENCY_MANAGER]: '/manager/dashboard',
   [Roles.SALES_AGENT]: '/agents',
   [Roles.MARKETING_STAFF]: '/admin/content',
   [Roles.CLIENT]: '/portal',

@@ -349,7 +349,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               borderRadius: RADIUS.card,
               padding: GRID.spacing.sm,
               boxShadow: `${SHADOW.hero}, 0 0 0 1px rgba(255,255,255,0.1) inset`,
-              background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 50%, ${COLORS.primary.violet[700]} 100%)`,
+              background: `linear-gradient(135deg, ${COLORS.primary.violet[600]} 0%, ${COLORS.primary.purple[600]} 50%, #f59e0b 100%)`,
               color: 'white',
             }}
           >

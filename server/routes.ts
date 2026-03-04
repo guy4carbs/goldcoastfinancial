@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import crypto from "crypto";
 import { storage } from "./storage";
-import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema } from "@shared/schema";
+import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema, agentRegisterSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail } from "./gmail";
 import { sendSecureFormLink, sendBookingLink, isSmsAvailable } from "./services/smsService";
@@ -166,6 +166,84 @@ export async function registerRoutes(
     }
   });
   
+  // Auth: Check email availability (for registration form)
+  app.get("/api/auth/check-email", async (req, res) => {
+    try {
+      const email = req.query.email as string;
+      if (!email) return res.status(400).json({ error: "Email required" });
+      const existing = await storage.getUserByEmail(email);
+      res.json({ available: !existing });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check email" });
+    }
+  });
+
+  // Auth: Register new agent (multi-step, rate limited)
+  app.post("/api/auth/register-agent", registrationLimiter, async (req, res) => {
+    try {
+      const validatedData = agentRegisterSchema.parse(req.body);
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(400).json({ error: "An account with this email already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+      // Create user with isActive = false (pending approval)
+      const user = await storage.createUser({
+        email: validatedData.email,
+        password: hashedPassword,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        phone: validatedData.phone || null,
+        role: "sales_agent",
+        isActive: false,
+      });
+
+      // Create agent profile
+      await storage.createAgentProfile({
+        userId: user.id,
+        dateOfBirth: validatedData.dateOfBirth,
+        streetAddress: validatedData.streetAddress,
+        addressLine2: validatedData.addressLine2 || null,
+        city: validatedData.city,
+        state: validatedData.state,
+        zipCode: validatedData.zipCode,
+        isLicensed: validatedData.isLicensed,
+        licenseNumber: validatedData.licenseNumber || null,
+        licensedStates: validatedData.licensedStates || null,
+        yearsExperience: validatedData.yearsExperience,
+        previousAgency: validatedData.previousAgency || null,
+        npn: validatedData.npn || null,
+        interestedProducts: validatedData.interestedProducts,
+        whyJoinHeritage: validatedData.whyJoinHeritage,
+        referralSource: validatedData.referralSource,
+        referringAgentName: validatedData.referringAgentName || null,
+        approvalStatus: "pending_review",
+        agreedToTerms: validatedData.agreedToTerms,
+        agreedToPrivacy: validatedData.agreedToPrivacy,
+        consentedAt: new Date(),
+      });
+
+      console.log(`[Registration] New agent application from ${validatedData.email}`);
+
+      res.status(201).json({
+        success: true,
+        status: "pending_review",
+        message: "Your application has been submitted. We'll review it and get back to you soon.",
+      });
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: fromZodError(error).toString() });
+      }
+      console.error("Error registering agent:", error);
+      res.status(500).json({ error: "Failed to create account" });
+    }
+  });
+
   // Auth: Login (rate limited with account lockout)
   app.post("/api/auth/login", loginLimiter, async (req, res) => {
     try {
@@ -198,6 +276,14 @@ export async function registerRoutes(
         return res.status(401).json({
           error: "Invalid email or password",
           warning: attemptResult.message // Shows remaining attempts if low
+        });
+      }
+
+      // Check if account is active (pending approval)
+      if (!user.isActive) {
+        return res.status(403).json({
+          error: "Your account is pending approval. We'll email you when it's been reviewed.",
+          pendingApproval: true,
         });
       }
 

@@ -93,6 +93,11 @@ import {
   type WorkflowAutomation,
   type InsertWorkflowAutomation,
 } from "@shared/models/workflow-automations";
+import {
+  agentProfiles,
+  type AgentProfile,
+  type InsertAgentProfile,
+} from "@shared/models/agentProfiles";
 import { db } from "./db";
 import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -264,6 +269,12 @@ export interface IStorage {
   createAgentPolicy(policy: InsertAgentPolicy): Promise<AgentPolicy>;
   updateAgentPolicy(id: string, data: Partial<AgentPolicy>): Promise<AgentPolicy | null>;
   deleteAgentPolicy(id: string): Promise<boolean>;
+
+  // Agent Profiles (Registration)
+  createAgentProfile(profile: InsertAgentProfile): Promise<AgentProfile>;
+  getAgentProfileByUserId(userId: string): Promise<AgentProfile | null>;
+  getPendingRegistrations(): Promise<AgentProfile[]>;
+  updateAgentProfileApproval(profileId: string, status: string, approvedBy?: string, rejectionReason?: string): Promise<AgentProfile | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1635,6 +1646,43 @@ export class DatabaseStorage implements IStorage {
   async deleteAgentPolicy(id: string): Promise<boolean> {
     const result = await db.delete(agentPolicies).where(eq(agentPolicies.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // ── Agent Profiles (Registration) ──────────────────────────
+
+  async createAgentProfile(profile: InsertAgentProfile): Promise<AgentProfile> {
+    const [newProfile] = await db.insert(agentProfiles).values(profile).returning();
+    return newProfile;
+  }
+
+  async getAgentProfileByUserId(userId: string): Promise<AgentProfile | null> {
+    const [profile] = await db.select().from(agentProfiles).where(eq(agentProfiles.userId, userId));
+    return profile || null;
+  }
+
+  async getPendingRegistrations(): Promise<AgentProfile[]> {
+    return db.select().from(agentProfiles)
+      .where(eq(agentProfiles.approvalStatus, "pending_review"))
+      .orderBy(desc(agentProfiles.createdAt));
+  }
+
+  async updateAgentProfileApproval(
+    profileId: string,
+    status: string,
+    approvedBy?: string,
+    rejectionReason?: string,
+  ): Promise<AgentProfile | null> {
+    const [updated] = await db.update(agentProfiles)
+      .set({
+        approvalStatus: status,
+        approvedBy: approvedBy || null,
+        approvedAt: status === "approved" ? new Date() : null,
+        rejectionReason: rejectionReason || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(agentProfiles.id, profileId))
+      .returning();
+    return updated || null;
   }
 }
 

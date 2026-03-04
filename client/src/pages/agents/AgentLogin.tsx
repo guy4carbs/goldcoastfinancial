@@ -58,8 +58,23 @@ export default function AgentLogin() {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/crm';
       sessionStorage.removeItem('redirectAfterLogin');
       setLocation(redirectPath);
-    } catch (err) {
-      setError("Invalid email or password. Please try again.");
+    } catch (err: any) {
+      // If Firebase says user not found, check if they have a pending registration
+      if (err?.code === "auth/user-not-found") {
+        try {
+          const checkRes = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+          const checkData = await checkRes.json();
+          if (!checkData.available) {
+            setError("Your application is still under review. We'll email you once you're approved.");
+          } else {
+            setError("No account found with this email address.");
+          }
+        } catch {
+          setError("Invalid email or password. Please try again.");
+        }
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -411,7 +426,7 @@ export default function AgentLogin() {
                 </div>
 
                 {/* Create Account */}
-                <Link href="/become-agent">
+                <Link href="/agents/register">
                   <motion.button
                     whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                     whileTap={{ scale: 0.99 }}

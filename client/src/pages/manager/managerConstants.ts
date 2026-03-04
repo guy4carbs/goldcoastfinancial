@@ -14,9 +14,9 @@ export const glassCard: CSSProperties = {
   border: '1px solid rgba(0, 0, 0, 0.06)',
 };
 
-// Emerald gradient constants
-export const MANAGER_GRADIENT = 'from-emerald-500 via-emerald-600 to-teal-700';
-export const MANAGER_GRADIENT_CSS = 'linear-gradient(135deg, #10b981 0%, #059669 50%, #0d9488 100%)';
+// Emerald → Rose gradient constants
+export const MANAGER_GRADIENT = 'from-emerald-600 via-teal-600 to-rose-400';
+export const MANAGER_GRADIENT_CSS = 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #fb7185 100%)';
 export const MANAGER_ICON_GRADIENT = 'from-emerald-500 to-emerald-700';
 
 // Demo team members (shared across Team, Performance, Coaching, etc.)
@@ -180,4 +180,335 @@ export const DEMO_SKILL_GAPS = [
   { agent: 'Ryan Taylor', avatar: 'RT', weakArea: 'Closing Techniques', assessmentScore: 45, recommendedPath: 'Advanced Closing Techniques' },
   { agent: 'Anna Kim', avatar: 'AK', weakArea: 'Compliance Basics', assessmentScore: 68, recommendedPath: 'Compliance & Ethics' },
   { agent: 'Lisa Park', avatar: 'LP', weakArea: 'Estate Planning', assessmentScore: 71, recommendedPath: 'Estate Planning Essentials' },
+] as const;
+
+// ─── FORECASTING DEMO DATA ────────────────────────────────
+
+export const DEMO_FORECAST_SCENARIOS = [
+  { label: 'Best Case', value: 412000, probability: 25, color: 'bg-emerald-500' },
+  { label: 'Likely', value: 312000, probability: 50, color: 'bg-teal-500' },
+  { label: 'Worst Case', value: 198000, probability: 25, color: 'bg-rose-400' },
+] as const;
+
+export const DEMO_FORECAST_DEALS = [
+  { id: '1', name: 'Thompson Estate Plan', agent: 'Sarah Johnson', agentAvatar: 'SJ', stage: 'Proposal', value: 48000, probability: 80, risk: 'low' as const },
+  { id: '2', name: 'Williams Family IUL', agent: 'Rachel Green', agentAvatar: 'RG', stage: 'Qualified', value: 62000, probability: 55, risk: 'medium' as const },
+  { id: '3', name: 'Garcia Whole Life', agent: 'Mike Chen', agentAvatar: 'MC', stage: 'Proposal', value: 35000, probability: 75, risk: 'low' as const },
+  { id: '4', name: 'Chen Annuity Package', agent: 'David Brown', agentAvatar: 'DB', stage: 'Contacted', value: 89000, probability: 30, risk: 'high' as const },
+  { id: '5', name: 'Patel Term Conversion', agent: 'Jessica Lee', agentAvatar: 'JL', stage: 'Qualified', value: 28000, probability: 65, risk: 'low' as const },
+  { id: '6', name: 'Adams Corporate Group', agent: 'Sarah Johnson', agentAvatar: 'SJ', stage: 'Contacted', value: 125000, probability: 20, risk: 'high' as const },
+  { id: '7', name: 'Brooks IUL Transfer', agent: 'Tom Rodriguez', agentAvatar: 'TR', stage: 'Proposal', value: 42000, probability: 70, risk: 'medium' as const },
+  { id: '8', name: 'Nguyen Family Plan', agent: 'Emily Davis', agentAvatar: 'ED', stage: 'Qualified', value: 54000, probability: 45, risk: 'medium' as const },
+  { id: '9', name: 'Martinez Key Person', agent: 'Mike Chen', agentAvatar: 'MC', stage: 'New Lead', value: 76000, probability: 15, risk: 'high' as const },
+  { id: '10', name: 'Lee Estate Shield', agent: 'Rachel Green', agentAvatar: 'RG', stage: 'Proposal', value: 38000, probability: 85, risk: 'low' as const },
+  { id: '11', name: 'Kim Retirement Plus', agent: 'Lisa Park', agentAvatar: 'LP', stage: 'Contacted', value: 31000, probability: 35, risk: 'medium' as const },
+  { id: '12', name: 'Davis Legacy Trust', agent: 'James Wilson', agentAvatar: 'JW', stage: 'New Lead', value: 95000, probability: 10, risk: 'high' as const },
+] as const;
+
+export const DEMO_FORECAST_ACCURACY = [
+  { month: 'Oct', projected: 280, actual: 265 },
+  { month: 'Nov', projected: 310, actual: 298 },
+  { month: 'Dec', projected: 295, actual: 312 },
+  { month: 'Jan', projected: 340, actual: 328 },
+  { month: 'Feb', projected: 365, actual: 352 },
+  { month: 'Mar', projected: 312, actual: 0 },
+] as const;
+
+// ─── ACTIVITY MONITOR DEMO DATA ───────────────────────────
+
+export type AgentActivityStatus = 'on_call' | 'available' | 'meeting' | 'break' | 'offline';
+
+export const DEMO_AGENT_ACTIVITY: Array<{
+  id: string;
+  name: string;
+  avatar: string;
+  status: AgentActivityStatus;
+  calls: number;
+  emails: number;
+  meetings: number;
+  lastAction: string;
+}> = [
+  { id: '1', name: 'Sarah Johnson', avatar: 'SJ', status: 'on_call', calls: 12, emails: 8, meetings: 2, lastAction: 'On call with Thompson' },
+  { id: '2', name: 'Mike Chen', avatar: 'MC', status: 'available', calls: 9, emails: 14, meetings: 1, lastAction: 'Sent follow-up email' },
+  { id: '3', name: 'Emily Davis', avatar: 'ED', status: 'meeting', calls: 7, emails: 5, meetings: 3, lastAction: 'In pipeline review' },
+  { id: '4', name: 'James Wilson', avatar: 'JW', status: 'break', calls: 5, emails: 3, meetings: 1, lastAction: 'Lunch break' },
+  { id: '5', name: 'Lisa Park', avatar: 'LP', status: 'on_call', calls: 8, emails: 6, meetings: 0, lastAction: 'On call with Patel' },
+  { id: '6', name: 'David Brown', avatar: 'DB', status: 'available', calls: 11, emails: 9, meetings: 2, lastAction: 'Updated CRM notes' },
+  { id: '7', name: 'Rachel Green', avatar: 'RG', status: 'on_call', calls: 14, emails: 11, meetings: 1, lastAction: 'On call with Lee' },
+  { id: '8', name: 'Carlos Martinez', avatar: 'CM', status: 'offline', calls: 2, emails: 1, meetings: 0, lastAction: 'Offline since 11am' },
+  { id: '9', name: 'Anna Kim', avatar: 'AK', status: 'offline', calls: 0, emails: 0, meetings: 0, lastAction: 'Out of office' },
+  { id: '10', name: 'Tom Rodriguez', avatar: 'TR', status: 'available', calls: 6, emails: 7, meetings: 1, lastAction: 'Reviewing proposals' },
+  { id: '11', name: 'Jessica Lee', avatar: 'JL', status: 'meeting', calls: 10, emails: 8, meetings: 2, lastAction: 'Client presentation' },
+  { id: '12', name: 'Ryan Taylor', avatar: 'RT', status: 'offline', calls: 0, emails: 0, meetings: 0, lastAction: 'Not logged in' },
+];
+
+export const ACTIVITY_STATUS_COLORS: Record<AgentActivityStatus, { bg: string; text: string; dot: string; label: string }> = {
+  on_call: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'On Call' },
+  available: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500', label: 'Available' },
+  meeting: { bg: 'bg-violet-100', text: 'text-violet-700', dot: 'bg-violet-500', label: 'In Meeting' },
+  break: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500', label: 'On Break' },
+  offline: { bg: 'bg-gray-100', text: 'text-gray-500', dot: 'bg-gray-400', label: 'Offline' },
+};
+
+export const DEMO_LIVE_FEED = [
+  { id: '1', agent: 'Sarah Johnson', avatar: 'SJ', action: 'Started call with Thompson Estate', time: '1 min ago', type: 'call' as const },
+  { id: '2', agent: 'Rachel Green', avatar: 'RG', action: 'Closed deal: Lee Estate Shield — $38K', time: '3 min ago', type: 'close' as const },
+  { id: '3', agent: 'Mike Chen', avatar: 'MC', action: 'Sent proposal to Garcia Whole Life', time: '5 min ago', type: 'email' as const },
+  { id: '4', agent: 'David Brown', avatar: 'DB', action: 'Booked appointment with new lead', time: '8 min ago', type: 'appointment' as const },
+  { id: '5', agent: 'Jessica Lee', avatar: 'JL', action: 'Completed follow-up call with Kim', time: '12 min ago', type: 'call' as const },
+  { id: '6', agent: 'Lisa Park', avatar: 'LP', action: 'Started call with Patel Term', time: '15 min ago', type: 'call' as const },
+  { id: '7', agent: 'Tom Rodriguez', avatar: 'TR', action: 'Updated deal stage: Brooks IUL', time: '18 min ago', type: 'update' as const },
+  { id: '8', agent: 'Emily Davis', avatar: 'ED', action: 'Added notes to Nguyen pipeline', time: '22 min ago', type: 'update' as const },
+];
+
+// Heatmap: 5 days × 10 hours (8am-6pm)
+export const DEMO_ACTIVITY_HEATMAP: number[][] = [
+  [3, 5, 8, 12, 15, 11, 14, 9, 6, 4],   // Mon
+  [4, 7, 11, 14, 12, 13, 16, 10, 7, 3],  // Tue
+  [2, 6, 9, 11, 18, 15, 12, 8, 5, 2],    // Wed
+  [5, 8, 13, 16, 14, 11, 10, 7, 4, 1],   // Thu
+  [3, 4, 7, 10, 12, 9, 8, 5, 3, 1],      // Fri
+];
+
+// ─── CONTESTS DEMO DATA ──────────────────────────────────
+
+export const DEMO_CONTESTS = [
+  {
+    id: '1', name: 'March Madness Blitz', type: 'call_blitz' as const, status: 'active' as const,
+    startDate: 'Mar 1', endDate: 'Mar 15', prize: '$500', prizePool: 800,
+    progress: 62, participants: 12, description: 'Most outbound calls wins',
+    leaderboard: [
+      { agentId: '7', name: 'Rachel Green', avatar: 'RG', score: 142, metric: 'calls' },
+      { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', score: 138, metric: 'calls' },
+      { agentId: '6', name: 'David Brown', avatar: 'DB', score: 127, metric: 'calls' },
+      { agentId: '11', name: 'Jessica Lee', avatar: 'JL', score: 119, metric: 'calls' },
+      { agentId: '2', name: 'Mike Chen', avatar: 'MC', score: 112, metric: 'calls' },
+    ],
+  },
+  {
+    id: '2', name: 'Revenue Sprint Q1', type: 'revenue' as const, status: 'active' as const,
+    startDate: 'Feb 15', endDate: 'Mar 31', prize: '$1,000', prizePool: 1200,
+    progress: 48, participants: 12, description: 'Highest total revenue in period',
+    leaderboard: [
+      { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', score: 42500, metric: 'revenue' },
+      { agentId: '7', name: 'Rachel Green', avatar: 'RG', score: 39700, metric: 'revenue' },
+      { agentId: '2', name: 'Mike Chen', avatar: 'MC', score: 38200, metric: 'revenue' },
+      { agentId: '11', name: 'Jessica Lee', avatar: 'JL', score: 35400, metric: 'revenue' },
+      { agentId: '6', name: 'David Brown', avatar: 'DB', score: 33100, metric: 'revenue' },
+    ],
+  },
+  {
+    id: '3', name: 'Cross-Sell SPIFF', type: 'cross_sell' as const, status: 'active' as const,
+    startDate: 'Mar 1', endDate: 'Mar 31', prize: '$100/sale', prizePool: 400,
+    progress: 35, participants: 10, description: '$100 bonus per cross-sell close',
+    leaderboard: [
+      { agentId: '6', name: 'David Brown', avatar: 'DB', score: 4, metric: 'cross-sells' },
+      { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', score: 3, metric: 'cross-sells' },
+      { agentId: '7', name: 'Rachel Green', avatar: 'RG', score: 3, metric: 'cross-sells' },
+      { agentId: '2', name: 'Mike Chen', avatar: 'MC', score: 2, metric: 'cross-sells' },
+      { agentId: '11', name: 'Jessica Lee', avatar: 'JL', score: 2, metric: 'cross-sells' },
+    ],
+  },
+  {
+    id: '4', name: 'April Pipeline Push', type: 'revenue' as const, status: 'upcoming' as const,
+    startDate: 'Apr 1', endDate: 'Apr 15', prize: '$750', prizePool: 750,
+    progress: 0, participants: 0, description: 'Most new pipeline added',
+    leaderboard: [],
+  },
+  {
+    id: '5', name: 'Team Challenge: May', type: 'team' as const, status: 'upcoming' as const,
+    startDate: 'May 1', endDate: 'May 31', prize: 'Team Dinner', prizePool: 0,
+    progress: 0, participants: 0, description: 'Team vs team aggregate metrics',
+    leaderboard: [],
+  },
+  {
+    id: '6', name: 'February Closer', type: 'revenue' as const, status: 'completed' as const,
+    startDate: 'Feb 1', endDate: 'Feb 28', prize: '$500', prizePool: 500,
+    progress: 100, participants: 12, description: 'Most closes in February',
+    leaderboard: [
+      { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', score: 8, metric: 'closes' },
+      { agentId: '7', name: 'Rachel Green', avatar: 'RG', score: 7, metric: 'closes' },
+      { agentId: '2', name: 'Mike Chen', avatar: 'MC', score: 6, metric: 'closes' },
+    ],
+  },
+  {
+    id: '7', name: 'New Year Kickoff', type: 'call_blitz' as const, status: 'completed' as const,
+    startDate: 'Jan 6', endDate: 'Jan 17', prize: '$300', prizePool: 300,
+    progress: 100, participants: 11, description: 'New year call blitz',
+    leaderboard: [
+      { agentId: '7', name: 'Rachel Green', avatar: 'RG', score: 186, metric: 'calls' },
+      { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', score: 174, metric: 'calls' },
+      { agentId: '6', name: 'David Brown', avatar: 'DB', score: 165, metric: 'calls' },
+    ],
+  },
+] as const;
+
+export const CONTEST_TEMPLATES = [
+  { id: '1', name: 'Call Blitz', description: 'Most outbound calls in period', icon: 'Phone', duration: '2 weeks', metric: 'calls' },
+  { id: '2', name: 'Revenue Sprint', description: 'Highest total revenue closed', icon: 'DollarSign', duration: '1 month', metric: 'revenue' },
+  { id: '3', name: 'Team Challenge', description: 'Team vs team aggregate competition', icon: 'Users', duration: '1 month', metric: 'mixed' },
+  { id: '4', name: 'Cross-Sell SPIFF', description: 'Per-unit bonus for cross-sell closes', icon: 'Zap', duration: 'Ongoing', metric: 'cross-sells' },
+] as const;
+
+// ─── COMMISSIONS DEMO DATA ────────────────────────────────
+
+export const DEMO_AGENT_COMMISSIONS = [
+  { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', pending: 4200, paidYTD: 28400, clawbackRisk: 0, avgRate: 16.2,
+    products: [
+      { product: 'IUL', premium: 18000, rate: 18, commission: 3240 },
+      { product: 'Whole Life', premium: 12000, rate: 15, commission: 1800 },
+      { product: 'Term', premium: 8500, rate: 10, commission: 850 },
+      { product: 'Annuity', premium: 4000, rate: 12, commission: 480 },
+    ],
+  },
+  { agentId: '7', name: 'Rachel Green', avatar: 'RG', pending: 3800, paidYTD: 24600, clawbackRisk: 0, avgRate: 15.8,
+    products: [
+      { product: 'IUL', premium: 16000, rate: 18, commission: 2880 },
+      { product: 'Whole Life', premium: 14000, rate: 15, commission: 2100 },
+      { product: 'Term', premium: 6000, rate: 10, commission: 600 },
+      { product: 'Annuity', premium: 3700, rate: 12, commission: 444 },
+    ],
+  },
+  { agentId: '2', name: 'Mike Chen', avatar: 'MC', pending: 2900, paidYTD: 21200, clawbackRisk: 800, avgRate: 14.5,
+    products: [
+      { product: 'IUL', premium: 12000, rate: 18, commission: 2160 },
+      { product: 'Whole Life', premium: 8000, rate: 15, commission: 1200 },
+      { product: 'Term', premium: 10000, rate: 10, commission: 1000 },
+      { product: 'Annuity', premium: 8200, rate: 12, commission: 984 },
+    ],
+  },
+  { agentId: '11', name: 'Jessica Lee', avatar: 'JL', pending: 2600, paidYTD: 19800, clawbackRisk: 0, avgRate: 14.8,
+    products: [
+      { product: 'IUL', premium: 10000, rate: 18, commission: 1800 },
+      { product: 'Whole Life', premium: 11000, rate: 15, commission: 1650 },
+      { product: 'Term', premium: 9000, rate: 10, commission: 900 },
+      { product: 'Annuity', premium: 5400, rate: 12, commission: 648 },
+    ],
+  },
+  { agentId: '6', name: 'David Brown', avatar: 'DB', pending: 2100, paidYTD: 17500, clawbackRisk: 0, avgRate: 14.2,
+    products: [
+      { product: 'IUL', premium: 9000, rate: 18, commission: 1620 },
+      { product: 'Whole Life', premium: 10000, rate: 15, commission: 1500 },
+      { product: 'Term', premium: 7000, rate: 10, commission: 700 },
+      { product: 'Annuity', premium: 7100, rate: 12, commission: 852 },
+    ],
+  },
+  { agentId: '3', name: 'Emily Davis', avatar: 'ED', pending: 1400, paidYTD: 14200, clawbackRisk: 1200, avgRate: 13.6,
+    products: [
+      { product: 'IUL', premium: 7000, rate: 18, commission: 1260 },
+      { product: 'Whole Life', premium: 8000, rate: 15, commission: 1200 },
+      { product: 'Term', premium: 11000, rate: 10, commission: 1100 },
+      { product: 'Annuity', premium: 5800, rate: 12, commission: 696 },
+    ],
+  },
+  { agentId: '10', name: 'Tom Rodriguez', avatar: 'TR', pending: 1100, paidYTD: 11600, clawbackRisk: 0, avgRate: 13.1,
+    products: [
+      { product: 'IUL', premium: 6000, rate: 18, commission: 1080 },
+      { product: 'Whole Life', premium: 7000, rate: 15, commission: 1050 },
+      { product: 'Term', premium: 8000, rate: 10, commission: 800 },
+      { product: 'Annuity', premium: 4600, rate: 12, commission: 552 },
+    ],
+  },
+  { agentId: '4', name: 'James Wilson', avatar: 'JW', pending: 800, paidYTD: 8400, clawbackRisk: 1200, avgRate: 12.4,
+    products: [
+      { product: 'IUL', premium: 4000, rate: 18, commission: 720 },
+      { product: 'Whole Life', premium: 5000, rate: 15, commission: 750 },
+      { product: 'Term', premium: 12000, rate: 10, commission: 1200 },
+      { product: 'Annuity', premium: 7400, rate: 12, commission: 888 },
+    ],
+  },
+] as const;
+
+export const DEMO_PAYOUT_TIMELINE = [
+  { id: '1', date: 'Mar 15', amount: 8400, agents: 8, status: 'upcoming' as const, label: 'Mid-Month Payout' },
+  { id: '2', date: 'Mar 31', amount: 10300, agents: 8, status: 'upcoming' as const, label: 'End of Month' },
+  { id: '3', date: 'Feb 28', amount: 9200, agents: 8, status: 'paid' as const, label: 'February Close' },
+  { id: '4', date: 'Feb 15', amount: 7800, agents: 7, status: 'paid' as const, label: 'Mid-Feb Payout' },
+  { id: '5', date: 'Jan 31', amount: 11500, agents: 8, status: 'paid' as const, label: 'January Close' },
+] as const;
+
+// ─── ONE-ON-ONES DEMO DATA ───────────────────────────────
+
+export const DEMO_ONE_ON_ONES = [
+  {
+    id: '1', agentId: '8', agent: 'Carlos Martinez', avatar: 'CM',
+    date: 'Mar 4', time: '10:00 AM', duration: 30,
+    agendaItems: 3, actionItems: 4, carryForward: 2,
+    briefing: {
+      kpis: [
+        { label: 'Quota', value: '58%', trend: 'down' as const },
+        { label: 'Calls/Week', value: '18', trend: 'down' as const },
+        { label: 'Close Rate', value: '11%', trend: 'flat' as const },
+      ],
+      recentActivity: ['Missed 3 follow-up deadlines', 'IUL cert overdue by 5 days', 'No closes in 2 weeks'],
+      riskFlags: ['Performance Improvement Plan eligible', 'Certification overdue'],
+      carryForwardItems: ['Complete IUL certification', 'Set 3 appointments per day'],
+    },
+  },
+  {
+    id: '2', agentId: '9', agent: 'Anna Kim', avatar: 'AK',
+    date: 'Mar 4', time: '2:00 PM', duration: 30,
+    agendaItems: 2, actionItems: 3, carryForward: 1,
+    briefing: {
+      kpis: [
+        { label: 'Quota', value: '45%', trend: 'up' as const },
+        { label: 'Calls/Week', value: '12', trend: 'up' as const },
+        { label: 'Close Rate', value: '8%', trend: 'up' as const },
+      ],
+      recentActivity: ['Completed 2 training modules', 'First close last week', 'Improving call volume'],
+      riskFlags: ['IUL cert expiring in 12 days'],
+      carryForwardItems: ['Shadow senior agent on 2 calls'],
+    },
+  },
+  {
+    id: '3', agentId: '5', agent: 'Lisa Park', avatar: 'LP',
+    date: 'Mar 5', time: '11:00 AM', duration: 30,
+    agendaItems: 3, actionItems: 2, carryForward: 0,
+    briefing: {
+      kpis: [
+        { label: 'Quota', value: '65%', trend: 'up' as const },
+        { label: 'Calls/Week', value: '28', trend: 'up' as const },
+        { label: 'Close Rate', value: '11%', trend: 'flat' as const },
+      ],
+      recentActivity: ['Started IUL Specialist Track', 'Consistent call volume', 'Good lead follow-up'],
+      riskFlags: [],
+      carryForwardItems: [],
+    },
+  },
+  {
+    id: '4', agentId: '12', agent: 'Ryan Taylor', avatar: 'RT',
+    date: 'Mar 6', time: '9:00 AM', duration: 30,
+    agendaItems: 4, actionItems: 5, carryForward: 3,
+    briefing: {
+      kpis: [
+        { label: 'Quota', value: '35%', trend: 'down' as const },
+        { label: 'Calls/Week', value: '8', trend: 'down' as const },
+        { label: 'Close Rate', value: '0%', trend: 'flat' as const },
+      ],
+      recentActivity: ['Only 2 training modules completed', 'Missed 2 days last week', 'No pipeline activity'],
+      riskFlags: ['Performance Improvement Plan active', 'Basic cert overdue 14 days', 'Attendance concern'],
+      carryForwardItems: ['Complete Basics of Insurance cert', 'Attend daily standup', 'Partner with mentor'],
+    },
+  },
+];
+
+export const DEMO_ACTION_ITEMS = [
+  { id: '1', description: 'Complete IUL certification', owner: 'agent' as const, agent: 'Carlos Martinez', agentAvatar: 'CM', dueDate: 'Mar 7', status: 'overdue' as const },
+  { id: '2', description: 'Set 3 appointments per day target', owner: 'agent' as const, agent: 'Carlos Martinez', agentAvatar: 'CM', dueDate: 'Mar 10', status: 'due_this_week' as const },
+  { id: '3', description: 'Review call recordings with Carlos', owner: 'manager' as const, agent: 'Carlos Martinez', agentAvatar: 'CM', dueDate: 'Mar 5', status: 'overdue' as const },
+  { id: '4', description: 'Shadow senior agent on 2 calls', owner: 'agent' as const, agent: 'Anna Kim', agentAvatar: 'AK', dueDate: 'Mar 7', status: 'due_this_week' as const },
+  { id: '5', description: 'Complete Basics of Insurance cert', owner: 'agent' as const, agent: 'Ryan Taylor', agentAvatar: 'RT', dueDate: 'Mar 1', status: 'overdue' as const },
+  { id: '6', description: 'Attend daily standup consistently', owner: 'agent' as const, agent: 'Ryan Taylor', agentAvatar: 'RT', dueDate: 'Mar 14', status: 'due_this_week' as const },
+  { id: '7', description: 'Assign mentor for Ryan', owner: 'manager' as const, agent: 'Ryan Taylor', agentAvatar: 'RT', dueDate: 'Mar 4', status: 'overdue' as const },
+  { id: '8', description: 'Schedule pipeline review with Lisa', owner: 'manager' as const, agent: 'Lisa Park', agentAvatar: 'LP', dueDate: 'Mar 10', status: 'upcoming' as const },
+  { id: '9', description: 'Partner with mentor on 3 client calls', owner: 'agent' as const, agent: 'Ryan Taylor', agentAvatar: 'RT', dueDate: 'Mar 14', status: 'due_this_week' as const },
+  { id: '10', description: 'Review close technique with Emily', owner: 'manager' as const, agent: 'Emily Davis', agentAvatar: 'ED', dueDate: 'Mar 12', status: 'upcoming' as const },
+  { id: '11', description: 'Prepare Q1 performance summary', owner: 'manager' as const, agent: 'All', agentAvatar: '', dueDate: 'Mar 15', status: 'upcoming' as const },
+  { id: '12', description: 'Complete estate planning module', owner: 'agent' as const, agent: 'Anna Kim', agentAvatar: 'AK', dueDate: 'Mar 14', status: 'upcoming' as const },
+];
+
+export const ONE_ON_ONE_TEMPLATES = [
+  { id: '1', name: 'Performance Check-In', description: 'Review KPIs, pipeline health, and weekly targets', items: ['KPI review', 'Pipeline status', 'Weekly goals', 'Blockers'] },
+  { id: '2', name: 'Coaching Focus', description: 'Skill development, call reviews, and technique improvement', items: ['Call review', 'Skill assessment', 'Practice scenarios', 'Next steps'] },
+  { id: '3', name: 'Development Planning', description: 'Career growth, certification progress, and long-term goals', items: ['Career goals', 'Certification status', 'Learning path', 'Promotion criteria'] },
 ] as const;

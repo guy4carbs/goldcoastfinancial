@@ -81,6 +81,7 @@ import Calculators from "@/pages/resources/Calculators";
 import BecomeAgent from "@/pages/agents/BecomeAgent";
 import AgentResources from "@/pages/agents/AgentResources";
 import AgentLogin from "@/pages/agents/AgentLogin";
+import AgentRegister from "@/pages/agents/AgentRegister";
 import AgentDashboard from "@/pages/agents/AgentDashboard";
 import AgentPerformance from "@/pages/agents/AgentPerformance";
 import AgentChat from "@/pages/agents/AgentChat";
@@ -149,6 +150,18 @@ import {
   ManagerReports,
   ManagerCommunications,
   ManagerSettings,
+  ManagerAlerts,
+  ManagerScorecard,
+  ManagerLeaderboard,
+  ManagerPromotions,
+  ManagerCoachingLogs,
+  ManagerApprovals,
+  ManagerDirectorOverview,
+  ManagerForecasting,
+  ManagerActivityMonitor,
+  ManagerContests,
+  ManagerCommissions,
+  ManagerOneOnOnes,
 } from "@/pages/manager";
 import { ExecutiveDashboard } from "@/pages/executive";
 import { LobbyLanding, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
@@ -248,6 +261,7 @@ function Router() {
         <Route path="/resources/calculators" component={Calculators} />
         <Route path="/agents/become-an-agent" component={BecomeAgent} />
         <Route path="/agents/login" component={AgentLogin} />
+        <Route path="/agents/register" component={AgentRegister} />
         <Route path="/agents/dashboard">
           <AgentProtectedRoute>
             <AgentDashboard />
@@ -568,6 +582,66 @@ function Router() {
         <Route path="/manager/settings">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
             <ManagerSettings />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/alerts">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerAlerts />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/scorecard/:id?">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerScorecard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/leaderboard">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerLeaderboard />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/promotions">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerPromotions />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/coaching-logs">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerCoachingLogs />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/approvals">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerApprovals />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/director">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerDirectorOverview />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/forecasting">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerForecasting />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/activity-monitor">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerActivityMonitor />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/contests">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerContests />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/commissions">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerCommissions />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/one-on-ones">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerOneOnOnes />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/:rest*">

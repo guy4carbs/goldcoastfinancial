@@ -347,10 +347,10 @@ export function ManagerCoaching() {
                     <div
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-bold flex-shrink-0"
                       style={{
-                        width: LAYOUT.icon.xl,
-                        height: LAYOUT.icon.xl,
-                        borderRadius: RADIUS.pill,
-                        fontSize: 12,
+                        width: LAYOUT.icon.xxl,
+                        height: LAYOUT.icon.xxl,
+                        borderRadius: RADIUS.button,
+                        fontSize: TYPE.caption,
                       }}
                     >
                       {n.avatar}
@@ -506,7 +506,7 @@ export function ManagerCoaching() {
                     <div className="flex items-center" style={{ gap: 12, marginBottom: GRID.spacing.xs }}>
                       <div
                         className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
-                        style={{ width: 28, height: 28, borderRadius: RADIUS.pill, fontSize: 11 }}
+                        style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
                       >
                         {gap.avatar}
                       </div>
@@ -561,7 +561,7 @@ export function ManagerCoaching() {
         {/* ── Prerequisite Overrides (full width) ──────────── */}
         <motion.div variants={fadeInUp}>
           <div
-            className="relative overflow-hidden bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700"
+            className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400"
             style={{ borderRadius: RADIUS.card }}
           >
             <div className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl" style={{ width: 89, height: 89, transform: 'translate(30%, -40%)' }} />
@@ -603,7 +603,7 @@ export function ManagerCoaching() {
                   >
                     <div
                       className="flex items-center justify-center text-white font-bold flex-shrink-0"
-                      style={{ width: 28, height: 28, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.2)', fontSize: 11 }}
+                      style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.2)', fontSize: TYPE.micro }}
                     >
                       {item.avatar}
                     </div>
