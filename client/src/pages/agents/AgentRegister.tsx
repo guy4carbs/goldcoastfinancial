@@ -209,7 +209,7 @@ export default function AgentRegister() {
 
       {/* Right Side - Registration Form */}
       <div
-        className="w-full lg:w-1/2 xl:w-[45%] flex items-start justify-center bg-gray-50 overflow-y-auto"
+        className={`w-full lg:w-1/2 xl:w-[45%] flex justify-center bg-gray-50 overflow-y-auto ${submitted ? "items-center" : "items-start"}`}
         style={{ padding: spacing(3), paddingTop: spacing(4) }}
       >
         <motion.div
