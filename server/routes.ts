@@ -683,7 +683,7 @@ export async function registerRoutes(
   });
 
   // Get all quote requests (admin endpoint)
-  app.get("/api/quote-requests", async (req, res) => {
+  app.get("/api/quote-requests", requireAuth, requireAdmin, async (req, res) => {
     try {
       const requests = await storage.getQuoteRequests();
       res.json(requests);
@@ -721,7 +721,7 @@ export async function registerRoutes(
   });
 
   // Get all contact messages (admin endpoint)
-  app.get("/api/contact-messages", async (req, res) => {
+  app.get("/api/contact-messages", requireAuth, requireAdmin, async (req, res) => {
     try {
       const messages = await storage.getContactMessages();
       res.json(messages);
@@ -732,7 +732,7 @@ export async function registerRoutes(
   });
 
   // Get all job applications
-  app.get("/api/job-applications", async (req, res) => {
+  app.get("/api/job-applications", requireAuth, requireAdmin, async (req, res) => {
     try {
       const applications = await storage.getJobApplications();
       res.json(applications);
@@ -1694,7 +1694,7 @@ export async function registerRoutes(
   });
 
   // Google Calendar: Check connection status
-  app.get("/api/calendar/status", async (req, res) => {
+  app.get("/api/calendar/status", requireAuth, async (req, res) => {
     try {
       const connected = await checkCalendarConnection();
       const email = connected ? await getConnectedEmail() : null;
@@ -1705,7 +1705,7 @@ export async function registerRoutes(
   });
 
   // Google Calendar: Get events
-  app.get("/api/calendar/events", async (req, res) => {
+  app.get("/api/calendar/events", requireAuth, async (req, res) => {
     try {
       const { start, end, days } = req.query;
       
@@ -1730,7 +1730,7 @@ export async function registerRoutes(
   });
 
   // Google Calendar: Get today's events
-  app.get("/api/calendar/today", async (req, res) => {
+  app.get("/api/calendar/today", requireAuth, async (req, res) => {
     try {
       const events = await getTodaysEvents();
       res.json({ events });
@@ -1777,14 +1777,14 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: Products management
-  app.use("/api/admin/products", adminProductsRouter);
+  // Admin: Products management (requires admin role)
+  app.use("/api/admin/products", requireAuth, requireAdmin, adminProductsRouter);
 
-  // Admin: Content management (CMS)
-  app.use("/api/admin/content", adminContentRouter);
+  // Admin: Content management (CMS, requires admin role)
+  app.use("/api/admin/content", requireAuth, requireAdmin, adminContentRouter);
 
-  // Admin: CRM (leads, settings, testimonials)
-  app.use("/api/admin", adminCrmRouter);
+  // Admin: CRM (leads, settings, testimonials - requires admin role)
+  app.use("/api/admin", requireAuth, requireAdmin, adminCrmRouter);
 
   // Public content (blog, FAQs, pages)
   app.use("/api/content", contentRouter);
@@ -2395,7 +2395,7 @@ export async function registerRoutes(
 
   // Get analytics overview for admin dashboard
   // Uses SQL COUNT queries for scalability with high traffic (1000s+ views daily)
-  app.get("/api/analytics/overview", async (req, res) => {
+  app.get("/api/analytics/overview", requireAuth, requireAdmin, async (req, res) => {
     try {
       // Use efficient SQL COUNT queries instead of loading all records
       const [

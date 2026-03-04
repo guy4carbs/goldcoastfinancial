@@ -7,8 +7,8 @@ interface AgentProtectedRouteProps {
   children: ReactNode;
 }
 
-// DEV MODE: Set to true to bypass Firebase auth for testing
-const DEV_BYPASS_AUTH = true;
+// DEV MODE: Must always be false in production
+const DEV_BYPASS_AUTH = false;
 
 export function AgentProtectedRoute({ children }: AgentProtectedRouteProps) {
   const { user, loading } = useAuth();
