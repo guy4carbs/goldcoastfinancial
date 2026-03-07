@@ -14,10 +14,57 @@ export const glassCard: CSSProperties = {
   border: '1px solid rgba(0, 0, 0, 0.06)',
 };
 
-// Emerald → Rose gradient constants
+// Emerald → Coral gradient constants
 export const MANAGER_GRADIENT = 'from-emerald-600 via-teal-600 to-rose-400';
 export const MANAGER_GRADIENT_CSS = 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #fb7185 100%)';
+export const MANAGER_GRADIENT_CORAL_CSS = 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #fb7185 100%)';
 export const MANAGER_ICON_GRADIENT = 'from-emerald-500 to-emerald-700';
+
+// ─── SPARKLINE DEMO DATA ─────────────────────────
+// 30-point arrays for monthly KPI trends
+export const SPARKLINE_REVENUE = [84, 88, 92, 89, 95, 98, 102, 97, 105, 108, 112, 110, 115, 118, 120, 116, 122, 124, 119, 126, 128, 130, 127, 132, 135, 138, 134, 140, 142, 145];
+export const SPARKLINE_PIPELINE = [720, 735, 748, 740, 755, 762, 780, 775, 790, 800, 812, 805, 820, 830, 838, 825, 840, 847, 835, 852, 860, 868, 855, 872, 880, 888, 876, 892, 900, 910];
+export const SPARKLINE_WIN_RATE = [78, 80, 82, 81, 84, 85, 87, 86, 88, 89, 90, 88, 91, 92, 92, 90, 93, 94, 92, 95, 94, 96, 95, 97, 96, 98, 97, 99, 98, 100];
+export const SPARKLINE_TEAM_SIZE = [10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12];
+
+// Commissions sparklines
+export const SPARKLINE_COMMISSIONS_PENDING = [15, 18, 16, 20, 22, 19, 24, 21, 25, 23, 27, 26, 28, 24, 30, 28, 32, 29, 34, 31, 35, 33, 36, 34, 38, 35, 39, 37, 40, 38];
+export const SPARKLINE_COMMISSIONS_PAID = [42, 45, 48, 50, 53, 56, 58, 62, 65, 68, 72, 75, 78, 82, 85, 88, 92, 95, 98, 102, 105, 108, 112, 115, 118, 122, 125, 128, 132, 145];
+export const SPARKLINE_CLAWBACK = [5, 4, 6, 3, 5, 4, 3, 5, 2, 4, 3, 5, 2, 3, 4, 2, 3, 2, 4, 1, 3, 2, 4, 1, 3, 2, 3, 1, 2, 3];
+export const SPARKLINE_CONTRACT_LEVEL = [82, 83, 84, 83, 85, 84, 86, 85, 87, 86, 87, 86, 88, 87, 88, 87, 89, 88, 89, 88, 90, 89, 90, 89, 91, 90, 91, 90, 91, 92];
+
+// Forecasting sparklines
+export const SPARKLINE_FORECAST_ACCURACY = [82, 84, 85, 83, 86, 87, 85, 88, 86, 89, 87, 90, 88, 91, 89, 92, 90, 91, 89, 92, 91, 93, 90, 92, 91, 93, 92, 94, 93, 95];
+
+// Retention & compliance sparklines
+export const SPARKLINE_RETENTION = [88, 89, 88, 90, 89, 91, 90, 92, 91, 93, 92, 93, 92, 94, 93, 94, 93, 95, 94, 95, 94, 96, 95, 96, 95, 97, 96, 97, 96, 97];
+export const SPARKLINE_COMPLIANCE = [90, 91, 92, 91, 93, 92, 94, 93, 95, 94, 95, 94, 96, 95, 96, 95, 97, 96, 97, 96, 98, 97, 98, 97, 98, 97, 99, 98, 99, 98];
+
+// Per-agent 7-day sparklines
+export const AGENT_SPARKLINES: Record<string, { calls: number[]; revenue: number[]; deals: number[] }> = {
+  'agent-1': { calls: [12, 15, 14, 18, 16, 20, 19], revenue: [8, 12, 10, 15, 13, 18, 16], deals: [2, 3, 2, 4, 3, 5, 4] },
+  'agent-2': { calls: [8, 10, 9, 12, 11, 14, 13], revenue: [5, 7, 6, 9, 8, 11, 10], deals: [1, 2, 1, 3, 2, 3, 2] },
+  'agent-3': { calls: [18, 20, 22, 21, 24, 23, 26], revenue: [14, 16, 18, 17, 20, 19, 22], deals: [4, 5, 4, 6, 5, 7, 6] },
+  'agent-4': { calls: [6, 8, 7, 10, 9, 11, 10], revenue: [3, 5, 4, 7, 6, 8, 7], deals: [1, 1, 1, 2, 1, 2, 2] },
+  'agent-5': { calls: [14, 16, 15, 18, 17, 20, 19], revenue: [10, 12, 11, 14, 13, 16, 15], deals: [3, 4, 3, 5, 4, 5, 4] },
+  'agent-6': { calls: [10, 12, 11, 14, 13, 16, 15], revenue: [6, 8, 7, 10, 9, 12, 11], deals: [2, 2, 2, 3, 2, 3, 3] },
+  'agent-7': { calls: [20, 22, 24, 23, 26, 25, 28], revenue: [16, 18, 20, 19, 22, 21, 24], deals: [5, 6, 5, 7, 6, 8, 7] },
+  'agent-8': { calls: [4, 5, 4, 6, 5, 7, 6], revenue: [2, 3, 2, 4, 3, 5, 4], deals: [0, 1, 0, 1, 1, 1, 1] },
+  'agent-9': { calls: [16, 18, 17, 20, 19, 22, 21], revenue: [12, 14, 13, 16, 15, 18, 17], deals: [3, 4, 3, 5, 4, 6, 5] },
+  'agent-10': { calls: [9, 11, 10, 13, 12, 15, 14], revenue: [5, 7, 6, 9, 8, 11, 10], deals: [1, 2, 1, 3, 2, 3, 2] },
+  'agent-11': { calls: [22, 24, 26, 25, 28, 27, 30], revenue: [18, 20, 22, 21, 24, 23, 26], deals: [6, 7, 6, 8, 7, 9, 8] },
+  'agent-12': { calls: [2, 3, 2, 4, 3, 5, 4], revenue: [1, 2, 1, 3, 2, 3, 2], deals: [0, 0, 0, 1, 0, 1, 0] },
+};
+
+// Product sparklines (14-day)
+export const SPARKLINE_BY_PRODUCT: Record<string, number[]> = {
+  IUL: [12, 14, 13, 16, 15, 18, 17, 20, 19, 22, 21, 24, 23, 26],
+  'Whole Life': [8, 9, 10, 9, 11, 10, 12, 11, 13, 12, 14, 13, 15, 14],
+  Term: [15, 16, 18, 17, 20, 19, 22, 21, 24, 23, 26, 25, 28, 27],
+  Annuity: [5, 6, 5, 7, 6, 8, 7, 9, 8, 10, 9, 11, 10, 12],
+  'Final Expense': [20, 22, 21, 24, 23, 26, 25, 28, 27, 30, 29, 32, 31, 34],
+  'Universal Life': [4, 5, 4, 6, 5, 7, 6, 8, 7, 9, 8, 10, 9, 11],
+};
 
 // Demo team members (shared across Team, Performance, Coaching, etc.)
 // certLevel: 0=None, 1=Basic, 2=Intermediate, 3=Advanced, 4=Expert
@@ -110,11 +157,11 @@ export const DEMO_COMPLIANCE_DEADLINES = [
 export const DEMO_APPROVAL_QUEUE = [
   { id: '1', agent: 'Mike Chen', avatar: 'MC', certification: 'Advanced IUL Strategies', score: 92, submittedDate: 'Feb 28, 2026', status: 'pending' as const },
   { id: '2', agent: 'David Brown', avatar: 'DB', certification: 'Whole Life Product Expert', score: 88, submittedDate: 'Mar 1, 2026', status: 'pending' as const },
-  { id: '3', agent: 'Tom Rodriguez', avatar: 'TR', certification: 'Annuity Fundamentals', score: 85, submittedDate: 'Mar 1, 2026', status: 'pending' as const },
+  { id: '3', agent: 'Tom Rodriguez', avatar: 'TR', certification: 'Annuity Basics', score: 85, submittedDate: 'Mar 1, 2026', status: 'pending' as const },
 ] as const;
 
-// Audit trail (recent training activity)
-export const DEMO_AUDIT_TRAIL = [
+// Activity log (recent training activity)
+export const DEMO_ACTIVITY_LOG = [
   { id: '1', agent: 'Sarah Johnson', avatar: 'SJ', action: 'Completed module: Advanced Underwriting', time: '2h ago', type: 'completion' as const },
   { id: '2', agent: 'Mike Chen', avatar: 'MC', action: 'Passed assessment: IUL Strategies (92%)', time: '3h ago', type: 'assessment' as const },
   { id: '3', agent: 'Jessica Lee', avatar: 'JL', action: 'Started module: Estate Planning Basics', time: '4h ago', type: 'started' as const },
@@ -138,7 +185,7 @@ export const DEMO_LEARNING_PATHS = [
   },
   {
     id: '2',
-    name: 'Whole Life Fundamentals',
+    name: 'Whole Life Basics',
     description: 'Core whole life product knowledge and sales techniques',
     modules: 6,
     estimatedHours: 12,
@@ -165,7 +212,7 @@ export const DEMO_LEARNING_PATHS = [
   },
   {
     id: '5',
-    name: 'Estate Planning Essentials',
+    name: 'Estate Planning Basics',
     description: 'Life insurance in estate planning and wealth transfer',
     modules: 6,
     estimatedHours: 14,
@@ -179,7 +226,7 @@ export const DEMO_SKILL_GAPS = [
   { agent: 'Carlos Martinez', avatar: 'CM', weakArea: 'IUL Product Knowledge', assessmentScore: 62, recommendedPath: 'IUL Specialist Track' },
   { agent: 'Ryan Taylor', avatar: 'RT', weakArea: 'Closing Techniques', assessmentScore: 45, recommendedPath: 'Advanced Closing Techniques' },
   { agent: 'Anna Kim', avatar: 'AK', weakArea: 'Compliance Basics', assessmentScore: 68, recommendedPath: 'Compliance & Ethics' },
-  { agent: 'Lisa Park', avatar: 'LP', weakArea: 'Estate Planning', assessmentScore: 71, recommendedPath: 'Estate Planning Essentials' },
+  { agent: 'Lisa Park', avatar: 'LP', weakArea: 'Estate Planning', assessmentScore: 71, recommendedPath: 'Estate Planning Basics' },
 ] as const;
 
 // ─── FORECASTING DEMO DATA ────────────────────────────────
@@ -298,7 +345,7 @@ export const DEMO_CONTESTS = [
     ],
   },
   {
-    id: '3', name: 'Cross-Sell SPIFF', type: 'cross_sell' as const, status: 'active' as const,
+    id: '3', name: 'Cross-Sell Bonus', type: 'cross_sell' as const, status: 'active' as const,
     startDate: 'Mar 1', endDate: 'Mar 31', prize: '$100/sale', prizePool: 400,
     progress: 35, participants: 10, description: '$100 bonus per cross-sell close',
     leaderboard: [
@@ -347,74 +394,74 @@ export const CONTEST_TEMPLATES = [
   { id: '1', name: 'Call Blitz', description: 'Most outbound calls in period', icon: 'Phone', duration: '2 weeks', metric: 'calls' },
   { id: '2', name: 'Revenue Sprint', description: 'Highest total revenue closed', icon: 'DollarSign', duration: '1 month', metric: 'revenue' },
   { id: '3', name: 'Team Challenge', description: 'Team vs team aggregate competition', icon: 'Users', duration: '1 month', metric: 'mixed' },
-  { id: '4', name: 'Cross-Sell SPIFF', description: 'Per-unit bonus for cross-sell closes', icon: 'Zap', duration: 'Ongoing', metric: 'cross-sells' },
+  { id: '4', name: 'Cross-Sell Bonus', description: 'Per-unit bonus for cross-sell closes', icon: 'Zap', duration: 'Ongoing', metric: 'cross-sells' },
 ] as const;
 
 // ─── COMMISSIONS DEMO DATA ────────────────────────────────
 
 export const DEMO_AGENT_COMMISSIONS = [
-  { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', pending: 4200, paidYTD: 28400, clawbackRisk: 0, avgRate: 16.2,
+  { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', pending: 4200, paidYTD: 28400, clawbackRisk: 0, avgRate: 105, contractLevel: 105, apTier: '$150K',
     products: [
-      { product: 'IUL', premium: 18000, rate: 18, commission: 3240 },
-      { product: 'Whole Life', premium: 12000, rate: 15, commission: 1800 },
-      { product: 'Term', premium: 8500, rate: 10, commission: 850 },
-      { product: 'Annuity', premium: 4000, rate: 12, commission: 480 },
+      { product: 'IUL', premium: 4500, rate: 105, commission: 4725 },
+      { product: 'Whole Life', premium: 3200, rate: 105, commission: 3360 },
+      { product: 'Term', premium: 2100, rate: 105, commission: 2205 },
+      { product: 'Annuity', premium: 1800, rate: 105, commission: 1890 },
     ],
   },
-  { agentId: '7', name: 'Rachel Green', avatar: 'RG', pending: 3800, paidYTD: 24600, clawbackRisk: 0, avgRate: 15.8,
+  { agentId: '7', name: 'Rachel Green', avatar: 'RG', pending: 3800, paidYTD: 24600, clawbackRisk: 0, avgRate: 100, contractLevel: 100, apTier: '$100K',
     products: [
-      { product: 'IUL', premium: 16000, rate: 18, commission: 2880 },
-      { product: 'Whole Life', premium: 14000, rate: 15, commission: 2100 },
-      { product: 'Term', premium: 6000, rate: 10, commission: 600 },
-      { product: 'Annuity', premium: 3700, rate: 12, commission: 444 },
+      { product: 'IUL', premium: 4200, rate: 100, commission: 4200 },
+      { product: 'Whole Life', premium: 3000, rate: 100, commission: 3000 },
+      { product: 'Term', premium: 1800, rate: 100, commission: 1800 },
+      { product: 'Annuity', premium: 1600, rate: 100, commission: 1600 },
     ],
   },
-  { agentId: '2', name: 'Mike Chen', avatar: 'MC', pending: 2900, paidYTD: 21200, clawbackRisk: 800, avgRate: 14.5,
+  { agentId: '2', name: 'Mike Chen', avatar: 'MC', pending: 2900, paidYTD: 21200, clawbackRisk: 800, avgRate: 95, contractLevel: 95, apTier: '$75K',
     products: [
-      { product: 'IUL', premium: 12000, rate: 18, commission: 2160 },
-      { product: 'Whole Life', premium: 8000, rate: 15, commission: 1200 },
-      { product: 'Term', premium: 10000, rate: 10, commission: 1000 },
-      { product: 'Annuity', premium: 8200, rate: 12, commission: 984 },
+      { product: 'IUL', premium: 3800, rate: 95, commission: 3610 },
+      { product: 'Whole Life', premium: 2600, rate: 95, commission: 2470 },
+      { product: 'Term', premium: 2200, rate: 95, commission: 2090 },
+      { product: 'Annuity', premium: 1400, rate: 95, commission: 1330 },
     ],
   },
-  { agentId: '11', name: 'Jessica Lee', avatar: 'JL', pending: 2600, paidYTD: 19800, clawbackRisk: 0, avgRate: 14.8,
+  { agentId: '11', name: 'Jessica Lee', avatar: 'JL', pending: 2600, paidYTD: 19800, clawbackRisk: 0, avgRate: 90, contractLevel: 90, apTier: '$50K',
     products: [
-      { product: 'IUL', premium: 10000, rate: 18, commission: 1800 },
-      { product: 'Whole Life', premium: 11000, rate: 15, commission: 1650 },
-      { product: 'Term', premium: 9000, rate: 10, commission: 900 },
-      { product: 'Annuity', premium: 5400, rate: 12, commission: 648 },
+      { product: 'IUL', premium: 3500, rate: 90, commission: 3150 },
+      { product: 'Whole Life', premium: 2800, rate: 90, commission: 2520 },
+      { product: 'Term', premium: 1600, rate: 90, commission: 1440 },
+      { product: 'Annuity', premium: 1200, rate: 90, commission: 1080 },
     ],
   },
-  { agentId: '6', name: 'David Brown', avatar: 'DB', pending: 2100, paidYTD: 17500, clawbackRisk: 0, avgRate: 14.2,
+  { agentId: '6', name: 'David Brown', avatar: 'DB', pending: 2100, paidYTD: 17500, clawbackRisk: 0, avgRate: 85, contractLevel: 85, apTier: '$25K',
     products: [
-      { product: 'IUL', premium: 9000, rate: 18, commission: 1620 },
-      { product: 'Whole Life', premium: 10000, rate: 15, commission: 1500 },
-      { product: 'Term', premium: 7000, rate: 10, commission: 700 },
-      { product: 'Annuity', premium: 7100, rate: 12, commission: 852 },
+      { product: 'IUL', premium: 3200, rate: 85, commission: 2720 },
+      { product: 'Whole Life', premium: 2400, rate: 85, commission: 2040 },
+      { product: 'Term', premium: 1500, rate: 85, commission: 1275 },
+      { product: 'Annuity', premium: 1100, rate: 85, commission: 935 },
     ],
   },
-  { agentId: '3', name: 'Emily Davis', avatar: 'ED', pending: 1400, paidYTD: 14200, clawbackRisk: 1200, avgRate: 13.6,
+  { agentId: '3', name: 'Emily Davis', avatar: 'ED', pending: 1400, paidYTD: 14200, clawbackRisk: 1200, avgRate: 80, contractLevel: 80, apTier: '$15K',
     products: [
-      { product: 'IUL', premium: 7000, rate: 18, commission: 1260 },
-      { product: 'Whole Life', premium: 8000, rate: 15, commission: 1200 },
-      { product: 'Term', premium: 11000, rate: 10, commission: 1100 },
-      { product: 'Annuity', premium: 5800, rate: 12, commission: 696 },
+      { product: 'IUL', premium: 2800, rate: 80, commission: 2240 },
+      { product: 'Whole Life', premium: 2000, rate: 80, commission: 1600 },
+      { product: 'Term', premium: 1400, rate: 80, commission: 1120 },
+      { product: 'Annuity', premium: 900, rate: 80, commission: 720 },
     ],
   },
-  { agentId: '10', name: 'Tom Rodriguez', avatar: 'TR', pending: 1100, paidYTD: 11600, clawbackRisk: 0, avgRate: 13.1,
+  { agentId: '10', name: 'Tom Rodriguez', avatar: 'TR', pending: 1100, paidYTD: 11600, clawbackRisk: 0, avgRate: 75, contractLevel: 75, apTier: '$10K',
     products: [
-      { product: 'IUL', premium: 6000, rate: 18, commission: 1080 },
-      { product: 'Whole Life', premium: 7000, rate: 15, commission: 1050 },
-      { product: 'Term', premium: 8000, rate: 10, commission: 800 },
-      { product: 'Annuity', premium: 4600, rate: 12, commission: 552 },
+      { product: 'IUL', premium: 2400, rate: 75, commission: 1800 },
+      { product: 'Whole Life', premium: 1800, rate: 75, commission: 1350 },
+      { product: 'Term', premium: 1200, rate: 75, commission: 900 },
+      { product: 'Annuity', premium: 800, rate: 75, commission: 600 },
     ],
   },
-  { agentId: '4', name: 'James Wilson', avatar: 'JW', pending: 800, paidYTD: 8400, clawbackRisk: 1200, avgRate: 12.4,
+  { agentId: '4', name: 'James Wilson', avatar: 'JW', pending: 800, paidYTD: 8400, clawbackRisk: 1200, avgRate: 70, contractLevel: 70, apTier: '$5K',
     products: [
-      { product: 'IUL', premium: 4000, rate: 18, commission: 720 },
-      { product: 'Whole Life', premium: 5000, rate: 15, commission: 750 },
-      { product: 'Term', premium: 12000, rate: 10, commission: 1200 },
-      { product: 'Annuity', premium: 7400, rate: 12, commission: 888 },
+      { product: 'IUL', premium: 1800, rate: 70, commission: 1260 },
+      { product: 'Whole Life', premium: 1400, rate: 70, commission: 980 },
+      { product: 'Term', premium: 1000, rate: 70, commission: 700 },
+      { product: 'Annuity', premium: 600, rate: 70, commission: 420 },
     ],
   },
 ] as const;

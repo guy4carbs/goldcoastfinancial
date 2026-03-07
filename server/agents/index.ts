@@ -1,7 +1,11 @@
 /**
  * GCF AGENT SYSTEM — MASTER BOOTSTRAP
  * Imports all tiers and exports bootstrapAgentSystem() that instantiates
- * and starts all 37 agents in tier order (0→10).
+ * and starts all 53 agents in tier order (0→12).
+ *
+ * Tiers 0–10: 37 Business Agents
+ * Tier 11: Atlas (Governance Coordinator)
+ * Tier 12: 15 Domain Governance Agents
  */
 
 import { BaseAgent, eventBus, EventType } from './core';
@@ -39,6 +43,17 @@ import { RealTimeAnalyticsAgent, AgentPerformanceAgent, OptimizationAgent } from
 // Tier 10
 import { SecurityAgent, ErrorRecoveryAgent, HumanEscalationAgent, TrainingAgent } from './tier10';
 
+// Tier 11 — Governance Coordinator
+import { AtlasAgent } from './tier11';
+
+// Tier 12 — Domain Governance Agents
+import {
+  SentinelGovAgent, HelixAgent, GaugeAgent, LedgerGovAgent,
+  NovaAgent, ForgeAgent, VectorAgent, OracleAgent,
+  RelayAgent, AnchorAgent, PrismAgent, LumenAgent,
+  ConduitAgent, ScoutAgent, ScribeAgent, AxiomAgent,
+} from './tier12';
+
 export interface AgentRegistry {
   agents: Map<string, BaseAgent>;
   getAgent(id: string): BaseAgent | undefined;
@@ -49,7 +64,8 @@ export interface AgentRegistry {
 
 export async function bootstrapAgentSystem(): Promise<AgentRegistry> {
   console.log('═══════════════════════════════════════════════');
-  console.log('  GCF AGENT SYSTEM — BOOTSTRAPPING 37 AGENTS  ');
+  console.log('  GCF AGENT SYSTEM — BOOTSTRAPPING 54 AGENTS');
+  console.log('  37 Business + 17 Governance (Tiers 0–12)');
   console.log('═══════════════════════════════════════════════');
 
   const agents = new Map<string, BaseAgent>();
@@ -78,6 +94,17 @@ export async function bootstrapAgentSystem(): Promise<AgentRegistry> {
     [new RealTimeAnalyticsAgent(), new AgentPerformanceAgent(), new OptimizationAgent()],
     // Tier 10 — Governance & Meta
     [new SecurityAgent(), new ErrorRecoveryAgent(), new HumanEscalationAgent(), new TrainingAgent()],
+    // Tier 11 — Governance Coordinator (starts before domain agents)
+    [new AtlasAgent()],
+    // Tier 12 — Domain Governance Agents (17 agents)
+    [
+      // Veto-authority agents first
+      new SentinelGovAgent(), new HelixAgent(), new GaugeAgent(), new LedgerGovAgent(),
+      // Domain agents
+      new NovaAgent(), new ForgeAgent(), new VectorAgent(), new OracleAgent(),
+      new RelayAgent(), new AnchorAgent(), new PrismAgent(), new LumenAgent(),
+      new ConduitAgent(), new ScoutAgent(), new ScribeAgent(), new AxiomAgent(),
+    ],
   ];
 
   // Start all agents in tier order
@@ -133,3 +160,6 @@ export * from './tier7';
 export * from './tier8';
 export * from './tier9';
 export * from './tier10';
+export * from './governance';
+export * from './tier11';
+export * from './tier12';

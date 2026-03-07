@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
@@ -125,6 +125,9 @@ import OnboardingHelp from "@/pages/onboarding/OnboardingHelp";
 import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentAutomations from "@/pages/agents/AgentAutomations";
 import AgentWorkflowBuilder from "@/pages/agents/AgentWorkflowBuilder";
+import AgentIdeas from "@/pages/agents/AgentIdeas";
+import AgentBookOfBusiness from "@/pages/agents/AgentBookOfBusiness";
+import AgentRecruiting from "@/pages/agents/AgentRecruiting";
 // Onboarding Study Resources
 import StudyFundamentals from "@/pages/onboarding/StudyFundamentals";
 import StudyPracticeExam from "@/pages/onboarding/StudyPracticeExam";
@@ -145,7 +148,6 @@ import {
   ManagerPerformance,
   ManagerTraining,
   ManagerCoaching,
-  ManagerMeetings,
   ManagerEscalations,
   ManagerReports,
   ManagerCommunications,
@@ -153,15 +155,19 @@ import {
   ManagerAlerts,
   ManagerScorecard,
   ManagerLeaderboard,
-  ManagerPromotions,
-  ManagerCoachingLogs,
   ManagerApprovals,
   ManagerDirectorOverview,
   ManagerForecasting,
   ManagerActivityMonitor,
-  ManagerContests,
   ManagerCommissions,
   ManagerOneOnOnes,
+  ManagerGoals,
+  ManagerOnboardingTracker,
+  ManagerClientHealth,
+  ManagerTeamPerformance,
+  ManagerMeetingsDev,
+  ManagerComplianceHub,
+  ManagerGuide,
 } from "@/pages/manager";
 import { ExecutiveDashboard } from "@/pages/executive";
 import { LobbyLanding, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
@@ -402,6 +408,21 @@ function Router() {
             <AgentWorkflowBuilder />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/ideas">
+          <AgentProtectedRoute>
+            <AgentIdeas />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/book-of-business">
+          <AgentProtectedRoute>
+            <AgentBookOfBusiness />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/recruiting">
+          <AgentProtectedRoute>
+            <AgentRecruiting />
+          </AgentProtectedRoute>
+        </Route>
         <Route path="/agents/onboarding/resources">
           <AgentProtectedRoute>
             <AgentOnboarding />
@@ -550,18 +571,11 @@ function Router() {
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/training">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerTraining />
-          </RoleProtectedRoute>
+          <Redirect to="/manager/compliance" />
         </Route>
         <Route path="/manager/coaching">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
             <ManagerCoaching />
-          </RoleProtectedRoute>
-        </Route>
-        <Route path="/manager/meetings">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerMeetings />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/escalations">
@@ -584,10 +598,13 @@ function Router() {
             <ManagerSettings />
           </RoleProtectedRoute>
         </Route>
-        <Route path="/manager/alerts">
+        <Route path="/manager/guide">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerAlerts />
+            <ManagerGuide />
           </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/alerts">
+          <Redirect to="/manager/escalations" />
         </Route>
         <Route path="/manager/scorecard/:id?">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
@@ -599,14 +616,19 @@ function Router() {
             <ManagerLeaderboard />
           </RoleProtectedRoute>
         </Route>
-        <Route path="/manager/promotions">
+        <Route path="/manager/team-performance">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerPromotions />
+            <ManagerTeamPerformance />
           </RoleProtectedRoute>
         </Route>
-        <Route path="/manager/coaching-logs">
+        <Route path="/manager/development">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerCoachingLogs />
+            <ManagerMeetingsDev />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/compliance">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerComplianceHub />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/approvals">
@@ -620,18 +642,11 @@ function Router() {
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/forecasting">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerForecasting />
-          </RoleProtectedRoute>
+          <Redirect to="/manager/pipeline" />
         </Route>
         <Route path="/manager/activity-monitor">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
             <ManagerActivityMonitor />
-          </RoleProtectedRoute>
-        </Route>
-        <Route path="/manager/contests">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
-            <ManagerContests />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/commissions">
@@ -642,6 +657,21 @@ function Router() {
         <Route path="/manager/one-on-ones">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
             <ManagerOneOnOnes />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/goals">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerGoals />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/onboarding-tracker">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerOnboardingTracker />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/manager/client-health">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]}>
+            <ManagerClientHealth />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/:rest*">

@@ -5,7 +5,11 @@
 
 import { Router, Request, Response } from 'express';
 import { AgentRegistry } from './index';
-import { eventBus, securityLayer, analyticsLedger, memoryGraph } from './core';
+import { eventBus, securityLayer, analyticsLedger, memoryGraph, EventType, EventBus } from './core';
+import { changeChainEngine } from './core/change-chain-engine';
+import { vetoEngine } from './core/veto-engine';
+import { ChangeType } from './core/governance-types';
+import { GovernanceAgent } from './governance';
 
 export function createAgentRoutes(registry: AgentRegistry): Router {
   const router = Router();
@@ -122,6 +126,55 @@ export function createAgentRoutes(registry: AgentRegistry): Router {
     };
     eventBus.emit(event);
     res.json({ success: true, message: `Resume directive sent to ${req.params.id}` });
+  });
+
+  // ─── GOVERNANCE ENDPOINTS ──────────────────────────────────
+
+  // POST /api/agents/governance/task — submit a governance task
+  router.post('/agents/governance/task', (req: Request, res: Response) => {
+    const { title, description, changeType, submittedBy } = req.body;
+    if (!title || !changeType) {
+      return res.status(400).json({ error: 'title and changeType are required' });
+    }
+    if (!Object.values(ChangeType).includes(changeType)) {
+      return res.status(400).json({ error: `Invalid changeType. Valid: ${Object.values(ChangeType).join(', ')}` });
+    }
+
+    const event = EventBus.createEvent(
+      EventType.GOVERNANCE_TASK_SUBMITTED,
+      submittedBy || 'api',
+      { title, description, changeType, submittedBy: submittedBy || 'api' },
+      { metadata: { tier: 11, priority: 'high' } }
+    );
+    eventBus.emit(event);
+
+    res.json({ success: true, message: `Governance task submitted: ${title}`, changeType });
+  });
+
+  // GET /api/agents/governance/chains — active change chains
+  router.get('/agents/governance/chains', (_req: Request, res: Response) => {
+    const active = changeChainEngine.getActiveChains();
+    const stats = changeChainEngine.getStats();
+    res.json({ stats, activeChains: active });
+  });
+
+  // GET /api/agents/governance/vetoes — active vetoes
+  router.get('/agents/governance/vetoes', (_req: Request, res: Response) => {
+    const active = vetoEngine.getActiveVetoes();
+    const stats = vetoEngine.getStats();
+    res.json({ stats, activeVetoes: active });
+  });
+
+  // GET /api/agents/governance/agents — governance agent details
+  router.get('/agents/governance/agents', (_req: Request, res: Response) => {
+    const govAgents = registry.getAllAgents()
+      .filter(a => a.config.tier >= 11)
+      .map(a => {
+        const info = a.getInfo();
+        const govInfo = (a as GovernanceAgent).getGovernanceInfo?.();
+        return { ...info, governance: govInfo };
+      });
+    res.json({ count: govAgents.length, agents: govAgents });
   });
 
   // POST /api/agents/kill-switch — emergency stop all

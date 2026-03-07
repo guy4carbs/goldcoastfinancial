@@ -9,8 +9,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ManagerLoungeLayout } from './ManagerLoungeLayout';
-import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
+import { ManagerEmptyState } from './primitives';
 import { MANAGER_ICON_GRADIENT, DEMO_CONTESTS, CONTEST_TEMPLATES } from './managerConstants';
 import {
   RADIUS,
@@ -21,8 +20,8 @@ import {
   MOTION,
   COLORS,
   fadeInUp,
-  staggerContainer,
 } from '@/lib/heritageDesignSystem';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
@@ -30,7 +29,6 @@ import {
   Trophy,
   DollarSign,
   Users,
-  Percent,
   Phone,
   Zap,
   ChevronDown,
@@ -121,7 +119,7 @@ const avgCompletion = activeContests.length > 0
 
 /* ── Component ───────────────────────────────────────────────── */
 
-export function ManagerContests() {
+export function ContestsTabContent() {
   const [expandedContests, setExpandedContests] = useState<Set<string>>(new Set());
 
   const toggleExpanded = (id: string) => {
@@ -140,48 +138,11 @@ export function ManagerContests() {
   const completedContests = DEMO_CONTESTS.filter((c) => c.status === 'completed');
 
   return (
-    <ManagerLoungeLayout>
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}
-      >
-        {/* ── Hero ──────────────────────────────────────────── */}
-        <ManagerPageHero
-          icon={Trophy}
-          title="Contests & SPIFFs"
-          subtitle="Motivate your team with competitions and incentives"
-        />
-
-        {/* ── Stat Cards ────────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
-          <ManagerStatCardGrid>
-            <ManagerStatCard
-              icon={Trophy}
-              value={activeContests.length}
-              label="Active Contests"
-            />
-            <ManagerStatCard
-              icon={Percent}
-              value={`${avgParticipation}%`}
-              label="Participation"
-            />
-            <ManagerStatCard
-              icon={DollarSign}
-              value={`$${totalPrizePool.toLocaleString()}`}
-              label="Total Prizes"
-            />
-            <ManagerStatCard
-              icon={Trophy}
-              value={`${avgCompletion}%`}
-              label="Completion Rate"
-            />
-          </ManagerStatCardGrid>
-        </motion.div>
-
-        {/* ── Tabs ──────────────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+    >
+      {/* ── Tabs ──────────────────────────────────────────── */}
+      <div>
           <Tabs defaultValue="active">
             <TabsList
               className="bg-white/80 border border-gray-200/60"
@@ -197,10 +158,19 @@ export function ManagerContests() {
             <TabsContent value="active" style={{ marginTop: GRID.spacing.md }}>
               <div
                 className="grid grid-cols-1 lg:grid-cols-[1.618fr_1fr]"
-                style={{ gap: GRID.spacing.lg }}
+                style={{ gap: GRID.spacing.md }}
               >
                 {/* ── Left: Contest Cards ── */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
+                  {activeContests.length === 0 && (
+                    <ManagerEmptyState
+                      icon={Trophy}
+                      title="No contests in this category"
+                      description="Create a new contest or check another tab."
+                      actionLabel="Create Contest"
+                      onAction={() => toast.success('Contest creation coming soon')}
+                    />
+                  )}
                   {activeContests.map((contest) => {
                     const isExpanded = expandedContests.has(contest.id);
                     const typeStyle = getContestTypeStyle(contest.type);
@@ -476,7 +446,7 @@ export function ManagerContests() {
                   {/* Create Contest button */}
                   <motion.div variants={fadeInUp}>
                     <motion.button
-                      onClick={() => {}}
+                      onClick={() => toast.success('Contest creation coming soon')}
                       whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                       whileTap={{ scale: 0.97 }}
                       transition={{ duration: MOTION.duration.hover }}
@@ -599,21 +569,13 @@ export function ManagerContests() {
                 }}
               >
                 {upcomingContests.length === 0 && (
-                  <Card
-                    className="overflow-hidden border-0"
-                    style={{
-                      ...glassStyle,
-                      borderRadius: RADIUS.card,
-                      boxShadow: SHADOW.card,
-                    }}
-                  >
-                    <CardContent style={{ padding: GRID.spacing.lg, textAlign: 'center' }}>
-                      <Trophy className="text-gray-300 mx-auto" style={{ width: 48, height: 48, marginBottom: GRID.spacing.sm }} />
-                      <p className="text-gray-400 font-medium" style={{ fontSize: TYPE.body }}>
-                        No upcoming contests scheduled
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <ManagerEmptyState
+                    icon={Trophy}
+                    title="No contests in this category"
+                    description="Create a new contest or check another tab."
+                    actionLabel="Create Contest"
+                    onAction={() => toast.success('Contest creation coming soon')}
+                  />
                 )}
                 {upcomingContests.map((contest) => {
                   const typeStyle = getContestTypeStyle(contest.type);
@@ -690,21 +652,13 @@ export function ManagerContests() {
                 }}
               >
                 {completedContests.length === 0 && (
-                  <Card
-                    className="overflow-hidden border-0"
-                    style={{
-                      ...glassStyle,
-                      borderRadius: RADIUS.card,
-                      boxShadow: SHADOW.card,
-                    }}
-                  >
-                    <CardContent style={{ padding: GRID.spacing.lg, textAlign: 'center' }}>
-                      <Trophy className="text-gray-300 mx-auto" style={{ width: 48, height: 48, marginBottom: GRID.spacing.sm }} />
-                      <p className="text-gray-400 font-medium" style={{ fontSize: TYPE.body }}>
-                        No completed contests yet
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <ManagerEmptyState
+                    icon={Trophy}
+                    title="No contests in this category"
+                    description="Create a new contest or check another tab."
+                    actionLabel="Create Contest"
+                    onAction={() => toast.success('Contest creation coming soon')}
+                  />
                 )}
                 {completedContests.map((contest) => {
                   const typeStyle = getContestTypeStyle(contest.type);
@@ -961,10 +915,9 @@ export function ManagerContests() {
               </div>
             </TabsContent>
           </Tabs>
-        </motion.div>
-      </motion.div>
-    </ManagerLoungeLayout>
+        </div>
+      </div>
   );
 }
 
-export default ManagerContests;
+export default ContestsTabContent;

@@ -7,7 +7,8 @@
  * Hero → Quick Actions → Stats → Golden Ratio Content Grid
  */
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerStatCard, ManagerStatCardGrid } from './primitives';
 import { useAgentStore } from '@/lib/agentStore';
@@ -39,7 +40,10 @@ import {
   UserCheck,
   Sparkles,
   Activity,
+  X,
+  Bell,
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, RadialBarChart, RadialBar, PieChart, Pie } from 'recharts';
 import {
   RADIUS,
   SHADOW,
@@ -48,36 +52,32 @@ import {
   COLORS,
   fadeInUp,
   staggerContainer,
+  staggerCards,
   GRID,
   LAYOUT,
   GLASS,
 } from '@/lib/heritageDesignSystem';
-import { MANAGER_GRADIENT_CSS, DEMO_TEAM_MEMBERS } from './managerConstants';
+import {
+  MANAGER_GRADIENT_CSS,
+  DEMO_TEAM_MEMBERS,
+  SPARKLINE_TEAM_SIZE,
+  SPARKLINE_PIPELINE,
+  SPARKLINE_REVENUE,
+  SPARKLINE_WIN_RATE,
+} from './managerConstants';
 
-// Quick action items for manager
+// Quick action items for manager (reduced from 8 to 4 per AXIOM UX review)
 const QUICK_ACTIONS = [
-  { icon: BookOpen, label: 'Training', href: '/manager/training' },
-  { icon: GraduationCap, label: 'Coach', href: '/manager/coaching' },
-  { icon: Calendar, label: 'Meetings', href: '/manager/meetings' },
-  { icon: LineChart, label: 'Forecast', href: '/manager/forecasting' },
-  { icon: UserCheck, label: '1:1s', href: '/manager/one-on-ones' },
-  { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
-  { icon: FileBarChart, label: 'Reports', href: '/manager/reports' },
-  { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
-  { icon: MessageSquare, label: 'Communication', href: '/manager/communications' },
-];
-
-// Deal risk alerts for dashboard
-const DEAL_RISK_ALERTS = [
-  { deal: 'Chen Annuity Package', agent: 'David Brown', avatar: 'DB', value: 89000, daysIdle: 12, riskType: 'stale' as const },
-  { deal: 'Adams Corporate Group', agent: 'Sarah Johnson', avatar: 'SJ', value: 125000, daysIdle: 8, riskType: 'no_activity' as const },
-  { deal: 'Davis Legacy Trust', agent: 'James Wilson', avatar: 'JW', value: 95000, daysIdle: 18, riskType: 'aging' as const },
+  { icon: Target, label: 'Pipeline', href: '/manager/pipeline', gradient: 'from-emerald-500 to-emerald-700', shadowColor: 'shadow-emerald-500/25' },
+  { icon: GraduationCap, label: 'Development', href: '/manager/development', gradient: 'from-rose-400 to-rose-500', shadowColor: 'shadow-rose-400/25' },
+  { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations', gradient: 'from-emerald-500 to-emerald-700', shadowColor: 'shadow-emerald-500/25' },
+  { icon: FileBarChart, label: 'Reports', href: '/manager/reports', gradient: 'from-rose-400 to-rose-500', shadowColor: 'shadow-rose-400/25' },
 ];
 
 // AI-surfaced coaching moments
-const COACHING_MOMENTS = [
-  { agent: 'Carlos Martinez', avatar: 'CM', trigger: '3 consecutive lost deals in 2 weeks', action: 'Schedule Coaching', href: '/manager/coaching' },
-  { agent: 'Ryan Taylor', avatar: 'RT', trigger: 'No activity for 2 days, cert overdue', action: 'Schedule 1:1', href: '/manager/one-on-ones' },
+const COACHING_INSIGHTS = [
+  { agent: 'Carlos Martinez', avatar: 'CM', trigger: '3 consecutive lost deals in 2 weeks', action: 'Schedule Coaching', href: '/manager/development' },
+  { agent: 'Ryan Taylor', avatar: 'RT', trigger: 'No activity for 2 days, cert overdue', action: 'Schedule 1:1', href: '/manager/development' },
   { agent: 'Anna Kim', avatar: 'AK', trigger: 'Close rate improving — ready for advanced leads', action: 'Assign Leads', href: '/manager/pipeline' },
 ];
 
@@ -125,12 +125,76 @@ const TEAM_ACTIVITY = [
   { agent: 'James W.', action: 'Moved 3 leads to Qualified', time: '1h ago', icon: ArrowRight },
 ];
 
+// Training compliance data
+const TRAINING_COMPLIANCE = [
+  { name: 'Sarah Johnson', avatar: 'SJ', status: 'current' as const, cert: 'Life & Health', expires: 'Jun 2026' },
+  { name: 'Mike Chen', avatar: 'MC', status: 'expiring' as const, cert: 'Property & Casualty', expires: 'Mar 2026' },
+  { name: 'Emily Davis', avatar: 'ED', status: 'current' as const, cert: 'Life & Health', expires: 'Sep 2026' },
+  { name: 'Carlos Martinez', avatar: 'CM', status: 'overdue' as const, cert: 'Anti-Money Laundering', expires: 'Feb 2026' },
+  { name: 'Ryan Taylor', avatar: 'RT', status: 'overdue' as const, cert: 'Ethics & Conduct', expires: 'Jan 2026' },
+];
+
+// Upcoming 1:1 meetings
+const UPCOMING_1ON1S = [
+  { agent: 'Carlos Martinez', avatar: 'CM', date: 'Today', time: '2:00 PM', topic: 'Performance review — 3 lost deals' },
+  { agent: 'Lisa Park', avatar: 'LP', date: 'Tomorrow', time: '10:30 AM', topic: 'Promotion readiness check-in' },
+  { agent: 'Ryan Taylor', avatar: 'RT', date: 'Thu', time: '3:00 PM', topic: 'Onboarding progress & cert status' },
+];
+
+// Quota/goal progress
+const QUOTA_PROGRESS = {
+  monthly: { target: 164000, current: 124800, label: 'Monthly Revenue' },
+  policies: { target: 50, current: 38, label: 'Policies Sold' },
+  calls: { target: 400, current: 312, label: 'Team Calls' },
+};
+
 // Fibonacci blob sizes for gradient cards
 const CARD_BLOBS = { large: 89, medium: 55, small: 34 };
+
+// Team Health Score data
+const TEAM_HEALTH = {
+  score: 82,
+  grade: 'B+',
+  factors: [
+    { label: 'Quota Attainment', value: 76, weight: 30 },
+    { label: 'Cert Compliance', value: 88, weight: 25 },
+    { label: 'Activity Level', value: 91, weight: 25 },
+    { label: 'Retention Rate', value: 73, weight: 20 },
+  ],
+};
+
+const HEALTH_GAUGE_DATA = [{ value: TEAM_HEALTH.score, fill: 'rgba(255,255,255,0.9)' }];
+
+// Goal Progress data
+const TEAM_GOALS = [
+  { id: '1', title: 'Q1 Revenue Target', progress: 76, status: 'on_track' as const },
+  { id: '2', title: 'New Policy Acquisition', progress: 62, status: 'at_risk' as const },
+  { id: '3', title: 'Team Certification 100%', progress: 88, status: 'on_track' as const },
+];
+
+const GOAL_STATUS_STYLES = {
+  on_track: { bg: 'rgba(16,185,129,0.1)', text: '#059669', label: 'On Track' },
+  at_risk: { bg: 'rgba(245,158,11,0.1)', text: '#d97706', label: 'At Risk' },
+  behind: { bg: 'rgba(244,63,94,0.1)', text: '#e11d48', label: 'Behind' },
+};
+
+const PIPELINE_CHART_DATA = PIPELINE_STAGES.map((s) => ({
+  name: s.stage,
+  count: s.count,
+}));
+
+const PIPELINE_CHART_COLORS = ['#818cf8', '#a78bfa', '#f59e0b', '#10b981'];
 
 export function ManagerDashboard() {
   const { currentUser } = useAgentStore();
   const firstName = currentUser?.name?.split(' ')[0] || 'Manager';
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return localStorage.getItem('manager-lounge-welcome-dismissed') !== 'true';
+  });
+  const dismissWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('manager-lounge-welcome-dismissed', 'true');
+  };
 
   return (
     <ManagerLoungeLayout>
@@ -156,7 +220,7 @@ export function ManagerDashboard() {
           >
             {/* Dot pattern overlay */}
             <div
-              className="absolute inset-0 opacity-10"
+              className="absolute inset-0 opacity-10 pointer-events-none"
               style={{
                 backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
                 backgroundSize: '24px 24px',
@@ -168,22 +232,22 @@ export function ManagerDashboard() {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: MOTION.duration.slow, delay: 0.1, ease: MOTION.easing }}
-              style={{ width: CARD_BLOBS.large * 4, height: CARD_BLOBS.large * 4 }}
-              className="absolute top-0 right-0 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm"
+              style={{ width: CARD_BLOBS.large * 4, height: CARD_BLOBS.large * 4, borderRadius: RADIUS.pill }}
+              className="absolute top-0 right-0 bg-white/10 -translate-y-1/2 translate-x-1/3 blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: MOTION.duration.slow, delay: 0.2, ease: MOTION.easing }}
-              style={{ width: CARD_BLOBS.medium * 4, height: CARD_BLOBS.medium * 4 }}
-              className="absolute bottom-0 left-0 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md"
+              style={{ width: CARD_BLOBS.medium * 4, height: CARD_BLOBS.medium * 4, borderRadius: RADIUS.pill }}
+              className="absolute bottom-0 left-0 bg-amber-400/20 translate-y-1/2 -translate-x-1/4 blur-md"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: MOTION.duration.slow, delay: 0.3, ease: MOTION.easing }}
-              style={{ width: CARD_BLOBS.small * 4, height: CARD_BLOBS.small * 4 }}
-              className="absolute top-1/2 right-1/4 bg-teal-300/15 rounded-full blur-sm"
+              style={{ width: CARD_BLOBS.small * 4, height: CARD_BLOBS.small * 4, borderRadius: RADIUS.pill }}
+              className="absolute top-1/2 right-1/4 bg-teal-300/15 blur-sm"
             />
 
             <CardContent className="relative z-10" style={{ padding: GRID.spacing.lg }}>
@@ -268,7 +332,7 @@ export function ManagerDashboard() {
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                     }}
                   >
-                    <DollarSign className="w-5 h-5 text-amber-200" />
+                    <DollarSign className="text-amber-200" size={LAYOUT.icon.md} />
                     <div>
                       <p className="text-white/70 uppercase tracking-wider font-medium" style={{ fontSize: TYPE.micro }}>MTD Revenue</p>
                       <p className="font-bold text-white" style={{ fontSize: TYPE.body }}>$124,800</p>
@@ -289,7 +353,7 @@ export function ManagerDashboard() {
                       asChild
                     >
                       <Link href="/manager/team">
-                        <Users className="w-4 h-4 mr-2" />
+                        <Users className="mr-2" size={LAYOUT.icon.sm} />
                         Team
                       </Link>
                     </Button>
@@ -306,7 +370,7 @@ export function ManagerDashboard() {
                       asChild
                     >
                       <Link href="/manager/reports">
-                        <FileBarChart className="w-4 h-4 mr-2" />
+                        <FileBarChart className="mr-2" size={LAYOUT.icon.sm} />
                         Reports
                       </Link>
                     </Button>
@@ -317,144 +381,123 @@ export function ManagerDashboard() {
           </Card>
         </motion.div>
 
+        {/* ─── WELCOME BANNER (first visit) ─── */}
+        <AnimatePresence>
+          {showWelcome && (
+            <motion.div
+              variants={fadeInUp}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: MOTION.duration.expand }}
+            >
+              <Card
+                className="border-0 overflow-hidden"
+                style={{
+                  ...GLASS.css.light,
+                  border: 'none',
+                  borderRadius: RADIUS.card,
+                  boxShadow: SHADOW.card,
+                }}
+              >
+                <CardContent style={{ padding: GRID.spacing.md }}>
+                  <div className="flex items-start justify-between" style={{ marginBottom: GRID.spacing.sm }}>
+                    <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
+                      <div
+                        className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700"
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                      >
+                        <Sparkles className="text-amber-200" size={LAYOUT.icon.md} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900" style={{ fontSize: TYPE.title }}>Welcome to Manager Lounge</h3>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.meta }}>Here are the key areas to get started</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={dismissWelcome}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4" style={{ gap: GRID.spacing.sm }}>
+                    {[
+                      { icon: Users, label: 'Team Roster', description: 'View agent status & performance', href: '/manager/team' },
+                      { icon: Target, label: 'Pipeline', description: 'Track deals across stages', href: '/manager/pipeline' },
+                      { icon: GraduationCap, label: 'Development', description: 'Schedule sessions & track progress', href: '/manager/development' },
+                      { icon: Bell, label: 'Alerts', description: 'Escalations & action items', href: '/manager/alerts' },
+                    ].map((area) => (
+                      <Link key={area.href} href={area.href}>
+                        <motion.div
+                          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                          className="bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 transition-colors cursor-pointer"
+                          style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.input }}
+                        >
+                          <area.icon className="text-emerald-600" size={LAYOUT.icon.lg} style={{ marginBottom: GRID.spacing.xs }} />
+                          <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{area.label}</p>
+                          <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{area.description}</p>
+                        </motion.div>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ─── QUICK ACTIONS BAR ─── */}
         <motion.div
           variants={fadeInUp}
-          className="flex items-center gap-2 overflow-x-auto pb-1"
+          className="grid grid-cols-2 lg:grid-cols-4"
+          style={{ gap: GRID.spacing.sm }}
         >
-          {QUICK_ACTIONS.map((action) => {
+          {QUICK_ACTIONS.map((action, index) => {
             const Icon = action.icon;
             return (
               <Link key={action.label} href={action.href}>
-                <motion.button
-                  className="flex items-center gap-2 px-4 py-2.5 font-medium text-gray-600 hover:text-emerald-700 whitespace-nowrap"
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative flex flex-col items-center justify-center gap-3 p-5 rounded-2xl cursor-pointer overflow-hidden"
                   style={{
-                    borderRadius: RADIUS.button,
-                    fontSize: TYPE.meta,
-                    ...GLASS.css.light,
-                    border: `1px solid ${COLORS.gray[100]}`,
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
                   }}
-                  whileHover={{ y: -2, boxShadow: SHADOW.level2 }}
-                  transition={{ duration: MOTION.duration.hover }}
                 >
-                  <Icon style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md }} />
-                  {action.label}
-                </motion.button>
+                  {/* Hover gradient overlay */}
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-br ${action.gradient}`} />
+
+                  {/* Icon with gradient background */}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-transform duration-300 bg-gradient-to-br ${action.gradient} ${action.shadowColor} group-hover:scale-110 group-hover:shadow-xl`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+
+                  {/* Label */}
+                  <span className="text-xs font-semibold text-gray-700 group-hover:text-gray-900 transition-colors text-center leading-tight">
+                    {action.label}
+                  </span>
+
+                  {/* Bottom accent line */}
+                  <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-0 group-hover:w-12 transition-all duration-300 rounded-full bg-gradient-to-r ${action.gradient}`} />
+                </motion.div>
               </Link>
             );
           })}
         </motion.div>
 
-        {/* ─── DEAL RISK ALERTS ─── */}
-        <motion.div variants={fadeInUp}>
-          <Card
-            className="overflow-hidden border-0"
-            style={{
-              background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: RADIUS.card,
-              boxShadow: SHADOW.card,
-              border: '1px solid rgba(245, 158, 11, 0.15)',
-            }}
-          >
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 0 }}>
-              <div className="flex items-center justify-between">
-                <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
-                  <div
-                    className="flex items-center justify-center bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20"
-                    style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
-                  >
-                    <AlertTriangle className="w-5 h-5 text-white" />
-                  </div>
-                  Deal Risk Alerts
-                </CardTitle>
-                <span
-                  className="font-semibold text-amber-700"
-                  style={{
-                    fontSize: TYPE.caption,
-                    padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.sm}px`,
-                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                    borderRadius: RADIUS.pill,
-                  }}
-                >
-                  {DEAL_RISK_ALERTS.length} at risk
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md }}>
-              <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: GRID.spacing.sm }}>
-                {DEAL_RISK_ALERTS.map((deal) => (
-                  <motion.div
-                    key={deal.deal}
-                    className="flex flex-col"
-                    style={{
-                      padding: GRID.spacing.sm,
-                      borderRadius: RADIUS.button,
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                      border: '1px solid rgba(245, 158, 11, 0.1)',
-                    }}
-                    whileHover={{ y: MOTION.hover.y, boxShadow: SHADOW.level2, transition: { duration: MOTION.duration.hover } }}
-                  >
-                    <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.xs }}>
-                      <div
-                        className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
-                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
-                      >
-                        {deal.avatar}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate" style={{ fontSize: TYPE.meta }}>{deal.deal}</p>
-                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{deal.agent}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs }}>
-                      <span className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
-                        ${(deal.value / 1000).toFixed(0)}K
-                      </span>
-                      <span
-                        className={cn(
-                          'font-semibold',
-                          deal.riskType === 'aging' ? 'text-red-600 bg-red-50' :
-                          deal.riskType === 'stale' ? 'text-amber-700 bg-amber-50' :
-                          'text-orange-700 bg-orange-50',
-                        )}
-                        style={{
-                          fontSize: TYPE.caption,
-                          padding: `2px ${GRID.spacing.xs}px`,
-                          borderRadius: RADIUS.pill,
-                        }}
-                      >
-                        {deal.riskType === 'aging' ? 'Aging' : deal.riskType === 'stale' ? 'Stale' : 'No Activity'} · {deal.daysIdle}d
-                      </span>
-                    </div>
-                    <motion.button
-                      className="flex items-center justify-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 w-full"
-                      style={{
-                        fontSize: TYPE.caption,
-                        gap: GRID.unit,
-                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                        borderRadius: RADIUS.button,
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {deal.riskType === 'aging' ? 'Reassign' : deal.riskType === 'stale' ? 'Schedule Follow-up' : 'Review in 1:1'}
-                    </motion.button>
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* ─── STAT CARDS ─── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
-            <ManagerStatCard icon={Users} value="12" label="Team Size" trend={{ value: '8 active', positive: true }} />
-            <ManagerStatCard icon={Target} value="$847K" label="Pipeline Value" trend={{ value: '18%', positive: true, label: 'mo' }} />
-            <ManagerStatCard icon={DollarSign} value="$124K" label="MTD Revenue" trend={{ value: '76%', positive: true, label: 'target' }} />
-            <ManagerStatCard icon={TrendingUp} value="92%" label="Win Rate" trend={{ value: '4%', positive: true, label: 'vs last' }} />
+            <ManagerStatCard icon={Users} value="12" label="Team Size" sparklineData={[...SPARKLINE_TEAM_SIZE]} delta={0} periodLabel="Last 30 days" />
+            <ManagerStatCard icon={Target} value="$847K" label="Pipeline Value" sparklineData={[...SPARKLINE_PIPELINE]} delta={18} deltaFormat="percent" periodLabel="vs last month" northStar />
+            <ManagerStatCard icon={DollarSign} value="$124K" label="MTD Revenue" sparklineData={[...SPARKLINE_REVENUE]} delta={12.3} deltaFormat="percent" periodLabel="Last 30 days" />
+            <ManagerStatCard icon={TrendingUp} value="92%" label="Win Rate" sparklineData={[...SPARKLINE_WIN_RATE]} delta={4} deltaFormat="percent" periodLabel="vs last month" />
           </ManagerStatCardGrid>
         </motion.div>
 
@@ -472,6 +515,7 @@ export function ManagerDashboard() {
               className="overflow-hidden border-0"
               style={{
                 ...GLASS.css.light,
+                border: 'none',
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -483,13 +527,13 @@ export function ManagerDashboard() {
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                       style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
-                      <Users className="w-5 h-5 text-amber-200" />
+                      <Users className="text-amber-200" size={LAYOUT.icon.md} />
                     </div>
                     Active Team
                   </CardTitle>
                   <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
                     <Link href="/manager/team">
-                      View All <ChevronRight className="w-4 h-4 ml-1" />
+                      View All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
                     </Link>
                   </Button>
                 </div>
@@ -497,15 +541,16 @@ export function ManagerDashboard() {
               <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
                   {TEAM_ACTIVE.map((member, idx) => (
-                    <motion.div
+                    <div
                       key={idx}
-                      className="flex items-center"
+                      className="flex items-center transition-colors duration-200 hover:bg-gray-200/60"
                       style={{
                         gap: GRID.spacing.sm,
                         padding: GRID.spacing.sm,
                         borderRadius: RADIUS.button,
+                        backgroundColor: COLORS.gray[50],
+                        border: 'none',
                       }}
-                      whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                     >
                       <div
                         className="flex items-center justify-center text-white font-semibold bg-gradient-to-br from-emerald-500 to-teal-600"
@@ -523,17 +568,99 @@ export function ManagerDashboard() {
                           <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>{member.status}</span>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Pipeline Snapshot */}
+            {/* Pipeline Snapshot — Gradient Card */}
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
+
+              <CardHeader className="pb-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                      <Target className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    Pipeline Snapshot
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
+                    <Link href="/manager/pipeline">
+                      View All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4 relative z-10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                  {PIPELINE_STAGES.map((s) => (
+                    <motion.div
+                      key={s.stage}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      className="text-center p-4 bg-white/10 backdrop-blur cursor-pointer hover:bg-white/20 transition-colors"
+                      style={{ borderRadius: RADIUS.input, border: '1px solid rgba(255,255,255,0.15)' }}
+                    >
+                      <p className="font-bold text-white" style={{ fontSize: TYPE.section }}>{s.count}</p>
+                      <p className="text-white/70 font-medium" style={{ fontSize: TYPE.caption }}>{s.stage}</p>
+                    </motion.div>
+                  ))}
+                </div>
+                {/* Mini pipeline bar chart */}
+                <div style={{ marginBottom: 12 }}>
+                  <ResponsiveContainer width="100%" height={80}>
+                    <BarChart data={PIPELINE_CHART_DATA} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+                      <Tooltip
+                        content={({ active, payload }: any) => {
+                          if (!active || !payload?.length) return null;
+                          return (
+                            <div style={{
+                              background: 'rgba(0,0,0,0.8)',
+                              backdropFilter: 'blur(12px)',
+                              borderRadius: 8,
+                              padding: '6px 10px',
+                              border: '1px solid rgba(255,255,255,0.15)',
+                            }}>
+                              <p style={{ fontSize: 12, color: 'white', margin: 0, fontWeight: 600 }}>
+                                {payload[0].payload.name}: {payload[0].value}
+                              </p>
+                            </div>
+                          );
+                        }}
+                      />
+                      <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                        {PIPELINE_CHART_DATA.map((_, idx) => (
+                          <Cell key={idx} fill={PIPELINE_CHART_COLORS[idx]} opacity={0.9} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div
+                  className="flex items-center justify-between bg-white/10 backdrop-blur"
+                  style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, border: '1px solid rgba(255,255,255,0.15)' }}
+                >
+                  <div>
+                    <p className="font-semibold text-white" style={{ fontSize: TYPE.meta }}>Total Pipeline Value</p>
+                    <p className="text-white/60" style={{ fontSize: TYPE.caption }}>61 active deals</p>
+                  </div>
+                  <p className="font-bold text-amber-200" style={{ fontSize: TYPE.title }}>$847K</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Coaching Queue */}
             <Card
               className="overflow-hidden border-0"
               style={{
                 ...GLASS.css.light,
+                border: 'none',
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -545,70 +672,18 @@ export function ManagerDashboard() {
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                       style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
-                      <Target className="w-5 h-5 text-amber-200" />
-                    </div>
-                    Pipeline Snapshot
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
-                    <Link href="/manager/pipeline">
-                      View All <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                  {PIPELINE_STAGES.map((s) => (
-                    <motion.div
-                      key={s.stage}
-                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                      className="text-center p-4 rounded-xl bg-emerald-50 border border-emerald-100 cursor-pointer hover:bg-emerald-100 transition-colors"
-                    >
-                      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.section }}>{s.count}</p>
-                      <p className="text-gray-500 font-medium" style={{ fontSize: TYPE.caption }}>{s.stage}</p>
-                    </motion.div>
-                  ))}
-                </div>
-                <div
-                  className="flex items-center justify-between bg-emerald-50 border border-emerald-100"
-                  style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button }}
-                >
-                  <div>
-                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Total Pipeline Value</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>61 active deals</p>
-                  </div>
-                  <p className="font-bold text-emerald-700" style={{ fontSize: TYPE.title }}>$847K</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Coaching Queue — Gradient Card */}
-            <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
-              {/* Full gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
-              {/* Fibonacci blobs */}
-              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
-
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
-                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
-                      <GraduationCap className="w-5 h-5 text-amber-200" />
+                      <GraduationCap className="text-amber-200" size={LAYOUT.icon.md} />
                     </div>
                     Coaching Queue
                   </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
-                    <Link href="/manager/coaching">
-                      View All <ChevronRight className="w-4 h-4 ml-1" />
+                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
+                    <Link href="/manager/development">
+                      View All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
                     </Link>
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="relative z-10">
+              <CardContent>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
                   {[
                     { agent: 'Mike Chen', topic: 'Objection handling', time: 'Today 2:00 PM' },
@@ -617,26 +692,26 @@ export function ManagerDashboard() {
                   ].map((session, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center"
+                      className="flex items-center transition-colors duration-200 hover:bg-gray-200/60"
                       style={{
                         gap: GRID.spacing.sm,
                         padding: GRID.spacing.sm,
                         borderRadius: RADIUS.button,
-                        background: 'rgba(255,255,255,0.1)',
-                        backdropFilter: 'blur(4px)',
+                        backgroundColor: COLORS.gray[50],
+                        border: 'none',
                       }}
                     >
                       <div
-                        className="flex items-center justify-center text-white font-bold"
-                        style={{ fontSize: TYPE.caption, width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.2)' }}
+                        className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
+                        style={{ fontSize: TYPE.caption, width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                       >
                         {session.agent.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-white" style={{ fontSize: TYPE.meta }}>{session.agent}</p>
-                        <p className="text-white/70" style={{ fontSize: TYPE.micro }}>{session.topic}</p>
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{session.agent}</p>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>{session.topic}</p>
                       </div>
-                      <div className="flex items-center gap-1 text-amber-200/80">
+                      <div className="flex items-center gap-1 text-gray-400">
                         <Clock style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
                         <span style={{ fontSize: TYPE.micro }}>{session.time}</span>
                       </div>
@@ -646,11 +721,93 @@ export function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            {/* ─── COACHING MOMENTS — AI-Surfaced ─── */}
+            {/* ─── COACHING MOMENTS — AI-Surfaced — Gradient Card ─── */}
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
+
+              <CardHeader className="relative z-10" style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                      <Sparkles className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    Coaching Insights
+                  </CardTitle>
+                  <span
+                    className="font-medium text-white"
+                    style={{
+                      fontSize: TYPE.micro,
+                      padding: `2px ${GRID.spacing.xs}px`,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      borderRadius: RADIUS.pill,
+                    }}
+                  >
+                    AI Coach (Beta)
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10" style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                  {COACHING_INSIGHTS.map((moment, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center transition-colors duration-200 hover:bg-white/20"
+                      style={{
+                        gap: GRID.spacing.sm,
+                        padding: GRID.spacing.sm,
+                        borderRadius: RADIUS.button,
+                        background: 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                      }}
+                    >
+                      <div
+                        className="flex items-center justify-center text-white font-bold flex-shrink-0"
+                        style={{
+                          width: LAYOUT.icon.xxl,
+                          height: LAYOUT.icon.xxl,
+                          borderRadius: RADIUS.button,
+                          fontSize: TYPE.meta,
+                          backgroundColor: 'rgba(255,255,255,0.2)',
+                        }}
+                      >
+                        {moment.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-white" style={{ fontSize: TYPE.meta }}>{moment.agent}</p>
+                        <p className="text-white/70" style={{ fontSize: TYPE.caption }}>{moment.trigger}</p>
+                      </div>
+                      <Link href={moment.href}>
+                        <motion.button
+                          className="flex items-center font-semibold border-0 flex-shrink-0"
+                          style={{
+                            fontSize: TYPE.caption,
+                            gap: GRID.unit,
+                            padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                            borderRadius: RADIUS.button,
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            color: '#047857',
+                          }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          {moment.action}
+                        </motion.button>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ─── TRAINING COMPLIANCE ─── */}
             <Card
               className="overflow-hidden border-0"
               style={{
                 ...GLASS.css.light,
+                border: 'none',
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -662,220 +819,104 @@ export function ManagerDashboard() {
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                       style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
-                      <Sparkles className="w-5 h-5 text-amber-200" />
+                      <ShieldCheck className="text-amber-200" size={LAYOUT.icon.md} />
                     </div>
-                    Coaching Moments
+                    Training Compliance
                   </CardTitle>
-                  <span
-                    className="font-medium text-emerald-700"
-                    style={{
-                      fontSize: TYPE.micro,
-                      padding: `2px ${GRID.spacing.xs}px`,
-                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                      borderRadius: RADIUS.pill,
-                    }}
-                  >
-                    AI Coach (Beta)
-                  </span>
+                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
+                    <Link href="/manager/compliance">
+                      View All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
+                    </Link>
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                {/* Summary bar */}
+                <div
+                  className="flex items-center justify-between"
+                  style={{
+                    padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                    borderRadius: RADIUS.button,
+                    backgroundColor: COLORS.gray[50],
+                    marginBottom: GRID.spacing.sm,
+                  }}
+                >
+                  <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
+                    <span className="flex items-center font-semibold text-emerald-600" style={{ gap: 4, fontSize: TYPE.caption }}>
+                      <div className="bg-emerald-500" style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill }} />
+                      {TRAINING_COMPLIANCE.filter(t => t.status === 'current').length} Current
+                    </span>
+                    <span className="flex items-center font-semibold text-amber-600" style={{ gap: 4, fontSize: TYPE.caption }}>
+                      <div className="bg-amber-500" style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill }} />
+                      {TRAINING_COMPLIANCE.filter(t => t.status === 'expiring').length} Expiring
+                    </span>
+                    <span className="flex items-center font-semibold text-red-600" style={{ gap: 4, fontSize: TYPE.caption }}>
+                      <div className="bg-red-500" style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill }} />
+                      {TRAINING_COMPLIANCE.filter(t => t.status === 'overdue').length} Overdue
+                    </span>
+                  </div>
+                </div>
+
+                {/* Agent list — only show non-current (issues) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {COACHING_MOMENTS.map((moment, idx) => (
-                    <motion.div
-                      key={idx}
-                      className="flex items-center"
+                  {TRAINING_COMPLIANCE.filter(t => t.status !== 'current').map((agent) => (
+                    <div
+                      key={agent.avatar}
+                      className={`flex items-center transition-colors duration-200 ${agent.status === 'overdue' ? 'hover:bg-red-500/10' : 'hover:bg-gray-200/60'}`}
                       style={{
                         gap: GRID.spacing.sm,
                         padding: GRID.spacing.sm,
                         borderRadius: RADIUS.button,
-                        backgroundColor: COLORS.gray[50],
-                        border: `1px solid ${COLORS.gray[100]}`,
+                        backgroundColor: agent.status === 'overdue' ? 'rgba(239, 68, 68, 0.04)' : COLORS.gray[50],
+                        border: agent.status === 'overdue' ? '1px solid rgba(239, 68, 68, 0.12)' : `1px solid ${COLORS.gray[100]}`,
                       }}
-                      whileHover={{ backgroundColor: COLORS.gray[100], transition: { duration: MOTION.duration.hover } }}
                     >
                       <div
                         className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
                         style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
                       >
-                        {moment.avatar}
+                        {agent.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{moment.agent}</p>
-                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{moment.trigger}</p>
-                      </div>
-                      <Link href={moment.href}>
-                        <motion.button
-                          className="flex items-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 flex-shrink-0"
-                          style={{
-                            fontSize: TYPE.caption,
-                            gap: GRID.unit,
-                            padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                            borderRadius: RADIUS.button,
-                          }}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          {moment.action}
-                        </motion.button>
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* ─── RIGHT COLUMN (38.2%) ─── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
-
-            {/* Top Performers — Gradient Card */}
-            <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
-              {/* Full gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
-              {/* Fibonacci blobs */}
-              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
-
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
-                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
-                      <Trophy className="w-5 h-5 text-amber-200" />
-                    </div>
-                    Leaderboard
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
-                    <Link href="/manager/performance">
-                      View All
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="space-y-2">
-                  {TOP_PERFORMERS.map((agent, idx) => (
-                    <motion.div
-                      key={idx}
-                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                      transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                      className="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer backdrop-blur bg-white/15 hover:bg-white/25"
-                    >
-                      <div className={cn(
-                        "rounded-xl flex items-center justify-center font-bold shadow-lg",
-                        idx === 0 && "bg-gradient-to-br from-yellow-300 to-amber-400 text-amber-900",
-                        idx === 1 && "bg-gradient-to-br from-gray-200 to-gray-400 text-gray-700",
-                        idx === 2 && "bg-gradient-to-br from-amber-600 to-orange-700 text-white",
-                        idx > 2 && "bg-white/30 text-white"
-                      )} style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, fontSize: TYPE.caption }}>
-                        {idx === 0 ? <Trophy className="w-4 h-4" /> : idx + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate text-white" style={{ fontSize: TYPE.meta }}>{agent.name}</p>
-                        <p className="text-white/70 flex items-center gap-1" style={{ fontSize: TYPE.micro }}>
-                          <Zap className="w-3 h-3 text-amber-300" /> Level {agent.level}
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{agent.name}</p>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                          {agent.cert} · {agent.status === 'overdue' ? 'Expired' : 'Expires'} {agent.expires}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-amber-200" style={{ fontSize: TYPE.meta }}>
-                          ${(agent.apWeekly / 1000).toFixed(1)}K
-                        </p>
-                        <p className="text-white/60 font-medium" style={{ fontSize: TYPE.micro }}>AP</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pending Escalations */}
-            <Card
-              className="overflow-hidden border-0"
-              style={{
-                ...GLASS.css.light,
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
-                    <div
-                      className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
-                    >
-                      <AlertTriangle className="w-5 h-5 text-amber-200" />
-                    </div>
-                    Escalations
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
-                    <Link href="/manager/escalations">
-                      View All <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {ESCALATIONS.map((esc, idx) => (
-                    <motion.div
-                      key={idx}
-                      className="flex items-center cursor-pointer"
-                      style={{
-                        gap: GRID.spacing.sm,
-                        padding: GRID.spacing.sm,
-                        borderRadius: RADIUS.button,
-                        backgroundColor: COLORS.gray[50],
-                        border: `1px solid ${COLORS.gray[100]}`,
-                      }}
-                      whileHover={{ backgroundColor: COLORS.gray[100], transition: { duration: MOTION.duration.hover } }}
-                    >
-                      <div
-                        className={esc.priority === 'high' ? 'bg-red-500' : 'bg-amber-500'}
-                        style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill, flexShrink: 0 }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{esc.type}</p>
-                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{esc.agent} · {esc.time}</p>
-                      </div>
-                      <motion.button
-                        className="flex items-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700"
+                      <span
+                        className="font-semibold flex-shrink-0"
                         style={{
-                          fontSize: TYPE.caption,
-                          gap: GRID.unit,
-                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                          borderRadius: RADIUS.button,
+                          fontSize: TYPE.micro,
+                          padding: `2px ${GRID.spacing.xs}px`,
+                          borderRadius: RADIUS.pill,
+                          backgroundColor: agent.status === 'overdue' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                          color: agent.status === 'overdue' ? '#dc2626' : '#d97706',
                         }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.98 }}
                       >
-                        Review
-                        <ChevronRight style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
-                      </motion.button>
-                    </motion.div>
+                        {agent.status === 'overdue' ? 'OVERDUE' : 'EXPIRING'}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
             {/* ─── SALES VELOCITY — Gradient Card ─── */}
-            <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
-              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
 
               <CardHeader className="pb-0 relative z-10">
                 <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
                   <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
-                    <Activity className="w-5 h-5 text-amber-200" />
+                    <Activity className="text-amber-200" size={LAYOUT.icon.md} />
                   </div>
                   Sales Velocity
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10" style={{ padding: GRID.spacing.md }}>
-                {/* Formula visualization */}
                 <div className="flex flex-wrap items-center justify-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.md }}>
                   {[
                     { label: 'Deals', value: '62' },
@@ -906,7 +947,6 @@ export function ManagerDashboard() {
                     ),
                   )}
                 </div>
-                {/* Result */}
                 <div
                   className="text-center bg-white/15 backdrop-blur"
                   style={{
@@ -926,6 +966,7 @@ export function ManagerDashboard() {
               className="overflow-hidden border-0"
               style={{
                 ...GLASS.css.light,
+                border: 'none',
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -936,7 +977,7 @@ export function ManagerDashboard() {
                     className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                     style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                   >
-                    <LineChart className="w-5 h-5 text-amber-200" />
+                    <LineChart className="text-amber-200" size={LAYOUT.icon.md} />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.title }}>Revenue Forecast</p>
@@ -944,7 +985,7 @@ export function ManagerDashboard() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
                   <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.xs}px 0` }}>
-                    <span className="text-gray-500" style={{ fontSize: TYPE.meta }}>Weighted Forecast</span>
+                    <span className="text-gray-500" style={{ fontSize: TYPE.meta }}>Expected Revenue</span>
                     <span className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>$312K</span>
                   </div>
                   <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.xs}px 0` }}>
@@ -975,12 +1016,193 @@ export function ManagerDashboard() {
                 </Link>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Training & Compliance */}
+          {/* ─── RIGHT COLUMN (38.2%) ─── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
+
+            {/* Top Performers — Gradient Card */}
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              {/* Full gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              {/* Fibonacci blobs */}
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
+
+              <CardHeader className="pb-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                      <Trophy className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    Leaderboard
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
+                    <Link href="/manager/team-performance">
+                      View All
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="space-y-2">
+                  {TOP_PERFORMERS.map((agent, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      className="flex items-center gap-3 p-3 transition-all cursor-pointer backdrop-blur bg-white/15 hover:bg-white/25"
+                      style={{ borderRadius: RADIUS.input }}
+                    >
+                      <div className={cn(
+                        "flex items-center justify-center font-bold shadow-lg",
+                        idx === 0 && "bg-gradient-to-br from-yellow-300 to-amber-400 text-amber-900",
+                        idx === 1 && "bg-gradient-to-br from-gray-200 to-gray-400 text-gray-700",
+                        idx === 2 && "bg-gradient-to-br from-amber-600 to-orange-700 text-white",
+                        idx > 2 && "bg-white/30 text-white"
+                      )} style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, fontSize: TYPE.caption, borderRadius: RADIUS.input }}>
+                        {idx === 0 ? <Trophy size={LAYOUT.icon.sm} /> : idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate text-white" style={{ fontSize: TYPE.meta }}>{agent.name}</p>
+                        <p className="text-white/70 flex items-center gap-1" style={{ fontSize: TYPE.micro }}>
+                          <Zap className="text-amber-300" size={LAYOUT.icon.xs} /> Level {agent.level}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-amber-200" style={{ fontSize: TYPE.meta }}>
+                          ${(agent.apWeekly / 1000).toFixed(1)}K
+                        </p>
+                        <p className="text-white/60 font-medium" style={{ fontSize: TYPE.micro }}>AP</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ─── GOAL / QUOTA PROGRESS ─── */}
             <Card
               className="overflow-hidden border-0"
               style={{
                 ...GLASS.css.light,
+                border: 'none',
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
+                <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
+                  <div
+                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
+                    style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                  >
+                    <Target className="text-amber-200" size={LAYOUT.icon.md} />
+                  </div>
+                  Quota Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
+                  {Object.values(QUOTA_PROGRESS).map((q) => {
+                    const pct = Math.round((q.current / q.target) * 100);
+                    const isOnTrack = pct >= 70;
+                    return (
+                      <div key={q.label}>
+                        <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+                          <span className="text-gray-600 font-medium" style={{ fontSize: TYPE.caption }}>{q.label}</span>
+                          <span className="font-bold" style={{ fontSize: TYPE.caption, color: isOnTrack ? '#059669' : '#d97706' }}>
+                            {pct}%
+                          </span>
+                        </div>
+                        {/* Progress bar */}
+                        <div
+                          style={{
+                            width: '100%',
+                            height: 8,
+                            backgroundColor: COLORS.gray[100],
+                            borderRadius: RADIUS.pill,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: MOTION.duration.slow, ease: MOTION.easing }}
+                            style={{
+                              height: '100%',
+                              borderRadius: RADIUS.pill,
+                              background: isOnTrack
+                                ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
+                                : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between" style={{ marginTop: 2 }}>
+                          <span className="text-gray-400" style={{ fontSize: TYPE.micro }}>
+                            {q.label === 'Monthly Revenue' ? `$${(q.current / 1000).toFixed(0)}K` : q.current}
+                          </span>
+                          <span className="text-gray-400" style={{ fontSize: TYPE.micro }}>
+                            {q.label === 'Monthly Revenue' ? `$${(q.target / 1000).toFixed(0)}K` : q.target}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Revenue Summary — Gradient Card */}
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
+
+              <CardHeader className="pb-3 relative z-10">
+                <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                  <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                    <DollarSign className="text-amber-200" size={LAYOUT.icon.md} />
+                  </div>
+                  Revenue Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between bg-white/10 backdrop-blur p-3" style={{ borderRadius: RADIUS.input }}>
+                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Closed Revenue</span>
+                    <span className="font-bold text-white" style={{ fontSize: TYPE.title }}>$124,800</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/10 backdrop-blur p-3" style={{ borderRadius: RADIUS.input }}>
+                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Pending Commissions</span>
+                    <span className="font-bold text-amber-200" style={{ fontSize: TYPE.title }}>$18,720</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white/10 backdrop-blur p-3" style={{ borderRadius: RADIUS.input }}>
+                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Target Remaining</span>
+                    <span className="font-bold text-white/90" style={{ fontSize: TYPE.title }}>$39,200</span>
+                  </div>
+                  <Button
+                    className="w-full font-semibold text-emerald-700 bg-white hover:bg-white/90"
+                    style={{ borderRadius: RADIUS.button }}
+                    asChild
+                  >
+                    <Link href="/manager/reports">
+                      View Reports
+                      <ArrowRight className="ml-2" size={LAYOUT.icon.sm} />
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pending Escalations */}
+            <Card
+              className="overflow-hidden border-0"
+              style={{
+                ...GLASS.css.light,
+                border: 'none',
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -992,86 +1214,134 @@ export function ManagerDashboard() {
                       className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                       style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
-                      <ShieldCheck className="w-5 h-5 text-amber-200" />
+                      <AlertTriangle className="text-amber-200" size={LAYOUT.icon.md} />
                     </div>
-                    Training & Compliance
+                    Escalations
                   </CardTitle>
                   <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
-                    <Link href="/manager/training">
-                      View Details <ChevronRight className="w-4 h-4 ml-1" />
+                    <Link href="/manager/escalations">
+                      View All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
                     </Link>
                   </Button>
                 </div>
               </CardHeader>
               <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
-                  {[
-                    { label: 'Certified Agents', value: '10 of 12', dot: 'bg-emerald-500' },
-                    { label: 'Expiring Soon', value: '2 agents', dot: 'bg-amber-500' },
-                    { label: 'Pending Approval', value: '3 certifications', dot: 'bg-blue-500' },
-                  ].map((item) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                  {ESCALATIONS.map((esc, idx) => (
                     <div
-                      key={item.label}
-                      className="flex items-center justify-between"
-                      style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}
+                      key={idx}
+                      className="flex items-center cursor-pointer transition-colors duration-200 hover:bg-gray-200/60"
+                      style={{
+                        gap: GRID.spacing.sm,
+                        padding: GRID.spacing.sm,
+                        borderRadius: RADIUS.button,
+                        backgroundColor: COLORS.gray[50],
+                        border: 'none',
+                      }}
                     >
-                      <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                        <div
-                          className={item.dot}
-                          style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill, flexShrink: 0 }}
-                        />
-                        <span className="text-gray-600" style={{ fontSize: TYPE.meta }}>{item.label}</span>
+                      <div
+                        className={esc.priority === 'high' ? 'bg-red-500' : 'bg-amber-500'}
+                        style={{ width: GRID.unit, height: GRID.unit, borderRadius: RADIUS.pill, flexShrink: 0 }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{esc.type}</p>
+                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{esc.agent} · {esc.time}</p>
                       </div>
-                      <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
-                        {item.value}
-                      </span>
+                      <motion.button
+                        className="flex items-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700"
+                        style={{
+                          fontSize: TYPE.caption,
+                          gap: GRID.unit,
+                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                          borderRadius: RADIUS.button,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Review
+                        <ChevronRight style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
+                      </motion.button>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Revenue Summary — Gradient Card */}
-            <Card className="overflow-hidden border-0 relative" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
-              {/* Full gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
-              {/* Fibonacci blobs */}
-              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small }} className="absolute top-1/2 right-1/3 bg-teal-300/10 rounded-full blur-lg" />
+            {/* ─── UPCOMING 1:1s — Gradient Card ─── */}
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
 
-              <CardHeader className="pb-3 relative z-10">
-                <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
-                  <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
-                    <DollarSign className="w-5 h-5 text-amber-200" />
-                  </div>
-                  Revenue Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
-                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Closed Revenue</span>
-                    <span className="font-bold text-white" style={{ fontSize: TYPE.title }}>$124,800</span>
-                  </div>
-                  <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
-                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Pending Commissions</span>
-                    <span className="font-bold text-amber-200" style={{ fontSize: TYPE.title }}>$18,720</span>
-                  </div>
-                  <div className="flex items-center justify-between bg-white/10 backdrop-blur rounded-xl p-3">
-                    <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Target Remaining</span>
-                    <span className="font-bold text-white/90" style={{ fontSize: TYPE.title }}>$39,200</span>
-                  </div>
-                  <Button
-                    className="w-full font-semibold text-emerald-700 bg-white hover:bg-white/90"
-                    style={{ borderRadius: RADIUS.button }}
-                    asChild
-                  >
-                    <Link href="/manager/reports">
-                      View Reports
-                      <ArrowRight className="w-4 h-4 ml-2" />
+              <CardHeader className="relative z-10" style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                      <Calendar className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    Upcoming 1:1s
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="text-white/90 hover:text-white hover:bg-white/10" asChild>
+                    <Link href="/manager/development">
+                      All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
                     </Link>
                   </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10" style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                  {UPCOMING_1ON1S.map((meeting) => (
+                    <Link key={meeting.avatar} href="/manager/development">
+                      <div
+                        className="flex items-center cursor-pointer transition-colors duration-200 hover:bg-white/20"
+                        style={{
+                          gap: GRID.spacing.sm,
+                          padding: GRID.spacing.sm,
+                          borderRadius: RADIUS.button,
+                          background: 'rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(255,255,255,0.12)',
+                        }}
+                      >
+                        <div
+                          className="flex items-center justify-center text-white font-bold flex-shrink-0"
+                          style={{
+                            width: LAYOUT.icon.xxl,
+                            height: LAYOUT.icon.xxl,
+                            borderRadius: RADIUS.button,
+                            fontSize: TYPE.meta,
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                          }}
+                        >
+                          {meeting.avatar}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                            <p className="font-semibold text-white" style={{ fontSize: TYPE.meta }}>{meeting.agent}</p>
+                            {meeting.date === 'Today' && (
+                              <span
+                                className="font-semibold"
+                                style={{
+                                  fontSize: TYPE.micro,
+                                  padding: `1px ${GRID.spacing.xs - 2}px`,
+                                  borderRadius: RADIUS.pill,
+                                  backgroundColor: 'rgba(255,255,255,0.25)',
+                                  color: '#ffffff',
+                                }}
+                              >
+                                TODAY
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-white/70" style={{ fontSize: TYPE.caption }}>{meeting.topic}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-semibold text-white" style={{ fontSize: TYPE.caption }}>{meeting.date}</p>
+                          <p className="text-white/60" style={{ fontSize: TYPE.micro }}>{meeting.time}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -1081,6 +1351,7 @@ export function ManagerDashboard() {
               className="overflow-hidden border-0"
               style={{
                 ...GLASS.css.light,
+                border: 'none',
                 borderRadius: RADIUS.card,
                 boxShadow: SHADOW.card,
               }}
@@ -1091,7 +1362,7 @@ export function ManagerDashboard() {
                     className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                     style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                   >
-                    <Zap className="w-5 h-5 text-amber-200" />
+                    <Zap className="text-amber-200" size={LAYOUT.icon.md} />
                   </div>
                   <span className="text-gray-900">Team Activity</span>
                 </CardTitle>
@@ -1125,8 +1396,208 @@ export function ManagerDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* ─── TEAM HEALTH SCORE ─── */}
+            <Card className="overflow-hidden border-0 relative transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.2)]" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.large, height: CARD_BLOBS.large, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.medium, height: CARD_BLOBS.medium, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+              <div style={{ width: CARD_BLOBS.small, height: CARD_BLOBS.small, borderRadius: RADIUS.pill }} className="absolute top-1/2 right-1/3 bg-teal-300/10 blur-lg pointer-events-none" />
+              <CardHeader className="pb-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-white" style={{ fontSize: TYPE.title }}>
+                    <div className="bg-white/20 backdrop-blur flex items-center justify-center" style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}>
+                      <Activity className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    Team Health
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                {/* Circular gauge with score centered inside */}
+                <div className="flex items-center justify-center" style={{ marginBottom: GRID.spacing.md }}>
+                  <div className="relative" style={{ width: 160, height: 160 }}>
+                    {/* SVG ring gauge */}
+                    <svg viewBox="0 0 160 160" width={160} height={160}>
+                      {/* Track */}
+                      <circle
+                        cx={80} cy={80} r={64}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.15)"
+                        strokeWidth={12}
+                        strokeLinecap="round"
+                      />
+                      {/* Filled arc */}
+                      <circle
+                        cx={80} cy={80} r={64}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.9)"
+                        strokeWidth={12}
+                        strokeLinecap="round"
+                        strokeDasharray={`${(TEAM_HEALTH.score / 100) * 2 * Math.PI * 64} ${2 * Math.PI * 64}`}
+                        transform="rotate(-90 80 80)"
+                        style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.4))' }}
+                      />
+                    </svg>
+                    {/* Centered score + grade */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="font-bold text-white" style={{ fontSize: 36, lineHeight: 1 }}>
+                        {TEAM_HEALTH.score}
+                      </span>
+                      <span className="font-semibold text-white/70" style={{ fontSize: TYPE.meta, marginTop: 2 }}>
+                        {TEAM_HEALTH.grade}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {/* Factor bars */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
+                  {TEAM_HEALTH.factors.map((f) => (
+                    <div key={f.label}>
+                      <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+                        <span className="text-white/80 font-medium" style={{ fontSize: TYPE.caption }}>{f.label}</span>
+                        <span className="font-bold text-white" style={{ fontSize: TYPE.caption }}>
+                          {f.value}%
+                        </span>
+                      </div>
+                      <div className="w-full" style={{ height: 6, borderRadius: RADIUS.pill, backgroundColor: 'rgba(255,255,255,0.15)' }}>
+                        <div
+                          style={{
+                            height: 6,
+                            borderRadius: RADIUS.pill,
+                            width: `${f.value}%`,
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            transition: 'width 0.6s ease',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ─── GOAL PROGRESS ─── */}
+            <Card
+              className="overflow-hidden border-0"
+              style={{
+                ...GLASS.css.light,
+                border: 'none',
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-semibold flex items-center gap-3 text-gray-900" style={{ fontSize: TYPE.title }}>
+                    <div
+                      className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                    >
+                      <Target className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    Goal Progress
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
+                    <Link href="/manager/goals">
+                      View All <ChevronRight className="ml-1" size={LAYOUT.icon.sm} />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
+                  {TEAM_GOALS.map((goal) => {
+                    const status = GOAL_STATUS_STYLES[goal.status];
+                    return (
+                      <div key={goal.id}>
+                        <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs / 2 }}>
+                          <span className="font-medium text-gray-800" style={{ fontSize: TYPE.meta }}>
+                            {goal.title}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: TYPE.micro,
+                              fontWeight: 600,
+                              padding: '2px 8px',
+                              borderRadius: RADIUS.pill,
+                              backgroundColor: status.bg,
+                              color: status.text,
+                            }}
+                          >
+                            {status.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                          <div
+                            style={{
+                              flex: 1,
+                              height: 8,
+                              borderRadius: RADIUS.pill,
+                              backgroundColor: COLORS.gray[100],
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${goal.progress}%` }}
+                              transition={{ duration: 0.8, ease: MOTION.easing }}
+                              style={{
+                                height: '100%',
+                                borderRadius: RADIUS.pill,
+                                background: goal.status === 'on_track'
+                                  ? 'linear-gradient(90deg, #10b981, #059669)'
+                                  : goal.status === 'at_risk'
+                                    ? 'linear-gradient(90deg, #f59e0b, #d97706)'
+                                    : 'linear-gradient(90deg, #fb7185, #e11d48)',
+                              }}
+                            />
+                          </div>
+                          <span className="font-semibold text-gray-600" style={{ fontSize: TYPE.caption, minWidth: 32 }}>
+                            {goal.progress}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ─── NEED HELP? ─── */}
+            <div
+              className="text-center"
+              style={{
+                padding: GRID.spacing.md,
+                borderRadius: RADIUS.card,
+                backgroundColor: 'rgba(16, 185, 129, 0.04)',
+                border: '1px solid rgba(16, 185, 129, 0.1)',
+              }}
+            >
+              <p className="font-semibold text-emerald-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>
+                Need help?
+              </p>
+              <div className="flex items-center justify-center" style={{ gap: GRID.spacing.sm }}>
+                <a
+                  href="tel:6307780800"
+                  className="font-semibold text-emerald-600 hover:text-emerald-800 transition-colors"
+                  style={{ fontSize: TYPE.meta }}
+                >
+                  (630) 778-0800
+                </a>
+                <span className="text-emerald-300" style={{ fontSize: TYPE.meta }}>|</span>
+                <a
+                  href="mailto:support@goldcoastfnl.com"
+                  className="font-semibold text-emerald-600 hover:text-emerald-800 transition-colors"
+                  style={{ fontSize: TYPE.meta }}
+                >
+                  Email Support
+                </a>
+              </div>
+            </div>
           </div>
         </motion.div>
+
       </motion.div>
     </ManagerLoungeLayout>
   );

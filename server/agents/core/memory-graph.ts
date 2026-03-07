@@ -24,6 +24,8 @@ export enum NodeType {
   DOCUMENT = 'DOCUMENT',
   TASK = 'TASK',
   NOTE = 'NOTE',
+  GOVERNANCE_TASK = 'GOVERNANCE_TASK',
+  CHANGE_CHAIN = 'CHANGE_CHAIN',
 }
 
 // ─── Edge Types ──────────────────────────────────────────────────
@@ -40,6 +42,8 @@ export enum EdgeType {
   RELATED_TO = 'RELATED_TO',
   TRIGGERED_BY = 'TRIGGERED_BY',
   RESULTED_IN = 'RESULTED_IN',
+  GOVERNANCE_ASSIGNED_TO = 'GOVERNANCE_ASSIGNED_TO',
+  GOVERNANCE_DEPENDS_ON = 'GOVERNANCE_DEPENDS_ON',
 }
 
 // ─── Graph Node ──────────────────────────────────────────────────

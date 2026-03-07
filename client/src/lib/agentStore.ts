@@ -253,6 +253,111 @@ export interface Achievement {
   category: 'sales' | 'training' | 'streak' | 'milestone';
 }
 
+// ===== IDEAS & FEEDBACK =====
+export type IdeaCategory = 'product_idea' | 'process_improvement' | 'bug_report' | 'feature_request' | 'general_feedback';
+export type IdeaStatus = 'submitted' | 'under_review' | 'planned' | 'implemented' | 'declined';
+export type IdeaPriority = 'low' | 'medium' | 'high' | 'critical';
+
+export interface AgentIdea {
+  id: string;
+  title: string;
+  description: string;
+  category: IdeaCategory;
+  priority: IdeaPriority;
+  status: IdeaStatus;
+  submittedBy: string;
+  submittedByName: string;
+  submittedDate: string;
+  upvotes: string[];
+  adminResponse?: string;
+  adminRespondedDate?: string;
+}
+
+// ===== BOOK OF BUSINESS =====
+export type ClientStatus = 'pending' | 'active' | 'chargeback';
+
+export interface Beneficiary {
+  id: string;
+  name: string;
+  relationship: string;
+  percentage: number;
+}
+
+export interface MedicalInfo {
+  tobaccoUse: boolean;
+  healthConditions?: string;
+  medications?: string;
+  height?: string;
+  weight?: string;
+}
+
+export interface BookOfBusinessClient {
+  id: string;
+  leadId?: string;
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth?: string;
+  ssn?: string;
+  state?: string;
+  idType?: 'drivers_license' | 'state_id';
+  idNumber?: string;
+  idState?: string;
+  idExpiration?: string;
+  bankName?: string;
+  bankRoutingNumber?: string;
+  bankAccountNumber?: string;
+  beneficiaries?: Beneficiary[];
+  medicalInfo?: MedicalInfo;
+  policyNumber: string;
+  policyType: string;
+  carrier: string;
+  coverageAmount: number;
+  monthlyPremium: number;
+  draftDate?: string;
+  commissionRate?: number;
+  policyEffectiveDate: string;
+  policyExpirationDate?: string;
+  policyDocumentUrl?: string;
+  notes?: string;
+  clientStatus: ClientStatus;
+  chargebackDate?: string;
+  chargebackReason?: string;
+  lastContactDate?: string;
+  nextFollowUpDate?: string;
+  activityHistory: ActivityLog[];
+  agentId: string;
+  addedDate: string;
+}
+
+// ===== RECRUITING =====
+export type RecruitingStage = 'prospect' | 'contacted' | 'applied' | 'interviewing' | 'onboarding' | 'active';
+export type RecruitApproach = 'warm_lead' | 'cold_outreach' | 'referral';
+
+export interface RecruitProspect {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string;
+  source: string;
+  approach: RecruitApproach;
+  stage: RecruitingStage;
+  lastContactDate?: string;
+  nextStepDate?: string;
+  nextStepDescription?: string;
+  recruitedBy: string;
+  addedDate: string;
+  stageHistory: Array<{ id: string; from: RecruitingStage; to: RecruitingStage; date: string; notes?: string }>;
+}
+
+export interface ReferralLink {
+  code: string;
+  url: string;
+  clicks: number;
+  conversions: number;
+}
+
 export interface QuoteVersion {
   id: string;
   version: number;
@@ -1373,6 +1478,48 @@ CLOSE:
   }
 ];
 
+// ===== IDEAS DEMO DATA =====
+const DEMO_IDEAS: AgentIdea[] = [
+  { id: 'idea-1', title: 'Mobile app for client check-ins', description: 'A simple mobile app where clients can check their policy status, make payments, and message their agent directly.', category: 'product_idea', priority: 'high', status: 'planned', submittedBy: 'agent-1', submittedByName: 'Sarah Mitchell', submittedDate: '2026-02-15', upvotes: ['agent-1', 'agent-2', 'agent-3', 'agent-4', 'agent-5'] },
+  { id: 'idea-2', title: 'Automated birthday greetings', description: 'Send automated birthday emails/texts to clients with a personal touch. Would help retention and cross-sell opportunities.', category: 'process_improvement', priority: 'medium', status: 'implemented', submittedBy: 'agent-2', submittedByName: 'Marcus Chen', submittedDate: '2026-01-20', upvotes: ['agent-1', 'agent-3', 'agent-6'], adminResponse: 'Great idea! This has been added to the automation engine.', adminRespondedDate: '2026-02-01' },
+  { id: 'idea-3', title: 'Quote comparison side-by-side view', description: 'Allow agents to compare quotes from multiple carriers side by side for the same client. Makes it easier to present options.', category: 'feature_request', priority: 'high', status: 'under_review', submittedBy: 'agent-3', submittedByName: 'Emily Davis', submittedDate: '2026-02-28', upvotes: ['agent-1', 'agent-2', 'agent-4', 'agent-5', 'agent-6', 'agent-7'] },
+  { id: 'idea-4', title: 'Lead inbox sorting by premium potential', description: 'Add ability to sort leads by estimated premium value so agents can prioritize high-value opportunities.', category: 'feature_request', priority: 'medium', status: 'submitted', submittedBy: 'agent-4', submittedByName: 'Alex Johnson', submittedDate: '2026-03-01', upvotes: ['agent-2', 'agent-5'] },
+  { id: 'idea-5', title: 'Weekly team standup template', description: 'Create a standardized template for weekly team standups that tracks wins, blockers, and goals.', category: 'process_improvement', priority: 'low', status: 'submitted', submittedBy: 'agent-5', submittedByName: 'Jordan Taylor', submittedDate: '2026-03-03', upvotes: ['agent-1'] },
+  { id: 'idea-6', title: 'Client document upload portal', description: 'Allow clients to upload required documents (ID, medical records) directly through a secure portal instead of email.', category: 'product_idea', priority: 'high', status: 'under_review', submittedBy: 'agent-1', submittedByName: 'Sarah Mitchell', submittedDate: '2026-02-20', upvotes: ['agent-2', 'agent-3', 'agent-4'] },
+  { id: 'idea-7', title: 'Fix calendar sync with Google', description: 'Google Calendar sync sometimes duplicates appointments. Need to investigate and fix the integration.', category: 'bug_report', priority: 'critical', status: 'planned', submittedBy: 'agent-6', submittedByName: 'Rachel Kim', submittedDate: '2026-02-25', upvotes: ['agent-1', 'agent-2', 'agent-3'] },
+];
+
+// ===== BOOK OF BUSINESS DEMO DATA =====
+const DEMO_BOOK_OF_BUSINESS: BookOfBusinessClient[] = [
+  { id: 'bob-1', leadId: 'lead-1', name: 'Robert Thompson', email: 'robert.t@email.com', phone: '(555) 123-4567', dateOfBirth: '1985-06-15', ssn: '412-68-4567', state: 'FL', idType: 'drivers_license', idNumber: 'T123-456-85-061', idState: 'FL', idExpiration: '2028-06-15', bankName: 'Chase Bank', bankRoutingNumber: '021000021', bankAccountNumber: '384729104892', beneficiaries: [{ id: 'ben-1', name: 'Sarah Thompson', relationship: 'Spouse', percentage: 70 }, { id: 'ben-2', name: 'Emily Thompson', relationship: 'Daughter', percentage: 30 }], medicalInfo: { tobaccoUse: false, height: '5\'11"', weight: '185 lbs', healthConditions: 'None', medications: 'None' }, policyNumber: 'POL-2026-001', policyType: 'Term Life', carrier: 'Pacific Life', coverageAmount: 500000, monthlyPremium: 89.50, draftDate: '15', commissionRate: 75, policyEffectiveDate: '2026-01-15', policyExpirationDate: '2046-01-15', notes: 'Prefers communication by email. Has 2 dependents.', clientStatus: 'active', lastContactDate: '2026-02-28', activityHistory: [{ id: 'a1', type: 'call', notes: 'Annual review call - client satisfied', date: '2026-02-28', agentId: 'agent-1' }], agentId: 'agent-1', addedDate: '2026-01-15' },
+  { id: 'bob-2', name: 'Maria Garcia', email: 'maria.g@email.com', phone: '(555) 234-5678', dateOfBirth: '1978-11-22', ssn: '538-21-5678', state: 'TX', idType: 'drivers_license', idNumber: '28473651', idState: 'TX', idExpiration: '2027-11-22', bankName: 'Bank of America', bankRoutingNumber: '111000025', bankAccountNumber: '629184037231', beneficiaries: [{ id: 'ben-3', name: 'Carlos Garcia', relationship: 'Spouse', percentage: 100 }], medicalInfo: { tobaccoUse: false, height: '5\'4"', weight: '140 lbs', healthConditions: 'Mild asthma', medications: 'Albuterol inhaler (as needed)' }, policyNumber: 'POL-2026-002', policyType: 'Whole Life', carrier: 'MassMutual', coverageAmount: 250000, monthlyPremium: 345.00, draftDate: '1', commissionRate: 105, policyEffectiveDate: '2026-02-01', notes: 'Business owner, interested in cash value growth.', clientStatus: 'active', lastContactDate: '2026-03-01', activityHistory: [{ id: 'a2', type: 'email', notes: 'Sent policy documents', date: '2026-02-01', agentId: 'agent-1' }], agentId: 'agent-1', addedDate: '2026-02-01' },
+  { id: 'bob-3', name: 'James Wilson', email: 'j.wilson@email.com', phone: '(555) 345-6789', dateOfBirth: '1990-03-08', ssn: '623-44-6789', state: 'CA', idType: 'drivers_license', idNumber: 'W1234567', idState: 'CA', idExpiration: '2029-03-08', bankName: 'Wells Fargo', bankRoutingNumber: '121000248', bankAccountNumber: '7301948256', beneficiaries: [{ id: 'ben-4', name: 'Linda Wilson', relationship: 'Mother', percentage: 50 }, { id: 'ben-5', name: 'Mark Wilson', relationship: 'Brother', percentage: 50 }], medicalInfo: { tobaccoUse: false, height: '6\'1"', weight: '195 lbs' }, policyNumber: 'POL-2026-003', policyType: 'IUL', carrier: 'Nationwide', coverageAmount: 750000, monthlyPremium: 520.00, draftDate: '20', commissionRate: 90, policyEffectiveDate: '2026-01-20', clientStatus: 'active', lastContactDate: '2026-02-15', activityHistory: [], agentId: 'agent-1', addedDate: '2026-01-20' },
+  { id: 'bob-4', name: 'Angela Brown', email: 'a.brown@email.com', phone: '(555) 456-7890', dateOfBirth: '1955-09-30', ssn: '251-73-7890', state: 'GA', idType: 'state_id', idNumber: '045678901', idState: 'GA', idExpiration: '2027-09-30', bankName: 'SunTrust', bankRoutingNumber: '061000104', bankAccountNumber: '501384729', beneficiaries: [{ id: 'ben-6', name: 'Terrence Brown', relationship: 'Son', percentage: 50 }, { id: 'ben-7', name: 'Keisha Brown', relationship: 'Daughter', percentage: 50 }], medicalInfo: { tobaccoUse: false, height: '5\'6"', weight: '165 lbs', healthConditions: 'Type 2 Diabetes, Hypertension', medications: 'Metformin 500mg, Lisinopril 10mg' }, policyNumber: 'POL-2026-004', policyType: 'Final Expense', carrier: 'Mutual of Omaha', coverageAmount: 25000, monthlyPremium: 65.00, draftDate: '10', commissionRate: 110, policyEffectiveDate: '2026-02-10', notes: 'Fixed income, called from mailer campaign.', clientStatus: 'pending', lastContactDate: '2026-03-02', activityHistory: [], agentId: 'agent-1', addedDate: '2026-02-10' },
+  { id: 'bob-5', name: 'David Kim', email: 'd.kim@email.com', phone: '(555) 567-8901', dateOfBirth: '1992-01-17', ssn: '078-35-8901', state: 'NY', idType: 'drivers_license', idNumber: '519-284-792', idState: 'NY', idExpiration: '2028-01-17', bankName: 'Citibank', bankRoutingNumber: '021000089', bankAccountNumber: '4829301756', policyNumber: 'POL-2026-005', policyType: 'Mortgage Protection', carrier: 'Transamerica', coverageAmount: 400000, monthlyPremium: 125.00, draftDate: '5', commissionRate: 80, policyEffectiveDate: '2026-01-05', clientStatus: 'chargeback', chargebackDate: '2026-02-20', chargebackReason: 'Client cancelled within free look period', lastContactDate: '2026-02-20', activityHistory: [{ id: 'a3', type: 'call', notes: 'Client decided to cancel - financial hardship', date: '2026-02-20', agentId: 'agent-1' }], agentId: 'agent-1', addedDate: '2026-01-05' },
+  { id: 'bob-6', name: 'Lisa Chen', email: 'l.chen@email.com', phone: '(555) 678-9012', dateOfBirth: '1988-07-04', ssn: '614-52-9012', state: 'WA', idType: 'drivers_license', idNumber: 'CHENLA461BQ', idState: 'WA', idExpiration: '2030-07-04', bankName: 'US Bank', bankRoutingNumber: '125000024', bankAccountNumber: '1038295561', beneficiaries: [{ id: 'ben-8', name: 'Wei Chen', relationship: 'Spouse', percentage: 100 }], medicalInfo: { tobaccoUse: false, height: '5\'5"', weight: '125 lbs', healthConditions: 'None', medications: 'None' }, policyNumber: 'POL-2026-006', policyType: 'Term Life', carrier: 'Banner Life', coverageAmount: 1000000, monthlyPremium: 142.00, draftDate: '1', commissionRate: 75, policyEffectiveDate: '2026-03-01', clientStatus: 'pending', lastContactDate: '2026-03-04', activityHistory: [], agentId: 'agent-1', addedDate: '2026-03-01' },
+  { id: 'bob-7', name: 'Michael Davis', email: 'm.davis@email.com', phone: '(555) 789-0123', dateOfBirth: '1970-12-25', ssn: '329-86-0123', state: 'IL', idType: 'drivers_license', idNumber: 'D600-1225-7012', idState: 'IL', idExpiration: '2028-12-25', bankName: 'Wells Fargo', bankRoutingNumber: '071000013', bankAccountNumber: '8204613390', beneficiaries: [{ id: 'ben-9', name: 'Patricia Davis', relationship: 'Spouse', percentage: 60 }, { id: 'ben-10', name: 'Michael Davis Jr.', relationship: 'Son', percentage: 40 }], medicalInfo: { tobaccoUse: true, height: '5\'10"', weight: '210 lbs', healthConditions: 'High cholesterol', medications: 'Atorvastatin 20mg' }, policyNumber: 'POL-2026-007', policyType: 'Annuity', carrier: 'Athene', coverageAmount: 100000, monthlyPremium: 833.33, draftDate: '1', commissionRate: 6, policyEffectiveDate: '2025-12-01', notes: 'Retirement planning focus. Rolling over 401k.', clientStatus: 'active', lastContactDate: '2026-02-10', activityHistory: [{ id: 'a4', type: 'meeting', notes: 'Quarterly review meeting', date: '2026-02-10', agentId: 'agent-1' }], agentId: 'agent-1', addedDate: '2025-12-01' },
+  { id: 'bob-8', name: 'Jennifer Lopez', email: 'j.lopez@email.com', phone: '(555) 890-1234', dateOfBirth: '1982-04-11', ssn: '457-19-1234', state: 'AZ', idType: 'drivers_license', idNumber: 'D08421234', idState: 'AZ', idExpiration: '2029-04-11', bankName: 'TD Bank', bankRoutingNumber: '031101266', bankAccountNumber: '2749058812', beneficiaries: [{ id: 'ben-11', name: 'Anthony Lopez', relationship: 'Spouse', percentage: 50 }, { id: 'ben-12', name: 'Sofia Lopez', relationship: 'Daughter', percentage: 25 }, { id: 'ben-13', name: 'Diego Lopez', relationship: 'Son', percentage: 25 }], medicalInfo: { tobaccoUse: false, height: '5\'7"', weight: '145 lbs', healthConditions: 'None', medications: 'Birth control' }, policyNumber: 'POL-2026-008', policyType: 'Whole Life', carrier: 'New York Life', coverageAmount: 500000, monthlyPremium: 675.00, draftDate: '15', commissionRate: 105, policyEffectiveDate: '2026-02-15', clientStatus: 'active', lastContactDate: '2026-03-03', activityHistory: [], agentId: 'agent-1', addedDate: '2026-02-15' },
+  { id: 'bob-9', name: 'Carlos Martinez', email: 'c.martinez@email.com', phone: '(555) 901-2345', dateOfBirth: '1995-08-20', ssn: '583-40-2345', state: 'NV', idType: 'state_id', idNumber: 'NV-9284710', idState: 'NV', idExpiration: '2029-08-20', bankName: 'Capital One', bankRoutingNumber: '051405515', bankAccountNumber: '3810294756', medicalInfo: { tobaccoUse: false, height: '5\'9"', weight: '170 lbs' }, policyNumber: 'POL-2026-009', policyType: 'Term Life', carrier: 'Protective Life', coverageAmount: 300000, monthlyPremium: 55.00, draftDate: '3', commissionRate: 75, policyEffectiveDate: '2026-03-03', clientStatus: 'pending', lastContactDate: '2026-03-04', activityHistory: [], agentId: 'agent-1', addedDate: '2026-03-03' },
+];
+
+// ===== RECRUITING DEMO DATA =====
+const DEMO_RECRUIT_PROSPECTS: RecruitProspect[] = [
+  { id: 'rec-1', name: 'Tyler Brooks', email: 'tyler.b@email.com', phone: '(555) 111-2222', notes: 'Former real estate agent, interested in insurance career', source: 'LinkedIn', approach: 'warm_lead', stage: 'interviewing', lastContactDate: '2026-03-02', nextStepDate: '2026-03-06', nextStepDescription: 'Final interview with manager', recruitedBy: 'agent-1', addedDate: '2026-02-10', stageHistory: [{ id: 'sh-1', from: 'prospect', to: 'contacted', date: '2026-02-12', notes: 'Initial call' }, { id: 'sh-2', from: 'contacted', to: 'applied', date: '2026-02-18' }, { id: 'sh-3', from: 'applied', to: 'interviewing', date: '2026-02-25' }] },
+  { id: 'rec-2', name: 'Amanda Price', email: 'a.price@email.com', phone: '(555) 222-3333', notes: 'Referred by existing agent Marcus Chen', source: 'Agent Referral', approach: 'referral', stage: 'applied', lastContactDate: '2026-03-01', nextStepDate: '2026-03-07', nextStepDescription: 'Schedule phone screen', recruitedBy: 'agent-1', addedDate: '2026-02-20', stageHistory: [{ id: 'sh-4', from: 'prospect', to: 'contacted', date: '2026-02-22' }, { id: 'sh-5', from: 'contacted', to: 'applied', date: '2026-02-28' }] },
+  { id: 'rec-3', name: 'Derek Washington', email: 'd.wash@email.com', phone: '(555) 333-4444', source: 'Job Fair', approach: 'cold_outreach', stage: 'contacted', lastContactDate: '2026-02-28', nextStepDate: '2026-03-05', nextStepDescription: 'Follow up call', recruitedBy: 'agent-1', addedDate: '2026-02-25', stageHistory: [{ id: 'sh-6', from: 'prospect', to: 'contacted', date: '2026-02-28' }] },
+  { id: 'rec-4', name: 'Samantha Reed', email: 's.reed@email.com', phone: '(555) 444-5555', notes: 'Has Series 6 license, looking to transition', source: 'Indeed', approach: 'cold_outreach', stage: 'prospect', recruitedBy: 'agent-1', addedDate: '2026-03-01', stageHistory: [] },
+  { id: 'rec-5', name: 'Kevin Patel', email: 'k.patel@email.com', phone: '(555) 555-6666', notes: 'Successfully onboarded, completing training', source: 'Referral', approach: 'referral', stage: 'onboarding', lastContactDate: '2026-03-03', recruitedBy: 'agent-1', addedDate: '2026-01-15', stageHistory: [{ id: 'sh-7', from: 'prospect', to: 'contacted', date: '2026-01-18' }, { id: 'sh-8', from: 'contacted', to: 'applied', date: '2026-01-22' }, { id: 'sh-9', from: 'applied', to: 'interviewing', date: '2026-01-28' }, { id: 'sh-10', from: 'interviewing', to: 'onboarding', date: '2026-02-10' }] },
+  { id: 'rec-6', name: 'Natalie Gomez', email: 'n.gomez@email.com', phone: '(555) 666-7777', source: 'Social Media', approach: 'warm_lead', stage: 'active', lastContactDate: '2026-03-01', recruitedBy: 'agent-1', addedDate: '2025-11-15', stageHistory: [{ id: 'sh-11', from: 'prospect', to: 'contacted', date: '2025-11-18' }, { id: 'sh-12', from: 'contacted', to: 'applied', date: '2025-11-25' }, { id: 'sh-13', from: 'applied', to: 'interviewing', date: '2025-12-02' }, { id: 'sh-14', from: 'interviewing', to: 'onboarding', date: '2025-12-15' }, { id: 'sh-15', from: 'onboarding', to: 'active', date: '2026-01-10' }] },
+  { id: 'rec-7', name: 'Brian Foster', email: 'b.foster@email.com', phone: '(555) 777-8888', notes: 'Met at insurance conference', source: 'Conference', approach: 'warm_lead', stage: 'prospect', recruitedBy: 'agent-1', addedDate: '2026-03-04', stageHistory: [] },
+];
+
+const DEMO_REFERRAL_LINK: ReferralLink = {
+  code: 'HERITAGE-SM2026',
+  url: 'https://heritagels.org/agents/register?ref=HERITAGE-SM2026',
+  clicks: 47,
+  conversions: 3,
+};
+
 interface AgentStore {
   currentUser: AgentUser | null;
   theme: 'light' | 'dark';
@@ -1391,8 +1538,27 @@ interface AgentStore {
   activities: ActivityItem[];
   dailyChallenges: DailyChallenge[];
   quotes: Quote[];
+  ideas: AgentIdea[];
+  bookOfBusiness: BookOfBusinessClient[];
+  recruitProspects: RecruitProspect[];
+  referralLink: ReferralLink;
   xpGain: { amount: number; reason: string; type: string } | null;
   levelUp: number | null;
+  // Ideas & Feedback
+  submitIdea: (idea: Omit<AgentIdea, 'id' | 'submittedBy' | 'submittedByName' | 'submittedDate' | 'upvotes' | 'status'>) => void;
+  upvoteIdea: (ideaId: string) => void;
+  removeUpvote: (ideaId: string) => void;
+  // Book of Business
+  getBookOfBusinessStats: () => { totalClients: number; activePolicies: number; totalMonthlyPremium: number; chargebackCount: number };
+  addClientToBook: (client: Omit<BookOfBusinessClient, 'id' | 'agentId' | 'addedDate' | 'activityHistory'>) => void;
+  updateClientStatus: (clientId: string, status: ClientStatus, reason?: string) => void;
+  addClientActivity: (clientId: string, activity: Omit<ActivityLog, 'id' | 'date' | 'agentId'>) => void;
+  graduateLeadToBook: (leadId: string) => void;
+  // Recruiting
+  getRecruitingStats: () => { totalRecruited: number; activeDownlines: number; pendingApplications: number; pipelineCount: number };
+  addRecruitProspect: (prospect: Omit<RecruitProspect, 'id' | 'recruitedBy' | 'addedDate' | 'stageHistory' | 'stage'>) => void;
+  updateRecruitStage: (prospectId: string, stage: RecruitingStage, notes?: string) => void;
+  deleteRecruitProspect: (prospectId: string) => void;
   login: (email: string, password: string) => boolean;
   logout: () => void;
   updateProfile: (updates: Partial<Pick<AgentUser, 'name' | 'email' | 'phone'>>) => void;
@@ -1481,8 +1647,192 @@ export const useAgentStore = create<AgentStore>()(
       activities: DEMO_ACTIVITIES,
       dailyChallenges: DEMO_DAILY_CHALLENGES,
       quotes: [],
+      ideas: DEMO_IDEAS,
+      bookOfBusiness: DEMO_BOOK_OF_BUSINESS,
+      recruitProspects: DEMO_RECRUIT_PROSPECTS,
+      referralLink: DEMO_REFERRAL_LINK,
       xpGain: null,
       levelUp: null,
+
+      // ===== IDEAS & FEEDBACK ACTIONS =====
+      submitIdea: (idea) => {
+        const state = get();
+        const newIdea: AgentIdea = {
+          ...idea,
+          id: `idea-${Date.now()}`,
+          submittedBy: state.currentUser?.id || 'agent-1',
+          submittedByName: state.currentUser?.name || 'Agent',
+          submittedDate: new Date().toISOString().split('T')[0],
+          upvotes: [],
+          status: 'submitted',
+        };
+        set({ ideas: [newIdea, ...state.ideas] });
+      },
+      upvoteIdea: (ideaId) => {
+        const state = get();
+        const userId = state.currentUser?.id || 'agent-1';
+        set({
+          ideas: state.ideas.map(idea =>
+            idea.id === ideaId && !idea.upvotes.includes(userId)
+              ? { ...idea, upvotes: [...idea.upvotes, userId] }
+              : idea
+          ),
+        });
+      },
+      removeUpvote: (ideaId) => {
+        const state = get();
+        const userId = state.currentUser?.id || 'agent-1';
+        set({
+          ideas: state.ideas.map(idea =>
+            idea.id === ideaId
+              ? { ...idea, upvotes: idea.upvotes.filter(id => id !== userId) }
+              : idea
+          ),
+        });
+      },
+
+      // ===== BOOK OF BUSINESS ACTIONS =====
+      getBookOfBusinessStats: () => {
+        const state = get();
+        const bob = state.bookOfBusiness;
+        return {
+          totalClients: bob.length,
+          activePolicies: bob.filter(c => c.clientStatus === 'active').length,
+          totalMonthlyPremium: bob.filter(c => c.clientStatus === 'active').reduce((sum, c) => sum + c.monthlyPremium, 0),
+          chargebackCount: bob.filter(c => c.clientStatus === 'chargeback').length,
+        };
+      },
+      addClientToBook: (client) => {
+        const state = get();
+        const newClient: BookOfBusinessClient = {
+          ...client,
+          id: `bob-${Date.now()}`,
+          agentId: state.currentUser?.id || 'agent-1',
+          addedDate: new Date().toISOString().split('T')[0],
+          activityHistory: [],
+        };
+        set({ bookOfBusiness: [newClient, ...state.bookOfBusiness] });
+      },
+      updateClientStatus: (clientId, status, reason) => {
+        const state = get();
+        const client = state.bookOfBusiness.find(c => c.id === clientId);
+        if (!client) return;
+
+        const updatedBook = state.bookOfBusiness.map(c =>
+          c.id === clientId ? {
+            ...c,
+            clientStatus: status,
+            ...(status === 'chargeback' ? { chargebackDate: new Date().toISOString().split('T')[0], chargebackReason: reason } : {}),
+          } : c
+        );
+
+        const updates: Partial<AgentStore> = { bookOfBusiness: updatedBook };
+
+        // Leaderboard connection: active = official closed deal
+        if (status === 'active' && client.clientStatus !== 'active') {
+          updates.performance = { ...state.performance, dailyCloses: state.performance.dailyCloses + 1 };
+          updates.activities = [{
+            id: `act-${Date.now()}`,
+            type: 'deal' as const,
+            agentName: state.currentUser?.name || 'Agent',
+            message: `closed a $${client.coverageAmount.toLocaleString()} ${client.policyType} policy!`,
+            timestamp: 'Just now',
+            highlight: true,
+          }, ...state.activities];
+          set(updates);
+          state.addXP(100, 'Client activated in Book of Business');
+          return;
+        }
+
+        // Chargeback: decrement
+        if (status === 'chargeback' && client.clientStatus === 'active') {
+          updates.performance = { ...state.performance, dailyCloses: Math.max(0, state.performance.dailyCloses - 1) };
+        }
+
+        set(updates);
+      },
+      addClientActivity: (clientId, activity) => {
+        const state = get();
+        const newActivity: ActivityLog = {
+          ...activity,
+          id: `act-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          agentId: state.currentUser?.id || 'agent-1',
+        };
+        set({
+          bookOfBusiness: state.bookOfBusiness.map(c =>
+            c.id === clientId ? { ...c, activityHistory: [newActivity, ...c.activityHistory], lastContactDate: newActivity.date } : c
+          ),
+        });
+      },
+      graduateLeadToBook: (leadId) => {
+        const state = get();
+        const lead = state.leads.find(l => l.id === leadId);
+        if (!lead || lead.status !== 'closed' || lead.policyStatus !== 'issued') return;
+
+        const newClient: BookOfBusinessClient = {
+          id: `bob-${Date.now()}`,
+          leadId: lead.id,
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone,
+          state: lead.state,
+          policyNumber: lead.policyNumber || `POL-${Date.now()}`,
+          policyType: lead.product || 'Term Life',
+          carrier: lead.carrier || 'Unknown',
+          coverageAmount: lead.coverageAmount || 0,
+          monthlyPremium: lead.monthlyPremium || 0,
+          policyEffectiveDate: lead.policyEffectiveDate || new Date().toISOString().split('T')[0],
+          policyExpirationDate: lead.policyExpirationDate,
+          clientStatus: 'pending',
+          lastContactDate: lead.lastContactDate,
+          activityHistory: [],
+          agentId: state.currentUser?.id || 'agent-1',
+          addedDate: new Date().toISOString().split('T')[0],
+        };
+        set({ bookOfBusiness: [newClient, ...state.bookOfBusiness] });
+      },
+
+      // ===== RECRUITING ACTIONS =====
+      getRecruitingStats: () => {
+        const state = get();
+        const prospects = state.recruitProspects;
+        return {
+          totalRecruited: prospects.filter(p => p.stage === 'active').length,
+          activeDownlines: prospects.filter(p => p.stage === 'active').length,
+          pendingApplications: prospects.filter(p => p.stage === 'applied' || p.stage === 'interviewing').length,
+          pipelineCount: prospects.filter(p => p.stage !== 'active').length,
+        };
+      },
+      addRecruitProspect: (prospect) => {
+        const state = get();
+        const newProspect: RecruitProspect = {
+          ...prospect,
+          id: `rec-${Date.now()}`,
+          stage: 'prospect',
+          recruitedBy: state.currentUser?.id || 'agent-1',
+          addedDate: new Date().toISOString().split('T')[0],
+          stageHistory: [],
+        };
+        set({ recruitProspects: [newProspect, ...state.recruitProspects] });
+      },
+      updateRecruitStage: (prospectId, stage, notes) => {
+        const state = get();
+        set({
+          recruitProspects: state.recruitProspects.map(p => {
+            if (p.id !== prospectId) return p;
+            const historyEntry = { id: `sh-${Date.now()}`, from: p.stage, to: stage, date: new Date().toISOString().split('T')[0], notes };
+            return { ...p, stage, stageHistory: [...p.stageHistory, historyEntry], lastContactDate: new Date().toISOString().split('T')[0] };
+          }),
+        });
+        if (stage === 'active') {
+          state.addXP(200, 'New agent recruited!');
+        }
+      },
+      deleteRecruitProspect: (prospectId) => {
+        const state = get();
+        set({ recruitProspects: state.recruitProspects.filter(p => p.id !== prospectId) });
+      },
 
       login: (email: string, password: string) => {
         const user = DEMO_AGENTS.find(a => a.email.toLowerCase() === email.toLowerCase());
@@ -2611,8 +2961,8 @@ ${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider futur
       }
     }),
     {
-      name: 'agent-lounge-storage-v6',
-      version: 1,
+      name: 'agent-lounge-storage-v7',
+      version: 2,
       partialize: (state) => ({
         currentUser: state.currentUser,
         theme: state.theme,
@@ -2620,7 +2970,11 @@ ${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider futur
         leads: state.leads,
         courses: state.courses,
         performance: state.performance,
-        earnings: state.earnings
+        earnings: state.earnings,
+        ideas: state.ideas,
+        bookOfBusiness: state.bookOfBusiness,
+        recruitProspects: state.recruitProspects,
+        referralLink: state.referralLink,
       }),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<AgentStore>;

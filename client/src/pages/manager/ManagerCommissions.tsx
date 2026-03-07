@@ -1,5 +1,5 @@
 /**
- * Manager Commissions — Team Commissions Page
+ * Manager Commissions Page
  * Track earnings, payouts, and commission structures across the team.
  * Heritage Design System — Emerald theme with gold accents
  */
@@ -8,7 +8,17 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
-import { MANAGER_ICON_GRADIENT, DEMO_AGENT_COMMISSIONS, DEMO_PAYOUT_TIMELINE } from './managerConstants';
+import {
+  MANAGER_ICON_GRADIENT,
+  DEMO_AGENT_COMMISSIONS,
+  DEMO_PAYOUT_TIMELINE,
+  glassCard,
+  SPARKLINE_COMMISSIONS_PENDING,
+  SPARKLINE_COMMISSIONS_PAID,
+  SPARKLINE_CLAWBACK,
+  SPARKLINE_CONTRACT_LEVEL,
+} from './managerConstants';
+import { toast } from 'sonner';
 import {
   RADIUS,
   TYPE,
@@ -19,9 +29,10 @@ import {
   COLORS,
   fadeInUp,
   staggerContainer,
+  staggerCards,
 } from '@/lib/heritageDesignSystem';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   DollarSign,
   TrendingUp,
@@ -29,7 +40,7 @@ import {
   Percent,
   ChevronDown,
   ChevronUp,
-  Clock,
+
   Download,
   Calendar,
   BarChart3,
@@ -49,7 +60,7 @@ const sortedAgents = [...DEMO_AGENT_COMMISSIONS].sort((a, b) => b.paidYTD - a.pa
 const totalPending = sortedAgents.reduce((sum, a) => sum + a.pending, 0);
 const totalPaidYTD = sortedAgents.reduce((sum, a) => sum + a.paidYTD, 0);
 const totalClawback = sortedAgents.reduce((sum, a) => sum + a.clawbackRisk, 0);
-const avgRate = sortedAgents.reduce((sum, a) => sum + a.avgRate, 0) / sortedAgents.length;
+const avgContractLevel = Math.round(sortedAgents.reduce((sum, a) => sum + a.contractLevel, 0) / sortedAgents.length);
 
 /* ── Product commission summary (aggregated across agents) ─ */
 
@@ -69,20 +80,50 @@ const productSummary = PRODUCT_NAMES.map((product) => {
   return { product, totalPremium, totalCommission, effectiveRate };
 });
 
-const maxPremium = Math.max(...productSummary.map((p) => p.totalPremium));
-
 /* ── Agents with clawback risk ────────────────────────────── */
 
 const clawbackAgents = sortedAgents.filter((a) => a.clawbackRisk > 0);
 
-/* ── Glass card style ─────────────────────────────────────── */
+/* ── Chart constants ──────────────────────────────────────── */
 
-const glassCardStyle: React.CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.85)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  borderRadius: RADIUS.card,
-  boxShadow: SHADOW.card,
+const CHART_COLORS = {
+  emerald: '#059669',
+  teal: '#0d9488',
+  amber: '#f59e0b',
+  rose: '#fb7185',
+};
+
+const PRODUCT_CHART_DATA = productSummary.map((p) => ({
+  name: p.product,
+  premium: p.totalPremium,
+  commission: p.totalCommission,
+  rate: p.effectiveRate,
+}));
+
+const GlassTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.92)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        borderRadius: RADIUS.button,
+        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+        boxShadow: SHADOW.level2,
+      }}
+    >
+      <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500], margin: 0, marginBottom: 4 }}>
+        {label}
+      </p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} style={{ fontSize: TYPE.meta, fontWeight: 600, color: entry.color, margin: 0 }}>
+          {entry.name}: ${(entry.value / 1000).toFixed(1)}K
+        </p>
+      ))}
+    </div>
+  );
 };
 
 /* ── Component ────────────────────────────────────────────── */
@@ -109,38 +150,54 @@ export function ManagerCommissions() {
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}
+        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
       >
         {/* ── Hero ──────────────────────────────────────────── */}
         <ManagerPageHero
           icon={DollarSign}
-          title="Team Commissions"
-          subtitle="Track earnings, payouts, and commission structures"
+          title="Commissions"
+          subtitle="Earnings, payouts, and commission rates"
         />
 
         {/* ── Stat Cards ────────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
             <ManagerStatCard
               icon={DollarSign}
               value={`$${(totalPending / 1000).toFixed(1)}K`}
               label="Pending"
-              trend={{ value: '8%', positive: true }}
+              sparklineData={[...SPARKLINE_COMMISSIONS_PENDING]}
+              delta={8}
+              deltaFormat="percent"
+              periodLabel="This month"
             />
             <ManagerStatCard
               icon={TrendingUp}
               value={`$${(totalPaidYTD / 1000).toFixed(1)}K`}
               label="Paid YTD"
+              sparklineData={[...SPARKLINE_COMMISSIONS_PAID]}
+              delta={22.4}
+              deltaFormat="percent"
+              periodLabel="Year to date"
+              northStar
             />
             <ManagerStatCard
               icon={AlertTriangle}
               value={`$${(totalClawback / 1000).toFixed(1)}K`}
               label="Clawback Risk"
+              sparklineData={[...SPARKLINE_CLAWBACK]}
+              delta={-15}
+              deltaFormat="percent"
+              periodLabel="vs last month"
             />
             <ManagerStatCard
               icon={Percent}
-              value={`${avgRate.toFixed(1)}%`}
-              label="Avg Rate"
+              value={`${avgContractLevel}%`}
+              label="Avg Contract Level"
+              sparklineData={[...SPARKLINE_CONTRACT_LEVEL]}
+              delta={2.1}
+              deltaFormat="percent"
+              periodLabel="Last 30 days"
             />
           </ManagerStatCardGrid>
         </motion.div>
@@ -183,15 +240,15 @@ export function ManagerCommissions() {
         <motion.div
           variants={fadeInUp}
           className="grid grid-cols-1 lg:grid-cols-[1.618fr_1fr]"
-          style={{ gap: GRID.spacing.lg }}
+          style={{ gap: GRID.spacing.md }}
         >
           {/* ── LEFT COLUMN (61.8%) ─────────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
 
             {/* Agent Commission Table */}
             <Card
-              className="overflow-hidden border-0"
-              style={glassCardStyle}
+              className="overflow-hidden"
+              style={{...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card}}
             >
               <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
                 <CardTitle
@@ -283,7 +340,7 @@ export function ManagerCommissions() {
                                 {agent.name}
                               </p>
                               <p className="text-gray-400 truncate" style={{ fontSize: TYPE.caption }}>
-                                Avg {agent.avgRate}%
+                                {agent.apTier} AP · {agent.contractLevel}% Contract
                               </p>
                             </div>
                           </div>
@@ -387,10 +444,10 @@ export function ManagerCommissions() {
               </CardContent>
             </Card>
 
-            {/* Product Commission Summary */}
+            {/* Product Summary */}
             <Card
-              className="overflow-hidden border-0"
-              style={glassCardStyle}
+              className="overflow-hidden"
+              style={{...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card}}
             >
               <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
                 <CardTitle
@@ -410,72 +467,64 @@ export function ManagerCommissions() {
                       style={{ width: 20, height: 20 }}
                     />
                   </div>
-                  <span className="text-gray-900">Product Commission Summary</span>
+                  <span className="text-gray-900">Product Summary</span>
                 </CardTitle>
               </CardHeader>
 
               <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
-                  {productSummary.map((product) => {
-                    const barPercent = maxPremium > 0 ? (product.totalPremium / maxPremium) * 100 : 0;
-                    return (
-                      <div key={product.product}>
-                        <div
-                          className="flex items-center justify-between"
-                          style={{ marginBottom: GRID.spacing.xs }}
-                        >
-                          <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
-                            {product.product}
-                          </span>
-                          <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
-                            <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
-                              Premium: ${(product.totalPremium / 1000).toFixed(0)}K
-                            </span>
-                            <span className="font-semibold" style={{ fontSize: TYPE.caption, color: '#059669' }}>
-                              Comm: ${(product.totalCommission / 1000).toFixed(1)}K
-                            </span>
-                            <span
-                              className="font-semibold"
-                              style={{
-                                fontSize: TYPE.caption,
-                                color: '#d97706',
-                                minWidth: 44,
-                                textAlign: 'right',
-                              }}
-                            >
-                              {product.effectiveRate.toFixed(1)}%
-                            </span>
-                          </div>
-                        </div>
-                        <div
-                          className="w-full overflow-hidden"
-                          style={{
-                            height: 8,
-                            borderRadius: RADIUS.pill,
-                            backgroundColor: COLORS.gray[100],
-                          }}
-                        >
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${barPercent}%` }}
-                            transition={{ duration: 0.8, ease: MOTION.easing }}
-                            style={{
-                              height: '100%',
-                              borderRadius: RADIUS.pill,
-                              background: 'linear-gradient(90deg, #10b981 0%, #059669 50%, #047857 100%)',
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart
+                    data={PRODUCT_CHART_DATA}
+                    margin={{ top: 4, right: 8, bottom: 0, left: -8 }}
+                    barGap={4}
+                    barSize={24}
+                  >
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: TYPE.caption, fill: COLORS.gray[600], fontWeight: 600 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`}
+                      tick={{ fontSize: TYPE.micro, fill: COLORS.gray[400] }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<GlassTooltip />} />
+                    <Bar
+                      dataKey="premium"
+                      name="Premium"
+                      fill={CHART_COLORS.emerald}
+                      radius={[4, 4, 0, 0]}
+                      opacity={0.85}
+                    />
+                    <Bar
+                      dataKey="commission"
+                      name="Commission"
+                      fill={CHART_COLORS.amber}
+                      radius={[4, 4, 0, 0]}
+                      opacity={0.9}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+                {/* Rate badges below chart */}
+                <div className="flex items-center justify-around" style={{ marginTop: GRID.spacing.xs }}>
+                  {PRODUCT_CHART_DATA.map((p) => (
+                    <div key={p.name} className="text-center">
+                      <span className="font-semibold" style={{ fontSize: TYPE.caption, color: '#d97706' }}>
+                        {p.rate.toFixed(1)}%
+                      </span>
+                      <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>rate</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* ── RIGHT COLUMN (38.2%) ────────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
 
             {/* Payout Timeline — Gradient Card */}
             <div
@@ -484,16 +533,16 @@ export function ManagerCommissions() {
             >
               {/* Fibonacci blobs */}
               <div
-                className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl"
-                style={{ width: 89, height: 89, transform: 'translate(30%, -40%)' }}
+                className="absolute top-0 right-0 bg-white/10 blur-2xl"
+                style={{ width: 89, height: 89, transform: 'translate(30%, -40%)', borderRadius: RADIUS.pill }}
               />
               <div
-                className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl"
-                style={{ width: 55, height: 55, transform: 'translate(-30%, 40%)' }}
+                className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl"
+                style={{ width: 55, height: 55, transform: 'translate(-30%, 40%)', borderRadius: RADIUS.pill }}
               />
               <div
-                className="absolute top-1/2 right-1/4 bg-teal-300/10 rounded-full blur-sm"
-                style={{ width: 34, height: 34 }}
+                className="absolute top-1/2 right-1/4 bg-teal-300/10 blur-sm"
+                style={{ width: 34, height: 34, borderRadius: RADIUS.pill }}
               />
 
               <div className="relative z-10" style={{ padding: GRID.spacing.md }}>
@@ -600,8 +649,8 @@ export function ManagerCommissions() {
 
             {/* Clawback Alerts */}
             <Card
-              className="overflow-hidden border-0"
-              style={glassCardStyle}
+              className="overflow-hidden"
+              style={{...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card}}
             >
               <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
                 <CardTitle
@@ -678,7 +727,7 @@ export function ManagerCommissions() {
                             {agent.name}
                           </p>
                           <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>
-                            Policy lapse risk within 13-month window
+                            Lapse risk (13-month window)
                           </p>
                         </div>
 
@@ -698,8 +747,8 @@ export function ManagerCommissions() {
 
             {/* Export Options */}
             <Card
-              className="overflow-hidden border-0"
-              style={glassCardStyle}
+              className="overflow-hidden"
+              style={{...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card}}
             >
               <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
                 <CardTitle
@@ -726,7 +775,7 @@ export function ManagerCommissions() {
               <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
                 <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
                   <motion.button
-                    onClick={() => {}}
+                    onClick={() => toast.success('Commission report exported as CSV')}
                     className="flex-1 flex items-center justify-center font-medium border-0"
                     style={{
                       background: 'rgba(255, 255, 255, 0.85)',
@@ -748,7 +797,7 @@ export function ManagerCommissions() {
                   </motion.button>
 
                   <motion.button
-                    onClick={() => {}}
+                    onClick={() => toast.success('Commission report exported as PDF')}
                     className="flex-1 flex items-center justify-center font-medium border-0"
                     style={{
                       background: 'rgba(255, 255, 255, 0.85)',

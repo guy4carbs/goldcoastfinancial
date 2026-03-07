@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle, Clock, Calendar, UserPlus, Search,
   Filter, ChevronDown, Phone, Mail, MessageSquare,
-  Users, Inbox
+  Users, Inbox, Briefcase, CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives";
@@ -92,6 +93,7 @@ export default function AgentLeadInbox() {
     addActivityToLead,
     updateLeadFollowUp,
     updateLeadStatus,
+    graduateLeadToBook,
     getOverdueLeads,
     getLeadsDueToday,
     getLeadsDueThisWeek,
@@ -392,6 +394,47 @@ export default function AgentLeadInbox() {
           );
         })}
         </motion.div>
+
+        {/* Closed Leads — Graduate to Book of Business */}
+        {userLeads.filter(l => l.status === 'closed').length > 0 && (
+          <motion.div variants={fadeInUp} className="border-2 border-dashed border-emerald-200 overflow-hidden" style={{ borderRadius: RADIUS.card }}>
+            <div className="flex items-center justify-between p-4" style={{ backgroundColor: `${COLORS.semantic.success}10` }}>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+                <span className="font-semibold text-emerald-700">Closed / Issued</span>
+                <Badge variant="secondary" className="text-xs text-emerald-600">
+                  {userLeads.filter(l => l.status === 'closed').length}
+                </Badge>
+              </div>
+            </div>
+            <div className="p-4 bg-white space-y-3">
+              {userLeads.filter(l => l.status === 'closed').map((lead) => (
+                <div key={lead.id} className="flex items-center justify-between p-3 bg-emerald-50/50 border border-emerald-100" style={{ borderRadius: RADIUS.button }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>{lead.name}</p>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{lead.product} · {lead.phone}</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      graduateLeadToBook(lead.id);
+                      toast.success(`${lead.name} graduated to Book of Business!`);
+                    }}
+                    className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white"
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <Briefcase className="w-4 h-4" /> Graduate to Book
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Lead Detail Drawer */}
       {selectedLead && (

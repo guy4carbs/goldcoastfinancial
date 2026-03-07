@@ -6,7 +6,7 @@
  * Heritage Design System — Emerald theme with gold accents
  */
 
-import { useState, useEffect, type ReactNode } from 'react';
+import React, { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAgentStore } from '@/lib/agentStore';
@@ -19,6 +19,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { NotificationDropdown } from '@/components/agent/NotificationDropdown';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import {
   LayoutDashboard,
   Users,
@@ -55,9 +63,11 @@ import {
   Award,
   ClipboardList,
   CheckSquare,
+  ShieldCheck,
   Building2,
   Activity,
   LineChart,
+  Crosshair,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -72,6 +82,15 @@ import {
   getHoverBg,
 } from '@/lib/heritageDesignSystem';
 import { useManagerTier } from '@/hooks/useManagerTier';
+import { ManagerCommandPalette } from './ManagerCommandPalette';
+import { ContactSupportModal } from './ContactSupportModal';
+import { useManagerAnalytics } from './useManagerAnalytics';
+import { DEMO_TEAM_MEMBERS } from './managerConstants';
+
+// Computed team stats for sidebar performance card
+const TEAM_SIZE = DEMO_TEAM_MEMBERS.length;
+const WEEKLY_AP_TOTAL = DEMO_TEAM_MEMBERS.reduce((sum, m) => sum + m.revenue, 0);
+const TEAM_RANK = 2; // Demo: team rank within org
 
 // ─── CONSTANTS ───
 const SIDEBAR_EXPANDED = LAYOUT.sidebar.expanded;
@@ -110,45 +129,44 @@ interface NavItem {
   href: string;
 }
 
-const commandCenterItems: NavItem[] = [
+// Psychology-driven ordering: People → Money → Urgent → Growth → Admin
+const homeItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/manager/dashboard' },
-  { icon: Activity, label: 'Activity Monitor', href: '/manager/activity-monitor' },
-  { icon: Bell, label: 'Activity Alerts', href: '/manager/alerts' },
-  { icon: FileBarChart, label: 'Reports', href: '/manager/reports' },
+  { icon: Users, label: 'Roster', href: '/manager/team' },
+  { icon: DollarSign, label: 'Commissions', href: '/manager/commissions' },
+  { icon: MessageSquare, label: 'Communications', href: '/manager/communications' },
 ];
 
 const teamItems: NavItem[] = [
-  { icon: Users, label: 'Team Roster', href: '/manager/team' },
-  { icon: UserCheck, label: 'Agent Scorecard', href: '/manager/scorecard' },
-  { icon: Trophy, label: 'Leaderboard', href: '/manager/leaderboard' },
-  { icon: Award, label: 'Promotions & Roster', href: '/manager/promotions' },
-  { icon: Trophy, label: 'Contests & SPIFFs', href: '/manager/contests' },
+  { icon: Trophy, label: 'Performance', href: '/manager/team-performance' },
+  { icon: ClipboardList, label: 'Scorecard', href: '/manager/scorecard' },
+  { icon: Zap, label: 'Onboarding', href: '/manager/onboarding-tracker' },
 ];
 
-const pipelineItems: NavItem[] = [
-  { icon: Target, label: 'Pipeline Overview', href: '/manager/pipeline' },
-  { icon: LineChart, label: 'Forecasting', href: '/manager/forecasting' },
-  { icon: TrendingUp, label: 'Performance', href: '/manager/performance' },
+const revenueItems: NavItem[] = [
+  { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
+
+  { icon: Briefcase, label: 'Retention', href: '/manager/client-health' },
+];
+
+const actionItems: NavItem[] = [
   { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
+  { icon: Activity, label: 'Live Activity', href: '/manager/activity-monitor' },
 ];
 
-const developmentItems: NavItem[] = [
-  { icon: GraduationCap, label: 'Coaching Center', href: '/manager/coaching' },
-  { icon: ClipboardList, label: 'Coaching Logs', href: '/manager/coaching-logs' },
-  { icon: BookOpen, label: 'Training Oversight', href: '/manager/training' },
-  { icon: Calendar, label: 'Team Meetings', href: '/manager/meetings' },
-  { icon: UserCheck, label: '1:1 Meetings', href: '/manager/one-on-ones' },
+const growthItems: NavItem[] = [
+  { icon: GraduationCap, label: 'Coaching', href: '/manager/development' },
+
+  { icon: Crosshair, label: 'Goals', href: '/manager/goals' },
 ];
 
-const operationsItems: NavItem[] = [
-  { icon: MessageSquare, label: 'Communication', href: '/manager/communications' },
-  { icon: DollarSign, label: 'Commissions', href: '/manager/commissions' },
-  { icon: CheckSquare, label: 'Approvals', href: '/manager/approvals' },
-  { icon: Settings, label: 'Settings', href: '/manager/settings' },
+const adminItems: NavItem[] = [
+  { icon: FileBarChart, label: 'Reports', href: '/manager/reports' },
+  { icon: ShieldCheck, label: 'Compliance', href: '/manager/compliance' },
 ];
 
 const directorItems: NavItem[] = [
-  { icon: Building2, label: 'Director Overview', href: '/manager/director' },
+  { icon: Building2, label: 'Director View', href: '/manager/director' },
 ];
 
 // ─── MANAGER THEME ───
@@ -174,6 +192,8 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
     return false;
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [contactSupportOpen, setContactSupportOpen] = useState(false);
   const [location, setLocation] = useLocation();
 
   const {
@@ -187,6 +207,50 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
   } = useAgentStore();
 
   const { isDirector } = useManagerTier();
+
+  const analytics = useManagerAnalytics();
+
+  // All nav items flat for lookups
+  const ALL_NAV_ITEMS = [
+    ...homeItems, ...teamItems, ...revenueItems,
+    ...actionItems, ...growthItems, ...adminItems, ...directorItems,
+  ];
+  const navItemMap = Object.fromEntries(ALL_NAV_ITEMS.map((item: NavItem) => [item.href, item]));
+  const recentPaths = analytics.getRecentlyVisited(4);
+
+  // Breadcrumb derivation for sub-pages
+  const breadcrumbs = (() => {
+    const segments = location.split('/').filter(Boolean);
+    if (segments.length < 3) return [];
+
+    const crumbs: { label: string; href?: string }[] = [];
+    const parentPath = '/' + segments.slice(0, 2).join('/');
+    const parentItem = navItemMap[parentPath];
+
+    const sections = [
+      { title: 'Home', items: homeItems },
+      { title: 'Team', items: teamItems },
+      { title: 'Revenue', items: revenueItems },
+      { title: 'Action Items', items: actionItems },
+      { title: 'Growth', items: growthItems },
+      { title: 'Admin', items: adminItems },
+    ];
+    const sectionMap: Record<string, string> = {};
+    sections.forEach(s => s.items.forEach((item: NavItem) => { sectionMap[item.href] = s.title; }));
+
+    if (parentItem) {
+      const sectionTitle = sectionMap[parentPath];
+      if (sectionTitle) crumbs.push({ label: sectionTitle });
+      crumbs.push({ label: parentItem.label, href: parentItem.href });
+    }
+
+    const detailSegment = segments[2];
+    if (detailSegment) {
+      crumbs.push({ label: detailSegment.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) });
+    }
+
+    return crumbs;
+  })();
 
   // Persist sidebar state
   useEffect(() => {
@@ -205,6 +269,61 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Keyboard shortcut: Cmd/Ctrl + K to open command palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // ─── NAV ITEM RENDERER ───
+  const NavItem = ({ item }: { item: NavItem }) => {
+    const isActive = location === item.href || location.startsWith(item.href + '/');
+    return (
+      <Link key={item.href} href={item.href}>
+        <motion.div
+          whileHover={{
+            x: 2,
+            backgroundColor: isActive ? undefined : getHoverBg(EMERALD[500], 0.08),
+          }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+          className={cn(
+            'flex items-center cursor-pointer transition-all',
+            sidebarCollapsed && 'justify-center',
+          )}
+          style={{
+            gap: GRID.spacing.sm - 4,
+            padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
+            borderRadius: RADIUS.button,
+            minHeight: ROW_HEIGHT,
+            background: isActive
+              ? `linear-gradient(135deg, ${EMERALD[600]} 0%, ${EMERALD[700]} 100%)`
+              : undefined,
+            color: isActive ? 'white' : COLORS.gray[600],
+            boxShadow: isActive ? `${SHADOW.level2}, 0 4px 12px rgba(16, 185, 129, 0.3)` : undefined,
+          }}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <item.icon
+            className="flex-shrink-0"
+            style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }}
+          />
+          {!sidebarCollapsed && (
+            <span className="font-medium flex-1 truncate" style={{ fontSize: TYPE.meta }}>
+              {item.label}
+            </span>
+          )}
+        </motion.div>
+      </Link>
+    );
+  };
+
   // ─── NAV SECTION ───
   const NavSection = ({ title, items }: { title: string; items: NavItem[] }) => (
     <div style={{ marginBottom: GRID.spacing.md }}>
@@ -222,47 +341,9 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
         </p>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs / 2 }}>
-        {items.map((item) => {
-          const isActive = location === item.href || location.startsWith(item.href + '/');
-          return (
-            <Link key={item.href} href={item.href}>
-              <motion.div
-                whileHover={{
-                  x: 2,
-                  backgroundColor: isActive ? undefined : getHoverBg(EMERALD[500], 0.08),
-                }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                className={cn(
-                  'flex items-center cursor-pointer transition-all',
-                  sidebarCollapsed && 'justify-center',
-                )}
-                style={{
-                  gap: GRID.spacing.sm - 4,
-                  padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
-                  borderRadius: RADIUS.button,
-                  minHeight: ROW_HEIGHT,
-                  background: isActive
-                    ? `linear-gradient(135deg, ${EMERALD[600]} 0%, ${EMERALD[700]} 100%)`
-                    : undefined,
-                  color: isActive ? 'white' : COLORS.gray[600],
-                  boxShadow: isActive ? `${SHADOW.level2}, 0 4px 12px rgba(16, 185, 129, 0.3)` : undefined,
-                }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <item.icon
-                  className="flex-shrink-0"
-                  style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }}
-                />
-                {!sidebarCollapsed && (
-                  <span className="font-medium flex-1 truncate" style={{ fontSize: TYPE.meta }}>
-                    {item.label}
-                  </span>
-                )}
-              </motion.div>
-            </Link>
-          );
-        })}
+        {items.map((item) => (
+          <NavItem key={item.href} item={item} />
+        ))}
       </div>
     </div>
   );
@@ -325,13 +406,26 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
               </div>
             </div>
             <div className="flex items-center justify-between" style={{ marginTop: GRID.spacing.xs }}>
-              <div className="flex items-center" style={{ gap: 4 }}>
-                <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>
-                  {(performance.xp || 0).toLocaleString()} AP
-                </span>
-              </div>
+              <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>
+                ${(WEEKLY_AP_TOTAL / 1000).toFixed(0)}K AP
+              </span>
               <span style={{ fontSize: TYPE.caption, color: EMERALD[200] }}>
-                12 agents
+                {TEAM_SIZE} agents
+              </span>
+            </div>
+            <div
+              className="flex items-center justify-between"
+              style={{
+                marginTop: GRID.spacing.xs,
+                paddingTop: GRID.spacing.xs,
+                borderTop: '1px solid rgba(255,255,255,0.15)',
+              }}
+            >
+              <span style={{ fontSize: TYPE.caption, color: 'rgba(255,255,255,0.7)' }}>
+                Team Rank
+              </span>
+              <span className="font-bold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>
+                #{TEAM_RANK}
               </span>
             </div>
           </motion.div>
@@ -340,11 +434,12 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto" style={{ padding: `0 ${GRID.spacing.xs}px` }}>
-        <NavSection title="Command Center" items={commandCenterItems} />
+        <NavSection title="Home" items={homeItems} />
         <NavSection title="Team" items={teamItems} />
-        <NavSection title="Pipeline" items={pipelineItems} />
-        <NavSection title="Development" items={developmentItems} />
-        <NavSection title="Operations" items={operationsItems} />
+        <NavSection title="Revenue" items={revenueItems} />
+        <NavSection title="Action Items" items={actionItems} />
+        <NavSection title="Growth" items={growthItems} />
+        <NavSection title="Admin" items={adminItems} />
         {isDirector && <NavSection title="Director" items={directorItems} />}
       </nav>
 
@@ -357,12 +452,13 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
           padding: `${GRID.spacing.sm}px ${GRID.spacing.xs}px 0`,
         }}
       >
+        {/* Settings */}
         <Link href="/manager/settings">
           <motion.div
             whileHover={{ x: 2, backgroundColor: getHoverBg(EMERALD[500], 0.08) }}
             transition={{ duration: MOTION.duration.hover }}
             className={cn(
-              'flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors',
+              'flex items-center cursor-pointer transition-colors',
               sidebarCollapsed && 'justify-center',
             )}
             style={{
@@ -370,12 +466,76 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
               padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
               borderRadius: RADIUS.button,
               minHeight: ROW_HEIGHT,
+              background: location === '/manager/settings'
+                ? `linear-gradient(135deg, ${EMERALD[500]}, ${EMERALD[600]})`
+                : undefined,
+              color: location === '/manager/settings' ? 'white' : COLORS.gray[600],
+              boxShadow: location === '/manager/settings' ? `${SHADOW.level2}, 0 4px 12px rgba(16, 185, 129, 0.3)` : undefined,
             }}
           >
-            <HelpCircle style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
-            {!sidebarCollapsed && <span className="font-medium" style={{ fontSize: TYPE.meta }}>Help & Support</span>}
+            <Settings style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
+            {!sidebarCollapsed && <span className="font-medium" style={{ fontSize: TYPE.meta }}>Settings</span>}
           </motion.div>
         </Link>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <motion.div
+              whileHover={{ x: 2, backgroundColor: getHoverBg(EMERALD[500], 0.08) }}
+              transition={{ duration: MOTION.duration.hover }}
+              className={cn(
+                'flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors',
+                sidebarCollapsed && 'justify-center',
+              )}
+              style={{
+                gap: GRID.spacing.sm - 4,
+                padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
+                borderRadius: RADIUS.button,
+                minHeight: ROW_HEIGHT,
+              }}
+            >
+              <HelpCircle style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
+              {!sidebarCollapsed && <span className="font-medium" style={{ fontSize: TYPE.meta }}>Help & Support</span>}
+            </motion.div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            side="top"
+            className="w-56 p-1 border-0"
+            style={{
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.hero,
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
+            <DropdownMenuItem
+              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-emerald-50"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+              onClick={() => setLocation('/manager/guide')}
+            >
+              <BookOpen style={{ width: 16, height: 16 }} />
+              Manager Guide
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-emerald-50"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+              onClick={() => setCommandPaletteOpen(true)}
+            >
+              <Search style={{ width: 16, height: 16 }} />
+              <span className="flex-1">Search Commands</span>
+              <kbd className="text-gray-400" style={{ fontSize: TYPE.micro }}>⌘K</kbd>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-emerald-50"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+              onClick={() => setContactSupportOpen(true)}
+            >
+              <MessageSquare style={{ width: 16, height: 16 }} />
+              Contact Support
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );
@@ -501,6 +661,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
               </button>
 
               <button
+                onClick={() => setCommandPaletteOpen(true)}
                 className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
                 style={{
                   gap: GRID.spacing.xs,
@@ -524,6 +685,32 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                   <span>⌘</span>K
                 </kbd>
               </button>
+
+              {/* Breadcrumbs */}
+              {breadcrumbs.length > 0 && (
+                <Breadcrumb className="hidden md:flex">
+                  <BreadcrumbList>
+                    {breadcrumbs.map((crumb, idx) => (
+                      <React.Fragment key={idx}>
+                        {idx > 0 && <BreadcrumbSeparator />}
+                        <BreadcrumbItem>
+                          {idx === breadcrumbs.length - 1 ? (
+                            <BreadcrumbPage style={{ fontSize: TYPE.meta }}>{crumb.label}</BreadcrumbPage>
+                          ) : crumb.href ? (
+                            <BreadcrumbLink asChild>
+                              <Link href={crumb.href}>
+                                <span style={{ fontSize: TYPE.meta }}>{crumb.label}</span>
+                              </Link>
+                            </BreadcrumbLink>
+                          ) : (
+                            <span className="text-gray-400" style={{ fontSize: TYPE.meta }}>{crumb.label}</span>
+                          )}
+                        </BreadcrumbItem>
+                      </React.Fragment>
+                    ))}
+                  </BreadcrumbList>
+                </Breadcrumb>
+              )}
             </div>
 
             {/* Right: Lounge Switcher + Notifications + User + Logout */}
@@ -540,7 +727,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                     }}
                   >
                     <Briefcase style={{ width: 16, height: 16 }} />
-                    <span className="hidden sm:inline text-sm font-medium">Manager</span>
+                    <span className="hidden sm:inline font-medium" style={{ fontSize: TYPE.meta }}>Manager</span>
                     <ChevronDown style={{ width: 14, height: 14 }} className="text-gray-400" />
                   </button>
                 </DropdownMenuTrigger>
@@ -568,19 +755,19 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                           style={{ borderRadius: RADIUS.button }}
                         >
                           <div
-                            className={cn('w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-to-br', lounge.gradient)}
-                            style={{ borderRadius: RADIUS.button }}
+                            className={cn('flex items-center justify-center flex-shrink-0 bg-gradient-to-br', lounge.gradient)}
+                            style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
                           >
-                            <Icon className="w-4 h-4 text-white" />
+                            <Icon className="text-white" size={LAYOUT.icon.sm} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={cn('text-sm font-medium', isActive ? 'text-emerald-700' : 'text-gray-900')}>
+                            <p className={cn('font-medium', isActive ? 'text-emerald-700' : 'text-gray-900')} style={{ fontSize: TYPE.meta }}>
                               {lounge.name}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">{lounge.description}</p>
+                            <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>{lounge.description}</p>
                           </div>
                           {isActive && (
-                            <div className="w-2 h-2 bg-emerald-500 flex-shrink-0" style={{ borderRadius: RADIUS.pill }} />
+                            <div className="bg-emerald-500 flex-shrink-0" style={{ width: 8, height: 8, borderRadius: RADIUS.pill }} />
                           )}
                         </Link>
                       </DropdownMenuItem>
@@ -590,12 +777,31 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
               </DropdownMenu>
 
               {/* Notifications */}
-              <NotificationDropdown
-                notifications={notifications}
-                onMarkAsRead={markNotificationRead}
-                onMarkAllAsRead={markAllNotificationsRead}
-                onClear={clearNotification}
-              />
+              <div className="relative">
+                <NotificationDropdown
+                  notifications={notifications}
+                  onMarkAsRead={markNotificationRead}
+                  onMarkAllAsRead={markAllNotificationsRead}
+                  onClear={clearNotification}
+                />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <div
+                    className="absolute flex items-center justify-center font-bold text-white bg-red-500 pointer-events-none"
+                    style={{
+                      top: 0,
+                      right: 0,
+                      width: 16,
+                      height: 16,
+                      borderRadius: RADIUS.pill,
+                      fontSize: 9,
+                      border: '2px solid white',
+                      transform: 'translate(25%, -25%)',
+                    }}
+                  >
+                    {notifications.filter(n => !n.read).length}
+                  </div>
+                )}
+              </div>
 
               {/* User Info */}
               <Link href="/manager/settings">
@@ -669,7 +875,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
             { icon: LayoutDashboard, label: 'Home', href: '/manager/dashboard' },
             { icon: Users, label: 'Team', href: '/manager/team' },
             { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
-            { icon: Bell, label: 'Alerts', href: '/manager/alerts' },
+            { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
           ].map((item) => {
             const isActive = location === item.href;
             return (
@@ -712,6 +918,12 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
           </motion.button>
         </div>
       </nav>
+
+      {/* Command Palette */}
+      <ManagerCommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
+
+      {/* Contact Support Modal */}
+      <ContactSupportModal open={contactSupportOpen} onClose={() => setContactSupportOpen(false)} />
     </div>
   );
 }

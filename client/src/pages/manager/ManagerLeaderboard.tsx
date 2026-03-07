@@ -8,19 +8,21 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'wouter';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
 import { glassCard } from './managerConstants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, COLORS, LAYOUT,
-  fadeInUp, staggerContainer,
+  fadeInUp, staggerContainer, staggerCards,
 } from '@/lib/heritageDesignSystem';
 import {
-  Trophy, DollarSign, Users, Target, Zap, TrendingUp, TrendingDown,
-  Phone, ArrowUp, ArrowDown, ArrowRight, Star, Crown, Sparkles,
+  Trophy, DollarSign, Users, Target, Zap, TrendingUp,
+  Phone, ArrowUp, ArrowDown, Star, Crown, Sparkles,
 } from 'lucide-react';
+import { PromotionsTabContent } from './ManagerPromotions';
+import { ContestsTabContent } from './ManagerContests';
 
 /* ── Demo Data ──────────────────────────────────────────────── */
 
@@ -331,29 +333,27 @@ export function ManagerLeaderboard() {
                   </div>
                 </div>
               </div>
-              <Link href="/manager/contests">
-                <motion.div
-                  className="flex items-center font-semibold cursor-pointer"
-                  style={{
-                    gap: 4,
-                    color: '#ffffff',
-                    fontSize: TYPE.meta,
-                    padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                    borderRadius: RADIUS.pill,
-                    backgroundColor: 'rgba(255,255,255,0.15)',
-                    whiteSpace: 'nowrap',
-                  }}
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.25)' }}
-                >
-                  View Contest <ArrowRight style={{ width: 14, height: 14 }} />
-                </motion.div>
-              </Link>
+              <motion.div
+                className="flex items-center font-semibold cursor-pointer"
+                style={{
+                  gap: 4,
+                  color: '#ffffff',
+                  fontSize: TYPE.meta,
+                  padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                  borderRadius: RADIUS.pill,
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  whiteSpace: 'nowrap',
+                }}
+                whileHover={{ backgroundColor: 'rgba(255,255,255,0.25)' }}
+              >
+                <Sparkles style={{ width: 14, height: 14 }} /> Active Contest
+              </motion.div>
             </div>
           </div>
         </motion.div>
 
         {/* ── Stat Cards ────────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
             <ManagerStatCard
               icon={Trophy}
@@ -364,19 +364,41 @@ export function ManagerLeaderboard() {
               icon={DollarSign}
               value={`$${(teamAP / 1000).toFixed(1)}K`}
               label="Team AP"
+              delta={14.2}
+              deltaFormat="percent"
+              periodLabel="vs last week"
             />
             <ManagerStatCard
               icon={Users}
               value={`${activeAgents}/${LEADERBOARD.length}`}
               label="Active Agents"
+              delta={1}
+              periodLabel="vs last week"
             />
             <ManagerStatCard
               icon={Target}
               value={`${topCloseRate}%`}
               label="Top Close Rate"
+              delta={2}
+              deltaFormat="percent"
+              periodLabel="vs last week"
             />
           </ManagerStatCardGrid>
         </motion.div>
+
+        {/* ── Section Tabs: Rankings | Promotions | Contests ── */}
+        <motion.div variants={fadeInUp}>
+          <Tabs defaultValue="rankings">
+            <TabsList
+              className="bg-white/80 border border-gray-200/60"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              <TabsTrigger value="rankings" style={{ borderRadius: RADIUS.button }}>Rankings</TabsTrigger>
+              <TabsTrigger value="promotions" style={{ borderRadius: RADIUS.button }}>Promotions</TabsTrigger>
+              <TabsTrigger value="contests" style={{ borderRadius: RADIUS.button }}>Contests</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="rankings" style={{ marginTop: GRID.spacing.md }}>
 
         {/* ── Mode Toggle + Metric Selector ─────────────────── */}
         <motion.div
@@ -873,6 +895,18 @@ export function ManagerLeaderboard() {
             </motion.div>
           )}
         </AnimatePresence>
+
+            </TabsContent>
+
+            <TabsContent value="promotions" style={{ marginTop: GRID.spacing.md }}>
+              <PromotionsTabContent />
+            </TabsContent>
+
+            <TabsContent value="contests" style={{ marginTop: GRID.spacing.md }}>
+              <ContestsTabContent />
+            </TabsContent>
+          </Tabs>
+        </motion.div>
       </motion.div>
     </ManagerLoungeLayout>
   );

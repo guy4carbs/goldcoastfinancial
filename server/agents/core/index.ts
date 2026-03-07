@@ -20,3 +20,18 @@ export type { LedgerEntry, TimeWindow } from './analytics-ledger';
 
 export { SecurityLayer, Permission, securityLayer } from './security-layer';
 export type { AuditEntry } from './security-layer';
+
+export {
+  GovernanceDomain, ChangeType, GovernanceTaskStatus,
+  GOV_AGENT_IDS, CHANGE_CHAIN_DEFINITIONS, VETO_AUTHORITIES,
+  DOMAIN_BOUNDARIES, RELEASE_CHECKLIST, NON_NEGOTIABLE_DOMAINS,
+  SYSTEM_INTEGRITY_RULES,
+} from './governance-types';
+export type {
+  GovernanceAgentId, GovernanceTask, GovernanceSubtask,
+  GovernanceHandoff, ChangeChain, ChangeChainStepResult,
+  VetoRecord, VetoAuthority, DomainBoundary, ReleaseChecklistItem,
+} from './governance-types';
+
+export { ChangeChainEngine, changeChainEngine } from './change-chain-engine';
+export { VetoEngine, vetoEngine } from './veto-engine';

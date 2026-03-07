@@ -6,8 +6,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ManagerLoungeLayout } from './ManagerLoungeLayout';
-import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
 import { glassCard, MANAGER_ICON_GRADIENT } from './managerConstants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,12 +13,10 @@ import {
   TYPE,
   RADIUS,
   SHADOW,
-  GLASS,
   MOTION,
   COLORS,
   LAYOUT,
   fadeInUp,
-  staggerContainer,
 } from '@/lib/heritageDesignSystem';
 import {
   Award,
@@ -142,7 +138,7 @@ const STAGE_DOT_COLORS: Record<string, string> = {
 
 // ─── COMPONENT ───────────────────────────────────────────────
 
-export function ManagerPromotions() {
+export function PromotionsTabContent() {
   const [recommendedIds, setRecommendedIds] = useState<Set<string>>(new Set());
 
   const handleRecommend = (id: string) => {
@@ -158,42 +154,18 @@ export function ManagerPromotions() {
   };
 
   return (
-    <ManagerLoungeLayout>
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+    <div
+      style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+    >
+      {/* ── Two-Column Layout ── */}
+      <div
+        className="grid grid-cols-1 lg:grid-cols-3"
+        style={{ gap: GRID.spacing.md }}
       >
-        {/* ── Hero ── */}
-        <motion.div variants={fadeInUp}>
-          <ManagerPageHero
-            icon={Award}
-            title="Promotions & Roster"
-            subtitle="Manage team composition and agent progression"
-          />
-        </motion.div>
-
-        {/* ── Stat Cards ── */}
-        <motion.div variants={fadeInUp}>
-          <ManagerStatCardGrid>
-            <ManagerStatCard icon={Users} value="12" label="Total Agents" />
-            <ManagerStatCard icon={Award} value="3" label="Promotion Eligible" />
-            <ManagerStatCard icon={UserPlus} value="2" label="In Onboarding" />
-            <ManagerStatCard icon={Clock} value="4.2 mo" label="Avg Time-in-Level" />
-          </ManagerStatCardGrid>
-        </motion.div>
-
-        {/* ── Two-Column Layout ── */}
-        <motion.div
-          variants={fadeInUp}
-          className="grid grid-cols-1 lg:grid-cols-3"
-          style={{ gap: GRID.spacing.lg }}
-        >
           {/* ═══ LEFT COLUMN (larger — spans 2) ═══ */}
           <div
             className="lg:col-span-2"
-            style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}
+            style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
           >
             {/* ── Team by Level ── */}
             <Card
@@ -213,7 +185,7 @@ export function ManagerPromotions() {
                     className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
                     style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
                   >
-                    <Zap className="w-5 h-5 text-amber-200" />
+                    <Zap size={LAYOUT.icon.md} className="text-amber-200" />
                   </div>
                   <span className="text-gray-900">Team by Level</span>
                 </CardTitle>
@@ -304,7 +276,7 @@ export function ManagerPromotions() {
                     className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
                     style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
                   >
-                    <Award className="w-5 h-5 text-amber-200" />
+                    <Award size={LAYOUT.icon.md} className="text-amber-200" />
                   </div>
                   <span className="text-gray-900">Promotion Candidates</span>
                 </CardTitle>
@@ -486,7 +458,7 @@ export function ManagerPromotions() {
           </div>
 
           {/* ═══ RIGHT COLUMN (smaller) ═══ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
             {/* ── Onboarding Pipeline ── */}
             <Card
               className="overflow-hidden border-0"
@@ -505,7 +477,7 @@ export function ManagerPromotions() {
                     className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
                     style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
                   >
-                    <UserPlus className="w-5 h-5 text-amber-200" />
+                    <UserPlus size={LAYOUT.icon.md} className="text-amber-200" />
                   </div>
                   <span className="text-gray-900">Onboarding Pipeline</span>
                 </CardTitle>
@@ -618,7 +590,7 @@ export function ManagerPromotions() {
                     className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
                     style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
                   >
-                    <Clock className="w-5 h-5 text-amber-200" />
+                    <Clock size={LAYOUT.icon.md} className="text-amber-200" />
                   </div>
                   <span className="text-gray-900">Recent Changes</span>
                 </CardTitle>
@@ -685,10 +657,9 @@ export function ManagerPromotions() {
               </CardContent>
             </Card>
           </div>
-        </motion.div>
-      </motion.div>
-    </ManagerLoungeLayout>
+        </div>
+      </div>
   );
 }
 
-export default ManagerPromotions;
+export default PromotionsTabContent;

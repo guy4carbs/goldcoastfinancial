@@ -1,24 +1,21 @@
 /**
- * Manager Training Oversight
- * Monitor team certifications, compliance, and training progress
+ * Manager Training
+ * Team learning progress and skill development
  * Heritage Design System — Emerald theme
  *
- * PRD 6.1 (Team Progress, Compliance Tracker, Approval Queue, Agent Comparison)
- * PRD 6.5 (Audit Trail view)
+ * PRD 6.1 (Team Progress, Agent Comparison)
  */
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'wouter';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
 import {
   DEMO_TEAM_MEMBERS,
-  DEMO_COMPLIANCE_DEADLINES,
-  DEMO_APPROVAL_QUEUE,
-  DEMO_AUDIT_TRAIL,
   CERT_STATUS_COLORS,
   CERT_LEVEL_LABELS,
+  glassCard,
+  MANAGER_ICON_GRADIENT,
 } from './managerConstants';
 import {
   RADIUS,
@@ -30,21 +27,16 @@ import {
   SHADOW,
   fadeInUp,
   staggerContainer,
+  staggerCards,
 } from '@/lib/heritageDesignSystem';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   BookOpen,
   ShieldCheck,
-  ClipboardCheck,
-  Award,
   BarChart3,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  AlertTriangle,
-  ChevronRight,
   Users,
   TrendingUp,
+  GraduationCap,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -62,32 +54,286 @@ function getTrainingStatus(member: typeof DEMO_TEAM_MEMBERS[number]) {
   return TRAINING_STATUS.on_track;
 }
 
-/* ── Urgency color for compliance deadlines ────────────────── */
-function getUrgencyColor(daysRemaining: number) {
-  if (daysRemaining < 0) return { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500', label: 'Overdue' };
-  if (daysRemaining <= 7) return { bg: 'bg-red-100', text: 'text-red-600', dot: 'bg-red-500', label: 'Critical' };
-  if (daysRemaining <= 30) return { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500', label: 'Expiring' };
-  return { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'Current' };
-}
-
-/* ── Audit trail type icons ────────────────────────────────── */
-const AUDIT_ICONS = {
-  completion: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  assessment: { icon: BarChart3, color: 'text-violet-600', bg: 'bg-violet-50' },
-  started: { icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
-  certification: { icon: Award, color: 'text-amber-600', bg: 'bg-amber-50' },
-} as const;
-
 /* ── Computed stats ────────────────────────────────────────── */
 const certifiedCount = DEMO_TEAM_MEMBERS.filter(
   (m) => m.certLevel >= 2 && m.certStatus !== 'overdue'
 ).length;
-const complianceRate = Math.round(
-  (DEMO_TEAM_MEMBERS.filter((m) => m.certStatus === 'current').length / DEMO_TEAM_MEMBERS.length) * 100
-);
 const avgAssessment = Math.round(
   DEMO_TEAM_MEMBERS.reduce((sum, m) => sum + m.assessmentAvg, 0) / DEMO_TEAM_MEMBERS.length
 );
+const activeLearners = DEMO_TEAM_MEMBERS.filter(
+  (m) => m.modulesCompleted > 0 && m.modulesCompleted < m.modulesTotal
+).length;
+const totalModulesCompleted = DEMO_TEAM_MEMBERS.reduce((sum, m) => sum + m.modulesCompleted, 0);
+
+/**
+ * Standalone tab content — used by ManagerComplianceHub "Learning" tab.
+ * Renders without ManagerLoungeLayout, hero, or stat cards.
+ */
+export function TrainingTabContent() {
+  const [compareAgents, setCompareAgents] = useState<string[]>([]);
+
+  const toggleCompare = (id: string) => {
+    setCompareAgents((prev) => {
+      if (prev.includes(id)) return prev.filter((a) => a !== id);
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
+  };
+
+  const comparedMembers = DEMO_TEAM_MEMBERS.filter((m) =>
+    compareAgents.includes(m.id)
+  );
+
+  return (
+    <div
+      className="grid grid-cols-1 lg:grid-cols-[1.618fr_1fr]"
+      style={{ gap: GRID.spacing.md }}
+    >
+      {/* ── LEFT COLUMN — Team Training Progress ──────── */}
+      <Card
+        className="overflow-hidden"
+        style={{
+          ...glassCard,
+          borderRadius: RADIUS.card,
+          boxShadow: SHADOW.card,
+        }}
+      >
+        <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+          <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+            <div
+              className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
+              style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+            >
+              <Users className="text-amber-200" size={LAYOUT.icon.md} />
+            </div>
+            <span className="text-gray-900">Team Training Progress</span>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+          {/* Column headers */}
+          <div
+            className="hidden sm:grid items-center text-gray-400 font-medium"
+            style={{
+              gridTemplateColumns: '1fr auto auto auto auto',
+              gap: 12,
+              padding: `0 12px ${GRID.spacing.xs}px`,
+              fontSize: TYPE.micro,
+            }}
+          >
+            <span>Agent</span>
+            <span className="w-20 text-center">Level</span>
+            <span className="w-24 text-center">Modules</span>
+            <span className="w-16 text-center">Score</span>
+            <span className="w-20 text-center">Status</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs / 2 }}>
+            {[...DEMO_TEAM_MEMBERS]
+              .sort((a, b) => b.assessmentAvg - a.assessmentAvg)
+              .map((member) => {
+                const status = getTrainingStatus(member);
+                const certColor = CERT_STATUS_COLORS[member.certStatus];
+                const isSelected = compareAgents.includes(member.id);
+                const progress = Math.round(
+                  (member.modulesCompleted / member.modulesTotal) * 100
+                );
+
+                return (
+                  <motion.div
+                    key={member.id}
+                    className="grid items-center cursor-pointer"
+                    style={{
+                      gridTemplateColumns: '1fr auto auto auto auto',
+                      gap: 12,
+                      padding: 12,
+                      borderRadius: RADIUS.button,
+                      backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.08)' : undefined,
+                      border: isSelected ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
+                    }}
+                    whileHover={{
+                      backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.12)' : COLORS.gray[50],
+                      transition: { duration: MOTION.duration.hover },
+                    }}
+                    onClick={() => toggleCompare(member.id)}
+                  >
+                    {/* Agent */}
+                    <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                      <div
+                        className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
+                        style={{
+                          width: LAYOUT.icon.xxl,
+                          height: LAYOUT.icon.xxl,
+                          borderRadius: RADIUS.button,
+                          fontSize: TYPE.caption,
+                        }}
+                      >
+                        {member.avatar}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate" style={{ fontSize: TYPE.meta }}>
+                          {member.name}
+                        </p>
+                        <p className="text-gray-400 hidden sm:block" style={{ fontSize: TYPE.caption }}>
+                          {member.role}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Level badge */}
+                    <span
+                      className={`inline-flex items-center font-medium w-20 justify-center ${certColor.bg} ${certColor.text}`}
+                      style={{
+                        borderRadius: RADIUS.pill,
+                        padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
+                        fontSize: TYPE.micro,
+                      }}
+                    >
+                      L{member.certLevel} {CERT_LEVEL_LABELS[member.certLevel]}
+                    </span>
+
+                    {/* Modules progress */}
+                    <div className="w-24">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                          {member.modulesCompleted}/{member.modulesTotal}
+                        </span>
+                      </div>
+                      <Progress value={progress} className="h-1.5" />
+                    </div>
+
+                    {/* Score */}
+                    <span
+                      className={`w-16 text-center font-semibold ${
+                        member.assessmentAvg >= 85
+                          ? 'text-emerald-700'
+                          : member.assessmentAvg >= 70
+                            ? 'text-amber-700'
+                            : 'text-red-700'
+                      }`}
+                      style={{ fontSize: TYPE.meta }}
+                    >
+                      {member.assessmentAvg}%
+                    </span>
+
+                    {/* Status */}
+                    <span
+                      className={`inline-flex items-center font-medium w-20 justify-center ${status.bg} ${status.text}`}
+                      style={{
+                        borderRadius: RADIUS.pill,
+                        padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
+                        fontSize: TYPE.micro,
+                      }}
+                    >
+                      {status.label}
+                    </span>
+                  </motion.div>
+                );
+              })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── RIGHT COLUMN — Agent Comparison ───────────── */}
+      <Card
+        className="overflow-hidden"
+        style={{
+          ...glassCard,
+          borderRadius: RADIUS.card,
+          boxShadow: SHADOW.card,
+        }}
+      >
+        <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+          <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+            <div
+              className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
+              style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+            >
+              <BarChart3 className="text-amber-200" size={LAYOUT.icon.md} />
+            </div>
+            <span className="text-gray-900">Agent Comparison</span>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+          {comparedMembers.length === 0 ? (
+            <div
+              className="text-center text-gray-400"
+              style={{ padding: GRID.spacing.md, fontSize: TYPE.meta }}
+            >
+              Select agents from the training table to compare their metrics side by side.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
+              {comparedMembers.map((member) => {
+                const certColor = CERT_STATUS_COLORS[member.certStatus];
+                return (
+                  <div
+                    key={member.id}
+                    className="border border-gray-100"
+                    style={{
+                      padding: 12,
+                      borderRadius: RADIUS.button,
+                      backgroundColor: COLORS.gray[50],
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                        <div
+                          className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
+                          style={{ width: LAYOUT.icon.lg, height: LAYOUT.icon.lg, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
+                        >
+                          {member.avatar}
+                        </div>
+                        <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          {member.name}
+                        </span>
+                      </div>
+                      <motion.button
+                        className="text-gray-400 border-0 bg-transparent"
+                        style={{ fontSize: TYPE.caption }}
+                        whileHover={{ color: COLORS.gray[600] }}
+                        onClick={() => toggleCompare(member.id)}
+                      >
+                        Remove
+                      </motion.button>
+                    </div>
+                    <div className="grid grid-cols-3 text-center" style={{ gap: GRID.spacing.xs }}>
+                      <div>
+                        <p className="text-gray-400" style={{ fontSize: TYPE.caption }}>Level</p>
+                        <p className={`font-semibold ${certColor.text}`} style={{ fontSize: TYPE.meta }}>
+                          L{member.certLevel}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400" style={{ fontSize: TYPE.caption }}>Modules</p>
+                        <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          {member.modulesCompleted}/{member.modulesTotal}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400" style={{ fontSize: TYPE.caption }}>Score</p>
+                        <p
+                          className={`font-semibold ${
+                            member.assessmentAvg >= 85 ? 'text-emerald-700' : member.assessmentAvg >= 70 ? 'text-amber-700' : 'text-red-700'
+                          }`}
+                          style={{ fontSize: TYPE.meta }}
+                        >
+                          {member.assessmentAvg}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export function ManagerTraining() {
   const [compareAgents, setCompareAgents] = useState<string[]>([]);
@@ -110,560 +356,300 @@ export function ManagerTraining() {
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}
+        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
       >
         {/* ── Hero ─────────────────────────────────────────── */}
         <ManagerPageHero
           icon={BookOpen}
-          title="Training Oversight"
-          subtitle="Monitor team certifications, compliance, and training progress"
+          title="Training"
+          subtitle="Team learning progress and skill development"
         />
 
         {/* ── Stat Cards ───────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
             <ManagerStatCard
               icon={ShieldCheck}
-              value={`${certifiedCount}/12`}
+              value={`${certifiedCount}/${DEMO_TEAM_MEMBERS.length}`}
               label="Certified Agents"
-            />
-            <ManagerStatCard
-              icon={TrendingUp}
-              value={`${complianceRate}%`}
-              label="Compliance Rate"
-              trend={{ value: '5%', positive: true, label: 'mo' }}
-            />
-            <ManagerStatCard
-              icon={ClipboardCheck}
-              value={DEMO_APPROVAL_QUEUE.length}
-              label="Pending Approvals"
+              delta={1}
+              periodLabel="vs last month"
             />
             <ManagerStatCard
               icon={BarChart3}
               value={`${avgAssessment}%`}
               label="Avg Assessment"
-              trend={{ value: '3%', positive: true }}
+              delta={3}
+              deltaFormat="percent"
+              periodLabel="vs last month"
+            />
+            <ManagerStatCard
+              icon={TrendingUp}
+              value={activeLearners}
+              label="Active Learners"
+              delta={2}
+              periodLabel="vs last week"
+            />
+            <ManagerStatCard
+              icon={GraduationCap}
+              value={totalModulesCompleted}
+              label="Modules Completed"
+              delta={8}
+              periodLabel="This month"
             />
           </ManagerStatCardGrid>
         </motion.div>
 
-        {/* ── Golden Ratio Content Grid ─────────────────────── */}
+        {/* ── Content Grid ────────────────────────────────── */}
         <motion.div
           variants={fadeInUp}
           className="grid grid-cols-1 lg:grid-cols-[1.618fr_1fr]"
           style={{ gap: GRID.spacing.md }}
         >
-          {/* ── LEFT COLUMN (61.8%) ─────────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
-
-            {/* Team Training Progress */}
-            <Card
-              className="overflow-hidden border-0"
-              style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-                <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                  <div
-                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                    style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-                  >
-                    <Users className="w-5 h-5 text-amber-200" />
-                  </div>
-                  <span className="text-gray-900">Team Training Progress</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                {/* Column headers */}
+          {/* ── LEFT COLUMN — Team Training Progress ──────── */}
+          <Card
+            className="overflow-hidden"
+            style={{
+              ...glassCard,
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+            }}
+          >
+            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                 <div
-                  className="hidden sm:grid items-center text-gray-400 font-medium"
-                  style={{
-                    gridTemplateColumns: '1fr auto auto auto auto',
-                    gap: 12,
-                    padding: `0 12px ${GRID.spacing.xs}px`,
-                    fontSize: 12,
-                  }}
+                  className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
+                  style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
                 >
-                  <span>Agent</span>
-                  <span className="w-20 text-center">Level</span>
-                  <span className="w-24 text-center">Modules</span>
-                  <span className="w-16 text-center">Score</span>
-                  <span className="w-20 text-center">Status</span>
+                  <Users className="text-amber-200" size={LAYOUT.icon.md} />
                 </div>
+                <span className="text-gray-900">Team Training Progress</span>
+              </CardTitle>
+            </CardHeader>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs / 2 }}>
-                  {[...DEMO_TEAM_MEMBERS]
-                    .sort((a, b) => b.assessmentAvg - a.assessmentAvg)
-                    .map((member) => {
-                      const status = getTrainingStatus(member);
-                      const certColor = CERT_STATUS_COLORS[member.certStatus];
-                      const progress = Math.round(
-                        (member.modulesCompleted / member.modulesTotal) * 100
-                      );
+            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+              {/* Column headers */}
+              <div
+                className="hidden sm:grid items-center text-gray-400 font-medium"
+                style={{
+                  gridTemplateColumns: '1fr auto auto auto auto',
+                  gap: 12,
+                  padding: `0 12px ${GRID.spacing.xs}px`,
+                  fontSize: TYPE.micro,
+                }}
+              >
+                <span>Agent</span>
+                <span className="w-20 text-center">Level</span>
+                <span className="w-24 text-center">Modules</span>
+                <span className="w-16 text-center">Score</span>
+                <span className="w-20 text-center">Status</span>
+              </div>
 
-                      return (
-                        <motion.div
-                          key={member.id}
-                          className="grid items-center cursor-pointer"
-                          style={{
-                            gridTemplateColumns: '1fr auto auto auto auto',
-                            gap: 12,
-                            padding: 12,
-                            borderRadius: RADIUS.button,
-                          }}
-                          whileHover={{
-                            backgroundColor: COLORS.gray[50],
-                            transition: { duration: MOTION.duration.hover },
-                          }}
-                          onClick={() => toggleCompare(member.id)}
-                        >
-                          {/* Agent */}
-                          <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                            <div
-                              className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
-                              style={{
-                                width: LAYOUT.icon.xxl,
-                                height: LAYOUT.icon.xxl,
-                                borderRadius: RADIUS.button,
-                                fontSize: TYPE.caption,
-                              }}
-                            >
-                              {member.avatar}
-                            </div>
-                            <div className="min-w-0">
-                              <p
-                                className="font-semibold text-gray-900 truncate text-sm"
-                              >
-                                {member.name}
-                              </p>
-                              <p className="text-gray-400 hidden sm:block text-xs">
-                                {member.role}
-                              </p>
-                            </div>
-                          </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs / 2 }}>
+                {[...DEMO_TEAM_MEMBERS]
+                  .sort((a, b) => b.assessmentAvg - a.assessmentAvg)
+                  .map((member) => {
+                    const status = getTrainingStatus(member);
+                    const certColor = CERT_STATUS_COLORS[member.certStatus];
+                    const isSelected = compareAgents.includes(member.id);
+                    const progress = Math.round(
+                      (member.modulesCompleted / member.modulesTotal) * 100
+                    );
 
-                          {/* Level badge */}
-                          <span
-                            className={`inline-flex items-center font-medium w-20 justify-center ${certColor.bg} ${certColor.text}`}
-                            style={{
-                              borderRadius: RADIUS.pill,
-                              padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
-                              fontSize: 12,
-                            }}
-                          >
-                            L{member.certLevel} {CERT_LEVEL_LABELS[member.certLevel]}
-                          </span>
-
-                          {/* Modules progress */}
-                          <div className="w-24">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-gray-500 text-xs">
-                                {member.modulesCompleted}/{member.modulesTotal}
-                              </span>
-                            </div>
-                            <Progress value={progress} className="h-1.5" />
-                          </div>
-
-                          {/* Score */}
-                          <span
-                            className={`w-16 text-center font-semibold text-sm ${
-                              member.assessmentAvg >= 85
-                                ? 'text-emerald-700'
-                                : member.assessmentAvg >= 70
-                                  ? 'text-amber-700'
-                                  : 'text-red-700'
-                            }`}
-                          >
-                            {member.assessmentAvg}%
-                          </span>
-
-                          {/* Status */}
-                          <span
-                            className={`inline-flex items-center font-medium w-20 justify-center ${status.bg} ${status.text}`}
-                            style={{
-                              borderRadius: RADIUS.pill,
-                              padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
-                              fontSize: 12,
-                            }}
-                          >
-                            {status.label}
-                          </span>
-                        </motion.div>
-                      );
-                    })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Compliance Tracker */}
-            <Card
-              className="overflow-hidden border-0"
-              style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-                <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                  <div
-                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                    style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-                  >
-                    <ShieldCheck className="w-5 h-5 text-amber-200" />
-                  </div>
-                  <span className="text-gray-900">Compliance Tracker</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {DEMO_COMPLIANCE_DEADLINES.map((item) => {
-                    const urgency = getUrgencyColor(item.expiresIn);
                     return (
                       <motion.div
-                        key={item.id}
-                        className="flex items-center"
+                        key={member.id}
+                        className="grid items-center cursor-pointer"
                         style={{
+                          gridTemplateColumns: '1fr auto auto auto auto',
                           gap: 12,
                           padding: 12,
                           borderRadius: RADIUS.button,
-                          backgroundColor: item.expiresIn < 0 ? 'rgba(254,202,202,0.2)' : 'transparent',
+                          backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.08)' : undefined,
+                          border: isSelected ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
                         }}
                         whileHover={{
-                          backgroundColor: COLORS.gray[50],
+                          backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.12)' : COLORS.gray[50],
                           transition: { duration: MOTION.duration.hover },
                         }}
+                        onClick={() => toggleCompare(member.id)}
                       >
-                        {/* Urgency dot */}
-                        <div
-                          className={urgency.dot}
-                          style={{
-                            width: GRID.spacing.xs,
-                            height: GRID.spacing.xs,
-                            borderRadius: RADIUS.pill,
-                            flexShrink: 0,
-                          }}
-                        />
-
-                        {/* Avatar */}
-                        <div
-                          className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
-                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
-                        >
-                          {item.avatar}
+                        {/* Agent */}
+                        <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                          <div
+                            className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
+                            style={{
+                              width: LAYOUT.icon.xxl,
+                              height: LAYOUT.icon.xxl,
+                              borderRadius: RADIUS.button,
+                              fontSize: TYPE.caption,
+                            }}
+                          >
+                            {member.avatar}
+                          </div>
+                          <div className="min-w-0">
+                            <p
+                              className="font-semibold text-gray-900 truncate"
+                              style={{ fontSize: TYPE.meta }}
+                            >
+                              {member.name}
+                            </p>
+                            <p className="text-gray-400 hidden sm:block" style={{ fontSize: TYPE.caption }}>
+                              {member.role}
+                            </p>
+                          </div>
                         </div>
 
-                        {/* Details */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 text-sm">
-                            {item.agent}
-                          </p>
-                          <p className="text-gray-500 text-xs">
-                            {item.certification}
-                          </p>
-                        </div>
-
-                        {/* Deadline */}
-                        <div className="flex-shrink-0 text-right">
-                          <p className={`font-medium text-xs ${urgency.text}`}>
-                            {item.expiresIn < 0
-                              ? `${Math.abs(item.expiresIn)}d overdue`
-                              : `${item.expiresIn}d remaining`}
-                          </p>
-                          <p className="text-gray-400 text-xs">
-                            {item.expiresDate}
-                          </p>
-                        </div>
-
-                        {/* Urgency badge */}
+                        {/* Level badge */}
                         <span
-                          className={`inline-flex items-center font-medium ${urgency.bg} ${urgency.text}`}
+                          className={`inline-flex items-center font-medium w-20 justify-center ${certColor.bg} ${certColor.text}`}
                           style={{
                             borderRadius: RADIUS.pill,
                             padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
-                            fontSize: 12,
+                            fontSize: TYPE.micro,
                           }}
                         >
-                          {urgency.label}
+                          L{member.certLevel} {CERT_LEVEL_LABELS[member.certLevel]}
+                        </span>
+
+                        {/* Modules progress */}
+                        <div className="w-24">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                              {member.modulesCompleted}/{member.modulesTotal}
+                            </span>
+                          </div>
+                          <Progress value={progress} className="h-1.5" />
+                        </div>
+
+                        {/* Score */}
+                        <span
+                          className={`w-16 text-center font-semibold ${
+                            member.assessmentAvg >= 85
+                              ? 'text-emerald-700'
+                              : member.assessmentAvg >= 70
+                                ? 'text-amber-700'
+                                : 'text-red-700'
+                          }`}
+                          style={{ fontSize: TYPE.meta }}
+                        >
+                          {member.assessmentAvg}%
+                        </span>
+
+                        {/* Status */}
+                        <span
+                          className={`inline-flex items-center font-medium w-20 justify-center ${status.bg} ${status.text}`}
+                          style={{
+                            borderRadius: RADIUS.pill,
+                            padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
+                            fontSize: TYPE.micro,
+                          }}
+                        >
+                          {status.label}
                         </span>
                       </motion.div>
                     );
                   })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* ── RIGHT COLUMN (38.2%) ────────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
-
-            {/* Approval Queue — Gradient Card */}
-            <div
-              className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400"
-              style={{ borderRadius: RADIUS.card }}
-            >
-              <div className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl" style={{ width: 89, height: 89, transform: 'translate(30%, -40%)' }} />
-              <div className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl" style={{ width: 55, height: 55, transform: 'translate(-30%, 40%)' }} />
-
-              <div className="relative z-10" style={{ padding: GRID.spacing.md }}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                    <div
-                      className="flex items-center justify-center"
-                      style={{
-                        width: LAYOUT.icon.xl,
-                        height: LAYOUT.icon.xl,
-                        borderRadius: RADIUS.button,
-                        background: 'rgba(255,255,255,0.2)',
-                        backdropFilter: 'blur(8px)',
-                      }}
-                    >
-                      <ClipboardCheck className="text-amber-200" style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md }} />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white" style={{ fontSize: TYPE.title }}>
-                        Approval Queue
-                      </p>
-                      <p className="text-white/70 text-[10px]">
-                        Certifications awaiting sign-off
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {DEMO_APPROVAL_QUEUE.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center"
-                      style={{
-                        gap: 12,
-                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                        borderRadius: RADIUS.button,
-                        background: 'rgba(255,255,255,0.1)',
-                        backdropFilter: 'blur(4px)',
-                      }}
-                    >
-                      <div
-                        className="flex items-center justify-center text-white font-bold flex-shrink-0"
-                        style={{
-                          width: LAYOUT.icon.xl,
-                          height: LAYOUT.icon.xl,
-                          borderRadius: RADIUS.button,
-                          background: 'rgba(255,255,255,0.2)',
-                          fontSize: TYPE.micro,
-                        }}
-                      >
-                        {item.avatar}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-white text-sm">{item.agent}</p>
-                        <p className="text-white/60 text-xs">{item.certification}</p>
-                      </div>
-                      <div className="flex-shrink-0 text-right">
-                        <p className="text-amber-200 font-semibold text-sm">{item.score}%</p>
-                      </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <motion.button
-                          className="flex items-center justify-center border-0 text-white"
-                          style={{
-                            width: LAYOUT.icon.xl,
-                            height: LAYOUT.icon.xl,
-                            borderRadius: RADIUS.button,
-                            background: 'rgba(255,255,255,0.2)',
-                          }}
-                          whileHover={{ scale: 1.1, background: 'rgba(16,185,129,0.4)' }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <CheckCircle2 style={{ width: 16, height: 16 }} />
-                        </motion.button>
-                        <motion.button
-                          className="flex items-center justify-center border-0 text-white/60"
-                          style={{
-                            width: LAYOUT.icon.xl,
-                            height: LAYOUT.icon.xl,
-                            borderRadius: RADIUS.button,
-                            background: 'rgba(255,255,255,0.1)',
-                          }}
-                          whileHover={{ scale: 1.1, background: 'rgba(239,68,68,0.3)' }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <XCircle style={{ width: 16, height: 16 }} />
-                        </motion.button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Agent Comparison */}
-            <Card
-              className="overflow-hidden border-0"
-              style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-                <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                  <div
-                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                    style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-                  >
-                    <BarChart3 className="w-5 h-5 text-amber-200" />
-                  </div>
-                  <span className="text-gray-900">Agent Comparison</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                {comparedMembers.length === 0 ? (
-                  <div
-                    className="text-center text-gray-400 text-sm"
-                    style={{ padding: GRID.spacing.md }}
-                  >
-                    Select agents from the training table to compare their metrics side by side.
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
-                    {comparedMembers.map((member) => {
-                      const certColor = CERT_STATUS_COLORS[member.certStatus];
-                      return (
-                        <div
-                          key={member.id}
-                          className="border border-gray-100"
-                          style={{
-                            padding: 12,
-                            borderRadius: RADIUS.button,
-                            backgroundColor: COLORS.gray[50],
-                          }}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                              <div
-                                className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
-                                style={{ width: LAYOUT.icon.lg, height: LAYOUT.icon.lg, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
-                              >
-                                {member.avatar}
-                              </div>
-                              <span className="font-semibold text-gray-900 text-sm">
-                                {member.name}
-                              </span>
-                            </div>
-                            <motion.button
-                              className="text-gray-400 border-0 bg-transparent text-xs"
-                              whileHover={{ color: COLORS.gray[600] }}
-                              onClick={() => toggleCompare(member.id)}
-                            >
-                              Remove
-                            </motion.button>
-                          </div>
-                          <div className="grid grid-cols-3 text-center" style={{ gap: GRID.spacing.xs }}>
-                            <div>
-                              <p className="text-gray-400 text-xs">Level</p>
-                              <p className={`font-semibold text-sm ${certColor.text}`}>
-                                L{member.certLevel}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-gray-400 text-xs">Modules</p>
-                              <p className="font-semibold text-gray-900 text-sm">
-                                {member.modulesCompleted}/{member.modulesTotal}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-gray-400 text-xs">Score</p>
-                              <p
-                                className={`font-semibold text-sm ${
-                                  member.assessmentAvg >= 85 ? 'text-emerald-700' : member.assessmentAvg >= 70 ? 'text-amber-700' : 'text-red-700'
-                                }`}
-                              >
-                                {member.assessmentAvg}%
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Audit Trail Feed */}
-            <Card
-              className="overflow-hidden border-0"
-              style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                    <div
-                      className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-                    >
-                      <Clock className="w-5 h-5 text-amber-200" />
-                    </div>
-                    <span className="text-gray-900">Audit Trail</span>
-                  </CardTitle>
-                  <Link href="/manager/reports">
-                    <span className="text-emerald-600 font-medium text-sm hover:underline cursor-pointer">
-                      Full Log
-                    </span>
-                  </Link>
+          {/* ── RIGHT COLUMN — Agent Comparison ───────────── */}
+          <Card
+            className="overflow-hidden"
+            style={{
+              ...glassCard,
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+            }}
+          >
+            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+                <div
+                  className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
+                  style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                >
+                  <BarChart3 className="text-amber-200" size={LAYOUT.icon.md} />
                 </div>
-              </CardHeader>
+                <span className="text-gray-900">Agent Comparison</span>
+              </CardTitle>
+            </CardHeader>
 
-              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {DEMO_AUDIT_TRAIL.slice(0, 6).map((entry) => {
-                    const auditStyle = AUDIT_ICONS[entry.type];
-                    const Icon = auditStyle.icon;
+            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+              {comparedMembers.length === 0 ? (
+                <div
+                  className="text-center text-gray-400"
+                  style={{ padding: GRID.spacing.md, fontSize: TYPE.meta }}
+                >
+                  Select agents from the training table to compare their metrics side by side.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
+                  {comparedMembers.map((member) => {
+                    const certColor = CERT_STATUS_COLORS[member.certStatus];
                     return (
                       <div
-                        key={entry.id}
-                        className="flex items-start"
-                        style={{ gap: 12, padding: `${GRID.spacing.xs}px 0` }}
+                        key={member.id}
+                        className="border border-gray-100"
+                        style={{
+                          padding: 12,
+                          borderRadius: RADIUS.button,
+                          backgroundColor: COLORS.gray[50],
+                        }}
                       >
-                        <div
-                          className={`flex items-center justify-center flex-shrink-0 ${auditStyle.bg}`}
-                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
-                        >
-                          <Icon className={auditStyle.color} style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                            <div
+                              className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600"
+                              style={{ width: LAYOUT.icon.lg, height: LAYOUT.icon.lg, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
+                            >
+                              {member.avatar}
+                            </div>
+                            <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              {member.name}
+                            </span>
+                          </div>
+                          <motion.button
+                            className="text-gray-400 border-0 bg-transparent"
+                            style={{ fontSize: TYPE.caption }}
+                            whileHover={{ color: COLORS.gray[600] }}
+                            onClick={() => toggleCompare(member.id)}
+                          >
+                            Remove
+                          </motion.button>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900">
-                            <span className="font-semibold">{entry.agent}</span>{' '}
-                            {entry.action.replace(entry.agent, '').trim()}
-                          </p>
-                          <p className="text-xs text-gray-400">{entry.time}</p>
+                        <div className="grid grid-cols-3 text-center" style={{ gap: GRID.spacing.xs }}>
+                          <div>
+                            <p className="text-gray-400" style={{ fontSize: TYPE.caption }}>Level</p>
+                            <p className={`font-semibold ${certColor.text}`} style={{ fontSize: TYPE.meta }}>
+                              L{member.certLevel}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400" style={{ fontSize: TYPE.caption }}>Modules</p>
+                            <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              {member.modulesCompleted}/{member.modulesTotal}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400" style={{ fontSize: TYPE.caption }}>Score</p>
+                            <p
+                              className={`font-semibold ${
+                                member.assessmentAvg >= 85 ? 'text-emerald-700' : member.assessmentAvg >= 70 ? 'text-amber-700' : 'text-red-700'
+                              }`}
+                              style={{ fontSize: TYPE.meta }}
+                            >
+                              {member.assessmentAvg}%
+                            </p>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       </motion.div>
     </ManagerLoungeLayout>

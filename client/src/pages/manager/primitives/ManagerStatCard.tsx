@@ -1,11 +1,8 @@
 /**
- * ManagerStatCard — Consistent stat card for Manager Lounge pages
+ * ManagerStatCard — Gradient stat card for Manager Lounge
  *
- * Mirrors AgentStatCard with emerald theme + gold accents:
- * - Emerald-to-teal gradient background
- * - Liquid glass icon badge with amber-200 (gold) icon tint
- * - Optional trend indicator
- * - Hover lift animation
+ * Emerald-to-rose gradient background with liquid glass icon badge.
+ * Clean layout with optional sparkline, delta badge, and period context.
  */
 
 import { motion } from 'framer-motion';
@@ -13,10 +10,14 @@ import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  LAYOUT,
+  TYPE,
   RADIUS,
   MOTION,
   scaleIn,
 } from '@/lib/heritageDesignSystem';
+import { Sparkline } from './Sparkline';
+import { DeltaBadge } from './DeltaBadge';
 
 export interface ManagerStatCardProps {
   icon: LucideIcon;
@@ -27,6 +28,11 @@ export interface ManagerStatCardProps {
     positive: boolean;
     label?: string;
   };
+  sparklineData?: number[];
+  delta?: number;
+  deltaFormat?: 'percent' | 'currency' | 'number';
+  periodLabel?: string;
+  northStar?: boolean;
   onClick?: () => void;
   className?: string;
 }
@@ -36,6 +42,11 @@ export function ManagerStatCard({
   value,
   label,
   trend,
+  sparklineData,
+  delta,
+  deltaFormat,
+  periodLabel,
+  northStar,
   onClick,
   className,
 }: ManagerStatCardProps) {
@@ -49,61 +60,76 @@ export function ManagerStatCard({
     >
       <Card
         className="border-0 overflow-hidden relative"
-        style={{ borderRadius: RADIUS.card, boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)' }}
+        style={{
+          borderRadius: RADIUS.card,
+          boxShadow: northStar
+            ? '0 16px 32px rgba(245, 158, 11, 0.2), 0 8px 16px rgba(0, 0, 0, 0.08)'
+            : '0 16px 24px rgba(0, 0, 0, 0.08)',
+          ...(northStar ? { outline: '2px solid rgba(245, 158, 11, 0.3)' } : {}),
+        }}
       >
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
-        {/* Decorative blobs with amber accent */}
-        <div style={{ width: 80, height: 80 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
-        <div style={{ width: 50, height: 50 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/3" style={{ width: 80, height: 80, borderRadius: RADIUS.pill }} />
+        <div className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/4" style={{ width: 50, height: 50, borderRadius: RADIUS.pill }} />
 
-        <CardContent className="px-5 py-6 relative z-10">
-          <div className="flex items-center gap-3">
-            {/* Liquid Glass Icon Badge */}
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
-                border: '1px solid rgba(255,255,255,0.2)',
-              }}
-            >
-              <Icon className="w-5 h-5 text-amber-200 drop-shadow-sm" aria-hidden="true" />
-            </div>
-
-            {/* Value and Label */}
-            <div className="flex-1 min-w-0">
-              <p className="text-2xl font-bold text-white">{value}</p>
-              <p className="text-xs text-white/70 truncate">{label}</p>
-            </div>
-
-            {/* Optional Trend */}
-            {trend && (
+        <CardContent className="px-5 py-5 relative z-10">
+          {/* Row 1: Icon + Value + optional Sparkline */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <div
-                className={cn(
-                  'flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full',
-                  trend.positive
-                    ? 'bg-white/20 text-amber-200'
-                    : 'bg-white/20 text-red-200'
-                )}
+                className="flex items-center justify-center flex-shrink-0"
+                style={{
+                  width: LAYOUT.icon.xxl,
+                  height: LAYOUT.icon.xxl,
+                  borderRadius: RADIUS.input,
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                }}
               >
-                {trend.positive ? (
-                  <TrendingUp className="w-3 h-3" aria-hidden="true" />
-                ) : (
-                  <TrendingDown className="w-3 h-3" aria-hidden="true" />
-                )}
-                {trend.positive ? '+' : ''}
-                {trend.value}
-                {trend.label && (
-                  <span className="hidden sm:inline ml-0.5 text-white/50 font-normal">
-                    {trend.label}
-                  </span>
-                )}
+                <Icon className="text-amber-200 drop-shadow-sm" size={LAYOUT.icon.md} aria-hidden="true" />
               </div>
+              <p className="font-bold text-white" style={{ fontSize: TYPE.section, lineHeight: 1.1 }}>
+                {value}
+              </p>
+            </div>
+            {sparklineData && (
+              <Sparkline data={sparklineData} width={56} height={20} strokeWidth={1.5} color="rgba(255,255,255,0.7)" autoColor={false} />
             )}
           </div>
+
+          {/* Row 2: Label */}
+          <p className="text-white/70 mt-1.5" style={{ fontSize: TYPE.caption, fontWeight: 500 }}>
+            {label}
+          </p>
+
+          {/* Row 3: Delta + Period (only if present) */}
+          {(delta != null || periodLabel || trend) && (
+            <div className="flex items-center gap-2 mt-1.5">
+              {delta != null && <DeltaBadge value={delta} format={deltaFormat} size="sm" />}
+              {trend && !delta && (
+                <span
+                  className={cn(
+                    'flex items-center gap-1 font-semibold',
+                    trend.positive ? 'text-amber-200' : 'text-red-200',
+                  )}
+                  style={{ fontSize: TYPE.caption }}
+                >
+                  {trend.positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                  {trend.positive ? '+' : ''}{trend.value}
+                </span>
+              )}
+              {periodLabel && (
+                <span className="text-white/40" style={{ fontSize: TYPE.micro }}>
+                  {periodLabel}
+                </span>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>

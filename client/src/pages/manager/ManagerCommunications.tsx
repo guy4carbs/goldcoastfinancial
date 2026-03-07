@@ -1,39 +1,40 @@
 /**
- * ManagerCommunications - Combined Email + Chat Communications Hub
+ * ManagerCommunications — Email + Team Chat Hub
  * Manager Lounge — Emerald theme
  *
- * Mirrors Agent Communications page structure with tabs for
- * Email and Team Chat. Client Chat is excluded for the manager role.
+ * Same as Agent Communications (Email + Team Chat) but without Client Chat,
+ * using the shared EmailContent and ChatContent components with emerald theme.
  */
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { ManagerLoungeLayout } from "./ManagerLoungeLayout";
-import { ManagerPageHero } from "./primitives";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ManagerLoungeLayout } from './ManagerLoungeLayout';
+import { ManagerPageHero } from './primitives';
+import {
+  RADIUS,
+  COLORS,
+  TYPE,
+  fadeInUp,
+  staggerContainer,
+} from '@/lib/heritageDesignSystem';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   MessageSquare,
   Mail,
   PenSquare,
-} from "lucide-react";
-import {
-  RADIUS,
-  COLORS,
-  fadeInUp,
-  staggerContainer,
-  spacing,
-} from '@/lib/heritageDesignSystem';
+} from 'lucide-react';
+import { GRID } from '@/lib/heritageDesignSystem';
 
-// Reuse the same Email and Chat content components from agent communications
-import AgentEmailContent from "@/components/agent/communications/EmailContent";
-import AgentChatContent from "@/components/agent/communications/ChatContent";
+// Shared communication components with emerald theme support
+import AgentEmailContent from '@/components/agent/communications/EmailContent';
+import AgentChatContent from '@/components/agent/communications/ChatContent';
 
 export function ManagerCommunications() {
   const [activeTab, setActiveTab] = useState<'email' | 'chat'>('email');
 
-  // Mock unread counts - these would come from state/API
+  // Mock unread counts
   const unreadEmails = 3;
   const unreadMessages = 4;
 
@@ -44,13 +45,13 @@ export function ManagerCommunications() {
         animate="visible"
         variants={staggerContainer}
         className="flex flex-col h-full"
-        style={{ gap: spacing(2) }}
+        style={{ gap: GRID.spacing.md }}
       >
-        {/* Hero Card — Emerald gradient */}
+        {/* Hero */}
         <motion.div variants={fadeInUp}>
           <ManagerPageHero
             icon={MessageSquare}
-            title="Communication"
+            title="Communications"
             subtitle="Email, chat, and connect with your team"
           >
             <Button
@@ -64,11 +65,8 @@ export function ManagerCommunications() {
           </ManagerPageHero>
         </motion.div>
 
-        {/* Tabs Container */}
-        <motion.div
-          variants={fadeInUp}
-          className="flex-1 min-h-0"
-        >
+        {/* Tabs */}
+        <motion.div variants={fadeInUp} className="flex-1 min-h-0">
           <Tabs
             value={activeTab}
             onValueChange={(v) => setActiveTab(v as 'email' | 'chat')}

@@ -60,9 +60,9 @@ export function ManagerPageHero({
       />
 
       {/* Decorative floating circles — Fibonacci sizes (89×4, 55×4, 34×4) with amber accent */}
-      <div className="absolute top-0 right-0 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" style={{ width: 356, height: 356 }} />
-      <div className="absolute bottom-0 left-0 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" style={{ width: 220, height: 220 }} />
-      <div className="absolute top-1/2 right-1/4 bg-teal-300/15 rounded-full blur-sm" style={{ width: 136, height: 136 }} />
+      <div className="absolute top-0 right-0 bg-white/10 -translate-y-1/2 translate-x-1/3 blur-sm" style={{ width: 356, height: 356, borderRadius: RADIUS.pill }} />
+      <div className="absolute bottom-0 left-0 bg-amber-400/20 translate-y-1/2 -translate-x-1/4 blur-md" style={{ width: 220, height: 220, borderRadius: RADIUS.pill }} />
+      <div className="absolute top-1/2 right-1/4 bg-teal-300/15 blur-sm" style={{ width: 136, height: 136, borderRadius: RADIUS.pill }} />
 
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-4">

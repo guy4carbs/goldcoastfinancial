@@ -1,15 +1,20 @@
 /**
- * Manager Team — Team Management Page
- * Full team roster with search, status, sparklines, hover actions, and detail drawer
+ * Manager Team — Team Roster Page
+ * Full team roster with search, status, hover actions, detail drawer,
+ * and bulk action functionality (select multiple agents for batch operations)
  * Heritage Design System — Emerald theme
  */
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'wouter';
+import { toast } from 'sonner';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
-import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
-import { MANAGER_ICON_GRADIENT, DEMO_TEAM_MEMBERS, STATUS_COLORS, CERT_STATUS_COLORS, CERT_LEVEL_LABELS } from './managerConstants';
+import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid, ManagerEmptyState } from './primitives';
+import { MANAGER_ICON_GRADIENT, DEMO_TEAM_MEMBERS, STATUS_COLORS, CERT_STATUS_COLORS, CERT_LEVEL_LABELS, glassCard, SPARKLINE_TEAM_SIZE, SPARKLINE_WIN_RATE } from './managerConstants';
+import { ScheduleCoachingModal } from './ScheduleCoachingModal';
+import { ScheduleOneOnOneModal } from './ScheduleOneOnOneModal';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   RADIUS,
   TYPE,
@@ -18,12 +23,10 @@ import {
   MOTION,
   COLORS,
   SHADOW,
-  GLASS,
   fadeInUp,
   staggerContainer,
+  staggerCards,
 } from '@/lib/heritageDesignSystem';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import {
   Users,
   UserCheck,
@@ -42,11 +45,54 @@ import {
   Phone,
   Target,
   DollarSign,
-  TrendingUp,
-  Clock,
   Zap,
   ChevronRight,
+  CheckCircle2,
+  Circle,
+  MessageSquare,
+  Download,
+  Star,
+  ArrowUpDown,
+  FileText,
+  Table2,
+  Sheet,
+  ChevronDown,
 } from 'lucide-react';
+
+// ─── SORT & FILTER CONFIG ────────────────────────────────────
+type StatusFilter = 'all' | 'active' | 'away' | 'offline';
+type CertFilter = 'all' | 'current' | 'expiring' | 'overdue';
+type SortKey = 'name' | 'quota' | 'status' | 'certLevel' | 'calls';
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'away', label: 'Away' },
+  { value: 'offline', label: 'Offline' },
+];
+
+const CERT_FILTERS: { value: CertFilter; label: string }[] = [
+  { value: 'all', label: 'All Certs' },
+  { value: 'current', label: 'Current' },
+  { value: 'expiring', label: 'Expiring' },
+  { value: 'overdue', label: 'Overdue' },
+];
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'name', label: 'Name' },
+  { value: 'quota', label: 'Quota %' },
+  { value: 'calls', label: 'Calls' },
+  { value: 'certLevel', label: 'Cert Level' },
+  { value: 'status', label: 'Status' },
+];
+
+const STATUS_ORDER: Record<string, number> = { active: 0, away: 1, offline: 2 };
+
+const EXPORT_FORMATS = [
+  { label: 'PDF', icon: FileText },
+  { label: 'CSV', icon: Table2 },
+  { label: 'XLSX', icon: Sheet },
+] as const;
 
 // ─── SPARKLINE DATA ─────────────────────────────────────────
 // 7-day call trends per agent (seeded from agent data for consistency)
@@ -64,40 +110,6 @@ const SPARKLINE_DATA: Record<string, number[]> = {
   '11': [7, 8, 9, 8, 10, 9, 10],      // Jessica — trending up
   '12': [1, 1, 0, 0, 0, 0, 0],        // Ryan — offline
 };
-
-// ─── SPARKLINE SVG ──────────────────────────────────────────
-function Sparkline({ data, width = 60, height = 20 }: { data: number[]; width?: number; height?: number }) {
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const trending = data[data.length - 1] >= data[0];
-  const strokeColor = trending ? '#10b981' : '#f43f5e';
-
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * (height - 4) - 2;
-    return `${x},${y}`;
-  }).join(' ');
-
-  return (
-    <svg width={width} height={height} className="flex-shrink-0 hidden md:block">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* End dot */}
-      {(() => {
-        const lastX = width;
-        const lastY = height - ((data[data.length - 1] - min) / range) * (height - 4) - 2;
-        return <circle cx={lastX} cy={lastY} r={2} fill={strokeColor} />;
-      })()}
-    </svg>
-  );
-}
 
 // ─── DRAWER DEMO DATA ───────────────────────────────────────
 // Per-agent pipeline deals (demo)
@@ -137,10 +149,111 @@ type TeamMember = (typeof DEMO_TEAM_MEMBERS)[number];
 export function ManagerTeam() {
   const [search, setSearch] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<TeamMember | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [certFilter, setCertFilter] = useState<CertFilter>('all');
+  const [sortBy, setSortBy] = useState<SortKey>('name');
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [showCoachingModal, setShowCoachingModal] = useState(false);
+  const [showOneOnOneModal, setShowOneOnOneModal] = useState(false);
+  const [modalAgent, setModalAgent] = useState<TeamMember | null>(null);
 
-  const filteredMembers = DEMO_TEAM_MEMBERS.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredMembers = useMemo(() => {
+    let result = DEMO_TEAM_MEMBERS.filter((m) =>
+      m.name.toLowerCase().includes(search.toLowerCase()),
+    );
+    if (statusFilter !== 'all') result = result.filter((m) => m.status === statusFilter);
+    if (certFilter !== 'all') result = result.filter((m) => m.certStatus === certFilter);
+    // Sort
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case 'quota': return b.quota - a.quota;
+        case 'calls': return b.calls - a.calls;
+        case 'certLevel': return b.certLevel - a.certLevel;
+        case 'status': return (STATUS_ORDER[a.status] ?? 2) - (STATUS_ORDER[b.status] ?? 2);
+        default: return a.name.localeCompare(b.name);
+      }
+    });
+    // Pinned to top
+    return [...result].sort((a, b) => (pinnedIds.has(b.id) ? 1 : 0) - (pinnedIds.has(a.id) ? 1 : 0));
+  }, [search, statusFilter, certFilter, sortBy, pinnedIds]);
+
+  const statusCounts = useMemo(() => {
+    const c: Record<string, number> = { all: DEMO_TEAM_MEMBERS.length };
+    DEMO_TEAM_MEMBERS.forEach((m) => { c[m.status] = (c[m.status] || 0) + 1; });
+    return c;
+  }, []);
+
+  const certCounts = useMemo(() => {
+    const c: Record<string, number> = { all: DEMO_TEAM_MEMBERS.length };
+    DEMO_TEAM_MEMBERS.forEach((m) => { c[m.certStatus] = (c[m.certStatus] || 0) + 1; });
+    return c;
+  }, []);
+
+  // ─── BULK SELECTION HELPERS ─────────────────────────────────
+  const toggleSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredMembers.length) {
+      // All currently visible are selected — deselect all
+      setSelectedIds(new Set());
+    } else {
+      // Select all currently visible
+      setSelectedIds(new Set(filteredMembers.map((m) => m.id)));
+    }
+  };
+
+  const allSelected = filteredMembers.length > 0 && selectedIds.size === filteredMembers.length;
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    if (!sortDropdownOpen && !exportDropdownOpen) return;
+    const handler = () => { setSortDropdownOpen(false); setExportDropdownOpen(false); };
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, [sortDropdownOpen, exportDropdownOpen]);
+
+  const togglePin = (id: string) => {
+    setPinnedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleExport = (format: string) => {
+    setExportDropdownOpen(false);
+    const agents = selectedIds.size > 0
+      ? DEMO_TEAM_MEMBERS.filter((m) => selectedIds.has(m.id))
+      : filteredMembers;
+    const header = 'Name,Role,Status,Quota,Calls,Revenue,Cert Level,Cert Status,Last Active';
+    const rows = agents.map((m) =>
+      `${m.name},${m.role},${m.status},${m.quota}%,${m.calls},$${m.revenue},L${m.certLevel},${m.certStatus},${m.lastActive}`
+    );
+    const content = [header, ...rows].join('\n');
+    const ext = format === 'CSV' ? 'csv' : format === 'XLSX' ? 'xls' : 'txt';
+    const mime = format === 'CSV' ? 'text/csv' : format === 'XLSX' ? 'application/vnd.ms-excel' : 'text/plain';
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `Heritage_Team_Roster.${ext}`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${agents.length} agents as ${format}`);
+    if (selectedIds.size > 0) setSelectedIds(new Set());
+  };
 
   // Quick insight calculations
   const topPerformer = [...DEMO_TEAM_MEMBERS].sort((a, b) => b.quota - a.quota)[0];
@@ -161,45 +274,138 @@ export function ManagerTeam() {
         <motion.div variants={fadeInUp}>
           <ManagerPageHero
             icon={Users}
-            title="Team Management"
-            subtitle="Monitor and manage your team roster"
+            title="Team Roster"
+            subtitle="View and manage your team"
           />
         </motion.div>
 
         {/* Stat Cards */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
-            <ManagerStatCard icon={Users} value="12" label="Total Agents" />
+            <ManagerStatCard icon={Users} value="12" label="Total Agents" sparklineData={[...SPARKLINE_TEAM_SIZE]} delta={0} periodLabel="Last 30 days" />
             <ManagerStatCard
               icon={UserCheck}
               value="8"
               label="Active Today"
-              trend={{ value: 2, positive: true }}
+              delta={2}
+              periodLabel="vs yesterday"
             />
-            <ManagerStatCard icon={Percent} value="76%" label="Avg Quota" />
-            <ManagerStatCard icon={UserPlus} value="2" label="New This Month" />
+            <ManagerStatCard icon={Percent} value="76%" label="Avg Quota" sparklineData={[...SPARKLINE_WIN_RATE]} delta={4.2} deltaFormat="percent" periodLabel="vs last month" northStar />
+            <ManagerStatCard icon={UserPlus} value="2" label="New This Month" delta={1} periodLabel="vs last month" />
           </ManagerStatCardGrid>
         </motion.div>
 
         {/* Search Bar */}
         <motion.div variants={fadeInUp}>
           <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md }}
-            />
-            <Input
+            <Search className="absolute text-gray-400" style={{ width: 16, height: 16, left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text"
               placeholder="Search team members..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border-gray-200"
-              style={{
-                paddingLeft: GRID.spacing.xl,
-                borderRadius: RADIUS.input,
-                height: LAYOUT.buttonHeight,
-                fontSize: TYPE.meta,
-              }}
+              className="w-full text-gray-700 placeholder:text-gray-400"
+              style={{ ...glassCard, padding: `${GRID.spacing.sm}px ${GRID.spacing.sm}px ${GRID.spacing.sm}px 36px`, borderRadius: RADIUS.card, fontSize: TYPE.meta, border: `1px solid ${COLORS.gray[200]}`, outline: 'none' }}
             />
+            {search && (
+              <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} onClick={() => setSearch('')} className="absolute text-gray-400 hover:text-gray-600" style={{ right: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', padding: 2 }}>
+                <X style={{ width: 14, height: 14 }} />
+              </motion.button>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Filter Pills + Sort */}
+        <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-between" style={{ gap: GRID.spacing.sm }}>
+          <div className="flex flex-wrap items-center" style={{ gap: GRID.spacing.xs }}>
+            {/* Status filters */}
+            {STATUS_FILTERS.map((f) => {
+              const isActive = statusFilter === f.value;
+              const count = statusCounts[f.value] || 0;
+              return (
+                <motion.button
+                  key={f.value}
+                  onClick={() => setStatusFilter(f.value)}
+                  className="font-medium border-0 flex items-center"
+                  style={{
+                    ...(isActive
+                      ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
+                      : { ...glassCard, color: COLORS.gray[600] }),
+                    borderRadius: RADIUS.pill, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm + 4}px`, fontSize: TYPE.meta, cursor: 'pointer', gap: 4,
+                  }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {f.label}
+                  {count > 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 5px' }}>
+                      {count}
+                    </span>
+                  )}
+                </motion.button>
+              );
+            })}
+            {/* Divider */}
+            <div style={{ width: 1, height: 20, backgroundColor: COLORS.gray[200], margin: `0 ${GRID.spacing.xs}px` }} />
+            {/* Cert filters */}
+            {CERT_FILTERS.map((f) => {
+              const isActive = certFilter === f.value;
+              const count = certCounts[f.value] || 0;
+              return (
+                <motion.button
+                  key={f.value}
+                  onClick={() => setCertFilter(f.value)}
+                  className="font-medium border-0 flex items-center"
+                  style={{
+                    ...(isActive
+                      ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
+                      : { ...glassCard, color: COLORS.gray[600] }),
+                    borderRadius: RADIUS.pill, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm + 4}px`, fontSize: TYPE.meta, cursor: 'pointer', gap: 4,
+                  }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {f.label}
+                  {count > 0 && f.value !== 'all' && (
+                    <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : f.value === 'overdue' ? 'rgba(239, 68, 68, 0.12)' : f.value === 'expiring' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : f.value === 'overdue' ? '#dc2626' : f.value === 'expiring' ? '#d97706' : '#059669', padding: '0 5px' }}>
+                      {count}
+                    </span>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Sort dropdown */}
+          <div className="relative">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+              className="flex items-center font-medium"
+              style={{ gap: 4, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm + 4}px`, borderRadius: RADIUS.pill, border: 'none', cursor: 'pointer', ...glassCard, color: COLORS.gray[600] }}
+            >
+              <ArrowUpDown style={{ width: 13, height: 13 }} />
+              {SORT_OPTIONS.find((s) => s.value === sortBy)?.label}
+              <ChevronDown style={{ width: 11, height: 11, transition: 'transform 0.15s', transform: sortDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            </motion.button>
+            <AnimatePresence>
+              {sortDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                  className="absolute z-50"
+                  style={{ top: '100%', right: 0, marginTop: 4, minWidth: 140, backgroundColor: 'white', borderRadius: RADIUS.card, boxShadow: '0 12px 36px rgba(0,0,0,0.15)', border: `1px solid ${COLORS.gray[200]}`, overflow: 'hidden' }}
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <button key={opt.value} onClick={() => { setSortBy(opt.value); setSortDropdownOpen(false); }} className="flex items-center w-full hover:bg-gray-50" style={{ gap: GRID.spacing.xs, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, fontSize: TYPE.meta, color: sortBy === opt.value ? '#059669' : COLORS.gray[700], fontWeight: sortBy === opt.value ? 600 : 400, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
@@ -224,13 +430,158 @@ export function ManagerTeam() {
               <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                 <div
                   className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                  style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                  style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                 >
-                  <Users className="w-5 h-5 text-amber-200" />
+                  <Users className="text-amber-200" size={LAYOUT.icon.md} />
                 </div>
                 <span className="text-gray-900">Agent Roster</span>
               </CardTitle>
             </CardHeader>
+
+            {/* ─── BULK ACTION BAR ─── */}
+            <AnimatePresence>
+              {selectedIds.size > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: MOTION.duration.transition, ease: 'easeOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div
+                    className="flex items-center flex-wrap bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700"
+                    style={{
+                      padding: `${GRID.spacing.sm}px ${GRID.spacing.md}px`,
+                      gap: GRID.spacing.sm,
+                      borderRadius: RADIUS.button,
+                      boxShadow: SHADOW.card,
+                      margin: `0 ${GRID.spacing.md}px`,
+                    }}
+                  >
+                    {/* Selection count */}
+                    <span
+                      className="text-white font-semibold flex-shrink-0"
+                      style={{ fontSize: TYPE.meta }}
+                    >
+                      {selectedIds.size} agent{selectedIds.size !== 1 ? 's' : ''} selected
+                    </span>
+
+                    <span className="flex-1" />
+
+                    {/* Action Buttons */}
+                    <motion.button
+                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.3)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center text-white"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        borderRadius: RADIUS.pill,
+                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                        gap: GRID.spacing.xs / 2,
+                        fontSize: TYPE.caption,
+                        fontWeight: 500,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        toast.success(`Coaching scheduled for ${selectedIds.size} agent${selectedIds.size !== 1 ? 's' : ''}`);
+                        setSelectedIds(new Set());
+                      }}
+                    >
+                      <GraduationCap style={{ width: 14, height: 14 }} />
+                      Schedule Coaching
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.3)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center text-white"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        borderRadius: RADIUS.pill,
+                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                        gap: GRID.spacing.xs / 2,
+                        fontSize: TYPE.caption,
+                        fontWeight: 500,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        toast.success(`Message sent to ${selectedIds.size} agent${selectedIds.size !== 1 ? 's' : ''}`);
+                        setSelectedIds(new Set());
+                      }}
+                    >
+                      <MessageSquare style={{ width: 14, height: 14 }} />
+                      Send Message
+                    </motion.button>
+
+                    {/* Export with format picker */}
+                    <div className="relative">
+                      <motion.button
+                        whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.3)' }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center text-white"
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.2)',
+                          borderRadius: RADIUS.pill,
+                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                          gap: GRID.spacing.xs / 2,
+                          fontSize: TYPE.caption,
+                          fontWeight: 500,
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                        onClick={(e) => { e.stopPropagation(); setExportDropdownOpen(!exportDropdownOpen); }}
+                      >
+                        <Download style={{ width: 14, height: 14 }} />
+                        Export
+                        <ChevronDown style={{ width: 11, height: 11 }} />
+                      </motion.button>
+                      <AnimatePresence>
+                        {exportDropdownOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                            className="absolute z-50"
+                            style={{ bottom: '100%', left: 0, marginBottom: 4, minWidth: 120, backgroundColor: 'white', borderRadius: RADIUS.card, boxShadow: '0 12px 24px rgba(0,0,0,0.15)', border: `1px solid ${COLORS.gray[200]}`, overflow: 'hidden' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {EXPORT_FORMATS.map(({ label, icon: FmtIcon }) => (
+                              <button key={label} onClick={() => handleExport(label)} className="flex items-center w-full hover:bg-gray-50" style={{ gap: GRID.spacing.xs, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, fontSize: TYPE.meta, color: COLORS.gray[700], background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                                <FmtIcon style={{ width: 14, height: 14, color: '#059669' }} />
+                                {label}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <motion.button
+                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.3)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center text-white"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        borderRadius: RADIUS.pill,
+                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                        gap: GRID.spacing.xs / 2,
+                        fontSize: TYPE.caption,
+                        fontWeight: 500,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => setSelectedIds(new Set())}
+                    >
+                      <X style={{ width: 14, height: 14 }} />
+                      Clear Selection
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
               {/* Table header */}
               <div
@@ -241,13 +592,35 @@ export function ManagerTeam() {
                   marginBottom: GRID.spacing.xs,
                   borderBottom: `1px solid ${COLORS.gray[100]}`,
                   paddingBottom: GRID.spacing.xs,
+                  marginTop: selectedIds.size > 0 ? GRID.spacing.sm : 0,
                 }}
               >
+                {/* Select-all checkbox */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  className="flex items-center justify-center flex-shrink-0"
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: RADIUS.pill,
+                    marginRight: GRID.spacing.xs,
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: 'none',
+                    padding: 0,
+                  }}
+                  onClick={toggleSelectAll}
+                >
+                  {allSelected ? (
+                    <CheckCircle2 className="text-emerald-500" style={{ width: 20, height: 20 }} />
+                  ) : (
+                    <Circle className="text-gray-300" style={{ width: 20, height: 20 }} />
+                  )}
+                </motion.button>
+                <span style={{ width: 14, flexShrink: 0 }} />
                 <span style={{ width: LAYOUT.icon.xxl + 12 + 100, flexShrink: 0 }}>Agent</span>
                 <span className="flex-1" />
                 <span style={{ width: 80, textAlign: 'center' }}>Status</span>
-                <span className="hidden md:block" style={{ width: 60, textAlign: 'center' }}>Trend</span>
-                <span style={{ width: 40, textAlign: 'center' }}>Cert</span>
                 <span style={{ width: 48, textAlign: 'right' }}>Quota</span>
                 <span className="hidden sm:block" style={{ width: 80, textAlign: 'right' }}>Active</span>
                 <span className="hidden lg:block" style={{ width: 100 }} />
@@ -261,7 +634,7 @@ export function ManagerTeam() {
                       : member.quota >= 70
                         ? 'text-gray-700'
                         : 'text-red-600';
-                  const sparkData = SPARKLINE_DATA[member.id] || [0, 0, 0, 0, 0, 0, 0];
+                  const isSelected = selectedIds.has(member.id);
 
                   return (
                     <motion.div
@@ -271,13 +644,50 @@ export function ManagerTeam() {
                         padding: 12,
                         borderRadius: RADIUS.button,
                         gap: 12,
+                        backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.06)' : 'transparent',
                       }}
                       whileHover={{
-                        backgroundColor: COLORS.gray[50],
+                        backgroundColor: isSelected ? 'rgba(16, 185, 129, 0.1)' : COLORS.gray[50],
                         transition: { duration: MOTION.duration.hover },
                       }}
                       onClick={() => setSelectedAgent(member)}
                     >
+                      {/* Selection Checkbox */}
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        className="flex items-center justify-center flex-shrink-0"
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: RADIUS.pill,
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: 'none',
+                          padding: 0,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelection(member.id);
+                        }}
+                      >
+                        {isSelected ? (
+                          <CheckCircle2 className="text-emerald-500" style={{ width: 20, height: 20 }} />
+                        ) : (
+                          <Circle className="text-gray-300" style={{ width: 20, height: 20 }} />
+                        )}
+                      </motion.button>
+
+                      {/* Pin star */}
+                      <motion.button
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={(e) => { e.stopPropagation(); togglePin(member.id); }}
+                        className="flex-shrink-0"
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                      >
+                        <Star style={{ width: 14, height: 14, color: pinnedIds.has(member.id) ? '#f59e0b' : COLORS.gray[300], fill: pinnedIds.has(member.id) ? '#f59e0b' : 'none', transition: 'all 0.2s' }} />
+                      </motion.button>
+
                       {/* Avatar */}
                       <div
                         className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} text-white font-bold flex-shrink-0`}
@@ -323,23 +733,6 @@ export function ManagerTeam() {
                         {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
                       </div>
 
-                      {/* Sparkline — 7-day trend */}
-                      <Sparkline data={sparkData} />
-
-                      {/* Certification Level */}
-                      <div
-                        className={`items-center hidden sm:flex border-0 ${CERT_STATUS_COLORS[member.certStatus].bg} ${CERT_STATUS_COLORS[member.certStatus].text}`}
-                        style={{
-                          borderRadius: RADIUS.pill,
-                          padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
-                          fontSize: TYPE.caption,
-                          fontWeight: 500,
-                          gap: 4,
-                        }}
-                      >
-                        L{member.certLevel}
-                      </div>
-
                       {/* Quota */}
                       <div className="text-right" style={{ minWidth: 48 }}>
                         <p className={`font-semibold ${quotaColor}`} style={{ fontSize: TYPE.meta }}>
@@ -359,38 +752,34 @@ export function ManagerTeam() {
                         className="hidden lg:flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
                         style={{ gap: GRID.spacing.xs / 2 }}
                       >
-                        <Link href="/manager/coaching">
-                          <motion.button
-                            whileHover={{ scale: 1.1, backgroundColor: COLORS.gray[100] }}
-                            whileTap={{ scale: 0.95 }}
-                            className="flex items-center justify-center text-gray-500 hover:text-emerald-600"
-                            style={{
-                              width: LAYOUT.icon.xl,
-                              height: LAYOUT.icon.xl,
-                              borderRadius: RADIUS.button,
-                            }}
-                            title="Coach"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <GraduationCap style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
-                          </motion.button>
-                        </Link>
-                        <Link href="/manager/one-on-ones">
-                          <motion.button
-                            whileHover={{ scale: 1.1, backgroundColor: COLORS.gray[100] }}
-                            whileTap={{ scale: 0.95 }}
-                            className="flex items-center justify-center text-gray-500 hover:text-emerald-600"
-                            style={{
-                              width: LAYOUT.icon.xl,
-                              height: LAYOUT.icon.xl,
-                              borderRadius: RADIUS.button,
-                            }}
-                            title="Schedule 1:1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Calendar style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
-                          </motion.button>
-                        </Link>
+                        <motion.button
+                          whileHover={{ scale: 1.1, backgroundColor: COLORS.gray[100] }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center justify-center text-gray-500 hover:text-emerald-600"
+                          style={{
+                            width: LAYOUT.icon.xl,
+                            height: LAYOUT.icon.xl,
+                            borderRadius: RADIUS.button,
+                          }}
+                          title="Coach"
+                          onClick={(e) => { e.stopPropagation(); setModalAgent(member); setShowCoachingModal(true); }}
+                        >
+                          <GraduationCap style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1, backgroundColor: COLORS.gray[100] }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center justify-center text-gray-500 hover:text-emerald-600"
+                          style={{
+                            width: LAYOUT.icon.xl,
+                            height: LAYOUT.icon.xl,
+                            borderRadius: RADIUS.button,
+                          }}
+                          title="Schedule 1:1"
+                          onClick={(e) => { e.stopPropagation(); setModalAgent(member); setShowOneOnOneModal(true); }}
+                        >
+                          <Calendar style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                        </motion.button>
                         <Link href={`/manager/scorecard/${member.id}`}>
                           <motion.button
                             whileHover={{ scale: 1.1, backgroundColor: COLORS.gray[100] }}
@@ -413,12 +802,7 @@ export function ManagerTeam() {
                 })}
 
                 {filteredMembers.length === 0 && (
-                  <div
-                    className="text-center text-gray-400"
-                    style={{ padding: GRID.spacing.xl, fontSize: TYPE.meta }}
-                  >
-                    No team members match your search.
-                  </div>
+                  <ManagerEmptyState icon={Users} title="No agents found" description="Try adjusting your search or filters." />
                 )}
               </div>
             </CardContent>
@@ -439,9 +823,9 @@ export function ManagerTeam() {
               <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                 <div
                   className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                  style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                  style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                 >
-                  <Lightbulb className="w-5 h-5 text-amber-200" />
+                  <Lightbulb className="text-amber-200" size={LAYOUT.icon.md} />
                 </div>
                 <span className="text-gray-900">Quick Insights</span>
               </CardTitle>
@@ -596,8 +980,8 @@ export function ManagerTeam() {
                 }}
               >
                 {/* Blobs */}
-                <div style={{ width: 120, height: 120 }} className="absolute top-0 right-0 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-                <div style={{ width: 80, height: 80 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
+                <div style={{ width: 120, height: 120, borderRadius: RADIUS.pill }} className="absolute top-0 right-0 bg-white/10 -translate-y-1/2 translate-x-1/3 blur-sm" />
+                <div style={{ width: 80, height: 80, borderRadius: RADIUS.pill }} className="absolute bottom-0 left-0 bg-amber-400/15 translate-y-1/2 -translate-x-1/4 blur-md" />
 
                 {/* Close button */}
                 <motion.button
@@ -656,10 +1040,10 @@ export function ManagerTeam() {
                 {/* KPI Mini-Cards */}
                 <div className="grid grid-cols-2" style={{ gap: GRID.spacing.sm }}>
                   {[
-                    { icon: Target, label: 'Quota', value: `${selectedAgent.quota}%`, color: selectedAgent.quota >= 100 ? 'text-emerald-600' : selectedAgent.quota >= 70 ? 'text-gray-900' : 'text-red-600' },
-                    { icon: Phone, label: 'Calls/Week', value: String(selectedAgent.calls), color: 'text-gray-900' },
-                    { icon: DollarSign, label: 'Revenue', value: `$${(selectedAgent.revenue / 1000).toFixed(1)}K`, color: 'text-gray-900' },
-                    { icon: Flame, label: 'Streak', value: `${selectedAgent.streak} days`, color: selectedAgent.streak >= 5 ? 'text-emerald-600' : 'text-gray-900' },
+                    { icon: Target, label: 'Quota', value: `${selectedAgent.quota}%` },
+                    { icon: Phone, label: 'Calls/Week', value: String(selectedAgent.calls) },
+                    { icon: DollarSign, label: 'Revenue', value: `$${(selectedAgent.revenue / 1000).toFixed(1)}K` },
+                    { icon: Flame, label: 'Streak', value: `${selectedAgent.streak} days` },
                   ].map((kpi) => {
                     const KpiIcon = kpi.icon;
                     return (
@@ -668,20 +1052,36 @@ export function ManagerTeam() {
                         style={{
                           padding: GRID.spacing.sm,
                           borderRadius: RADIUS.button,
-                          backgroundColor: COLORS.gray[50],
+                          background: 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #fb7185 100%)',
+                          position: 'relative',
+                          overflow: 'hidden',
                         }}
                       >
-                        <div className="flex items-center" style={{ gap: GRID.spacing.xs / 2, marginBottom: 4 }}>
-                          <KpiIcon className="text-gray-400" style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
-                          <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>{kpi.label}</span>
+                        {/* Decorative blob */}
+                        <div style={{ position: 'absolute', top: -10, right: -10, width: 50, height: 50, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.1)', filter: 'blur(4px)' }} />
+                        <div className="relative z-10">
+                          <div className="flex items-center" style={{ gap: GRID.spacing.xs / 2, marginBottom: 4 }}>
+                            <KpiIcon className="text-white/70" style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
+                            <span className="text-white/80 font-medium" style={{ fontSize: TYPE.caption }}>{kpi.label}</span>
+                          </div>
+                          <p className="font-bold text-white" style={{ fontSize: TYPE.title }}>{kpi.value}</p>
                         </div>
-                        <p className={`font-bold ${kpi.color}`} style={{ fontSize: TYPE.title }}>{kpi.value}</p>
                       </div>
                     );
                   })}
                 </div>
 
                 {/* Call Trend Sparkline (larger) */}
+                <div>
+                  <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.sm }}>
+                    <div
+                      className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700"
+                      style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
+                    >
+                      <Phone className="text-amber-200" style={{ width: LAYOUT.icon.xs, height: LAYOUT.icon.xs }} />
+                    </div>
+                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.body }}>7-Day Call Trend</p>
+                  </div>
                 <div
                   style={{
                     padding: GRID.spacing.sm,
@@ -689,9 +1089,6 @@ export function ManagerTeam() {
                     backgroundColor: COLORS.gray[50],
                   }}
                 >
-                  <p className="font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>
-                    7-Day Call Trend
-                  </p>
                   <svg width="100%" height={40} viewBox="0 0 400 40" preserveAspectRatio="none">
                     {(() => {
                       const data = SPARKLINE_DATA[selectedAgent.id] || [0, 0, 0, 0, 0, 0, 0];
@@ -728,6 +1125,7 @@ export function ManagerTeam() {
                       <span key={d} className="text-gray-400" style={{ fontSize: TYPE.micro }}>{d}</span>
                     ))}
                   </div>
+                </div>
                 </div>
 
                 {/* Recent Activity */}
@@ -841,40 +1239,38 @@ export function ManagerTeam() {
 
                 {/* Quick Action Buttons */}
                 <div className="flex flex-col" style={{ gap: GRID.spacing.xs }}>
-                  <Link href="/manager/coaching">
-                    <motion.button
-                      className="flex items-center justify-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 w-full"
-                      style={{
-                        fontSize: TYPE.meta,
-                        gap: GRID.spacing.xs,
-                        padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.sm}px`,
-                        borderRadius: RADIUS.button,
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <GraduationCap style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
-                      Schedule Coaching Session
-                    </motion.button>
-                  </Link>
-                  <Link href="/manager/one-on-ones">
-                    <motion.button
-                      className="flex items-center justify-center font-semibold text-emerald-700 border w-full"
-                      style={{
-                        fontSize: TYPE.meta,
-                        gap: GRID.spacing.xs,
-                        padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.sm}px`,
-                        borderRadius: RADIUS.button,
-                        borderColor: COLORS.gray[200],
-                        backgroundColor: 'white',
-                      }}
-                      whileHover={{ scale: 1.02, backgroundColor: COLORS.gray[50] }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Calendar style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
-                      Schedule 1:1 Meeting
-                    </motion.button>
-                  </Link>
+                  <motion.button
+                    onClick={() => { setModalAgent(selectedAgent); setShowCoachingModal(true); }}
+                    className="flex items-center justify-center font-semibold text-white border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 w-full"
+                    style={{
+                      fontSize: TYPE.meta,
+                      gap: GRID.spacing.xs,
+                      padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.sm}px`,
+                      borderRadius: RADIUS.button,
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <GraduationCap style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                    Schedule Coaching Session
+                  </motion.button>
+                  <motion.button
+                    onClick={() => { setModalAgent(selectedAgent); setShowOneOnOneModal(true); }}
+                    className="flex items-center justify-center font-semibold text-emerald-700 border w-full"
+                    style={{
+                      fontSize: TYPE.meta,
+                      gap: GRID.spacing.xs,
+                      padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.sm}px`,
+                      borderRadius: RADIUS.button,
+                      borderColor: COLORS.gray[200],
+                      backgroundColor: 'white',
+                    }}
+                    whileHover={{ scale: 1.02, backgroundColor: COLORS.gray[50] }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Calendar style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                    Schedule 1:1 Meeting
+                  </motion.button>
                   <Link href={`/manager/scorecard/${selectedAgent.id}`}>
                     <motion.button
                       className="flex items-center justify-center font-semibold text-gray-700 border w-full"
@@ -900,6 +1296,10 @@ export function ManagerTeam() {
           </>
         )}
       </AnimatePresence>
+
+      <ScheduleCoachingModal agent={modalAgent} open={showCoachingModal} onClose={() => setShowCoachingModal(false)} />
+      <ScheduleOneOnOneModal agent={modalAgent} open={showOneOnOneModal} onClose={() => setShowOneOnOneModal(false)} />
+
     </ManagerLoungeLayout>
   );
 }

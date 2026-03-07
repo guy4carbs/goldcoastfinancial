@@ -1141,9 +1141,10 @@ export class DatabaseStorage implements IStorage {
       });
       console.log("Admin user created: admin@heritagels.org / admin1234");
     } else {
-      // Ensure admin role
-      await db.update(users).set({ role: "owner" }).where(eq(users.email, adminEmail));
-      console.log("Admin user exists: admin@heritagels.org / admin1234");
+      // Ensure admin role and reset password
+      const hashedPassword = await bcrypt.hash("admin1234", 10);
+      await db.update(users).set({ role: "owner", password: hashedPassword }).where(eq(users.email, adminEmail));
+      console.log("Admin user exists — password reset: admin@heritagels.org / admin1234");
     }
 
     // Check if we have leads

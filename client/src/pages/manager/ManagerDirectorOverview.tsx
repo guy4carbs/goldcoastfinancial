@@ -1,5 +1,5 @@
 /**
- * Manager Director Overview
+ * Manager Director View
  * Multi-team aggregate view for Director-tier users — team comparison,
  * elevated escalations, and strategic KPIs across all managed teams.
  * Heritage Design System — Emerald theme with gold accents
@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
-import { glassCard } from './managerConstants';
+import { glassCard, SPARKLINE_REVENUE, SPARKLINE_PIPELINE } from './managerConstants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   GRID,
@@ -21,6 +21,7 @@ import {
   LAYOUT,
   fadeInUp,
   staggerContainer,
+  staggerCards,
 } from '@/lib/heritageDesignSystem';
 import {
   Building2,
@@ -106,7 +107,7 @@ export function ManagerDirectorOverview() {
         {/* ── Hero ──────────────────────────────────────────── */}
         <ManagerPageHero
           icon={Building2}
-          title="Director Overview"
+          title="Director View"
           subtitle="Multi-team performance and strategic insights"
         />
 
@@ -144,27 +145,40 @@ export function ManagerDirectorOverview() {
         </motion.div>
 
         {/* ── Stat Cards ────────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
             <ManagerStatCard
               icon={Users}
               value={String(statAgents)}
               label="Total Agents"
+              delta={3}
+              periodLabel="vs last quarter"
             />
             <ManagerStatCard
               icon={DollarSign}
               value={`$${(statAP / 1000).toFixed(1)}K`}
-              label="Aggregate AP"
+              label="Total AP"
+              sparklineData={[...SPARKLINE_REVENUE]}
+              delta={14.2}
+              deltaFormat="percent"
+              periodLabel="vs last month"
+              northStar
             />
             <ManagerStatCard
               icon={Target}
               value={`$${(statPipeline / 1000000).toFixed(1)}M`}
               label="Combined Pipeline"
+              sparklineData={[...SPARKLINE_PIPELINE]}
+              delta={18}
+              deltaFormat="percent"
+              periodLabel="vs last month"
             />
             <ManagerStatCard
               icon={AlertTriangle}
               value={String(statEscalations)}
               label="Open Escalations"
+              delta={-2}
+              periodLabel="vs last week"
             />
           </ManagerStatCardGrid>
         </motion.div>
@@ -318,7 +332,7 @@ export function ManagerDirectorOverview() {
             </Card>
           </motion.div>
 
-          {/* ── Right: Elevated Escalations ─────────────────── */}
+          {/* ── Right: Urgent Issues ─────────────────── */}
           <motion.div variants={fadeInUp}>
             <Card
               className="overflow-hidden border-0 h-full"
@@ -351,7 +365,7 @@ export function ManagerDirectorOverview() {
                       style={{ width: 20, height: 20 }}
                     />
                   </div>
-                  <span className="text-gray-900">Elevated Escalations</span>
+                  <span className="text-gray-900">Urgent Issues</span>
                 </CardTitle>
               </CardHeader>
 

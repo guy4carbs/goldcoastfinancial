@@ -427,6 +427,18 @@ export const staggerFast = {
   },
 };
 
+// Stat card grid stagger — 60ms (midpoint of 50-75ms research recommendation)
+export const staggerCards = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.05,
+    },
+  },
+};
+
 // ============================================
 // XIII. UTILITY FUNCTIONS
 // ============================================

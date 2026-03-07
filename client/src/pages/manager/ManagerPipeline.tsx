@@ -1,25 +1,45 @@
 /**
- * Manager Pipeline — Pipeline Overview Page (Phase 3 Enhanced)
- * Team pipeline health, deal flow stages, kanban board, stale deal detection,
+ * Manager Pipeline Page
+ * Team pipeline health, deal flow stages, stale deal detection,
  * coverage ratio, conversion funnel, and recent activity
  * Heritage Design System — Emerald theme
  */
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
-import { MANAGER_ICON_GRADIENT, DEMO_PIPELINE_STAGES, glassCard } from './managerConstants';
+import {
+  MANAGER_ICON_GRADIENT,
+  DEMO_PIPELINE_STAGES,
+  glassCard,
+  SPARKLINE_PIPELINE,
+  SPARKLINE_WIN_RATE,
+  SPARKLINE_REVENUE,
+} from './managerConstants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ForecastingTabContent } from './ManagerForecasting';
 import {
   RADIUS, TYPE, GRID, LAYOUT, MOTION, COLORS, SHADOW,
-  fadeInUp, staggerContainer,
+  fadeInUp, staggerContainer, staggerCards,
 } from '@/lib/heritageDesignSystem';
 import {
   Target, DollarSign, BarChart3, TrendingUp, Activity,
-  LayoutList, LayoutGrid, AlertTriangle, ArrowRight, Bell,
-  ChevronDown, Filter,
+  AlertTriangle, Bell, ChevronDown, Filter, LineChart,
 } from 'lucide-react';
+import { toast } from 'sonner';
+
+// ─── TYPES ──────────────────────────────────────────────────
+
+interface PipelineDeal {
+  id: string;
+  name: string;
+  agent: string;
+  avatar: string;
+  value: number;
+  stage: string;
+  daysIdle: number;
+}
 
 // ─── DEMO DATA ──────────────────────────────────────────────
 
@@ -31,8 +51,8 @@ const DEMO_PIPELINE_ACTIVITY = [
   { id: '5', agent: 'Jessica Lee', avatar: 'JL', lead: 'Meridian Group', from: 'New Leads', to: 'Contacted', time: '3 hrs ago' },
 ];
 
-const DEMO_KANBAN_DEALS = [
-  // New Leads (8 deals)
+const DEMO_PIPELINE_DEALS: PipelineDeal[] = [
+  // New Leads
   { id: 'k1', name: 'Thompson Estate', agent: 'Sarah Johnson', avatar: 'SJ', value: 48000, stage: 'New Leads', daysIdle: 2 },
   { id: 'k2', name: 'Martinez Key Person', agent: 'Mike Chen', avatar: 'MC', value: 76000, stage: 'New Leads', daysIdle: 5 },
   { id: 'k3', name: 'Davis Legacy Trust', agent: 'James Wilson', avatar: 'JW', value: 95000, stage: 'New Leads', daysIdle: 18 },
@@ -41,31 +61,29 @@ const DEMO_KANBAN_DEALS = [
   { id: 'k6', name: 'Taylor Basic Life', agent: 'Lisa Park', avatar: 'LP', value: 18000, stage: 'New Leads', daysIdle: 3 },
   { id: 'k7', name: 'Nguyen Premium', agent: 'David Brown', avatar: 'DB', value: 52000, stage: 'New Leads', daysIdle: 8 },
   { id: 'k8', name: 'Adams Universal', agent: 'Anna Kim', avatar: 'AK', value: 22000, stage: 'New Leads', daysIdle: 16 },
-  // Contacted (6 deals)
+  // Contacted
   { id: 'k9', name: 'Chen Annuity Pkg', agent: 'David Brown', avatar: 'DB', value: 89000, stage: 'Contacted', daysIdle: 21 },
   { id: 'k10', name: 'Kim Retirement Plus', agent: 'Lisa Park', avatar: 'LP', value: 31000, stage: 'Contacted', daysIdle: 4 },
   { id: 'k11', name: 'Roberts Family', agent: 'Mike Chen', avatar: 'MC', value: 42000, stage: 'Contacted', daysIdle: 9 },
   { id: 'k12', name: 'Lee Protection', agent: 'Jessica Lee', avatar: 'JL', value: 38000, stage: 'Contacted', daysIdle: 15 },
   { id: 'k13', name: 'Garcia Convert', agent: 'Rachel Green', avatar: 'RG', value: 27000, stage: 'Contacted', daysIdle: 2 },
   { id: 'k14', name: 'Hall Executive', agent: 'Sarah Johnson', avatar: 'SJ', value: 67000, stage: 'Contacted', daysIdle: 6 },
-  // Qualified (5 deals)
+  // Qualified
   { id: 'k15', name: 'Williams Family IUL', agent: 'Rachel Green', avatar: 'RG', value: 62000, stage: 'Qualified', daysIdle: 3 },
   { id: 'k16', name: 'Patel Term Convert', agent: 'Jessica Lee', avatar: 'JL', value: 28000, stage: 'Qualified', daysIdle: 7 },
   { id: 'k17', name: 'Nguyen Family Plan', agent: 'Emily Davis', avatar: 'ED', value: 54000, stage: 'Qualified', daysIdle: 19 },
   { id: 'k18', name: 'Brooks Whole Life', agent: 'Tom Rodriguez', avatar: 'TR', value: 36000, stage: 'Qualified', daysIdle: 11 },
   { id: 'k19', name: 'Cooper Annuity', agent: 'Mike Chen', avatar: 'MC', value: 45000, stage: 'Qualified', daysIdle: 1 },
-  // Proposal (4 deals)
+  // Proposal
   { id: 'k20', name: 'Garcia Whole Life', agent: 'Mike Chen', avatar: 'MC', value: 35000, stage: 'Proposal', daysIdle: 4 },
   { id: 'k21', name: 'Brooks IUL Transfer', agent: 'Tom Rodriguez', avatar: 'TR', value: 42000, stage: 'Proposal', daysIdle: 10 },
   { id: 'k22', name: 'Lee Estate Shield', agent: 'Rachel Green', avatar: 'RG', value: 38000, stage: 'Proposal', daysIdle: 2 },
   { id: 'k23', name: 'Anderson Corp', agent: 'Sarah Johnson', avatar: 'SJ', value: 58000, stage: 'Proposal', daysIdle: 6 },
-  // Closed Won (3 deals)
+  // Closed Won
   { id: 'k24', name: 'Summit Partners', agent: 'David Brown', avatar: 'DB', value: 41000, stage: 'Closed Won', daysIdle: 0 },
   { id: 'k25', name: 'Riverside LLC', agent: 'Jessica Lee', avatar: 'JL', value: 33000, stage: 'Closed Won', daysIdle: 0 },
   { id: 'k26', name: 'Oakwood Holdings', agent: 'Rachel Green', avatar: 'RG', value: 28000, stage: 'Closed Won', daysIdle: 0 },
 ];
-
-const STALE_DEALS = DEMO_KANBAN_DEALS.filter(d => d.daysIdle > 14 && d.stage !== 'Closed Won');
 
 // ─── FUNNEL DATA (derived from DEMO_PIPELINE_STAGES) ─────────
 
@@ -76,7 +94,7 @@ const FUNNEL_STAGES = DEMO_PIPELINE_STAGES.map((s, i, arr) => ({
   dropOff: i > 0 ? Math.round(((arr[i - 1].count - s.count) / arr[i - 1].count) * 100) : 0,
 }));
 
-// ─── HELPERS ─────────────────────────────────────────────────
+// ─── COMPUTED CONSTANTS ─────────────────────────────────────
 
 function formatDollar(value: number): string {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -84,25 +102,21 @@ function formatDollar(value: number): string {
   return `$${value}`;
 }
 
-function agingColor(days: number): { dot: string; border: string } {
-  if (days < 7) return { dot: '#10b981', border: 'rgba(16, 185, 129, 0.25)' };
-  if (days <= 14) return { dot: '#f59e0b', border: 'rgba(245, 158, 11, 0.25)' };
-  return { dot: '#ef4444', border: 'rgba(239, 68, 68, 0.30)' };
-}
+const pipelineTotal = DEMO_PIPELINE_STAGES.reduce((sum, s) => sum + s.value, 0);
+const activeDealCount = DEMO_PIPELINE_STAGES.filter((s) => s.stage !== 'Closed Won').reduce((sum, s) => sum + s.count, 0);
+const totalDealCount = DEMO_PIPELINE_STAGES.reduce((sum, s) => sum + s.count, 0);
+const avgDealSize = Math.round(pipelineTotal / totalDealCount);
+const targetTotal = 400000;
+const surplusValue = pipelineTotal - targetTotal;
+const targetPct = Math.round((targetTotal / pipelineTotal) * 100);
+const coverageRatio = (pipelineTotal / targetTotal).toFixed(1);
+const coverageNum = parseFloat(coverageRatio);
 
-const STAGE_NAMES = DEMO_PIPELINE_STAGES.map(s => s.stage);
+const STALE_DEALS = DEMO_PIPELINE_DEALS.filter((d) => d.daysIdle > 14 && d.stage !== 'Closed Won');
 
 // ─── COMPONENT ───────────────────────────────────────────────
 
 export function ManagerPipeline() {
-  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
-
-  const pipelineTotal = 847000;
-  const targetTotal = 400000;
-  const coverageRatio = (pipelineTotal / targetTotal).toFixed(1);
-  const coverageNum = parseFloat(coverageRatio);
-  const coverageColor = coverageNum >= 3 ? '#10b981' : coverageNum >= 2 ? '#f59e0b' : '#ef4444';
-
   return (
     <ManagerLoungeLayout>
       <motion.div
@@ -115,32 +129,67 @@ export function ManagerPipeline() {
         <motion.div variants={fadeInUp}>
           <ManagerPageHero
             icon={Target}
-            title="Pipeline Overview"
-            subtitle="Track your team's deal flow and pipeline health"
+            title="Pipeline"
+            subtitle="Deal flow and pipeline health"
           />
         </motion.div>
 
         {/* ── 2. Stat Cards ──────────────────────────────────── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
             <ManagerStatCard
               icon={DollarSign}
-              value="$847K"
+              value={formatDollar(pipelineTotal)}
               label="Total Pipeline"
-              trend={{ value: '18%', positive: true }}
+              sparklineData={[...SPARKLINE_PIPELINE]}
+              delta={18}
+              deltaFormat="percent"
+              periodLabel="vs last month"
+              northStar
             />
-            <ManagerStatCard icon={Target} value="62" label="Active Deals" />
-            <ManagerStatCard icon={BarChart3} value="$13.7K" label="Avg Deal Size" />
+            <ManagerStatCard icon={Target} value={activeDealCount} label="Active Deals" sparklineData={[...SPARKLINE_REVENUE].slice(0, 14)} delta={3} periodLabel="Last 14 days" />
+            <ManagerStatCard icon={BarChart3} value={formatDollar(avgDealSize)} label="Avg Deal Size" delta={5.2} deltaFormat="percent" periodLabel="vs last month" />
             <ManagerStatCard
               icon={TrendingUp}
               value="42%"
               label="Win Rate"
-              trend={{ value: '5%', positive: true }}
+              sparklineData={[...SPARKLINE_WIN_RATE]}
+              delta={5}
+              deltaFormat="percent"
+              periodLabel="vs last month"
             />
           </ManagerStatCardGrid>
         </motion.div>
 
-        {/* ── 3. Pipeline Coverage Ratio Bar ──────────────────── */}
+        {/* ── Tab Navigation ──────────────────────────────── */}
+        <motion.div variants={fadeInUp}>
+          <Tabs defaultValue="pipeline">
+            <TabsList
+              className="w-full justify-start bg-white/60 backdrop-blur-xl border border-black/[0.06]"
+              style={{ borderRadius: RADIUS.card, padding: 4, height: 'auto', gap: 4 }}
+            >
+              <TabsTrigger
+                value="pipeline"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+              >
+                <Target style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                Pipeline
+              </TabsTrigger>
+              <TabsTrigger
+                value="forecasting"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+              >
+                <LineChart style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                Forecasting
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pipeline" style={{ marginTop: GRID.spacing.md }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
+
+        {/* ── 3. Pipeline Coverage ──────────────────────────── */}
         <motion.div variants={fadeInUp}>
           <Card
             className="border-0 overflow-hidden relative"
@@ -148,229 +197,207 @@ export function ManagerPipeline() {
           >
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-rose-400" />
             {/* Fibonacci blobs */}
-            <div className="absolute top-0 right-0 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl" style={{ width: 89, height: 89 }} />
-            <div className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full translate-y-1/2 -translate-x-1/4 blur-xl" style={{ width: 55, height: 55 }} />
-            <div className="absolute top-1/2 right-1/4 bg-teal-300/10 rounded-full blur-sm" style={{ width: 34, height: 34 }} />
+            <div className="absolute top-0 right-0 bg-white/10 -translate-y-1/2 translate-x-1/3 blur-2xl" style={{ width: 89, height: 89, borderRadius: RADIUS.pill }} />
+            <div className="absolute bottom-0 left-0 bg-amber-400/15 translate-y-1/2 -translate-x-1/4 blur-xl" style={{ width: 55, height: 55, borderRadius: RADIUS.pill }} />
+            <div className="absolute top-1/2 right-1/4 bg-teal-300/10 blur-sm" style={{ width: 34, height: 34, borderRadius: RADIUS.pill }} />
 
             <CardContent className="relative z-10" style={{ padding: GRID.spacing.md }}>
-              <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.sm }}>
-                <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                  <div
-                    className="flex items-center justify-center"
+              {/* Header */}
+              <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.md }}>
+                <div>
+                  <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: 4 }}>
+                    <div
+                      className="flex items-center justify-center"
+                      style={{
+                        width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button,
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%)',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      <BarChart3 className="text-amber-200" size={LAYOUT.icon.md} />
+                    </div>
+                    <span className="font-semibold text-white" style={{ fontSize: TYPE.title }}>Pipeline Coverage</span>
+                  </div>
+                  <p className="text-white/60" style={{ fontSize: TYPE.caption, paddingLeft: LAYOUT.icon.xxl + GRID.spacing.xs }}>
+                    {formatDollar(pipelineTotal)} pipeline vs {formatDollar(targetTotal)} target
+                  </p>
+                </div>
+                <div className="text-right">
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2, ease: MOTION.easing }}
+                    className="font-bold"
                     style={{
-                      width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button,
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%)',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                      fontSize: TYPE.display,
+                      lineHeight: 1,
+                      color: coverageNum >= 3 ? '#bbf7d0' : coverageNum >= 2 ? '#fef3c7' : '#fecaca',
                     }}
                   >
-                    <BarChart3 className="w-5 h-5 text-amber-200" />
-                  </div>
-                  <span className="font-semibold text-white" style={{ fontSize: TYPE.title }}>Pipeline Coverage</span>
+                    {coverageRatio}x
+                  </motion.div>
+                  <p className="text-white/50" style={{ fontSize: TYPE.micro, marginTop: 2 }}>coverage ratio</p>
                 </div>
-                <div
-                  className="font-bold text-white"
+              </div>
+
+              {/* Two-tone segmented bar */}
+              <div style={{ position: 'relative', marginBottom: GRID.spacing.sm }}>
+                {/* Bar track */}
+                <div style={{ height: 40, borderRadius: RADIUS.button, background: 'rgba(0,0,0,0.15)', overflow: 'hidden', position: 'relative' }}>
+                  {/* Covered segment (0 → target) — bright solid */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${targetPct}%` }}
+                    transition={{ duration: 0.8, ease: MOTION.easing }}
+                    style={{
+                      position: 'absolute', top: 0, left: 0, height: '100%',
+                      background: 'linear-gradient(90deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.35) 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <span className="font-bold text-white/90" style={{ fontSize: TYPE.caption }}>
+                      {formatDollar(targetTotal)}
+                    </span>
+                  </motion.div>
+
+                  {/* Surplus segment (target → pipeline) — lighter with pattern */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${100 - targetPct}%` }}
+                    transition={{ duration: 0.6, delay: 0.4, ease: MOTION.easing }}
+                    style={{
+                      position: 'absolute', top: 0, left: `${targetPct}%`, height: '100%',
+                      background: 'repeating-linear-gradient(115deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 6px, rgba(255,255,255,0.08) 6px, rgba(255,255,255,0.08) 12px)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <span className="font-semibold text-white/70" style={{ fontSize: TYPE.caption }}>
+                      +{formatDollar(surplusValue)}
+                    </span>
+                  </motion.div>
+
+                  {/* Target marker — gold line with glow */}
+                  <motion.div
+                    initial={{ opacity: 0, scaleY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    transition={{ duration: 0.4, delay: 0.7 }}
+                    style={{
+                      position: 'absolute', top: -6, left: `${targetPct}%`, marginLeft: -1,
+                      width: 2, height: 'calc(100% + 12px)',
+                      background: '#fbbf24',
+                      borderRadius: 2,
+                      boxShadow: '0 0 12px rgba(251,191,36,0.7), 0 0 4px rgba(251,191,36,0.5)',
+                    }}
+                  />
+                </div>
+
+                {/* Target label floating above the marker */}
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.9 }}
                   style={{
-                    fontSize: TYPE.hero,
-                    color: coverageNum >= 3 ? '#bbf7d0' : coverageNum >= 2 ? '#fef3c7' : '#fecaca',
+                    position: 'absolute', bottom: -20, left: `${targetPct}%`,
+                    transform: 'translateX(-50%)',
                   }}
                 >
-                  {coverageRatio}x
+                  <span className="text-amber-300 font-semibold" style={{ fontSize: TYPE.micro }}>
+                    Target
+                  </span>
+                </motion.div>
+              </div>
+
+              {/* Bottom metric pills */}
+              <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginTop: GRID.spacing.md }}>
+                <div
+                  className="flex items-center"
+                  style={{
+                    gap: 6,
+                    padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.sm}px`,
+                    borderRadius: RADIUS.pill,
+                    background: 'rgba(255,255,255,0.20)',
+                    backdropFilter: 'blur(4px)',
+                  }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.6)' }} />
+                  <span className="text-white/90 font-medium" style={{ fontSize: TYPE.caption }}>
+                    Covered: {formatDollar(targetTotal)}
+                  </span>
                 </div>
-              </div>
-
-              {/* Coverage bar */}
-              <div style={{ position: 'relative', height: 32, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}>
-                {/* Pipeline fill */}
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: '100%' }}
-                  transition={{ duration: 0.8, ease: MOTION.easing }}
+                <div
+                  className="flex items-center"
                   style={{
-                    position: 'absolute', top: 0, left: 0, height: '100%',
-                    borderRadius: RADIUS.button,
-                    background: 'linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.18) 100%)',
+                    gap: 6,
+                    padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.sm}px`,
+                    borderRadius: RADIUS.pill,
+                    background: 'rgba(255,255,255,0.10)',
+                    backdropFilter: 'blur(4px)',
                   }}
-                />
-                {/* Target marker line */}
-                <motion.div
-                  initial={{ left: 0, opacity: 0 }}
-                  animate={{ left: `${Math.min((targetTotal / pipelineTotal) * 100, 100)}%`, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.3, ease: MOTION.easing }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.25)', border: '1px dashed rgba(255,255,255,0.4)' }} />
+                  <span className="text-white/70 font-medium" style={{ fontSize: TYPE.caption }}>
+                    Surplus: +{formatDollar(surplusValue)}
+                  </span>
+                </div>
+                <div
+                  className="flex items-center ml-auto"
                   style={{
-                    position: 'absolute', top: 0, height: '100%', width: 3,
-                    background: '#fbbf24', borderRadius: 2,
-                    boxShadow: '0 0 8px rgba(251,191,36,0.6)',
+                    gap: 6,
+                    padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.sm}px`,
+                    borderRadius: RADIUS.pill,
+                    background: 'rgba(251,191,36,0.15)',
+                    backdropFilter: 'blur(4px)',
                   }}
-                />
-              </div>
-
-              {/* Labels */}
-              <div className="flex items-center justify-between" style={{ marginTop: GRID.spacing.xs }}>
-                <span className="text-white/80" style={{ fontSize: TYPE.meta }}>Pipeline: {formatDollar(pipelineTotal)}</span>
-                <span className="text-amber-200/90" style={{ fontSize: TYPE.meta }}>Target: {formatDollar(targetTotal)}</span>
+                >
+                  <div style={{ width: 8, height: 2, borderRadius: 1, background: '#fbbf24' }} />
+                  <span className="text-amber-200 font-medium" style={{ fontSize: TYPE.caption }}>
+                    Target: {formatDollar(targetTotal)}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* ── 4. View Toggle + Pipeline Stages / Kanban Board ──── */}
-        <motion.div variants={fadeInUp}>
-          {/* Toggle pills */}
-          <div className="flex items-center" style={{ marginBottom: GRID.spacing.sm, gap: GRID.spacing.xs }}>
-            {(['list', 'board'] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className="flex items-center font-medium transition-all"
-                style={{
-                  padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                  borderRadius: RADIUS.pill,
-                  fontSize: TYPE.meta,
-                  gap: 6,
-                  ...(viewMode === mode
-                    ? { background: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)', color: 'white', boxShadow: SHADOW.card }
-                    : { ...glassCard, color: COLORS.gray[600], cursor: 'pointer' }),
-                }}
-              >
-                {mode === 'list' ? <LayoutList style={{ width: 16, height: 16 }} /> : <LayoutGrid style={{ width: 16, height: 16 }} />}
-                {mode === 'list' ? 'List' : 'Board'}
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence mode="wait">
-            {viewMode === 'list' ? (
-              /* ── List View (existing pipeline stage cards) ── */
-              <motion.div
-                key="list"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: MOTION.duration.normal }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
-                style={{ gap: GRID.spacing.sm }}
-              >
-                {DEMO_PIPELINE_STAGES.map((stage) => (
+        {/* ── 4. Pipeline Stages ──────────────────────────────── */}
+        <motion.div
+          variants={fadeInUp}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
+          style={{ gap: GRID.spacing.sm }}
+        >
+          {DEMO_PIPELINE_STAGES.map((stage) => (
+            <div
+              key={stage.stage}
+              style={{
+                ...glassCard,
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <div style={{ padding: GRID.spacing.md }}>
+                <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.sm }}>
                   <div
-                    key={stage.stage}
-                    style={{
-                      borderRadius: RADIUS.card,
-                      background: 'rgba(255, 255, 255, 0.85)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      boxShadow: SHADOW.card,
-                    }}
-                  >
-                    <div style={{ padding: GRID.spacing.md }}>
-                      <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.sm }}>
-                        <div
-                          className={stage.color}
-                          style={{ width: 10, height: 10, borderRadius: RADIUS.pill, flexShrink: 0 }}
-                        />
-                        <p className="font-medium text-gray-600 truncate" style={{ fontSize: TYPE.meta }}>
-                          {stage.stage}
-                        </p>
-                      </div>
-                      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs / 2 }}>
-                        {stage.count}
-                      </p>
-                      <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
-                        {formatDollar(stage.value)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            ) : (
-              /* ── Board View (kanban columns) ── */
-              <motion.div
-                key="board"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: MOTION.duration.normal }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
-                style={{ gap: GRID.spacing.xs, alignItems: 'start' }}
-              >
-                {STAGE_NAMES.map((stageName) => {
-                  const stageDeals = DEMO_KANBAN_DEALS.filter(d => d.stage === stageName);
-                  const stageInfo = DEMO_PIPELINE_STAGES.find(s => s.stage === stageName)!;
-                  return (
-                    <div
-                      key={stageName}
-                      style={{
-                        borderRadius: RADIUS.card,
-                        background: 'rgba(255, 255, 255, 0.85)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        boxShadow: SHADOW.card,
-                        padding: GRID.spacing.sm,
-                      }}
-                    >
-                      {/* Column header */}
-                      <div className="flex items-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.sm }}>
-                        <div className={stageInfo.color} style={{ width: 10, height: 10, borderRadius: RADIUS.pill, flexShrink: 0 }} />
-                        <span className="font-semibold text-gray-700 truncate" style={{ fontSize: TYPE.meta }}>{stageName}</span>
-                        <span className="text-gray-400 ml-auto" style={{ fontSize: TYPE.micro }}>{stageDeals.length}</span>
-                      </div>
-
-                      {/* Deal cards */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                        {stageDeals.map((deal) => {
-                          const aging = agingColor(deal.daysIdle);
-                          return (
-                            <motion.div
-                              key={deal.id}
-                              whileHover={{ y: -2, transition: { duration: MOTION.duration.hover } }}
-                              style={{
-                                padding: GRID.spacing.xs,
-                                borderRadius: RADIUS.button,
-                                background: COLORS.gray[50],
-                                borderLeft: `3px solid ${aging.dot}`,
-                              }}
-                            >
-                              <p className="font-medium text-gray-800 truncate" style={{ fontSize: TYPE.caption, marginBottom: 4 }}>
-                                {deal.name}
-                              </p>
-                              <div className="flex items-center" style={{ gap: 6, marginBottom: 4 }}>
-                                {/* Agent avatar */}
-                                <div
-                                  className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
-                                  style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
-                                >
-                                  {deal.avatar}
-                                </div>
-                                <span className="text-gray-500 truncate" style={{ fontSize: TYPE.micro }}>{deal.agent}</span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="font-semibold text-gray-700" style={{ fontSize: TYPE.caption }}>
-                                  {formatDollar(deal.value)}
-                                </span>
-                                <div className="flex items-center" style={{ gap: 4 }}>
-                                  <div style={{ width: 6, height: 6, borderRadius: RADIUS.pill, background: aging.dot }} />
-                                  <span className="text-gray-400" style={{ fontSize: TYPE.micro }}>{deal.daysIdle}d</span>
-                                </div>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    className={stage.color}
+                    style={{ width: 10, height: 10, borderRadius: RADIUS.pill, flexShrink: 0 }}
+                  />
+                  <p className="font-medium text-gray-600 truncate" style={{ fontSize: TYPE.meta }}>
+                    {stage.stage}
+                  </p>
+                </div>
+                <p className="font-bold text-gray-900" style={{ fontSize: TYPE.section }}>
+                  {stage.count}
+                </p>
+              </div>
+            </div>
+          ))}
         </motion.div>
 
         {/* ── 5. Conversion Funnel ───────────────────────────── */}
         <motion.div variants={fadeInUp}>
           <Card
-            className="overflow-hidden border-0"
+            className="overflow-hidden"
             style={{
-              background: 'rgba(255, 255, 255, 0.85)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              ...glassCard,
               borderRadius: RADIUS.card,
               boxShadow: SHADOW.card,
             }}
@@ -381,7 +408,7 @@ export function ManagerPipeline() {
                   className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                   style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                 >
-                  <Filter className="w-5 h-5 text-amber-200" />
+                  <Filter className="text-amber-200" size={LAYOUT.icon.md} />
                 </div>
                 <span className="text-gray-900">Conversion Funnel</span>
               </CardTitle>
@@ -390,10 +417,9 @@ export function ManagerPipeline() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
                 {FUNNEL_STAGES.map((stage, i) => (
                   <div key={stage.stage}>
-                    {/* Conversion arrow between stages */}
                     {i > 0 && (
                       <div className="flex items-center justify-center" style={{ gap: GRID.spacing.xs, marginBottom: GRID.spacing.xs }}>
-                        <ChevronDown className="text-emerald-400" style={{ width: 16, height: 16 }} />
+                        <ChevronDown className="text-emerald-400" size={LAYOUT.icon.sm} />
                         <span className="font-medium text-emerald-600" style={{ fontSize: TYPE.caption }}>
                           {stage.conversion}% conversion
                         </span>
@@ -402,7 +428,6 @@ export function ManagerPipeline() {
                         </span>
                       </div>
                     )}
-                    {/* Funnel bar */}
                     <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
                       <span
                         className="font-medium text-gray-600 text-right flex-shrink-0"
@@ -445,7 +470,7 @@ export function ManagerPipeline() {
         {/* ── 6. Stale Deal Detection ────────────────────────── */}
         <motion.div variants={fadeInUp}>
           <Card
-            className="overflow-hidden border-0"
+            className="overflow-hidden"
             style={{
               background: 'rgba(255, 251, 235, 0.90)',
               backdropFilter: 'blur(20px)',
@@ -461,7 +486,7 @@ export function ManagerPipeline() {
                   className="flex items-center justify-center bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg shadow-amber-500/20"
                   style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                 >
-                  <AlertTriangle className="w-5 h-5 text-amber-100" />
+                  <AlertTriangle className="text-amber-100" size={LAYOUT.icon.md} />
                 </div>
                 <span className="text-gray-900">Stale Deals</span>
                 <span
@@ -473,7 +498,7 @@ export function ManagerPipeline() {
                     borderRadius: RADIUS.pill,
                   }}
                 >
-                  {STALE_DEALS.length} idle &gt;14 days
+                  {STALE_DEALS.length} no activity in 14+ days
                 </span>
               </CardTitle>
             </CardHeader>
@@ -541,8 +566,9 @@ export function ManagerPipeline() {
                         border: 'none',
                         cursor: 'pointer',
                       }}
+                      onClick={() => toast.success(`Nudge sent to ${deal.agent} about "${deal.name}"`)}
                     >
-                      <Bell style={{ width: 12, height: 12 }} />
+                      <Bell size={LAYOUT.icon.xs} />
                       Nudge Agent
                     </button>
                   </motion.div>
@@ -552,14 +578,12 @@ export function ManagerPipeline() {
           </Card>
         </motion.div>
 
-        {/* ── 7. Recent Pipeline Activity ─────────────────────── */}
+        {/* ── 7. Recent Activity ─────────────────────── */}
         <motion.div variants={fadeInUp}>
           <Card
-            className="overflow-hidden border-0"
+            className="overflow-hidden"
             style={{
-              background: 'rgba(255, 255, 255, 0.85)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              ...glassCard,
               borderRadius: RADIUS.card,
               boxShadow: SHADOW.card,
             }}
@@ -570,9 +594,9 @@ export function ManagerPipeline() {
                   className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
                   style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                 >
-                  <Activity className="w-5 h-5 text-amber-200" />
+                  <Activity className="text-amber-200" size={LAYOUT.icon.md} />
                 </div>
-                <span className="text-gray-900">Recent Pipeline Activity</span>
+                <span className="text-gray-900">Recent Activity</span>
               </CardTitle>
             </CardHeader>
             <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
@@ -622,6 +646,14 @@ export function ManagerPipeline() {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="forecasting" style={{ marginTop: GRID.spacing.md }}>
+              <ForecastingTabContent />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </motion.div>
     </ManagerLoungeLayout>

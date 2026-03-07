@@ -52,6 +52,8 @@ import {
   ChevronDown,
   HeadphonesIcon,
   Briefcase,
+  Lightbulb,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +113,7 @@ const commandCenterItems: NavItem[] = [
   { icon: BarChart3, label: "Performance", href: "/agents/performance" },
   { icon: Inbox, label: "Lead Inbox", href: "/agents/inbox" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
+  { icon: Briefcase, label: "Book of Business", href: "/agents/book-of-business" },
 ];
 
 // OUTREACH - All communication & engagement
@@ -136,6 +139,8 @@ const growthItems: NavItem[] = [
   { icon: Star, label: "Achievements", href: "/agents/achievements" },
   { icon: Network, label: "My Hierarchy", href: "/agents/hierarchy" },
   { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
+  { icon: Lightbulb, label: "Ideas & Feedback", href: "/agents/ideas" },
+  { icon: UserPlus, label: "Recruiting", href: "/agents/recruiting" },
 ];
 
 interface AgentLoungeLayoutProps {
@@ -207,6 +212,9 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       'avatar-council': '/agents/avatar-council',
       automations: '/agents/automations',
       'member-cards': '/agents/member-cards',
+      ideas: '/agents/ideas',
+      'book-of-business': '/agents/book-of-business',
+      recruiting: '/agents/recruiting',
     };
     if (routes[tab]) {
       setLocation(routes[tab]);
