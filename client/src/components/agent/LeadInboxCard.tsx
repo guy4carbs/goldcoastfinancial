@@ -1,49 +1,20 @@
 import { motion } from "framer-motion";
 import {
-  Phone, Mail, MessageSquare, Calendar, Clock,
-  AlertCircle, User, ChevronRight, MapPin, FileText, Zap
+  Phone, FileText, ChevronRight, Globe, PhoneCall, Heart, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { useAgentStore, type Lead } from "@/lib/agentStore";
-import { MOTION, RADIUS } from "@/lib/heritageDesignSystem";
+import { cn, formatProductLabel } from "@/lib/utils";
+import type { Lead } from "@/lib/agentStore";
+import { MOTION } from "@/lib/heritageDesignSystem";
 
 interface LeadInboxCardProps {
   lead: Lead;
-  urgency: 'overdue' | 'today' | 'upcoming' | 'no-followup';
   onClick: () => void;
   onQuickCall: () => void;
   onQuickActivity: () => void;
-  showUrgencyScore?: boolean;
+  isNew?: boolean;
 }
-
-const URGENCY_CONFIG = {
-  overdue: {
-    bg: 'bg-red-50 border-red-200',
-    badge: 'bg-red-100 text-red-700',
-    icon: AlertCircle,
-    iconColor: 'text-red-500',
-  },
-  today: {
-    bg: 'bg-amber-50 border-amber-200',
-    badge: 'bg-amber-100 text-amber-700',
-    icon: Clock,
-    iconColor: 'text-amber-500',
-  },
-  upcoming: {
-    bg: 'bg-violet-50 border-violet-200',
-    badge: 'bg-violet-100 text-violet-700',
-    icon: Calendar,
-    iconColor: 'text-violet-500',
-  },
-  'no-followup': {
-    bg: 'bg-gray-50 border-gray-300 border-dashed',
-    badge: 'bg-gray-100 text-gray-600',
-    icon: AlertCircle,
-    iconColor: 'text-gray-400',
-  },
-};
 
 const STATUS_COLORS: Record<Lead['status'], string> = {
   new: 'bg-purple-100 text-purple-700',
@@ -54,193 +25,118 @@ const STATUS_COLORS: Record<Lead['status'], string> = {
   lost: 'bg-gray-100 text-gray-500',
 };
 
-const FOLLOW_UP_TYPE_ICONS = {
-  call: Phone,
-  email: Mail,
-  text: MessageSquare,
-  meeting: Calendar,
-};
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
-export function LeadInboxCard({ lead, urgency, onClick, onQuickCall, onQuickActivity, showUrgencyScore = true }: LeadInboxCardProps) {
-  const { calculateLeadUrgencyScore } = useAgentStore();
-  const config = URGENCY_CONFIG[urgency];
-  const UrgencyIcon = config.icon;
-  const FollowUpIcon = lead.nextFollowUpType ? FOLLOW_UP_TYPE_ICONS[lead.nextFollowUpType] : Phone;
-
-  // Calculate urgency score
-  const { score: urgencyScore } = calculateLeadUrgencyScore(lead);
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    today.setHours(0, 0, 0, 0);
-    tomorrow.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-
-    if (date.getTime() === today.getTime()) return 'Today';
-    if (date.getTime() === tomorrow.getTime()) return 'Tomorrow';
-
-    const diffDays = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return `${Math.abs(diffDays)}d overdue`;
-    if (diffDays <= 7) return `In ${diffDays} days`;
-
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  const getOverdueDays = () => {
-    if (!lead.nextFollowUpDate) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const followUp = new Date(lead.nextFollowUpDate);
-    followUp.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((today.getTime() - followUp.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const overdueDays = getOverdueDays();
+export function LeadInboxCard({ lead, onClick, onQuickCall, onQuickActivity, isNew = false }: LeadInboxCardProps) {
+  const initials = lead.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const isWebsite = lead.source === 'Website' || lead.source === 'Schedule Call' || (lead.tags || []).includes('Website Lead');
+  const isReferral = lead.source === 'Referral' || (lead.tags || []).includes('Referral');
+  const isDistributed = lead.source === 'Distributed' || (lead.tags || []).includes('Distributed');
+  const referrerTag = (lead.tags || []).find(t => t.startsWith('From: '));
+  const referrerName = referrerTag ? referrerTag.replace('From: ', '') : null;
 
   return (
     <motion.div
-      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-      whileTap={{ scale: 0.99 }}
+      whileHover={{ backgroundColor: "rgba(139,92,246,0.04)" }}
+      whileTap={{ scale: 0.995 }}
       transition={MOTION.spring}
       className={cn(
-        "p-4 border cursor-pointer transition-all",
-        config.bg
+        "group flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors border-l-3",
+        isNew ? "border-l-violet-500 bg-violet-50/20" : "border-l-transparent",
       )}
-      style={{ borderRadius: RADIUS.input }}
       onClick={onClick}
     >
-      <div className="flex items-start gap-4">
-        {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <User className="w-6 h-6 text-primary" />
-        </div>
+      {/* Unread dot */}
+      <div className="w-2 flex-shrink-0">
+        {isNew && <div className="w-2 h-2 rounded-full bg-violet-500" />}
+      </div>
 
-        {/* Main content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-gray-900 truncate">{lead.name}</h3>
-            <Badge className={cn("text-[10px] px-1.5 py-0", STATUS_COLORS[lead.status])}>
-              {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+      {/* Avatar */}
+      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-primary">
+        {initials}
+      </div>
+
+      {/* Name + contact */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className={cn("text-sm truncate", isNew ? "font-semibold text-gray-900" : "font-medium text-gray-800")}>
+            {lead.name}
+          </span>
+          {isDistributed && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 flex-shrink-0 border-blue-200 text-blue-600">
+              <Send className="w-2.5 h-2.5" />
+              Distributed
             </Badge>
-            {showUrgencyScore && (
-              <Badge className={cn(
-                "text-[10px] px-1.5 py-0 flex items-center gap-1",
-                urgencyScore >= 80 ? "bg-red-500 text-white" :
-                urgencyScore >= 60 ? "bg-orange-500 text-white" :
-                urgencyScore >= 40 ? "bg-amber-500 text-white" :
-                "bg-emerald-500 text-white"
-              )}>
-                <Zap className="w-2.5 h-2.5" />
-                {urgencyScore}
-              </Badge>
-            )}
-          </div>
-
-          {/* Meta info */}
-          <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
-            {lead.product && (
-              <span className="flex items-center gap-1">
-                <FileText className="w-3 h-3" />
-                {lead.product}
-              </span>
-            )}
-            {lead.state && (
-              <span className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {lead.state}
-              </span>
-            )}
-          </div>
-
-          {/* Follow-up info */}
-          <div className="flex items-center gap-2">
-            <UrgencyIcon className={cn("w-4 h-4", config.iconColor)} />
-            {urgency === 'no-followup' ? (
-              <span className="text-sm text-gray-500">No follow-up scheduled</span>
-            ) : (
-              <span className={cn(
-                "text-sm font-medium",
-                urgency === 'overdue' ? "text-red-700" :
-                urgency === 'today' ? "text-amber-700" :
-                urgency === 'upcoming' ? "text-violet-700" : "text-gray-600"
-              )}>
-                {urgency === 'overdue' && overdueDays > 0
-                  ? `${overdueDays} day${overdueDays > 1 ? 's' : ''} overdue`
-                  : formatDate(lead.nextFollowUpDate || '')}
-              </span>
-            )}
-            {lead.nextFollowUpType && urgency !== 'no-followup' && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex items-center gap-1">
-                <FollowUpIcon className="w-3 h-3" />
-                {lead.nextFollowUpType}
-              </Badge>
-            )}
-          </div>
-
-          {/* Last contact */}
-          {lead.lastContactDate && (
-            <p className="text-xs text-gray-400 mt-1">
-              Last contact: {new Date(lead.lastContactDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </p>
+          )}
+          {isReferral && !isDistributed && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 flex-shrink-0 border-pink-200 text-pink-600">
+              <Heart className="w-2.5 h-2.5" />
+              {referrerName ? `Via ${referrerName.split(' ')[0]}` : 'Referral'}
+            </Badge>
+          )}
+          {isWebsite && !isReferral && !isDistributed && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 flex-shrink-0 border-violet-200 text-violet-600">
+              <Globe className="w-2.5 h-2.5" />
+              Web
+            </Badge>
           )}
         </div>
-
-        {/* Actions */}
-        <div className="flex flex-col gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0 bg-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickCall();
-            }}
-          >
-            <Phone className="w-4 h-4 text-primary" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0 bg-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickActivity();
-            }}
-          >
-            <FileText className="w-4 h-4 text-gray-500" />
-          </Button>
-          <ChevronRight className="w-4 h-4 text-gray-300 mx-auto mt-1" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+          <span className="truncate">{lead.email}</span>
+          {lead.phone && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="flex-shrink-0">{lead.phone}</span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Policy status (if applicable) */}
-      {lead.policyStatus && (
-        <div className="mt-4 pt-4 border-t border-gray-200/50">
-          <div className="flex items-center gap-2">
-            <Badge
-              className={cn(
-                "text-[10px]",
-                lead.policyStatus === 'issued' ? 'bg-emerald-100 text-emerald-700' :
-                lead.policyStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                lead.policyStatus === 'pending_underwriting' ? 'bg-amber-100 text-amber-700' :
-                lead.policyStatus === 'submitted' ? 'bg-purple-100 text-purple-700' :
-                lead.policyStatus === 'quoted' ? 'bg-violet-100 text-violet-700' :
-                'bg-red-100 text-red-700'
-              )}
-            >
-              {lead.policyStatus.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </Badge>
-            {lead.carrier && (
-              <span className="text-xs text-gray-500">{lead.carrier}</span>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Product */}
+      <div className="hidden md:block text-xs text-muted-foreground w-28 truncate text-right">
+        {formatProductLabel(lead.product) || '—'}
+      </div>
+
+      {/* Status */}
+      <Badge className={cn("text-[10px] px-2 py-0.5 capitalize flex-shrink-0", STATUS_COLORS[lead.status])}>
+        {lead.status}
+      </Badge>
+
+      {/* Date */}
+      <span className="text-xs text-muted-foreground w-16 text-right flex-shrink-0 hidden sm:block">
+        {formatRelativeDate(lead.createdDate)}
+      </span>
+
+      {/* Quick actions (visible on hover) */}
+      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7"
+          onClick={e => { e.stopPropagation(); onQuickCall(); }}
+        >
+          <PhoneCall className="w-3.5 h-3.5 text-primary" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7"
+          onClick={e => { e.stopPropagation(); onQuickActivity(); }}
+        >
+          <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+
+      <ChevronRight className="w-4 h-4 text-muted-foreground/30 flex-shrink-0" />
     </motion.div>
   );
 }

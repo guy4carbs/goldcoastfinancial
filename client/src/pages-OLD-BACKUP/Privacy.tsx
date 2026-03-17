@@ -35,7 +35,7 @@ export default function Privacy() {
               <div>
                 <h2 className="text-2xl font-bold font-serif text-primary mb-4">Introduction</h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Gold Coast Financial ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website goldcoastfinancial.co (the "Site") or use our services.
+                  Gold Coast Financial Partners ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website goldcoastfinancial.co (the "Site") or use our services.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
                   Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site or use our services.
@@ -176,7 +176,7 @@ export default function Privacy() {
                   If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:
                 </p>
                 <div className="bg-muted/30 rounded-xl p-6">
-                  <p className="font-semibold text-primary mb-2">Gold Coast Financial</p>
+                  <p className="font-semibold text-primary mb-2">Gold Coast Financial Partners</p>
                   <p className="text-muted-foreground">1240 Iroquois Ave Suite 506</p>
                   <p className="text-muted-foreground">Naperville, Illinois 60563</p>
                   <p className="text-muted-foreground mt-2">Email: <a href="mailto:contact@goldcoastfnl.com" className="text-secondary hover:underline">contact@goldcoastfnl.com</a></p>

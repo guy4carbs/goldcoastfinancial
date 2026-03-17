@@ -1,7 +1,7 @@
 /**
  * Apple Wallet Pass Generation Routes
  *
- * Generates .pkpass files for Gold Coast Financial member cards
+ * Generates .pkpass files for Gold Coast Financial Partners member cards
  * Supports multiple DBAs (Heritage Life Solutions, etc.)
  * Requires Apple Developer Pass Type ID and signing certificates
  */
@@ -40,7 +40,7 @@ const DBA_CONFIG: Record<string, {
   },
   // Add future DBAs here:
   // goldcoast: {
-  //   name: "Gold Coast Financial",
+  //   name: "Gold Coast Financial Partners",
   //   logoText: "GOLD COAST",
   //   backgroundColor: "rgb(0, 51, 102)",
   //   ...
@@ -165,7 +165,7 @@ function getSetupInstructions() {
           "Go to Certificates, Identifiers & Profiles",
           "Select 'Identifiers' then click '+' to add new",
           "Choose 'Pass Type IDs'",
-          "Enter description: 'Gold Coast Financial Member Card'",
+          "Enter description: 'Gold Coast Financial Partners Member Card'",
           "Enter identifier: 'pass.com.goldcoastfnl.membercard'",
           "Click Register"
         ]
@@ -343,7 +343,7 @@ function generatePassJson(
         {
           key: "parent",
           label: "Operated By",
-          value: "Gold Coast Financial"
+          value: "Gold Coast Financial Partners"
         },
         {
           key: "disclaimer",

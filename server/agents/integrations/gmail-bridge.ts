@@ -58,7 +58,7 @@ export class GmailBridge {
       // Use the portal message sender
       await gmail.sendPortalMessage({
         to,
-        subject: subject || 'Message from Gold Coast Financial',
+        subject: subject || 'Message from Gold Coast Financial Partners',
         body: body || '',
         type: 'lead_outreach',
       });

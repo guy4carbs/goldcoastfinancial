@@ -11,6 +11,7 @@ import multer from "multer";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { randomUUID } from "crypto";
+import { convertLeadToClient } from "../services/leadConversionService";
 
 const router = Router();
 
@@ -488,6 +489,16 @@ router.patch("/pipeline/:leadId/stage", async (req: Request, res: Response) => {
       VALUES ($1, 'stage_change', 'Pipeline Stage Changed', $2, $3, $4, $5)
     `, [leadId, activityDescription, oldStage, newStage, userId]);
 
+    // Trigger lead-to-client conversion when stage moves to "placed"
+    let conversionResult = null;
+    if (newStage === 'placed' && userId) {
+      try {
+        conversionResult = await convertLeadToClient(leadId, userId);
+      } catch (err) {
+        console.error('[CRM Pipeline] Lead conversion failed (non-blocking):', err);
+      }
+    }
+
     res.json({
       success: true,
       lead: {
@@ -504,6 +515,7 @@ router.patch("/pipeline/:leadId/stage", async (req: Request, res: Response) => {
         to: newStage,
         note: activityDescription,
       },
+      conversion: conversionResult,
     });
   } catch (error) {
     console.error("[CRM Pipeline Stage Update] Error:", error);
@@ -1935,6 +1947,16 @@ router.patch("/leads/:id", async (req: Request, res: Response) => {
       VALUES ($1, 'update', 'Lead Updated', $2, $3)
     `, [id, changeDescription, userId]);
 
+    // Trigger lead-to-client conversion when status changes to "won"
+    let conversionResult = null;
+    if (updates.status === 'won' && currentLead.status !== 'won' && userId) {
+      try {
+        conversionResult = await convertLeadToClient(id, userId);
+      } catch (err) {
+        console.error('[CRM Update Lead] Lead conversion failed (non-blocking):', err);
+      }
+    }
+
     const lead = result.rows[0];
     res.json({
       lead: {
@@ -1970,6 +1992,7 @@ router.patch("/leads/:id", async (req: Request, res: Response) => {
         updatedAt: lead.updated_at,
       },
       changedFields,
+      conversion: conversionResult,
     });
   } catch (error) {
     console.error("[CRM Update Lead] Error:", error);

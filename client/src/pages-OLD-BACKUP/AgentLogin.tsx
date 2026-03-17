@@ -68,7 +68,7 @@ export default function AgentLogin() {
           </h1>
           <p className="text-white/60 text-sm flex items-center justify-center gap-2">
             <Building2 className="w-4 h-4" />
-            Gold Coast Financial
+            Gold Coast Financial Partners
           </p>
         </div>
 
@@ -178,12 +178,12 @@ export default function AgentLogin() {
 
         <div className="mt-8 text-center">
           <Link href="/" className="text-white/50 hover:text-white/80 text-sm transition-colors">
-            ← Return to Gold Coast Financial
+            ← Return to Gold Coast Financial Partners
           </Link>
         </div>
 
         <p className="text-center text-white/40 text-xs mt-6">
-          © 2026 Gold Coast Financial. All rights reserved.
+          © 2026 Gold Coast Financial Partners. All rights reserved.
         </p>
       </motion.div>
     </div>

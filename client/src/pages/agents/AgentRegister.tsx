@@ -209,8 +209,8 @@ export default function AgentRegister() {
 
       {/* Right Side - Registration Form */}
       <div
-        className={`w-full lg:w-1/2 xl:w-[45%] flex justify-center bg-gray-50 overflow-y-auto ${submitted ? "items-center" : "items-start"}`}
-        style={{ padding: spacing(3), paddingTop: spacing(4) }}
+        className="w-full lg:w-1/2 xl:w-[45%] flex justify-center items-center bg-gray-50 overflow-y-auto"
+        style={{ padding: spacing(3) }}
       >
         <motion.div
           variants={staggerContainer}

@@ -302,7 +302,7 @@ export default function Careers() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-6">
               <div className="h-1 w-12 bg-secondary rounded-full" />
-              <span className="text-secondary font-medium tracking-wide uppercase text-sm">Careers at Gold Coast Financial</span>
+              <span className="text-secondary font-medium tracking-wide uppercase text-sm">Careers at Gold Coast Financial Partners</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif leading-tight mb-6 text-white">
               Build a Rewarding Career Protecting Families
@@ -346,7 +346,7 @@ export default function Careers() {
               A Culture Built on Success
             </h2>
             <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
-              At Gold Coast Financial, we believe in putting our team first. When our agents succeed, our clients succeed.
+              At Gold Coast Financial Partners, we believe in putting our team first. When our agents succeed, our clients succeed.
             </p>
           </motion.div>
 
@@ -750,7 +750,7 @@ export default function Careers() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="whyJoinUs">Why do you want to join Gold Coast Financial? *</Label>
+                      <Label htmlFor="whyJoinUs">Why do you want to join Gold Coast Financial Partners? *</Label>
                       <Textarea 
                         id="whyJoinUs" 
                         placeholder="Share what drew you to our agency and what you hope to achieve..."
@@ -784,7 +784,7 @@ export default function Careers() {
                       <Label htmlFor="consent" className="text-sm cursor-pointer">
                         I agree to the{" "}
                         <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
-                        {" "}and consent to Gold Coast Financial contacting me regarding this application. *
+                        {" "}and consent to Gold Coast Financial Partners contacting me regarding this application. *
                       </Label>
                     </div>
                     {errors.consent && (
@@ -808,7 +808,7 @@ export default function Careers() {
                     </Button>
 
                     <p className="text-center text-xs text-muted-foreground">
-                      Gold Coast Financial is an equal opportunity employer. We celebrate diversity and are committed to creating an inclusive environment for all employees.
+                      Gold Coast Financial Partners is an equal opportunity employer. We celebrate diversity and are committed to creating an inclusive environment for all employees.
                     </p>
                   </form>
                 </CardContent>

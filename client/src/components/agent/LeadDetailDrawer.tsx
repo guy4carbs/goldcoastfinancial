@@ -33,7 +33,9 @@ import {
   Sparkles, Target, Trophy, X, Send, Plus, Tag,
   History, Bell, BellRing, Check, Save, Edit2, ArrowRight
 } from "lucide-react";
-import { cn, formatPhone, openGoogleCalendar } from "@/lib/utils";
+import { cn, formatPhone, formatProductLabel } from "@/lib/utils";
+import { useLocation } from "wouter";
+import { GRID, TYPE, COLORS, RADIUS } from "@/lib/heritageDesignSystem";
 import { useAgentStore } from "@/lib/agentStore";
 import type { Lead, ActivityLog, LeadReminder } from "@/lib/agentStore";
 import { toast } from "sonner";
@@ -76,6 +78,7 @@ export function LeadDetailDrawer({
   onUpdateStatus
 }: LeadDetailDrawerProps) {
   const { updateLeadNotes, addTagToLead, removeTagFromLead, addLeadReminder, completeReminder } = useAgentStore();
+  const [, navigate] = useLocation();
 
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [activityType, setActivityType] = useState<ActivityLog['type']>('call');
@@ -159,101 +162,139 @@ export function LeadDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg p-0 flex flex-col">
-        <SheetHeader className="p-6 pb-4 border-b bg-gradient-to-br from-primary/5 to-secondary/5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-lg font-bold">
-                {lead.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <div>
-                <SheetTitle className="text-xl font-serif">{lead.name}</SheetTitle>
-                <SheetDescription className="flex items-center gap-2 mt-1">
-                  {lead.product && <Badge variant="outline" className="text-xs">{lead.product}</Badge>}
-                  {lead.state && <span className="text-xs">{lead.state}</span>}
-                </SheetDescription>
-              </div>
+      <SheetContent className="w-full sm:max-w-[560px] p-0 flex flex-col border-0" style={{ backgroundColor: '#fafafa' }}>
+        {/* Dark gradient header */}
+        <div className="relative" style={{ background: 'linear-gradient(135deg, #4c1d95 0%, #6d28d9 40%, #7c3aed 100%)', padding: `${GRID.spacing.lg}px ${GRID.spacing.md}px ${GRID.spacing.md}px` }}>
+          <button onClick={() => onOpenChange(false)} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/20 transition-colors">
+            <X style={{ width: 20, height: 20, color: 'white' }} />
+          </button>
+          <div className="flex items-center gap-4" style={{ marginBottom: GRID.spacing.md }}>
+            <div className="flex-shrink-0 flex items-center justify-center text-white font-bold" style={{
+              width: 56, height: 56, borderRadius: RADIUS.pill,
+              backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
+              border: '2px solid rgba(255,255,255,0.3)', fontSize: TYPE.body,
+            }}>
+              {lead.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </div>
+            <div>
+              <SheetTitle style={{ fontSize: TYPE.section, fontWeight: 700, color: 'white' }}>{lead.name}</SheetTitle>
+              <SheetDescription style={{ fontSize: TYPE.meta, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>
+                {lead.state || 'No location'}
+              </SheetDescription>
             </div>
           </div>
-          
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Select value={lead.status} onValueChange={(v) => onUpdateStatus(lead.id, v as Lead['status'])}>
-              <SelectTrigger className={cn("w-auto gap-2", statusConfig[lead.status].color)}>
-                <StatusIcon className="w-4 h-4" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(statusConfig).map(([key, config]) => {
-                  const Icon = config.icon;
-                  return (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        {config.label}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+          {/* Stat grid */}
+          <div className="grid grid-cols-4 text-center" style={{ gap: GRID.spacing.xs }}>
+            {[
+              { v: formatProductLabel(lead.product), l: 'Product' },
+              { v: lead.coverageAmount ? `$${(lead.coverageAmount / 1000).toFixed(0)}K` : '—', l: 'Coverage' },
+              { v: statusConfig[lead.status]?.label || lead.status, l: 'Status' },
+              { v: lead.source || 'Direct', l: 'Source' },
+            ].map(s => (
+              <div key={s.l}>
+                <p style={{ fontSize: TYPE.meta, fontWeight: 700, color: 'white' }}>{s.v}</p>
+                <p style={{ fontSize: TYPE.micro, color: 'rgba(255,255,255,0.6)' }}>{s.l}</p>
+              </div>
+            ))}
           </div>
-        </SheetHeader>
+        </div>
 
         <ScrollArea className="flex-1">
-          <div className="p-6 space-y-6">
-            {/* Contact Info */}
-            <div className="grid gap-4">
-              <a
-                href={`tel:${lead.phone}`}
-                className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
-              >
-                <Phone className="w-5 h-5 text-primary" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{formatPhone(lead.phone)}</p>
-                  <p className="text-xs text-muted-foreground">Tap to call</p>
+          <div style={{ padding: GRID.spacing.md, display: 'flex', flexDirection: 'column' as const, gap: GRID.spacing.sm }}>
+            {/* Contact Info card */}
+            <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
+              <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Contact Information</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-start gap-2">
+                  <span className="text-gray-400 mt-0.5 flex-shrink-0"><Phone className="w-4 h-4" /></span>
+                  <div className="min-w-0">
+                    <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Phone</p>
+                    <p className="truncate" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>{formatPhone(lead.phone)}</p>
+                  </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-
-              <a
-                href={`mailto:${lead.email}?subject=Following up on your life insurance inquiry`}
-                className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
-              >
-                <Mail className="w-5 h-5 text-violet-600" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{lead.email}</p>
-                  <p className="text-xs text-muted-foreground">Tap to email</p>
+                <div className="flex items-start gap-2">
+                  <span className="text-gray-400 mt-0.5 flex-shrink-0"><Mail className="w-4 h-4" /></span>
+                  <div className="min-w-0">
+                    <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Email</p>
+                    <p className="truncate" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>{lead.email}</p>
+                  </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
+              </div>
+              {lead.state && (
+                <div style={{ marginTop: GRID.spacing.sm }}>
+                  <div className="flex items-start gap-2">
+                    <span className="text-gray-400 mt-0.5 flex-shrink-0"><MapPin className="w-4 h-4" /></span>
+                    <div className="min-w-0">
+                      <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Address</p>
+                      <p style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>{lead.state}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* AI Suggested Template - Stage 3 */}
+            {/* Lead Details card */}
+            <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.sm }}>
+                <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900] }}>Lead Details</h4>
+                {lead.coverageAmount && (
+                  <span style={{ fontSize: TYPE.title, fontWeight: 700, color: '#7c3aed' }}>
+                    ${lead.coverageAmount >= 1000 ? `${(lead.coverageAmount / 1000).toFixed(0)}K` : lead.coverageAmount.toLocaleString()}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Source</p>
+                  <p className="font-medium" style={{ fontSize: TYPE.meta, color: COLORS.gray[900] }}>{lead.source || 'Direct'}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Product</p>
+                  <p className="font-medium" style={{ fontSize: TYPE.meta, color: '#7c3aed' }}>{formatProductLabel(lead.product)}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Status</p>
+                  <Select value={lead.status} onValueChange={(v) => onUpdateStatus(lead.id, v as Lead['status'])}>
+                    <SelectTrigger className="h-7 w-auto gap-1.5 px-2 border-gray-200 text-sm font-medium" style={{ borderRadius: RADIUS.input, marginTop: 2 }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(statusConfig).map(([key, config]) => {
+                        const Icon = config.icon;
+                        return (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="w-3.5 h-3.5" />
+                              {config.label}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Created</p>
+                  <p className="font-medium" style={{ fontSize: TYPE.meta, color: COLORS.gray[900] }}>{lead.createdDate}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Suggested Template */}
             <SmartTemplatePanel lead={lead} compact />
 
             {/* Policy Tracker */}
-            {lead.policyStatus && (
-              <>
-                <Separator />
-                <PolicyTracker lead={lead} />
-              </>
-            )}
+            {lead.policyStatus && <PolicyTracker lead={lead} />}
 
-            {/* Cross-Sell Opportunities - Stage 3 */}
+            {/* Cross-Sell Opportunities */}
             {lead.status === 'closed' && lead.policyStatus === 'issued' && (
-              <>
-                <Separator />
-                <CrossSellPrompts
-                  lead={lead}
-                  onConvert={(product) => toast.success(`New lead created for ${product}`)}
-                />
-              </>
+              <CrossSellPrompts lead={lead} onConvert={(product) => toast.success(`New lead created for ${product}`)} />
             )}
 
-            {/* Tags Section */}
-            <div>
+            {/* Tags card */}
+            <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium flex items-center gap-2">
+                <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900] }} className="flex items-center gap-2">
                   <Tag className="w-4 h-4 text-violet-600" />
                   Tags
                 </h4>
@@ -269,43 +310,28 @@ export function LeadDetailDrawer({
                   </Badge>
                 ))}
                 {(lead.tags || []).length === 0 && !showTagInput && (
-                  <span className="text-xs text-muted-foreground">No tags</span>
+                  <span className="text-xs text-gray-400">No tags</span>
                 )}
               </div>
               {showTagInput && (
                 <div className="mt-2 space-y-2">
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="Add custom tag..."
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddTag(newTag)}
-                      className="h-8 text-sm"
-                    />
+                    <Input placeholder="Add custom tag..." value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTag(newTag)} className="h-8 text-sm" />
                     <Button size="sm" onClick={() => handleAddTag(newTag)} disabled={!newTag.trim()}>Add</Button>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {PRESET_TAGS.filter(t => !(lead.tags || []).includes(t)).map(tag => (
-                      <Badge
-                        key={tag}
-                        variant="outline"
-                        className="cursor-pointer hover:bg-violet-100 text-xs"
-                        onClick={() => handleAddTag(tag)}
-                      >
-                        + {tag}
-                      </Badge>
+                      <Badge key={tag} variant="outline" className="cursor-pointer hover:bg-violet-100 text-xs" onClick={() => handleAddTag(tag)}>+ {tag}</Badge>
                     ))}
                   </div>
                 </div>
               )}
             </div>
 
-            <Separator />
-
-            {/* Reminders Section */}
-            <div>
+            {/* Reminders card */}
+            <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium flex items-center gap-2">
+                <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900] }} className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-violet-600" />
                   Follow-up Reminders
                 </h4>
@@ -314,7 +340,7 @@ export function LeadDetailDrawer({
                 </Button>
               </div>
               {showReminderForm && (
-                <div className="p-3 rounded-lg border bg-muted/30 space-y-3 mb-3">
+                <div className="p-3 rounded-lg border bg-gray-50 space-y-3 mb-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label className="text-xs">Date</Label>
@@ -327,12 +353,7 @@ export function LeadDetailDrawer({
                   </div>
                   <div>
                     <Label className="text-xs">Message</Label>
-                    <Input
-                      placeholder="Follow up about..."
-                      value={reminderMessage}
-                      onChange={(e) => setReminderMessage(e.target.value)}
-                      className="h-8 mt-1"
-                    />
+                    <Input placeholder="Follow up about..." value={reminderMessage} onChange={(e) => setReminderMessage(e.target.value)} className="h-8 mt-1" />
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={handleAddReminder} disabled={!reminderDate || !reminderMessage}>Set Reminder</Button>
@@ -354,17 +375,15 @@ export function LeadDetailDrawer({
                   </div>
                 ))}
                 {(lead.reminders || []).filter(r => !r.completed).length === 0 && (
-                  <p className="text-xs text-muted-foreground">No active reminders</p>
+                  <p className="text-xs text-gray-400">No active reminders</p>
                 )}
               </div>
             </div>
 
-            <Separator />
-
-            {/* Notes Section */}
-            <div>
+            {/* Notes card */}
+            <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium flex items-center gap-2">
+                <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900] }} className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-violet-600" />
                   Notes
                 </h4>
@@ -379,226 +398,74 @@ export function LeadDetailDrawer({
                 )}
               </div>
               {isEditingNotes ? (
-                <Textarea
-                  value={leadNotes}
-                  onChange={(e) => setLeadNotes(e.target.value)}
-                  placeholder="Add notes about this lead..."
-                  className="min-h-[100px]"
-                />
+                <Textarea value={leadNotes} onChange={(e) => setLeadNotes(e.target.value)} placeholder="Add notes about this lead..." className="min-h-[100px]" />
               ) : (
-                <div className="p-3 rounded-lg bg-muted/50 min-h-[60px]">
+                <div className="p-3 rounded-lg bg-gray-50 min-h-[60px]">
                   {leadNotes ? (
                     <p className="text-sm whitespace-pre-wrap">{leadNotes}</p>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No notes yet. Click edit to add.</p>
+                    <p className="text-sm text-gray-400">No notes yet. Click edit to add.</p>
                   )}
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Status History */}
-            {(lead.statusHistory || []).length > 0 && (
-              <>
-                <div>
-                  <h4 className="text-sm font-medium flex items-center gap-2 mb-3">
-                    <History className="w-4 h-4 text-violet-600" />
-                    Status History
-                  </h4>
-                  <div className="space-y-2">
-                    {[...(lead.statusHistory || [])].reverse().slice(0, 5).map((change, idx) => (
-                      <div key={change.id} className="flex items-center gap-2 text-xs p-2 rounded bg-muted/30">
-                        <Badge variant="outline" className={statusConfig[change.from]?.color || ''}>{statusConfig[change.from]?.label}</Badge>
-                        <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                        <Badge variant="outline" className={statusConfig[change.to]?.color || ''}>{statusConfig[change.to]?.label}</Badge>
-                        <span className="text-muted-foreground ml-auto">
-                          {new Date(change.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <Separator />
-              </>
-            )}
-
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-violet-600" />
-                  Activity Timeline
-                </h3>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="gap-1"
-                  onClick={() => setShowActivityForm(!showActivityForm)}
-                >
-                  <Plus className="w-4 h-4" />
-                  Log Activity
-                </Button>
-              </div>
-
-              <AnimatePresence>
-                {showActivityForm && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-4 overflow-hidden"
-                  >
-                    <div className="p-4 rounded-lg border bg-muted/30 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-xs">Type</Label>
-                          <Select value={activityType} onValueChange={(v) => setActivityType(v as ActivityLog['type'])}>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(activityTypeConfig).map(([key, config]) => {
-                                const Icon = config.icon;
-                                return (
-                                  <SelectItem key={key} value={key}>
-                                    <div className="flex items-center gap-2">
-                                      <Icon className="w-4 h-4" />
-                                      {config.label}
-                                    </div>
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs">Outcome</Label>
-                          <Select value={activityDisposition} onValueChange={(v) => setActivityDisposition(v as ActivityLog['disposition'])}>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="interested">Interested</SelectItem>
-                              <SelectItem value="callback">Callback</SelectItem>
-                              <SelectItem value="appointment_set">Appointment Set</SelectItem>
-                              <SelectItem value="not_interested">Not Interested</SelectItem>
-                              <SelectItem value="no_answer">No Answer</SelectItem>
-                              <SelectItem value="voicemail">Voicemail</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs">Notes</Label>
-                        <Textarea 
-                          value={activityNotes}
-                          onChange={(e) => setActivityNotes(e.target.value)}
-                          placeholder="Add notes about this activity..."
-                          className="mt-1 min-h-[80px]"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          className="gap-1 bg-primary hover:bg-primary/90"
-                          onClick={handleSubmitActivity}
-                        >
-                          <Send className="w-4 h-4" />
-                          Save Activity
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => setShowActivityForm(false)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {lead.notes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No activity logged yet</p>
-                  <p className="text-xs mt-1">Log your first interaction above</p>
-                </div>
-              ) : (
-                <div className="relative">
-                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted" />
-                  <div className="space-y-4">
-                    {[...lead.notes].reverse().map((activity, idx) => {
-                      const config = activityTypeConfig[activity.type];
-                      const Icon = config.icon;
-                      return (
-                        <motion.div
-                          key={activity.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="relative pl-10"
-                        >
-                          <div className={cn(
-                            "absolute left-2 top-1 w-5 h-5 rounded-full bg-white border-2 flex items-center justify-center",
-                            activity.type === 'call' && "border-primary",
-                            activity.type === 'email' && "border-primary",
-                            activity.type === 'meeting' && "border-violet-300",
-                            activity.type === 'text' && "border-violet-300",
-                            activity.type === 'note' && "border-muted-foreground"
-                          )}>
-                            <Icon className={cn("w-3 h-3", config.color)} />
-                          </div>
-                          <div className="p-3 rounded-lg bg-muted/50 border">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-medium capitalize">{activity.type}</span>
-                              <span className="text-[10px] text-muted-foreground">{activity.date}</span>
-                            </div>
-                            {activity.disposition && (
-                              <Badge variant="outline" className="text-[10px] mb-2 capitalize">
-                                {activity.disposition.replace('_', ' ')}
-                              </Badge>
-                            )}
-                            <p className="text-sm text-muted-foreground">{activity.notes}</p>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
                 </div>
               )}
             </div>
           </div>
         </ScrollArea>
 
-        <div className="border-t p-4 bg-muted/30 flex gap-2">
-          <Button 
-            className="flex-1 gap-2" 
-            variant="outline"
+        {/* Footer: Call, Email, Schedule */}
+        <div className="border-t bg-white/80 backdrop-blur-sm flex gap-3" style={{ padding: '16px 20px' }}>
+          <button
+            className="flex-1 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-gray-100 active:scale-[0.97]"
+            style={{
+              height: 44, borderRadius: RADIUS.button,
+              background: 'white', color: COLORS.gray[700],
+              fontSize: TYPE.meta, fontWeight: 600,
+              border: `1px solid ${COLORS.gray[200]}`, cursor: 'pointer',
+            }}
             onClick={() => window.open(`tel:${lead.phone}`, '_self')}
             data-testid="button-call-lead"
           >
-            <Phone className="w-4 h-4" />
+            <Phone style={{ width: 16, height: 16 }} />
             Call
-          </Button>
-          <Button 
-            className="flex-1 gap-2" 
-            variant="outline"
+          </button>
+          <button
+            className="flex-1 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-gray-100 active:scale-[0.97]"
+            style={{
+              height: 44, borderRadius: RADIUS.button,
+              background: 'white', color: COLORS.gray[700],
+              fontSize: TYPE.meta, fontWeight: 600,
+              border: `1px solid ${COLORS.gray[200]}`, cursor: 'pointer',
+            }}
             onClick={() => window.open(`mailto:${lead.email}?subject=Following up on your life insurance inquiry`, '_blank')}
             data-testid="button-email-lead"
           >
-            <Mail className="w-4 h-4" />
+            <Mail style={{ width: 16, height: 16 }} />
             Email
-          </Button>
-          <Button 
-            className="flex-1 gap-2 bg-primary hover:bg-primary/90"
-            onClick={() => openGoogleCalendar(lead.name, lead.phone, lead.email, lead.product)}
+          </button>
+          <button
+            className="flex-1 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-gray-100 active:scale-[0.97]"
+            style={{
+              height: 44, borderRadius: RADIUS.button,
+              background: 'white', color: COLORS.gray[700],
+              fontSize: TYPE.meta, fontWeight: 600,
+              border: `1px solid ${COLORS.gray[200]}`, cursor: 'pointer',
+            }}
+            onClick={() => {
+              const params = new URLSearchParams({
+                schedule: 'true',
+                name: lead.name,
+                phone: lead.phone || '',
+                email: lead.email || '',
+                product: lead.product || '',
+              });
+              onOpenChange(false);
+              navigate(`/agents/calendar?${params.toString()}`);
+            }}
             data-testid="button-schedule-lead"
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar style={{ width: 16, height: 16 }} />
             Schedule
-          </Button>
+          </button>
         </div>
       </SheetContent>
     </Sheet>

@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, formatProductLabel } from "@/lib/utils";
 import {
   MESSAGE_TEMPLATES,
   TEMPLATE_CATEGORIES,
@@ -67,7 +67,7 @@ export function MessageTemplates({ open, onOpenChange, lead, onSend }: MessageTe
 
     if (lead) {
       values.firstName = lead.name.split(' ')[0];
-      values.productType = lead.product || 'life insurance';
+      values.productType = formatProductLabel(lead.product) || 'life insurance';
       values.lastContactDate = lead.lastContactDate
         ? new Date(lead.lastContactDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         : 'recently';

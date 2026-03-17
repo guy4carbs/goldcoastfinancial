@@ -42,6 +42,21 @@ export function daysSinceDate(dateStr: string): number {
   );
 }
 
+export function formatProductLabel(value: string | undefined | null): string {
+  if (!value) return '';
+  const labels: Record<string, string> = {
+    whole_life: 'Whole Life',
+    term_life: 'Term Life',
+    term: 'Term Life',
+    whole: 'Whole Life',
+    iul: 'IUL',
+    final_expense: 'Final Expense',
+    annuity: 'Annuity',
+    mortgage_protection: 'Mortgage Protection',
+  };
+  return labels[value.toLowerCase()] || value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export function openGoogleCalendar(name: string, phone?: string, email?: string, product?: string) {
   const text = encodeURIComponent(`Insurance Consultation - ${name}`);
   const details = encodeURIComponent(

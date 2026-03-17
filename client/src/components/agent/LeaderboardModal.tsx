@@ -20,11 +20,47 @@ import {
 } from '@/lib/heritageDesignSystem';
 import type { LeaderboardEntry } from "@/lib/agentStore";
 
+type LeaderboardVariant = 'agent' | 'manager';
+
+const THEME = {
+  agent: {
+    accent: 'violet',
+    gradient: 'from-violet-500 to-purple-600',
+    gradientText: 'from-violet-600 to-purple-600',
+    tabBg: 'bg-violet-50 border-violet-100',
+    tabActive: 'data-[state=active]:from-violet-500 data-[state=active]:to-purple-600',
+    rowHighlight: 'from-violet-50 to-purple-50 border-violet-200 ring-violet-500/20',
+    rowHover: 'hover:bg-violet-50/50 hover:border-violet-200',
+    rankBg: 'bg-violet-100',
+    rankText: 'text-violet-600',
+    avatarGradient: 'from-violet-500 to-purple-600 shadow-violet-500/20',
+    zapColor: 'text-violet-500',
+    footerBg: 'from-violet-50 to-purple-50 border-violet-100',
+    footerIcon: 'from-violet-500 to-purple-600',
+  },
+  manager: {
+    accent: 'emerald',
+    gradient: 'from-emerald-500 to-teal-600',
+    gradientText: 'from-emerald-600 to-teal-600',
+    tabBg: 'bg-emerald-50 border-emerald-100',
+    tabActive: 'data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600',
+    rowHighlight: 'from-emerald-50 to-teal-50 border-emerald-200 ring-emerald-500/20',
+    rowHover: 'hover:bg-emerald-50/50 hover:border-emerald-200',
+    rankBg: 'bg-emerald-100',
+    rankText: 'text-emerald-600',
+    avatarGradient: 'from-emerald-500 to-teal-600 shadow-emerald-500/20',
+    zapColor: 'text-emerald-500',
+    footerBg: 'from-emerald-50 to-teal-50 border-emerald-100',
+    footerIcon: 'from-emerald-500 to-teal-600',
+  },
+} as const;
+
 interface LeaderboardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   leaderboard: LeaderboardEntry[];
   currentUserId: string;
+  variant?: LeaderboardVariant;
 }
 
 type TimePeriod = 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -60,13 +96,15 @@ const periodIcons: Record<TimePeriod, typeof Calendar> = {
   yearly: Trophy
 };
 
-export function LeaderboardModal({ 
-  open, 
-  onOpenChange, 
+export function LeaderboardModal({
+  open,
+  onOpenChange,
   leaderboard,
-  currentUserId 
+  currentUserId,
+  variant = 'agent',
 }: LeaderboardModalProps) {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly');
+  const t = THEME[variant];
 
   const getSortedByAP = (period: TimePeriod) => {
     return [...leaderboard].sort((a, b) => b.ap[period] - a.ap[period]);
@@ -92,24 +130,24 @@ export function LeaderboardModal({
             className={cn(
               "flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer",
               isCurrentUser
-                ? "bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200 ring-2 ring-violet-500/20"
-                : "bg-white hover:bg-violet-50/50 border-gray-100 hover:border-violet-200"
+                ? `bg-gradient-to-r ${t.rowHighlight} ring-2`
+                : `bg-white border-gray-100 ${t.rowHover}`
             )}
           >
             {/* Rank Badge */}
             <div className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow-sm",
-              idx < 3 ? rankInfo.bg : "bg-violet-100"
+              idx < 3 ? rankInfo.bg : t.rankBg
             )}>
               {idx < 3 ? (
                 <RankIcon className="w-5 h-5 text-white" />
               ) : (
-                <span className="text-violet-600 font-bold">{idx + 1}</span>
+                <span className={cn(t.rankText, "font-bold")}>{idx + 1}</span>
               )}
             </div>
 
             {/* Avatar */}
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-violet-500/20">
+            <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center font-bold text-lg text-white shadow-lg", t.avatarGradient)}>
               {entry.avatar || entry.name.split(' ').map(n => n[0]).join('')}
             </div>
 
@@ -118,12 +156,12 @@ export function LeaderboardModal({
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-gray-900">{entry.name}</p>
                 {isCurrentUser && (
-                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white text-[10px] px-1.5 border-0">You</Badge>
+                  <Badge className={cn("bg-gradient-to-r text-white text-[10px] px-1.5 border-0", t.gradient)}>You</Badge>
                 )}
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-violet-500" />
+                  <Zap className={cn("w-3 h-3", t.zapColor)} />
                   Level {entry.level}
                 </span>
                 <span className="flex items-center gap-1">
@@ -135,7 +173,7 @@ export function LeaderboardModal({
 
             {/* AP Amount */}
             <div className="text-right">
-              <p className="font-bold text-lg bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              <p className={cn("font-bold text-lg bg-gradient-to-r bg-clip-text text-transparent", t.gradientText)}>
                 {formatCurrency(entry.ap[period])}
               </p>
               <p className="text-xs text-gray-400">Annual Premium</p>
@@ -176,7 +214,7 @@ export function LeaderboardModal({
             </div>
             <span className="text-gray-900">AP Leaderboard</span>
             <Badge
-              className="ml-2 text-xs font-medium border-0 bg-gradient-to-r from-violet-500 to-purple-600 text-white"
+              className={cn("ml-2 text-xs font-medium border-0 bg-gradient-to-r text-white", t.gradient)}
             >
               {periodLabels[timePeriod]}
             </Badge>
@@ -230,7 +268,7 @@ export function LeaderboardModal({
                     </div>
                   </div>
                   <p className="font-semibold text-sm text-gray-900">{entry.name.split(' ')[0]}</p>
-                  <p className="font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  <p className={cn("font-bold bg-gradient-to-r bg-clip-text text-transparent", t.gradientText)}>
                     {formatCurrency(entry.ap[timePeriod])}
                   </p>
                 </motion.div>
@@ -240,41 +278,28 @@ export function LeaderboardModal({
 
           <Tabs value={timePeriod} onValueChange={(v) => setTimePeriod(v as TimePeriod)} className="w-full">
             <TabsList
-              className="grid w-full grid-cols-4 mb-4 p-1 bg-violet-50 border border-violet-100"
+              className={cn("grid w-full grid-cols-4 mb-4 p-1 border", t.tabBg)}
               style={{ borderRadius: RADIUS.card }}
             >
-              <TabsTrigger
-                value="daily"
-                className="gap-1 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all"
-              >
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Daily</span>
-                <span className="sm:hidden">Day</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="weekly"
-                className="gap-1 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all"
-              >
-                <CalendarDays className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Weekly</span>
-                <span className="sm:hidden">Week</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="monthly"
-                className="gap-1 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all"
-              >
-                <CalendarRange className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Monthly</span>
-                <span className="sm:hidden">Month</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="yearly"
-                className="gap-1 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all"
-              >
-                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Yearly</span>
-                <span className="sm:hidden">Year</span>
-              </TabsTrigger>
+              {([
+                { value: 'daily', Icon: Calendar, label: 'Daily', short: 'Day' },
+                { value: 'weekly', Icon: CalendarDays, label: 'Weekly', short: 'Week' },
+                { value: 'monthly', Icon: CalendarRange, label: 'Monthly', short: 'Month' },
+                { value: 'yearly', Icon: DollarSign, label: 'Yearly', short: 'Year' },
+              ] as const).map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className={cn(
+                    "gap-1 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all",
+                    t.tabActive
+                  )}
+                >
+                  <tab.Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.short}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
             
             <ScrollArea className="h-[300px]">
@@ -295,11 +320,11 @@ export function LeaderboardModal({
 
           {/* Footer Note */}
           <div
-            className="mt-4 p-3 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-100"
+            className={cn("mt-4 p-3 bg-gradient-to-r border", t.footerBg)}
             style={{ borderRadius: RADIUS.card }}
           >
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <div className={cn("w-6 h-6 rounded-lg bg-gradient-to-br flex items-center justify-center", t.footerIcon)}>
                 <DollarSign className="w-3.5 h-3.5 text-white" />
               </div>
               <span>AP = Annual Premium written. Rankings update in real-time.</span>

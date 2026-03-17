@@ -5,6 +5,9 @@
 
 import { CSSProperties } from 'react';
 
+// Agency master contract level — used for override calculations
+export const AGENCY_CONTRACT_LEVEL = 115;
+
 // Glass card style object — used across all manager pages
 // Matches GLASS.css.light from heritageDesignSystem with specular edge border
 export const glassCard: CSSProperties = {
@@ -30,7 +33,7 @@ export const SPARKLINE_TEAM_SIZE = [10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 
 // Commissions sparklines
 export const SPARKLINE_COMMISSIONS_PENDING = [15, 18, 16, 20, 22, 19, 24, 21, 25, 23, 27, 26, 28, 24, 30, 28, 32, 29, 34, 31, 35, 33, 36, 34, 38, 35, 39, 37, 40, 38];
 export const SPARKLINE_COMMISSIONS_PAID = [42, 45, 48, 50, 53, 56, 58, 62, 65, 68, 72, 75, 78, 82, 85, 88, 92, 95, 98, 102, 105, 108, 112, 115, 118, 122, 125, 128, 132, 145];
-export const SPARKLINE_CLAWBACK = [5, 4, 6, 3, 5, 4, 3, 5, 2, 4, 3, 5, 2, 3, 4, 2, 3, 2, 4, 1, 3, 2, 4, 1, 3, 2, 3, 1, 2, 3];
+export const SPARKLINE_CHARGEBACK = [5, 4, 6, 3, 5, 4, 3, 5, 2, 4, 3, 5, 2, 3, 4, 2, 3, 2, 4, 1, 3, 2, 4, 1, 3, 2, 3, 1, 2, 3];
 export const SPARKLINE_CONTRACT_LEVEL = [82, 83, 84, 83, 85, 84, 86, 85, 87, 86, 87, 86, 88, 87, 88, 87, 89, 88, 89, 88, 90, 89, 90, 89, 91, 90, 91, 90, 91, 92];
 
 // Forecasting sparklines
@@ -400,7 +403,7 @@ export const CONTEST_TEMPLATES = [
 // ─── COMMISSIONS DEMO DATA ────────────────────────────────
 
 export const DEMO_AGENT_COMMISSIONS = [
-  { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', pending: 4200, paidYTD: 28400, clawbackRisk: 0, avgRate: 105, contractLevel: 105, apTier: '$150K',
+  { agentId: '1', name: 'Sarah Johnson', avatar: 'SJ', pending: 4200, paidYTD: 28400, chargebackRisk: 0, avgRate: 105, contractLevel: 105, apTier: '$150K',
     products: [
       { product: 'IUL', premium: 4500, rate: 105, commission: 4725 },
       { product: 'Whole Life', premium: 3200, rate: 105, commission: 3360 },
@@ -408,7 +411,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 1800, rate: 105, commission: 1890 },
     ],
   },
-  { agentId: '7', name: 'Rachel Green', avatar: 'RG', pending: 3800, paidYTD: 24600, clawbackRisk: 0, avgRate: 100, contractLevel: 100, apTier: '$100K',
+  { agentId: '7', name: 'Rachel Green', avatar: 'RG', pending: 3800, paidYTD: 24600, chargebackRisk: 0, avgRate: 100, contractLevel: 100, apTier: '$100K',
     products: [
       { product: 'IUL', premium: 4200, rate: 100, commission: 4200 },
       { product: 'Whole Life', premium: 3000, rate: 100, commission: 3000 },
@@ -416,7 +419,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 1600, rate: 100, commission: 1600 },
     ],
   },
-  { agentId: '2', name: 'Mike Chen', avatar: 'MC', pending: 2900, paidYTD: 21200, clawbackRisk: 800, avgRate: 95, contractLevel: 95, apTier: '$75K',
+  { agentId: '2', name: 'Mike Chen', avatar: 'MC', pending: 2900, paidYTD: 21200, chargebackRisk: 800, avgRate: 95, contractLevel: 95, apTier: '$75K',
     products: [
       { product: 'IUL', premium: 3800, rate: 95, commission: 3610 },
       { product: 'Whole Life', premium: 2600, rate: 95, commission: 2470 },
@@ -424,7 +427,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 1400, rate: 95, commission: 1330 },
     ],
   },
-  { agentId: '11', name: 'Jessica Lee', avatar: 'JL', pending: 2600, paidYTD: 19800, clawbackRisk: 0, avgRate: 90, contractLevel: 90, apTier: '$50K',
+  { agentId: '11', name: 'Jessica Lee', avatar: 'JL', pending: 2600, paidYTD: 19800, chargebackRisk: 0, avgRate: 90, contractLevel: 90, apTier: '$50K',
     products: [
       { product: 'IUL', premium: 3500, rate: 90, commission: 3150 },
       { product: 'Whole Life', premium: 2800, rate: 90, commission: 2520 },
@@ -432,7 +435,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 1200, rate: 90, commission: 1080 },
     ],
   },
-  { agentId: '6', name: 'David Brown', avatar: 'DB', pending: 2100, paidYTD: 17500, clawbackRisk: 0, avgRate: 85, contractLevel: 85, apTier: '$25K',
+  { agentId: '6', name: 'David Brown', avatar: 'DB', pending: 2100, paidYTD: 17500, chargebackRisk: 0, avgRate: 85, contractLevel: 85, apTier: '$25K',
     products: [
       { product: 'IUL', premium: 3200, rate: 85, commission: 2720 },
       { product: 'Whole Life', premium: 2400, rate: 85, commission: 2040 },
@@ -440,7 +443,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 1100, rate: 85, commission: 935 },
     ],
   },
-  { agentId: '3', name: 'Emily Davis', avatar: 'ED', pending: 1400, paidYTD: 14200, clawbackRisk: 1200, avgRate: 80, contractLevel: 80, apTier: '$15K',
+  { agentId: '3', name: 'Emily Davis', avatar: 'ED', pending: 1400, paidYTD: 14200, chargebackRisk: 1200, avgRate: 80, contractLevel: 80, apTier: '$15K',
     products: [
       { product: 'IUL', premium: 2800, rate: 80, commission: 2240 },
       { product: 'Whole Life', premium: 2000, rate: 80, commission: 1600 },
@@ -448,7 +451,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 900, rate: 80, commission: 720 },
     ],
   },
-  { agentId: '10', name: 'Tom Rodriguez', avatar: 'TR', pending: 1100, paidYTD: 11600, clawbackRisk: 0, avgRate: 75, contractLevel: 75, apTier: '$10K',
+  { agentId: '10', name: 'Tom Rodriguez', avatar: 'TR', pending: 1100, paidYTD: 11600, chargebackRisk: 0, avgRate: 75, contractLevel: 75, apTier: '$10K',
     products: [
       { product: 'IUL', premium: 2400, rate: 75, commission: 1800 },
       { product: 'Whole Life', premium: 1800, rate: 75, commission: 1350 },
@@ -456,7 +459,7 @@ export const DEMO_AGENT_COMMISSIONS = [
       { product: 'Annuity', premium: 800, rate: 75, commission: 600 },
     ],
   },
-  { agentId: '4', name: 'James Wilson', avatar: 'JW', pending: 800, paidYTD: 8400, clawbackRisk: 1200, avgRate: 70, contractLevel: 70, apTier: '$5K',
+  { agentId: '4', name: 'James Wilson', avatar: 'JW', pending: 800, paidYTD: 8400, chargebackRisk: 1200, avgRate: 70, contractLevel: 70, apTier: '$5K',
     products: [
       { product: 'IUL', premium: 1800, rate: 70, commission: 1260 },
       { product: 'Whole Life', premium: 1400, rate: 70, commission: 980 },
@@ -473,6 +476,15 @@ export const DEMO_PAYOUT_TIMELINE = [
   { id: '4', date: 'Feb 15', amount: 7800, agents: 7, status: 'paid' as const, label: 'Mid-Feb Payout' },
   { id: '5', date: 'Jan 31', amount: 11500, agents: 8, status: 'paid' as const, label: 'January Close' },
 ] as const;
+
+// ─── COMMISSION VELOCITY DEMO DATA ──────────────────────
+
+export const DEMO_COMMISSION_VELOCITY = {
+  thisMonth: { earned: 18740, target: 25000, daysElapsed: 9, daysTotal: 31 },
+  lastMonth: { earned: 22800, target: 25000, daysElapsed: 28, daysTotal: 28 },
+  threeMonthAvg: { earned: 21500, target: 25000, daysElapsed: 30, daysTotal: 30 },
+  weeklyTrend: [3200, 4100, 3800, 4600, 5100, 4900, 5400, 5800, 4200, 5100, 6200, 5600],
+} as const;
 
 // ─── ONE-ON-ONES DEMO DATA ───────────────────────────────
 
@@ -552,6 +564,63 @@ export const DEMO_ACTION_ITEMS = [
   { id: '10', description: 'Review close technique with Emily', owner: 'manager' as const, agent: 'Emily Davis', agentAvatar: 'ED', dueDate: 'Mar 12', status: 'upcoming' as const },
   { id: '11', description: 'Prepare Q1 performance summary', owner: 'manager' as const, agent: 'All', agentAvatar: '', dueDate: 'Mar 15', status: 'upcoming' as const },
   { id: '12', description: 'Complete estate planning module', owner: 'agent' as const, agent: 'Anna Kim', agentAvatar: 'AK', dueDate: 'Mar 14', status: 'upcoming' as const },
+];
+
+/* ── Lead Distribution ─────────────────────────────────── */
+
+export interface PoolLead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  state: string;
+  source: 'executive_referral' | 'marketing_campaign' | 'website' | 'partner_referral';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  product: string;
+  leadScore: number;
+  scoreTier: 'cold' | 'warm' | 'hot' | 'on_fire';
+  receivedFrom: string;
+  receivedAt: string;
+  notes: string;
+}
+
+export const DEMO_LEAD_POOL: PoolLead[] = [
+  { id: 'ld-1', name: 'Marcus Thompson', email: 'marcus.t@email.com', phone: '(312) 555-0198', city: 'Chicago', state: 'IL', source: 'executive_referral', priority: 'urgent', product: 'Whole Life', leadScore: 92, scoreTier: 'on_fire', receivedFrom: 'David Chen (VP Sales)', receivedAt: '2 hours ago', notes: 'Business owner, high net worth. Looking for estate planning coverage.' },
+  { id: 'ld-2', name: 'Sarah Williams', email: 'sarah.w@email.com', phone: '(630) 555-0234', city: 'Naperville', state: 'IL', source: 'marketing_campaign', priority: 'high', product: 'Term Life', leadScore: 85, scoreTier: 'hot', receivedFrom: 'Rachel Torres (CMO)', receivedAt: '3 hours ago', notes: 'Responded to Q1 digital campaign. Young family, two kids.' },
+  { id: 'ld-3', name: 'James Rodriguez', email: 'j.rodriguez@email.com', phone: '(708) 555-0156', city: 'Oak Park', state: 'IL', source: 'partner_referral', priority: 'high', product: 'Universal Life', leadScore: 78, scoreTier: 'hot', receivedFrom: 'David Chen (VP Sales)', receivedAt: '5 hours ago', notes: 'Referred by partnered CPA firm. Looking to shelter assets.' },
+  { id: 'ld-4', name: 'Patricia Nguyen', email: 'p.nguyen@email.com', phone: '(847) 555-0312', city: 'Evanston', state: 'IL', source: 'website', priority: 'medium', product: 'Health Insurance', leadScore: 71, scoreTier: 'warm', receivedFrom: 'System (Website)', receivedAt: '6 hours ago', notes: 'Filled out quote form. Self-employed consultant.' },
+  { id: 'ld-5', name: 'Robert Kim', email: 'rkim@email.com', phone: '(312) 555-0478', city: 'Chicago', state: 'IL', source: 'executive_referral', priority: 'urgent', product: 'Business Insurance', leadScore: 95, scoreTier: 'on_fire', receivedFrom: 'Michael Harris (CEO)', receivedAt: '1 hour ago', notes: 'CEO of mid-size tech company. Needs full commercial package.' },
+  { id: 'ld-6', name: 'Linda Martinez', email: 'linda.m@email.com', phone: '(773) 555-0567', city: 'Chicago', state: 'IL', source: 'marketing_campaign', priority: 'medium', product: 'Term Life', leadScore: 65, scoreTier: 'warm', receivedFrom: 'Rachel Torres (CMO)', receivedAt: '8 hours ago', notes: 'Clicked email CTA. Homeowner, age 42.' },
+  { id: 'ld-7', name: 'David Park', email: 'd.park@email.com', phone: '(630) 555-0689', city: 'Downers Grove', state: 'IL', source: 'partner_referral', priority: 'high', product: 'Annuity', leadScore: 82, scoreTier: 'hot', receivedFrom: 'David Chen (VP Sales)', receivedAt: '4 hours ago', notes: 'Referred by financial advisor. Retiring in 2 years.' },
+  { id: 'ld-8', name: 'Jennifer Adams', email: 'j.adams@email.com', phone: '(847) 555-0745', city: 'Schaumburg', state: 'IL', source: 'website', priority: 'low', product: 'Auto Insurance', leadScore: 45, scoreTier: 'cold', receivedFrom: 'System (Website)', receivedAt: '1 day ago', notes: 'Basic quote request. Currently with competitor.' },
+  { id: 'ld-9', name: 'Michael Brown', email: 'mbrown@email.com', phone: '(312) 555-0823', city: 'Chicago', state: 'IL', source: 'executive_referral', priority: 'high', product: 'Whole Life', leadScore: 88, scoreTier: 'hot', receivedFrom: 'Michael Harris (CEO)', receivedAt: '3 hours ago', notes: 'Personal friend of CEO. Doctor, looking for cash value policy.' },
+  { id: 'ld-10', name: 'Angela Foster', email: 'a.foster@email.com', phone: '(708) 555-0901', city: 'Berwyn', state: 'IL', source: 'marketing_campaign', priority: 'medium', product: 'Health Insurance', leadScore: 58, scoreTier: 'warm', receivedFrom: 'Rachel Torres (CMO)', receivedAt: '12 hours ago', notes: 'Webinar attendee. Small business owner, 8 employees.' },
+  { id: 'ld-11', name: 'Thomas Wilson', email: 't.wilson@email.com', phone: '(630) 555-1045', city: 'Aurora', state: 'IL', source: 'partner_referral', priority: 'medium', product: 'Term Life', leadScore: 62, scoreTier: 'warm', receivedFrom: 'David Chen (VP Sales)', receivedAt: '10 hours ago', notes: 'Mortgage lender referral. Just purchased home.' },
+  { id: 'ld-12', name: 'Karen Liu', email: 'k.liu@email.com', phone: '(773) 555-1123', city: 'Chicago', state: 'IL', source: 'website', priority: 'high', product: 'Universal Life', leadScore: 76, scoreTier: 'hot', receivedFrom: 'System (Website)', receivedAt: '7 hours ago', notes: 'Detailed form submission. Engineer, high income bracket.' },
+  { id: 'ld-13', name: 'Steven Clark', email: 's.clark@email.com', phone: '(847) 555-1267', city: 'Arlington Heights', state: 'IL', source: 'executive_referral', priority: 'medium', product: 'Home Insurance', leadScore: 55, scoreTier: 'warm', receivedFrom: 'David Chen (VP Sales)', receivedAt: '1 day ago', notes: 'Relocating from out of state. Needs home + auto bundle.' },
+  { id: 'ld-14', name: 'Maria Gonzalez', email: 'm.gonzalez@email.com', phone: '(312) 555-1389', city: 'Chicago', state: 'IL', source: 'marketing_campaign', priority: 'urgent', product: 'Business Insurance', leadScore: 90, scoreTier: 'on_fire', receivedFrom: 'Rachel Torres (CMO)', receivedAt: '2 hours ago', notes: 'Restaurant chain owner. 3 locations. Urgent coverage gap.' },
+  { id: 'ld-15', name: 'Christopher Lee', email: 'c.lee@email.com', phone: '(630) 555-1456', city: 'Wheaton', state: 'IL', source: 'partner_referral', priority: 'low', product: 'Term Life', leadScore: 42, scoreTier: 'cold', receivedFrom: 'David Chen (VP Sales)', receivedAt: '2 days ago', notes: 'Early stage inquiry. Just comparing rates.' },
+  { id: 'ld-16', name: 'Nancy Taylor', email: 'n.taylor@email.com', phone: '(708) 555-1534', city: 'Cicero', state: 'IL', source: 'website', priority: 'medium', product: 'Annuity', leadScore: 68, scoreTier: 'warm', receivedFrom: 'System (Website)', receivedAt: '9 hours ago', notes: 'Age 55, looking for retirement income options.' },
+  { id: 'ld-17', name: 'Daniel Wright', email: 'd.wright@email.com', phone: '(847) 555-1678', city: 'Skokie', state: 'IL', source: 'executive_referral', priority: 'high', product: 'Whole Life', leadScore: 84, scoreTier: 'hot', receivedFrom: 'Michael Harris (CEO)', receivedAt: '5 hours ago', notes: 'Attorney. Interested in wealth transfer strategies.' },
+  { id: 'ld-18', name: 'Ashley Rivera', email: 'a.rivera@email.com', phone: '(312) 555-1790', city: 'Chicago', state: 'IL', source: 'marketing_campaign', priority: 'medium', product: 'Health Insurance', leadScore: 60, scoreTier: 'warm', receivedFrom: 'Rachel Torres (CMO)', receivedAt: '11 hours ago', notes: 'Freelancer looking for individual health plan.' },
+];
+
+export interface DistributionRecord {
+  id: string;
+  date: string;
+  leadsDistributed: number;
+  agentsCount: number;
+  distributedBy: string;
+  perAgent: string;
+}
+
+export const DEMO_DISTRIBUTION_HISTORY: DistributionRecord[] = [
+  { id: 'dh-1', date: 'Mar 13, 2026 · 4:30 PM', leadsDistributed: 22, agentsCount: 11, distributedBy: 'Jordan Mitchell', perAgent: '2 each' },
+  { id: 'dh-2', date: 'Mar 12, 2026 · 9:15 AM', leadsDistributed: 15, agentsCount: 10, distributedBy: 'Jordan Mitchell', perAgent: '1-2 each' },
+  { id: 'dh-3', date: 'Mar 11, 2026 · 2:00 PM', leadsDistributed: 8, agentsCount: 8, distributedBy: 'Jordan Mitchell', perAgent: '1 each' },
+  { id: 'dh-4', date: 'Mar 10, 2026 · 11:45 AM', leadsDistributed: 18, agentsCount: 12, distributedBy: 'Jordan Mitchell', perAgent: '1-2 each' },
+  { id: 'dh-5', date: 'Mar 7, 2026 · 3:20 PM', leadsDistributed: 24, agentsCount: 12, distributedBy: 'Jordan Mitchell', perAgent: '2 each' },
 ];
 
 export const ONE_ON_ONE_TEMPLATES = [

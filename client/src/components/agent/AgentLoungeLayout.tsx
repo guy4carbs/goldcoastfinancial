@@ -40,6 +40,7 @@ import {
   Calendar,
   Rocket,
   ClipboardCheck,
+  ClipboardList,
   Mail,
   Bot,
   Inbox,
@@ -54,6 +55,7 @@ import {
   Briefcase,
   Lightbulb,
   UserPlus,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -116,18 +118,25 @@ const commandCenterItems: NavItem[] = [
   { icon: Briefcase, label: "Book of Business", href: "/agents/book-of-business" },
 ];
 
+// CLIENTS - Client management & servicing
+const clientItems: NavItem[] = [
+  { icon: Users, label: "My Clients", href: "/agents/clients" },
+  { icon: ClipboardList, label: "Claims", href: "/agents/claims" },
+  { icon: CreditCard, label: "Member Cards", href: "/agents/member-cards" },
+  { icon: Globe, label: "Your Website", href: "/agents/website" },
+];
+
 // OUTREACH - All communication & engagement
 const outreachItems: NavItem[] = [
   { icon: Phone, label: "Dialer", href: "/agents/dialer" },
   { icon: MessageSquare, label: "Communications", href: "/agents/communications" },
-  { icon: Zap, label: "Automations", href: "/agents/automations" },
   { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
+  { icon: UserPlus, label: "Recruiting", href: "/agents/recruiting" },
 ];
 
 // SALES TOOLKIT - Selling tools
 const toolkitItems: NavItem[] = [
   { icon: FileText, label: "Quotes", href: "/agents/quotes" },
-  { icon: CreditCard, label: "Member Cards", href: "/agents/member-cards" },
   { icon: Shield, label: "Data Encryption", href: "/agents/data-encryption" },
   { icon: FolderOpen, label: "Resources", href: "/agents/resources" },
   { icon: Bot, label: "AI Avatar Council", href: "/agents/avatar-council" },
@@ -140,7 +149,6 @@ const growthItems: NavItem[] = [
   { icon: Network, label: "My Hierarchy", href: "/agents/hierarchy" },
   { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
   { icon: Lightbulb, label: "Ideas & Feedback", href: "/agents/ideas" },
-  { icon: UserPlus, label: "Recruiting", href: "/agents/recruiting" },
 ];
 
 interface AgentLoungeLayoutProps {
@@ -210,10 +218,10 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       hierarchy: '/agents/hierarchy',
       settings: '/agents/settings',
       'avatar-council': '/agents/avatar-council',
-      automations: '/agents/automations',
       'member-cards': '/agents/member-cards',
       ideas: '/agents/ideas',
       'book-of-business': '/agents/book-of-business',
+      clients: '/agents/clients',
       recruiting: '/agents/recruiting',
     };
     if (routes[tab]) {
@@ -372,11 +380,24 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               </div>
             </div>
             <div className="flex items-center justify-between" style={{ marginTop: GRID.spacing.xs }}>
-              <div className="flex items-center" style={{ gap: 4 }}>
-                <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>{(performance.xp || 0).toLocaleString()} AP</span>
-              </div>
+              <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>${(performance.xp || 0).toLocaleString()}</span>
               <span style={{ fontSize: TYPE.caption, color: COLORS.primary.violet[200] }}>
                 {performance.dailyCloses || 0} sales
+              </span>
+            </div>
+            <div
+              className="flex items-center justify-between"
+              style={{
+                marginTop: GRID.spacing.xs,
+                paddingTop: GRID.spacing.xs,
+                borderTop: '1px solid rgba(255,255,255,0.15)',
+              }}
+            >
+              <span style={{ fontSize: TYPE.caption, color: 'rgba(255,255,255,0.7)' }}>
+                Agent Rank
+              </span>
+              <span className="font-bold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>
+                #{performance.rank || 1}
               </span>
             </div>
           </motion.div>
@@ -389,6 +410,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         style={{ padding: `0 ${GRID.spacing.xs}px` }}
       >
         <NavSection title="Command Center" items={commandCenterItems} />
+        <NavSection title="Clients" items={clientItems} />
         <NavSection title="Outreach" items={outreachItems} />
         <NavSection title="Sales Toolkit" items={toolkitItems} />
         <NavSection title="Growth" items={growthItems} />
@@ -699,7 +721,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                       {currentUser?.name || 'Agent'}
                     </p>
                     <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>
-                      Level {performance.level} · {(performance.xp || 0).toLocaleString()} AP
+                      Level {performance.level} · ${(performance.xp || 0).toLocaleString()}
                     </p>
                   </div>
                   <div

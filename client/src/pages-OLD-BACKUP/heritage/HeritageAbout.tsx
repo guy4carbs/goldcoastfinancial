@@ -80,7 +80,7 @@ export default function HeritageAbout() {
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-white mb-6">About Heritage Life Solutions</h1>
           <p className="text-xl text-white/80 max-w-3xl mx-auto">
-            A division of Gold Coast Financial Group, providing honest, expert, and independent financial protection to families nationwide.
+            A division of Gold Coast Financial Partners, providing honest, expert, and independent financial protection to families nationwide.
           </p>
         </motion.div>
       </section>

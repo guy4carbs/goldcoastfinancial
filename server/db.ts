@@ -764,6 +764,82 @@ export async function initializeDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_territories_user_id ON agent_territories (user_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_territories_state ON agent_territories (state_code);`);
 
+    // ── Agent Onboarding columns ──
+    await client.query(`
+      ALTER TABLE agent_profiles
+      ADD COLUMN IF NOT EXISTS onboarding_type VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS onboarding_step INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS onboarding_completed_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS onboarding_token VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS onboarding_token_expires_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS ssn_encrypted TEXT,
+      ADD COLUMN IF NOT EXISTS emergency_contact_name TEXT,
+      ADD COLUMN IF NOT EXISTS emergency_contact_phone VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS emergency_contact_ssn_encrypted TEXT,
+      ADD COLUMN IF NOT EXISTS bank_name TEXT,
+      ADD COLUMN IF NOT EXISTS bank_account_type VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS routing_number_encrypted TEXT,
+      ADD COLUMN IF NOT EXISTS account_number_encrypted TEXT,
+      ADD COLUMN IF NOT EXISTS license_expiration_date DATE,
+      ADD COLUMN IF NOT EXISTS eo_provider TEXT,
+      ADD COLUMN IF NOT EXISTS eo_policy_number TEXT,
+      ADD COLUMN IF NOT EXISTS eo_effective_date DATE,
+      ADD COLUMN IF NOT EXISTS eo_expiration_date DATE,
+      ADD COLUMN IF NOT EXISTS eo_certificate_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS aml_certificate_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS drivers_license_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS drivers_license_back_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS direct_deposit_form_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS has_felony BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS felony_details TEXT,
+      ADD COLUMN IF NOT EXISTS has_bankruptcy BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS bankruptcy_details TEXT,
+      ADD COLUMN IF NOT EXISTS has_misdemeanor BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS misdemeanor_details TEXT,
+      ADD COLUMN IF NOT EXISTS docusign_nda_envelope_id VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS docusign_nda_signed BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS docusign_nda_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS docusign_nda_signed_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS docusign_debt_rollup_envelope_id VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS docusign_debt_rollup_signed BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS docusign_debt_rollup_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS docusign_debt_rollup_signed_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS docusign_compliance_envelope_id VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS docusign_compliance_signed BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS docusign_compliance_s3_key TEXT,
+      ADD COLUMN IF NOT EXISTS docusign_compliance_signed_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS docusign_nda_document_hash TEXT,
+      ADD COLUMN IF NOT EXISTS docusign_debt_rollup_document_hash TEXT,
+      ADD COLUMN IF NOT EXISTS docusign_compliance_document_hash TEXT,
+      ADD COLUMN IF NOT EXISTS highest_education VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS previous_sales_experience TEXT,
+      ADD COLUMN IF NOT EXISTS previous_industry VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS learning_style VARCHAR(30),
+      ADD COLUMN IF NOT EXISTS weekly_study_hours INTEGER,
+      ADD COLUMN IF NOT EXISTS target_exam_date DATE,
+      ADD COLUMN IF NOT EXISTS mentor_id VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS can_commit_in_person BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS can_commit_scheduled_online BOOLEAN DEFAULT FALSE;
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_onboarding_token ON agent_profiles (onboarding_token);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_onboarding_type ON agent_profiles (onboarding_type);`);
+
+    // ── User Lounge Access table ──
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_lounge_access (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        user_id VARCHAR NOT NULL,
+        lounge_key VARCHAR(50) NOT NULL,
+        granted BOOLEAN NOT NULL DEFAULT TRUE,
+        granted_by VARCHAR,
+        granted_at TIMESTAMP DEFAULT NOW(),
+        revoked_at TIMESTAMP,
+        UNIQUE(user_id, lounge_key)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_user_lounge_access_user_id ON user_lounge_access (user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_user_lounge_access_lounge_key ON user_lounge_access (lounge_key);`);
+
     console.log("Database tables initialized successfully.");
   } catch (error) {
     console.error("Error initializing database:", error);

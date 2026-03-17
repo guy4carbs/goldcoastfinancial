@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, User, ChevronDown, Leaf, Phone, Menu, X } from "lucide-react";
 import SearchModal from "./SearchModal";
-import ClientPortalModal from "./ClientPortalModal";
+// ClientPortalModal replaced by /client/login route
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
@@ -11,7 +11,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<DropdownKey>(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [clientPortalOpen, setClientPortalOpen] = useState(false);
+  // clientPortalOpen state removed — now navigates to /client/login
   const { trackMenuOpened, trackMenuClosed, trackPhoneClicked, trackCTAClicked } = useAnalytics();
   const { getPhone } = useSiteSettings();
   const phone = getPhone();
@@ -238,13 +238,13 @@ export default function Header() {
             >
               <Search className="w-5 h-5 text-gray-600" />
             </button>
-            <button
-              onClick={() => setClientPortalOpen(true)}
+            <a
+              href="/client/login"
               className="p-2 hover:bg-[#e8e0d5] rounded-full transition-colors"
-              title="Client Portal"
+              title="Client Login"
             >
               <User className="w-5 h-5 text-gray-600" />
-            </button>
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -367,16 +367,14 @@ export default function Header() {
           </div>
 
           <div className="pt-4 border-t border-[#e8e0d5] space-y-3">
-            <button
-              onClick={() => {
-                setClientPortalOpen(true);
-                setMobileMenuOpen(false);
-              }}
+            <a
+              href="/client/login"
               className="flex items-center gap-2 text-primary font-medium"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <User className="w-4 h-4" />
-              Client Portal
-            </button>
+              Client Login
+            </a>
             <a
               href={phone.href}
               className="flex items-center gap-2 text-primary font-medium"
@@ -392,8 +390,7 @@ export default function Header() {
       {/* Search Modal */}
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* Client Portal Modal */}
-      <ClientPortalModal isOpen={clientPortalOpen} onClose={() => setClientPortalOpen(false)} />
+      {/* Client Portal Modal removed — now uses /client/login route */}
     </header>
   );
 }

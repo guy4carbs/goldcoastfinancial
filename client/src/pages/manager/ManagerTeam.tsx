@@ -5,7 +5,7 @@
  * Heritage Design System — Emerald theme
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'wouter';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ import {
   staggerContainer,
   staggerCards,
 } from '@/lib/heritageDesignSystem';
+import { ActivityMonitorContent, type TimeRange } from './ManagerActivityMonitor';
 import {
   Users,
   UserCheck,
@@ -57,6 +58,9 @@ import {
   Table2,
   Sheet,
   ChevronDown,
+  Activity,
+  Clock,
+  Check,
 } from 'lucide-react';
 
 // ─── SORT & FILTER CONFIG ────────────────────────────────────
@@ -146,7 +150,17 @@ const AGENT_ACTIVITY: Record<string, string[]> = {
 
 type TeamMember = (typeof DEMO_TEAM_MEMBERS)[number];
 
+const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+  { value: 'today', label: 'Today' },
+  { value: 'week', label: 'This Week' },
+  { value: 'month', label: 'This Month' },
+];
+
 export function ManagerTeam() {
+  const [viewMode, setViewMode] = useState<'roster' | 'activity'>('roster');
+  const [timeRange, setTimeRange] = useState<TimeRange>('today');
+  const [timeDropdownOpen, setTimeDropdownOpen] = useState(false);
+  const timeDropdownRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<TeamMember | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -225,6 +239,18 @@ export function ManagerTeam() {
     return () => window.removeEventListener('click', handler);
   }, [sortDropdownOpen, exportDropdownOpen]);
 
+  // Close time range dropdown on outside click
+  useEffect(() => {
+    if (!timeDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (timeDropdownRef.current && !timeDropdownRef.current.contains(e.target as Node)) {
+        setTimeDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [timeDropdownOpen]);
+
   const togglePin = (id: string) => {
     setPinnedIds((prev) => {
       const next = new Set(prev);
@@ -273,12 +299,149 @@ export function ManagerTeam() {
         {/* Hero */}
         <motion.div variants={fadeInUp}>
           <ManagerPageHero
-            icon={Users}
-            title="Team Roster"
-            subtitle="View and manage your team"
-          />
+            icon={viewMode === 'activity' ? Activity : Users}
+            title={viewMode === 'activity' ? 'Live Activity' : 'Team Roster'}
+            subtitle={viewMode === 'activity' ? 'See what your team is doing right now' : 'View and manage your team'}
+            className="!overflow-visible"
+          >
+            {viewMode === 'activity' && (
+              <div ref={timeDropdownRef} className="relative">
+                <button
+                  onClick={() => setTimeDropdownOpen((v) => !v)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '10px 18px',
+                    borderRadius: RADIUS.pill,
+                    background: 'rgba(255,255,255,0.15)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+                    color: 'white',
+                    fontSize: TYPE.meta,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+                >
+                  <Clock size={16} />
+                  {TIME_RANGE_OPTIONS.find((o) => o.value === timeRange)?.label}
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      transition: 'transform 0.2s',
+                      transform: timeDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  />
+                </button>
+                <AnimatePresence>
+                  {timeDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: 8,
+                        minWidth: 180,
+                        background: '#ffffff',
+                        borderRadius: RADIUS.input,
+                        boxShadow: '0 12px 32px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.08)',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        padding: 6,
+                        zIndex: 50,
+                      }}
+                    >
+                      {TIME_RANGE_OPTIONS.map((option) => {
+                        const isSelected = timeRange === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            onClick={() => { setTimeRange(option.value); setTimeDropdownOpen(false); }}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              textAlign: 'left' as const,
+                              padding: '10px 14px',
+                              borderRadius: RADIUS.button,
+                              fontSize: TYPE.meta,
+                              fontWeight: isSelected ? 600 : 400,
+                              color: isSelected ? COLORS.lounges.manager.dark : COLORS.gray[700],
+                              background: isSelected ? 'rgba(16,185,129,0.08)' : 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              transition: 'background 0.15s',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.04)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = isSelected ? 'rgba(16,185,129,0.08)' : 'transparent';
+                            }}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </ManagerPageHero>
         </motion.div>
 
+        {/* ─── VIEW TOGGLE ─── */}
+        <motion.div variants={fadeInUp}>
+          <div
+            className="flex items-center p-1 gap-1 w-fit"
+            style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
+          >
+            {([
+              { key: 'roster' as const, label: 'Roster', Icon: Users },
+              { key: 'activity' as const, label: 'Live Activity', Icon: Activity },
+            ]).map(({ key, label, Icon }) => {
+              const isActive = viewMode === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setViewMode(key)}
+                  className={`flex items-center font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                  style={{
+                    fontSize: TYPE.meta,
+                    padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                    borderRadius: RADIUS.button,
+                    cursor: 'pointer',
+                    fontWeight: isActive ? 600 : 500,
+                    gap: GRID.spacing.xs,
+                  }}
+                >
+                  <Icon style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
+                  {label}
+                  {key === 'activity' && (
+                    <span
+                      className="relative flex"
+                      style={{ width: 8, height: 8 }}
+                    >
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full bg-emerald-500" style={{ width: 8, height: 8 }} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {viewMode === 'roster' ? (
+        <>
         {/* Stat Cards */}
         <motion.div variants={staggerCards} initial="hidden" animate="visible">
           <ManagerStatCardGrid>
@@ -317,63 +480,57 @@ export function ManagerTeam() {
 
         {/* Filter Pills + Sort */}
         <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-between" style={{ gap: GRID.spacing.sm }}>
-          <div className="flex flex-wrap items-center" style={{ gap: GRID.spacing.xs }}>
+          <div className="flex flex-wrap items-center" style={{ gap: GRID.spacing.sm }}>
             {/* Status filters */}
-            {STATUS_FILTERS.map((f) => {
-              const isActive = statusFilter === f.value;
-              const count = statusCounts[f.value] || 0;
-              return (
-                <motion.button
-                  key={f.value}
-                  onClick={() => setStatusFilter(f.value)}
-                  className="font-medium border-0 flex items-center"
-                  style={{
-                    ...(isActive
-                      ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
-                      : { ...glassCard, color: COLORS.gray[600] }),
-                    borderRadius: RADIUS.pill, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm + 4}px`, fontSize: TYPE.meta, cursor: 'pointer', gap: 4,
-                  }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {f.label}
-                  {count > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 5px' }}>
-                      {count}
-                    </span>
-                  )}
-                </motion.button>
-              );
-            })}
-            {/* Divider */}
-            <div style={{ width: 1, height: 20, backgroundColor: COLORS.gray[200], margin: `0 ${GRID.spacing.xs}px` }} />
+            <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+              {STATUS_FILTERS.map((f) => {
+                const isActive = statusFilter === f.value;
+                const count = statusCounts[f.value] || 0;
+                return (
+                  <button
+                    key={f.value}
+                    onClick={() => setStatusFilter(f.value)}
+                    className={`flex items-center gap-2 font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                    style={{
+                      borderRadius: RADIUS.button, padding: '4px 12px', fontSize: TYPE.meta, cursor: 'pointer',
+                      fontWeight: isActive ? 600 : 500,
+                    }}
+                  >
+                    {f.label}
+                    {count > 0 && (
+                      <span className="h-5 px-1.5 text-[10px] bg-emerald-100 text-emerald-700 inline-flex items-center justify-center" style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 18 }}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
             {/* Cert filters */}
-            {CERT_FILTERS.map((f) => {
-              const isActive = certFilter === f.value;
-              const count = certCounts[f.value] || 0;
-              return (
-                <motion.button
-                  key={f.value}
-                  onClick={() => setCertFilter(f.value)}
-                  className="font-medium border-0 flex items-center"
-                  style={{
-                    ...(isActive
-                      ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
-                      : { ...glassCard, color: COLORS.gray[600] }),
-                    borderRadius: RADIUS.pill, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm + 4}px`, fontSize: TYPE.meta, cursor: 'pointer', gap: 4,
-                  }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {f.label}
-                  {count > 0 && f.value !== 'all' && (
-                    <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : f.value === 'overdue' ? 'rgba(239, 68, 68, 0.12)' : f.value === 'expiring' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : f.value === 'overdue' ? '#dc2626' : f.value === 'expiring' ? '#d97706' : '#059669', padding: '0 5px' }}>
-                      {count}
-                    </span>
-                  )}
-                </motion.button>
-              );
-            })}
+            <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+              {CERT_FILTERS.map((f) => {
+                const isActive = certFilter === f.value;
+                const count = certCounts[f.value] || 0;
+                return (
+                  <button
+                    key={f.value}
+                    onClick={() => setCertFilter(f.value)}
+                    className={`flex items-center gap-2 font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                    style={{
+                      borderRadius: RADIUS.button, padding: '4px 12px', fontSize: TYPE.meta, cursor: 'pointer',
+                      fontWeight: isActive ? 600 : 500,
+                    }}
+                  >
+                    {f.label}
+                    {count > 0 && f.value !== 'all' && (
+                      <span className={`h-5 px-1.5 text-[10px] inline-flex items-center justify-center ${f.value === 'overdue' ? 'bg-red-100 text-red-700' : f.value === 'expiring' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`} style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 18 }}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Sort dropdown */}
@@ -936,6 +1093,10 @@ export function ManagerTeam() {
             </CardContent>
           </Card>
         </motion.div>
+        </>
+        ) : (
+          <ActivityMonitorContent timeRange={timeRange} />
+        )}
       </motion.div>
 
       {/* ─── AGENT DETAIL DRAWER ─── */}

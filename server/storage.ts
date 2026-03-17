@@ -57,7 +57,7 @@ import {
   pageViews,
   analyticsEvents,
 } from "@shared/schema";
-import { leads, leadActivities, type Lead, type InsertLead, type LeadActivity, type InsertLeadActivity } from "@shared/models/crm";
+import { leads, leadActivities, distributionRecords, type Lead, type InsertLead, type LeadActivity, type InsertLeadActivity, type DistributionRecord, type InsertDistributionRecord, type DistributionAssignment } from "@shared/models/crm";
 import { memberCards } from "@shared/models/memberCards";
 import {
   agentLicenses,
@@ -98,8 +98,29 @@ import {
   type AgentProfile,
   type InsertAgentProfile,
 } from "@shared/models/agentProfiles";
-import { db } from "./db";
-import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
+import {
+  accessChangeLog,
+  type AccessChangeLog,
+  type InsertAccessChangeLog,
+  claims,
+  claimNotes,
+  type Claim,
+  type InsertClaim,
+  type ClaimNote,
+  type InsertClaimNote,
+  appointments,
+  type Appointment,
+  type InsertAppointment,
+  referrals,
+  type Referral,
+  type InsertReferral,
+  referralPoints,
+  type ReferralPoint,
+  type InsertReferralPoint,
+  agentHierarchy,
+} from "@shared/models/enterprise";
+import { db, pool } from "./db";
+import { eq, desc, and, or, inArray, asc, sql, isNull, like, gte, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export interface IStorage {
@@ -275,6 +296,58 @@ export interface IStorage {
   getAgentProfileByUserId(userId: string): Promise<AgentProfile | null>;
   getPendingRegistrations(): Promise<AgentProfile[]>;
   updateAgentProfileApproval(profileId: string, status: string, approvedBy?: string, rejectionReason?: string): Promise<AgentProfile | null>;
+
+  // Access Change Log
+  createAccessChangeLog(data: InsertAccessChangeLog): Promise<AccessChangeLog>;
+  getAccessChangeLog(filters: { targetUserId?: string; actionType?: string; limit?: number; offset?: number }): Promise<AccessChangeLog[]>;
+  getAccessChangeLogCount(filters: { targetUserId?: string; actionType?: string }): Promise<number>;
+
+  // Claims
+  createClaim(claim: InsertClaim): Promise<Claim>;
+  getClaimById(id: string): Promise<Claim | null>;
+  getClaimsByAgentId(agentId: string): Promise<Claim[]>;
+  getClaimsByClientId(clientId: string): Promise<Claim[]>;
+  updateClaim(id: string, data: Partial<InsertClaim>): Promise<Claim | null>;
+
+  // Claim Notes
+  createClaimNote(note: InsertClaimNote): Promise<ClaimNote>;
+  getClaimNotes(claimId: string): Promise<ClaimNote[]>;
+
+  // Appointments
+  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
+  getAppointmentById(id: string): Promise<Appointment | null>;
+  getAppointmentsByClientId(clientId: string): Promise<Appointment[]>;
+  getAppointmentsByAgentId(agentId: string): Promise<Appointment[]>;
+  updateAppointment(id: string, data: Partial<InsertAppointment>): Promise<Appointment | null>;
+
+  // Referrals
+  createReferral(referral: InsertReferral): Promise<Referral>;
+  getReferralById(id: string): Promise<Referral | null>;
+  getReferralsByReferrerId(userId: string): Promise<Referral[]>;
+  updateReferral(id: string, data: Partial<Referral>): Promise<Referral | null>;
+
+  // Referral Points
+  createReferralPointEntry(entry: InsertReferralPoint): Promise<ReferralPoint>;
+  getReferralPointHistory(userId: string): Promise<ReferralPoint[]>;
+  getReferralPointBalance(userId: string): Promise<number>;
+
+  // Lead Conversion Support
+  getClientsByAgentId(agentId: string): Promise<User[]>;
+  isAgentAssignedToClient(agentId: string, clientId: string): Promise<boolean>;
+  updatePolicy(id: string, data: Record<string, any>): Promise<Policy | null>;
+
+  // Agent Onboarding
+  updateAgentOnboarding(profileId: string, data: Record<string, any>): Promise<any>;
+  getOnboardingByToken(tokenHash: string): Promise<any>;
+  completeOnboarding(profileId: string): Promise<any>;
+  getFullAgentProfile(userId: string): Promise<any>;
+  setOnboardingToken(profileId: string, tokenHash: string, expiresAt: Date): Promise<void>;
+
+  // Lounge Access
+  getUserLoungeAccess(userId: string): Promise<any[]>;
+  setUserLoungeAccess(userId: string, loungeKey: string, granted: boolean, grantedBy: string): Promise<void>;
+  getLoungeMembers(loungeKey: string): Promise<any[]>;
+  initializeDefaultLoungeAccess(userId: string, role: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -548,7 +621,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClientMessage(message: InsertClientMessage): Promise<ClientMessage> {
-    const [newMessage] = await db.insert(clientMessages).values(message).returning();
+    const [newMessage] = await db.insert(clientMessages).values(message as any).returning();
 
     // Update conversation with last message info
     const preview = message.content.length > 100
@@ -863,10 +936,10 @@ export class DatabaseStorage implements IStorage {
 
     await this.createMessage({
       userId,
-      fromName: "Gold Coast Financial Group",
+      fromName: "Gold Coast Financial Partners",
       fromEmail: "welcome@goldcoastfnl.com",
       subject: "Welcome to Your Client Portal",
-      content: "Welcome to Gold Coast Financial Group! We're excited to have you as part of our family. Your client portal gives you 24/7 access to your policies, documents, and secure messaging with your advisors. If you have any questions, we're here to help.\n\nWarm regards,\nThe Gold Coast Financial Team",
+      content: "Welcome to Gold Coast Financial Partners! We're excited to have you as part of our family. Your client portal gives you 24/7 access to your policies, documents, and secure messaging with your advisors. If you have any questions, we're here to help.\n\nWarm regards,\nThe Gold Coast Financial Team",
       isRead: true,
       priority: "normal",
     });
@@ -1684,6 +1757,585 @@ export class DatabaseStorage implements IStorage {
       .where(eq(agentProfiles.id, profileId))
       .returning();
     return updated || null;
+  }
+
+  // ─── ACCESS CHANGE LOG ───────────────────────────────────────────────────
+  async createAccessChangeLog(data: InsertAccessChangeLog): Promise<AccessChangeLog> {
+    const [log] = await db.insert(accessChangeLog).values(data).returning();
+    return log;
+  }
+
+  async getAccessChangeLog(filters: { targetUserId?: string; actionType?: string; limit?: number; offset?: number }): Promise<AccessChangeLog[]> {
+    const conditions = [];
+    if (filters.targetUserId) conditions.push(eq(accessChangeLog.targetUserId, filters.targetUserId));
+    if (filters.actionType) conditions.push(eq(accessChangeLog.actionType, filters.actionType));
+
+    const query = db.select().from(accessChangeLog).$dynamic();
+    if (conditions.length > 0) query.where(and(...conditions));
+    return query
+      .orderBy(desc(accessChangeLog.createdAt))
+      .limit(filters.limit || 50)
+      .offset(filters.offset || 0);
+  }
+
+  async getAccessChangeLogCount(filters: { targetUserId?: string; actionType?: string }): Promise<number> {
+    const conditions = [];
+    if (filters.targetUserId) conditions.push(eq(accessChangeLog.targetUserId, filters.targetUserId));
+    if (filters.actionType) conditions.push(eq(accessChangeLog.actionType, filters.actionType));
+
+    const query = db.select({ count: sql<number>`count(*)::int` }).from(accessChangeLog).$dynamic();
+    if (conditions.length > 0) query.where(and(...conditions));
+    const [result] = await query;
+    return result?.count || 0;
+  }
+
+  // ── Claims ──────────────────────────────────────────
+  async createClaim(claim: InsertClaim): Promise<Claim> {
+    // Generate claim number: CLM-YYYY-NNNNN
+    const year = new Date().getFullYear();
+    const existing = await db.select({ count: sql<number>`count(*)::int` }).from(claims);
+    const seq = (existing[0]?.count || 0) + 1;
+    const claimNumber = `CLM-${year}-${String(seq).padStart(5, "0")}`;
+
+    const [created] = await db.insert(claims).values({ ...claim, claimNumber } as any).returning();
+    return created;
+  }
+
+  async getClaimById(id: string): Promise<Claim | null> {
+    const [claim] = await db.select().from(claims).where(eq(claims.id, id));
+    return claim || null;
+  }
+
+  async getClaimsByAgentId(agentId: string): Promise<Claim[]> {
+    return db.select().from(claims).where(eq(claims.agentUserId, agentId)).orderBy(desc(claims.createdAt));
+  }
+
+  async getClaimsByClientId(clientId: string): Promise<Claim[]> {
+    return db.select().from(claims).where(eq(claims.claimantUserId, clientId)).orderBy(desc(claims.createdAt));
+  }
+
+  async updateClaim(id: string, data: Partial<InsertClaim>): Promise<Claim | null> {
+    const [updated] = await db.update(claims).set({ ...data, updatedAt: new Date() } as any).where(eq(claims.id, id)).returning();
+    return updated || null;
+  }
+
+  // ── Claim Notes ─────────────────────────────────────
+  async createClaimNote(note: InsertClaimNote): Promise<ClaimNote> {
+    const [created] = await db.insert(claimNotes).values(note).returning();
+    return created;
+  }
+
+  async getClaimNotes(claimId: string): Promise<ClaimNote[]> {
+    return db.select().from(claimNotes).where(eq(claimNotes.claimId, claimId)).orderBy(desc(claimNotes.createdAt));
+  }
+
+  // ─── Appointments ───
+
+  async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
+    const [created] = await db.insert(appointments).values(appointment as any).returning();
+    return created;
+  }
+
+  async getAppointmentById(id: string): Promise<Appointment | null> {
+    const [appointment] = await db.select().from(appointments).where(eq(appointments.id, id));
+    return appointment || null;
+  }
+
+  async getAppointmentsByClientId(clientId: string): Promise<Appointment[]> {
+    return db.select().from(appointments).where(eq(appointments.clientUserId, clientId)).orderBy(desc(appointments.scheduledAt));
+  }
+
+  async getAppointmentsByAgentId(agentId: string): Promise<Appointment[]> {
+    return db.select().from(appointments).where(eq(appointments.agentUserId, agentId)).orderBy(desc(appointments.scheduledAt));
+  }
+
+  async updateAppointment(id: string, data: Partial<InsertAppointment>): Promise<Appointment | null> {
+    const [updated] = await db.update(appointments).set({ ...data, updatedAt: new Date() } as any).where(eq(appointments.id, id)).returning();
+    return updated || null;
+  }
+
+  // ─── Referrals ───
+
+  async createReferral(referral: InsertReferral): Promise<Referral> {
+    const [created] = await db.insert(referrals).values(referral as any).returning();
+    return created;
+  }
+
+  async getReferralById(id: string): Promise<Referral | null> {
+    const [referral] = await db.select().from(referrals).where(eq(referrals.id, id));
+    return referral || null;
+  }
+
+  async getReferralsByReferrerId(userId: string): Promise<Referral[]> {
+    return db.select().from(referrals).where(eq(referrals.referrerUserId, userId)).orderBy(desc(referrals.createdAt));
+  }
+
+  async updateReferral(id: string, data: Partial<Referral>): Promise<Referral | null> {
+    const [updated] = await db.update(referrals).set(data as any).where(eq(referrals.id, id)).returning();
+    return updated || null;
+  }
+
+  // ─── Referral Points ───
+
+  async createReferralPointEntry(entry: InsertReferralPoint): Promise<ReferralPoint> {
+    const [created] = await db.insert(referralPoints).values(entry as any).returning();
+    return created;
+  }
+
+  async getReferralPointHistory(userId: string): Promise<ReferralPoint[]> {
+    return db.select().from(referralPoints)
+      .where(eq(referralPoints.userId, userId))
+      .orderBy(desc(referralPoints.createdAt));
+  }
+
+  async getReferralPointBalance(userId: string): Promise<number> {
+    const result = await db.select({
+      total: sql<number>`COALESCE(SUM(${referralPoints.amount}), 0)`
+    })
+      .from(referralPoints)
+      .where(eq(referralPoints.userId, userId));
+    return Number(result[0]?.total) || 0;
+  }
+
+  // =============================================================================
+  // LEAD CONVERSION SUPPORT
+  // =============================================================================
+
+  async getClientsByAgentId(agentId: string): Promise<User[]> {
+    return db.select().from(users)
+      .where(and(
+        eq(users.assignedAgentId, agentId),
+        eq(users.role, 'client')
+      ))
+      .orderBy(desc(users.createdAt));
+  }
+
+  async isAgentAssignedToClient(agentId: string, clientId: string): Promise<boolean> {
+    const [user] = await db.select().from(users)
+      .where(and(
+        eq(users.id, clientId),
+        eq(users.assignedAgentId, agentId)
+      ));
+    return !!user;
+  }
+
+  async updatePolicy(id: string, data: Record<string, any>): Promise<Policy | null> {
+    const [updated] = await db.update(policies)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(policies.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  // ==========================================================================
+  // LEAD DISTRIBUTION
+  // ==========================================================================
+
+  /**
+   * Get leads in a user's pool (assigned to them but not yet distributed down)
+   */
+  async getLeadPool(userId: string, options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    priority?: string;
+    source?: string;
+    sortBy?: string;
+  } = {}): Promise<{ leads: Lead[]; total: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 50;
+    const offset = (page - 1) * limit;
+
+    const conditions = [
+      eq(leads.assignedTo, userId),
+      isNull(leads.distributedTo),
+    ];
+
+    if (options.search) {
+      const searchTerm = `%${options.search}%`;
+      conditions.push(
+        or(
+          like(leads.firstName, searchTerm),
+          like(leads.lastName, searchTerm),
+          like(leads.email, searchTerm),
+          like(leads.phone, searchTerm),
+        )!,
+      );
+    }
+
+    if (options.priority) {
+      conditions.push(eq(leads.priority, options.priority));
+    }
+
+    if (options.source) {
+      conditions.push(eq(leads.source, options.source));
+    }
+
+    const whereClause = and(...conditions);
+
+    const [totalResult] = await db.select({ count: count() })
+      .from(leads)
+      .where(whereClause);
+
+    let query = db.select().from(leads).where(whereClause);
+
+    // Sort
+    if (options.sortBy === 'score') {
+      query = query.orderBy(desc(leads.leadScore)) as typeof query;
+    } else if (options.sortBy === 'priority') {
+      query = query.orderBy(desc(leads.priority)) as typeof query;
+    } else {
+      query = query.orderBy(desc(leads.createdAt)) as typeof query;
+    }
+
+    const results = await query.limit(limit).offset(offset);
+
+    return { leads: results, total: totalResult.count };
+  }
+
+  /**
+   * Bulk distribute leads to recipients and create audit trail
+   */
+  async distributeLeads(
+    assignments: { recipientId: string; leadIds: string[] }[],
+    distributedBy: string,
+    distributedByRole: string,
+    level: string,
+  ): Promise<DistributionRecord> {
+    const now = new Date();
+    const totalLeads = assignments.reduce((sum, a) => sum + a.leadIds.length, 0);
+
+    // Build assignment details with recipient names
+    const assignmentDetails: DistributionAssignment[] = [];
+
+    for (const assignment of assignments) {
+      // Get recipient name
+      const [recipient] = await db.select({ firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(eq(users.id, assignment.recipientId));
+
+      const recipientName = recipient
+        ? `${recipient.firstName || ''} ${recipient.lastName || ''}`.trim()
+        : 'Unknown';
+
+      assignmentDetails.push({
+        recipientId: assignment.recipientId,
+        recipientName,
+        leadCount: assignment.leadIds.length,
+        leadIds: assignment.leadIds,
+      });
+
+      // Bulk update leads for this recipient
+      if (level === 'manager_to_agent') {
+        // Final level: set both assignedTo and distributedTo
+        await db.update(leads)
+          .set({
+            assignedTo: assignment.recipientId,
+            distributedTo: assignment.recipientId,
+            distributedAt: now,
+            distributedByUser: distributedBy,
+            distributionLevel: level,
+            updatedAt: now,
+          })
+          .where(inArray(leads.id, assignment.leadIds));
+      } else {
+        // Intermediate level: set distributedTo (recipient will see in their pool)
+        await db.update(leads)
+          .set({
+            distributedTo: assignment.recipientId,
+            distributedAt: now,
+            distributedByUser: distributedBy,
+            distributionLevel: level,
+            assignedTo: assignment.recipientId,
+            updatedAt: now,
+          })
+          .where(inArray(leads.id, assignment.leadIds));
+      }
+
+      // Create lead activities for each distributed lead
+      for (const leadId of assignment.leadIds) {
+        await db.insert(leadActivities).values({
+          leadId,
+          type: 'distribution',
+          title: `Lead distributed to ${recipientName}`,
+          description: `Distribution level: ${level}. Distributed by user ${distributedBy}.`,
+          performedBy: distributedBy,
+        });
+      }
+    }
+
+    // Create distribution record
+    const perRecipient = assignments.length > 0 ? Math.floor(totalLeads / assignments.length) : 0;
+    const remainder = assignments.length > 0 ? totalLeads % assignments.length : 0;
+
+    const [record] = await db.insert(distributionRecords).values({
+      distributedBy,
+      distributedByRole,
+      totalLeads,
+      recipientCount: assignments.length,
+      leadsPerRecipient: perRecipient,
+      remainderLeads: remainder,
+      distributionLevel: level,
+      assignments: assignmentDetails,
+    }).returning();
+
+    return record;
+  }
+
+  /**
+   * Get distribution history for a user
+   */
+  async getDistributionHistory(userId: string, options: {
+    page?: number;
+    limit?: number;
+  } = {}): Promise<{ records: DistributionRecord[]; total: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 20;
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await db.select({ count: count() })
+      .from(distributionRecords)
+      .where(eq(distributionRecords.distributedBy, userId));
+
+    const records = await db.select()
+      .from(distributionRecords)
+      .where(eq(distributionRecords.distributedBy, userId))
+      .orderBy(desc(distributionRecords.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return { records, total: totalResult.count };
+  }
+
+  /**
+   * Get leads distributed to a user (their inbox from above)
+   */
+  async getDistributedInbox(userId: string, options: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    sortBy?: string;
+  } = {}): Promise<{ leads: Lead[]; total: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 50;
+    const offset = (page - 1) * limit;
+
+    const conditions = [
+      eq(leads.assignedTo, userId),
+    ];
+
+    if (options.status) {
+      conditions.push(eq(leads.status, options.status));
+    }
+
+    if (options.search) {
+      const searchTerm = `%${options.search}%`;
+      conditions.push(
+        or(
+          like(leads.firstName, searchTerm),
+          like(leads.lastName, searchTerm),
+          like(leads.email, searchTerm),
+        )!,
+      );
+    }
+
+    const whereClause = and(...conditions);
+
+    const [totalResult] = await db.select({ count: count() })
+      .from(leads)
+      .where(whereClause);
+
+    let query = db.select().from(leads).where(whereClause);
+
+    if (options.sortBy === 'score') {
+      query = query.orderBy(desc(leads.leadScore)) as typeof query;
+    } else if (options.sortBy === 'priority') {
+      query = query.orderBy(desc(leads.priority)) as typeof query;
+    } else {
+      query = query.orderBy(desc(leads.createdAt)) as typeof query;
+    }
+
+    const results = await query.limit(limit).offset(offset);
+
+    return { leads: results, total: totalResult.count };
+  }
+
+  /**
+   * Get direct reports for distribution (from agent_hierarchy)
+   */
+  async getDirectReports(userId: string): Promise<{ id: string; firstName: string | null; lastName: string | null; role: string }[]> {
+    const results = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      role: users.role,
+    })
+      .from(agentHierarchy)
+      .innerJoin(users, eq(agentHierarchy.agentUserId, users.id))
+      .where(eq(agentHierarchy.directUplineId, userId));
+
+    return results;
+  }
+
+  /**
+   * Get distribution stats for a user
+   */
+  async getDistributionStats(userId: string): Promise<{
+    poolCount: number;
+    highPriorityCount: number;
+    distributedToday: number;
+    recipientCount: number;
+    inboxCount: number;
+  }> {
+    // Pool count (assigned to user, not distributed)
+    const [poolResult] = await db.select({ count: count() })
+      .from(leads)
+      .where(and(eq(leads.assignedTo, userId), isNull(leads.distributedTo)));
+
+    // High priority in pool
+    const [highPriorityResult] = await db.select({ count: count() })
+      .from(leads)
+      .where(and(
+        eq(leads.assignedTo, userId),
+        isNull(leads.distributedTo),
+        or(eq(leads.priority, 'high'), eq(leads.priority, 'urgent')),
+      ));
+
+    // Distributed today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const [distributedTodayResult] = await db.select({ count: count() })
+      .from(distributionRecords)
+      .where(and(
+        eq(distributionRecords.distributedBy, userId),
+        gte(distributionRecords.createdAt, todayStart),
+      ));
+
+    // Direct report count
+    const [recipientResult] = await db.select({ count: count() })
+      .from(agentHierarchy)
+      .where(eq(agentHierarchy.directUplineId, userId));
+
+    // Inbox count (leads assigned to this user total)
+    const [inboxResult] = await db.select({ count: count() })
+      .from(leads)
+      .where(eq(leads.assignedTo, userId));
+
+    return {
+      poolCount: poolResult.count,
+      highPriorityCount: highPriorityResult.count,
+      distributedToday: distributedTodayResult.count,
+      recipientCount: recipientResult.count,
+      inboxCount: inboxResult.count,
+    };
+  }
+
+  // ─── AGENT ONBOARDING ───────────────────────────────────────────────────
+
+  async updateAgentOnboarding(profileId: string, data: Record<string, any>): Promise<any> {
+    const keys = Object.keys(data);
+    if (keys.length === 0) return null;
+
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    for (const key of keys) {
+      setClauses.push(`${key} = $${paramIndex}`);
+      values.push(data[key]);
+      paramIndex++;
+    }
+    setClauses.push(`updated_at = NOW()`);
+    values.push(profileId);
+
+    const result = await pool.query(
+      `UPDATE agent_profiles SET ${setClauses.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values,
+    );
+    return result.rows[0] || null;
+  }
+
+  async getOnboardingByToken(tokenHash: string): Promise<any> {
+    const result = await pool.query(
+      `SELECT * FROM agent_profiles WHERE onboarding_token = $1 AND onboarding_token_expires_at > NOW()`,
+      [tokenHash],
+    );
+    return result.rows[0] || null;
+  }
+
+  async completeOnboarding(profileId: string): Promise<any> {
+    const result = await pool.query(
+      `UPDATE agent_profiles SET onboarding_completed_at = NOW(), onboarding_token = NULL, onboarding_token_expires_at = NULL, updated_at = NOW() WHERE id = $1 RETURNING *`,
+      [profileId],
+    );
+    const profile = result.rows[0];
+    if (profile && profile.user_id) {
+      await pool.query(
+        `UPDATE users SET onboarding_status = 'completed', updated_at = NOW() WHERE id = $1`,
+        [profile.user_id],
+      );
+    }
+    return profile || null;
+  }
+
+  async getFullAgentProfile(userId: string): Promise<any> {
+    const result = await pool.query(
+      `SELECT ap.*, u.email, u.first_name, u.last_name, u.phone, u.role, u.is_active, u.avatar_url, u.last_login_at, u.onboarding_status FROM agent_profiles ap JOIN users u ON u.id = ap.user_id::uuid WHERE ap.user_id = $1`,
+      [userId],
+    );
+    return result.rows[0] || null;
+  }
+
+  async setOnboardingToken(profileId: string, tokenHash: string, expiresAt: Date): Promise<void> {
+    await pool.query(
+      `UPDATE agent_profiles SET onboarding_token = $1, onboarding_token_expires_at = $2, updated_at = NOW() WHERE id = $3`,
+      [tokenHash, expiresAt, profileId],
+    );
+  }
+
+  // ─── LOUNGE ACCESS ──────────────────────────────────────────────────────
+
+  async getUserLoungeAccess(userId: string): Promise<any[]> {
+    const result = await pool.query(
+      `SELECT * FROM user_lounge_access WHERE user_id = $1 ORDER BY lounge_key`,
+      [userId],
+    );
+    return result.rows;
+  }
+
+  async setUserLoungeAccess(userId: string, loungeKey: string, granted: boolean, grantedBy: string): Promise<void> {
+    await pool.query(
+      `INSERT INTO user_lounge_access (user_id, lounge_key, granted, granted_by, granted_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (user_id, lounge_key) DO UPDATE SET granted = $3, granted_by = $4, granted_at = NOW(), revoked_at = CASE WHEN $3 = false THEN NOW() ELSE NULL END`,
+      [userId, loungeKey, granted, grantedBy],
+    );
+  }
+
+  async getLoungeMembers(loungeKey: string): Promise<any[]> {
+    const result = await pool.query(
+      `SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.role, u.is_active, u.avatar_url, u.last_login_at, u.created_at, ula.granted_at FROM user_lounge_access ula JOIN users u ON u.id = ula.user_id::uuid WHERE ula.lounge_key = $1 AND ula.granted = true ORDER BY u.first_name`,
+      [loungeKey],
+    );
+    return result.rows;
+  }
+
+  async initializeDefaultLoungeAccess(userId: string, role: string): Promise<void> {
+    const roleToLounges: Record<string, string[]> = {
+      owner: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'marketing_lounge', 'admin_panel', 'investor_lounge'],
+      system_admin: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'marketing_lounge', 'admin_panel', 'investor_lounge'],
+      manager: ['agent_portal', 'manager_lounge', 'crm_lounge'],
+      sales_agent: ['agent_portal', 'crm_lounge'],
+      marketing_staff: ['marketing_lounge', 'crm_lounge'],
+      investor: ['executive_lounge'],
+    };
+
+    const lounges = roleToLounges[role] || [];
+    for (const lounge of lounges) {
+      await pool.query(
+        `INSERT INTO user_lounge_access (user_id, lounge_key, granted, granted_by, granted_at) VALUES ($1, $2, true, 'system', NOW()) ON CONFLICT (user_id, lounge_key) DO NOTHING`,
+        [userId, lounge],
+      );
+    }
   }
 }
 

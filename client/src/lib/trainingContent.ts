@@ -1318,7 +1318,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
   {
     id: 'mock-call-excellent-term',
     title: 'Excellence in Action: Term Life Education',
-    description: 'Demonstrates exemplary education-first approach with proper consent, discovery, education, and documentation. This call represents the Gold Coast Financial standard.',
+    description: 'Demonstrates exemplary education-first approach with proper consent, discovery, education, and documentation. This call represents the Gold Coast Financial Partners standard.',
     context: {
       advisorName: 'Sarah Mitchell',
       advisorExperience: '2 years with GCF',
@@ -1355,7 +1355,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[0:00]',
             speaker: 'advisor',
             speakerName: 'Sarah',
-            content: 'Good afternoon, this is Sarah Mitchell calling from Gold Coast Financial. I\'m a licensed life insurance advisor. Is this David Chen?',
+            content: 'Good afternoon, this is Sarah Mitchell calling from Gold Coast Financial Partners. I\'m a licensed life insurance advisor. Is this David Chen?',
             annotation: {
               type: 'excellent',
               text: 'Proper identification: name, company, role',
@@ -1851,7 +1851,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
   {
     id: 'mock-call-needs-improvement',
     title: 'Learning Opportunity: Common Compliance Pitfalls',
-    description: 'This call demonstrates common mistakes that violate Gold Coast Financial standards. Study this to recognize and avoid these behaviors.',
+    description: 'This call demonstrates common mistakes that violate Gold Coast Financial Partners standards. Study this to recognize and avoid these behaviors.',
     context: {
       advisorName: 'Mike Roberts',
       advisorExperience: '6 months with GCF',
@@ -2065,7 +2065,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
     ],
     summary: {
       whatWentWell: [
-        'Nothing in this call meets Gold Coast Financial standards'
+        'Nothing in this call meets Gold Coast Financial Partners standards'
       ],
       areasForImprovement: [
         'Did not properly identify self, company, or role',
@@ -2142,7 +2142,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[0:00]',
             speaker: 'advisor',
             speakerName: 'Jennifer',
-            content: 'Hi Michael and Lisa, it\'s Jennifer Park from Gold Coast Financial. Thank you for making time for our follow-up call today. As a reminder, this call is being recorded for quality purposes. Is that still okay?',
+            content: 'Hi Michael and Lisa, it\'s Jennifer Park from Gold Coast Financial Partners. Thank you for making time for our follow-up call today. As a reminder, this call is being recorded for quality purposes. Is that still okay?',
             annotation: {
               type: 'excellent',
               text: 'Proper re-identification and recording reminder',
@@ -2530,7 +2530,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[0:08]',
             speaker: 'advisor',
             speakerName: 'Robert',
-            content: 'Good morning Mrs. Wilson. My name is Robert Chen and I\'m a licensed life insurance advisor with Gold Coast Financial. I\'m calling because you recently requested information about final expense insurance coverage. This is not an emergency or anything urgent—I\'m simply following up on your request. Is this a good time to talk?',
+            content: 'Good morning Mrs. Wilson. My name is Robert Chen and I\'m a licensed life insurance advisor with Gold Coast Financial Partners. I\'m calling because you recently requested information about final expense insurance coverage. This is not an emergency or anything urgent—I\'m simply following up on your request. Is this a good time to talk?',
             annotation: {
               type: 'excellent',
               text: 'Clear identification, explicitly states non-urgent, asks about timing',
@@ -2596,7 +2596,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[2:18]',
             speaker: 'advisor',
             speakerName: 'Robert',
-            content: 'Hi Susan, thank you for joining us. Yes, I\'m Robert Chen with Gold Coast Financial. Your mother requested information about final expense insurance. I\'m here to explain options and answer questions—there\'s no pressure and no obligation. My goal is to provide education so your family can decide what\'s right for you.'
+            content: 'Hi Susan, thank you for joining us. Yes, I\'m Robert Chen with Gold Coast Financial Partners. Your mother requested information about final expense insurance. I\'m here to explain options and answer questions—there\'s no pressure and no obligation. My goal is to provide education so your family can decide what\'s right for you.'
           }
         ]
       },
@@ -2937,7 +2937,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[0:00]',
             speaker: 'advisor',
             speakerName: 'Amanda',
-            content: 'Good afternoon, Richard and Barbara. This is Amanda Torres from Gold Coast Financial. Thank you for setting up this appointment to discuss retirement income options. I have you both on the line?',
+            content: 'Good afternoon, Richard and Barbara. This is Amanda Torres from Gold Coast Financial Partners. Thank you for setting up this appointment to discuss retirement income options. I have you both on the line?',
             annotation: {
               type: 'excellent',
               text: 'Confirms both decision-makers present',
@@ -3347,7 +3347,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[0:00]',
             speaker: 'advisor',
             speakerName: 'Marcus',
-            content: 'Good afternoon, this is Marcus Williams, a licensed life insurance advisor with Gold Coast Financial. Is this Kevin Park?'
+            content: 'Good afternoon, this is Marcus Williams, a licensed life insurance advisor with Gold Coast Financial Partners. Is this Kevin Park?'
           },
           {
             timestamp: '[0:10]',
@@ -3729,7 +3729,7 @@ export const MOCK_CALL_TRANSCRIPTS_DATA: MockCallTranscript[] = [
             timestamp: '[0:15]',
             speaker: 'advisor',
             speakerName: 'Daniel',
-            content: 'Sorry about that—let me start over. My name is Daniel Foster and I\'m a licensed life insurance advisor with Gold Coast Financial. You recently requested information about coverage options online. I apologize for the casual opening—that wasn\'t professional of me.',
+            content: 'Sorry about that—let me start over. My name is Daniel Foster and I\'m a licensed life insurance advisor with Gold Coast Financial Partners. You recently requested information about coverage options online. I apologize for the casual opening—that wasn\'t professional of me.',
             annotation: {
               type: 'tip',
               text: 'RECOVERY: Self-corrects and apologizes',
@@ -4513,7 +4513,7 @@ export const EXPANDED_GLOSSARY_TERMS: GlossaryTerm[] = [
     id: 'term-imo',
     term: 'IMO',
     shortDefinition: 'Insurance Marketing Organization - distributor of insurance products.',
-    fullDefinition: 'An Insurance Marketing Organization (IMO) is an independent distributor that contracts with insurance carriers to market and distribute their products through licensed agents. IMOs provide agents with carrier access, training, marketing support, and back-office services. Gold Coast Financial operates as an IMO.',
+    fullDefinition: 'An Insurance Marketing Organization (IMO) is an independent distributor that contracts with insurance carriers to market and distribute their products through licensed agents. IMOs provide agents with carrier access, training, marketing support, and back-office services. Gold Coast Financial Partners operates as an IMO.',
     category: 'company',
     usedInModules: ['mod-welcome', 'mod-role'],
     relatedTerms: ['term-carrier', 'term-appointment'],
@@ -4992,7 +4992,7 @@ export const QUICK_REFERENCE_CARDS_DATA: QuickReferenceCard[] = [
       {
         title: 'Every Call Must Include',
         items: [
-          { label: 'Identification', value: 'Your name, company (Gold Coast Financial), role (licensed advisor)', icon: 'user', isHighlighted: true },
+          { label: 'Identification', value: 'Your name, company (Gold Coast Financial Partners), role (licensed advisor)', icon: 'user', isHighlighted: true },
           { label: 'Purpose', value: 'Educational purpose of call - not sales pitch', icon: 'target' },
           { label: 'Recording Disclosure', value: 'If call is recorded, disclose before substantive discussion', icon: 'mic' },
           { label: 'Consent', value: 'Explicit permission to proceed with questions', icon: 'check-circle', isHighlighted: true }

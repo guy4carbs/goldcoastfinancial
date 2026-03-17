@@ -1,25 +1,13 @@
 /**
  * Manager Settings
- * Full settings page matching Agent Lounge pattern + manager-specific sections
- * Heritage Design System — Emerald theme
+ * Mirrors Agent Lounge AgentSettings.tsx pattern — emerald theme
+ * Heritage Design System
  */
 
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
-import { ManagerPageHero, ProgressRing } from './primitives';
-import { glassCard, MANAGER_ICON_GRADIENT } from './managerConstants';
-import {
-  RADIUS,
-  TYPE,
-  GRID,
-  LAYOUT,
-  SHADOW,
-  MOTION,
-  COLORS,
-  fadeInUp,
-  staggerContainer,
-} from '@/lib/heritageDesignSystem';
+import { ManagerPageHero } from './primitives';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +38,7 @@ import {
   QrCode,
   Calendar,
 } from 'lucide-react';
+import { RADIUS, SHADOW, TYPE, COLORS, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
 
 /* ── Types ──────────────────────────────────────────────── */
 
@@ -106,18 +95,14 @@ const TEAM_DEFAULTS = [
   { id: 'escalation-threshold', label: 'Escalation Threshold (days)', defaultValue: '2' },
 ];
 
-/* ── Glass card icon helper ─────────────────────────────── */
+/* ── Shared glass card style ──────────────────────────────── */
 
-function SectionIcon({ icon: Icon }: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> }) {
-  return (
-    <div
-      className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-    >
-      <Icon className="text-amber-200" style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md }} />
-    </div>
-  );
-}
+const glassCard = {
+  borderRadius: RADIUS.card,
+  boxShadow: SHADOW.card,
+  background: 'rgba(255, 255, 255, 0.85)',
+  backdropFilter: 'blur(20px)',
+};
 
 /* ── Component ──────────────────────────────────────────── */
 
@@ -178,75 +163,62 @@ export function ManagerSettings() {
     setTwoFactor((prev) => ({ ...prev, method }));
   }, []);
 
-  /* ── Card wrapper helper ──────────────────────────────── */
-  const cardStyle = { ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card };
-
   return (
     <ManagerLoungeLayout>
       <motion.div
-        variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+        variants={staggerContainer}
+        className="space-y-6 pb-20 lg:pb-0"
       >
         {/* ── Hero ──────────────────────────────────────────── */}
-        <ManagerPageHero
-          icon={Settings}
-          title="Settings"
-          subtitle="Account, preferences, and support"
-        >
-          <Button
-            className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur gap-2"
-            onClick={handleSave}
-            disabled={isSaving}
-            style={{ borderRadius: RADIUS.button }}
-          >
-            {isSaving ? 'Saving...' : (
-              <>
-                <Save className="w-4 h-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </ManagerPageHero>
-
-        {/* ── Profile Completion ─────────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardContent style={{ padding: GRID.spacing.md }}>
-              <div className="flex items-center" style={{ gap: GRID.spacing.md }}>
-                <ProgressRing value={78} size={72} strokeWidth={7} label="78%" sublabel="Complete" />
-                <div>
-                  <h3 className="font-semibold text-gray-900" style={{ fontSize: TYPE.title }}>Profile Completion</h3>
-                  <p className="text-gray-500" style={{ fontSize: TYPE.meta, marginTop: 2 }}>
-                    Complete your profile to unlock all manager features. Add a photo and configure team defaults to reach 100%.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ManagerPageHero
+            icon={Settings}
+            title="Settings"
+            subtitle="Manage your account and preferences"
+          >
+            <Button
+              className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur"
+              onClick={handleSave}
+              disabled={isSaving}
+              style={{ borderRadius: RADIUS.button }}
+            >
+              {isSaving ? (
+                <>Saving...</>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </ManagerPageHero>
         </motion.div>
 
         {/* ── Profile Information ───────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={User} />
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <User className="w-5 h-5 text-amber-200" />
+                </div>
                 <div>
                   <span className="text-gray-900">Profile Information</span>
-                  <p className="text-gray-500 font-normal" style={{ fontSize: TYPE.caption, marginTop: 2 }}>
-                    Update your personal details
-                  </p>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Update your personal details</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+            <CardContent className="space-y-6">
               {/* Avatar */}
-              <div className="flex items-center" style={{ gap: GRID.spacing.md, marginBottom: GRID.spacing.md }}>
+              <div className="flex items-center gap-4">
                 <div
-                  className="flex items-center justify-center text-white font-bold text-2xl bg-gradient-to-br from-emerald-500 to-teal-600"
-                  style={{ width: 80, height: 80, borderRadius: RADIUS.card }}
+                  className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-2xl"
+                  style={{ borderRadius: RADIUS.card }}
                 >
                   {profile.firstName[0]}{profile.lastName[0]}
                 </div>
@@ -261,65 +233,66 @@ export function ManagerSettings() {
                     <Camera className="w-4 h-4 mr-2" />
                     Change Photo
                   </Button>
-                  <p className="text-gray-500 mt-1" style={{ fontSize: TYPE.caption }}>JPG, PNG up to 5MB</p>
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG up to 5MB</p>
                 </div>
               </div>
 
-              <div style={{ borderTop: `1px solid ${COLORS.gray[100]}`, paddingTop: GRID.spacing.md }}>
-                <div className="grid sm:grid-cols-2" style={{ gap: GRID.spacing.sm }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <Label htmlFor="firstName" className="text-gray-900" style={{ fontSize: TYPE.meta }}>First Name</Label>
-                    <Input
-                      id="firstName"
-                      value={profile.firstName}
-                      onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                      style={{ borderRadius: RADIUS.input }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <Label htmlFor="lastName" className="text-gray-900" style={{ fontSize: TYPE.meta }}>Last Name</Label>
-                    <Input
-                      id="lastName"
-                      value={profile.lastName}
-                      onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                      style={{ borderRadius: RADIUS.input }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <Label htmlFor="email" className="flex items-center gap-2 text-gray-900" style={{ fontSize: TYPE.meta }}>
-                      <Mail className="w-3 h-3" /> Email
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      style={{ borderRadius: RADIUS.input }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <Label htmlFor="phone" className="flex items-center gap-2 text-gray-900" style={{ fontSize: TYPE.meta }}>
-                      <Phone className="w-3 h-3" /> Phone
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      style={{ borderRadius: RADIUS.input }}
-                    />
-                  </div>
-                  <div className="sm:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <Label htmlFor="location" className="flex items-center gap-2 text-gray-900" style={{ fontSize: TYPE.meta }}>
-                      <MapPin className="w-3 h-3" /> Location
-                    </Label>
-                    <Input
-                      id="location"
-                      value={profile.location}
-                      onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                      style={{ borderRadius: RADIUS.input }}
-                    />
-                  </div>
+              <div className="border-t border-gray-100" />
+
+              {/* Form Fields */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-gray-900">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={profile.firstName}
+                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-gray-900">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={profile.lastName}
+                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="flex items-center gap-2 text-gray-900">
+                    <Mail className="w-3 h-3" /> Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profile.email}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2 text-gray-900">
+                    <Phone className="w-3 h-3" /> Phone
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={profile.phone}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="location" className="flex items-center gap-2 text-gray-900">
+                    <MapPin className="w-3 h-3" /> Location
+                  </Label>
+                  <Input
+                    id="location"
+                    value={profile.location}
+                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -328,25 +301,28 @@ export function ManagerSettings() {
 
         {/* ── Notification Preferences ──────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={Bell} />
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Bell className="w-5 h-5 text-amber-200" />
+                </div>
                 <div>
                   <span className="text-gray-900">Notification Preferences</span>
-                  <p className="text-gray-500 font-normal" style={{ fontSize: TYPE.caption, marginTop: 2 }}>
-                    Choose how you want to be notified
-                  </p>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Choose how you want to be notified</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+            <CardContent className="pt-0">
               <div className="divide-y divide-gray-100">
                 {NOTIFICATION_OPTIONS.map((item) => (
-                  <div key={item.key} className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                  <div key={item.key} className="flex items-center justify-between py-3">
                     <div>
-                      <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{item.label}</p>
-                      <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{item.description}</p>
+                      <p className="font-medium text-sm text-gray-900">{item.label}</p>
+                      <p className="text-xs text-gray-500">{item.description}</p>
                     </div>
                     <Switch
                       checked={notifications[item.key]}
@@ -361,25 +337,28 @@ export function ManagerSettings() {
 
         {/* ── Security ──────────────────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={Shield} />
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Shield className="w-5 h-5 text-amber-200" />
+                </div>
                 <div>
                   <span className="text-gray-900">Security</span>
-                  <p className="text-gray-500 font-normal" style={{ fontSize: TYPE.caption, marginTop: 2 }}>
-                    Manage your account security
-                  </p>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Manage your account security</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+            <CardContent className="pt-0">
               <div className="divide-y divide-gray-100">
                 {/* Password */}
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Password</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Last changed 30 days ago</p>
+                    <p className="font-medium text-sm text-gray-900">Password</p>
+                    <p className="text-xs text-gray-500">Last changed 30 days ago</p>
                   </div>
                   <Button
                     variant="outline"
@@ -394,69 +373,21 @@ export function ManagerSettings() {
                 </div>
 
                 {/* 2FA */}
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Two-Factor Authentication</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                    <p className="font-medium text-sm text-gray-900">Two-Factor Authentication</p>
+                    <p className="text-xs text-gray-500">
                       {twoFactor.enabled ? `Using ${twoFactor.method === 'app' ? 'Authenticator App' : 'SMS'}` : 'Not enabled'}
                     </p>
                   </div>
                   <Switch checked={twoFactor.enabled} onCheckedChange={handleTwoFactorToggle} />
                 </div>
 
-                {/* 2FA Method selection */}
-                {twoFactor.enabled && (
-                  <div style={{ padding: `${GRID.spacing.sm}px 0` }}>
-                    <Label className="text-gray-700 font-medium" style={{ fontSize: TYPE.meta }}>Authentication Method</Label>
-                    <div className="grid grid-cols-2" style={{ gap: GRID.spacing.sm, marginTop: GRID.spacing.xs }}>
-                      <button
-                        type="button"
-                        className={cn(
-                          'p-3 border-2 cursor-pointer transition-all text-left',
-                          twoFactor.method === 'app' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
-                        )}
-                        style={{ borderRadius: RADIUS.button }}
-                        onClick={() => handleTwoFactorMethod('app')}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <QrCode className="w-4 h-4 text-emerald-600" />
-                          <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>Authenticator App</span>
-                        </div>
-                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Use Google Authenticator or similar</p>
-                      </button>
-                      <button
-                        type="button"
-                        className={cn(
-                          'p-3 border-2 cursor-pointer transition-all text-left',
-                          twoFactor.method === 'sms' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
-                        )}
-                        style={{ borderRadius: RADIUS.button }}
-                        onClick={() => handleTwoFactorMethod('sms')}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <Smartphone className="w-4 h-4 text-emerald-600" />
-                          <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>SMS Code</span>
-                        </div>
-                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Receive codes via text message</p>
-                      </button>
-                    </div>
-                    {twoFactor.method === 'sms' && (
-                      <div
-                        className="flex items-center gap-2 mt-3 bg-emerald-50"
-                        style={{ padding: 12, borderRadius: RADIUS.button }}
-                      >
-                        <Phone className="w-4 h-4 text-emerald-500" />
-                        <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>Codes sent to: {twoFactor.phoneNumber}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Active Sessions */}
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Active Sessions</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Manage devices logged into your account</p>
+                    <p className="font-medium text-sm text-gray-900">Active Sessions</p>
+                    <p className="text-xs text-gray-500">Manage devices logged into your account</p>
                   </div>
                   <Button
                     variant="outline"
@@ -473,46 +404,137 @@ export function ManagerSettings() {
           </Card>
         </motion.div>
 
-        {/* ── Dashboard Customization ───────────────────────── */}
+        {/* ── Two-Factor Authentication ────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={LayoutDashboard} />
-                <span className="text-gray-900">Dashboard Customization</span>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Smartphone className="w-5 h-5 text-amber-200" />
+                </div>
+                <div>
+                  <span className="text-gray-900">Two-Factor Authentication</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Add an extra layer of security to your account</p>
+                </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
-                {DASHBOARD_WIDGETS.map((widget) => (
-                  <div key={widget.id} className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                    <Checkbox id={widget.id} defaultChecked />
-                    <label htmlFor={widget.id} className="text-gray-900 cursor-pointer" style={{ fontSize: TYPE.meta }}>
-                      {widget.label}
-                    </label>
+            <CardContent className="pt-0">
+              <div className="divide-y divide-gray-100">
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">2FA Status</p>
+                    <p className="text-xs text-gray-500">
+                      {twoFactor.enabled ? `Using ${twoFactor.method === 'app' ? 'Authenticator App' : 'SMS'}` : 'Not enabled'}
+                    </p>
                   </div>
-                ))}
+                  <Switch checked={twoFactor.enabled} onCheckedChange={handleTwoFactorToggle} />
+                </div>
               </div>
+              {twoFactor.enabled && (
+                <div className="mt-4 space-y-4">
+                  <Label className="text-gray-900">Authentication Method</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      className={cn(
+                        'p-3 border-2 cursor-pointer transition-all text-left',
+                        twoFactor.method === 'app' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                      )}
+                      style={{ borderRadius: RADIUS.button }}
+                      onClick={() => handleTwoFactorMethod('app')}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <QrCode className="w-4 h-4 text-emerald-600" />
+                        <span className="font-medium text-sm text-gray-900">Authenticator App</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Use Google Authenticator or similar</p>
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        'p-3 border-2 cursor-pointer transition-all text-left',
+                        twoFactor.method === 'sms' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                      )}
+                      style={{ borderRadius: RADIUS.button }}
+                      onClick={() => handleTwoFactorMethod('sms')}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Phone className="w-4 h-4 text-emerald-600" />
+                        <span className="font-medium text-sm text-gray-900">SMS Code</span>
+                      </div>
+                      <p className="text-xs text-gray-500">Receive codes via text message</p>
+                    </button>
+                  </div>
+                  {twoFactor.method === 'sms' && (
+                    <div
+                      className="flex items-center gap-2 p-3 bg-emerald-50"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Phone className="w-4 h-4 text-emerald-500" />
+                      <span className="text-sm text-gray-700">Codes sent to: {twoFactor.phoneNumber}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* ── Dashboard Customization ───────────────────────── */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <LayoutDashboard className="w-5 h-5 text-amber-200" />
+                </div>
+                <div>
+                  <span className="text-gray-900">Dashboard Customization</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Choose which widgets to display</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {DASHBOARD_WIDGETS.map((widget) => (
+                <div key={widget.id} className="flex items-center gap-3">
+                  <Checkbox id={widget.id} defaultChecked />
+                  <label htmlFor={widget.id} className="text-sm text-gray-900 cursor-pointer">
+                    {widget.label}
+                  </label>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </motion.div>
 
         {/* ── Team Defaults ─────────────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={Users} />
-                <span className="text-gray-900">Team Defaults</span>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Users className="w-5 h-5 text-amber-200" />
+                </div>
+                <div>
+                  <span className="text-gray-900">Team Defaults</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Set default values for your team</p>
+                </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 {TEAM_DEFAULTS.map((field) => (
-                  <div key={field.id} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <Label htmlFor={field.id} className="text-gray-700 font-medium" style={{ fontSize: TYPE.meta }}>
-                      {field.label}
-                    </Label>
+                  <div key={field.id} className="space-y-2">
+                    <Label htmlFor={field.id} className="text-gray-900">{field.label}</Label>
                     <Input id={field.id} defaultValue={field.defaultValue} style={{ borderRadius: RADIUS.input }} />
                   </div>
                 ))}
@@ -523,46 +545,39 @@ export function ManagerSettings() {
 
         {/* ── Data Export ───────────────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={Download} />
-                <span className="text-gray-900">Data Export</span>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Download className="w-5 h-5 text-amber-200" />
+                </div>
+                <div>
+                  <span className="text-gray-900">Data Export</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Download team data for external analysis</p>
+                </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-              <p className="text-gray-500" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.sm }}>
-                Download team data in CSV format for external analysis.
-              </p>
-              <div className="flex flex-wrap" style={{ gap: GRID.spacing.sm }}>
-                <motion.button
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-3">
+                <Button
                   onClick={() => toast.success('Team data exported successfully')}
-                  className={`font-semibold text-white border-0 bg-gradient-to-br ${MANAGER_ICON_GRADIENT}`}
-                  style={{
-                    fontSize: TYPE.meta,
-                    padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`,
-                    borderRadius: RADIUS.button,
-                    cursor: 'pointer',
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0"
+                  style={{ borderRadius: RADIUS.button }}
                 >
+                  <Download className="w-4 h-4 mr-2" />
                   Export Team Data
-                </motion.button>
-                <motion.button
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => toast.success('Pipeline report exported successfully')}
-                  className="font-medium text-emerald-700 border border-emerald-200 hover:bg-emerald-50 bg-transparent"
-                  style={{
-                    fontSize: TYPE.meta,
-                    padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`,
-                    borderRadius: RADIUS.button,
-                    cursor: 'pointer',
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   Export Pipeline Report
-                </motion.button>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -570,24 +585,27 @@ export function ManagerSettings() {
 
         {/* ── Preferences ───────────────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                <SectionIcon icon={Globe} />
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Globe className="w-5 h-5 text-amber-200" />
+                </div>
                 <div>
                   <span className="text-gray-900">Preferences</span>
-                  <p className="text-gray-500 font-normal" style={{ fontSize: TYPE.caption, marginTop: 2 }}>
-                    Customize your experience
-                  </p>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Customize your experience</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+            <CardContent className="pt-0">
               <div className="divide-y divide-gray-100">
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Language</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Select your preferred language</p>
+                    <p className="font-medium text-sm text-gray-900">Language</p>
+                    <p className="text-xs text-gray-500">Select your preferred language</p>
                   </div>
                   <Button
                     variant="outline"
@@ -600,10 +618,10 @@ export function ManagerSettings() {
                     English (US)
                   </Button>
                 </div>
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>Timezone</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Set your local timezone</p>
+                    <p className="font-medium text-sm text-gray-900">Timezone</p>
+                    <p className="text-xs text-gray-500">Set your local timezone</p>
                   </div>
                   <Button
                     variant="outline"
@@ -612,7 +630,6 @@ export function ManagerSettings() {
                     style={{ borderRadius: RADIUS.button }}
                     onClick={() => toast.info('Timezone settings coming soon')}
                   >
-                    <Calendar className="w-4 h-4 mr-2" />
                     Central Time (CT)
                   </Button>
                 </div>
@@ -621,31 +638,29 @@ export function ManagerSettings() {
           </Card>
         </motion.div>
 
-        {/* ── Account ───────────────────────────────────── */}
+        {/* ── Danger Zone ──────────────────────────────────── */}
         <motion.div variants={fadeInUp}>
-          <Card className="overflow-hidden" style={cardStyle}>
-            <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-              <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
                 <div
-                  className="flex items-center justify-center bg-red-100"
-                  style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                  className="w-10 h-10 flex items-center justify-center bg-red-100"
+                  style={{ borderRadius: RADIUS.button }}
                 >
-                  <AlertTriangle className="text-red-600" style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md }} />
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <span className="text-red-600">Account</span>
-                  <p className="text-gray-500 font-normal" style={{ fontSize: TYPE.caption, marginTop: 2 }}>
-                    Sign out and account management
-                  </p>
+                  <span className="text-red-600">Danger Zone</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Irreversible account actions</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+            <CardContent className="pt-0">
               <div className="divide-y divide-gray-100">
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-red-600" style={{ fontSize: TYPE.meta }}>Sign Out</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Log out of your account on this device</p>
+                    <p className="font-medium text-sm text-red-600">Sign Out</p>
+                    <p className="text-xs text-gray-500">Log out of your account on this device</p>
                   </div>
                   <Button
                     variant="outline"
@@ -658,10 +673,10 @@ export function ManagerSettings() {
                     Sign Out
                   </Button>
                 </div>
-                <div className="flex items-center justify-between" style={{ padding: `${GRID.spacing.sm}px 0` }}>
+                <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="font-semibold text-red-600" style={{ fontSize: TYPE.meta }}>Delete Account</p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Permanently delete your account and all data</p>
+                    <p className="font-medium text-sm text-red-600">Delete Account</p>
+                    <p className="text-xs text-gray-500">Permanently delete your account and all data</p>
                   </div>
                   <Button
                     variant="outline"

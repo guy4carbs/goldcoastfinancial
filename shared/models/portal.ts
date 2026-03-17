@@ -18,6 +18,11 @@ export const policies = pgTable("policies", {
   beneficiaryRelationship: varchar("beneficiary_relationship"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+
+  // Agent linkage (populated during lead conversion or agent-side policy creation)
+  agentId: uuid("agent_id"),
+  leadId: varchar("lead_id"),
+  carrier: varchar("carrier"),
 });
 
 export const documents = pgTable("documents", {
@@ -29,6 +34,10 @@ export const documents = pgTable("documents", {
   category: varchar("category").notNull(),
   fileSize: varchar("file_size"),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
+
+  // S3 storage + upload tracking
+  s3Key: varchar("s3_key"),
+  uploadedBy: uuid("uploaded_by").references(() => users.id),
 });
 
 export const messages = pgTable("messages", {

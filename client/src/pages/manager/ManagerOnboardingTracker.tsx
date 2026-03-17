@@ -4,7 +4,7 @@
  * Heritage Design System — Emerald theme
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid } from './primitives';
@@ -40,6 +40,8 @@ import {
   FileText,
   CalendarCheck,
   ArrowRight,
+  X,
+  ChevronRight,
 } from 'lucide-react';
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -336,8 +338,96 @@ const DEMO_ONBOARDING_METRICS = [
 
 /* ── Component ────────────────────────────────────────────── */
 
+/* ── Onboarding Plan Templates ───────────────────────────── */
+
+const PLAN_TEMPLATES = [
+  { id: 'standard', label: 'Standard 90-Day', description: '4-phase ramp with mentorship, shadow calls, and production targets' },
+  { id: 'accelerated', label: 'Accelerated 60-Day', description: 'Compressed timeline for experienced agents transferring from another agency' },
+  { id: 'part-time', label: 'Part-Time Flex', description: 'Extended timeline with flexible milestones for part-time recruits' },
+  { id: 'custom', label: 'Custom Plan', description: 'Build a custom onboarding plan from scratch' },
+];
+
+/* ── Available Mentors (senior team members) ─────────────── */
+
+const AVAILABLE_MENTORS = DEMO_TEAM_MEMBERS.filter((_, i) => [0, 1, 5, 6].includes(i));
+
+/* ── Check-in Time Slots ─────────────────────────────────── */
+
+const TIME_SLOTS = [
+  '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+  '12:00 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM',
+  '3:30 PM', '4:00 PM', '4:30 PM',
+];
+
+/* ── Date Options (next 21 weekdays) ─────────────────────── */
+
+function generateDateOptions(): { value: string; label: string; day: string }[] {
+  const dates: { value: string; label: string; day: string }[] = [];
+  const now = new Date();
+  let d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  while (dates.length < 21) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) {
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      dates.push({
+        value: iso,
+        label: `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`,
+        day: dayNames[dow],
+      });
+    }
+    d = new Date(d.getTime() + 86400000);
+  }
+  return dates;
+}
+
+const DATE_OPTIONS = generateDateOptions();
+
 export function ManagerOnboardingTracker() {
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [activeModal, setActiveModal] = useState<'assign-mentor' | 'new-plan' | 'schedule-checkin' | null>(null);
+
+  /* ── Assign Mentor form state ── */
+  const [mentorFormAgent, setMentorFormAgent] = useState('');
+  const [mentorFormMentor, setMentorFormMentor] = useState('');
+
+  /* ── New Plan form state ── */
+  const [planFormAgent, setPlanFormAgent] = useState('');
+  const [planFormTemplate, setPlanFormTemplate] = useState('');
+  const [planFormStartDate, setPlanFormStartDate] = useState('');
+
+  /* ── Schedule Check-in form state ── */
+  const [checkinFormAgent, setCheckinFormAgent] = useState('');
+  const [checkinFormDate, setCheckinFormDate] = useState('');
+  const [checkinFormTime, setCheckinFormTime] = useState('');
+  const [checkinFormNotes, setCheckinFormNotes] = useState('');
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showCheckinDatePicker, setShowCheckinDatePicker] = useState(false);
+  const [showPlanDatePicker, setShowPlanDatePicker] = useState(false);
+  const timePickerRef = useRef<HTMLDivElement>(null);
+  const checkinDateRef = useRef<HTMLDivElement>(null);
+  const planDateRef = useRef<HTMLDivElement>(null);
+
+  /* Close dropdowns on outside click */
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (timePickerRef.current && !timePickerRef.current.contains(e.target as Node)) setShowTimePicker(false);
+      if (checkinDateRef.current && !checkinDateRef.current.contains(e.target as Node)) setShowCheckinDatePicker(false);
+      if (planDateRef.current && !planDateRef.current.contains(e.target as Node)) setShowPlanDatePicker(false);
+    };
+    if (showTimePicker || showCheckinDatePicker || showPlanDatePicker) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTimePicker, showCheckinDatePicker, showPlanDatePicker]);
+
+  const resetModalForms = () => {
+    setMentorFormAgent(''); setMentorFormMentor('');
+    setPlanFormAgent(''); setPlanFormTemplate(''); setPlanFormStartDate('');
+    setCheckinFormAgent(''); setCheckinFormDate(''); setCheckinFormTime(''); setCheckinFormNotes('');
+    setShowTimePicker(false); setShowCheckinDatePicker(false); setShowPlanDatePicker(false);
+  };
+
+  const closeModal = () => { setActiveModal(null); resetModalForms(); };
 
   const toggleExpanded = (name: string) => {
     setExpandedAgent((prev) => (prev === name ? null : name));
@@ -576,6 +666,104 @@ export function ManagerOnboardingTracker() {
                 </div>
               </CardContent>
             </Card>
+            {/* Mentor Assignments — Glass Card */}
+            <Card
+              className="overflow-hidden"
+              style={{
+                ...glassCard,
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
+                  <div
+                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
+                    style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                  >
+                    <UserPlus className="text-amber-200" size={LAYOUT.icon.md} />
+                  </div>
+                  <span className="text-gray-900">Mentor Assignments</span>
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                  {DEMO_MENTOR_PAIRINGS.map((pairing) => (
+                    <motion.div
+                      key={pairing.newAgent}
+                      className="flex items-center"
+                      style={{
+                        padding: GRID.spacing.xs,
+                        borderRadius: RADIUS.button,
+                        gap: GRID.spacing.xs,
+                      }}
+                      whileHover={{
+                        backgroundColor: COLORS.gray[50],
+                        transition: { duration: MOTION.duration.hover },
+                      }}
+                    >
+                      {/* New agent avatar */}
+                      <div
+                        className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
+                        style={{
+                          width: LAYOUT.icon.xxl,
+                          height: LAYOUT.icon.xxl,
+                          borderRadius: RADIUS.button,
+                          fontSize: TYPE.caption,
+                        }}
+                      >
+                        {pairing.newAgentAvatar}
+                      </div>
+
+                      {/* New agent name */}
+                      <div className="min-w-0" style={{ flex: '0 0 auto' }}>
+                        <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{pairing.newAgent}</p>
+                        <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>New Agent</p>
+                      </div>
+
+                      {/* Arrow */}
+                      <ArrowRight className="text-gray-300 flex-shrink-0" size={LAYOUT.icon.xs} />
+
+                      {/* Mentor avatar */}
+                      <div
+                        className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
+                        style={{
+                          width: LAYOUT.icon.xxl,
+                          height: LAYOUT.icon.xxl,
+                          borderRadius: RADIUS.button,
+                          fontSize: TYPE.caption,
+                        }}
+                      >
+                        {pairing.mentorAvatar}
+                      </div>
+
+                      {/* Mentor name */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{pairing.mentor}</p>
+                        <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>Mentor</p>
+                      </div>
+
+                      {/* Status badge */}
+                      <span
+                        className={`inline-flex items-center font-medium flex-shrink-0 ${
+                          pairing.status === 'Active'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                        style={{
+                          borderRadius: RADIUS.pill,
+                          padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
+                          fontSize: TYPE.micro,
+                        }}
+                      >
+                        {pairing.status}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* ── Right Column (1fr) ───────────────────────── */}
@@ -615,7 +803,7 @@ export function ManagerOnboardingTracker() {
                   </div>
                   <div>
                     <p className="font-semibold text-white" style={{ fontSize: TYPE.title }}>Onboarding Metrics</p>
-                    <p className="text-white/70 text-[10px]">Onboarding metrics</p>
+                    <p className="text-white/70" style={{ fontSize: TYPE.micro }}>Onboarding metrics</p>
                   </div>
                 </div>
 
@@ -651,105 +839,6 @@ export function ManagerOnboardingTracker() {
               </div>
             </div>
 
-            {/* Mentor Assignments — Glass Card */}
-            <Card
-              className="overflow-hidden"
-              style={{
-                ...glassCard,
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
-                <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
-                  <div
-                    className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20"
-                    style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-                  >
-                    <UserPlus className="text-amber-200" size={LAYOUT.icon.md} />
-                  </div>
-                  <span className="text-gray-900">Mentor Assignments</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {DEMO_MENTOR_PAIRINGS.map((pairing) => (
-                    <motion.div
-                      key={pairing.newAgent}
-                      className="flex items-center"
-                      style={{
-                        padding: 12,
-                        borderRadius: RADIUS.button,
-                        gap: 10,
-                      }}
-                      whileHover={{
-                        backgroundColor: COLORS.gray[50],
-                        transition: { duration: MOTION.duration.hover },
-                      }}
-                    >
-                      {/* New agent avatar */}
-                      <div
-                        className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: RADIUS.button,
-                          fontSize: TYPE.caption,
-                        }}
-                      >
-                        {pairing.newAgentAvatar}
-                      </div>
-
-                      {/* New agent name */}
-                      <div className="min-w-0" style={{ flex: '0 0 auto' }}>
-                        <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{pairing.newAgent}</p>
-                        <p className="text-gray-400 text-[10px]">New Agent</p>
-                      </div>
-
-                      {/* Arrow */}
-                      <ArrowRight className="text-gray-300 flex-shrink-0" style={{ width: 14, height: 14 }} />
-
-                      {/* Mentor avatar */}
-                      <div
-                        className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: RADIUS.button,
-                          fontSize: TYPE.caption,
-                        }}
-                      >
-                        {pairing.mentorAvatar}
-                      </div>
-
-                      {/* Mentor name */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{pairing.mentor}</p>
-                        <p className="text-gray-400 text-[10px]">Mentor</p>
-                      </div>
-
-                      {/* Status badge */}
-                      <span
-                        className={`inline-flex items-center font-medium flex-shrink-0 ${
-                          pairing.status === 'Active'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}
-                        style={{
-                          borderRadius: RADIUS.pill,
-                          padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
-                          fontSize: 12,
-                        }}
-                      >
-                        {pairing.status}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Quick Actions — Glass Card */}
             <Card
               className="overflow-hidden"
@@ -773,11 +862,11 @@ export function ManagerOnboardingTracker() {
 
               <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
-                  {[
-                    { label: 'Assign Mentor', icon: UserPlus },
-                    { label: 'New Plan', icon: FileText },
-                    { label: 'Schedule Check-in', icon: CalendarCheck },
-                  ].map((action) => (
+                  {([
+                    { label: 'Assign Mentor', icon: UserPlus, modal: 'assign-mentor' as const },
+                    { label: 'New Plan', icon: FileText, modal: 'new-plan' as const },
+                    { label: 'Schedule Check-in', icon: CalendarCheck, modal: 'schedule-checkin' as const },
+                  ] as const).map((action) => (
                     <motion.button
                       key={action.label}
                       className="flex items-center w-full font-medium text-gray-700 border border-gray-200 hover:border-emerald-300 bg-white"
@@ -789,7 +878,7 @@ export function ManagerOnboardingTracker() {
                       }}
                       whileHover={{ scale: 1.02, backgroundColor: COLORS.gray[50] }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => toast.success(`${action.label} coming soon`)}
+                      onClick={() => setActiveModal(action.modal)}
                     >
                       <div
                         className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 flex-shrink-0"
@@ -802,6 +891,7 @@ export function ManagerOnboardingTracker() {
                         <action.icon className="text-amber-200" style={{ width: 14, height: 14 }} />
                       </div>
                       {action.label}
+                      <ChevronRight className="ml-auto text-gray-300" size={14} />
                     </motion.button>
                   ))}
                 </div>
@@ -810,6 +900,575 @@ export function ManagerOnboardingTracker() {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          QUICK ACTION MODALS
+          ═══════════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {activeModal && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              className="fixed inset-0 z-50"
+              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: MOTION.duration.modal }}
+              onClick={closeModal}
+            />
+
+            {/* Modal Panel */}
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center"
+              style={{ padding: GRID.spacing.md }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ ...MOTION.spring }}
+            >
+              <div
+                className="bg-white w-full overflow-hidden flex flex-col"
+                style={{ maxWidth: 520, maxHeight: `calc(100vh - ${GRID.spacing.xxxl * 2}px)`, borderRadius: RADIUS.card, boxShadow: SHADOW.hero }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* ── ASSIGN MENTOR MODAL ── */}
+                {activeModal === 'assign-mentor' && (
+                  <>
+                    {/* Header */}
+                    <div
+                      className="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 flex-shrink-0"
+                      style={{ padding: GRID.spacing.md }}
+                    >
+                      <div className="absolute top-0 right-0 bg-white/10 blur-2xl" style={{ width: 89, height: 89, transform: 'translate(30%, -40%)', borderRadius: RADIUS.pill }} />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
+                          <div
+                            className="flex items-center justify-center flex-shrink-0"
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.2)' }}
+                          >
+                            <UserPlus className="text-amber-200" size={LAYOUT.icon.md} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-white" style={{ fontSize: TYPE.title }}>Assign Mentor</p>
+                            <p className="text-white/70" style={{ fontSize: TYPE.caption }}>Pair a new agent with a senior team member</p>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={closeModal}
+                          className="flex items-center justify-center flex-shrink-0"
+                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.15)' }}
+                        >
+                          <X className="text-white" size={LAYOUT.icon.sm} />
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    {/* Body — scrollable */}
+                    <div
+                      className="overflow-y-auto flex-1 min-h-0"
+                      style={{ padding: GRID.spacing.md, display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+                    >
+                      {/* Select Agent */}
+                      <div>
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>New Agent</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                          {DEMO_ONBOARDING_AGENTS.map((agent) => (
+                            <motion.button
+                              key={agent.name}
+                              className={`flex items-center w-full text-left border ${mentorFormAgent === agent.name ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                              style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button, gap: GRID.spacing.xs }}
+                              whileHover={{ backgroundColor: mentorFormAgent === agent.name ? undefined : COLORS.gray[50] }}
+                              whileTap={{ scale: 0.99 }}
+                              onClick={() => setMentorFormAgent(agent.name)}
+                            >
+                              <div
+                                className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
+                                style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
+                              >
+                                {agent.avatar}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{agent.name}</p>
+                                <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>Started {agent.startDate}</p>
+                              </div>
+                              {mentorFormAgent === agent.name && <CheckCircle2 className="text-emerald-500 flex-shrink-0" size={LAYOUT.icon.sm} />}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Select Mentor */}
+                      <div>
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Assign Mentor</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                          {AVAILABLE_MENTORS.map((mentor) => (
+                            <motion.button
+                              key={mentor.name}
+                              className={`flex items-center w-full text-left border ${mentorFormMentor === mentor.name ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                              style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button, gap: GRID.spacing.xs }}
+                              whileHover={{ backgroundColor: mentorFormMentor === mentor.name ? undefined : COLORS.gray[50] }}
+                              whileTap={{ scale: 0.99 }}
+                              onClick={() => setMentorFormMentor(mentor.name)}
+                            >
+                              <div
+                                className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
+                                style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
+                              >
+                                {mentor.avatar}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{mentor.name}</p>
+                                <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>{mentor.role}</p>
+                              </div>
+                              {mentorFormMentor === mentor.name && <CheckCircle2 className="text-emerald-500 flex-shrink-0" size={LAYOUT.icon.sm} />}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-gray-100 flex items-center justify-end flex-shrink-0" style={{ padding: GRID.spacing.md, gap: GRID.spacing.xs }}>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="font-medium text-gray-500 border border-gray-200 bg-white"
+                        style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                        onClick={closeModal}
+                      >
+                        Cancel
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 disabled:opacity-40"
+                        style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                        disabled={!mentorFormAgent || !mentorFormMentor}
+                        onClick={() => {
+                          toast.success(`${mentorFormMentor} assigned as mentor for ${mentorFormAgent}`);
+                          closeModal();
+                        }}
+                      >
+                        Assign Mentor
+                      </motion.button>
+                    </div>
+                  </>
+                )}
+
+                {/* ── NEW PLAN MODAL ── */}
+                {activeModal === 'new-plan' && (
+                  <>
+                    {/* Header */}
+                    <div
+                      className="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 flex-shrink-0"
+                      style={{ padding: GRID.spacing.md }}
+                    >
+                      <div className="absolute top-0 right-0 bg-white/10 blur-2xl" style={{ width: 89, height: 89, transform: 'translate(30%, -40%)', borderRadius: RADIUS.pill }} />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
+                          <div
+                            className="flex items-center justify-center flex-shrink-0"
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.2)' }}
+                          >
+                            <FileText className="text-amber-200" size={LAYOUT.icon.md} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-white" style={{ fontSize: TYPE.title }}>New Onboarding Plan</p>
+                            <p className="text-white/70" style={{ fontSize: TYPE.caption }}>Create a structured ramp plan for a new agent</p>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={closeModal}
+                          className="flex items-center justify-center flex-shrink-0"
+                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.15)' }}
+                        >
+                          <X className="text-white" size={LAYOUT.icon.sm} />
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    {/* Body — scrollable */}
+                    <div
+                      className="overflow-y-auto flex-1 min-h-0"
+                      style={{ padding: GRID.spacing.md, display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+                    >
+                      {/* Select Agent */}
+                      <div>
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Agent</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                          {DEMO_ONBOARDING_AGENTS.map((agent) => (
+                            <motion.button
+                              key={agent.name}
+                              className={`flex items-center w-full text-left border ${planFormAgent === agent.name ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                              style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button, gap: GRID.spacing.xs }}
+                              whileHover={{ backgroundColor: planFormAgent === agent.name ? undefined : COLORS.gray[50] }}
+                              whileTap={{ scale: 0.99 }}
+                              onClick={() => setPlanFormAgent(agent.name)}
+                            >
+                              <div
+                                className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
+                                style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
+                              >
+                                {agent.avatar}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{agent.name}</p>
+                              </div>
+                              {planFormAgent === agent.name && <CheckCircle2 className="text-emerald-500 flex-shrink-0" size={LAYOUT.icon.sm} />}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Select Template */}
+                      <div>
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Plan Template</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                          {PLAN_TEMPLATES.map((tmpl) => (
+                            <motion.button
+                              key={tmpl.id}
+                              className={`flex items-start w-full text-left border ${planFormTemplate === tmpl.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                              style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button, gap: GRID.spacing.xs }}
+                              whileHover={{ backgroundColor: planFormTemplate === tmpl.id ? undefined : COLORS.gray[50] }}
+                              whileTap={{ scale: 0.99 }}
+                              onClick={() => setPlanFormTemplate(tmpl.id)}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{tmpl.label}</p>
+                                <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>{tmpl.description}</p>
+                              </div>
+                              {planFormTemplate === tmpl.id && <CheckCircle2 className="text-emerald-500 flex-shrink-0 mt-0.5" size={LAYOUT.icon.sm} />}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Start Date */}
+                      <div ref={planDateRef} className="relative">
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Start Date</label>
+                        {/* Trigger */}
+                        <motion.button
+                          type="button"
+                          className={`flex items-center w-full border bg-white text-left ${showPlanDatePicker ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-gray-200'}`}
+                          style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, borderRadius: RADIUS.input, fontSize: TYPE.meta, gap: GRID.spacing.xs }}
+                          whileTap={{ scale: 0.99 }}
+                          onClick={() => setShowPlanDatePicker((v) => !v)}
+                        >
+                          <Calendar className={planFormStartDate ? 'text-emerald-500' : 'text-gray-300'} size={LAYOUT.icon.xs} />
+                          <span className={planFormStartDate ? 'text-gray-900 font-medium flex-1 truncate' : 'text-gray-400 flex-1'}>
+                            {planFormStartDate ? DATE_OPTIONS.find((d) => d.value === planFormStartDate)?.label ?? planFormStartDate : 'Select start date'}
+                          </span>
+                          <motion.div animate={{ rotate: showPlanDatePicker ? 180 : 0 }} transition={{ duration: MOTION.duration.fast }}>
+                            <ChevronDown className="text-gray-400" size={LAYOUT.icon.xs} />
+                          </motion.div>
+                        </motion.button>
+
+                        {/* Dropdown */}
+                        <AnimatePresence>
+                          {showPlanDatePicker && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                              transition={{ duration: MOTION.duration.fast }}
+                              className="absolute left-0 right-0 z-10 bg-white border border-gray-200 overflow-hidden"
+                              style={{ top: '100%', marginTop: GRID.spacing.xs / 2, borderRadius: RADIUS.button, boxShadow: SHADOW.card, maxHeight: 200, overflowY: 'auto' }}
+                            >
+                              <div style={{ padding: GRID.spacing.xs / 2 }}>
+                                {DATE_OPTIONS.map((opt) => (
+                                  <motion.button
+                                    key={opt.value}
+                                    type="button"
+                                    className={`flex items-center w-full text-left ${
+                                      planFormStartDate === opt.value ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                    style={{ padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`, borderRadius: RADIUS.input, fontSize: TYPE.meta, gap: GRID.spacing.xs }}
+                                    whileHover={{ backgroundColor: planFormStartDate === opt.value ? undefined : COLORS.gray[50] }}
+                                    onClick={() => { setPlanFormStartDate(opt.value); setShowPlanDatePicker(false); }}
+                                  >
+                                    <span className={`font-mono flex-shrink-0 ${planFormStartDate === opt.value ? 'text-emerald-500' : 'text-gray-400'}`} style={{ fontSize: TYPE.micro, width: 28 }}>
+                                      {opt.day}
+                                    </span>
+                                    <span className="flex-1">{opt.label}</span>
+                                    {planFormStartDate === opt.value && <CheckCircle2 className="text-emerald-500 ml-auto flex-shrink-0" size={LAYOUT.icon.xs} />}
+                                  </motion.button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-gray-100 flex items-center justify-end flex-shrink-0" style={{ padding: GRID.spacing.md, gap: GRID.spacing.xs }}>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="font-medium text-gray-500 border border-gray-200 bg-white"
+                        style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                        onClick={closeModal}
+                      >
+                        Cancel
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 disabled:opacity-40"
+                        style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                        disabled={!planFormAgent || !planFormTemplate || !planFormStartDate}
+                        onClick={() => {
+                          const template = PLAN_TEMPLATES.find((t) => t.id === planFormTemplate);
+                          toast.success(`${template?.label} plan created for ${planFormAgent}`);
+                          closeModal();
+                        }}
+                      >
+                        Create Plan
+                      </motion.button>
+                    </div>
+                  </>
+                )}
+
+                {/* ── SCHEDULE CHECK-IN MODAL ── */}
+                {activeModal === 'schedule-checkin' && (
+                  <>
+                    {/* Header */}
+                    <div
+                      className="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 flex-shrink-0"
+                      style={{ padding: GRID.spacing.md }}
+                    >
+                      <div className="absolute top-0 right-0 bg-white/10 blur-2xl" style={{ width: 89, height: 89, transform: 'translate(30%, -40%)', borderRadius: RADIUS.pill }} />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
+                          <div
+                            className="flex items-center justify-center flex-shrink-0"
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.2)' }}
+                          >
+                            <CalendarCheck className="text-amber-200" size={LAYOUT.icon.md} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-white" style={{ fontSize: TYPE.title }}>Schedule Check-in</p>
+                            <p className="text-white/70" style={{ fontSize: TYPE.caption }}>Book a progress review with a new agent</p>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={closeModal}
+                          className="flex items-center justify-center flex-shrink-0"
+                          style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.15)' }}
+                        >
+                          <X className="text-white" size={LAYOUT.icon.sm} />
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    {/* Body — scrollable */}
+                    <div
+                      className="overflow-y-auto flex-1 min-h-0"
+                      style={{ padding: GRID.spacing.md, display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+                    >
+                      {/* Select Agent */}
+                      <div>
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Agent</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
+                          {DEMO_ONBOARDING_AGENTS.map((agent) => (
+                            <motion.button
+                              key={agent.name}
+                              className={`flex items-center w-full text-left border ${checkinFormAgent === agent.name ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                              style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button, gap: GRID.spacing.xs }}
+                              whileHover={{ backgroundColor: checkinFormAgent === agent.name ? undefined : COLORS.gray[50] }}
+                              whileTap={{ scale: 0.99 }}
+                              onClick={() => setCheckinFormAgent(agent.name)}
+                            >
+                              <div
+                                className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex-shrink-0"
+                                style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
+                              >
+                                {agent.avatar}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900" style={{ fontSize: TYPE.caption }}>{agent.name}</p>
+                              </div>
+                              {checkinFormAgent === agent.name && <CheckCircle2 className="text-emerald-500 flex-shrink-0" size={LAYOUT.icon.sm} />}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Date & Time */}
+                      <div className="grid grid-cols-2" style={{ gap: GRID.spacing.sm }}>
+                        <div ref={checkinDateRef} className="relative">
+                          <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Date</label>
+                          {/* Trigger */}
+                          <motion.button
+                            type="button"
+                            className={`flex items-center w-full border bg-white text-left ${showCheckinDatePicker ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-gray-200'}`}
+                            style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, borderRadius: RADIUS.input, fontSize: TYPE.meta, gap: GRID.spacing.xs }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => { setShowCheckinDatePicker((v) => !v); setShowTimePicker(false); }}
+                          >
+                            <Calendar className={checkinFormDate ? 'text-emerald-500' : 'text-gray-300'} size={LAYOUT.icon.xs} />
+                            <span className={checkinFormDate ? 'text-gray-900 font-medium flex-1 truncate' : 'text-gray-400 flex-1'}>
+                              {checkinFormDate ? DATE_OPTIONS.find((d) => d.value === checkinFormDate)?.label ?? checkinFormDate : 'Select date'}
+                            </span>
+                            <motion.div animate={{ rotate: showCheckinDatePicker ? 180 : 0 }} transition={{ duration: MOTION.duration.fast }}>
+                              <ChevronDown className="text-gray-400" size={LAYOUT.icon.xs} />
+                            </motion.div>
+                          </motion.button>
+
+                          {/* Dropdown */}
+                          <AnimatePresence>
+                            {showCheckinDatePicker && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                                transition={{ duration: MOTION.duration.fast }}
+                                className="absolute left-0 right-0 z-10 bg-white border border-gray-200 overflow-hidden"
+                                style={{ top: '100%', marginTop: GRID.spacing.xs / 2, borderRadius: RADIUS.button, boxShadow: SHADOW.card, maxHeight: 200, overflowY: 'auto' }}
+                              >
+                                <div style={{ padding: GRID.spacing.xs / 2 }}>
+                                  {DATE_OPTIONS.map((opt) => (
+                                    <motion.button
+                                      key={opt.value}
+                                      type="button"
+                                      className={`flex items-center w-full text-left ${
+                                        checkinFormDate === opt.value ? 'bg-emerald-50 text-emerald-700 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                      }`}
+                                      style={{ padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`, borderRadius: RADIUS.input, fontSize: TYPE.meta, gap: GRID.spacing.xs }}
+                                      whileHover={{ backgroundColor: checkinFormDate === opt.value ? undefined : COLORS.gray[50] }}
+                                      onClick={() => { setCheckinFormDate(opt.value); setShowCheckinDatePicker(false); }}
+                                    >
+                                      <span className={`font-mono flex-shrink-0 ${checkinFormDate === opt.value ? 'text-emerald-500' : 'text-gray-400'}`} style={{ fontSize: TYPE.micro, width: 28 }}>
+                                        {opt.day}
+                                      </span>
+                                      <span className="flex-1">{opt.label}</span>
+                                      {checkinFormDate === opt.value && <CheckCircle2 className="text-emerald-500 ml-auto flex-shrink-0" size={LAYOUT.icon.xs} />}
+                                    </motion.button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                        <div ref={timePickerRef} className="relative">
+                          <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Time</label>
+                          {/* Trigger button */}
+                          <motion.button
+                            type="button"
+                            className={`flex items-center w-full border bg-white text-left ${showTimePicker ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-gray-200'}`}
+                            style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, borderRadius: RADIUS.input, fontSize: TYPE.meta, gap: GRID.spacing.xs }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => { setShowTimePicker((v) => !v); setShowCheckinDatePicker(false); }}
+                          >
+                            <Clock className={checkinFormTime ? 'text-emerald-500' : 'text-gray-300'} size={LAYOUT.icon.xs} />
+                            <span className={checkinFormTime ? 'text-gray-900 font-medium flex-1' : 'text-gray-400 flex-1'}>{checkinFormTime || 'Select time'}</span>
+                            <motion.div animate={{ rotate: showTimePicker ? 180 : 0 }} transition={{ duration: MOTION.duration.fast }}>
+                              <ChevronDown className="text-gray-400" size={LAYOUT.icon.xs} />
+                            </motion.div>
+                          </motion.button>
+
+                          {/* Dropdown panel */}
+                          <AnimatePresence>
+                            {showTimePicker && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                                transition={{ duration: MOTION.duration.fast }}
+                                className="absolute left-0 right-0 z-10 bg-white border border-gray-200 overflow-hidden"
+                                style={{
+                                  top: '100%',
+                                  marginTop: GRID.spacing.xs / 2,
+                                  borderRadius: RADIUS.button,
+                                  boxShadow: SHADOW.card,
+                                  maxHeight: 200,
+                                  overflowY: 'auto',
+                                }}
+                              >
+                                <div style={{ padding: GRID.spacing.xs / 2 }}>
+                                  {TIME_SLOTS.map((slot) => (
+                                    <motion.button
+                                      key={slot}
+                                      type="button"
+                                      className={`flex items-center w-full text-left ${
+                                        checkinFormTime === slot
+                                          ? 'bg-emerald-50 text-emerald-700 font-medium'
+                                          : 'text-gray-700 hover:bg-gray-50'
+                                      }`}
+                                      style={{
+                                        padding: `${GRID.spacing.xs / 2}px ${GRID.spacing.xs}px`,
+                                        borderRadius: RADIUS.input,
+                                        fontSize: TYPE.meta,
+                                        gap: GRID.spacing.xs,
+                                      }}
+                                      whileHover={{ backgroundColor: checkinFormTime === slot ? undefined : COLORS.gray[50] }}
+                                      onClick={() => { setCheckinFormTime(slot); setShowTimePicker(false); }}
+                                    >
+                                      <Clock className={checkinFormTime === slot ? 'text-emerald-500' : 'text-gray-300'} size={LAYOUT.icon.xs} />
+                                      {slot}
+                                      {checkinFormTime === slot && <CheckCircle2 className="text-emerald-500 ml-auto" size={LAYOUT.icon.xs} />}
+                                    </motion.button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+
+                      {/* Notes */}
+                      <div>
+                        <label className="block font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.xs }}>Notes (optional)</label>
+                        <textarea
+                          value={checkinFormNotes}
+                          onChange={(e) => setCheckinFormNotes(e.target.value)}
+                          placeholder="Topics to discuss, concerns, goals..."
+                          rows={3}
+                          className="w-full border border-gray-200 text-gray-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none resize-none placeholder:text-gray-300"
+                          style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-gray-100 flex items-center justify-end flex-shrink-0" style={{ padding: GRID.spacing.md, gap: GRID.spacing.xs }}>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="font-medium text-gray-500 border border-gray-200 bg-white"
+                        style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                        onClick={closeModal}
+                      >
+                        Cancel
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 disabled:opacity-40"
+                        style={{ padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`, borderRadius: RADIUS.button, fontSize: TYPE.meta }}
+                        disabled={!checkinFormAgent || !checkinFormDate || !checkinFormTime}
+                        onClick={() => {
+                          toast.success(`Check-in scheduled with ${checkinFormAgent} on ${checkinFormDate} at ${checkinFormTime}`);
+                          closeModal();
+                        }}
+                      >
+                        Schedule Check-in
+                      </motion.button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </ManagerLoungeLayout>
   );
 }

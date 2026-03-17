@@ -85,7 +85,7 @@ const CATEGORY_FILTERS: { value: ReportCategory | 'all'; label: string }[] = [
 const REPORT_TYPES: ReportType[] = [
   { id: 'r1', name: 'Team Performance Summary', description: 'Comprehensive team metrics — quota attainment, call volume, close rates, and agent rankings', icon: BarChart3, category: 'performance', preview: { metrics: ['112% avg quota', '8.4 calls/day', '34% close rate', '12 active reps'] }, chartData: [65, 72, 68, 85, 78, 92, 88], aiRecommended: 'Team quota is at 112% — 8 agents above target' },
   { id: 'r2', name: 'Pipeline Health Report', description: 'Pipeline stages, deal flow velocity, conversion rates, and stale deal identification', icon: Target, category: 'pipeline', preview: { metrics: ['$847K total pipeline', '24 new leads', '62% conversion', '18-day avg age'] }, chartData: [45, 52, 58, 48, 62, 55, 71] },
-  { id: 'r3', name: 'Commission Report', description: 'Commission calculations, pending payouts, clawback risks, and split adjustments', icon: DollarSign, category: 'financial', preview: { metrics: ['$18.7K pending', '$142K paid YTD', '15.2% avg rate', '3 clawback risks'] }, chartData: [12, 18, 15, 22, 19, 25, 21], aiRecommended: '3 agents have commissions at clawback risk' },
+  { id: 'r3', name: 'Commission Report', description: 'Commission calculations, pending payouts, chargeback risks, and split adjustments', icon: DollarSign, category: 'financial', preview: { metrics: ['$18.7K pending', '$142K paid YTD', '15.2% avg rate', '3 chargeback risks'] }, chartData: [12, 18, 15, 22, 19, 25, 21], aiRecommended: '3 agents have commissions at chargeback risk' },
   { id: 'r4', name: 'Activity Report', description: 'Call logs, email volume, meeting cadence, talk time, and engagement scoring', icon: Activity, category: 'performance', preview: { metrics: ['342 calls/week', '89 emails sent', '24 meetings', '4.1 hrs avg talk'] }, chartData: [38, 42, 35, 48, 45, 52, 49] },
   { id: 'r5', name: 'Training Compliance Report', description: 'Certification status, expiring certs, overdue agents, and CE credit tracking', icon: Shield, category: 'compliance', preview: { metrics: ['83% compliant', '4 certs expiring', '2 overdue agents', '96 modules done'] }, chartData: [78, 80, 82, 79, 83, 85, 83] },
   { id: 'r6', name: 'Activity Log Report', description: 'Complete event log — policy changes, system access, client interactions, and compliance actions', icon: ClipboardList, category: 'compliance', preview: { metrics: ['1,248 events', '98% captured', '12 agents tracked', '30-day window'] }, chartData: [92, 88, 95, 91, 94, 97, 98] },
@@ -437,39 +437,37 @@ export function ManagerReports() {
         </motion.div>
 
         {/* ── Tab Navigation ──────────────────────────────────── */}
-        <motion.div variants={fadeInUp} className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-          {TABS.map(({ value, label, icon: TabIcon }) => {
-            const isActive = activeTab === value;
-            return (
-              <motion.button
-                key={value}
-                onClick={() => setActiveTab(value)}
-                className="flex items-center font-semibold border-0"
-                style={{
-                  gap: 4, fontSize: TYPE.body, padding: `${GRID.spacing.sm}px ${GRID.spacing.md}px`,
-                  borderRadius: RADIUS.pill, cursor: 'pointer',
-                  ...(isActive
-                    ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
-                    : { background: 'transparent', color: COLORS.gray[500] }),
-                }}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <TabIcon style={{ width: 16, height: 16 }} />
-                {label}
-                {value === 'history' && recentReports.length > 0 && (
-                  <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 5px' }}>
-                    {recentReports.length}
-                  </span>
-                )}
-                {value === 'schedules' && scheduledCount > 0 && (
-                  <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 5px' }}>
-                    {scheduledCount}
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
+        <motion.div variants={fadeInUp}>
+          <div className="flex items-center p-1 gap-1 w-fit" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+            {TABS.map(({ value, label, icon: TabIcon }) => {
+              const isActive = activeTab === value;
+              return (
+                <button
+                  key={value}
+                  onClick={() => setActiveTab(value)}
+                  className={`flex items-center gap-2 font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                  style={{
+                    fontSize: TYPE.meta, padding: '4px 12px',
+                    borderRadius: RADIUS.button, cursor: 'pointer',
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                >
+                  <TabIcon style={{ width: 16, height: 16 }} />
+                  {label}
+                  {value === 'history' && recentReports.length > 0 && (
+                    <span className="ml-1 h-5 px-1.5 text-[10px] bg-emerald-100 text-emerald-700 inline-flex items-center justify-center" style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 18 }}>
+                      {recentReports.length}
+                    </span>
+                  )}
+                  {value === 'schedules' && scheduledCount > 0 && (
+                    <span className="ml-1 h-5 px-1.5 text-[10px] bg-emerald-100 text-emerald-700 inline-flex items-center justify-center" style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 18 }}>
+                      {scheduledCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* ════════════════════════════════════════════════════ */}
@@ -498,33 +496,31 @@ export function ManagerReports() {
             </motion.div>
 
             {/* Category Filters */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap items-center" style={{ gap: GRID.spacing.xs }}>
-              {CATEGORY_FILTERS.map((cat) => {
-                const isActive = categoryFilter === cat.value;
-                const count = categoryCounts[cat.value] || 0;
-                return (
-                  <motion.button
-                    key={cat.value}
-                    onClick={() => setCategoryFilter(cat.value)}
-                    className="font-medium border-0 flex items-center"
-                    style={{
-                      ...(isActive
-                        ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
-                        : { ...glassCard, color: COLORS.gray[600] }),
-                      borderRadius: RADIUS.pill, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm + 4}px`, fontSize: TYPE.meta, cursor: 'pointer', gap: 4,
-                    }}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {cat.label}
-                    {count > 0 && (
-                      <span style={{ fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 5px' }}>
-                        {count}
-                      </span>
-                    )}
-                  </motion.button>
-                );
-              })}
+            <motion.div variants={fadeInUp}>
+              <div className="flex flex-wrap items-center p-1 gap-1 w-fit" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+                {CATEGORY_FILTERS.map((cat) => {
+                  const isActive = categoryFilter === cat.value;
+                  const count = categoryCounts[cat.value] || 0;
+                  return (
+                    <button
+                      key={cat.value}
+                      onClick={() => setCategoryFilter(cat.value)}
+                      className={`flex items-center gap-2 font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                      style={{
+                        borderRadius: RADIUS.button, padding: '4px 12px', fontSize: TYPE.meta, cursor: 'pointer',
+                        fontWeight: isActive ? 600 : 500,
+                      }}
+                    >
+                      {cat.label}
+                      {count > 0 && (
+                        <span className="h-5 px-1.5 text-[10px] bg-emerald-100 text-emerald-700 inline-flex items-center justify-center" style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 18 }}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </motion.div>
 
             {/* Report List */}

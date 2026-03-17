@@ -48,7 +48,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { AddEventModal, EventData } from "@/components/agent/AddEventModal";
+import { AddEventModal, EventData, type EventPrefillData } from "@/components/agent/AddEventModal";
+import { useLocation } from "wouter";
 import { useConfirm } from "@/components/agent/primitives/ConfirmDialog";
 import { toast } from "sonner";
 import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
@@ -150,7 +151,26 @@ export default function AgentCalendar() {
   const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
   const [view, setView] = useState<'month' | 'week' | 'day'>('month');
   const [showAddEvent, setShowAddEvent] = useState(false);
+  const [prefillData, setPrefillData] = useState<EventPrefillData | null>(null);
   const [events, setEvents] = useState<EventData[]>(initialEvents);
+  const [location, setLocation] = useLocation();
+
+  // Auto-open modal with pre-filled data from URL params (e.g., from Lead Drawer Schedule button)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('schedule') === 'true') {
+      const data: EventPrefillData = {};
+      if (params.get('name')) data.clientName = params.get('name')!;
+      if (params.get('phone')) data.clientPhone = params.get('phone')!;
+      if (params.get('email')) data.clientEmail = params.get('email')!;
+      if (params.get('product')) data.product = params.get('product')!;
+      setPrefillData(data);
+      setSelectedDate(new Date());
+      setShowAddEvent(true);
+      // Clean the URL without reloading
+      window.history.replaceState({}, '', '/agents/calendar');
+    }
+  }, []);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedEventForNotes, setSelectedEventForNotes] = useState<EventData | null>(null);
   const [editingNotes, setEditingNotes] = useState('');
@@ -968,10 +988,11 @@ export default function AgentCalendar() {
 
       <AddEventModal
         open={showAddEvent}
-        onOpenChange={setShowAddEvent}
+        onOpenChange={(open) => { setShowAddEvent(open); if (!open) setPrefillData(null); }}
         onAddEvent={handleAddEvent}
         selectedDate={selectedDate}
         existingEvents={events}
+        prefillData={prefillData}
       />
 
       {/* Meeting Notes Modal */}

@@ -954,7 +954,7 @@ export const LEARNING_MILESTONES: LearningMilestone[] = [
       description: 'Started your training journey'
     },
     points: 50,
-    celebrationMessage: 'You\'ve taken your first step! Welcome to Gold Coast Financial.',
+    celebrationMessage: 'You\'ve taken your first step! Welcome to Gold Coast Financial Partners.',
     isHidden: false
   },
   {
@@ -996,7 +996,7 @@ export const LEARNING_MILESTONES: LearningMilestone[] = [
       description: 'Demonstrated mastery of institutional values'
     },
     points: 150,
-    celebrationMessage: 'You understand what it means to be a Gold Coast Financial Advisor.',
+    celebrationMessage: 'You understand what it means to be a Gold Coast Financial Partners Advisor.',
     isHidden: false
   },
   {
@@ -1141,7 +1141,7 @@ export const LEARNING_MILESTONES: LearningMilestone[] = [
       name: 'Core Advisor',
       icon: 'user-check',
       color: 'purple',
-      description: 'Certified Gold Coast Financial Advisor'
+      description: 'Certified Gold Coast Financial Partners Advisor'
     },
     points: 750,
     celebrationMessage: 'Congratulations! You\'re now a certified Core Advisor.',

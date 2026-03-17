@@ -79,6 +79,10 @@ export const leads = pgTable("leads", {
   wonAmount: integer("won_amount"), // Actual policy value if won
   wonDate: timestamp("won_date"),
 
+  // Conversion tracking (populated when lead is converted to client)
+  convertedUserId: varchar("converted_user_id"),
+  convertedAt: timestamp("converted_at"),
+
   // Notes
   notes: text("notes"),
 
@@ -101,6 +105,12 @@ export const leads = pgTable("leads", {
   // Contact tracking
   contactCount: integer("contact_count").default(0),
 
+  // Distribution tracking
+  distributedTo: text("distributed_to"),          // user ID of who this lead was distributed to
+  distributedAt: timestamp("distributed_at"),      // when distribution happened
+  distributedByUser: text("distributed_by_user"),  // user ID of who performed the distribution
+  distributionLevel: text("distribution_level"),   // 'executive_to_manager' | 'manager_to_agent'
+
   // Metadata
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -110,6 +120,7 @@ export const leads = pgTable("leads", {
   index("idx_leads_pipeline_stage").on(table.pipelineStage),
   index("idx_leads_lead_score").on(table.leadScore),
   index("idx_leads_next_follow_up").on(table.nextFollowUp),
+  index("idx_leads_distributed_to").on(table.distributedTo),
 ]);
 
 /**
@@ -274,3 +285,53 @@ export const insertNewsletterSubscriberSchema = createInsertSchema(newsletterSub
 
 export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
 export type InsertNewsletterSubscriber = z.infer<typeof insertNewsletterSubscriberSchema>;
+
+// =============================================================================
+// DISTRIBUTION RECORDS
+// =============================================================================
+
+/**
+ * Distribution assignment shape stored in JSONB
+ */
+export interface DistributionAssignment {
+  recipientId: string;
+  recipientName: string;
+  leadCount: number;
+  leadIds: string[];
+}
+
+/**
+ * Distribution records - audit trail for lead distribution events
+ */
+export const distributionRecords = pgTable("distribution_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  // Who initiated the distribution
+  distributedBy: text("distributed_by").notNull(),
+  distributedByRole: text("distributed_by_role").notNull(), // 'executive' | 'manager'
+
+  // Distribution details
+  totalLeads: integer("total_leads").notNull(),
+  recipientCount: integer("recipient_count").notNull(),
+  leadsPerRecipient: integer("leads_per_recipient").notNull(),
+  remainderLeads: integer("remainder_leads").default(0),
+
+  // Target level
+  distributionLevel: text("distribution_level").notNull(), // 'executive_to_manager' | 'manager_to_agent'
+
+  // Full assignment breakdown
+  assignments: jsonb("assignments").$type<DistributionAssignment[]>().notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_distribution_records_distributed_by").on(table.distributedBy),
+  index("idx_distribution_records_created_at").on(table.createdAt),
+]);
+
+export const insertDistributionRecordSchema = createInsertSchema(distributionRecords).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type DistributionRecord = typeof distributionRecords.$inferSelect;
+export type InsertDistributionRecord = z.infer<typeof insertDistributionRecordSchema>;

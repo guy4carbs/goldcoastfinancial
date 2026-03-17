@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Leaf, Shield, Building2, Cpu } from "lucide-react";
 
 /**
- * Gold Coast Financial - Portfolio Companies Page
+ * Gold Coast Financial Partners - Portfolio Companies Page
  *
  * Design Philosophy:
  * - Introduce subsidiaries at a high level
@@ -59,7 +59,7 @@ export default function InstitutionalPortfolio() {
               className="lg:col-span-2 space-y-6"
             >
               <p className="text-lg text-primary leading-relaxed">
-                Gold Coast Financial acquires and develops financial services businesses with the intent to hold them indefinitely. We are not a private equity firm seeking exits; we are building permanent institutions.
+                Gold Coast Financial Partners acquires and develops financial services businesses with the intent to hold them indefinitely. We are not a private equity firm seeking exits; we are building permanent institutions.
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Each portfolio company operates independently under its own management team, serving its specific market with tailored strategies. The holding company provides governance oversight, compliance infrastructure, and access to capital—without imposing operational constraints that would diminish effectiveness.
@@ -108,7 +108,7 @@ export default function InstitutionalPortfolio() {
                 <h3 className="text-2xl font-serif text-primary">Heritage Life Solutions</h3>
               </div>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                Heritage Life Solutions operates as an independent life insurance brokerage under Gold Coast Financial governance. The company provides personalized life insurance solutions to individuals and families across all 50 states, working with a curated network of highly-rated carriers.
+                Heritage Life Solutions operates as an independent life insurance brokerage under Gold Coast Financial Partners governance. The company provides personalized life insurance solutions to individuals and families across all 50 states, working with a curated network of highly-rated carriers.
               </p>
               <a
                 href="/heritage"
@@ -172,7 +172,7 @@ export default function InstitutionalPortfolio() {
               Areas of Interest
             </h2>
             <p className="text-2xl md:text-3xl font-serif text-primary max-w-3xl">
-              Gold Coast Financial continues to evaluate opportunities for disciplined expansion in complementary sectors.
+              Gold Coast Financial Partners continues to evaluate opportunities for disciplined expansion in complementary sectors.
             </p>
           </motion.div>
 

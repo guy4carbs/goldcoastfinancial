@@ -40,7 +40,7 @@ const stateLicenses = [
   { state: "Georgia", license: "GA-123456", status: "active" },
   { state: "Hawaii", license: "HI-123456", status: "active" },
   { state: "Idaho", license: "ID-123456", status: "active" },
-  { state: "Illinois", license: "IL-1001234567", status: "active" },
+  { state: "Illinois", license: "IL-22128144", status: "active" },
   { state: "Indiana", license: "IN-123456", status: "active" },
   { state: "Iowa", license: "IA-123456", status: "active" },
   { state: "Kansas", license: "KS-123456", status: "active" },

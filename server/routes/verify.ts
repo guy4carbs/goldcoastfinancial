@@ -465,8 +465,8 @@ router.get("/:memberId", async (req, res) => {
 
       <div class="legal-footer">
         <div class="legal-text">
-          <p class="copyright">© 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group.</p>
-          <p>We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567. Policies are issued by our carrier partners and product availability may vary by state.</p>
+          <p class="copyright">© 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners.</p>
+          <p>We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.</p>
           <p>At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.</p>
           <p>Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term.</p>
           <p>Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.</p>
@@ -635,7 +635,7 @@ router.get("/:memberId/pdf", async (req, res) => {
     const footerY = 620;
     doc.moveTo(50, footerY).lineTo(562, footerY).stroke("#e5e5e5");
     doc.fontSize(7).font("Helvetica").fillColor(COLORS.textLight)
-      .text("© 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567. Policies are issued by our carrier partners and product availability may vary by state.", 50, footerY + 15, { width: 512, align: "justify" })
+      .text("© 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.", 50, footerY + 15, { width: 512, align: "justify" })
       .text("At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.", 50, footerY + 55, { width: 512, align: "justify" })
       .text("Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term. Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.", 50, footerY + 95, { width: 512, align: "justify" });
 

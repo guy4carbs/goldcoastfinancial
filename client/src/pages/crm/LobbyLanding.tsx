@@ -25,6 +25,7 @@ import {
   Shield,
   BarChart3,
   Briefcase,
+  Building2,
   ArrowRight,
   ArrowUpRight,
   TrendingUp,
@@ -122,6 +123,15 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Briefcase,
     gradient: 'from-emerald-500 to-emerald-700',
     path: '/manager/dashboard',
+    requiredRoles: ['owner', 'system_admin', 'manager'],
+  },
+  {
+    id: 'director',
+    name: 'Director Lounge',
+    description: 'Multi-team oversight',
+    icon: Building2,
+    gradient: 'from-blue-700 to-slate-900',
+    path: '/manager/director',
     requiredRoles: ['owner', 'system_admin', 'manager'],
   },
   {
@@ -520,6 +530,10 @@ export function LobbyLanding() {
           stat = data?.performance?.dealsThisMonth !== undefined
             ? { label: 'Deals/Month', value: data.performance.dealsThisMonth }
             : undefined;
+          break;
+        case 'director':
+          // Show teams managed for director view
+          stat = { label: 'Teams', value: 3 };
           break;
       }
 

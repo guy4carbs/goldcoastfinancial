@@ -282,7 +282,9 @@ export const COLORS = {
     crm: { light: '#eef2ff', main: '#6366f1', dark: '#4338ca' },
     ai: { light: '#ecfeff', main: '#06b6d4', dark: '#0e7490' },
     manager: { light: '#ecfdf5', main: '#10b981', dark: '#047857' },
+    director: { light: '#eff6ff', main: '#1e40af', dark: '#1e3a5f' },
     executive: { light: '#fffbeb', main: '#f59e0b', dark: '#b45309' },
+    client: { light: '#f5f3ff', main: '#7c3aed', dark: '#5b21b6' },
     marketing: { light: '#fff1f2', main: '#f43f5e', dark: '#be123c' },
   },
   // Semantic colors

@@ -414,37 +414,33 @@ export function ManagerGoals() {
         </motion.div>
 
         {/* ── Tab Switcher ─────────────────────────────────── */}
-        <motion.div
-          variants={fadeInUp}
-          className="flex"
-          style={{ gap: GRID.spacing.xs / 2 }}
-        >
-          {[
-            { id: 'team' as Tab, label: 'Team Goals', icon: Users },
-            { id: 'individual' as Tab, label: 'Individual Goals', icon: UserCheck },
-          ].map((tab) => (
-            <motion.button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center font-medium border-0 ${
-                activeTab === tab.id
-                  ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white'
-                  : 'text-gray-600'
-              }`}
-              style={{
-                ...(activeTab !== tab.id ? glassCard : {}),
-                borderRadius: RADIUS.button,
-                padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`,
-                fontSize: TYPE.meta,
-                gap: GRID.spacing.xs,
-              }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <tab.icon size={LAYOUT.icon.md} />
-              {tab.label}
-            </motion.button>
-          ))}
+        <motion.div variants={fadeInUp}>
+          <div className="flex items-center p-1 gap-1 w-fit" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+            {[
+              { id: 'team' as Tab, label: 'Team Goals', icon: Users },
+              { id: 'individual' as Tab, label: 'Individual Goals', icon: UserCheck },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 font-medium border-0 transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-white text-emerald-700 shadow-sm'
+                    : 'bg-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                style={{
+                  borderRadius: RADIUS.button,
+                  padding: '4px 12px',
+                  fontSize: TYPE.meta,
+                  cursor: 'pointer',
+                  fontWeight: activeTab === tab.id ? 600 : 500,
+                }}
+              >
+                <tab.icon size={LAYOUT.icon.md} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
         {/* ── TAB: Team Goals ────────────────────────────────── */}
@@ -465,11 +461,11 @@ export function ManagerGoals() {
                   boxShadow: SHADOW.card,
                 }}
               >
-                <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                   <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                     <div
                       className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
                       <Target className="text-amber-200" size={LAYOUT.icon.md} />
                     </div>
@@ -586,11 +582,11 @@ export function ManagerGoals() {
                     boxShadow: SHADOW.card,
                   }}
                 >
-                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                     <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                       <div
                         className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                        style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                       >
                         <BarChart3 className="text-amber-200" size={LAYOUT.icon.md} />
                       </div>
@@ -605,7 +601,7 @@ export function ManagerGoals() {
                         const pct = Math.round((item.count / totalGoals) * 100);
                         return (
                           <div key={idx}>
-                            <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
+                            <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs }}>
                               <span className={`font-medium ${item.textColor}`} style={{ fontSize: TYPE.body }}>
                                 {item.label}
                               </span>
@@ -641,11 +637,11 @@ export function ManagerGoals() {
                     boxShadow: SHADOW.card,
                   }}
                 >
-                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                     <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                       <div
                         className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                        style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                       >
                         <Calendar className="text-amber-200" size={LAYOUT.icon.md} />
                       </div>
@@ -660,9 +656,9 @@ export function ManagerGoals() {
                           key={ms.id}
                           className="flex items-center"
                           style={{
-                            padding: 12,
+                            padding: GRID.spacing.sm,
                             borderRadius: RADIUS.button,
-                            gap: 12,
+                            gap: GRID.spacing.sm,
                           }}
                           whileHover={{
                             backgroundColor: COLORS.gray[50],
@@ -723,11 +719,11 @@ export function ManagerGoals() {
                   boxShadow: SHADOW.card,
                 }}
               >
-                <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                   <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                     <div
                       className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                      style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                      style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                     >
                       <Users className="text-amber-200" size={LAYOUT.icon.md} />
                     </div>
@@ -747,9 +743,9 @@ export function ManagerGoals() {
                           <motion.div
                             className="flex items-center cursor-pointer"
                             style={{
-                              padding: 12,
+                              padding: GRID.spacing.sm,
                               borderRadius: RADIUS.button,
-                              gap: 12,
+                              gap: GRID.spacing.sm,
                               ...(isExpanded
                                 ? { backgroundColor: COLORS.gray[50], borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
                                 : {}),
@@ -904,7 +900,7 @@ export function ManagerGoals() {
                                                 borderTop: krIdx > 0 ? `1px solid ${COLORS.gray[100]}` : undefined,
                                               }}
                                             >
-                                              <div className="flex items-center justify-between" style={{ marginBottom: 3 }}>
+                                              <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
                                                 <span className="text-gray-500" style={{ fontSize: TYPE.micro }}>
                                                   {kr.description}
                                                 </span>
@@ -1019,11 +1015,11 @@ export function ManagerGoals() {
                     boxShadow: SHADOW.card,
                   }}
                 >
-                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                     <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                       <div
                         className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                        style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                       >
                         <Trophy className="text-amber-200" size={LAYOUT.icon.md} />
                       </div>
@@ -1038,9 +1034,9 @@ export function ManagerGoals() {
                           key={template.id}
                           className="flex items-start"
                           style={{
-                            padding: 12,
+                            padding: GRID.spacing.sm,
                             borderRadius: RADIUS.button,
-                            gap: 12,
+                            gap: GRID.spacing.sm,
                             backgroundColor: COLORS.gray[50],
                             border: `1px solid ${COLORS.gray[100]}`,
                           }}
@@ -1053,8 +1049,8 @@ export function ManagerGoals() {
                           <div
                             className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} flex-shrink-0`}
                             style={{
-                              width: 36,
-                              height: 36,
+                              width: LAYOUT.icon.xl,
+                              height: LAYOUT.icon.xl,
                               borderRadius: RADIUS.button,
                             }}
                           >
@@ -1122,7 +1118,7 @@ export function ManagerGoals() {
                 maxWidth: 480,
                 backgroundColor: '#fff',
                 borderRadius: RADIUS.card,
-                boxShadow: '0 25px 50px rgba(0,0,0,0.15)',
+                boxShadow: SHADOW.hero,
                 overflow: 'hidden',
               }}
             >
@@ -1172,26 +1168,26 @@ export function ManagerGoals() {
                   <label className="block text-gray-600 font-medium" style={{ fontSize: TYPE.caption, marginBottom: 4 }}>
                     Scope
                   </label>
-                  <div className="flex" style={{ gap: GRID.spacing.xs / 2 }}>
+                  <div className="flex p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
                     {(['team', 'individual'] as const).map((s) => (
-                      <motion.button
+                      <button
                         key={s}
-                        className={`flex-1 font-medium border-0 ${
+                        className={`flex-1 font-medium border-0 transition-all ${
                           goalScope === s
-                            ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-white text-emerald-700 shadow-sm'
+                            : 'bg-transparent text-gray-500 hover:text-gray-700'
                         }`}
                         style={{
-                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                          padding: '4px 12px',
                           borderRadius: RADIUS.button,
-                          fontSize: TYPE.caption,
+                          fontSize: TYPE.meta,
+                          cursor: 'pointer',
+                          fontWeight: goalScope === s ? 600 : 500,
                         }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
                         onClick={() => setGoalScope(s)}
                       >
                         {s === 'team' ? 'Team' : 'Individual'}
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -1329,8 +1325,9 @@ export function ManagerGoals() {
                   Cancel
                 </motion.button>
                 <motion.button
-                  className="font-medium text-white bg-gradient-to-r from-emerald-500 to-emerald-700 border-0"
+                  className="font-medium text-white border-0"
                   style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
                     padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`,
                     borderRadius: RADIUS.button,
                     fontSize: TYPE.caption,

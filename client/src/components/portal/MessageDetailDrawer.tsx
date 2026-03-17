@@ -58,7 +58,7 @@ Looking forward to connecting with you!
 Best regards,
 Jack Cook
 Principal Agent
-Gold Coast Financial
+Gold Coast Financial Partners
 (630) 555-0123`
       : message.from === "Nick Gallagher"
       ? `This confirms that your beneficiary update has been processed successfully.
@@ -76,8 +76,8 @@ If you have any questions or need to make additional changes, please don't hesit
 Best regards,
 Nick Gallagher
 Senior Advisor
-Gold Coast Financial`
-      : `Welcome to Gold Coast Financial! We're excited to have you as part of our family.
+Gold Coast Financial Partners`
+      : `Welcome to Gold Coast Financial Partners! We're excited to have you as part of our family.
 
 Your client portal is now active, giving you 24/7 access to:
 • View your policy details and coverage information
@@ -90,7 +90,7 @@ If you have any questions about navigating your portal or your policies, our tea
 Thank you for trusting us with your financial protection needs.
 
 Warm regards,
-The Gold Coast Financial Team`,
+The Gold Coast Financial Partners Team`,
     timestamp: message.date === "2 days ago" 
       ? "December 29, 2024 at 2:34 PM"
       : message.date === "1 week ago"
@@ -103,7 +103,7 @@ The Gold Coast Financial Team`,
     "Nick Gallagher": "nick.gallagher@goldcoastfnl.com",
     "Gaetano Carbonara": "gaetano.carbonara@goldcoastfnl.com",
     "Frank Carbonara": "frank.carbonara@goldcoastfnl.com",
-    "Gold Coast Financial": "support@goldcoastfnl.com"
+    "Gold Coast Financial Partners": "support@goldcoastfnl.com"
   };
 
   const handleSendReply = async () => {
@@ -190,7 +190,7 @@ The Gold Coast Financial Team`,
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold">{message.from}</p>
-                  {message.from !== "Gold Coast Financial" && (
+                  {message.from !== "Gold Coast Financial Partners" && (
                     <Badge variant="secondary" className="text-xs">Advisor</Badge>
                   )}
                 </div>

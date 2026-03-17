@@ -254,42 +254,37 @@ export function ManagerComplianceHub() {
         <motion.div variants={fadeInUp}>
           <Tabs defaultValue="certifications">
             <TabsList
-              className="w-full justify-start bg-white/60 backdrop-blur-xl border border-black/[0.06]"
-              style={{
-                borderRadius: RADIUS.card,
-                padding: 4,
-                height: 'auto',
-                gap: 4,
-              }}
+              className="w-fit border-0 p-1 gap-1"
+              style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
             >
               <TabsTrigger
                 value="certifications"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <ShieldCheck style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Certifications
               </TabsTrigger>
               <TabsTrigger
                 value="approvals"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <CheckSquare style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Approvals
               </TabsTrigger>
               <TabsTrigger
                 value="alerts"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <AlertTriangle style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Alerts
               </TabsTrigger>
               <TabsTrigger
                 value="learning"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <BookOpen style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Learning
@@ -543,7 +538,7 @@ export function ManagerComplianceHub() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
 
                 {/* ── Filter Tabs ──────────────────────────── */}
-                <div className="flex items-center" style={{ gap: GRID.spacing.xs / 2 }}>
+                <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
                   {TAB_OPTIONS.map((tab) => {
                     const isActive = approvalFilter === tab.value;
                     const count =
@@ -552,47 +547,23 @@ export function ManagerComplianceHub() {
                         : approvalItems.filter((a) => a.status === tab.value).length;
 
                     return (
-                      <motion.button
+                      <button
                         key={tab.value}
                         onClick={() => setApprovalFilter(tab.value)}
-                        className="font-medium border-0"
+                        className={`font-medium border-0 transition-all flex items-center gap-2 ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
                         style={{
-                          ...(isActive
-                            ? {
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
-                                color: 'white',
-                                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
-                              }
-                            : {
-                                ...glassCard,
-                                color: COLORS.gray[600],
-                              }),
                           borderRadius: RADIUS.button,
-                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                          padding: '4px 12px',
                           fontSize: TYPE.meta,
                           cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: GRID.spacing.xs / 2,
+                          fontWeight: isActive ? 600 : 500,
                         }}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
                       >
                         {tab.label}
-                        <span
-                          style={{
-                            fontSize: TYPE.micro,
-                            fontWeight: 600,
-                            backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.06)',
-                            borderRadius: RADIUS.pill,
-                            padding: '2px 8px',
-                            minWidth: 22,
-                            textAlign: 'center',
-                          }}
-                        >
+                        <span className={`text-[10px] font-semibold h-5 px-1.5 inline-flex items-center justify-center ${isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-black/5 text-gray-500'}`} style={{ borderRadius: RADIUS.pill, minWidth: 22 }}>
                           {count}
                         </span>
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
@@ -777,7 +748,7 @@ export function ManagerComplianceHub() {
                                           backgroundColor: 'transparent',
                                           border: '1.5px solid rgba(220, 38, 38, 0.3)',
                                           borderRadius: RADIUS.button,
-                                          padding: `${GRID.spacing.xs - 2}px ${GRID.spacing.sm}px`,
+                                          padding: '4px 12px',
                                           cursor: 'pointer',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -802,7 +773,7 @@ export function ManagerComplianceHub() {
                                           backgroundColor: '#10b981',
                                           border: 'none',
                                           borderRadius: RADIUS.button,
-                                          padding: `${GRID.spacing.xs - 2}px ${GRID.spacing.sm}px`,
+                                          padding: '4px 12px',
                                           cursor: 'pointer',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -923,7 +894,7 @@ export function ManagerComplianceHub() {
                                     backgroundColor: 'transparent',
                                     border: `1.5px solid ${COLORS.gray[200]}`,
                                     borderRadius: RADIUS.button,
-                                    padding: `${GRID.spacing.xs - 2}px ${GRID.spacing.sm}px`,
+                                    padding: '4px 12px',
                                     cursor: 'pointer',
                                   }}
                                   whileHover={{ scale: 1.03, borderColor: COLORS.gray[400] }}
@@ -940,7 +911,7 @@ export function ManagerComplianceHub() {
                                     background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
                                     border: 'none',
                                     borderRadius: RADIUS.button,
-                                    padding: `${GRID.spacing.xs - 2}px ${GRID.spacing.sm}px`,
+                                    padding: '4px 12px',
                                     cursor: 'pointer',
                                     boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
                                   }}

@@ -49,7 +49,7 @@ export default function HeritagePrivacy() {
               <div>
                 <h2 className="text-2xl font-bold font-serif mb-4" style={{ color: c.primary }}>Introduction</h2>
                 <p className="leading-relaxed mb-4" style={{ color: c.textSecondary }}>
-                  Heritage Life Solutions, a DBA of Gold Coast Financial ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website (the "Site") or use our services.
+                  Heritage Life Solutions, a DBA of Gold Coast Financial Partners ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website (the "Site") or use our services.
                 </p>
                 <p className="leading-relaxed" style={{ color: c.textSecondary }}>
                   Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site or use our services.
@@ -191,7 +191,7 @@ export default function HeritagePrivacy() {
                 </p>
                 <div className="rounded-xl p-6" style={{ backgroundColor: c.cream }}>
                   <p className="font-semibold mb-2" style={{ color: c.primary }}>Heritage Life Solutions</p>
-                  <p style={{ color: c.textSecondary }}>A DBA of Gold Coast Financial</p>
+                  <p style={{ color: c.textSecondary }}>A DBA of Gold Coast Financial Partners</p>
                   <p style={{ color: c.textSecondary }}>1240 Iroquois Ave Suite 506</p>
                   <p style={{ color: c.textSecondary }}>Naperville, Illinois 60563</p>
                   <p className="mt-2" style={{ color: c.textSecondary }}>Email: <a href="mailto:contact@heritagels.com" style={{ color: c.secondary }}>contact@heritagels.com</a></p>

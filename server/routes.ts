@@ -4,8 +4,8 @@ import crypto from "crypto";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema, agentRegisterSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail } from "./gmail";
-import { sendSecureFormLink, sendBookingLink, isSmsAvailable } from "./services/smsService";
+import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail, sendRecruitInviteEmail, sendPolicyQuoteEmail, sendAgentLeadNotification, sendWebsiteLinkEmail } from "./gmail";
+import { sendSecureFormLink, sendBookingLink, sendSms, isSmsAvailable } from "./services/smsService";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -31,6 +31,13 @@ import workflowAutomationsRouter from "./routes/workflow-automations";
 import licensesRouter from "./routes/licenses";
 import policiesRouter from "./routes/policies";
 import smsRouter from "./routes/sms";
+import loungeAccessRouter from "./routes/lounge-access";
+import onboardingRouter from "./routes/onboarding";
+import clientPortalRouter from "./routes/client-portal";
+import claimsRouter from "./routes/claims";
+import referralsRouter from "./routes/referrals";
+import agentClientsRouter from "./routes/agent-clients";
+import leadDistributionRouter from "./routes/lead-distribution";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -42,6 +49,7 @@ import {
   passwordResetLimiter,
   twoFactorLimiter,
   contactFormLimiter,
+  websiteEmailLimiter,
 } from "./middleware/rateLimiter";
 
 // Security services
@@ -241,6 +249,126 @@ export async function registerRoutes(
       }
       console.error("Error registering agent:", error);
       res.status(500).json({ error: "Failed to create account" });
+    }
+  });
+
+  // Auth: Register new client (simplified, rate limited)
+  app.post("/api/auth/register-client", registrationLimiter, async (req, res) => {
+    try {
+      const { email, password, firstName, lastName, phone } = req.body;
+
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({ error: "Email, password, first name, and last name are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "An account with this email already exists" });
+      }
+
+      // Validate password
+      if (password.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user with client role (immediately active, no approval needed)
+      const user = await storage.createUser({
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        phone: phone || null,
+        role: "client",
+      });
+
+      // Set session
+      req.session.userId = user.id;
+
+      // Return user without password
+      const { password: _, ...safeUser } = user;
+      res.status(201).json({ user: safeUser });
+    } catch (error: any) {
+      console.error("Error registering client:", error);
+      res.status(500).json({ error: "Failed to create account" });
+    }
+  });
+
+  // Auth: Setup password from invite link (client onboarding)
+  app.post("/api/auth/setup-password", async (req, res) => {
+    try {
+      const { token, password, confirmPassword } = req.body;
+
+      if (!token || !password || !confirmPassword) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+      if (password !== confirmPassword) {
+        return res.status(400).json({ error: "Passwords do not match" });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
+      }
+      if (!/[A-Z]/.test(password)) {
+        return res.status(400).json({ error: "Password must contain at least one uppercase letter" });
+      }
+      if (!/[a-z]/.test(password)) {
+        return res.status(400).json({ error: "Password must contain at least one lowercase letter" });
+      }
+      if (!/[0-9]/.test(password)) {
+        return res.status(400).json({ error: "Password must contain at least one number" });
+      }
+
+      // Find users with pending invite tokens that haven't expired
+      const { rows } = await pool.query(
+        `SELECT * FROM users WHERE invite_token IS NOT NULL AND invite_token_expires_at > NOW()`
+      );
+
+      let matchedUser = null;
+      for (const row of rows) {
+        const match = await bcrypt.compare(token, row.invite_token);
+        if (match) {
+          matchedUser = row;
+          break;
+        }
+      }
+
+      if (!matchedUser) {
+        return res.status(400).json({ error: "Invalid or expired invite link" });
+      }
+
+      // Hash the new password and update user
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.query(
+        `UPDATE users SET
+          password = $1,
+          invite_token = NULL,
+          invite_token_expires_at = NULL,
+          password_reset_required = false,
+          onboarding_status = 'welcome_sent',
+          updated_at = NOW()
+        WHERE id = $2`,
+        [hashedPassword, matchedUser.id]
+      );
+
+      // Create session
+      req.session.userId = matchedUser.id;
+
+      res.json({
+        success: true,
+        user: {
+          id: matchedUser.id,
+          email: matchedUser.email,
+          firstName: matchedUser.first_name,
+          lastName: matchedUser.last_name,
+          role: matchedUser.role,
+        },
+      });
+    } catch (error) {
+      console.error("[SetupPassword] Error:", error);
+      res.status(500).json({ error: "Failed to set up password" });
     }
   });
 
@@ -633,43 +761,69 @@ export async function registerRoutes(
       const validatedData = insertQuoteRequestSchema.parse(req.body);
       const quoteRequest = await storage.createQuoteRequest(validatedData);
       
-      // Prepare data with null converted to undefined for optional fields
-      const dataWithOptionalFields = {
-        ...validatedData,
-        addressLine2: validatedData.addressLine2 ?? undefined,
-      };
-      
-      // Send email notification to Heritage team
+      // Broadcast new website lead to Executive Lead Distribution via WebSocket
       try {
-        console.log("Attempting to send quote notification email...");
-        await sendQuoteNotification(dataWithOptionalFields);
-        console.log("Quote notification email sent successfully");
-      } catch (emailError: any) {
-        console.error("Error sending quote notification email:", emailError?.message || emailError);
+        const wsServer = app.get('wsServer');
+        if (wsServer) {
+          // Parse coverage amount to numeric
+          const coverageNum = parseInt(String(validatedData.coverageAmount).replace(/[^0-9]/g, '')) || 0;
+          // Calculate age from birthDate
+          const birthYear = validatedData.birthDate ? new Date(validatedData.birthDate).getFullYear() : null;
+          const age = birthYear ? new Date().getFullYear() - birthYear : null;
+          // Auto-score: higher coverage = higher score, adjusted by age
+          const baseScore = Math.min(90, Math.max(30, Math.round(coverageNum / 10000) * 5 + 40));
+          const leadScore = age && age >= 30 && age <= 55 ? Math.min(95, baseScore + 10) : baseScore;
+          // Priority based on coverage amount
+          const priority = coverageNum >= 500000 ? 'urgent' : coverageNum >= 250000 ? 'high' : coverageNum >= 100000 ? 'medium' : 'low';
+
+          const websiteLead = {
+            type: 'new_website_lead',
+            lead: {
+              id: `quote-${quoteRequest.id}`,
+              firstName: validatedData.firstName,
+              lastName: validatedData.lastName,
+              email: validatedData.email,
+              phone: validatedData.phone,
+              streetAddress: validatedData.streetAddress,
+              city: validatedData.city,
+              state: validatedData.state,
+              zipCode: validatedData.zipCode,
+              source: 'website',
+              priority,
+              product: validatedData.coverageType,
+              coverageType: validatedData.coverageType,
+              estimatedValue: coverageNum,
+              coverageAmountDisplay: validatedData.coverageAmount,
+              leadScore,
+              scoreTier: leadScore >= 80 ? 'on_fire' : leadScore >= 60 ? 'hot' : leadScore >= 40 ? 'warm' : 'cold',
+              status: 'pool',
+              distributedTo: null,
+              assignedTo: null,
+              distributedAt: null,
+              assignedAt: null,
+              pipelineStage: 'new',
+              lastActivity: new Date().toISOString().slice(0, 10),
+              nextFollowUp: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+              notes: '',
+              importBatch: 'Website Quoter',
+              importedAt: new Date().toISOString().slice(0, 10),
+              birthDate: validatedData.birthDate,
+              age,
+              heightDisplay: validatedData.height,
+              weightDisplay: validatedData.weight,
+              medicalBackground: validatedData.medicalBackground,
+              quoteRequestId: quoteRequest.id,
+            },
+            timestamp: Date.now(),
+          };
+
+          wsServer.broadcast('leads', websiteLead);
+          console.log(`[LeadDistribution] Website lead broadcast: ${validatedData.firstName} ${validatedData.lastName} (${validatedData.coverageType})`);
+        }
+      } catch (wsError) {
+        console.error("Error broadcasting website lead:", wsError);
       }
 
-      // Send confirmation email to applicant
-      try {
-        console.log("Attempting to send quote confirmation to applicant...");
-        await sendQuoteConfirmationToApplicant({
-          firstName: validatedData.firstName,
-          lastName: validatedData.lastName,
-          email: validatedData.email,
-          coverageType: validatedData.coverageType,
-          coverageAmount: validatedData.coverageAmount,
-        });
-        console.log("Quote confirmation email sent to applicant successfully");
-      } catch (emailError: any) {
-        console.error("Error sending quote confirmation to applicant:", emailError?.message || emailError);
-      }
-
-      // Add lead to Google Sheet
-      try {
-        await addLeadToSheet(dataWithOptionalFields);
-      } catch (sheetError) {
-        console.error("Error adding lead to Google Sheet:", sheetError);
-      }
-      
       res.status(201).json(quoteRequest);
     } catch (error: any) {
       if (error.name === "ZodError") {
@@ -728,6 +882,99 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching contact messages:", error);
       res.status(500).json({ error: "Failed to fetch contact messages" });
+    }
+  });
+
+  // Agent website lead submission (rate limited)
+  app.post("/api/agent-leads", contactFormLimiter, async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, zipCode, productInterest, agentSlug, agentName, agentEmail, message } = req.body;
+
+      if (!firstName || !lastName || !email || !agentSlug) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Store in lead inbox
+      const leadId = `lead-web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      leadInboxStore.set(leadId, {
+        leadId,
+        firstName,
+        lastName,
+        email,
+        phone: phone || null,
+        zipCode: zipCode || null,
+        productInterest: productInterest || null,
+        agentSlug,
+        agentName: agentName || null,
+        message: message || null,
+        source: message ? 'schedule_call' : 'website',
+        status: 'new',
+        createdAt: new Date().toISOString(),
+        readAt: null,
+      });
+      console.log(`[AgentLead] Stored lead ${leadId} for agent ${agentSlug}`);
+
+      // Create in-app notification for the agent
+      try {
+        const allUsers = await storage.getAllAgentUsers();
+        const agentUser = allUsers.find(u => {
+          const slug = 'agent-' + `${u.firstName}${u.lastName}`.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+          return slug === agentSlug;
+        });
+        if (agentUser) {
+          const leadName = `${firstName} ${lastName}`;
+          await storage.createNotification({
+            userId: agentUser.id,
+            title: 'New Lead from Your Website',
+            message: `${leadName}${productInterest ? ` is interested in ${productInterest}` : ' submitted a contact request'}.`,
+            type: 'new_lead',
+            isRead: false,
+            actionUrl: '/agents/inbox',
+          });
+          console.log(`[AgentLead] Notification created for agent ${agentUser.id}`);
+        }
+      } catch (notifErr) {
+        console.error("[AgentLead] Failed to create notification:", notifErr);
+        // Don't fail the lead submission if notification fails
+      }
+
+      res.status(201).json({ success: true, leadId });
+    } catch (error: any) {
+      console.error("[AgentLead] Error:", error);
+      res.status(500).json({ error: "Failed to submit lead" });
+    }
+  });
+
+  // Get website leads for a specific agent
+  app.get("/api/agent-leads/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+      if (!agentSlug) {
+        return res.status(400).json({ error: "Agent slug is required" });
+      }
+      const leads = Array.from(leadInboxStore.values())
+        .filter(lead => lead.agentSlug === agentSlug)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      res.json({ leads });
+    } catch (error: any) {
+      console.error("[AgentLead] Error fetching leads:", error);
+      res.status(500).json({ error: "Failed to fetch leads" });
+    }
+  });
+
+  // Mark a website lead as read
+  app.patch("/api/agent-leads/:leadId/read", async (req, res) => {
+    try {
+      const { leadId } = req.params;
+      const lead = leadInboxStore.get(leadId);
+      if (!lead) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+      lead.readAt = new Date().toISOString();
+      lead.status = 'read';
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to update lead" });
     }
   });
 
@@ -1144,6 +1391,475 @@ export async function registerRoutes(
     }
   });
 
+  // Send recruiting invite email to prospect
+  app.post("/api/recruiting/send-invite", async (req, res) => {
+    try {
+      const {
+        prospectName,
+        prospectEmail,
+        prospectPhone,
+        customMessage,
+        approach,
+        agent
+      } = req.body;
+
+      if (!prospectName || !prospectEmail || !agent) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      if (!agent.name || !agent.email) {
+        return res.status(400).json({ error: "Agent information is required" });
+      }
+
+      // Generate the recruit landing page URL from agent slug
+      const agentSlug = agent.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? 'https://heritagels.org'
+        : `http://localhost:${process.env.PORT || 5000}`;
+      const recruitLink = `${baseUrl}/recruit/agent-${agentSlug}`;
+
+      // Send email
+      try {
+        await sendRecruitInviteEmail({
+          prospectName,
+          prospectEmail,
+          recruitLink,
+          customMessage,
+          approach: approach || 'cold_outreach',
+          agent: {
+            name: agent.name,
+            email: agent.email,
+            phone: agent.phone || ''
+          }
+        });
+        console.log(`[RecruitInvite] Email sent successfully to ${prospectEmail}`);
+      } catch (emailError: any) {
+        console.error("[RecruitInvite] Error sending email:", emailError?.message || emailError);
+        return res.status(500).json({
+          error: "Failed to send recruiting invite email. Please check your Gmail configuration.",
+          details: emailError?.message
+        });
+      }
+
+      // Send SMS if phone provided and SMS available
+      let smsSent = false;
+      if (prospectPhone && isSmsAvailable()) {
+        try {
+          const smsMessage = `Hi ${prospectName.split(' ')[0]}! ${agent.name} from Heritage Life Solutions invited you to explore a career opportunity. Learn more: ${recruitLink}`;
+          await sendSms(prospectPhone, smsMessage);
+          smsSent = true;
+          console.log(`[RecruitInvite] SMS sent successfully to ${prospectPhone}`);
+        } catch (smsError: any) {
+          console.error("[RecruitInvite] Error sending SMS:", smsError?.message || smsError);
+        }
+      }
+
+      res.status(201).json({
+        success: true,
+        message: "Recruiting invite sent successfully",
+        recruitLink,
+        emailSent: true,
+        smsSent
+      });
+    } catch (error: any) {
+      console.error("[RecruitInvite] Error:", error);
+      res.status(500).json({ error: "Failed to send recruiting invite" });
+    }
+  });
+
+  // ─── POLICY QUOTE ROUTES ────────────────────────────────────────────────────
+
+  const quoteStore = new Map<string, {
+    quoteId: string;
+    quoteRef: string;
+    clientName: string;
+    clientEmail: string;
+    clientPhone: string | null;
+    quoteType: string;
+    quoteTypeName: string;
+    carrierId: string;
+    carrierName: string;
+    coverageAmount: string;
+    premium: string;
+    premiumFrequency: string;
+    termLength: string | null;
+    healthClass: string | null;
+    benefits: string;
+    additionalNotes: string | null;
+    agentName: string;
+    agentEmail: string;
+    agentPhone: string;
+    agentNpn: string | null;
+    status: 'sent' | 'opened' | 'expired';
+    createdAt: string;
+    openedAt: string | null;
+    expiresAt: string | null;
+  }>();
+
+  // In-memory lead inbox store (website leads)
+  const leadInboxStore = new Map<string, {
+    leadId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string | null;
+    zipCode: string | null;
+    productInterest: string | null;
+    agentSlug: string;
+    agentName: string | null;
+    message: string | null;
+    source: 'website' | 'schedule_call';
+    status: 'new' | 'read';
+    createdAt: string;
+    readAt: string | null;
+  }>();
+
+  // In-memory website settings store (agent customizations)
+  const websiteSettingsStore = new Map<string, {
+    agentSlug: string;
+    headline: string | null;
+    tagline: string | null;
+    bio: string | null;
+    featuredProducts: string[];
+    showTestimonials: boolean;
+    showFaq: boolean;
+    showCarriers: boolean;
+    showScheduleCall: boolean;
+    updatedAt: string;
+  }>();
+
+  // Get website settings for an agent
+  app.get("/api/website-settings/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+      const settings = websiteSettingsStore.get(agentSlug);
+      if (settings) {
+        res.json(settings);
+      } else {
+        // Return defaults
+        res.json({
+          agentSlug,
+          headline: null,
+          tagline: null,
+          bio: null,
+          featuredProducts: ['term_life', 'whole_life', 'iul', 'final_expense', 'annuities'],
+          showTestimonials: true,
+          showFaq: true,
+          showCarriers: true,
+          showScheduleCall: true,
+          updatedAt: null,
+        });
+      }
+    } catch (error: any) {
+      console.error("[WebsiteSettings] Error fetching:", error);
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  // Save website settings for an agent
+  app.post("/api/website-settings/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+      const { headline, tagline, bio, featuredProducts, showTestimonials, showFaq, showCarriers, showScheduleCall } = req.body;
+
+      websiteSettingsStore.set(agentSlug, {
+        agentSlug,
+        headline: headline || null,
+        tagline: tagline || null,
+        bio: bio || null,
+        featuredProducts: featuredProducts || ['term_life', 'whole_life', 'iul', 'final_expense', 'annuities'],
+        showTestimonials: showTestimonials !== false,
+        showFaq: showFaq !== false,
+        showCarriers: showCarriers !== false,
+        showScheduleCall: showScheduleCall !== false,
+        updatedAt: new Date().toISOString(),
+      });
+
+      console.log(`[WebsiteSettings] Saved settings for ${agentSlug}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[WebsiteSettings] Error saving:", error);
+      res.status(500).json({ error: "Failed to save settings" });
+    }
+  });
+
+  // Get website stats for an agent
+  app.get("/api/agent-stats/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+
+      // Count leads from leadInboxStore
+      const leadsGenerated = Array.from(leadInboxStore.values())
+        .filter(lead => lead.agentSlug === agentSlug).length;
+
+      // Get page views for agent's page
+      let pageViews = 0;
+      try {
+        const pageStats = await storage.getPageViewStats();
+        const agentPageStats = pageStats.filter((s: any) =>
+          s.page?.startsWith(`/a/${agentSlug}`)
+        );
+        pageViews = agentPageStats.reduce((sum: number, s: any) => sum + (Number(s.count) || 0), 0);
+      } catch {
+        // Page view stats may not be available
+      }
+
+      const conversionRate = pageViews > 0
+        ? Math.round((leadsGenerated / pageViews) * 1000) / 10
+        : 0;
+
+      res.json({ pageViews, leadsGenerated, conversionRate });
+    } catch (error: any) {
+      console.error("[AgentStats] Error:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // In-memory recruiting settings store (agent customizations for recruiting page)
+  const recruitingSettingsStore = new Map<string, {
+    agentSlug: string;
+    headline: string | null;
+    subheadline: string | null;
+    showTestimonials: boolean;
+    showFaq: boolean;
+    showCommissionTable: boolean;
+    showSteps: boolean;
+    updatedAt: string;
+  }>();
+
+  // Get recruiting page settings for an agent
+  app.get("/api/recruiting-settings/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+      const settings = recruitingSettingsStore.get(agentSlug);
+      if (settings) {
+        res.json(settings);
+      } else {
+        res.json({
+          agentSlug,
+          headline: null,
+          subheadline: null,
+          showTestimonials: true,
+          showFaq: true,
+          showCommissionTable: true,
+          showSteps: true,
+          updatedAt: null,
+        });
+      }
+    } catch (error: any) {
+      console.error("[RecruitingSettings] Error fetching:", error);
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  // Save recruiting page settings for an agent
+  app.post("/api/recruiting-settings/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+      const { headline, subheadline, showTestimonials, showFaq, showCommissionTable, showSteps } = req.body;
+
+      recruitingSettingsStore.set(agentSlug, {
+        agentSlug,
+        headline: headline || null,
+        subheadline: subheadline || null,
+        showTestimonials: showTestimonials !== false,
+        showFaq: showFaq !== false,
+        showCommissionTable: showCommissionTable !== false,
+        showSteps: showSteps !== false,
+        updatedAt: new Date().toISOString(),
+      });
+
+      console.log(`[RecruitingSettings] Saved settings for ${agentSlug}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[RecruitingSettings] Error saving:", error);
+      res.status(500).json({ error: "Failed to save settings" });
+    }
+  });
+
+  // Get recruiting page stats for an agent
+  app.get("/api/recruiting-stats/:agentSlug", async (req, res) => {
+    try {
+      const { agentSlug } = req.params;
+
+      let pageViews = 0;
+      try {
+        const pageStats = await storage.getPageViewStats();
+        const recruitPageStats = pageStats.filter((s: any) =>
+          s.page?.startsWith(`/recruit/agent-${agentSlug}`)
+        );
+        pageViews = recruitPageStats.reduce((sum: number, s: any) => sum + (Number(s.count) || 0), 0);
+      } catch {
+        // Page view stats may not be available
+      }
+
+      const applications = 0; // TODO: count from recruit applications store
+      const conversionRate = pageViews > 0
+        ? Math.round((applications / pageViews) * 1000) / 10
+        : 0;
+
+      res.json({ pageViews, applications, conversionRate });
+    } catch (error: any) {
+      console.error("[RecruitingStats] Error:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // Send website link via email to a client
+  app.post("/api/share-website-email", requireAuth, websiteEmailLimiter, async (req, res) => {
+    try {
+      const { recipientName, recipientEmail, personalMessage, websiteUrl, agentName } = req.body;
+      if (!recipientEmail || !websiteUrl || !agentName) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(recipientEmail)) {
+        return res.status(400).json({ error: "Invalid email address format" });
+      }
+
+      // Fetch agent data from authenticated session
+      const user = await storage.getUserById(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      await sendWebsiteLinkEmail({
+        recipientName: recipientName || 'there',
+        recipientEmail,
+        websiteUrl,
+        personalMessage: personalMessage || undefined,
+        agent: {
+          name: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : agentName,
+          email: user.email,
+          phone: user.phone || '',
+        },
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[ShareWebsite] Error sending email:", error);
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  });
+
+  app.post("/api/quotes/send", async (req, res) => {
+    try {
+      const {
+        clientName, clientEmail, clientPhone,
+        quoteType, quoteTypeName, carrierId, carrierName,
+        coverageAmount, premium, premiumFrequency,
+        termLength, healthClass, benefits, additionalNotes,
+        sendMethod, agent
+      } = req.body;
+
+      if (!clientName || !clientEmail || !carrierId || !quoteType || !coverageAmount || !premium) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      if (!agent?.name || !agent?.email) {
+        return res.status(400).json({ error: "Agent information is required" });
+      }
+
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      const quoteRef = `HLS-${dateStr}-${rand}`;
+      const quoteId = `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      quoteStore.set(quoteId, {
+        quoteId, quoteRef, clientName, clientEmail,
+        clientPhone: clientPhone || null,
+        quoteType, quoteTypeName: quoteTypeName || quoteType,
+        carrierId, carrierName, coverageAmount, premium,
+        premiumFrequency: premiumFrequency || 'monthly',
+        termLength: termLength || null, healthClass: healthClass || null,
+        benefits: benefits || '', additionalNotes: additionalNotes || null,
+        agentName: agent.name, agentEmail: agent.email,
+        agentPhone: agent.phone || '', agentNpn: agent.npn || null,
+        status: 'sent', createdAt: now.toISOString(),
+        openedAt: null, expiresAt: null,
+      });
+
+      try {
+        await sendPolicyQuoteEmail({
+          clientName, clientEmail, quoteType,
+          quoteTypeName: quoteTypeName || quoteType,
+          coverageAmount, premium,
+          premiumFrequency: premiumFrequency || 'monthly',
+          termLength, healthClass,
+          benefits: benefits || '', additionalNotes,
+          carrierId, carrierName, quoteRef, quoteId,
+          agent: { name: agent.name, email: agent.email, phone: agent.phone || '', npn: agent.npn }
+        });
+        console.log(`[PolicyQuote] Email sent successfully to ${clientEmail}`);
+      } catch (emailError: any) {
+        console.error("[PolicyQuote] Error sending email:", emailError?.message || emailError);
+        return res.status(500).json({
+          error: "Failed to send policy quote email.",
+          details: emailError?.message
+        });
+      }
+
+      let smsSent = false;
+      if (clientPhone && (sendMethod === 'sms' || sendMethod === 'both') && isSmsAvailable()) {
+        try {
+          const smsMessage = `Hi ${clientName.split(' ')[0]}! Your ${quoteTypeName || quoteType} quote from ${carrierName} is ready. Check your email for details. — ${agent.name}, Heritage Life Solutions`;
+          await sendSms(clientPhone, smsMessage);
+          smsSent = true;
+        } catch (smsError: any) {
+          console.error("[PolicyQuote] SMS error:", smsError?.message);
+        }
+      }
+
+      res.status(201).json({ success: true, quoteId, quoteRef, emailSent: true, smsSent });
+    } catch (error: any) {
+      console.error("[PolicyQuote] Error:", error);
+      res.status(500).json({ error: "Failed to send policy quote" });
+    }
+  });
+
+  app.get("/api/quotes", async (_req, res) => {
+    try {
+      const quotes = Array.from(quoteStore.values())
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      res.json({ quotes });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch quotes" });
+    }
+  });
+
+  app.get("/api/quotes/:quoteId", async (req, res) => {
+    try {
+      const { quoteId } = req.params;
+      const quote = quoteStore.get(quoteId);
+
+      if (!quote) {
+        return res.status(404).json({ error: "Quote not found" });
+      }
+
+      // Check if expired
+      if (quote.status === 'expired' || (quote.expiresAt && new Date(quote.expiresAt) < new Date())) {
+        quote.status = 'expired';
+        return res.status(410).json({ error: "This quote has expired", expired: true });
+      }
+
+      // Mark as opened on first view and set 14-day expiration
+      if (quote.status === 'sent') {
+        const now = new Date();
+        quote.status = 'opened';
+        quote.openedAt = now.toISOString();
+        quote.expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      res.json({ quote });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch quote" });
+    }
+  });
+
   // In-memory storage for booked appointments (in production, use database)
   const bookedAppointments: Array<{
     id: string;
@@ -1475,12 +2191,21 @@ export async function registerRoutes(
   // Portal: Update user profile
   app.patch("/api/portal/profile", requireAuth, async (req, res) => {
     try {
-      const { firstName, lastName, phone } = req.body;
-      const updatedUser = await storage.updateUser(req.session.userId!, {
-        firstName,
-        lastName,
-        phone,
-      });
+      const { firstName, lastName, phone, email, timezone } = req.body;
+      const updates: Record<string, any> = {};
+      if (firstName !== undefined) updates.firstName = firstName;
+      if (lastName !== undefined) updates.lastName = lastName;
+      if (phone !== undefined) updates.phone = phone;
+      if (timezone !== undefined) updates.timezone = timezone;
+      if (email !== undefined) {
+        // Check email uniqueness if changing
+        const existing = await storage.getUserByEmail(email);
+        if (existing && existing.id !== req.session.userId) {
+          return res.status(400).json({ error: "Email is already in use" });
+        }
+        updates.email = email;
+      }
+      const updatedUser = await storage.updateUser(req.session.userId!, updates);
       if (!updatedUser) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1777,6 +2502,54 @@ export async function registerRoutes(
     }
   });
 
+  // Portal: Onboarding status
+  app.get("/api/portal/onboarding-status", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const [policies, documents] = await Promise.all([
+        storage.getPoliciesByUserId(userId),
+        storage.getDocumentsByUserId(userId),
+      ]);
+
+      const pendingPolicies = policies.filter(p => p.status === "pending_setup" || p.status === "pending").length;
+      const activePolicies = policies.filter(p => p.status === "active").length;
+
+      // Get assigned agent info if available
+      let agentName: string | null = null;
+      let agentEmail: string | null = null;
+      let agentPhone: string | null = null;
+
+      if (user.assignedAgentId) {
+        const agent = await storage.getUserById(user.assignedAgentId);
+        if (agent) {
+          agentName = `${agent.firstName} ${agent.lastName}`;
+          agentEmail = agent.email;
+          agentPhone = agent.phone || null;
+        }
+      }
+
+      res.json({
+        onboardingStatus: user.onboardingStatus || "pending",
+        hasPolicies: policies.length > 0,
+        policyCount: policies.length,
+        pendingPolicies,
+        activePolicies,
+        hasDocuments: documents.length > 0,
+        agentName,
+        agentEmail,
+        agentPhone,
+      });
+    } catch (error) {
+      console.error("Error fetching onboarding status:", error);
+      res.status(500).json({ error: "Failed to fetch onboarding status" });
+    }
+  });
+
   // Admin: Products management (requires admin role)
   app.use("/api/admin/products", requireAuth, requireAdmin, adminProductsRouter);
 
@@ -1820,6 +2593,18 @@ export async function registerRoutes(
   app.use("/api/client-chat", clientChatRouter);
   app.use("/api/app/chat", clientChatRouter);
 
+  // Client Portal (Client Lounge API)
+  app.use("/api/client-portal", clientPortalRouter);
+
+  // Claims (Agent-side claims management)
+  app.use("/api/claims", claimsRouter);
+
+  // Agent-Side Client Management
+  app.use("/api/agent-clients", agentClientsRouter);
+
+  // Referrals (Public referral landing page)
+  app.use("/api/referrals", referralsRouter);
+
   // Automations
   app.use("/api/automations", automationsRouter);
 
@@ -1834,6 +2619,15 @@ export async function registerRoutes(
 
   // SMS / Twilio
   app.use("/api/sms", smsRouter);
+
+  // Lounge Access Control (admin only — auth built into router)
+  app.use("/api/admin", loungeAccessRouter);
+
+  // Agent Onboarding (public token validation + auth for step saves)
+  app.use("/api/onboarding", onboardingRouter);
+
+  // Lead Distribution Pipeline (auth built into router)
+  app.use("/api/lead-distribution", leadDistributionRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

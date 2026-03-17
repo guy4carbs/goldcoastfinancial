@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { MapPin, Mail, ArrowRight, Building, Briefcase, Users } from "lucide-react";
 
 /**
- * Gold Coast Financial - Corporate Contact Page
+ * Gold Coast Financial Partners - Corporate Contact Page
  *
  * Design Philosophy:
  * - Professional inquiry only
@@ -136,7 +136,7 @@ export default function InstitutionalContact() {
                 Looking for life insurance coverage?
               </p>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Consumer insurance inquiries, policy questions, and coverage requests should be directed to our operating companies. Gold Coast Financial does not sell insurance products directly; our portfolio companies serve consumer markets through their dedicated teams.
+                Consumer insurance inquiries, policy questions, and coverage requests should be directed to our operating companies. Gold Coast Financial Partners does not sell insurance products directly; our portfolio companies serve consumer markets through their dedicated teams.
               </p>
 
               <div className="border border-border/60 p-6 bg-white">
@@ -186,7 +186,7 @@ export default function InstitutionalContact() {
                 <div className="flex items-start gap-4">
                   <MapPin className="w-5 h-5 text-muted-foreground mt-1" strokeWidth={1.5} />
                   <div>
-                    <p className="text-primary font-medium mb-1">Gold Coast Financial Holdings</p>
+                    <p className="text-primary font-medium mb-1">Gold Coast Financial Partners Holdings</p>
                     <p className="text-muted-foreground text-sm">
                       1240 Iroquois Ave, Suite 506<br />
                       Naperville, IL 60563<br />
@@ -262,7 +262,7 @@ export default function InstitutionalContact() {
                 For press inquiries and media requests, please contact our communications team.
               </p>
               <p className="text-primary-foreground/80 leading-relaxed mb-6">
-                Gold Coast Financial responds to legitimate media inquiries from credentialed journalists and publications. Please include your publication name, deadline, and specific questions.
+                Gold Coast Financial Partners responds to legitimate media inquiries from credentialed journalists and publications. Please include your publication name, deadline, and specific questions.
               </p>
               <a
                 href="mailto:media@goldcoastfnl.com"

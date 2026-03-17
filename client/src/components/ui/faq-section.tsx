@@ -33,7 +33,7 @@ const faqs = [
     answer: "Term life insurance provides coverage for a specific period (10, 20, or 30 years) and is the most affordable option—perfect for protecting your family during your working years. Whole life insurance provides permanent coverage that lasts your entire life and builds cash value over time. Many families benefit from a combination of both types. We'll help you determine the right mix for your goals."
   },
   {
-    question: "Why should I work with Gold Coast Financial instead of buying online?",
+    question: "Why should I work with Gold Coast Financial Partners instead of buying online?",
     answer: "As an independent agency, we're not tied to any single insurance company. This means we shop the market across 20+ top-rated carriers to find you the best coverage at the most competitive rates. We work for you, not the insurance companies. Plus, you get personalized guidance from a licensed advisor who understands your unique situation—something you won't get from a website."
   },
   {

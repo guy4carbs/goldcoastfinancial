@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,12 +20,20 @@ import { Calendar, Phone, Video, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RADIUS } from "@/lib/heritageDesignSystem";
 
+export interface EventPrefillData {
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  product?: string;
+}
+
 interface AddEventModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddEvent?: (event: EventData) => void;
   selectedDate?: Date | null;
   existingEvents?: EventData[];
+  prefillData?: EventPrefillData | null;
 }
 
 export interface EventReminder {
@@ -65,10 +73,11 @@ const durationOptions = [
   { value: '2 hours', label: '2 hours' },
 ];
 
-export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, existingEvents = [] }: AddEventModalProps) {
+export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, existingEvents = [], prefillData }: AddEventModalProps) {
+  const today = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
     title: '',
-    date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+    date: selectedDate ? selectedDate.toISOString().split('T')[0] : today,
     time: '09:00',
     duration: '30 min',
     type: 'call' as 'call' | 'meeting' | 'video',
@@ -90,6 +99,23 @@ export function AddEventModal({ open, onOpenChange, onAddEvent, selectedDate, ex
       }));
     }
   });
+
+  // Pre-fill form when prefillData is provided and modal opens
+  useEffect(() => {
+    if (open && prefillData) {
+      setFormData(prev => ({
+        ...prev,
+        title: prefillData.clientName ? `Call with ${prefillData.clientName}` : prev.title,
+        clientName: prefillData.clientName || prev.clientName,
+        clientPhone: prefillData.clientPhone || prev.clientPhone,
+        description: [
+          prefillData.clientEmail ? `Email: ${prefillData.clientEmail}` : '',
+          prefillData.product ? `Product: ${prefillData.product}` : '',
+        ].filter(Boolean).join('\n'),
+        date: new Date().toISOString().split('T')[0],
+      }));
+    }
+  }, [open, prefillData]);
 
   // Convert duration string to minutes
   const durationToMinutes = (duration: string): number => {

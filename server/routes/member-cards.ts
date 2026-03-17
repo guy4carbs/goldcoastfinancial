@@ -428,7 +428,7 @@ router.get("/:id/pdf", requireAuth, async (req, res) => {
     const footerY = 620;
     doc.moveTo(50, footerY).lineTo(562, footerY).stroke("#e5e5e5");
     doc.fontSize(7).font("Helvetica").fillColor(COLORS.textLight)
-      .text("© 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. Policies are issued by our carrier partners and product availability may vary by state.", 50, footerY + 15, { width: 512, align: "justify" })
+      .text("© 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. Policies are issued by our carrier partners and product availability may vary by state.", 50, footerY + 15, { width: 512, align: "justify" })
       .text("This digital insurance card is for identification purposes only and does not constitute a policy contract. For complete policy terms, conditions, and coverage details, please refer to your policy documents or contact your agent.", 50, footerY + 50, { width: 512, align: "justify" });
 
     doc.fontSize(8).font("Helvetica-Bold").fillColor(COLORS.purple)
@@ -506,7 +506,7 @@ Website: heritagels.org
 
 Warm regards,
 Heritage Life Solutions
-A DBA of Gold Coast Financial Group
+A DBA of Gold Coast Financial Partners
 
 ---
 This email was sent from Heritage Life Solutions. If you believe you received this in error, please contact support@heritagels.org.`;

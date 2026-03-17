@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { cn, formatProductLabel } from "@/lib/utils";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
 import { getTemplate, fillTemplate, type MessageTemplate } from "@/lib/messageTemplates";
 
@@ -42,11 +42,11 @@ export function SmartTemplatePanel({ lead, agentName = 'Your Agent', onSend, com
     firstName: lead.name.split(' ')[0],
     lastName: lead.name.split(' ').slice(1).join(' ') || '',
     fullName: lead.name,
-    product: lead.product || 'life insurance',
+    product: formatProductLabel(lead.product) || 'life insurance',
     agentName,
     agentPhone: '(800) 555-0123',
     agentEmail: 'agent@goldcoastfnl.com',
-    companyName: 'Gold Coast Financial',
+    companyName: 'Gold Coast Financial Partners',
     // Add more variables as needed
   });
 

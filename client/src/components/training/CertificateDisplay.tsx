@@ -65,7 +65,7 @@ const certificateInfo: Record<string, CertificateInfo> = {
   "cert-core-advisor": {
     id: "cert-core-advisor",
     name: "Core Advisor Certification",
-    description: "Certified Gold Coast Financial Advisor",
+    description: "Certified Gold Coast Financial Partners Advisor",
     level: "core_advisor",
     color: "purple",
     requirements: [

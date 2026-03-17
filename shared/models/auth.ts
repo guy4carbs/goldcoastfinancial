@@ -41,12 +41,21 @@ export const users = pgTable("users", {
 
   // Profile & Preferences
   avatarUrl: varchar("avatar_url", { length: 500 }),
+  referralMessage: varchar("referral_message", { length: 500 }),
   timezone: varchar("timezone", { length: 100 }).default("America/Chicago"),
 
   // Tracking
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+
+  // Client-Agent Relationship (populated during lead conversion)
+  assignedAgentId: uuid("assigned_agent_id"),
+  convertedFromLeadId: varchar("converted_from_lead_id"),
+  onboardingStatus: varchar("onboarding_status", { length: 50 }).default("pending"),
+  inviteToken: varchar("invite_token", { length: 255 }),
+  inviteTokenExpiresAt: timestamp("invite_token_expires_at"),
+  passwordResetRequired: boolean("password_reset_required").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

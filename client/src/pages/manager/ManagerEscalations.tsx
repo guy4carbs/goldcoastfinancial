@@ -450,26 +450,26 @@ export function ManagerEscalations() {
 
         {/* ── Tabs ────────────────────────────────────────── */}
         <Tabs defaultValue="escalations" className="w-full">
-          <TabsList className="bg-white/60 backdrop-blur-sm border border-gray-200/60 p-1" style={{ borderRadius: RADIUS.card }}>
+          <TabsList className="w-fit border-0 p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
             <TabsTrigger
               value="escalations"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md font-semibold"
-              style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, gap: 6, display: 'inline-flex', alignItems: 'center' }}
+              className="gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+              style={{ borderRadius: RADIUS.button }}
             >
               <AlertTriangle style={{ width: 14, height: 14 }} />
               Escalations
             </TabsTrigger>
             <TabsTrigger
               value="alerts"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md font-semibold"
-              style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, gap: 6, display: 'inline-flex', alignItems: 'center' }}
+              className="gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+              style={{ borderRadius: RADIUS.button }}
             >
               <Bell style={{ width: 14, height: 14 }} />
               Alerts
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="escalations">
+          <TabsContent value="escalations" style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md, marginTop: GRID.spacing.md }}>
 
         {/* ── Search Bar ───────────────────────────────────── */}
         <motion.div variants={fadeInUp}>
@@ -504,110 +504,68 @@ export function ManagerEscalations() {
           </div>
         </motion.div>
 
-        {/* ── Filter Bar + Sort ─────────────────────────────── */}
-        <motion.div
-          variants={fadeInUp}
-          className="flex flex-wrap items-center justify-between"
-          style={{ gap: GRID.spacing.sm }}
-        >
-          <div className="flex flex-wrap items-center" style={{ gap: GRID.spacing.sm }}>
-            {/* Priority filters */}
-            <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-              <span className="text-gray-500 font-medium" style={{ fontSize: TYPE.meta }}>Priority:</span>
-              <div className="flex" style={{ gap: GRID.spacing.xs / 2 }}>
-                {PRIORITY_OPTIONS.map((opt) => {
-                  const isActive = priorityFilter === opt.value;
-                  const count = priorityCounts[opt.value];
-                  return (
-                    <motion.button
-                      key={opt.value}
-                      onClick={() => setPriorityFilter(opt.value)}
-                      className="font-medium border-0 flex items-center"
-                      style={{
-                        ...(isActive
-                          ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
-                          : { ...glassCard, color: COLORS.gray[600] }),
-                        borderRadius: RADIUS.pill,
-                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                        fontSize: TYPE.meta,
-                        cursor: 'pointer',
-                        gap: 4,
-                      }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {opt.label}
-                      {count > 0 && (
-                        <span style={{ fontSize: 10, fontWeight: 700, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 4px' }}>
-                          {count}
-                        </span>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Status filters */}
-            <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-              <span className="text-gray-500 font-medium" style={{ fontSize: TYPE.meta }}>Status:</span>
-              <div className="flex" style={{ gap: GRID.spacing.xs / 2 }}>
-                {STATUS_OPTIONS.map((opt) => {
-                  const isActive = statusFilter === opt.value;
-                  const count = statusCounts[opt.value];
-                  return (
-                    <motion.button
-                      key={opt.value}
-                      onClick={() => setStatusFilter(opt.value)}
-                      className="font-medium border-0 flex items-center"
-                      style={{
-                        ...(isActive
-                          ? { background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', color: 'white', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }
-                          : { ...glassCard, color: COLORS.gray[600] }),
-                        borderRadius: RADIUS.pill,
-                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                        fontSize: TYPE.meta,
-                        cursor: 'pointer',
-                        gap: 4,
-                      }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {opt.label}
-                      {count > 0 && (
-                        <span style={{ fontSize: 10, fontWeight: 700, minWidth: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.pill, backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(16, 185, 129, 0.12)', color: isActive ? 'white' : '#059669', padding: '0 4px' }}>
-                          {count}
-                        </span>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
+        {/* ── Filters: Priority + Status ────────────────────── */}
+        <motion.div variants={fadeInUp} className="flex flex-wrap items-center" style={{ gap: GRID.spacing.md }}>
+          <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+            <span className="text-gray-400 font-medium" style={{ fontSize: TYPE.caption }}>Priority</span>
+            <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+              {PRIORITY_OPTIONS.map((opt) => {
+                const isActive = priorityFilter === opt.value;
+                const count = priorityCounts[opt.value];
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setPriorityFilter(opt.value)}
+                    className={`flex items-center gap-1.5 font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                    style={{ borderRadius: RADIUS.button, padding: '6px 14px', fontSize: TYPE.meta, cursor: 'pointer', fontWeight: isActive ? 600 : 500 }}
+                  >
+                    {opt.label}
+                    {count > 0 && (
+                      <span className={`h-5 px-1.5 text-[10px] inline-flex items-center justify-center ${isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-black/5 text-gray-500'}`} style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 16 }}>{count}</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Sort toggle */}
-          <div className="flex items-center" style={{ gap: 4 }}>
-            <ArrowUpDown className="text-gray-400" style={{ width: 13, height: 13 }} />
+          <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+            <span className="text-gray-400 font-medium" style={{ fontSize: TYPE.caption }}>Status</span>
+            <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+              {STATUS_OPTIONS.map((opt) => {
+                const isActive = statusFilter === opt.value;
+                const count = statusCounts[opt.value];
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setStatusFilter(opt.value)}
+                    className={`flex items-center gap-1.5 font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                    style={{ borderRadius: RADIUS.button, padding: '6px 14px', fontSize: TYPE.meta, cursor: 'pointer', fontWeight: isActive ? 600 : 500 }}
+                  >
+                    {opt.label}
+                    {count > 0 && (
+                      <span className={`h-5 px-1.5 text-[10px] inline-flex items-center justify-center ${isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-black/5 text-gray-500'}`} style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 16 }}>{count}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Sort ─────────────────────────────────────────── */}
+        <motion.div variants={fadeInUp} className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+          <ArrowUpDown className="text-gray-400" style={{ width: 14, height: 14 }} />
+          <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
             {SORT_OPTIONS.map(({ value, label }) => (
-              <motion.button
+              <button
                 key={value}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
                 onClick={() => setSortBy(value)}
-                className="font-medium"
-                style={{
-                  fontSize: TYPE.micro,
-                  padding: '4px 10px',
-                  borderRadius: RADIUS.pill,
-                  border: 'none',
-                  background: sortBy === value ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)' : 'transparent',
-                  color: sortBy === value ? 'white' : COLORS.gray[500],
-                  cursor: 'pointer',
-                }}
+                className={`font-medium border-0 transition-all ${sortBy === value ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                style={{ fontSize: TYPE.meta, padding: '6px 14px', borderRadius: RADIUS.button, cursor: 'pointer', fontWeight: sortBy === value ? 600 : 500 }}
               >
                 {label}
-              </motion.button>
+              </button>
             ))}
           </div>
         </motion.div>

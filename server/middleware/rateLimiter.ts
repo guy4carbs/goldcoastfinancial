@@ -136,6 +136,37 @@ export const contactFormLimiter = rateLimit({
   validate: { xForwardedForHeader: false },
 });
 
+/**
+ * Referral form rate limiter
+ * 5 submissions per hour per IP
+ */
+export const referralFormLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: 'Too many referral submissions. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitResponse('Too many referral submissions. Please try again later.'),
+  skip: (req) => process.env.NODE_ENV === 'test',
+  validate: { xForwardedForHeader: false },
+});
+
+/**
+ * Website email sharing rate limiter
+ * 10 emails per hour per user session
+ */
+export const websiteEmailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  message: 'Too many website emails sent. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.session?.userId || req.ip || 'anonymous',
+  handler: createRateLimitResponse('Too many website emails sent. Please try again later.'),
+  skip: (req) => process.env.NODE_ENV === 'test',
+  validate: { xForwardedForHeader: false, keyGeneratorIpFallback: false },
+});
+
 export default {
   loginLimiter,
   registrationLimiter,
@@ -145,4 +176,6 @@ export default {
   generalApiLimiter,
   sensitiveOperationLimiter,
   contactFormLimiter,
+  referralFormLimiter,
+  websiteEmailLimiter,
 };

@@ -31,6 +31,7 @@ import {
   HelpCircle,
   Leaf,
   Sparkles,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -108,6 +109,15 @@ const lounges: LoungeItem[] = [
     href: "/manager/dashboard",
     gradient: "from-emerald-500 to-emerald-700",
     description: "Team oversight",
+    requiredRoles: ['owner', 'system_admin', 'manager'],
+  },
+  {
+    id: 'director',
+    icon: Building2,
+    label: "Director Lounge",
+    href: "/manager/director",
+    gradient: "from-blue-700 to-slate-900",
+    description: "Multi-team oversight",
     requiredRoles: ['owner', 'system_admin', 'manager'],
   },
   {

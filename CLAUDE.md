@@ -1,12 +1,163 @@
-# GCF — Insurance OS Agent Governance
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Rules
+
+ALWAYS before making any change: Search on the web for the newest documentation. And only implement if you are 100% sure it will work.
 
 ## Project
+
 - **Name:** Gold Coast Financial (GCF) — Heritage Life Solutions
-- **Location:** `/Users/guy4carbs/gcf/`
 - **Production:** heritagels.org
 - **Deployment:** Railway.app
+- **Stack:** React 19 + Vite + Tailwind v4 + shadcn/ui | Express 4 + Drizzle ORM + PostgreSQL (Neon)
+
+## Scripts
+
+```bash
+npm run dev          # Express dev server (port 4500) — serves API + Vite client
+npm run dev:client   # Vite-only client dev server (port 5173)
+npm run build        # Production build (esbuild server → dist/index.cjs + Vite client)
+npm run start        # Production start (node dist/index.cjs)
+npm run check        # TypeScript type checking (tsc --noEmit)
+npm run db:push      # Drizzle schema push to database
+```
+
+No test framework is configured. There are no unit tests.
+
+## Architecture
+
+### Monorepo Layout
+
+```
+client/     → React 19 frontend (Vite, Tailwind v4, shadcn/ui)
+server/     → Express 4 backend
+shared/     → Drizzle ORM schema + Zod validators (shared between client and server)
+```
+
+**Path aliases:** `@/*` → `client/src/*`, `@shared/*` → `shared/*` (configured in tsconfig.json)
+
+### Backend: Request Flow
+
+1. `server/index.ts` — Entry point: Express app, HTTP server, middleware stack, WebSocket setup, agent system bootstrap
+2. `server/routes.ts` — **Monolith route file** (~3,400 lines): session setup, `attachUser` middleware, core auth/portal/analytics routes, then mounts 25+ sub-routers
+3. `server/routes/*.ts` — Modular routers (each exports default Express Router)
+
+**Route registration pattern** (in `registerRoutes()` inside `server/routes.ts`):
+- Core routes: defined inline (auth, quotes, contact, portal, training, analytics, search)
+- Sub-routers: imported and mounted via `app.use("/api/path", router)` at ~line 2554+
+- Agent system routes: `app.use('/api', createAgentRoutes(agentRegistry))` at end of file
+
+**Key sub-routers:**
+| Mount Path | Router File | Purpose |
+|------------|------------|---------|
+| `/api/crm` | `routes/crm.ts` | CRM pipeline, leads, deal stages |
+| `/api/agent-clients` | `routes/agent-clients.ts` | Agent client management |
+| `/api/client-portal` | `routes/client-portal.ts` | Client portal actions (claims, etc.) |
+| `/api/client-chat` | `routes/client-chat.ts` | Agent-client messaging |
+| `/api/hierarchy` | `routes/hierarchy.ts` | Commission hierarchy/overrides |
+| `/api/automations` | `routes/automations.ts` | Automation engine rules |
+| `/api/onboarding` | `routes/onboarding.ts` | Agent onboarding flow |
+
+### Backend: Auth System
+
+- **Session:** Express-session with `connect-pg-simple` PostgreSQL store, 7-day cookie
+- **Middleware chain:** `attachUser` (populates `req.user` on all requests, non-blocking) → `requireAuth` (blocks if no session) → `requireRole(...)` / `requirePermission(...)` for RBAC
+- **Type:** `AuthenticatedUser` interface on `req.user` (`server/middleware/auth.ts`)
+- **Roles** (hierarchy order): `owner > system_admin > manager > sales_agent > marketing_staff > client > investor` (`server/types/permissions.ts`)
+- **Granular permissions:** `Permission` enum with `leads:view:own`, `leads:view:all`, etc. — checked via `requirePermission()`
+- **2FA:** TOTP via speakeasy with `require2FA()` middleware
+
+### Backend: Data Access Layer
+
+**`server/storage.ts`** defines `IStorage` interface (~400+ methods) implemented by `DatabaseStorage` class. Singleton exported as `storage`.
+
+Pattern for all data access:
+```typescript
+import { storage } from "./storage";
+const user = await storage.getUserById(id);
+const policies = await storage.getPoliciesByUserId(userId);
+```
+
+Uses Drizzle ORM (`db` from `server/db.ts`) for typed queries and raw `pool.query()` for complex SQL. Both `db` and `pool` are exported from `server/db.ts`.
+
+### Backend: Database Schema
+
+- **Schema location:** `shared/schema.ts` re-exports all models from `shared/models/*.ts`
+- **Pattern:** Each model file uses `pgTable()` + `createInsertSchema()` (drizzle-zod) + `$inferSelect` / `$inferInsert` type exports
+- **Drizzle config:** `drizzle.config.ts` — output to `./migrations/`, schema from `./shared/schema.ts`
+- **DB init:** `server/db.ts` also has `initializeDatabase()` which creates tables via raw SQL `CREATE TABLE IF NOT EXISTS` (runs at startup)
+
+**Column naming convention:** Drizzle schema uses `snake_case` in DB (`first_name`, `created_at`) but Drizzle auto-maps to camelCase in TypeScript. When using raw `pool.query()`, results come back in snake_case and must be manually normalized for the frontend.
+
+### Frontend: Routing & Data Fetching
+
+- **Router:** Wouter (lightweight, not React Router). Routes defined in `client/src/App.tsx` with `<Switch>` / `<Route>`
+- **Data fetching:** TanStack Query v5 via `client/src/lib/queryClient.ts`
+  - **Default queryFn** uses `queryKey` as the URL: `useQuery({ queryKey: ['/api/some-path'] })` automatically fetches that URL
+  - `staleTime: Infinity`, `retry: false`, no auto-refetch — data is cached until manual invalidation
+  - **`apiRequest(method, url, data?)`** — helper for mutations (POST/PUT/DELETE) with `credentials: "include"`
+  - **401 handling:** configurable via `getQueryFn({ on401: "throw" | "returnNull" })`
+
+### Frontend: Design System
+
+**`client/src/lib/heritageDesignSystem.ts`** — All design tokens:
+- `GRID` — 8-point modular grid spacing (xs=8 through section=96)
+- `TYPE` — Typography scale (micro=11 to display=40)
+- `RADIUS` — Corner radius (input=12, button=16, card=24, hero=32, pill=999)
+- `SHADOW` — Elevation-based shadows
+- `MOTION` — Spring physics animation config, `fadeInUp`, `staggerContainer`, `scaleIn` variants
+- `COLORS` — Heritage palette tokens
+
+Components use shadcn/ui (Radix primitives) + Tailwind v4 + Framer Motion.
+
+### Frontend: Portal Layouts
+
+Each portal has a layout wrapper component with sidebar navigation:
+- `AgentLoungeLayout` — Agent portal (command center, clients, outreach, growth)
+- `ClientLoungeLayout` — Client portal (dashboard, policies, documents, billing)
+- `HeritageLayout` / `LoungeLayout` — CRM and manager portals
+
+### WebSocket Channels
+
+4 separate WebSocket servers on the same HTTP server:
+- `/ws/chat` — Team chat (agent-to-agent)
+- `/ws/client-chat` — Agent-client messaging
+- `/ws/gcf` — Real-time events with RBAC channels
+- `/ws/avatars` — Avatar Council (AI debate system)
+
+### AI Agent System
+
+- **37 business agents** organized in tiers 0-10 (`server/agents/`)
+- **17 governance agents** (tier 11-12) — the swarm defined below
+- Bootstrap via `bootstrapAgentSystem()` in `server/agents/index.ts`
+- Inter-agent communication via EventBus
+- Routes exposed via `createAgentRoutes(agentRegistry)`
+
+### Key Pipelines
+
+**Lead-to-Client Conversion** (`server/services/leadConversionService.ts`):
+When a lead reaches "placed" stage in CRM pipeline → `convertLeadToClient()` auto-creates: client user account (random password + hashed invite token) → policy stub → chat conversation → welcome notifications → welcome email. Idempotency guard via `lead.convertedUserId`.
+
+**S3 Document Upload** (`server/services/s3Service.ts`):
+multer memoryStorage → `s3Service.validateFile()` → `s3Service.uploadFile()` → `storage.createDocument()` with `s3Key`. Downloads via `s3Service.getSignedDownloadUrl()`.
+
+### External Integrations
+
+All managed via `server/services/` and integration bridges:
+- Gmail API (`server/gmail.ts`) — transactional email
+- Google Calendar (`server/googleCalendar.ts`) — appointment sync
+- Google Sheets (`server/sheets.ts`) — lead export
+- Twilio/SMS (`server/services/smsService.ts`)
+- AWS S3 (`server/services/s3Service.ts`) — document storage
+- Apple Push Notifications (`@parse/node-apn`)
+- Sentry (`server/services/errorTracking.ts`) — error tracking
+
+---
 
 ## Default Workflow
+
 ALWAYS use the 17-agent governed swarm for ALL work on this project. No task should be executed without routing through the appropriate agent(s). When in doubt, start with Atlas.
 
 ## Agent Swarm
@@ -35,15 +186,10 @@ ALWAYS use the 17-agent governed swarm for ALL work on this project. No task sho
 
 ## Communication Protocol
 
-### 1. Task Intake
-Every task enters through **Atlas**. Atlas:
-- Decomposes the task into subtasks
-- Assigns each subtask to the owning agent
-- Defines acceptance criteria
-- Identifies cross-domain dependencies
+### Task Intake
+Every task enters through **Atlas**. Atlas decomposes into subtasks, assigns to owning agents, defines acceptance criteria, identifies cross-domain dependencies.
 
-### 2. Agent-to-Agent Handoff Format
-When one agent needs another agent's involvement, use this format:
+### Agent-to-Agent Handoff Format
 ```
 HANDOFF → [Target Agent]
 From: [Source Agent]
@@ -52,8 +198,7 @@ Context: [Why it's needed]
 Blocked until: [What must happen before continuing]
 ```
 
-### 3. Cross-Domain Change Chains
-These chains are mandatory. No skipping steps.
+### Cross-Domain Change Chains
 
 | Change Type | Chain |
 |-------------|-------|
@@ -70,8 +215,7 @@ These chains are mandatory. No skipping steps.
 | New Dependency | Scribe (research) → Atlas (approval) → Scout (install + pin) → Sentinel (vuln scan) → Gauge (validation) |
 | Dependency Upgrade | Scout → Sentinel → Gauge → (if major version: Atlas) |
 
-### 4. Veto Authorities
-These agents can BLOCK progress in their domain:
+### Veto Authorities
 - **Sentinel** — blocks release for security risks
 - **Ledger** — blocks changes to compensation logic
 - **Helix** — blocks compliance bypass attempts
@@ -79,7 +223,7 @@ These agents can BLOCK progress in their domain:
 
 Veto resolution: Atlas must formally resolve the finding.
 
-### 5. Handoff Rules
+### Handoff Rules
 - Atlas is the only agent allowed to change requirements or core architecture.
 - Scout is the only agent allowed to introduce or install new external packages, SDKs, UI kits, or MCPs.
 - Nova never changes the database schema.
@@ -90,13 +234,10 @@ Veto resolution: Atlas must formally resolve the finding.
 - Helix can halt release if regulatory or compliance risk exists.
 - Anchor controls deployment environments and production infrastructure changes.
 - Conduit is the only agent allowed to build or modify third-party API integrations.
-- No dependency may be upgraded in production without Scout, Sentinel, and Gauge approval.
-- No UI kit may be introduced without confirming compatibility with Nova's design system.
-- No SDK may be introduced without confirming API contract compatibility with Forge.
 - Axiom reviews all new pages, dashboard designs, navigation changes, onboarding flows, and feature additions before Nova finalizes UI.
 - Axiom cannot change backend logic (Forge), data models (Vector), architecture (Atlas), or install packages (Scout).
 
-### 6. Conflict Resolution Order
+### Conflict Resolution Order
 1. Domain owners attempt resolution
 2. If cross-domain → Atlas arbitrates
 3. If security risk → Sentinel veto
@@ -110,88 +251,39 @@ Veto resolution: Atlas must formally resolve the finding.
 ### Frontend (Nova)
 - `client/` — All React components, pages, hooks, styles
 - Cannot modify: `shared/models/`, `server/`, `migrations/`
-- Must follow: API contracts from Forge, data structures from Vector, flows from Lumen
 
 ### Backend (Forge)
 - `server/routes/`, `server/services/`, `server/storage.ts`
-- Cannot modify: `client/`, schema without Vector, financial math without Ledger, compliance without Helix
+- Cannot modify: `client/`, schema without Vector, financial math without Ledger
 
 ### Schema (Vector)
 - `shared/models/`, `migrations/`, `drizzle.config.ts`
-- All schema changes require: Atlas approval + Sentinel review + Gauge regression
 
 ### AI (Oracle)
-- `server/agents/`, `server/services/llmService.ts`, `server/services/personaRegistry.ts`
-- `server/services/debateEngine.ts`, `server/services/avatarRegistry.ts`
-- `server/services/orchestrationEngine.ts`, `server/websocket-avatars.ts`
+- `server/agents/`, `server/services/llmService.ts`, `server/services/debateEngine.ts`, `server/services/avatarRegistry.ts`, `server/services/orchestrationEngine.ts`
 
 ### Automation (Relay)
 - `server/services/automation-engine.ts`, `server/services/workflow-engine.ts`
-- `server/services/jobQueue.ts`, `server/services/autoRouter.ts`
 
 ### Infrastructure (Anchor)
-- `railway.json`, `.env`, `script/build.ts`, deployment configs
-- `certs/`, environment variables
-
-### Analytics (Prism)
-- Dashboard pages in `client/src/pages/`
-- Aggregation logic, KPI definitions
+- `railway.json`, `.env`, `script/build.ts`
 
 ### Financial (Ledger)
 - Commission tables in `shared/models/enterprise.ts`
 - Compensation logic in `server/services/` and `server/storage.ts`
 
 ### Compliance (Helix)
-- `shared/models/licenses.ts`, `shared/models/security.ts`
-- `server/routes/licenses.ts`, `server/services/auditService.ts`
+- `shared/models/licenses.ts`, `shared/models/security.ts`, `server/routes/licenses.ts`, `server/services/auditService.ts`
 
 ### Security (Sentinel)
 - Auth middleware, rate limiting, CORS, Helmet config
 - `server/services/twoFactorService.ts`, `server/services/accountLockoutService.ts`
-- `.env` secrets, permission models
-
-### Flows (Lumen)
-- User journey definitions across all portals
-- State transition logic, role-based routing
 
 ### Integrations (Conduit)
-- `server/gmail.ts`, `server/googleCalendar.ts`, `server/sheets.ts`
-- `server/services/smsService.ts`, `server/services/s3Service.ts`
-- `server/services/pushNotificationService.ts`
+- `server/gmail.ts`, `server/googleCalendar.ts`, `server/sheets.ts`, `server/services/smsService.ts`, `server/services/s3Service.ts`
 
-### External Tooling / Dependencies (Scout)
-- `package.json`, `package-lock.json` — All dependency additions, removals, and version changes
-- Cannot modify: architecture (Atlas), schema (Vector), security policy (Sentinel)
-- Must: pin exact versions (no `^`, no `~`, no `latest`), document rationale, record license type
-- All installs require: Sentinel vulnerability scan + Gauge validation before release
-- Major version upgrades require: Atlas architectural review
-- GPL/restrictive licenses require: Atlas approval
-- Unused dependencies must be flagged for quarterly removal
-- Workflow: Scribe (research) → Atlas (approve category) → Scout (install + pin + document) → Sentinel (scan) → Gauge (validate) → Nova/Forge (implement)
-
-### Research (Scribe)
-- `docs/` — All design documents and decision logs
-
-### UX Simplicity (Axiom)
-- `client/` — UX simplicity review (shared with Nova)
-- Cannot modify: `server/`, `shared/models/`, `migrations/`, `package.json`
-- Must review: All new pages, dashboard designs, navigation changes, onboarding flows, feature additions
-
----
-
-## Release Checklist
-Before ANY deployment:
-1. Atlas confirms requirement match
-2. Forge confirms backend stability
-3. Nova confirms UI integrity
-4. Axiom confirms UX simplicity clearance
-5. Vector confirms schema stability
-6. Scout confirms dependency integrity (no unpinned, no vulnerable, no unused)
-7. Sentinel clears security
-8. Gauge passes tests
-9. Anchor executes deployment
-
-If ANY block → release halts.
+### Dependencies (Scout)
+- Must pin exact versions (no `^`, no `~`, no `latest`). All installs require Sentinel vuln scan + Gauge validation.
 
 ---
 
@@ -199,45 +291,10 @@ If ANY block → release halts.
 These cannot be modified without formal multi-agent review:
 - Role hierarchy logic (Agent → Manager → Director → Executive)
 - Multi-tenant isolation
-- Commission calculations
+- Commission calculations (waterfall/spread override structure)
 - Compliance enforcement
 - Permission models
 - AI output authority
 
 ## System Integrity Rule
-No agent may:
-- Introduce silent behavior changes
-- Bypass logging
-- Skip audit trails
-- Hardcode permissions
-- Override financial math
-- Circumvent compliance flows
-- Install or upgrade external dependencies without Scout (sole authority)
-
-All changes must be traceable.
-
----
-
-## Tech Stack Reference
-- **Frontend:** React 19, Vite 7, Tailwind v4, shadcn/ui, Wouter, TanStack Query, Zustand, Framer Motion
-- **Backend:** Express 4, Drizzle ORM, PostgreSQL (Neon), BullMQ
-- **Auth:** Custom + Firebase + OAuth2 + 2FA (speakeasy)
-- **AI:** OpenAI, 37-agent tier system, Avatar Council
-- **Comms:** Twilio, Gmail API, WebSockets, Apple Push
-- **Cloud:** AWS S3, Firebase Storage
-- **Monitoring:** Sentry, audit service, observability service
-- **Plugins:** ui-ux-pro-max, frontend-design (always use for UI work)
-
-## Scripts
-- `npm run dev` — Express dev server (port 4500)
-- `npm run dev:client` — Vite dev server (port 5173)
-- `npm run build` — Production build
-- `npm run start` — Production start
-- `npm run check` — TypeScript check
-- `npm run db:push` — Drizzle schema push
-
-## Roles
-owner | system_admin | manager | sales_agent | client
-
-## Portals
-Public Site | Agent Portal | Manager Lounge | Executive Portal | CRM Lounge | Admin Panel
+No agent may: introduce silent behavior changes, bypass logging, skip audit trails, hardcode permissions, override financial math, circumvent compliance flows, or install dependencies without Scout.

@@ -262,7 +262,7 @@ export const articles = [
           <li><strong>Apply while you're healthy</strong>—rates increase with age and health changes</li>
         </ol>
         
-        <p>At Gold Coast Financial, we specialize in helping families determine exactly how much coverage they need—no more, no less. Our advisors work with top-rated carriers to find you the best rates for your situation. Contact us for a free, no-obligation coverage analysis.</p>
+        <p>At Gold Coast Financial Partners, we specialize in helping families determine exactly how much coverage they need—no more, no less. Our advisors work with top-rated carriers to find you the best rates for your situation. Contact us for a free, no-obligation coverage analysis.</p>
       `
     },
     {
@@ -478,7 +478,7 @@ export const articles = [
         </ul>
 
         <h2>Take the Next Step</h2>
-        <p>Whether you choose term, whole life, or a combination, the most important thing is getting adequate coverage in place. At Gold Coast Financial, we work with top-rated carriers offering both term and permanent products. We'll help you determine the right mix for your family's needs and budget.</p>
+        <p>Whether you choose term, whole life, or a combination, the most important thing is getting adequate coverage in place. At Gold Coast Financial Partners, we work with top-rated carriers offering both term and permanent products. We'll help you determine the right mix for your family's needs and budget.</p>
         
         <p>Ready to explore your options? Contact us for a free consultation and personalized quote comparison.</p>
       `
@@ -720,7 +720,7 @@ export const articles = [
           <li><strong>Life insurance professional:</strong> Ensures adequate coverage and proper structuring</li>
         </ul>
         
-        <p>At Gold Coast Financial, we work alongside your other advisors to ensure your life insurance strategy supports your overall estate plan. We can help with:</p>
+        <p>At Gold Coast Financial Partners, we work alongside your other advisors to ensure your life insurance strategy supports your overall estate plan. We can help with:</p>
         <ul>
           <li>Determining the right amount and type of coverage</li>
           <li>Proper beneficiary structuring</li>
@@ -967,7 +967,7 @@ export const articles = [
         <h2>Getting Started with Key Person Insurance</h2>
         <p>Protecting your business from the loss of key personnel is one of the smartest decisions you can make as a business owner. The cost is modest compared to the risk—a healthy 40-year-old can typically get $1 million in coverage for $50-100 per month.</p>
         
-        <p>At Gold Coast Financial, we specialize in business insurance solutions. We'll help you:</p>
+        <p>At Gold Coast Financial Partners, we specialize in business insurance solutions. We'll help you:</p>
         <ul>
           <li>Identify who should be covered</li>
           <li>Calculate appropriate coverage amounts</li>
@@ -1286,7 +1286,7 @@ export const articles = [
         </ul>
 
         <h2>We're Here to Help</h2>
-        <p>At Gold Coast Financial, we specialize in helping new and expecting parents protect their families. We understand that life insurance probably isn't your top priority right now—between preparing the nursery, choosing names, and actually having the baby, your plate is full.</p>
+        <p>At Gold Coast Financial Partners, we specialize in helping new and expecting parents protect their families. We understand that life insurance probably isn't your top priority right now—between preparing the nursery, choosing names, and actually having the baby, your plate is full.</p>
         
         <p>That's why we make the process as simple as possible. In one phone call, we can:</p>
         <ul>
@@ -1553,7 +1553,7 @@ export const articles = [
         
         <p>A captive agent (who works for one company) can only show you their employer's product. An <strong>independent agent</strong> can compare policies from multiple top-rated carriers to find the best fit for your situation.</p>
         
-        <p>At Gold Coast Financial, we represent multiple IUL carriers with A+ ratings or higher. We'll:</p>
+        <p>At Gold Coast Financial Partners, we represent multiple IUL carriers with A+ ratings or higher. We'll:</p>
         <ul>
           <li>Analyze whether IUL makes sense for your situation</li>
           <li>Compare policies from multiple carriers</li>
@@ -1892,7 +1892,7 @@ export const articles = [
           <li><strong>Apply</strong> while you're healthy and premiums are lowest</li>
         </ol>
         
-        <p>As an independent agency, Gold Coast Financial works with 30+ top-rated carriers to find you the best coverage at the lowest price. Our consultation is free, there's no pressure, and we're here to answer every question. Your family's protection is too important to leave to chance.</p>
+        <p>As an independent agency, Gold Coast Financial Partners works with 30+ top-rated carriers to find you the best coverage at the lowest price. Our consultation is free, there's no pressure, and we're here to answer every question. Your family's protection is too important to leave to chance.</p>
       `
     },
     {
@@ -2369,7 +2369,7 @@ export const articles = [
         <h3>Your Next Step</h3>
         <p>Now you have a precise, professionally-calculated coverage amount. The next step is getting quotes from multiple carriers to find the best rate for your specific health profile and coverage need.</p>
         
-        <p>As an independent agency working with 30+ top-rated carriers, Gold Coast Financial can compare options across the market to find you the best coverage at the lowest price. Our consultation is complimentary, and there's no obligation—just clear answers to help you protect your family.</p>
+        <p>As an independent agency working with 30+ top-rated carriers, Gold Coast Financial Partners can compare options across the market to find you the best coverage at the lowest price. Our consultation is complimentary, and there's no obligation—just clear answers to help you protect your family.</p>
       `
     },
     {

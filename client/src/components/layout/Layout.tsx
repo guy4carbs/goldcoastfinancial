@@ -226,8 +226,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="border-t border-primary-foreground/10 pt-8 text-center text-xs text-primary-foreground/70">
-            <p className="mb-2">Gold Coast Financial Group is an independent agency and not affiliated with any specific insurance carrier.</p>
-            <p>&copy; {new Date().getFullYear()} Gold Coast Financial Group. All rights reserved. | <Link href="/privacy" className="hover:text-white cursor-pointer">Privacy Policy</Link></p>
+            <p className="mb-2">Gold Coast Financial Partners is an independent agency and not affiliated with any specific insurance carrier.</p>
+            <p>&copy; {new Date().getFullYear()} Gold Coast Financial Partners. All rights reserved. | <Link href="/privacy" className="hover:text-white cursor-pointer">Privacy Policy</Link></p>
           </div>
         </div>
       </footer>

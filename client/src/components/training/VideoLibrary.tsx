@@ -44,7 +44,7 @@ const PLACEHOLDER_VIDEOS: TrainingVideo[] = [
     id: "vid-ceo-welcome",
     title: "CEO Welcome Message",
     description:
-      "A personal welcome from our CEO covering Gold Coast Financial's mission, values, and what makes us different. Sets the foundation for your journey as an advisor.",
+      "A personal welcome from our CEO covering Gold Coast Financial Partners's mission, values, and what makes us different. Sets the foundation for your journey as an advisor.",
     duration: 240, // 4 minutes
     thumbnailUrl: "/images/placeholder-video-ceo.jpg",
     videoUrl: "",

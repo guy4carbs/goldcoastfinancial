@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 /**
- * Institutional Layout for Gold Coast Financial Holdings
+ * Institutional Layout for Gold Coast Financial Partners Holdings
  *
  * Design Philosophy:
  * - Goldman Sachs / Berkshire Hathaway style
@@ -167,7 +167,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
           <div className="border-t border-border/40 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-xs text-muted-foreground">
-                &copy; {new Date().getFullYear()} Gold Coast Financial Holdings. All rights reserved.
+                &copy; {new Date().getFullYear()} Gold Coast Financial Partners Holdings. All rights reserved.
               </p>
               <p className="text-xs text-muted-foreground">
                 Naperville, Illinois

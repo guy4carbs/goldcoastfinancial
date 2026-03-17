@@ -359,7 +359,7 @@ export function CertificateGenerator({
             {/* Header */}
             <div>
               <p className="text-violet-500 text-sm font-medium tracking-widest uppercase">
-                Gold Coast Financial
+                Gold Coast Financial Partners
               </p>
               <h2 className="text-3xl font-serif mt-2">Certificate of Completion</h2>
             </div>
@@ -575,7 +575,7 @@ export function TrainingTranscript({
         {/* Footer */}
         <div className="mt-6 pt-4 border-t text-center">
           <p className="text-xs text-gray-400">
-            Generated on {new Date().toLocaleDateString()} • Gold Coast Financial Training System
+            Generated on {new Date().toLocaleDateString()} • Gold Coast Financial Partners Training System
           </p>
         </div>
       </CardContent>

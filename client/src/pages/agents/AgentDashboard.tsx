@@ -51,7 +51,7 @@ import {
   Mail,
   User,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatProductLabel } from "@/lib/utils";
 
 // Generate upcoming events relative to today so they never go stale
 function getUpcomingEvents() {
@@ -613,7 +613,7 @@ export default function AgentDashboard() {
                                 </div>
                                 <div>
                                   <p className="font-semibold text-sm text-gray-900">{lead.name}</p>
-                                  <p className="text-[10px] text-gray-500">{lead.product} · {lead.state}</p>
+                                  <p className="text-[10px] text-gray-500">{formatProductLabel(lead.product)} · {lead.state}</p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1">

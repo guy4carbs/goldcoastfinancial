@@ -29,3 +29,4 @@ export { ManagerGoals } from './ManagerGoals';
 export { ManagerOnboardingTracker } from './ManagerOnboardingTracker';
 export { ManagerClientHealth } from './ManagerClientHealth';
 export { default as ManagerGuide } from './ManagerGuide';
+export { ManagerLeadDistribution } from './ManagerLeadDistribution';

@@ -197,9 +197,9 @@ export const INSTITUTIONAL_MODULES: TrainingModuleData[] = [
   {
     id: 'mod-welcome',
     code: 'GCF-001',
-    title: 'Welcome to Gold Coast Financial',
+    title: 'Welcome to Gold Coast Financial Partners',
     subtitle: 'Your Journey Begins Here',
-    description: 'Introduction to Gold Coast Financial, our mission, and what to expect in your first days. This orientation sets the foundation for your career with us.',
+    description: 'Introduction to Gold Coast Financial Partners, our mission, and what to expect in your first days. This orientation sets the foundation for your career with us.',
     category: 'onboarding',
     type: 'reading',
     certificationLevel: 'pre_access',
@@ -207,14 +207,14 @@ export const INSTITUTIONAL_MODULES: TrainingModuleData[] = [
     sections: [
       {
         id: 'sec-welcome-1',
-        title: 'About Gold Coast Financial',
+        title: 'About Gold Coast Financial Partners',
         duration: 4,
         videoPlaceholder: 'VIDEO: CEO Welcome Message',
-        content: `Welcome to Gold Coast Financial. We are pleased you have chosen to begin your career with an organization that takes professional standards seriously.
+        content: `Welcome to Gold Coast Financial Partners. We are pleased you have chosen to begin your career with an organization that takes professional standards seriously.
 
 WHAT WE DO:
 
-Gold Coast Financial is a national insurance marketing organization (IMO) specializing in life insurance and annuity products for middle-market American families. We partner with top-rated insurance carriers to provide our clients access to products that protect their financial futures.
+Gold Coast Financial Partners is a national insurance marketing organization (IMO) specializing in life insurance and annuity products for middle-market American families. We partner with top-rated insurance carriers to provide our clients access to products that protect their financial futures.
 
 OUR MISSION:
 
@@ -222,7 +222,7 @@ To provide education-first financial guidance that helps families make informed 
 
 OUR HISTORY:
 
-Founded with a commitment to doing things differently, Gold Coast Financial was built on the belief that the insurance industry needed organizations that prioritized client education over sales pressure. We have grown to become one of the most respected IMOs in the nation by adhering to this philosophy.
+Founded with a commitment to doing things differently, Gold Coast Financial Partners was built on the belief that the insurance industry needed organizations that prioritized client education over sales pressure. We have grown to become one of the most respected IMOs in the nation by adhering to this philosophy.
 
 WHAT MAKES US DIFFERENT:
 
@@ -242,7 +242,7 @@ WHAT MAKES US DIFFERENT:
         id: 'sec-welcome-2',
         title: 'Your First Week',
         duration: 3,
-        content: `Your first week at Gold Coast Financial is designed to give you a solid foundation before any client contact.
+        content: `Your first week at Gold Coast Financial Partners is designed to give you a solid foundation before any client contact.
 
 DAY 1-2: ORIENTATION & ACCESS
 • Complete HR paperwork and benefits enrollment
@@ -282,7 +282,7 @@ YOUR SUPPORT SYSTEM:
         id: 'sec-welcome-3',
         title: 'Culture & Expectations',
         duration: 3,
-        content: `Understanding our culture will help you succeed at Gold Coast Financial.
+        content: `Understanding our culture will help you succeed at Gold Coast Financial Partners.
 
 WHAT WE VALUE:
 
@@ -304,7 +304,7 @@ WHAT WE EXPECT:
 • Follow established processes without shortcuts
 • Document everything within required timeframes
 • Report concerns through proper channels
-• Represent the Gold Coast Financial brand professionally
+• Represent the Gold Coast Financial Partners brand professionally
 • Treat clients, colleagues, and carriers with respect
 
 WHAT YOU CAN EXPECT FROM US:
@@ -323,7 +323,7 @@ WHAT YOU CAN EXPECT FROM US:
       }
     ],
     learningObjectives: [
-      'Understand Gold Coast Financial mission and values',
+      'Understand Gold Coast Financial Partners mission and values',
       'Know what to expect in your first week',
       'Recognize cultural expectations and values',
       'Identify your support resources'
@@ -369,7 +369,7 @@ RESIDENT VS. NON-RESIDENT:
 • Resident License: Your home state license, required first
 • Non-Resident License: Licenses in other states where you wish to sell
 
-Gold Coast Financial primarily operates in [specific states]. You will be licensed in your resident state plus any additional states as business needs dictate.
+Gold Coast Financial Partners primarily operates in [specific states]. You will be licensed in your resident state plus any additional states as business needs dictate.
 
 CONTINUING EDUCATION:
 
@@ -387,7 +387,7 @@ If your license lapses:
 • You must complete reinstatement requirements
 • Extended lapses may require re-examination
 
-Gold Coast Financial tracks your CE requirements and will notify you of upcoming deadlines. However, YOU are ultimately responsible for your license status.`,
+Gold Coast Financial Partners tracks your CE requirements and will notify you of upcoming deadlines. However, YOU are ultimately responsible for your license status.`,
         keyPoints: [
           'License required in each state where you sell',
           'Continuing education required to maintain license',
@@ -430,15 +430,15 @@ Carriers can terminate appointments for:
 • E&O insurance lapse
 • License lapse
 
-Losing carrier appointments affects your ability to place business and may result in termination from Gold Coast Financial if the cause was compliance-related.
+Losing carrier appointments affects your ability to place business and may result in termination from Gold Coast Financial Partners if the cause was compliance-related.
 
 E&O INSURANCE:
 
 Errors & Omissions insurance protects you from claims of professional negligence:
 • Required by most carriers
-• Required by Gold Coast Financial
+• Required by Gold Coast Financial Partners
 • Must maintain continuous coverage
-• Gold Coast Financial provides group E&O coverage`,
+• Gold Coast Financial Partners provides group E&O coverage`,
         keyPoints: [
           'License + appointment required to sell any product',
           'Appointments require contracting and may require training',
@@ -460,7 +460,7 @@ REQUIRED SYSTEMS:
    • Do NOT use personal systems for client data
 
 2. Email
-   • Use only your Gold Coast Financial email for business
+   • Use only your Gold Coast Financial Partners email for business
    • Personal email may NOT be used for client communications
    • All emails are retained for compliance
 
@@ -529,7 +529,7 @@ COMPENSATION UNDERSTANDING:
     code: 'GCF-003',
     title: 'Using the Agent Portal',
     subtitle: 'Your Digital Workspace',
-    description: 'Complete guide to the Gold Coast Financial Agent Portal, including navigation, key features, and daily workflows.',
+    description: 'Complete guide to the Gold Coast Financial Partners Agent Portal, including navigation, key features, and daily workflows.',
     category: 'onboarding',
     type: 'interactive',
     certificationLevel: 'pre_access',
@@ -540,12 +540,12 @@ COMPENSATION UNDERSTANDING:
         title: 'Portal Overview',
         duration: 4,
         videoPlaceholder: 'VIDEO: Agent Portal Tour',
-        content: `The Agent Portal is your central hub for all Gold Coast Financial activities.
+        content: `The Agent Portal is your central hub for all Gold Coast Financial Partners activities.
 
 ACCESSING THE PORTAL:
 
 • URL: portal.goldcoastfnl.com
-• Login: Your Gold Coast Financial email
+• Login: Your Gold Coast Financial Partners email
 • Password: Set during onboarding (change regularly)
 • Two-factor authentication required
 
@@ -744,9 +744,9 @@ Download completion certificates from:
   {
     id: 'mod-role',
     code: 'GCF-101',
-    title: 'Role of a Gold Coast Financial Advisor',
+    title: 'Role of a Gold Coast Financial Partners Advisor',
     subtitle: 'Understanding Your Institutional Responsibility',
-    description: 'Defines the professional identity, ethical obligations, and institutional expectations of a Gold Coast Financial Advisor. This is not a motivational overview—it is a binding professional standard.',
+    description: 'Defines the professional identity, ethical obligations, and institutional expectations of a Gold Coast Financial Partners Advisor. This is not a motivational overview—it is a binding professional standard.',
     category: 'doctrine',
     type: 'reading',
     certificationLevel: 'pre_access',
@@ -757,9 +757,9 @@ Download completion certificates from:
         id: 'sec-role-1',
         title: 'Institutional Identity',
         duration: 10,
-        content: `As a Gold Coast Financial Advisor, you are not a salesperson. You are not a closer. You are not working for yourself.
+        content: `As a Gold Coast Financial Partners Advisor, you are not a salesperson. You are not a closer. You are not working for yourself.
 
-You are a licensed fiduciary-in-practice representing a regulated financial institution. Every interaction you have, every recommendation you make, and every document you sign reflects on Gold Coast Financial's license, reputation, and regulatory standing.
+You are a licensed fiduciary-in-practice representing a regulated financial institution. Every interaction you have, every recommendation you make, and every document you sign reflects on Gold Coast Financial Partners's license, reputation, and regulatory standing.
 
 This means:
 • Your personal sales goals are secondary to client suitability
@@ -767,7 +767,7 @@ This means:
 • Your compliance with institutional standards is non-negotiable
 • Your behavior is subject to audit, review, and enforcement at any time
 
-Gold Coast Financial operates under the supervision of state insurance departments in every jurisdiction where we conduct business. A single compliance failure by a single advisor can result in:
+Gold Coast Financial Partners operates under the supervision of state insurance departments in every jurisdiction where we conduct business. A single compliance failure by a single advisor can result in:
 • Regulatory investigation of the entire organization
 • Carrier contract termination affecting all advisors
 • Financial penalties in the millions of dollars
@@ -789,7 +789,7 @@ You are not an independent contractor in spirit—even if your tax status says o
         id: 'sec-role-2',
         title: 'Professional Obligations',
         duration: 15,
-        content: `Your professional obligations as a Gold Coast Financial Advisor include, but are not limited to:
+        content: `Your professional obligations as a Gold Coast Financial Partners Advisor include, but are not limited to:
 
 1. SUITABILITY DETERMINATION
 Every recommendation must be demonstrably suitable for the specific client based on documented needs analysis. "They agreed to buy it" is not suitability. You must be able to articulate WHY the product is appropriate for THIS client's situation.
@@ -804,7 +804,7 @@ If it isn't documented, it didn't happen. Every client interaction, needs analys
 Your license requires ongoing education. Your employment requires ongoing certification. Letting either lapse results in immediate suspension of client contact privileges.
 
 5. ESCALATION OF CONCERNS
-If you observe potential compliance violations—by yourself, peers, or leadership—you are obligated to report. Gold Coast Financial maintains anonymous reporting channels and prohibits retaliation. Failure to report known violations is itself a violation.
+If you observe potential compliance violations—by yourself, peers, or leadership—you are obligated to report. Gold Coast Financial Partners maintains anonymous reporting channels and prohibits retaliation. Failure to report known violations is itself a violation.
 
 6. PROFESSIONAL CONDUCT
 • No disparagement of competitors
@@ -823,7 +823,7 @@ If you observe potential compliance violations—by yourself, peers, or leadersh
         id: 'sec-role-3',
         title: 'What We Are NOT',
         duration: 10,
-        content: `To be clear about what Gold Coast Financial is NOT:
+        content: `To be clear about what Gold Coast Financial Partners is NOT:
 
 WE ARE NOT A SALES ORGANIZATION
 We do not have "sales meetings." We have advisor development sessions. We do not celebrate "closes." We recognize proper client service. We do not track "dials." We measure client engagement quality.
@@ -838,7 +838,7 @@ WE ARE NOT A STARTUP
 We operate with the processes, controls, and oversight of a regulated financial institution. We have compliance officers, not "culture managers." We have documentation requirements, not "suggested best practices." We have enforcement mechanisms, not "feedback loops."
 
 WE ARE NOT YOUR PERSONAL PLATFORM
-You may not use Gold Coast Financial resources, client lists, or brand recognition to build a personal following, promote side businesses, or establish yourself as an independent "thought leader" in ways that conflict with institutional messaging.`,
+You may not use Gold Coast Financial Partners resources, client lists, or brand recognition to build a personal following, promote side businesses, or establish yourself as an independent "thought leader" in ways that conflict with institutional messaging.`,
         keyPoints: [
           'This is not a sales organization—it is a regulated institution',
           'Commission maximization is grounds for termination',
@@ -850,7 +850,7 @@ You may not use Gold Coast Financial resources, client lists, or brand recogniti
         id: 'sec-role-4',
         title: 'Accountability Structure',
         duration: 10,
-        content: `Gold Coast Financial maintains a clear accountability structure:
+        content: `Gold Coast Financial Partners maintains a clear accountability structure:
 
 REPORTING LINES
 • All advisors report to a licensed supervising manager
@@ -887,7 +887,7 @@ If you make a genuine mistake and self-report, remediation is designed to correc
     ],
     learningObjectives: [
       'Understand institutional identity and professional obligations',
-      'Recognize what Gold Coast Financial is NOT',
+      'Recognize what Gold Coast Financial Partners is NOT',
       'Identify accountability structure and enforcement mechanisms',
       'Acknowledge personal responsibility within institutional framework'
     ],
@@ -910,7 +910,7 @@ If you make a genuine mistake and self-report, remediation is designed to correc
     code: 'GCF-102',
     title: 'Education-First Advisory Philosophy',
     subtitle: 'The Foundation of Sustainable Client Relationships',
-    description: 'Establishes the education-first methodology that distinguishes Gold Coast Financial from transactional sales organizations. This philosophy is not optional—it is the operational standard.',
+    description: 'Establishes the education-first methodology that distinguishes Gold Coast Financial Partners from transactional sales organizations. This philosophy is not optional—it is the operational standard.',
     category: 'doctrine',
     type: 'reading',
     certificationLevel: 'pre_access',
@@ -960,7 +960,7 @@ Policies sold through education have dramatically higher persistency (staying in
         duration: 10,
         content: `Traditional sales training teaches "objection handling"—techniques to overcome client resistance and close the sale.
 
-Gold Coast Financial teaches education—ensuring clients have the information they need to make informed decisions.
+Gold Coast Financial Partners teaches education—ensuring clients have the information they need to make informed decisions.
 
 THE DIFFERENCE:
 
@@ -1017,7 +1017,7 @@ Unusual payment methods, inconsistent information, requests to misrepresent heal
 
 WHAT HAPPENS WHEN YOU DECLINE A SALE:
 
-You document the reason. You are protected. Gold Coast Financial will never discipline an advisor for declining a sale due to suitability, affordability, comprehension, or compliance concerns.
+You document the reason. You are protected. Gold Coast Financial Partners will never discipline an advisor for declining a sale due to suitability, affordability, comprehension, or compliance concerns.
 
 You WILL be disciplined for proceeding with a sale that should not have happened.`,
         keyPoints: [
@@ -1031,7 +1031,7 @@ You WILL be disciplined for proceeding with a sale that should not have happened
         id: 'sec-phil-4',
         title: 'Measuring Success Correctly',
         duration: 10,
-        content: `Gold Coast Financial does not measure advisor success by sales volume alone.
+        content: `Gold Coast Financial Partners does not measure advisor success by sales volume alone.
 
 WHAT WE TRACK:
 
@@ -1077,7 +1077,7 @@ WHAT WE RECOGNIZE:
       'Internalize the education-first principle as operational standard',
       'Distinguish education from objection handling',
       'Identify sales that should not happen',
-      'Understand how success is measured at Gold Coast Financial'
+      'Understand how success is measured at Gold Coast Financial Partners'
     ],
     requiredForCertification: ['cert-pre-access'],
     prerequisiteModules: ['mod-role'],
@@ -1112,7 +1112,7 @@ WHAT WE RECOGNIZE:
 REQUIRED ELEMENTS:
 
 1. IDENTIFICATION
-"Good [morning/afternoon], this is [Your Name], a licensed insurance advisor with Gold Coast Financial. Am I speaking with [Client Name]?"
+"Good [morning/afternoon], this is [Your Name], a licensed insurance advisor with Gold Coast Financial Partners. Am I speaking with [Client Name]?"
 
 2. PURPOSE STATEMENT
 "I'm calling regarding [the information you requested / your recent inquiry / your scheduled consultation]. The purpose of this call is to understand your situation and provide you with educational information about life insurance options."
@@ -1383,7 +1383,7 @@ MANDATORY DISCLOSURES:
 • The name of the company you represent
 • That you may receive compensation for sales
 
-"I am [Name], a licensed life insurance advisor with Gold Coast Financial. I'm compensated through commissions on policies I place."
+"I am [Name], a licensed life insurance advisor with Gold Coast Financial Partners. I'm compensated through commissions on policies I place."
 
 2. PRODUCT TYPE DISCLOSURE
 • Whether the product is term, whole life, universal life, etc.
@@ -1626,7 +1626,7 @@ RECORD INTEGRITY:
         id: 'sec-no-1',
         title: 'Reframing "Objections"',
         duration: 8,
-        content: `Traditional sales training treats client hesitation as "objections" to be "overcome." This framing is fundamentally incompatible with Gold Coast Financial's education-first philosophy.
+        content: `Traditional sales training treats client hesitation as "objections" to be "overcome." This framing is fundamentally incompatible with Gold Coast Financial Partners's education-first philosophy.
 
 THE TRADITIONAL VIEW (WHAT WE REJECT):
 • Client hesitation is an obstacle to the sale
@@ -1870,7 +1870,7 @@ Use of prohibited responses is a compliance violation. Patterns of prohibited be
     code: 'GCF-103',
     title: 'Brand Representation & Professionalism',
     subtitle: 'Institutional Standards for Professional Conduct',
-    description: 'Standards for representing Gold Coast Financial in all professional interactions. The brand belongs to the institution, and its protection is non-negotiable.',
+    description: 'Standards for representing Gold Coast Financial Partners in all professional interactions. The brand belongs to the institution, and its protection is non-negotiable.',
     category: 'doctrine',
     type: 'reading',
     certificationLevel: 'pre_access',
@@ -1880,30 +1880,30 @@ Use of prohibited responses is a compliance violation. Patterns of prohibited be
         id: 'sec-brand-1',
         title: 'Brand Ownership',
         duration: 8,
-        content: `The Gold Coast Financial brand belongs to the institution, not to individual advisors.
+        content: `The Gold Coast Financial Partners brand belongs to the institution, not to individual advisors.
 
 WHAT THIS MEANS:
 
 1. CONSISTENT REPRESENTATION
-Every advisor represents the same Gold Coast Financial. There is not "your" version of the company. Messaging, positioning, and professional conduct must be consistent across all advisors.
+Every advisor represents the same Gold Coast Financial Partners. There is not "your" version of the company. Messaging, positioning, and professional conduct must be consistent across all advisors.
 
 2. NO PERSONAL BRANDING CONFLICTS
-You may not build a personal brand that conflicts with or supersedes Gold Coast Financial messaging. You are "[Name], Gold Coast Financial Advisor"—not "[Name], Insurance Expert who happens to work at Gold Coast Financial."
+You may not build a personal brand that conflicts with or supersedes Gold Coast Financial Partners messaging. You are "[Name], Gold Coast Financial Partners Advisor"—not "[Name], Insurance Expert who happens to work at Gold Coast Financial Partners."
 
 3. APPROVED MATERIALS ONLY
-All client-facing materials, presentations, and communications must use approved Gold Coast Financial content. You may not create your own marketing materials, social media content representing the company, or client communications templates without approval.
+All client-facing materials, presentations, and communications must use approved Gold Coast Financial Partners content. You may not create your own marketing materials, social media content representing the company, or client communications templates without approval.
 
 4. NO SIDE BUSINESSES
-While associated with Gold Coast Financial, you may not operate competing or conflicting side businesses in financial services. This includes:
+While associated with Gold Coast Financial Partners, you may not operate competing or conflicting side businesses in financial services. This includes:
 • Independent insurance consulting
 • Financial advisory services outside GCF
 • Lead generation businesses
 • Insurance-related content monetization
 
 5. TRANSITION PROTOCOLS
-If you leave Gold Coast Financial:
+If you leave Gold Coast Financial Partners:
 • Client relationships belong to the institution
-• You may not solicit Gold Coast Financial clients
+• You may not solicit Gold Coast Financial Partners clients
 • You may not use GCF materials or methodologies
 • Non-compete and non-solicitation terms apply per your agreement`,
         keyPoints: [
@@ -1917,7 +1917,7 @@ If you leave Gold Coast Financial:
         id: 'sec-brand-2',
         title: 'Communication Standards',
         duration: 10,
-        content: `All communications representing Gold Coast Financial must meet institutional standards.
+        content: `All communications representing Gold Coast Financial Partners must meet institutional standards.
 
 VERBAL COMMUNICATION:
 
@@ -1937,7 +1937,7 @@ WRITTEN COMMUNICATION:
 
 SOCIAL MEDIA:
 
-1. Do NOT represent Gold Coast Financial on personal social media without approval
+1. Do NOT represent Gold Coast Financial Partners on personal social media without approval
 2. Do NOT comment on insurance topics as a "GCF Advisor" without approval
 3. Do NOT share client testimonials or case studies without compliance review
 4. Do NOT engage in debates about insurance or financial topics that could reflect on GCF
@@ -1980,7 +1980,7 @@ OFFICE/REMOTE CONDUCT:
 
 INDUSTRY EVENTS:
 
-1. Represent Gold Coast Financial professionally
+1. Represent Gold Coast Financial Partners professionally
 2. Do not disparage competitors
 3. Do not make commitments on behalf of the company without authority
 4. Networking is acceptable; recruiting for personal ventures is not
@@ -1988,7 +1988,7 @@ INDUSTRY EVENTS:
 
 PERSONAL CONDUCT:
 
-Your conduct outside of work can reflect on Gold Coast Financial if you are publicly identified as an advisor. Exercise judgment in:
+Your conduct outside of work can reflect on Gold Coast Financial Partners if you are publicly identified as an advisor. Exercise judgment in:
 • Social media activity
 • Public statements about industry topics
 • Financial dealings that could raise questions
@@ -2027,7 +2027,7 @@ DIFFICULT CLIENTS:
 COMPETITOR QUESTIONS:
 
 Clients may ask about competitors. Proper responses:
-✓ "I can't speak to their specific offerings, but I can explain how Gold Coast Financial approaches this..."
+✓ "I can't speak to their specific offerings, but I can explain how Gold Coast Financial Partners approaches this..."
 ✓ "I'd encourage you to ask them directly about their process. Here's how we handle it..."
 
 Improper responses:
@@ -2073,7 +2073,7 @@ All media inquiries must be directed to the communications department. Do NOT:
     code: 'GCF-204',
     title: 'Performance Measurement',
     subtitle: 'What We Actually Track and Why',
-    description: 'Understanding how Gold Coast Financial measures advisor performance, and why traditional sales metrics are insufficient.',
+    description: 'Understanding how Gold Coast Financial Partners measures advisor performance, and why traditional sales metrics are insufficient.',
     category: 'methodology',
     type: 'reading',
     certificationLevel: 'core_advisor',
@@ -2083,7 +2083,7 @@ All media inquiries must be directed to the communications department. Do NOT:
         id: 'sec-perf-1',
         title: 'Quality Over Volume',
         duration: 8,
-        content: `Gold Coast Financial does not measure success by sales volume alone.
+        content: `Gold Coast Financial Partners does not measure success by sales volume alone.
 
 THE PROBLEM WITH VOLUME-ONLY METRICS:
 
@@ -2280,7 +2280,7 @@ Life insurance is one of the most heavily regulated industries in the United Sta
 • Impose fines and penalties
 • Refer cases for criminal prosecution
 
-Gold Coast Financial holds licenses in every state where we operate. A compliance failure by any advisor can trigger:
+Gold Coast Financial Partners holds licenses in every state where we operate. A compliance failure by any advisor can trigger:
 • State investigation of the entire organization
 • Carrier contract termination
 • E&O insurance complications
@@ -2317,7 +2317,7 @@ Short-term "wins" through compliance shortcuts create long-term risk that can en
         id: 'sec-comp-intro-2',
         title: 'Your Compliance Obligations',
         duration: 15,
-        content: `As a Gold Coast Financial Advisor, you have specific compliance obligations:
+        content: `As a Gold Coast Financial Partners Advisor, you have specific compliance obligations:
 
 1. MAINTAIN VALID LICENSING
 • Keep your license(s) current in all states where you sell
@@ -2371,7 +2371,7 @@ You are responsible for knowing and following compliance requirements. "I didn't
         id: 'sec-comp-intro-3',
         title: 'Reporting & Escalation',
         duration: 10,
-        content: `Gold Coast Financial maintains clear reporting channels for compliance concerns.
+        content: `Gold Coast Financial Partners maintains clear reporting channels for compliance concerns.
 
 WHAT MUST BE REPORTED:
 
@@ -2399,7 +2399,7 @@ HOW TO REPORT:
 
 RETALIATION PROHIBITION:
 
-Gold Coast Financial strictly prohibits retaliation against anyone who reports compliance concerns in good faith. If you experience retaliation, report it immediately to:
+Gold Coast Financial Partners strictly prohibits retaliation against anyone who reports compliance concerns in good faith. If you experience retaliation, report it immediately to:
 • Chief Compliance Officer
 • Human Resources
 • Anonymous reporting portal
@@ -3184,7 +3184,7 @@ Fully Underwritten:
         title: 'Carriers & Product Comparison',
         duration: 4,
         videoPlaceholder: 'VIDEO: Carrier Comparison Overview',
-        content: `Gold Coast Financial works with multiple carriers to provide best-fit options for clients.
+        content: `Gold Coast Financial Partners works with multiple carriers to provide best-fit options for clients.
 
 OUR TERM LIFE CARRIERS:
 
@@ -3819,7 +3819,7 @@ WHAT NOT TO DO:
 
 CARRIER SELECTION:
 
-Gold Coast Financial works with carriers specializing in final expense including:
+Gold Coast Financial Partners works with carriers specializing in final expense including:
 [Carrier information would be listed here]
 
 SELECTION CRITERIA:
@@ -7101,7 +7101,7 @@ THE OPENING FRAMEWORK:
 4. Transition to Discovery (10 seconds)
 
 EXAMPLE OPENING:
-"Hi [Name], this is [Your Name] calling from Gold Coast Financial. I'm reaching out regarding the life insurance policy information we have on file. This is just a review call—not a new sale. Do you have a couple of minutes?"
+"Hi [Name], this is [Your Name] calling from Gold Coast Financial Partners. I'm reaching out regarding the life insurance policy information we have on file. This is just a review call—not a new sale. Do you have a couple of minutes?"
 
 [If yes]:
 "Great. To make sure I'm looking at the right information, let me just confirm a few things..."
@@ -8005,7 +8005,7 @@ Value-Add Email:
 "Hi [Name], I came across this article about [relevant topic] and thought of our conversation. It explains [key point] really well. Let me know if you have questions—happy to discuss."
 
 Check-In Call:
-"Hi [Name], this is [You] from Gold Coast Financial. I wanted to follow up on our conversation last week. Did you have a chance to discuss the coverage options with your spouse?"
+"Hi [Name], this is [You] from Gold Coast Financial Partners. I wanted to follow up on our conversation last week. Did you have a chance to discuss the coverage options with your spouse?"
 
 Question-Based:
 "Hi [Name], I realized I didn't ask about [something relevant]. That might affect my recommendation. Do you have a quick minute?"
@@ -9988,7 +9988,7 @@ This is a family with real, documentable needs. Your job is to understand their 
         content: `Let's walk through the discovery phase of this call.
 
 OPENING:
-"Hi Maria, this is [Your Name] from Gold Coast Financial. I'm a licensed insurance advisor, and this call may be recorded for quality purposes. You recently requested information about life insurance. Is now a good time to talk for about 15 minutes?"
+"Hi Maria, this is [Your Name] from Gold Coast Financial Partners. I'm a licensed insurance advisor, and this call may be recorded for quality purposes. You recently requested information about life insurance. Is now a good time to talk for about 15 minutes?"
 
 [Permission granted]
 
@@ -10704,7 +10704,7 @@ Most estate planning clients need time. Schedule follow-up after they've consult
         duration: 10,
         content: `ILLINOIS DEPARTMENT OF INSURANCE (IDOI)
 
-The Illinois Department of Insurance (IDOI) regulates all insurance activities within the state. As a Gold Coast Financial Advisor operating in Illinois, you must understand and comply with state-specific requirements that may exceed or differ from general compliance standards.
+The Illinois Department of Insurance (IDOI) regulates all insurance activities within the state. As a Gold Coast Financial Partners Advisor operating in Illinois, you must understand and comply with state-specific requirements that may exceed or differ from general compliance standards.
 
 REGULATORY AUTHORITY:
 
@@ -12111,7 +12111,7 @@ Before any NY sale:
         id: 'sec-aml-1',
         title: 'Why This Matters',
         duration: 5,
-        content: `Anti-money laundering compliance is not optional—it is a federal requirement that protects you, Gold Coast Financial, and the integrity of the financial system.
+        content: `Anti-money laundering compliance is not optional—it is a federal requirement that protects you, Gold Coast Financial Partners, and the integrity of the financial system.
 
 WHY AML MATTERS FOR INSURANCE:
 
@@ -12135,7 +12135,7 @@ AML violations can result in:
 • Personal criminal liability (fines up to $500,000, imprisonment up to 10 years)
 • Loss of insurance license
 • Termination of employment
-• Institutional penalties for Gold Coast Financial
+• Institutional penalties for Gold Coast Financial Partners
 
 This is serious. This training ensures you know what to look for and what to do.`,
         keyPoints: [
@@ -12247,7 +12247,7 @@ If you observe red flags:
 
 SUSPICIOUS ACTIVITY REPORTS (SARs):
 
-When Gold Coast Financial files a SAR:
+When Gold Coast Financial Partners files a SAR:
 • Transactions involving $5,000+ where money laundering is suspected
 • Any transaction where the advisor suspects illegal activity
 • Patterns of activity suggesting structuring or layering
@@ -12348,7 +12348,7 @@ Complete the assessment to certify your AML/KYC compliance for this year.`,
     code: 'GCF-502',
     title: 'Professional Ethics & Standards',
     subtitle: 'Annual Ethics Compliance Training',
-    description: 'Annual refresher on professional ethics, fiduciary responsibilities, and Gold Coast Financial standards of conduct. Required for continued authorization.',
+    description: 'Annual refresher on professional ethics, fiduciary responsibilities, and Gold Coast Financial Partners standards of conduct. Required for continued authorization.',
     category: 'compliance',
     type: 'reading',
     certificationLevel: 'ongoing_compliance',
@@ -12358,7 +12358,7 @@ Complete the assessment to certify your AML/KYC compliance for this year.`,
         id: 'sec-ethics-1',
         title: 'Why This Matters',
         duration: 5,
-        content: `Ethics training is not a formality—it is the foundation of everything we do at Gold Coast Financial.
+        content: `Ethics training is not a formality—it is the foundation of everything we do at Gold Coast Financial Partners.
 
 THE COST OF ETHICAL FAILURES:
 
@@ -12396,7 +12396,7 @@ Your continued authorization depends on completing this training and demonstrati
         id: 'sec-ethics-2',
         title: 'Fiduciary Duties Refresher',
         duration: 8,
-        content: `As a Gold Coast Financial Advisor, you operate as a fiduciary-in-practice. This is the highest standard of care.
+        content: `As a Gold Coast Financial Partners Advisor, you operate as a fiduciary-in-practice. This is the highest standard of care.
 
 CORE FIDUCIARY DUTIES:
 
@@ -12479,7 +12479,7 @@ Answer: Do not disclose without written authorization from the policy owner.`,
         id: 'sec-ethics-4',
         title: 'Communication & Social Media Standards',
         duration: 7,
-        content: `Modern communication creates new ethical obligations. Everything you say publicly reflects on Gold Coast Financial.
+        content: `Modern communication creates new ethical obligations. Everything you say publicly reflects on Gold Coast Financial Partners.
 
 SOCIAL MEDIA RULES:
 
@@ -12775,7 +12775,7 @@ export const ASSESSMENTS: Assessment[] = [
   {
     id: 'assess-doctrine',
     title: 'Institutional Doctrine Assessment',
-    description: 'Assessment covering Gold Coast Financial institutional philosophy, professional obligations, and foundational standards.',
+    description: 'Assessment covering Gold Coast Financial Partners institutional philosophy, professional obligations, and foundational standards.',
     moduleId: 'mod-philosophy',
     certificationLevel: 'pre_access',
     passingScore: 85,
@@ -12791,11 +12791,11 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-doctrine-1',
         type: 'multiple_choice',
         category: 'Institutional Identity',
-        question: 'As a Gold Coast Financial Advisor, which of the following best describes your professional identity?',
+        question: 'As a Gold Coast Financial Partners Advisor, which of the following best describes your professional identity?',
         options: [
-          { id: 'a', text: 'An independent sales professional who works with Gold Coast Financial', isCorrect: false, explanation: 'You are not independent—you operate under institutional authority.' },
+          { id: 'a', text: 'An independent sales professional who works with Gold Coast Financial Partners', isCorrect: false, explanation: 'You are not independent—you operate under institutional authority.' },
           { id: 'b', text: 'A licensed fiduciary-in-practice representing a regulated financial institution', isCorrect: true, explanation: 'Correct. You represent the institution and operate under its authority and compliance requirements.' },
-          { id: 'c', text: 'A commission-based closer focused on maximizing personal income', isCorrect: false, explanation: 'Gold Coast Financial is not a sales organization focused on commission maximization.' },
+          { id: 'c', text: 'A commission-based closer focused on maximizing personal income', isCorrect: false, explanation: 'Gold Coast Financial Partners is not a sales organization focused on commission maximization.' },
           { id: 'd', text: 'A self-employed contractor with flexibility in methods and messaging', isCorrect: false, explanation: 'While tax status may vary, you operate under institutional standards, not your own.' }
         ],
         correctFeedback: 'Correct. You represent a regulated financial institution and operate under its authority.',
@@ -12837,15 +12837,15 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-doctrine-4',
         type: 'select_all',
         category: 'What We Are NOT',
-        question: 'Select ALL statements that accurately describe what Gold Coast Financial is NOT:',
+        question: 'Select ALL statements that accurately describe what Gold Coast Financial Partners is NOT:',
         options: [
           { id: 'a', text: 'A sales organization that celebrates closes', isCorrect: true },
-          { id: 'b', text: 'A regulated financial institution', isCorrect: false, explanation: 'Gold Coast Financial IS a regulated institution.' },
+          { id: 'b', text: 'A regulated financial institution', isCorrect: false, explanation: 'Gold Coast Financial Partners IS a regulated institution.' },
           { id: 'c', text: 'A commission-maximizing organization', isCorrect: true },
           { id: 'd', text: 'A platform for building personal brands that conflict with institutional messaging', isCorrect: true },
-          { id: 'e', text: 'An education-first advisory firm', isCorrect: false, explanation: 'Gold Coast Financial IS education-first.' }
+          { id: 'e', text: 'An education-first advisory firm', isCorrect: false, explanation: 'Gold Coast Financial Partners IS education-first.' }
         ],
-        correctFeedback: 'Correct. Gold Coast Financial is not sales-focused, commission-maximizing, or a personal branding platform.',
+        correctFeedback: 'Correct. Gold Coast Financial Partners is not sales-focused, commission-maximizing, or a personal branding platform.',
         incorrectFeedback: 'Review Module 1, Section 3: What We Are NOT.',
         difficultyLevel: 2
       },
@@ -12870,7 +12870,7 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-doctrine-6',
         type: 'multiple_choice',
         category: 'Education-First',
-        question: 'According to Gold Coast Financial philosophy, what happens if education and a sale conflict?',
+        question: 'According to Gold Coast Financial Partners philosophy, what happens if education and a sale conflict?',
         options: [
           { id: 'a', text: 'Find a way to accomplish both', isCorrect: false },
           { id: 'b', text: 'The sale wins because it benefits the client', isCorrect: false },
@@ -12901,7 +12901,7 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-doctrine-8',
         type: 'true_false',
         category: 'Success Measurement',
-        question: 'At Gold Coast Financial, an advisor with the highest sales volume is automatically considered the top performer.',
+        question: 'At Gold Coast Financial Partners, an advisor with the highest sales volume is automatically considered the top performer.',
         options: [
           { id: 'true', text: 'True', isCorrect: false, explanation: 'Volume alone does not determine success—quality metrics are equally important.' },
           { id: 'false', text: 'False', isCorrect: true }
@@ -12929,7 +12929,7 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-doctrine-10',
         type: 'multiple_choice',
         category: 'Brand',
-        question: 'Client relationships and the Gold Coast Financial brand belong to:',
+        question: 'Client relationships and the Gold Coast Financial Partners brand belong to:',
         options: [
           { id: 'a', text: 'The individual advisor who developed them', isCorrect: false },
           { id: 'b', text: 'The institution', isCorrect: true },
@@ -12961,10 +12961,10 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-brand-1',
         type: 'multiple_choice',
         category: 'Brand Ownership',
-        question: 'Who owns the Gold Coast Financial brand and client relationships developed through your advisory role?',
+        question: 'Who owns the Gold Coast Financial Partners brand and client relationships developed through your advisory role?',
         options: [
           { id: 'a', text: 'The individual advisor', isCorrect: false, explanation: 'Client relationships and branding belong to the institution, not the individual.' },
-          { id: 'b', text: 'The institution', isCorrect: true, explanation: 'Correct. All brand assets and client relationships belong to Gold Coast Financial.' },
+          { id: 'b', text: 'The institution', isCorrect: true, explanation: 'Correct. All brand assets and client relationships belong to Gold Coast Financial Partners.' },
           { id: 'c', text: 'Shared between advisor and institution', isCorrect: false, explanation: 'There is no shared ownership—the institution owns the brand entirely.' },
           { id: 'd', text: 'The client', isCorrect: false, explanation: 'Clients do not own the institutional brand or advisory relationships.' }
         ],
@@ -12976,7 +12976,7 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-brand-2',
         type: 'true_false',
         category: 'Communication Standards',
-        question: 'You may use your personal social media to promote Gold Coast Financial products as long as the information is accurate.',
+        question: 'You may use your personal social media to promote Gold Coast Financial Partners products as long as the information is accurate.',
         options: [
           { id: 'true', text: 'True', isCorrect: false, explanation: 'All communications must go through approved institutional channels and be pre-approved.' },
           { id: 'false', text: 'False', isCorrect: true, explanation: 'Correct. All marketing and communications must be approved through institutional channels.' }
@@ -13004,7 +13004,7 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-brand-4',
         type: 'select_all',
         category: 'Professional Standards',
-        question: 'Select ALL that are requirements for Gold Coast Financial advisors regarding brand representation:',
+        question: 'Select ALL that are requirements for Gold Coast Financial Partners advisors regarding brand representation:',
         options: [
           { id: 'a', text: 'Use only approved marketing materials', isCorrect: true },
           { id: 'b', text: 'Maintain professional appearance on video calls', isCorrect: true },
@@ -13051,7 +13051,7 @@ export const ASSESSMENTS: Assessment[] = [
         id: 'q-comp-2',
         type: 'select_all',
         category: 'Obligations',
-        question: 'Select ALL that are compliance obligations of a Gold Coast Financial Advisor:',
+        question: 'Select ALL that are compliance obligations of a Gold Coast Financial Partners Advisor:',
         options: [
           { id: 'a', text: 'Maintain valid licensing in all states where you sell', isCorrect: true },
           { id: 'b', text: 'Use only approved scripts, materials, and processes', isCorrect: true },
@@ -13341,7 +13341,7 @@ export const ASSESSMENTS: Assessment[] = [
         type: 'scenario',
         category: 'Consent',
         question: 'What is the compliance issue in this opening?',
-        scenario: 'Advisor: "Hi, this is Jennifer with Gold Coast Financial. I\'m calling about the life insurance quote you requested. Let me start by asking about your family situation..."',
+        scenario: 'Advisor: "Hi, this is Jennifer with Gold Coast Financial Partners. I\'m calling about the life insurance quote you requested. Let me start by asking about your family situation..."',
         options: [
           { id: 'a', text: 'Did not ask if it\'s a good time', isCorrect: false },
           { id: 'b', text: 'Did not disclose licensed status or recording, and did not obtain explicit consent to proceed', isCorrect: true, explanation: 'Consent must be obtained before proceeding to discovery.' },
@@ -14628,7 +14628,7 @@ export const ASSESSMENTS: Assessment[] = [
         category: 'Fiduciary Duty',
         question: 'The duty of loyalty requires advisors to:',
         options: [
-          { id: 'a', text: 'Be loyal to Gold Coast Financial above all else', isCorrect: false },
+          { id: 'a', text: 'Be loyal to Gold Coast Financial Partners above all else', isCorrect: false },
           { id: 'b', text: 'Put client interests ahead of personal interests', isCorrect: true },
           { id: 'c', text: 'Remain loyal to existing clients over new prospects', isCorrect: false },
           { id: 'd', text: 'Recommend the same carrier for all clients for consistency', isCorrect: false }
@@ -15114,7 +15114,7 @@ export const MOCK_CALL_RUBRICS: MockCallRubric[] = [
   {
     id: 'rubric-education-call',
     title: 'Education Call Framework Rubric',
-    description: 'Evaluation criteria for mock education calls demonstrating the Gold Coast Financial call framework.',
+    description: 'Evaluation criteria for mock education calls demonstrating the Gold Coast Financial Partners call framework.',
     certificationLevel: 'core_advisor',
     passingScore: 80,
     categories: [

@@ -249,7 +249,7 @@ export default function Contact() {
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Gold Coast Financial Office Location"
+                title="Gold Coast Financial Partners Office Location"
               />
             </div>
           </div>

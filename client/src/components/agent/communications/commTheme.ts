@@ -108,7 +108,7 @@ const EMERALD_THEME: CommTheme = {
   activeBg: 'bg-emerald-100 text-emerald-700',
   activeIcon: 'text-emerald-600',
   unreadBadge: 'bg-emerald-600 text-white',
-  selectedGradient: 'bg-gradient-to-b from-emerald-500 via-emerald-600 to-teal-500 text-white shadow-lg [&_*]:text-white [&_.text-gray-500]:text-white/70 [&_.text-gray-400]:text-white/60 [&_.text-gray-300]:text-white/50',
+  selectedGradient: 'bg-gradient-to-b from-emerald-600 via-teal-600 to-rose-400 text-white shadow-lg [&_*]:text-white [&_.text-gray-500]:text-white/70 [&_.text-gray-400]:text-white/60 [&_.text-gray-300]:text-white/50',
   unreadBg: 'bg-emerald-50/50',
   unreadHover: 'hover:bg-emerald-50',
   heading: 'text-emerald-700',
@@ -128,7 +128,7 @@ const EMERALD_THEME: CommTheme = {
   ring500: 'ring-emerald-500',
   border200: 'border-emerald-200',
   borderAccent: 'border-emerald-500',
-  selectedMsgGradient: 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white',
+  selectedMsgGradient: 'bg-emerald-600 text-white',
   onlineDotBorder: 'border-emerald-500',
   accentBg: 'bg-emerald-500',
 };

@@ -170,7 +170,7 @@ const CATEGORY_ACTIONS: Record<
     icon: TrendingUp,
     gradient: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
     shadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
-    route: '/manager/pipeline',
+    route: '/manager/commissions',
   },
   escalation: {
     label: 'Handle Escalation',

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Shield, Users, Scale, FileText, Building, Target } from "lucide-react";
 
 /**
- * Gold Coast Financial - About / Governance Page
+ * Gold Coast Financial Partners - About / Governance Page
  *
  * Design Philosophy:
  * - Institutional, conservative, permanent
@@ -59,10 +59,10 @@ export default function InstitutionalAbout() {
               className="lg:col-span-2 space-y-6"
             >
               <p className="text-lg text-primary leading-relaxed">
-                Gold Coast Financial is a financial services holding company headquartered in Naperville, Illinois. We provide governance, capital stewardship, and strategic oversight to a portfolio of regulated insurance and advisory businesses operating across the United States.
+                Gold Coast Financial Partners is a financial services holding company headquartered in Naperville, Illinois. We provide governance, capital stewardship, and strategic oversight to a portfolio of regulated insurance and advisory businesses operating across the United States.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Founded with the conviction that financial services require patient capital and principled management, Gold Coast Financial takes a long-term view of value creation. We do not pursue rapid growth or short-term returns at the expense of stability, compliance, or the interests of policyholders.
+                Founded with the conviction that financial services require patient capital and principled management, Gold Coast Financial Partners takes a long-term view of value creation. We do not pursue rapid growth or short-term returns at the expense of stability, compliance, or the interests of policyholders.
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Our holding company structure allows operating subsidiaries to maintain independent management and market focus while benefiting from shared resources, institutional infrastructure, and centralized compliance oversight. This approach balances entrepreneurial agility with institutional discipline.
@@ -170,7 +170,7 @@ export default function InstitutionalAbout() {
               className="lg:col-span-2"
             >
               <p className="text-lg text-primary leading-relaxed mb-8">
-                Gold Coast Financial's leadership team brings decades of combined experience in insurance distribution, financial services regulation, and institutional management.
+                Gold Coast Financial Partners's leadership team brings decades of combined experience in insurance distribution, financial services regulation, and institutional management.
               </p>
 
               <div className="space-y-12">
@@ -234,13 +234,13 @@ export default function InstitutionalAbout() {
               className="lg:col-span-2 space-y-6"
             >
               <p className="text-lg leading-relaxed">
-                Gold Coast Financial was established with a clear vision: to build a financial services organization that prioritizes long-term value over short-term metrics.
+                Gold Coast Financial Partners was established with a clear vision: to build a financial services organization that prioritizes long-term value over short-term metrics.
               </p>
               <p className="text-primary-foreground/80 leading-relaxed">
                 Beginning with life insurance distribution, we have methodically expanded our capabilities while maintaining the disciplined approach that defines our culture. Each step has been deliberate, ensuring we never outpace our ability to maintain quality and compliance.
               </p>
               <p className="text-primary-foreground/80 leading-relaxed">
-                Today, Gold Coast Financial continues to evaluate opportunities for measured expansion, always applying the same rigorous criteria that have guided our development from the beginning.
+                Today, Gold Coast Financial Partners continues to evaluate opportunities for measured expansion, always applying the same rigorous criteria that have guided our development from the beginning.
               </p>
             </motion.div>
           </div>

@@ -2586,7 +2586,7 @@ export default function SecureForm() {
           className="mt-8 pt-6 border-t border-gray-200 max-w-2xl mx-auto"
         >
           <p className="text-gray-500 text-xs leading-relaxed text-center mb-3">
-            &copy; 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567. Policies are issued by our carrier partners and product availability may vary by state.
+            &copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
           </p>
           <p className="text-gray-400 text-[10px] leading-relaxed text-center mb-2">
             At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.

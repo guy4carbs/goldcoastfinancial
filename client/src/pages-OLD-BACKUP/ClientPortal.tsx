@@ -200,12 +200,12 @@ For the official document, please contact your advisor:
   Phone: (630) 555-0123
   Email: jack.cook@goldcoastfnl.com
 
-Gold Coast Financial Group
+Gold Coast Financial Partners
 123 Main Street
 Naperville, IL 60540
 
 ================================================================================
-                    Thank you for choosing Gold Coast Financial
+                    Thank you for choosing Gold Coast Financial Partners
 ================================================================================
 `;
   };
@@ -268,7 +268,7 @@ This section represents your ${doc.name.toLowerCase()}.
 ================================================================================
 
 For official copies of these documents, please contact:
-  Gold Coast Financial Group
+  Gold Coast Financial Partners
   Jack Cook, Principal Agent
   Phone: (630) 555-0123
   Email: jack.cook@goldcoastfnl.com

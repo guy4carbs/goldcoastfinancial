@@ -33,7 +33,7 @@ export function LiveChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hi! 👋 Welcome to Gold Coast Financial. How can I help you today?",
+      text: "Hi! 👋 Welcome to Gold Coast Financial Partners. How can I help you today?",
       isBot: true,
       timestamp: new Date(),
     },

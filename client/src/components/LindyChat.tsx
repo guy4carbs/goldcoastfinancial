@@ -4,9 +4,10 @@ import { useLocation } from "wouter";
 export function LindyChat() {
   const [location] = useLocation();
 
-  // Only show Lindy on public website pages - hide on all internal app pages
-  const internalPaths = ["/admin", "/agents", "/secure", "/crm", "/finance", "/marketing", "/executive", "/manager", "/support", "/ai"];
-  const shouldHideLindy = internalPaths.some(path => location.startsWith(path));
+  // Only show Lindy on the main public website pages
+  const publicPaths = ["/", "/about", "/products", "/careers", "/contact", "/blog", "/faq", "/testimonials", "/quote", "/privacy", "/terms", "/data-security"];
+  const shouldShowLindy = publicPaths.some(path => location === path || (path !== "/" && location.startsWith(path)));
+  const shouldHideLindy = !shouldShowLindy;
 
   useEffect(() => {
     if (shouldHideLindy) {

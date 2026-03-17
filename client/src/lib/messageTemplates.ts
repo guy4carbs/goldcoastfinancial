@@ -21,7 +21,7 @@ export const MESSAGE_TEMPLATES: MessageTemplate[] = [
     subject: 'Your Life Insurance Quote Request',
     body: `Hi {firstName},
 
-Thank you for reaching out about life insurance coverage. I'm {agentName} with Gold Coast Financial, and I'd love to help you find the right protection for your family.
+Thank you for reaching out about life insurance coverage. I'm {agentName} with Gold Coast Financial Partners, and I'd love to help you find the right protection for your family.
 
 I noticed you were interested in {productType} insurance. I have some great options that might be perfect for your situation.
 
@@ -29,7 +29,7 @@ Would you have a few minutes this week to chat? I promise to keep it brief and a
 
 Best regards,
 {agentName}
-Gold Coast Financial
+Gold Coast Financial Partners
 {agentPhone}`,
     variables: ['firstName', 'agentName', 'productType', 'agentPhone'],
     complianceNotes: 'Do not make specific premium promises without underwriting.'
@@ -39,7 +39,7 @@ Gold Coast Financial
     name: 'Initial Text Outreach',
     category: 'outreach',
     channel: 'text',
-    body: `Hi {firstName}, this is {agentName} from Gold Coast Financial. I received your request about life insurance. When would be a good time to chat? I can answer any questions you have. Reply STOP to opt out.`,
+    body: `Hi {firstName}, this is {agentName} from Gold Coast Financial Partners. I received your request about life insurance. When would be a good time to chat? I can answer any questions you have. Reply STOP to opt out.`,
     variables: ['firstName', 'agentName'],
     complianceNotes: 'Always include opt-out language for text messages.'
   },
@@ -80,7 +80,7 @@ Is there a better time for me to reach you this week?
 
 Best regards,
 {agentName}
-Gold Coast Financial`,
+Gold Coast Financial Partners`,
     variables: ['firstName', 'agentName']
   },
   {
@@ -88,7 +88,7 @@ Gold Coast Financial`,
     name: 'Quick Text Check-In',
     category: 'follow-up',
     channel: 'text',
-    body: `Hi {firstName}, just checking in from Gold Coast Financial. Still interested in the {productType} quote we discussed? Let me know if you have any questions! - {agentName}`,
+    body: `Hi {firstName}, just checking in from Gold Coast Financial Partners. Still interested in the {productType} quote we discussed? Let me know if you have any questions! - {agentName}`,
     variables: ['firstName', 'productType', 'agentName']
   },
 
@@ -114,7 +114,7 @@ Would you be available for a quick call this week?
 
 Best regards,
 {agentName}
-Gold Coast Financial
+Gold Coast Financial Partners
 {agentPhone}`,
     variables: ['firstName', 'productType', 'coverageAmount', 'monthlyPremium', 'carrier', 'agentName', 'agentPhone'],
     complianceNotes: 'Premiums are subject to underwriting approval. Always disclose this to clients.'
@@ -147,7 +147,7 @@ What happens next:
 
 In the meantime, if you have any questions or need to provide additional documentation, please don't hesitate to reach out.
 
-Thank you for trusting Gold Coast Financial with your family's protection!
+Thank you for trusting Gold Coast Financial Partners with your family's protection!
 
 Best regards,
 {agentName}
@@ -200,7 +200,7 @@ Congratulations on taking this important step to protect your family!
 
 Best regards,
 {agentName}
-Gold Coast Financial
+Gold Coast Financial Partners
 {agentPhone}`,
     variables: ['firstName', 'productType', 'carrier', 'coverageAmount', 'monthlyPremium', 'policyNumber', 'agentName', 'agentPhone']
   },
@@ -260,7 +260,7 @@ Would any time this week work for you?
 
 Best regards,
 {agentName}
-Gold Coast Financial
+Gold Coast Financial Partners
 {agentPhone}`,
     variables: ['firstName', 'agentName', 'agentPhone']
   },
@@ -269,7 +269,7 @@ Gold Coast Financial
     name: 'Birthday Greeting',
     category: 'general',
     channel: 'email',
-    subject: 'Happy Birthday from Gold Coast Financial!',
+    subject: 'Happy Birthday from Gold Coast Financial Partners!',
     body: `Hi {firstName},
 
 Happy Birthday! I hope your special day is filled with joy and celebration.

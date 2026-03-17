@@ -65,9 +65,9 @@ import {
   CheckSquare,
   ShieldCheck,
   Building2,
-  Activity,
   LineChart,
   Crosshair,
+  Send,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -140,18 +140,13 @@ const homeItems: NavItem[] = [
 const teamItems: NavItem[] = [
   { icon: Trophy, label: 'Performance', href: '/manager/team-performance' },
   { icon: ClipboardList, label: 'Scorecard', href: '/manager/scorecard' },
+  { icon: Briefcase, label: 'Book of Business', href: '/manager/client-health' },
   { icon: Zap, label: 'Onboarding', href: '/manager/onboarding-tracker' },
-];
-
-const revenueItems: NavItem[] = [
-  { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
-
-  { icon: Briefcase, label: 'Retention', href: '/manager/client-health' },
 ];
 
 const actionItems: NavItem[] = [
   { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
-  { icon: Activity, label: 'Live Activity', href: '/manager/activity-monitor' },
+  { icon: Send, label: 'Lead Distribution', href: '/manager/lead-distribution' },
 ];
 
 const growthItems: NavItem[] = [
@@ -212,7 +207,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
 
   // All nav items flat for lookups
   const ALL_NAV_ITEMS = [
-    ...homeItems, ...teamItems, ...revenueItems,
+    ...homeItems, ...teamItems,
     ...actionItems, ...growthItems, ...adminItems, ...directorItems,
   ];
   const navItemMap = Object.fromEntries(ALL_NAV_ITEMS.map((item: NavItem) => [item.href, item]));
@@ -230,7 +225,6 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
     const sections = [
       { title: 'Home', items: homeItems },
       { title: 'Team', items: teamItems },
-      { title: 'Revenue', items: revenueItems },
       { title: 'Action Items', items: actionItems },
       { title: 'Growth', items: growthItems },
       { title: 'Admin', items: adminItems },
@@ -407,7 +401,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
             </div>
             <div className="flex items-center justify-between" style={{ marginTop: GRID.spacing.xs }}>
               <span className="font-semibold" style={{ fontSize: TYPE.meta, color: COLORS.accent.amber[300] }}>
-                ${(WEEKLY_AP_TOTAL / 1000).toFixed(0)}K AP
+                ${(WEEKLY_AP_TOTAL / 1000).toFixed(0)}K
               </span>
               <span style={{ fontSize: TYPE.caption, color: EMERALD[200] }}>
                 {TEAM_SIZE} agents
@@ -436,7 +430,6 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
       <nav className="flex-1 overflow-y-auto" style={{ padding: `0 ${GRID.spacing.xs}px` }}>
         <NavSection title="Home" items={homeItems} />
         <NavSection title="Team" items={teamItems} />
-        <NavSection title="Revenue" items={revenueItems} />
         <NavSection title="Action Items" items={actionItems} />
         <NavSection title="Growth" items={growthItems} />
         <NavSection title="Admin" items={adminItems} />
@@ -458,7 +451,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
             whileHover={{ x: 2, backgroundColor: getHoverBg(EMERALD[500], 0.08) }}
             transition={{ duration: MOTION.duration.hover }}
             className={cn(
-              'flex items-center cursor-pointer transition-colors',
+              'flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors',
               sidebarCollapsed && 'justify-center',
             )}
             style={{
@@ -466,11 +459,6 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
               padding: `${GRID.spacing.sm - 4}px ${GRID.spacing.md - 8}px`,
               borderRadius: RADIUS.button,
               minHeight: ROW_HEIGHT,
-              background: location === '/manager/settings'
-                ? `linear-gradient(135deg, ${EMERALD[500]}, ${EMERALD[600]})`
-                : undefined,
-              color: location === '/manager/settings' ? 'white' : COLORS.gray[600],
-              boxShadow: location === '/manager/settings' ? `${SHADOW.level2}, 0 4px 12px rgba(16, 185, 129, 0.3)` : undefined,
             }}
           >
             <Settings style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
@@ -818,7 +806,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                       {currentUser?.name || 'Manager'}
                     </p>
                     <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>
-                      Level {performance.level} · {(performance.xp || 0).toLocaleString()} AP
+                      Level {performance.level} · ${(performance.xp || 0).toLocaleString()}
                     </p>
                   </div>
                   <div
@@ -874,7 +862,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
           {[
             { icon: LayoutDashboard, label: 'Home', href: '/manager/dashboard' },
             { icon: Users, label: 'Team', href: '/manager/team' },
-            { icon: Target, label: 'Pipeline', href: '/manager/pipeline' },
+            { icon: DollarSign, label: 'Commissions', href: '/manager/commissions' },
             { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
           ].map((item) => {
             const isActive = location === item.href;

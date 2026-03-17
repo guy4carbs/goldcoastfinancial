@@ -138,7 +138,7 @@ export function HeritageLayout({ children }: { children: React.ReactNode }) {
                 <span className="font-serif text-xl font-bold">HERITAGE LIFE</span>
               </div>
               <p className="text-white/70 text-sm leading-relaxed">
-                A division of Gold Coast Financial Group. Providing peace of mind through expert guidance and personalized life insurance solutions for families and businesses nationwide.
+                A division of Gold Coast Financial Partners. Providing peace of mind through expert guidance and personalized life insurance solutions for families and businesses nationwide.
               </p>
               <div className="flex gap-4 pt-2">
                 <a href="https://instagram.com/goldcoastfinancial_" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
@@ -172,7 +172,7 @@ export function HeritageLayout({ children }: { children: React.ReactNode }) {
               <h3 className="font-serif font-bold text-lg mb-4" style={{ color: c.secondary }}>Quick Links</h3>
               <ul className="space-y-2 text-sm text-white/70">
                 <li><Link href="/heritage" className="hover:text-white transition-colors cursor-pointer">Heritage Home</Link></li>
-                <li><Link href="/" className="hover:text-white transition-colors cursor-pointer">Gold Coast Financial</Link></li>
+                <li><Link href="/" className="hover:text-white transition-colors cursor-pointer">Gold Coast Financial Partners</Link></li>
                 <li><Link href="/heritage/products" className="hover:text-white transition-colors cursor-pointer">Life Insurance</Link></li>
                 <li><Link href="/heritage/resources" className="hover:text-white transition-colors cursor-pointer">Resources</Link></li>
                 <li><Link href="/heritage/calculator" className="hover:text-white transition-colors cursor-pointer">Coverage Calculator</Link></li>
@@ -246,8 +246,8 @@ export function HeritageLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="border-t border-white/10 pt-8 text-center text-xs text-white/70">
-            <p className="mb-2">Heritage Life Solutions is a DBA of Gold Coast Financial Group, an independent agency.</p>
-            <p>&copy; {new Date().getFullYear()} Gold Coast Financial. All rights reserved. | <Link href="/heritage/privacy" className="hover:text-white cursor-pointer">Privacy Policy</Link></p>
+            <p className="mb-2">Heritage Life Solutions is a DBA of Gold Coast Financial Partners, an independent agency.</p>
+            <p>&copy; {new Date().getFullYear()} Gold Coast Financial Partners. All rights reserved. | <Link href="/heritage/privacy" className="hover:text-white cursor-pointer">Privacy Policy</Link></p>
           </div>
         </div>
       </footer>

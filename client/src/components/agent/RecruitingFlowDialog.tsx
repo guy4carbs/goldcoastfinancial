@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,11 @@ interface RecruitingFlowDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onComplete: (prospect: { name: string; email: string; phone: string; notes?: string; source: string; approach: RecruitApproach }) => void;
+  agent?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 const approaches: Array<{ value: RecruitApproach; label: string; description: string; icon: typeof Heart }> = [
@@ -27,7 +33,7 @@ const approaches: Array<{ value: RecruitApproach; label: string; description: st
 
 const TOTAL_STEPS = 5;
 
-export function RecruitingFlowDialog({ open, onOpenChange, onComplete }: RecruitingFlowDialogProps) {
+export function RecruitingFlowDialog({ open, onOpenChange, onComplete, agent }: RecruitingFlowDialogProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', source: '', notes: '',
@@ -38,6 +44,7 @@ export function RecruitingFlowDialog({ open, onOpenChange, onComplete }: Recruit
     followUpNotes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSending, setIsSending] = useState(false);
 
   const reset = () => {
     setStep(1);
@@ -99,6 +106,54 @@ export function RecruitingFlowDialog({ open, onOpenChange, onComplete }: Recruit
       approach: formData.approach,
     });
     reset();
+  };
+
+  const handleSendInvite = async () => {
+    if (!agent) {
+      toast.error('Agent information is required to send invites');
+      setStep(4);
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const response = await fetch('/api/recruiting/send-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prospectName: formData.name,
+          prospectEmail: formData.email,
+          prospectPhone: formData.phone,
+          customMessage: formData.message || getDefaultMessage(),
+          approach: formData.approach,
+          agent: {
+            name: agent.name,
+            email: agent.email,
+            phone: agent.phone,
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send invite');
+      }
+
+      if (formData.channel === 'text' && result.smsSent) {
+        toast.success('Recruiting invite sent!', { description: `SMS sent to ${formData.phone}` });
+      } else {
+        toast.success('Recruiting invite sent!', { description: `Email sent to ${formData.email}` });
+      }
+
+      setStep(4);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send invite';
+      toast.error(errorMessage);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -183,10 +238,19 @@ export function RecruitingFlowDialog({ open, onOpenChange, onComplete }: Recruit
                 </div>
                 <Textarea value={formData.message || getDefaultMessage()} onChange={(e) => setFormData({ ...formData, message: e.target.value })} rows={8} style={{ borderRadius: RADIUS.input }} />
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 text-white gap-2" style={{ borderRadius: RADIUS.button }} onClick={handleNext}>
-                    <Send className="w-4 h-4" /> Send Invite
+                  <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 text-white gap-2" style={{ borderRadius: RADIUS.button }} onClick={handleSendInvite} disabled={isSending}>
+                    {isSending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" /> Send Invite
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" onClick={() => setStep(4)} style={{ borderRadius: RADIUS.button }}>Skip for Now</Button>
+                  <Button variant="outline" onClick={() => setStep(4)} style={{ borderRadius: RADIUS.button }} disabled={isSending}>Skip for Now</Button>
                 </div>
               </div>
             )}

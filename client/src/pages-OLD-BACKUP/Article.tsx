@@ -49,7 +49,7 @@ export default function Article() {
 
   const handleShare = async () => {
     const url = window.location.href;
-    const title = article?.title || "Gold Coast Financial Article";
+    const title = article?.title || "Gold Coast Financial Partners Article";
     
     if (navigator.share) {
       try {
@@ -92,7 +92,7 @@ export default function Article() {
     if (isMobile && navigator.share) {
       try {
         await navigator.share({
-          title: article?.title || "Gold Coast Financial Article",
+          title: article?.title || "Gold Coast Financial Partners Article",
           text: `Save or print this article: ${article?.title}`,
           url: window.location.href,
         });
@@ -156,7 +156,7 @@ export default function Article() {
                 <User className="w-6 h-6 text-secondary" />
               </div>
               <div>
-                <p className="text-white font-medium">Gold Coast Financial Team</p>
+                <p className="text-white font-medium">Gold Coast Financial Partners Team</p>
                 <p className="text-white/80 text-sm">Expert Insurance Advisors</p>
               </div>
             </div>

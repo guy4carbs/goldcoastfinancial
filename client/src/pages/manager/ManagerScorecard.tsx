@@ -11,7 +11,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { useLocation } from 'wouter';
+import { useLocation, useSearch } from 'wouter';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid, ManagerEmptyState } from './primitives';
 import { MANAGER_ICON_GRADIENT, glassCard, AGENT_SPARKLINES } from './managerConstants';
@@ -355,7 +355,12 @@ const calcDelta = (a: number, b: number): { value: string; positive: boolean } =
 
 export function ManagerScorecard() {
   const [, navigate] = useLocation();
-  const [selectedAgent, setSelectedAgent] = useState(AGENTS[0]);
+  const search = useSearch();
+  const [selectedAgent, setSelectedAgent] = useState(() => {
+    const params = new URLSearchParams(search);
+    const agentId = params.get('agent');
+    return AGENTS.find((a) => a.id === agentId) || AGENTS[0];
+  });
   const [openDropdown, setOpenDropdown] = useState<'primary' | 'compare' | null>(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareAgent, setCompareAgent] = useState(AGENTS[1]);
@@ -366,6 +371,16 @@ export function ManagerScorecard() {
   const [showCoachingModal, setShowCoachingModal] = useState(false);
   const [showActionItemModal, setShowActionItemModal] = useState(false);
   const [actionItemTopic, setActionItemTopic] = useState('');
+
+  // Sync selected agent when navigating from Performance page
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    const agentId = params.get('agent');
+    if (agentId) {
+      const agent = AGENTS.find((a) => a.id === agentId);
+      if (agent && agent.id !== selectedAgent.id) setSelectedAgent(agent);
+    }
+  }, [search]);
 
   // Interactive state
   const [flaggedAgents, setFlaggedAgents] = useState<Set<string>>(new Set());

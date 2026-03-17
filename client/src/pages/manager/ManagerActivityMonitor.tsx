@@ -136,7 +136,7 @@ function Sparkline({ data, width = 48, height = 16 }: { data: number[]; width?: 
 }
 
 // ─── TIME RANGE STAT VALUES ───
-type TimeRange = 'today' | 'week' | 'month';
+export type TimeRange = 'today' | 'week' | 'month';
 const STAT_VALUES: Record<TimeRange, { calls: string; emails: string; appointments: string; avgTime: string }> = {
   today: { calls: '285', emails: '94', appointments: '18', avgTime: '6.2 hrs' },
   week: { calls: '1,842', emails: '612', appointments: '87', avgTime: '6.8 hrs' },
@@ -320,7 +320,8 @@ const CALL_OUTCOME_STYLES: Record<string, { bg: string; text: string; label: str
   'no-answer': { bg: 'bg-amber-100', text: 'text-amber-700', label: 'No Answer' },
 };
 
-export function ManagerActivityMonitor() {
+/* ── Extracted content component (used by ManagerTeam toggle) ── */
+export function ActivityMonitorContent({ timeRange = 'today' as TimeRange }: { timeRange?: TimeRange } = {}) {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<typeof DEMO_AGENT_ACTIVITY[0] | null>(null);
@@ -328,7 +329,6 @@ export function ManagerActivityMonitor() {
   const [playingCall, setPlayingCall] = useState<string | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [timeRange, setTimeRange] = useState<TimeRange>('today');
   const [heatmapPopup, setHeatmapPopup] = useState<{ cellKey: string; day: number; hour: number; x: number; y: number } | null>(null);
   const [listeningTo, setListeningTo] = useState<string | null>(null);
   const [showAllAgents, setShowAllAgents] = useState(false);
@@ -359,99 +359,9 @@ export function ManagerActivityMonitor() {
   const totalAgents = DEMO_AGENT_ACTIVITY.length;
 
   return (
-    <ManagerLoungeLayout>
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
-      >
-        {/* ─── HERO ─── */}
+    <>
+        {/* ─── STAT CARDS ─── */}
         <motion.div variants={fadeInUp}>
-          <ManagerPageHero
-            icon={Activity}
-            title="Live Activity"
-            subtitle="See what your team is doing right now"
-            badge={
-              <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                <div
-                  className="flex items-center"
-                  style={{
-                    gap: 6,
-                    padding: '4px 12px',
-                    borderRadius: RADIUS.pill,
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(8px)',
-                  }}
-                >
-                  <motion.div
-                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: RADIUS.pill,
-                      background: '#4ade80',
-                      boxShadow: '0 0 6px rgba(74, 222, 128, 0.6)',
-                    }}
-                  />
-                  <span
-                    className="font-semibold text-white"
-                    style={{ fontSize: TYPE.caption }}
-                  >
-                    Live
-                  </span>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={() => toast.success('Report exported', { description: 'Activity report PDF has been downloaded.' })}
-                  className="flex items-center font-semibold text-white"
-                  style={{
-                    gap: 5,
-                    padding: '4px 12px',
-                    borderRadius: RADIUS.pill,
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(8px)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: TYPE.caption,
-                  }}
-                >
-                  <Download style={{ width: 13, height: 13 }} />
-                  Export
-                </motion.button>
-              </div>
-            }
-          />
-        </motion.div>
-
-        {/* ─── TIME RANGE TOGGLE + STAT CARDS ─── */}
-        <motion.div variants={fadeInUp}>
-          <div className="flex items-center justify-end" style={{ marginBottom: GRID.spacing.xs }}>
-            {([['today', 'Today'], ['week', 'This Week'], ['month', 'This Month']] as const).map(([key, label]) => (
-              <motion.button
-                key={key}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setTimeRange(key)}
-                className="font-medium"
-                style={{
-                  fontSize: TYPE.micro,
-                  padding: '4px 12px',
-                  borderRadius: RADIUS.pill,
-                  border: 'none',
-                  background: timeRange === key
-                    ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
-                    : 'transparent',
-                  color: timeRange === key ? 'white' : COLORS.gray[500],
-                  cursor: 'pointer',
-                }}
-              >
-                {label}
-              </motion.button>
-            ))}
-          </div>
           <motion.div variants={staggerCards} initial="hidden" animate="visible">
             <ManagerStatCardGrid>
               <ManagerStatCard icon={Phone} value={STAT_VALUES[timeRange].calls} label={timeRange === 'today' ? 'Calls Today' : timeRange === 'week' ? 'Calls This Week' : 'Calls This Month'} delta={12} deltaFormat="percent" periodLabel="vs avg" />
@@ -463,49 +373,33 @@ export function ManagerActivityMonitor() {
         </motion.div>
 
         {/* ─── STATUS FILTER PILLS ─── */}
-        <motion.div
-          variants={fadeInUp}
-          className="flex flex-wrap items-center"
-          style={{ gap: GRID.spacing.xs }}
-        >
-          {STATUS_FILTERS.map(({ key, label }) => {
-            const isActive = activeFilter === key;
-            const statusColor = key !== 'all' ? ACTIVITY_STATUS_COLORS[key] : null;
-            return (
-              <motion.button
-                key={key}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ duration: MOTION.duration.hover }}
-                onClick={() => setActiveFilter(key)}
-                className="font-medium"
-                style={{
-                  fontSize: TYPE.meta,
-                  padding: '6px 16px',
-                  borderRadius: RADIUS.pill,
-                  border: 'none',
-                  background: isActive
-                    ? key !== 'all'
-                      ? STATUS_BG_COLORS[key] || '#059669'
-                      : 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
-                    : 'rgba(255, 255, 255, 0.85)',
-                  color: isActive ? 'white' : COLORS.gray[600],
-                  cursor: 'pointer',
-                  boxShadow: isActive ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-                }}
-              >
-                {label}
-                {key !== 'all' && (
-                  <span
-                    className="ml-1"
-                    style={{ opacity: 0.7 }}
-                  >
-                    ({statusCounts[key as AgentActivityStatus] || 0})
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
+        <motion.div variants={fadeInUp}>
+          <div className="flex items-center p-1 gap-1 w-fit" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
+            {STATUS_FILTERS.map(({ key, label }) => {
+              const isActive = activeFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveFilter(key)}
+                  className={`font-medium border-0 transition-all ${isActive ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                  style={{
+                    fontSize: TYPE.meta,
+                    padding: '4px 12px',
+                    borderRadius: RADIUS.button,
+                    cursor: 'pointer',
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                >
+                  {label}
+                  {key !== 'all' && (
+                    <span className="ml-1.5 h-5 px-1.5 text-[10px] bg-emerald-100 text-emerald-700 inline-flex items-center justify-center" style={{ borderRadius: RADIUS.pill, fontWeight: 700, minWidth: 18 }}>
+                      {statusCounts[key as AgentActivityStatus] || 0}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* ─── GOLDEN RATIO 2-COL GRID ─── */}
@@ -1125,7 +1019,6 @@ export function ManagerActivityMonitor() {
             </div>
           </div>
         </motion.div>
-      </motion.div>
 
       {/* ─── AGENT PROFILE DRAWER ─── */}
       <AnimatePresence>
@@ -1882,6 +1775,76 @@ export function ManagerActivityMonitor() {
           </>
         )}
       </AnimatePresence>
+    </>
+  );
+}
+
+/* ── Full page wrapper (kept for redirect compatibility) ── */
+export function ManagerActivityMonitor() {
+  return (
+    <ManagerLoungeLayout>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}
+      >
+        {/* ─── HERO ─── */}
+        <motion.div variants={fadeInUp}>
+          <ManagerPageHero
+            icon={Activity}
+            title="Live Activity"
+            subtitle="See what your team is doing right now"
+            badge={
+              <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
+                <div
+                  className="flex items-center"
+                  style={{
+                    gap: 6,
+                    padding: '4px 12px',
+                    borderRadius: RADIUS.pill,
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: RADIUS.pill,
+                      background: '#4ade80',
+                      boxShadow: '0 0 6px rgba(74, 222, 128, 0.6)',
+                    }}
+                  />
+                  <span className="font-semibold text-white" style={{ fontSize: TYPE.caption }}>Live</span>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => toast.success('Report exported', { description: 'Activity report PDF has been downloaded.' })}
+                  className="flex items-center font-semibold text-white"
+                  style={{
+                    gap: 5,
+                    padding: '4px 12px',
+                    borderRadius: RADIUS.pill,
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: TYPE.caption,
+                  }}
+                >
+                  <Download style={{ width: 13, height: 13 }} />
+                  Export
+                </motion.button>
+              </div>
+            }
+          />
+        </motion.div>
+        <ActivityMonitorContent />
+      </motion.div>
     </ManagerLoungeLayout>
   );
 }

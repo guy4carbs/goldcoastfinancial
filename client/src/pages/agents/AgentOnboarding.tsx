@@ -625,10 +625,10 @@ export default function AgentOnboarding() {
     const questionsByCategory: Record<string, RetentionQuestion[]> = {
       'onboarding': [{
         id: 'rq1',
-        question: 'What is the primary mission of Gold Coast Financial?',
+        question: 'What is the primary mission of Gold Coast Financial Partners?',
         options: ['Maximize sales volume', 'Education-first client approach', 'Compete on price', 'Quick policy turnaround'],
         correctIndex: 1,
-        explanation: 'Gold Coast Financial is built on an education-first philosophy.',
+        explanation: 'Gold Coast Financial Partners is built on an education-first philosophy.',
         topic: 'Company Mission',
         moduleId
       }],

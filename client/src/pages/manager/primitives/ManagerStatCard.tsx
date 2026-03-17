@@ -97,9 +97,6 @@ export function ManagerStatCard({
                 {value}
               </p>
             </div>
-            {sparklineData && (
-              <Sparkline data={sparklineData} width={56} height={20} strokeWidth={1.5} color="rgba(255,255,255,0.7)" autoColor={false} />
-            )}
           </div>
 
           {/* Row 2: Label */}

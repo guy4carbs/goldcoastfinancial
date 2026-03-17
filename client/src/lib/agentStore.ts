@@ -6,12 +6,34 @@ export interface AgentUser {
   name: string;
   email: string;
   phone: string;
+  npn?: string;
   role: 'agent' | 'executive';
   avatar?: string;
   territories: string[];
   startDate: string;
   certifications: string[];
   badges: string[];
+}
+
+export interface AgentWebsiteSettings {
+  headline?: string;
+  bio?: string;
+  tagline?: string;
+  featuredProducts?: string[];
+  accentColor?: string;
+  showTestimonials?: boolean;
+  showFaq?: boolean;
+  showCarriers?: boolean;
+  showScheduleCall?: boolean;
+}
+
+export interface AgentRecruitingSettings {
+  headline?: string;
+  subheadline?: string;
+  showTestimonials?: boolean;
+  showFaq?: boolean;
+  showCommissionTable?: boolean;
+  showSteps?: boolean;
 }
 
 export interface Announcement {
@@ -356,6 +378,50 @@ export interface ReferralLink {
   url: string;
   clicks: number;
   conversions: number;
+}
+
+// ===== RECRUITING EXTENDED =====
+export type RecruitingFunnelStage =
+  'link_clicked' | 'application_started' | 'application_submitted' |
+  'background_check' | 'contract_signed' | 'agent_approved' | 'agent_activated';
+
+export interface FunnelStageData {
+  stage: RecruitingFunnelStage;
+  count: number;
+  conversionRate: number;
+}
+
+export interface DownlineAgent {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: 'active' | 'inactive' | 'probation';
+  stateLicensed: string;
+  applicationStage: 'approved' | 'activated';
+  dateJoined: string;
+  productionVolume: number;
+  overrideEarnings: number;
+  avatar?: string;
+}
+
+export type AutomationStepType = 'automated' | 'user_input' | 'manual_review';
+
+export interface RecruitingAutomationStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description: string;
+  type: AutomationStepType;
+  estimatedTime: string;
+}
+
+export interface RecruitingOverviewStats {
+  totalRecruits: number;
+  pendingApplications: number;
+  approvedAgents: number;
+  monthlyOverrideEarnings: number;
+  totalDownlineVolume: number;
 }
 
 export interface QuoteVersion {
@@ -1115,7 +1181,7 @@ const DEMO_SCRIPTS: Script[] = [
     content: `TERM LIFE INSURANCE SCRIPT
 
 OPENING:
-"Hi [Name], this is [Your Name] with Gold Coast Financial. I'm calling about the life insurance information you requested. Is now a good time to chat for a few minutes?"
+"Hi [Name], this is [Your Name] with Gold Coast Financial Partners. I'm calling about the life insurance information you requested. Is now a good time to chat for a few minutes?"
 
 [If yes, continue. If no, schedule callback.]
 
@@ -1161,7 +1227,7 @@ AFTER APPLICATION:
     content: `MORTGAGE PROTECTION SCRIPT
 
 OPENING:
-"Hi [Name], this is [Your Name] with Gold Coast Financial. I'm reaching out because you recently [purchased a home/refinanced your mortgage] and I wanted to make sure you're aware of a program that protects your home if something unexpected happens. Do you have a quick moment?"
+"Hi [Name], this is [Your Name] with Gold Coast Financial Partners. I'm reaching out because you recently [purchased a home/refinanced your mortgage] and I wanted to make sure you're aware of a program that protects your home if something unexpected happens. Do you have a quick moment?"
 
 BUILD URGENCY:
 "Congratulations on your home! That's exciting. I'm sure you worked hard to get approved and make that down payment. My job is to make sure your family never loses that home if something happens to you."
@@ -1201,7 +1267,7 @@ SPOUSE INVOLVEMENT:
     content: `WHOLE LIFE INSURANCE SCRIPT
 
 OPENING:
-"Hi [Name], this is [Your Name] with Gold Coast Financial. I'm reaching out because you expressed interest in permanent life insurance - coverage that lasts your entire lifetime and builds cash value. Is this a good time to talk?"
+"Hi [Name], this is [Your Name] with Gold Coast Financial Partners. I'm reaching out because you expressed interest in permanent life insurance - coverage that lasts your entire lifetime and builds cash value. Is this a good time to talk?"
 
 QUALIFY THE PROSPECT:
 "Before we go further, let me make sure whole life is the right fit for you. A few quick questions:
@@ -1244,7 +1310,7 @@ CLOSE:
     content: `FINAL EXPENSE INSURANCE SCRIPT
 
 OPENING:
-"Hi [Name], this is [Your Name] with Gold Coast Financial. I'm calling about the information you requested on burial insurance - the kind that helps your family cover funeral costs without going into debt. Do you have a few minutes?"
+"Hi [Name], this is [Your Name] with Gold Coast Financial Partners. I'm calling about the information you requested on burial insurance - the kind that helps your family cover funeral costs without going into debt. Do you have a few minutes?"
 
 BUILD RAPPORT & EMPATHY:
 "I know this isn't the most fun topic to discuss, but I really respect you for thinking ahead. Most people wait until it's too late, and their families end up struggling."
@@ -1293,7 +1359,7 @@ MINDSET:
 Cold leads are people who requested information weeks or months ago. They may not remember filling out the form. Your goal is to re-engage them quickly and find out if they still have the need.
 
 OPENING (Pattern Interrupt):
-"Hi [Name]? Great! This is [Your Name] with Gold Coast Financial. I'm not trying to sell you anything right now - I'm just following up on a request you made about life insurance. Does that ring a bell?"
+"Hi [Name]? Great! This is [Your Name] with Gold Coast Financial Partners. I'm not trying to sell you anything right now - I'm just following up on a request you made about life insurance. Does that ring a bell?"
 
 IF THEY DON'T REMEMBER:
 "No worries! You may have filled out an online form a while back comparing life insurance rates. A lot of people do that when shopping around. Are you still looking for coverage, or did you already get something in place?"
@@ -1333,7 +1399,7 @@ MINDSET:
 This person just requested information. They're actively shopping and likely talking to other agents. Speed and value are critical.
 
 OPENING:
-"Hi [Name]! This is [Your Name] with Gold Coast Financial. I'm calling about the life insurance quote you just requested online. Did I catch you at a good time?"
+"Hi [Name]! This is [Your Name] with Gold Coast Financial Partners. I'm calling about the life insurance quote you just requested online. Did I catch you at a good time?"
 
 ACKNOWLEDGE THE REQUEST:
 "Perfect! I saw you were looking for [$XXX,000] in coverage for [term length]. I've got some great options for you. But first, let me ask a couple questions to make sure I'm showing you the best rates..."
@@ -1372,10 +1438,10 @@ CLOSE:
     content: `IN-HOUSE LEAD SCRIPT (Company-Generated Leads)
 
 MINDSET:
-These are premium leads generated by Gold Coast Financial marketing. They know our brand and have specifically requested information from us. Conversion should be high.
+These are premium leads generated by Gold Coast Financial Partners marketing. They know our brand and have specifically requested information from us. Conversion should be high.
 
 OPENING:
-"Hi [Name]! This is [Your Name] calling from Gold Coast Financial - you reached out to us about protecting your family with life insurance. How are you doing today?"
+"Hi [Name]! This is [Your Name] calling from Gold Coast Financial Partners - you reached out to us about protecting your family with life insurance. How are you doing today?"
 
 BRAND REINFORCEMENT:
 "I'm one of our senior agents here at Gold Coast, and I specialize in helping families just like yours find the right coverage at the right price. I've helped hundreds of families in [their state] get protected."
@@ -1409,7 +1475,7 @@ CLOSE:
 "I'm going to recommend we get your application started today. Here's why - your rates are locked in at today's age. If you wait even a month, you'll be [age+1] and your rate goes up. Plus, I've got availability right now to guide you through it. It takes about 15-20 minutes. Ready?"
 
 POST-SALE:
-"Welcome to the Gold Coast Financial family! Here's what happens next:
+"Welcome to the Gold Coast Financial Partners family! Here's what happens next:
 1. You'll receive a confirmation email within the hour
 2. Underwriting takes [X] days
 3. I'll personally call you when your policy is approved
@@ -1423,7 +1489,7 @@ POST-SALE:
     content: `INDEXED UNIVERSAL LIFE (IUL) SCRIPT
 
 OPENING:
-"Hi [Name], this is [Your Name] with Gold Coast Financial. I'm reaching out because you expressed interest in building tax-advantaged wealth through life insurance. This is one of the most powerful financial tools available, and I'm excited to share how it works. Do you have about 20 minutes?"
+"Hi [Name], this is [Your Name] with Gold Coast Financial Partners. I'm reaching out because you expressed interest in building tax-advantaged wealth through life insurance. This is one of the most powerful financial tools available, and I'm excited to share how it works. Do you have about 20 minutes?"
 
 QUALIFY THE PROSPECT:
 IUL is not for everyone. Qualify first:
@@ -1520,6 +1586,42 @@ const DEMO_REFERRAL_LINK: ReferralLink = {
   conversions: 3,
 };
 
+const DEMO_DOWNLINE_AGENTS: DownlineAgent[] = [
+  { id: 'dl-1', name: 'Natalie Gomez', email: 'n.gomez@email.com', phone: '(555) 666-7777', status: 'active', stateLicensed: 'Illinois', applicationStage: 'activated', dateJoined: '2026-01-10', productionVolume: 28400, overrideEarnings: 1136 },
+  { id: 'dl-2', name: 'Marcus Chen', email: 'm.chen@heritage.com', phone: '(555) 201-4455', status: 'active', stateLicensed: 'California', applicationStage: 'activated', dateJoined: '2025-09-15', productionVolume: 45200, overrideEarnings: 1808 },
+  { id: 'dl-3', name: 'Rachel Kim', email: 'r.kim@heritage.com', phone: '(555) 302-5566', status: 'active', stateLicensed: 'Texas', applicationStage: 'activated', dateJoined: '2025-11-01', productionVolume: 31800, overrideEarnings: 1272 },
+  { id: 'dl-4', name: 'James Okafor', email: 'j.okafor@heritage.com', phone: '(555) 403-6677', status: 'active', stateLicensed: 'Florida', applicationStage: 'activated', dateJoined: '2025-12-05', productionVolume: 18600, overrideEarnings: 744 },
+  { id: 'dl-5', name: 'Sarah Mitchell', email: 's.mitchell@heritage.com', phone: '(555) 504-7788', status: 'probation', stateLicensed: 'Georgia', applicationStage: 'activated', dateJoined: '2026-02-01', productionVolume: 4200, overrideEarnings: 168 },
+  { id: 'dl-6', name: 'David Park', email: 'd.park@heritage.com', phone: '(555) 605-8899', status: 'inactive', stateLicensed: 'New York', applicationStage: 'approved', dateJoined: '2025-08-20', productionVolume: 0, overrideEarnings: 0 },
+  { id: 'dl-7', name: 'Lisa Rodriguez', email: 'l.rodriguez@heritage.com', phone: '(555) 706-9900', status: 'active', stateLicensed: 'Arizona', applicationStage: 'activated', dateJoined: '2025-10-10', productionVolume: 22100, overrideEarnings: 884 },
+  { id: 'dl-8', name: 'Mike Thompson', email: 'm.thompson@heritage.com', phone: '(555) 807-1122', status: 'active', stateLicensed: 'Ohio', applicationStage: 'activated', dateJoined: '2025-07-15', productionVolume: 38900, overrideEarnings: 1556 },
+  { id: 'dl-9', name: 'Priya Sharma', email: 'p.sharma@heritage.com', phone: '(555) 908-2233', status: 'active', stateLicensed: 'Virginia', applicationStage: 'activated', dateJoined: '2026-01-20', productionVolume: 12800, overrideEarnings: 512 },
+  { id: 'dl-10', name: 'Chris Walker', email: 'c.walker@heritage.com', phone: '(555) 109-3344', status: 'active', stateLicensed: 'Colorado', applicationStage: 'activated', dateJoined: '2025-06-01', productionVolume: 41500, overrideEarnings: 1660 },
+];
+
+const DEMO_FUNNEL_DATA: FunnelStageData[] = [
+  { stage: 'link_clicked', count: 145, conversionRate: 100 },
+  { stage: 'application_started', count: 89, conversionRate: 61.4 },
+  { stage: 'application_submitted', count: 62, conversionRate: 69.7 },
+  { stage: 'background_check', count: 48, conversionRate: 77.4 },
+  { stage: 'contract_signed', count: 38, conversionRate: 79.2 },
+  { stage: 'agent_approved', count: 32, conversionRate: 84.2 },
+  { stage: 'agent_activated', count: 24, conversionRate: 75.0 },
+];
+
+const DEMO_AUTOMATION_STEPS: RecruitingAutomationStep[] = [
+  { id: 'auto-1', stepNumber: 1, title: 'Agent Shares Referral Link', description: 'Your personalized referral link is generated and ready to share across channels.', type: 'automated', estimatedTime: 'Instant' },
+  { id: 'auto-2', stepNumber: 2, title: 'Prospect Clicks Link', description: 'Prospect visits your landing page. Click tracked automatically.', type: 'automated', estimatedTime: 'Instant' },
+  { id: 'auto-3', stepNumber: 3, title: 'Prospect Fills Application', description: 'Prospect completes the application form with personal details and experience.', type: 'user_input', estimatedTime: '10-15 min' },
+  { id: 'auto-4', stepNumber: 4, title: 'Application Auto-Submitted', description: 'Application is validated and submitted to the review queue automatically.', type: 'automated', estimatedTime: 'Instant' },
+  { id: 'auto-5', stepNumber: 5, title: 'Background Check Initiated', description: 'Third-party background verification is triggered automatically.', type: 'automated', estimatedTime: '2-3 days' },
+  { id: 'auto-6', stepNumber: 6, title: 'Background Check Review', description: 'Compliance team reviews the background check results and flags any issues.', type: 'manual_review', estimatedTime: '1-2 days' },
+  { id: 'auto-7', stepNumber: 7, title: 'Contract Generated & Sent', description: 'Agent agreement is generated from template and sent for e-signature.', type: 'automated', estimatedTime: 'Instant' },
+  { id: 'auto-8', stepNumber: 8, title: 'Prospect Signs Contract', description: 'Prospect reviews and signs the agent agreement electronically.', type: 'user_input', estimatedTime: '1-3 days' },
+  { id: 'auto-9', stepNumber: 9, title: 'Onboarding Materials Sent', description: 'Training portal access, welcome kit, and orientation schedule sent automatically.', type: 'automated', estimatedTime: 'Instant' },
+  { id: 'auto-10', stepNumber: 10, title: 'Agent Activated', description: 'Agent is fully onboarded, licensed, and activated in the system.', type: 'automated', estimatedTime: 'Instant' },
+];
+
 interface AgentStore {
   currentUser: AgentUser | null;
   theme: 'light' | 'dark';
@@ -1542,8 +1644,25 @@ interface AgentStore {
   bookOfBusiness: BookOfBusinessClient[];
   recruitProspects: RecruitProspect[];
   referralLink: ReferralLink;
+  downlineAgents: DownlineAgent[];
+  funnelData: FunnelStageData[];
+  automationSteps: RecruitingAutomationStep[];
   xpGain: { amount: number; reason: string; type: string } | null;
   levelUp: number | null;
+  websiteSettings: AgentWebsiteSettings;
+  websiteStats: { pageViews: number; leadsGenerated: number; conversionRate: number } | null;
+  // Website Settings
+  updateWebsiteSettings: (updates: Partial<AgentWebsiteSettings>) => void;
+  saveWebsiteSettings: (agentSlug: string, settings: Partial<AgentWebsiteSettings>) => Promise<void>;
+  fetchWebsiteSettings: (agentSlug: string) => Promise<void>;
+  fetchWebsiteStats: (agentSlug: string) => Promise<void>;
+  // Recruiting Settings
+  recruitingSettings: AgentRecruitingSettings;
+  recruitingStats: { pageViews: number; applications: number; conversionRate: number } | null;
+  updateRecruitingSettings: (updates: Partial<AgentRecruitingSettings>) => void;
+  saveRecruitingSettings: (agentSlug: string, settings: Partial<AgentRecruitingSettings>) => Promise<void>;
+  fetchRecruitingSettings: (agentSlug: string) => Promise<void>;
+  fetchRecruitingStats: (agentSlug: string) => Promise<void>;
   // Ideas & Feedback
   submitIdea: (idea: Omit<AgentIdea, 'id' | 'submittedBy' | 'submittedByName' | 'submittedDate' | 'upvotes' | 'status'>) => void;
   upvoteIdea: (ideaId: string) => void;
@@ -1556,13 +1675,17 @@ interface AgentStore {
   graduateLeadToBook: (leadId: string) => void;
   // Recruiting
   getRecruitingStats: () => { totalRecruited: number; activeDownlines: number; pendingApplications: number; pipelineCount: number };
+  getRecruitingOverviewStats: () => RecruitingOverviewStats;
+  getRecruitingFunnelStats: () => { funnelData: FunnelStageData[]; dropOffRate: number; avgTimeToActivation: string; topSource: string };
+  getDownlineStats: () => { totalDownlines: number; activeDownlines: number; totalVolume: number; totalOverride: number };
+  getAutomationStats: () => { automationRate: number; manualSteps: number; timeSaved: string };
   addRecruitProspect: (prospect: Omit<RecruitProspect, 'id' | 'recruitedBy' | 'addedDate' | 'stageHistory' | 'stage'>) => void;
   updateRecruitStage: (prospectId: string, stage: RecruitingStage, notes?: string) => void;
   deleteRecruitProspect: (prospectId: string) => void;
   login: (email: string, password: string) => boolean;
   logout: () => void;
-  updateProfile: (updates: Partial<Pick<AgentUser, 'name' | 'email' | 'phone'>>) => void;
-  createOrUpdateProfile: (profile: { name: string; email: string; phone: string }) => void;
+  updateProfile: (updates: Partial<Pick<AgentUser, 'name' | 'email' | 'phone' | 'npn'>>) => void;
+  createOrUpdateProfile: (profile: { name: string; email: string; phone: string; npn?: string }) => void;
   toggleTheme: () => void;
   completeTask: (taskId: string) => void;
   addTask: (task: Omit<Task, 'id' | 'assignedTo' | 'completed'>) => void;
@@ -1590,6 +1713,8 @@ interface AgentStore {
   completeReminder: (leadId: string, reminderId: string) => void;
   bulkUpdateLeadStatus: (leadIds: string[], status: Lead['status']) => void;
   importLeads: (leads: Omit<Lead, 'id' | 'createdDate' | 'notes' | 'assignedTo' | 'statusHistory'>[]) => void;
+  fetchWebsiteLeads: (agentSlug: string) => Promise<void>;
+  fetchReferralLeads: () => Promise<void>;
   deleteLeads: (leadIds: string[]) => void;
   // Quote enhancements
   createQuoteVersion: (quoteId: string) => void;
@@ -1651,8 +1776,128 @@ export const useAgentStore = create<AgentStore>()(
       bookOfBusiness: DEMO_BOOK_OF_BUSINESS,
       recruitProspects: DEMO_RECRUIT_PROSPECTS,
       referralLink: DEMO_REFERRAL_LINK,
+      downlineAgents: DEMO_DOWNLINE_AGENTS,
+      funnelData: DEMO_FUNNEL_DATA,
+      automationSteps: DEMO_AUTOMATION_STEPS,
       xpGain: null,
       levelUp: null,
+      websiteSettings: {
+        featuredProducts: ['term_life', 'whole_life', 'iul', 'final_expense', 'annuities'],
+        showTestimonials: true,
+        showFaq: true,
+        showCarriers: true,
+        showScheduleCall: true,
+      },
+      websiteStats: null,
+      recruitingSettings: {
+        showTestimonials: true,
+        showFaq: true,
+        showCommissionTable: true,
+        showSteps: true,
+      },
+      recruitingStats: null,
+
+      // ===== WEBSITE SETTINGS ACTIONS =====
+      updateWebsiteSettings: (updates) => {
+        const { websiteSettings } = get();
+        set({ websiteSettings: { ...websiteSettings, ...updates } });
+      },
+
+      saveWebsiteSettings: async (agentSlug, settings) => {
+        try {
+          await fetch(`/api/website-settings/${agentSlug}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings),
+          });
+        } catch (err) {
+          console.error('[AgentStore] Failed to save website settings:', err);
+        }
+      },
+
+      fetchWebsiteSettings: async (agentSlug) => {
+        try {
+          const res = await fetch(`/api/website-settings/${agentSlug}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data) {
+            const updates: Partial<AgentWebsiteSettings> = {};
+            if (data.headline) updates.headline = data.headline;
+            if (data.tagline) updates.tagline = data.tagline;
+            if (data.bio) updates.bio = data.bio;
+            if (data.featuredProducts) updates.featuredProducts = data.featuredProducts;
+            if (data.showTestimonials !== undefined) updates.showTestimonials = data.showTestimonials;
+            if (data.showFaq !== undefined) updates.showFaq = data.showFaq;
+            if (data.showCarriers !== undefined) updates.showCarriers = data.showCarriers;
+            if (data.showScheduleCall !== undefined) updates.showScheduleCall = data.showScheduleCall;
+            const { websiteSettings } = get();
+            set({ websiteSettings: { ...websiteSettings, ...updates } });
+          }
+        } catch (err) {
+          console.error('[AgentStore] Failed to fetch website settings:', err);
+        }
+      },
+
+      fetchWebsiteStats: async (agentSlug) => {
+        try {
+          const res = await fetch(`/api/agent-stats/${agentSlug}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          set({ websiteStats: data });
+        } catch (err) {
+          console.error('[AgentStore] Failed to fetch website stats:', err);
+        }
+      },
+
+      // ===== RECRUITING SETTINGS ACTIONS =====
+      updateRecruitingSettings: (updates) => {
+        const { recruitingSettings } = get();
+        set({ recruitingSettings: { ...recruitingSettings, ...updates } });
+      },
+
+      saveRecruitingSettings: async (agentSlug, settings) => {
+        try {
+          await fetch(`/api/recruiting-settings/${agentSlug}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings),
+          });
+        } catch (err) {
+          console.error('[AgentStore] Failed to save recruiting settings:', err);
+        }
+      },
+
+      fetchRecruitingSettings: async (agentSlug) => {
+        try {
+          const res = await fetch(`/api/recruiting-settings/${agentSlug}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data) {
+            const updates: Partial<AgentRecruitingSettings> = {};
+            if (data.headline) updates.headline = data.headline;
+            if (data.subheadline) updates.subheadline = data.subheadline;
+            if (data.showTestimonials !== undefined) updates.showTestimonials = data.showTestimonials;
+            if (data.showFaq !== undefined) updates.showFaq = data.showFaq;
+            if (data.showCommissionTable !== undefined) updates.showCommissionTable = data.showCommissionTable;
+            if (data.showSteps !== undefined) updates.showSteps = data.showSteps;
+            const { recruitingSettings } = get();
+            set({ recruitingSettings: { ...recruitingSettings, ...updates } });
+          }
+        } catch (err) {
+          console.error('[AgentStore] Failed to fetch recruiting settings:', err);
+        }
+      },
+
+      fetchRecruitingStats: async (agentSlug) => {
+        try {
+          const res = await fetch(`/api/recruiting-stats/${agentSlug}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          set({ recruitingStats: data });
+        } catch (err) {
+          console.error('[AgentStore] Failed to fetch recruiting stats:', err);
+        }
+      },
 
       // ===== IDEAS & FEEDBACK ACTIONS =====
       submitIdea: (idea) => {
@@ -1833,6 +2078,52 @@ export const useAgentStore = create<AgentStore>()(
         const state = get();
         set({ recruitProspects: state.recruitProspects.filter(p => p.id !== prospectId) });
       },
+      getRecruitingOverviewStats: () => {
+        const state = get();
+        const downlines = state.downlineAgents;
+        const activeDownlines = downlines.filter(d => d.status === 'active');
+        return {
+          totalRecruits: downlines.length,
+          pendingApplications: state.recruitProspects.filter(p => p.stage === 'applied' || p.stage === 'interviewing').length,
+          approvedAgents: activeDownlines.length,
+          monthlyOverrideEarnings: activeDownlines.reduce((sum, d) => sum + d.overrideEarnings, 0),
+          totalDownlineVolume: activeDownlines.reduce((sum, d) => sum + d.productionVolume, 0),
+        };
+      },
+      getRecruitingFunnelStats: () => {
+        const state = get();
+        const funnel = state.funnelData;
+        const first = funnel[0]?.count || 1;
+        const last = funnel[funnel.length - 1]?.count || 0;
+        return {
+          funnelData: funnel,
+          dropOffRate: Math.round(((first - last) / first) * 100 * 10) / 10,
+          avgTimeToActivation: '18 days',
+          topSource: 'LinkedIn',
+        };
+      },
+      getDownlineStats: () => {
+        const state = get();
+        const downlines = state.downlineAgents;
+        const active = downlines.filter(d => d.status === 'active');
+        return {
+          totalDownlines: downlines.length,
+          activeDownlines: active.length,
+          totalVolume: active.reduce((sum, d) => sum + d.productionVolume, 0),
+          totalOverride: active.reduce((sum, d) => sum + d.overrideEarnings, 0),
+        };
+      },
+      getAutomationStats: () => {
+        const state = get();
+        const steps = state.automationSteps;
+        const automated = steps.filter(s => s.type === 'automated').length;
+        const manual = steps.filter(s => s.type === 'manual_review').length;
+        return {
+          automationRate: Math.round((automated / steps.length) * 100),
+          manualSteps: manual,
+          timeSaved: '12 hrs',
+        };
+      },
 
       login: (email: string, password: string) => {
         const user = DEMO_AGENTS.find(a => a.email.toLowerCase() === email.toLowerCase());
@@ -1882,6 +2173,7 @@ export const useAgentStore = create<AgentStore>()(
             name: profile.name,
             email: profile.email,
             phone: profile.phone,
+            npn: profile.npn || currentUser.npn,
           };
           set({ currentUser: updatedUser });
         } else {
@@ -1891,6 +2183,7 @@ export const useAgentStore = create<AgentStore>()(
             name: profile.name,
             email: profile.email,
             phone: profile.phone,
+            npn: profile.npn,
             role: 'agent',
             territories: [],
             startDate: new Date().toISOString().split('T')[0],
@@ -2296,6 +2589,94 @@ export const useAgentStore = create<AgentStore>()(
             }))
           ]
         }));
+      },
+
+      fetchWebsiteLeads: async (agentSlug: string) => {
+        try {
+          const res = await fetch(`/api/agent-leads/${agentSlug}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          const websiteLeads = data.leads || [];
+          const state = get();
+          const existingIds = new Set(state.leads.map(l => l.id));
+          const today = new Date().toISOString().split('T')[0];
+
+          const newLeads: Lead[] = websiteLeads
+            .filter((wl: any) => !existingIds.has(`web-${wl.leadId}`))
+            .map((wl: any) => ({
+              id: `web-${wl.leadId}`,
+              name: `${wl.firstName} ${wl.lastName}`,
+              email: wl.email,
+              phone: wl.phone || '',
+              status: 'new' as const,
+              source: wl.source === 'schedule_call' ? 'Schedule Call' : 'Website',
+              assignedTo: state.currentUser?.id || 'unknown',
+              createdDate: wl.createdAt.split('T')[0],
+              notes: wl.message ? [{
+                id: `note-${wl.leadId}`,
+                type: 'note' as const,
+                notes: `Website message: ${wl.message}`,
+                date: wl.createdAt.split('T')[0],
+                agentId: 'system',
+              }] : [],
+              product: wl.productInterest || undefined,
+              tags: ['Website Lead'],
+              nextFollowUpDate: today,
+              nextFollowUpType: 'call' as const,
+            }));
+
+          if (newLeads.length > 0) {
+            set({ leads: [...newLeads, ...state.leads] });
+          }
+        } catch (err) {
+          console.error('[AgentStore] Failed to fetch website leads:', err);
+        }
+      },
+
+      fetchReferralLeads: async () => {
+        try {
+          const res = await fetch('/api/referrals/leads', { credentials: 'include' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const referralLeads = data.leads || [];
+          const state = get();
+          const existingIds = new Set(state.leads.map(l => l.id));
+          const today = new Date().toISOString().split('T')[0];
+
+          const newLeads: Lead[] = referralLeads
+            .filter((rl: any) => !existingIds.has(`ref-${rl.id}`))
+            .map((rl: any) => ({
+              id: `ref-${rl.id}`,
+              name: `${rl.firstName} ${rl.lastName}`,
+              email: rl.email,
+              phone: rl.phone || '',
+              status: rl.status === 'new' ? 'new' as const : 'contacted' as const,
+              source: 'Referral',
+              assignedTo: state.currentUser?.id || 'unknown',
+              createdDate: rl.createdAt ? rl.createdAt.split('T')[0] : today,
+              notes: rl.notes ? [{
+                id: `note-ref-${rl.id}`,
+                type: 'note' as const,
+                notes: rl.notes,
+                date: rl.createdAt ? rl.createdAt.split('T')[0] : today,
+                agentId: 'system',
+              }] : [],
+              product: rl.coverageType || undefined,
+              tags: [
+                'Referral',
+                ...(rl.referrerName ? [`From: ${rl.referrerName}`] : []),
+                ...(rl.relationship ? [rl.relationship] : []),
+              ],
+              nextFollowUpDate: today,
+              nextFollowUpType: 'call' as const,
+            }));
+
+          if (newLeads.length > 0) {
+            set({ leads: [...newLeads, ...state.leads] });
+          }
+        } catch (err) {
+          console.error('[AgentStore] Failed to fetch referral leads:', err);
+        }
       },
 
       deleteLeads: (leadIds: string[]) => {

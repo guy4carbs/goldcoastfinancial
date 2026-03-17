@@ -4,7 +4,7 @@ import { ArrowRight, Shield, Scale, TrendingUp, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 /**
- * Gold Coast Financial - Institutional Homepage
+ * Gold Coast Financial Partners - Institutional Homepage
  *
  * Design Philosophy:
  * - Goldman Sachs / Berkshire Hathaway style
@@ -30,7 +30,7 @@ export default function InstitutionalHome() {
             </h1>
             <div className="w-16 h-px bg-secondary mb-8" />
             <p className="text-lg text-muted-foreground max-w-2xl">
-              Gold Coast Financial maintains long-term capital commitments to insurance and advisory operations, emphasizing compliance, risk management, and sustainable growth.
+              Gold Coast Financial Partners maintains long-term capital commitments to insurance and advisory operations, emphasizing compliance, risk management, and sustainable growth.
             </p>
           </motion.div>
         </div>
@@ -53,7 +53,7 @@ export default function InstitutionalHome() {
                 Who We Are
               </h2>
               <p className="text-2xl md:text-3xl font-serif text-primary leading-relaxed">
-                Gold Coast Financial serves as the parent holding company for a portfolio of regulated financial services businesses.
+                Gold Coast Financial Partners serves as the parent holding company for a portfolio of regulated financial services businesses.
               </p>
             </motion.div>
             <motion.div
@@ -184,7 +184,7 @@ export default function InstitutionalHome() {
                 Heritage Life Solutions
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                An independent life insurance brokerage providing personalized coverage solutions to individuals and families nationwide. Operates under Gold Coast Financial governance with full regulatory compliance across all 50 states.
+                An independent life insurance brokerage providing personalized coverage solutions to individuals and families nationwide. Operates under Gold Coast Financial Partners governance with full regulatory compliance across all 50 states.
               </p>
               <a
                 href="/heritage"
@@ -213,7 +213,7 @@ export default function InstitutionalHome() {
                 Future Expansion
               </h3>
               <p className="text-muted-foreground/70 text-sm leading-relaxed">
-                Gold Coast Financial continues to evaluate opportunities in property and casualty insurance, maintaining disciplined criteria for market entry and partnership selection.
+                Gold Coast Financial Partners continues to evaluate opportunities in property and casualty insurance, maintaining disciplined criteria for market entry and partnership selection.
               </p>
             </motion.div>
 
@@ -308,7 +308,7 @@ export default function InstitutionalHome() {
               className="space-y-6"
             >
               <p className="text-primary-foreground/80 leading-relaxed">
-                Gold Coast Financial's governance structure ensures accountability, transparency, and alignment with the interests of all stakeholders. Our leadership team brings decades of combined experience in insurance, finance, and regulatory affairs.
+                Gold Coast Financial Partners's governance structure ensures accountability, transparency, and alignment with the interests of all stakeholders. Our leadership team brings decades of combined experience in insurance, finance, and regulatory affairs.
               </p>
               <Link
                 href="/goldcoastfinancial2/about"

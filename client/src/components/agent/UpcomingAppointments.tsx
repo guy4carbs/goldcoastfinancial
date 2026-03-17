@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatProductLabel } from "@/lib/utils";
 import { useAgentStore, type Lead, type Appointment } from "@/lib/agentStore";
 
 interface UpcomingAppointmentsProps {
@@ -139,7 +139,7 @@ export function UpcomingAppointments({ onSelectLead, limit, showEmpty = true }: 
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{lead.name}</span>
                     {lead.product && (
-                      <span className="text-xs text-gray-400">• {lead.product}</span>
+                      <span className="text-xs text-gray-400">• {formatProductLabel(lead.product)}</span>
                     )}
                   </div>
 

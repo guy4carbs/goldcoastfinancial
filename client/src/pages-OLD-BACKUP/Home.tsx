@@ -43,7 +43,7 @@ const testimonials = [
   {
     name: "Thomas H.",
     location: "Denver, CO",
-    text: "Gold Coast Financial is the real deal. Marcus Williams found me a term policy at half the price I was quoted elsewhere. Can't thank them enough!",
+    text: "Gold Coast Financial Partners is the real deal. Marcus Williams found me a term policy at half the price I was quoted elsewhere. Can't thank them enough!",
     agent: "Marcus Williams",
     rating: 5
   },
@@ -78,7 +78,7 @@ const testimonials = [
   {
     name: "James & Carol B.",
     location: "Chicago, IL",
-    text: "The team at Gold Coast Financial treats you like family. Gaetano has been our advisor for years and we wouldn't go anywhere else.",
+    text: "The team at Gold Coast Financial Partners treats you like family. Gaetano has been our advisor for years and we wouldn't go anywhere else.",
     agent: "Gaetano Carbonara",
     rating: 5
   },
@@ -209,7 +209,7 @@ export default function Home() {
       <section className="py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold font-serif mb-4 text-primary">Why Choose Gold Coast Financial?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold font-serif mb-4 text-primary">Why Choose Gold Coast Financial Partners?</h2>
             <p className="text-muted-foreground text-lg">
               We're not just selling policies; we're building relationships. As independent agents, we work for you, not the insurance companies.
             </p>

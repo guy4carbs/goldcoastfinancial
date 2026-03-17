@@ -364,11 +364,19 @@ export const claims = pgTable("claims", {
   // Notes
   internalNotes: text("internal_notes"),
 
+  // Agent Assignment & Carrier Tracking
+  agentUserId: uuid("agent_user_id").references(() => users.id),
+  carrierClaimNumber: varchar("carrier_claim_number", { length: 100 }),
+  estimatedResolutionDate: timestamp("estimated_resolution_date"),
+  priority: varchar("priority", { length: 20 }).default("normal"), // normal, high, critical
+  carrier: varchar("carrier", { length: 200 }),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_claims_policy_id").on(table.policyId),
   index("idx_claims_claimant_user_id").on(table.claimantUserId),
+  index("idx_claims_agent_user_id").on(table.agentUserId),
 ]);
 
 export const insertClaimSchema = createInsertSchema(claims).omit({
@@ -379,6 +387,32 @@ export const insertClaimSchema = createInsertSchema(claims).omit({
 
 export type Claim = typeof claims.$inferSelect;
 export type InsertClaim = z.infer<typeof insertClaimSchema>;
+
+// =============================================================================
+// CLAIM NOTES (Internal notes + audit trail)
+// =============================================================================
+
+export const claimNotes = pgTable("claim_notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  claimId: uuid("claim_id").references(() => claims.id).notNull(),
+  authorId: uuid("author_id").references(() => users.id).notNull(),
+  authorName: varchar("author_name", { length: 200 }),
+  content: text("content").notNull(),
+  noteType: varchar("note_type", { length: 50 }).notNull().default("internal"), // internal, status_change, document_request, client_visible
+  previousStatus: varchar("previous_status", { length: 50 }),
+  newStatus: varchar("new_status", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_claim_notes_claim_id").on(table.claimId),
+]);
+
+export const insertClaimNoteSchema = createInsertSchema(claimNotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ClaimNote = typeof claimNotes.$inferSelect;
+export type InsertClaimNote = z.infer<typeof insertClaimNoteSchema>;
 
 // =============================================================================
 // SUPPORT TICKETS
@@ -476,6 +510,30 @@ export const insertReferralSchema = createInsertSchema(referrals).omit({
 
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
+
+// =============================================================================
+// REFERRAL POINTS LEDGER
+// =============================================================================
+
+export const referralPoints = pgTable("referral_points", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  amount: integer("amount").notNull(),
+  reason: varchar("reason", { length: 255 }).notNull(),
+  sourceType: varchar("source_type", { length: 50 }), // referral_submitted | consultation_completed | milestone | redemption
+  sourceId: varchar("source_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_referral_points_user_id").on(table.userId),
+]);
+
+export const insertReferralPointSchema = createInsertSchema(referralPoints).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ReferralPoint = typeof referralPoints.$inferSelect;
+export type InsertReferralPoint = z.infer<typeof insertReferralPointSchema>;
 
 // =============================================================================
 // SOCIAL POSTS
@@ -1257,3 +1315,23 @@ export const HIERARCHY_TITLES: Record<number, string> = {
   5: 'Agent',
   6: 'New Agent',
 };
+
+// ─── ACCESS CHANGE LOG ─────────────────────────────────────────────────────────
+export const accessChangeLog = pgTable("access_change_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  targetUserId: uuid("target_user_id").references(() => users.id).notNull(),
+  performedBy: uuid("performed_by").references(() => users.id).notNull(),
+  actionType: varchar("action_type", { length: 50 }).notNull(),
+  previousValue: jsonb("previous_value"),
+  newValue: jsonb("new_value"),
+  reason: text("reason"),
+  emailSent: boolean("email_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_access_log_target").on(table.targetUserId),
+  index("idx_access_log_performer").on(table.performedBy),
+  index("idx_access_log_type").on(table.actionType),
+]);
+
+export type AccessChangeLog = typeof accessChangeLog.$inferSelect;
+export type InsertAccessChangeLog = typeof accessChangeLog.$inferInsert;

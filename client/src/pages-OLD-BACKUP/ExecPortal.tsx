@@ -3550,7 +3550,7 @@ function RevenueView({ theme }: { theme: string }) {
               </thead>
               <tbody className={cn("divide-y", theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200')}>
                 {[
-                  { entity: 'Gold Coast Financial LLC', gross: 1450000, costs: 145000, overrides: 98500, opex: 185000, net: 1021500, margin: 70.4 },
+                  { entity: 'Gold Coast Financial Partners LLC', gross: 1450000, costs: 145000, overrides: 98500, opex: 185000, net: 1021500, margin: 70.4 },
                   { entity: 'GCF Insurance Agency Inc', gross: 485000, costs: 48500, overrides: 29800, opex: 62000, net: 344700, margin: 71.1 },
                   { entity: 'GCF Marketing Services', gross: 189000, costs: 28350, overrides: 0, opex: 45000, net: 115650, margin: 61.2 },
                 ].map((entity) => (
@@ -3648,9 +3648,9 @@ function RevenueView({ theme }: { theme: string }) {
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              { from: 'Gold Coast Financial LLC', to: 'GCF Marketing Services', amount: 25000, type: 'Marketing allocation', status: 'settled', date: 'Jan 3, 2026' },
-              { from: 'GCF Insurance Agency Inc', to: 'Gold Coast Financial LLC', amount: 45000, type: 'Commission remittance', status: 'settled', date: 'Jan 2, 2026' },
-              { from: 'Gold Coast Financial LLC', to: 'GCF Insurance Agency Inc', amount: 15000, type: 'Operating support', status: 'pending', date: 'Jan 5, 2026' },
+              { from: 'Gold Coast Financial Partners LLC', to: 'GCF Marketing Services', amount: 25000, type: 'Marketing allocation', status: 'settled', date: 'Jan 3, 2026' },
+              { from: 'GCF Insurance Agency Inc', to: 'Gold Coast Financial Partners LLC', amount: 45000, type: 'Commission remittance', status: 'settled', date: 'Jan 2, 2026' },
+              { from: 'Gold Coast Financial Partners LLC', to: 'GCF Insurance Agency Inc', amount: 15000, type: 'Operating support', status: 'pending', date: 'Jan 5, 2026' },
             ].map((txn, i) => (
               <div key={i} className={cn('p-3 rounded-lg', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100')}>
                 <div className="flex items-center justify-between mb-1">

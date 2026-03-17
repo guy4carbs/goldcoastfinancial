@@ -246,7 +246,7 @@ export default function AgentBookOfBusiness() {
 
       {/* Client Detail Drawer */}
       <Sheet open={!!selectedClient} onOpenChange={() => { setSelectedClient(null); setShowSensitive(false); setVisibleFields({}); }}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto" style={{ borderRadius: `${RADIUS.card}px 0 0 ${RADIUS.card}px` }}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto" style={{ borderRadius: 0 }}>
           {selectedClient && (() => {
             const cfg = statusConfig[selectedClient.clientStatus];
             const StatusIcon = cfg.icon;

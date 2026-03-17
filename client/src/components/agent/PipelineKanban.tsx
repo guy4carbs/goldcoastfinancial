@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Phone, Mail, Clock, Plus, AlertTriangle
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatProductLabel } from "@/lib/utils";
 
 export interface PipelineLead {
   id: string;
@@ -135,7 +135,7 @@ function CompactLeadCard({
             <Mail className="w-3 h-3 text-blue-500" />
           </Button>
         )}
-        <span className="text-[9px] text-gray-400 ml-auto truncate">{lead.product}</span>
+        <span className="text-[9px] text-gray-400 ml-auto truncate">{formatProductLabel(lead.product)}</span>
       </div>
     </motion.div>
   );

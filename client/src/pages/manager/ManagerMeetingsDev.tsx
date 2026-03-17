@@ -428,42 +428,37 @@ export function ManagerMeetingsDev() {
         <motion.div variants={fadeInUp}>
           <Tabs defaultValue="one_on_ones" className="w-full">
             <TabsList
-              className="w-full justify-start bg-white/60 backdrop-blur-xl border border-black/[0.06]"
-              style={{
-                borderRadius: RADIUS.card,
-                padding: 4,
-                height: 'auto',
-                gap: 4,
-              }}
+              className="w-fit border-0 p-1 gap-1"
+              style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
             >
               <TabsTrigger
                 value="one_on_ones"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <UserCheck style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 1:1 Meetings
               </TabsTrigger>
               <TabsTrigger
                 value="coaching"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <GraduationCap style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Coaching
               </TabsTrigger>
               <TabsTrigger
                 value="team_meetings"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <Calendar style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Team Meetings
               </TabsTrigger>
               <TabsTrigger
                 value="learning_logs"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 text-gray-600 font-semibold"
-                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px` }}
+                className="gap-2 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-700"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <BookOpen style={{ width: LAYOUT.icon.sm, height: LAYOUT.icon.sm }} />
                 Learning & Logs
@@ -476,7 +471,7 @@ export function ManagerMeetingsDev() {
             <TabsContent value="one_on_ones">
               <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md, marginTop: GRID.spacing.md }}>
                 {/* Schedule 1:1 CTA */}
-                <div className="flex justify-end">
+                <div className="flex justify-start">
                   <motion.button
                     className="flex items-center font-semibold text-white shadow-lg shadow-emerald-500/20 border-0"
                     style={{
@@ -511,11 +506,11 @@ export function ManagerMeetingsDev() {
                         boxShadow: SHADOW.card,
                       }}
                     >
-                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                         <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                           <div
                             className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                            style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                           >
                             <Calendar className="text-amber-200" size={LAYOUT.icon.md} />
                           </div>
@@ -531,7 +526,7 @@ export function ManagerMeetingsDev() {
                               <div key={meeting.id}>
                                 <motion.div
                                   className="flex items-center"
-                                  style={{ padding: 12, borderRadius: RADIUS.button, gap: 12 }}
+                                  style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, gap: GRID.spacing.sm }}
                                   whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                                 >
                                   {/* Avatar */}
@@ -678,11 +673,11 @@ export function ManagerMeetingsDev() {
                       className="overflow-hidden"
                       style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                     >
-                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                         <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                           <div
                             className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                            style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                           >
                             <Clock className="text-amber-200" size={LAYOUT.icon.md} />
                           </div>
@@ -695,7 +690,7 @@ export function ManagerMeetingsDev() {
                             <motion.div
                               key={idx}
                               className="flex items-center"
-                              style={{ padding: 12, borderRadius: RADIUS.button, gap: 12 }}
+                              style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, gap: GRID.spacing.sm }}
                               whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                             >
                               <div
@@ -725,11 +720,11 @@ export function ManagerMeetingsDev() {
                       className="overflow-hidden"
                       style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                     >
-                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                         <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                           <div
                             className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                            style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                           >
                             <ClipboardList className="text-amber-200" size={LAYOUT.icon.md} />
                           </div>
@@ -786,11 +781,11 @@ export function ManagerMeetingsDev() {
                       className="overflow-hidden"
                       style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                     >
-                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                      <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                         <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                           <div
                             className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                            style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                            style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                           >
                             <FileText className="text-amber-200" size={LAYOUT.icon.md} />
                           </div>
@@ -802,12 +797,12 @@ export function ManagerMeetingsDev() {
                           {ONE_ON_ONE_TEMPLATES.map((template) => (
                             <motion.div
                               key={template.id}
-                              style={{ padding: 12, borderRadius: RADIUS.button, backgroundColor: COLORS.gray[50], border: `1px solid ${COLORS.gray[100]}` }}
+                              style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, backgroundColor: COLORS.gray[50], border: `1px solid ${COLORS.gray[100]}` }}
                               whileHover={{ backgroundColor: COLORS.gray[100], transition: { duration: MOTION.duration.hover } }}
                             >
                               <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta, marginBottom: 4 }}>{template.name}</p>
                               <p className="text-gray-500" style={{ fontSize: TYPE.caption, marginBottom: GRID.spacing.xs }}>{template.description}</p>
-                              <div className="flex flex-wrap" style={{ gap: 6 }}>
+                              <div className="flex flex-wrap" style={{ gap: GRID.spacing.xs }}>
                                 {template.items.map((agendaItem, idx) => (
                                   <span
                                     key={idx}
@@ -880,11 +875,11 @@ export function ManagerMeetingsDev() {
                     className="overflow-hidden h-full"
                     style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
-                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                         <div
                           className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                          style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                          style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                         >
                           <Clock className="text-amber-200" size={LAYOUT.icon.md} />
                         </div>
@@ -897,7 +892,7 @@ export function ManagerMeetingsDev() {
                           <motion.div
                             key={session.id}
                             className="flex items-center"
-                            style={{ padding: 12, borderRadius: RADIUS.button, gap: 12 }}
+                            style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, gap: GRID.spacing.sm }}
                             whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                           >
                             <div className="flex-shrink-0 text-center" style={{ minWidth: 56 }}>
@@ -927,11 +922,11 @@ export function ManagerMeetingsDev() {
                     className="overflow-hidden h-full"
                     style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
-                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                         <div
                           className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                          style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                          style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                         >
                           <Target className="text-amber-200" size={LAYOUT.icon.md} />
                         </div>
@@ -943,7 +938,7 @@ export function ManagerMeetingsDev() {
                         {DEMO_GOALS.map((g, idx) => (
                           <motion.div
                             key={idx}
-                            style={{ padding: 12, borderRadius: RADIUS.button }}
+                            style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button }}
                             whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                           >
                             <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs }}>
@@ -975,11 +970,11 @@ export function ManagerMeetingsDev() {
                   className="overflow-hidden"
                   style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                 >
-                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                  <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                     <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                       <div
                         className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                        style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                        style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                       >
                         <FileText className="text-amber-200" size={LAYOUT.icon.md} />
                       </div>
@@ -992,7 +987,7 @@ export function ManagerMeetingsDev() {
                         <motion.div
                           key={idx}
                           className="flex items-start"
-                          style={{ padding: 12, borderRadius: RADIUS.button, gap: 12 }}
+                          style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, gap: GRID.spacing.sm }}
                           whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                         >
                           <div
@@ -1022,10 +1017,11 @@ export function ManagerMeetingsDev() {
             <TabsContent value="team_meetings">
               <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md, marginTop: GRID.spacing.md }}>
                 {/* Schedule Meeting Button */}
-                <div className="flex justify-end">
+                <div className="flex justify-start">
                   <motion.button
-                    className="flex items-center font-semibold bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-500/20 border-0"
+                    className="flex items-center font-semibold text-white shadow-lg shadow-emerald-500/20 border-0"
                     style={{
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
                       borderRadius: RADIUS.button,
                       padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`,
                       fontSize: TYPE.meta,
@@ -1047,11 +1043,11 @@ export function ManagerMeetingsDev() {
                     className="overflow-hidden h-full"
                     style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
-                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                         <div
                           className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                          style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                          style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                         >
                           <CalendarDays className="text-amber-200" size={LAYOUT.icon.md} />
                         </div>
@@ -1066,7 +1062,7 @@ export function ManagerMeetingsDev() {
                             <motion.div
                               key={meeting.id}
                               className="flex items-center"
-                              style={{ padding: 12, borderRadius: RADIUS.button, gap: 12 }}
+                              style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button, gap: GRID.spacing.sm }}
                               whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                             >
                               <div className="flex-shrink-0 text-center" style={{ minWidth: 56 }}>
@@ -1098,11 +1094,11 @@ export function ManagerMeetingsDev() {
                     className="overflow-hidden h-full"
                     style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
-                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                         <div
                           className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                          style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                          style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                         >
                           <FileText className="text-amber-200" size={LAYOUT.icon.md} />
                         </div>
@@ -1114,7 +1110,7 @@ export function ManagerMeetingsDev() {
                         {DEMO_PAST_MEETINGS.map((pm, idx) => (
                           <motion.div
                             key={idx}
-                            style={{ padding: 12, borderRadius: RADIUS.button }}
+                            style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.button }}
                             whileHover={{ backgroundColor: COLORS.gray[50], transition: { duration: MOTION.duration.hover } }}
                           >
                             <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.xs }}>
@@ -1162,11 +1158,11 @@ export function ManagerMeetingsDev() {
                     className="overflow-hidden h-full"
                     style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
-                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                         <div
                           className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                          style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                          style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                         >
                           <BookOpen className="text-amber-200" size={LAYOUT.icon.md} />
                         </div>
@@ -1184,7 +1180,7 @@ export function ManagerMeetingsDev() {
                             <motion.div
                               key={path.id}
                               style={{
-                                padding: 12,
+                                padding: GRID.spacing.sm,
                                 borderRadius: RADIUS.button,
                                 backgroundColor: COLORS.gray[50],
                                 border: `1px solid ${COLORS.gray[100]}`,
@@ -1223,11 +1219,11 @@ export function ManagerMeetingsDev() {
                     className="overflow-hidden h-full"
                     style={{ ...glassCard, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
-                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: 12 }}>
+                    <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <CardTitle className="font-semibold flex items-center gap-3" style={{ fontSize: TYPE.title }}>
                         <div
                           className={`flex items-center justify-center bg-gradient-to-br ${MANAGER_ICON_GRADIENT} shadow-lg shadow-emerald-500/20`}
-                          style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
+                          style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
                         >
                           <AlertTriangle className="text-amber-200" size={LAYOUT.icon.md} />
                         </div>
@@ -1240,14 +1236,14 @@ export function ManagerMeetingsDev() {
                           <motion.div
                             key={idx}
                             style={{
-                              padding: 12,
+                              padding: GRID.spacing.sm,
                               borderRadius: RADIUS.button,
                               backgroundColor: gap.assessmentScore < 60 ? 'rgba(254,202,202,0.15)' : COLORS.gray[50],
                               border: `1px solid ${gap.assessmentScore < 60 ? 'rgba(254,202,202,0.4)' : COLORS.gray[100]}`,
                             }}
                             whileHover={{ backgroundColor: COLORS.gray[100], transition: { duration: MOTION.duration.hover } }}
                           >
-                            <div className="flex items-center" style={{ gap: 12, marginBottom: GRID.spacing.xs }}>
+                            <div className="flex items-center" style={{ gap: GRID.spacing.sm, marginBottom: GRID.spacing.xs }}>
                               <div
                                 className="flex items-center justify-center text-white font-bold bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0"
                                 style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
@@ -1325,7 +1321,7 @@ export function ManagerMeetingsDev() {
                           <div
                             key={idx}
                             className="flex items-center"
-                            style={{ gap: 12, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)' }}
+                            style={{ gap: GRID.spacing.sm, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`, borderRadius: RADIUS.button, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(4px)' }}
                           >
                             <div
                               className="flex items-center justify-center text-white font-bold flex-shrink-0"
@@ -1669,22 +1665,20 @@ export function ManagerMeetingsDev() {
                 {/* Type pills */}
                 <div>
                   <label className="block text-gray-500 font-medium" style={{ fontSize: TYPE.caption, marginBottom: 4 }}>Type</label>
-                  <div className="flex" style={{ gap: 6 }}>
+                  <div className="flex items-center p-1 gap-1" style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}>
                     {([
                       { value: 'standup' as const, label: 'Standup' },
                       { value: 'review' as const, label: 'Review' },
                       { value: 'training' as const, label: 'Training' },
                     ]).map((t) => (
-                      <motion.button
+                      <button
                         key={t.value}
                         onClick={() => setMeetingType(t.value)}
-                        className={`font-medium border-0 ${meetingType === t.value ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white' : 'text-gray-500 bg-gray-100'}`}
-                        style={{ borderRadius: RADIUS.pill, padding: `4px ${GRID.spacing.sm}px`, fontSize: TYPE.caption }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.97 }}
+                        className={`font-medium border-0 transition-all ${meetingType === t.value ? 'bg-white text-emerald-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                        style={{ borderRadius: RADIUS.button, padding: '4px 12px', fontSize: TYPE.meta, cursor: 'pointer', fontWeight: meetingType === t.value ? 600 : 500 }}
                       >
                         {t.label}
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -1727,7 +1721,7 @@ export function ManagerMeetingsDev() {
                   <motion.button
                     className="font-semibold text-white border-0 shadow-lg shadow-emerald-500/20"
                     style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
                       borderRadius: RADIUS.button,
                       padding: `${GRID.spacing.xs}px ${GRID.spacing.md}px`,
                       fontSize: TYPE.meta,
@@ -1792,7 +1786,7 @@ function ActionItemRow({
         <p className={`${checked ? 'line-through text-gray-400' : 'text-gray-700'}`} style={{ fontSize: TYPE.caption, marginBottom: 4 }}>
           {item.description}
         </p>
-        <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
+        <div className="flex items-center flex-wrap" style={{ gap: GRID.spacing.xs }}>
           <span
             className={`inline-flex items-center font-medium ${item.owner === 'manager' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}
             style={{ borderRadius: RADIUS.pill, padding: '1px 6px', fontSize: TYPE.micro }}
@@ -1803,7 +1797,7 @@ function ActionItemRow({
           {item.agentAvatar && (
             <div
               className="flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold"
-              style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md, borderRadius: RADIUS.button, fontSize: 8 }}
+              style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md, borderRadius: RADIUS.button, fontSize: TYPE.micro }}
             >
               {item.agentAvatar}
             </div>

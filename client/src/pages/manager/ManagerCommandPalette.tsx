@@ -100,7 +100,7 @@ export function ManagerCommandPalette({ open, onOpenChange }: ManagerCommandPale
   const navigationItems: CommandItemDef[] = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', shortcut: 'G D', action: nav('/manager/dashboard') },
     { id: 'team', icon: Users, label: 'Roster', shortcut: 'G T', action: nav('/manager/team') },
-    { id: 'pipeline', icon: Target, label: 'Pipeline', shortcut: 'G P', action: nav('/manager/pipeline') },
+    { id: 'pipeline', icon: Target, label: 'Pipeline', shortcut: 'G P', action: nav('/manager/commissions') },
     { id: 'team-performance', icon: Trophy, label: 'Performance', action: nav('/manager/team-performance') },
     { id: 'forecasting', icon: LineChart, label: 'Forecasting', action: nav('/manager/forecasting') },
     { id: 'development', icon: GraduationCap, label: 'Coaching', action: nav('/manager/development') },

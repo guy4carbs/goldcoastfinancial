@@ -154,8 +154,8 @@ export default function Footer() {
         <div className="border-t border-gray-200 pt-8">
           <div className="text-xs text-gray-500 leading-relaxed space-y-4">
             <p>
-              © 2026 Gold Coast Financial Group. Heritage Life Solutions is a DBA of Gold Coast Financial Group.
-              We operate as an independent insurance agency, licensed in all 50 states. IL License #1001234567.
+              © 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners.
+              We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
               Policies are issued by our carrier partners and product availability may vary by state.
             </p>
             <p>

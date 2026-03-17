@@ -76,7 +76,7 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       scriptSrc: ["'self'"],
       connectSrc: ["'self'", "wss:", "https://api.openai.com"],
-      frameSrc: ["'none'"],
+      frameSrc: ["'self'"],
       objectSrc: ["'none'"],
     },
   } : false, // Disable CSP in development for easier debugging

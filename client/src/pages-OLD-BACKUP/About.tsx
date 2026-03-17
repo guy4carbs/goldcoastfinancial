@@ -63,7 +63,7 @@ export default function About() {
             <span className="text-secondary font-medium tracking-wide uppercase text-sm">Our Story</span>
             <div className="h-1 w-12 bg-secondary rounded-full" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-white mb-6">About Gold Coast Financial</h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-white mb-6">About Gold Coast Financial Partners</h1>
           <p className="text-xl text-white/80 max-w-3xl mx-auto">
             Founded in the Chicagoland area, we provide honest, expert, and independent financial protection to families nationwide.
           </p>
@@ -78,7 +78,7 @@ export default function About() {
               <div className="absolute -top-4 -left-4 w-24 h-24 bg-violet-100 rounded-tl-3xl -z-10" />
               <img 
                 src={teamImage} 
-                alt="Gold Coast Financial Team" 
+                alt="Gold Coast Financial Partners Team" 
                 className="rounded-lg shadow-xl w-full"
               />
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-primary/10 rounded-br-3xl -z-10" />
@@ -86,7 +86,7 @@ export default function About() {
             <div>
               <h2 className="text-3xl font-bold font-serif text-primary mb-6">Your Local Independent Agency</h2>
               <p className="text-muted-foreground mb-4 leading-relaxed">
-                Founded in the Chicagoland area (Naperville, IL), Gold Coast Financial was built on a simple premise: families deserve unbiased advice when making decisions about their financial future. Unlike captive agents who represent a single insurance company, we represent you—and we proudly serve clients in all 50 states.
+                Founded in the Chicagoland area (Naperville, IL), Gold Coast Financial Partners was built on a simple premise: families deserve unbiased advice when making decisions about their financial future. Unlike captive agents who represent a single insurance company, we represent you—and we proudly serve clients in all 50 states.
               </p>
               <p className="text-muted-foreground mb-6 leading-relaxed">
                 Our independence allows us to shop the market on your behalf, comparing policies from dozens of top-rated carriers to find the perfect blend of coverage and value. We believe in transparency, education, and long-term relationships.

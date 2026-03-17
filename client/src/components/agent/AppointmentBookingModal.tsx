@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatProductLabel } from "@/lib/utils";
 import { useAgentStore, type Lead, type Appointment } from "@/lib/agentStore";
 
 interface AppointmentBookingModalProps {
@@ -87,7 +87,7 @@ export function AppointmentBookingModal({ lead, isOpen, onClose }: AppointmentBo
           <div className="p-4 border-b flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold">Book Appointment</h2>
-              <p className="text-sm text-gray-500">{lead.name} • {lead.product || 'Life Insurance'}</p>
+              <p className="text-sm text-gray-500">{lead.name} • {formatProductLabel(lead.product) || 'Life Insurance'}</p>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="w-5 h-5" />

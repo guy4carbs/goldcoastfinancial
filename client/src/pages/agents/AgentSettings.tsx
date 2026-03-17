@@ -29,12 +29,16 @@ import {
   Download,
   Upload,
   Settings,
+  ShieldCheck,
+  GraduationCap,
+  Car,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import { toast } from "sonner";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { FileUploadZone } from '@/components/onboarding-intake/shared/FileUploadZone';
 
 // Type definitions
 interface NotificationSettings {
@@ -51,6 +55,7 @@ interface ProfileSettings {
   lastName: string;
   email: string;
   phone: string;
+  npn: string;
   location: string;
   bio: string;
 }
@@ -120,6 +125,7 @@ export default function AgentSettings() {
         lastName: nameParts.slice(1).join(' ') || '',
         email: currentUser.email || '',
         phone: currentUser.phone || '',
+        npn: currentUser.npn || '',
         location: 'Los Angeles, CA',
         bio: 'Experienced insurance agent specializing in life and health coverage.',
       };
@@ -129,6 +135,7 @@ export default function AgentSettings() {
       lastName: '',
       email: '',
       phone: '',
+      npn: '',
       location: 'Los Angeles, CA',
       bio: 'Experienced insurance agent specializing in life and health coverage.',
     };
@@ -146,6 +153,7 @@ export default function AgentSettings() {
         lastName: nameParts.slice(1).join(' ') || '',
         email: currentUser.email || '',
         phone: currentUser.phone || '',
+        npn: currentUser.npn || '',
       }));
     }
   }, [currentUser]);
@@ -164,6 +172,28 @@ export default function AgentSettings() {
     hasW9: false,
     w9UploadDate: '',
     taxId: '***-**-1234',
+  });
+
+  // Compliance documents state
+  const [eoInsurance, setEoInsurance] = useState({
+    file: null as File | null,
+    fileName: '',
+    provider: '',
+    policyNumber: '',
+    effectiveDate: '',
+    expirationDate: '',
+  });
+  const [amlTraining, setAmlTraining] = useState({
+    file: null as File | null,
+    fileName: '',
+  });
+  const [driversLicense, setDriversLicense] = useState({
+    file: null as File | null,
+    fileName: '',
+  });
+  const [directDepositDoc, setDirectDepositDoc] = useState({
+    file: null as File | null,
+    fileName: '',
   });
 
   const [twoFactor, setTwoFactor] = useState<TwoFactorSettings>({
@@ -190,6 +220,7 @@ export default function AgentSettings() {
       name: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
       email: profile.email.trim(),
       phone: profile.phone.trim(),
+      npn: profile.npn.trim() || undefined,
     };
 
     // Create or update the profile - works with or without being logged in
@@ -234,9 +265,49 @@ export default function AgentSettings() {
     toast.success('Bank account verified and saved');
   }, []);
 
-  const handleUploadW9 = useCallback(() => {
+  const handleW9File = useCallback((file: File) => {
     setTaxInfo(prev => ({ ...prev, hasW9: true, w9UploadDate: new Date().toLocaleDateString() }));
     toast.success('W-9 uploaded successfully');
+  }, []);
+
+  const handleW9Remove = useCallback(() => {
+    setTaxInfo(prev => ({ ...prev, hasW9: false, w9UploadDate: '' }));
+  }, []);
+
+  const handleDirectDepositFile = useCallback((file: File) => {
+    setDirectDepositDoc({ file, fileName: file.name });
+    toast.success('Direct deposit document uploaded successfully');
+  }, []);
+
+  const handleDirectDepositRemove = useCallback(() => {
+    setDirectDepositDoc({ file: null, fileName: '' });
+  }, []);
+
+  const handleEOFile = useCallback((file: File) => {
+    setEoInsurance(prev => ({ ...prev, file, fileName: file.name }));
+    toast.success('E&O certificate uploaded successfully');
+  }, []);
+
+  const handleEORemove = useCallback(() => {
+    setEoInsurance(prev => ({ ...prev, file: null, fileName: '' }));
+  }, []);
+
+  const handleAMLFile = useCallback((file: File) => {
+    setAmlTraining({ file, fileName: file.name });
+    toast.success('AML training certificate uploaded successfully');
+  }, []);
+
+  const handleAMLRemove = useCallback(() => {
+    setAmlTraining({ file: null, fileName: '' });
+  }, []);
+
+  const handleDLFile = useCallback((file: File) => {
+    setDriversLicense({ file, fileName: file.name });
+    toast.success("Driver's license uploaded successfully");
+  }, []);
+
+  const handleDLRemove = useCallback(() => {
+    setDriversLicense({ file: null, fileName: '' });
   }, []);
 
   const handleTwoFactorToggle = useCallback((checked: boolean) => {
@@ -381,7 +452,22 @@ export default function AgentSettings() {
                     style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
-                <div className="space-y-2 sm:col-span-2">
+                <div className="space-y-2">
+                  <Label htmlFor="npn" className="flex items-center gap-2 text-gray-900">
+                    <Shield className="w-3 h-3" aria-hidden="true" />
+                    NPN (National Producer Number)
+                  </Label>
+                  <Input
+                    id="npn"
+                    value={profile.npn}
+                    onChange={(e) => setProfile({ ...profile, npn: e.target.value.replace(/[^0-9]/g, '') })}
+                    placeholder="e.g. 12345678"
+                    maxLength={10}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                  <p className="text-xs text-gray-400">Your NPN verifies your license across all features</p>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="location" className="flex items-center gap-2 text-gray-900">
                     <MapPin className="w-3 h-3" aria-hidden="true" />
                     Location
@@ -597,6 +683,18 @@ export default function AgentSettings() {
                   </Button>
                 </div>
               )}
+
+              <div className="border-t border-gray-100 pt-4">
+                <Label className="text-gray-900 mb-2 block">Direct Deposit Form / Void Check</Label>
+                <p className="text-xs text-gray-500 mb-3">Upload a voided check or direct deposit authorization form</p>
+                <FileUploadZone
+                  onFileSelect={handleDirectDepositFile}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  maxSizeMB={10}
+                  fileName={directDepositDoc.fileName}
+                  onRemove={handleDirectDepositRemove}
+                />
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -635,49 +733,191 @@ export default function AgentSettings() {
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium text-sm text-gray-900">W-9 Form</p>
-                    <p className="text-xs text-gray-500">
-                      {taxInfo.hasW9 ? `Uploaded on ${taxInfo.w9UploadDate}` : 'Required for commission payments'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {taxInfo.hasW9 ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toast.info('Downloading W-9...')}
-                          className="text-violet-700 border-violet-200 hover:bg-violet-50"
-                          style={{ borderRadius: RADIUS.button }}
-                          aria-label="Download W-9 form"
-                        >
-                          <Download className="w-4 h-4 mr-2" aria-hidden="true" />
-                          Download
-                        </Button>
-                        <Badge
-                          className="bg-emerald-100 text-emerald-700 border-0"
-                          style={{ borderRadius: RADIUS.pill }}
-                        >
-                          <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />
-                          Complete
-                        </Badge>
-                      </>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={handleUploadW9}
-                        className="bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0"
-                        style={{ borderRadius: RADIUS.button }}
-                        aria-label="Upload W-9 form"
-                      >
-                        <Upload className="w-4 h-4 mr-2" aria-hidden="true" />
-                        Upload W-9
-                      </Button>
-                    )}
-                  </div>
+              </div>
+              <div className="pt-4">
+                <Label className="text-gray-900 mb-2 block">W-9 Form</Label>
+                <p className="text-xs text-gray-500 mb-3">Required for commission payments</p>
+                <FileUploadZone
+                  onFileSelect={handleW9File}
+                  accept=".pdf"
+                  maxSizeMB={10}
+                  fileName={taxInfo.hasW9 ? `W-9_uploaded_${taxInfo.w9UploadDate}.pdf` : undefined}
+                  onRemove={handleW9Remove}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* E&O Insurance Section */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <ShieldCheck className="w-5 h-5 text-amber-200" aria-hidden="true" />
                 </div>
+                <div>
+                  <span className="text-gray-900">E&O Insurance</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Errors & Omissions insurance certificate</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eoProvider" className="text-gray-900">Insurance Provider</Label>
+                  <Input
+                    id="eoProvider"
+                    value={eoInsurance.provider}
+                    onChange={(e) => setEoInsurance(prev => ({ ...prev, provider: e.target.value }))}
+                    placeholder="e.g. NAPA, CalSurance, E&O Plus"
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eoPolicyNumber" className="text-gray-900">Policy Number</Label>
+                  <Input
+                    id="eoPolicyNumber"
+                    value={eoInsurance.policyNumber}
+                    onChange={(e) => setEoInsurance(prev => ({ ...prev, policyNumber: e.target.value }))}
+                    placeholder="e.g. EO-2024-123456"
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eoEffectiveDate" className="text-gray-900">Effective Date</Label>
+                  <Input
+                    id="eoEffectiveDate"
+                    type="date"
+                    value={eoInsurance.effectiveDate}
+                    onChange={(e) => setEoInsurance(prev => ({ ...prev, effectiveDate: e.target.value }))}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eoExpirationDate" className="text-gray-900">Expiration Date</Label>
+                  <Input
+                    id="eoExpirationDate"
+                    type="date"
+                    value={eoInsurance.expirationDate}
+                    onChange={(e) => setEoInsurance(prev => ({ ...prev, expirationDate: e.target.value }))}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                  {eoInsurance.expirationDate && new Date(eoInsurance.expirationDate) < new Date() && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Policy expired — please upload a current certificate
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <Label className="text-gray-900 mb-2 block">E&O Certificate</Label>
+                <p className="text-xs text-gray-500 mb-3">Upload your Errors & Omissions insurance certificate</p>
+                <FileUploadZone
+                  onFileSelect={handleEOFile}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  maxSizeMB={10}
+                  fileName={eoInsurance.fileName}
+                  onRemove={handleEORemove}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* AML Training Section */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <GraduationCap className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                </div>
+                <div>
+                  <span className="text-gray-900">AML Training</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Anti-Money Laundering compliance certificate</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm text-gray-900">Training Status</p>
+                  <p className="text-xs text-gray-500">Annual AML training requirement</p>
+                </div>
+                <Badge
+                  className={amlTraining.fileName ? "bg-emerald-100 text-emerald-700 border-0" : "bg-amber-100 text-amber-700 border-0"}
+                  style={{ borderRadius: RADIUS.pill }}
+                >
+                  {amlTraining.fileName ? 'Complete' : 'Required'}
+                </Badge>
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <Label className="text-gray-900 mb-2 block">AML Training Certificate</Label>
+                <p className="text-xs text-gray-500 mb-3">Upload your Anti-Money Laundering training completion certificate</p>
+                <FileUploadZone
+                  onFileSelect={handleAMLFile}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  maxSizeMB={10}
+                  fileName={amlTraining.fileName}
+                  onRemove={handleAMLRemove}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Driver's License Section */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Car className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                </div>
+                <div>
+                  <span className="text-gray-900">Driver's License</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Government-issued photo identification</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm text-gray-900">ID Status</p>
+                  <p className="text-xs text-gray-500">Government-issued photo ID required</p>
+                </div>
+                <Badge
+                  className={driversLicense.fileName ? "bg-emerald-100 text-emerald-700 border-0" : "bg-amber-100 text-amber-700 border-0"}
+                  style={{ borderRadius: RADIUS.pill }}
+                >
+                  {driversLicense.fileName ? 'On File' : 'Required'}
+                </Badge>
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <Label className="text-gray-900 mb-2 block">Driver's License Upload</Label>
+                <p className="text-xs text-gray-500 mb-3">Upload a clear photo of the front of your driver's license</p>
+                <FileUploadZone
+                  onFileSelect={handleDLFile}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  maxSizeMB={10}
+                  fileName={driversLicense.fileName}
+                  onRemove={handleDLRemove}
+                />
               </div>
             </CardContent>
           </Card>
