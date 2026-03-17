@@ -177,8 +177,11 @@ interface OnboardingProfile {
   has_misdemeanor: boolean;
   misdemeanor_details: string | null;
   docusign_nda_signed: boolean;
+  docusign_nda_s3_key?: string;
   docusign_debt_rollup_signed: boolean;
+  docusign_debt_rollup_s3_key?: string;
   docusign_compliance_signed: boolean;
+  docusign_compliance_s3_key?: string;
   highest_education: string | null;
   previous_sales_experience: string | null;
   previous_industry: string | null;

@@ -1,18 +1,15 @@
 /**
  * LicensedStep6ESign — E-Sign Documents Step
- * Tab-based document signing. When DocuSign is configured, opens an embedded
- * DocuSign signing ceremony in an iframe. Falls back to local document viewer
- * with signature pad when DocuSign is not available.
+ * Tab-based document signing with local signature pad and PDF generation.
  */
 
 import { useCallback, useState } from 'react';
-import { FileSignature, CheckCircle, Clock, FileText, Loader2 } from 'lucide-react';
+import { FileSignature, CheckCircle, Clock, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { GRID, TYPE, RADIUS, COLORS } from '@/lib/heritageDesignSystem';
 import { useOnboardingIntakeForm } from '../useOnboardingIntakeForm';
 import { StepCard } from '../shared/StepCard';
 import { DocumentViewer } from '../shared/DocumentViewer';
-import { DocuSignEmbed } from '../shared/DocuSignEmbed';
 import type { LicensedFormData } from '../onboardingIntakeTypes';
 
 const DOCUMENTS = [
@@ -24,90 +21,10 @@ const DOCUMENTS = [
 export function LicensedStep6ESign() {
   const { licensed, tokenData, updateLicensedField } = useOnboardingIntakeForm();
   const [activeTab, setActiveTab] = useState(DOCUMENTS[0].id);
-  const [signingUrl, setSigningUrl] = useState<string | null>(null);
-  const [signingDocId, setSigningDocId] = useState<string | null>(null);
-  const [isInitiating, setIsInitiating] = useState(false);
 
   const signedCount = DOCUMENTS.filter((d) => licensed[d.fieldKey] === 'signed').length;
 
-  // Initiate DocuSign — get signing URL or fall back to local
-  const handleInitiateSign = useCallback(async (docId: string) => {
-    const doc = DOCUMENTS.find((d) => d.id === docId);
-    if (!doc) return;
-
-    setIsInitiating(true);
-    try {
-      const res = await fetch('/api/onboarding/initiate-docusign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentType: docId,
-          profileId: tokenData?.profileId,
-          signerName: tokenData ? `${tokenData.firstName} ${tokenData.lastName}` : 'Agent',
-          signerEmail: tokenData?.email,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.signingUrl) {
-        // Live DocuSign mode — show iframe
-        setSigningUrl(data.signingUrl);
-        setSigningDocId(docId);
-      } else {
-        // Placeholder mode — no signing URL, proceed with local signing
-        setSigningUrl(null);
-        setSigningDocId(null);
-      }
-    } catch (error) {
-      console.error(`Failed to initiate DocuSign for ${docId}:`, error);
-      // Fall back to local mode
-      setSigningUrl(null);
-      setSigningDocId(null);
-    } finally {
-      setIsInitiating(false);
-    }
-  }, [tokenData]);
-
-  // Called when DocuSign iframe signing completes
-  const handleDocuSignComplete = useCallback(async (envelopeId: string) => {
-    if (!signingDocId) return;
-    const doc = DOCUMENTS.find((d) => d.id === signingDocId);
-    if (!doc) return;
-
-    try {
-      // Mark as signed on server
-      await fetch('/api/onboarding/complete-docusign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentType: signingDocId,
-          profileId: tokenData?.profileId,
-          envelopeId,
-        }),
-      });
-
-      updateLicensedField(doc.fieldKey, 'signed' as never);
-      toast.success(`${doc.fullName} signed successfully`);
-
-      // Clear iframe state
-      setSigningUrl(null);
-      setSigningDocId(null);
-
-      // Auto-advance to next unsigned document
-      const nextUnsigned = DOCUMENTS.find(
-        (d) => d.id !== signingDocId && licensed[d.fieldKey] !== 'signed',
-      );
-      if (nextUnsigned) {
-        setActiveTab(nextUnsigned.id);
-      }
-    } catch (error) {
-      console.error('Failed to complete DocuSign:', error);
-    }
-  }, [signingDocId, tokenData, licensed, updateLicensedField]);
-
-  // Local sign handler — generates signed PDF with embedded signature
-  const handleLocalSign = useCallback(async (docId: string, signatureData: string) => {
+  const handleSign = useCallback(async (docId: string, signatureData: string) => {
     const doc = DOCUMENTS.find((d) => d.id === docId);
     if (!doc) return;
 
@@ -145,9 +62,6 @@ export function LicensedStep6ESign() {
     }
   }, [tokenData, licensed, updateLicensedField]);
 
-  // If we're showing a DocuSign iframe, render that instead of the document viewer
-  const showDocuSignIframe = signingUrl && signingDocId === activeTab;
-
   return (
     <StepCard
       icon={FileSignature}
@@ -177,8 +91,8 @@ export function LicensedStep6ESign() {
           }}
         >
           {signedCount === 3
-            ? 'All documents signed — you may proceed'
-            : `${signedCount} of 3 documents signed — ${3 - signedCount} remaining`}
+            ? 'All documents signed - you may proceed'
+            : `${signedCount} of 3 documents signed - ${3 - signedCount} remaining`}
         </p>
       </div>
 
@@ -201,13 +115,7 @@ export function LicensedStep6ESign() {
             <button
               key={doc.id}
               type="button"
-              onClick={() => {
-                setActiveTab(doc.id);
-                if (signingDocId !== doc.id) {
-                  setSigningUrl(null);
-                  setSigningDocId(null);
-                }
-              }}
+              onClick={() => setActiveTab(doc.id)}
               style={{
                 flex: 1,
                 padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px`,
@@ -235,38 +143,14 @@ export function LicensedStep6ESign() {
         })}
       </div>
 
-      {/* Loading state */}
-      {isInitiating && (
-        <div className="flex items-center justify-center" style={{ padding: GRID.spacing.xl }}>
-          <Loader2 size={24} className="animate-spin" style={{ color: COLORS.primary.violet[500] }} />
-          <span style={{ fontSize: TYPE.meta, color: COLORS.gray[500], marginLeft: GRID.spacing.xs }}>
-            Preparing DocuSign...
-          </span>
-        </div>
-      )}
-
-      {/* DocuSign iframe */}
-      {showDocuSignIframe && !isInitiating && (
-        <DocuSignEmbed
-          signingUrl={signingUrl}
-          documentType={activeTab}
-          onComplete={handleDocuSignComplete}
-          onError={(err) => {
-            toast.error(err);
-            setSigningUrl(null);
-            setSigningDocId(null);
-          }}
-        />
-      )}
-
-      {/* Local document viewer (fallback or before initiating DocuSign) */}
-      {!showDocuSignIframe && !isInitiating && DOCUMENTS.map((doc) =>
+      {/* Document viewer with signature pad */}
+      {DOCUMENTS.map((doc) =>
         activeTab === doc.id ? (
           <DocumentViewer
             key={doc.id}
             documentId={doc.id}
             isSigned={licensed[doc.fieldKey] === 'signed'}
-            onSign={(signatureData: string) => handleLocalSign(doc.id, signatureData)}
+            onSign={(signatureData: string) => handleSign(doc.id, signatureData)}
           />
         ) : null,
       )}

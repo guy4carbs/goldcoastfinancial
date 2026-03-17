@@ -7,3 +7,4 @@ dist/
 
 # APNs certificates (keep private!)
 certs/*.p8
+tmp-preview/

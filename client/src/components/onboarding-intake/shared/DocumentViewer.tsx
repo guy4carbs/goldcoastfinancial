@@ -168,10 +168,9 @@ interface DocumentViewerProps {
   documentId: string;
   isSigned: boolean;
   onSign: (signatureData: string) => void;
-  onInitiateDocuSign?: () => void;
 }
 
-export function DocumentViewer({ documentId, isSigned, onSign, onInitiateDocuSign }: DocumentViewerProps) {
+export function DocumentViewer({ documentId, isSigned, onSign }: DocumentViewerProps) {
   const doc = DOCUMENT_CONTENT[documentId];
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -323,37 +322,6 @@ export function DocumentViewer({ documentId, isSigned, onSign, onInitiateDocuSig
       {/* Signature + confirmation section (only if not yet signed) */}
       {!isSigned && (
         <>
-          {/* DocuSign option */}
-          {onInitiateDocuSign && (
-            <Button
-              type="button"
-              onClick={onInitiateDocuSign}
-              disabled={!hasScrolledToBottom}
-              className="w-full font-semibold"
-              style={{
-                background: hasScrolledToBottom ? '#4630EB' : COLORS.gray[300],
-                color: '#fff',
-                borderRadius: RADIUS.button,
-                padding: '12px 24px',
-                fontSize: TYPE.body,
-                fontWeight: 700,
-                border: 'none',
-                cursor: hasScrolledToBottom ? 'pointer' : 'not-allowed',
-                opacity: hasScrolledToBottom ? 1 : 0.6,
-              }}
-            >
-              Sign with DocuSign
-            </Button>
-          )}
-
-          {onInitiateDocuSign && (
-            <div className="flex items-center gap-3" style={{ color: COLORS.gray[400] }}>
-              <div style={{ flex: 1, height: 1, backgroundColor: COLORS.gray[200] }} />
-              <span style={{ fontSize: TYPE.micro }}>or sign locally below</span>
-              <div style={{ flex: 1, height: 1, backgroundColor: COLORS.gray[200] }} />
-            </div>
-          )}
-
           {/* Signature pad */}
           <div>
             <p

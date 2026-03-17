@@ -1,6 +1,6 @@
 /**
  * Onboarding API Routes
- * Multi-step agent onboarding with document uploads, DocuSign, and encrypted PII
+ * Multi-step agent onboarding with document uploads, e-signatures, and encrypted PII
  */
 
 import { Router, Request, Response } from "express";
@@ -11,8 +11,8 @@ import multer from "multer";
 import crypto from "crypto";
 import { encryptField, maskField } from "../services/encryptionService";
 import * as s3Service from "../services/s3Service";
-import * as docusignService from "../services/docusignService";
 import { generateSignedPdf } from "../services/documentSigningService";
+import { DOCUMENT_CONTENT } from "../../shared/documentContent";
 import { logAudit, getAuditContext } from "../services/auditService";
 import { sendOnboardingCompletionEmail } from "../gmail";
 import type { AuditAction } from "../../shared/schema";
@@ -56,9 +56,6 @@ const FIELD_MAP: Record<string, string> = {
   docusignNdaSigned: "docusign_nda_signed",
   docusignDebtRollupSigned: "docusign_debt_rollup_signed",
   docusignComplianceSigned: "docusign_compliance_signed",
-  docusignNdaEnvelopeId: "docusign_nda_envelope_id",
-  docusignDebtRollupEnvelopeId: "docusign_debt_rollup_envelope_id",
-  docusignComplianceEnvelopeId: "docusign_compliance_envelope_id",
   onboardingType: "onboarding_type",
   onboardingStep: "onboarding_step",
 };
@@ -104,32 +101,26 @@ const DOCUMENT_TYPE_COLUMN: Record<string, string> = {
   direct_deposit_form: "direct_deposit_form_s3_key",
 };
 
-/** DocuSign document type to column mappings */
-const DOCUSIGN_ENVELOPE_COLUMN: Record<string, string> = {
-  nda: "docusign_nda_envelope_id",
-  debt_rollup: "docusign_debt_rollup_envelope_id",
-  compliance: "docusign_compliance_envelope_id",
-};
-
-const DOCUSIGN_SIGNED_COLUMN: Record<string, string> = {
+/** Document type to DB column mappings */
+const DOC_SIGNED_COLUMN: Record<string, string> = {
   nda: "docusign_nda_signed",
   debt_rollup: "docusign_debt_rollup_signed",
   compliance: "docusign_compliance_signed",
 };
 
-const DOCUSIGN_S3_COLUMN: Record<string, string> = {
+const DOC_S3_COLUMN: Record<string, string> = {
   nda: "docusign_nda_s3_key",
   debt_rollup: "docusign_debt_rollup_s3_key",
   compliance: "docusign_compliance_s3_key",
 };
 
-const DOCUSIGN_SIGNED_AT_COLUMN: Record<string, string> = {
+const DOC_SIGNED_AT_COLUMN: Record<string, string> = {
   nda: "docusign_nda_signed_at",
   debt_rollup: "docusign_debt_rollup_signed_at",
   compliance: "docusign_compliance_signed_at",
 };
 
-const DOCUSIGN_HASH_COLUMN: Record<string, string> = {
+const DOC_HASH_COLUMN: Record<string, string> = {
   nda: "docusign_nda_document_hash",
   debt_rollup: "docusign_debt_rollup_document_hash",
   compliance: "docusign_compliance_document_hash",
@@ -421,197 +412,13 @@ router.post("/submit", attachUser, requireAuth, async (req: Request, res: Respon
 });
 
 // =============================================================================
-// ROUTE 6: POST /initiate-docusign — Create envelope + get signing URL
-// =============================================================================
-router.post("/initiate-docusign", async (req: Request, res: Response) => {
-  try {
-    const { profileId, documentType, signerName, signerEmail } = req.body;
-
-    if (!documentType || !DOCUSIGN_ENVELOPE_COLUMN[documentType]) {
-      return res.status(400).json({
-        error: "Invalid documentType. Must be one of: nda, debt_rollup, compliance",
-      });
-    }
-
-    // If DocuSign is not configured, fall back to placeholder mode
-    if (!docusignService.isConfigured()) {
-      const envelopeId = `placeholder_${documentType}_${crypto.randomUUID()}`;
-      return res.json({
-        success: true,
-        envelopeId,
-        signingUrl: null,
-        mode: "placeholder",
-        message: "DocuSign not configured — using placeholder mode",
-      });
-    }
-
-    const name = signerName || "Agent";
-    const email = signerEmail || "agent@heritagels.org";
-    const clientUserId = profileId || crypto.randomUUID();
-
-    // Create the envelope
-    const envelopeId = await docusignService.createEnvelope(
-      documentType,
-      name,
-      email,
-      clientUserId
-    );
-
-    // Store the envelope ID on the profile if we have one
-    if (profileId) {
-      const envelopeColumn = DOCUSIGN_ENVELOPE_COLUMN[documentType];
-      await storage.updateAgentOnboarding(profileId, {
-        [envelopeColumn]: envelopeId,
-      });
-    }
-
-    const appUrl = process.env.APP_URL || (process.env.NODE_ENV === "production" ? "https://heritagels.org" : "http://localhost:4500");
-
-    // Generate the embedded signing URL
-    const signingUrl = await docusignService.getSigningUrl(
-      envelopeId,
-      name,
-      email,
-      clientUserId,
-      `${appUrl}/api/onboarding/docusign-callback?event=signing_complete&docType=${documentType}&envelopeId=${envelopeId}`
-    );
-
-    res.json({
-      success: true,
-      envelopeId,
-      signingUrl,
-      mode: "live",
-    });
-  } catch (error: any) {
-    console.error("Error initiating DocuSign:", error);
-    res.status(500).json({ error: error.message || "Failed to initiate DocuSign" });
-  }
-});
-
-// =============================================================================
-// ROUTE 7: POST /complete-docusign — Mark DocuSign as signed
-// =============================================================================
-router.post("/complete-docusign", async (req: Request, res: Response) => {
-  try {
-    const { profileId, documentType, envelopeId } = req.body;
-
-    if (!documentType || !DOCUSIGN_SIGNED_COLUMN[documentType]) {
-      return res.status(400).json({
-        error: "Invalid documentType. Must be one of: nda, debt_rollup, compliance",
-      });
-    }
-
-    const isLiveEnvelope =
-      envelopeId &&
-      docusignService.isConfigured() &&
-      !envelopeId.startsWith("placeholder_");
-
-    // If we have a live envelope, verify completion status
-    if (isLiveEnvelope) {
-      const status = await docusignService.getEnvelopeStatus(envelopeId);
-      if (status.status !== "completed") {
-        return res.status(400).json({
-          error: "Document has not been fully signed yet",
-          envelopeStatus: status.status,
-        });
-      }
-    }
-
-    let s3Key: string | null = null;
-
-    // Download the signed PDF from DocuSign and store in S3
-    if (isLiveEnvelope && profileId) {
-      try {
-        const pdfBuffer = await docusignService.downloadDocument(envelopeId, "1");
-
-        const docName = docusignService.DOCUMENT_NAMES[documentType] || documentType;
-        const fileName = `${docName.replace(/[^a-zA-Z0-9]/g, "_")}_signed.pdf`;
-
-        const uploadResult = await s3Service.uploadFile(
-          profileId,
-          fileName,
-          pdfBuffer,
-          {
-            contentType: "application/pdf",
-            metadata: {
-              documentType,
-              envelopeId,
-              source: "docusign",
-            },
-          },
-          "onboarding-documents"
-        );
-
-        if (uploadResult.success && uploadResult.key) {
-          s3Key = uploadResult.key;
-          console.log(`[DocuSign] Signed PDF stored in S3: ${s3Key}`);
-        } else {
-          console.error("[DocuSign] Failed to upload signed PDF to S3:", uploadResult.error);
-        }
-      } catch (downloadErr) {
-        // Log but don't fail — the signing itself succeeded
-        console.error("[DocuSign] Failed to download/store signed PDF:", downloadErr);
-      }
-    }
-
-    // Mark as signed in DB + store S3 key + timestamp
-    if (profileId) {
-      const signedColumn = DOCUSIGN_SIGNED_COLUMN[documentType];
-      const s3Column = DOCUSIGN_S3_COLUMN[documentType];
-      const signedAtColumn = DOCUSIGN_SIGNED_AT_COLUMN[documentType];
-
-      const updatePayload: Record<string, any> = {
-        [signedColumn]: true,
-        [signedAtColumn]: new Date(),
-      };
-
-      if (s3Key) {
-        updatePayload[s3Column] = s3Key;
-      }
-
-      await storage.updateAgentOnboarding(profileId, updatePayload);
-    }
-
-    res.json({ success: true, documentType, signed: true, s3Key });
-  } catch (error: any) {
-    console.error("Error completing DocuSign:", error);
-    res.status(500).json({ error: error.message || "Failed to complete DocuSign" });
-  }
-});
-
-// =============================================================================
-// ROUTE 7b: GET /docusign-callback — Return URL after signing ceremony
-// =============================================================================
-router.get("/docusign-callback", (req: Request, res: Response) => {
-  const { event, docType, envelopeId } = req.query;
-  // Render a small HTML page that posts a message to the parent window
-  res.send(`<!DOCTYPE html>
-<html><head><title>Signing Complete</title></head>
-<body>
-<script>
-  if (window.parent !== window) {
-    window.parent.postMessage({
-      type: 'docusign-complete',
-      event: '${event || ""}',
-      documentType: '${docType || ""}',
-      envelopeId: '${envelopeId || ""}'
-    }, '*');
-  } else {
-    window.location.href = '/onboarding?signed=${docType}';
-  }
-</script>
-<p>Signing complete. You may close this window.</p>
-</body></html>`);
-});
-
-// =============================================================================
-// ROUTE 7c: POST /sign-document — Local e-signature with PDF generation
+// ROUTE 6: POST /sign-document — Local e-signature with PDF generation
 // =============================================================================
 router.post("/sign-document", async (req: Request, res: Response) => {
   try {
     const { profileId, documentType, signatureImage, signerName, signerEmail } = req.body;
 
-    if (!documentType || !DOCUSIGN_SIGNED_COLUMN[documentType]) {
+    if (!documentType || !DOC_SIGNED_COLUMN[documentType]) {
       return res.status(400).json({
         error: "Invalid documentType. Must be one of: nda, debt_rollup, compliance",
       });
@@ -648,7 +455,8 @@ router.post("/sign-document", async (req: Request, res: Response) => {
     const documentHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex");
 
     // Upload to S3
-    const docName = docusignService.DOCUMENT_NAMES[documentType] || documentType;
+    const docContent = DOCUMENT_CONTENT[documentType];
+    const docName = docContent?.title || documentType;
     const fileName = `${docName.replace(/[^a-zA-Z0-9]/g, "_")}_signed.pdf`;
 
     // Upload to S3 (non-blocking — document is still valid without S3)
@@ -681,10 +489,10 @@ router.post("/sign-document", async (req: Request, res: Response) => {
     }
 
     // Update agent profile with all signing data
-    const signedColumn = DOCUSIGN_SIGNED_COLUMN[documentType];
-    const signedAtColumn = DOCUSIGN_SIGNED_AT_COLUMN[documentType];
-    const s3Column = DOCUSIGN_S3_COLUMN[documentType];
-    const hashColumn = DOCUSIGN_HASH_COLUMN[documentType];
+    const signedColumn = DOC_SIGNED_COLUMN[documentType];
+    const signedAtColumn = DOC_SIGNED_AT_COLUMN[documentType];
+    const s3Column = DOC_S3_COLUMN[documentType];
+    const hashColumn = DOC_HASH_COLUMN[documentType];
 
     const updatePayload: Record<string, any> = {
       [signedColumn]: true,

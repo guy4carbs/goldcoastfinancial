@@ -1,15 +1,13 @@
 /**
  * NewAgentStep6ESign — E-Sign Documents (separate step)
- * Tab-based document signing with DocuSign integration.
- * Falls back to local document viewer when DocuSign is not configured.
+ * Tab-based document signing with local signature pad and PDF generation.
  */
 
 import { useCallback, useState } from 'react';
-import { FileSignature, CheckCircle, Clock, FileText, Loader2 } from 'lucide-react';
+import { FileSignature, CheckCircle, Clock, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { GRID, TYPE, RADIUS, COLORS } from '@/lib/heritageDesignSystem';
 import { DocumentViewer } from '../shared/DocumentViewer';
-import { DocuSignEmbed } from '../shared/DocuSignEmbed';
 import { StepCard } from '../shared/StepCard';
 import { useOnboardingIntakeForm } from '../useOnboardingIntakeForm';
 import type { NewAgentFormData } from '../onboardingIntakeTypes';
@@ -23,78 +21,10 @@ const DOC_TABS = [
 export function NewAgentStep6ESign() {
   const { newAgent, tokenData, updateNewAgentField } = useOnboardingIntakeForm();
   const [activeTab, setActiveTab] = useState(DOC_TABS[0].id);
-  const [signingUrl, setSigningUrl] = useState<string | null>(null);
-  const [signingDocId, setSigningDocId] = useState<string | null>(null);
-  const [isInitiating, setIsInitiating] = useState(false);
 
   const signedCount = DOC_TABS.filter((d) => newAgent[d.fieldKey] === 'signed').length;
 
-  const handleInitiateSign = useCallback(async (docId: string) => {
-    setIsInitiating(true);
-    try {
-      const res = await fetch('/api/onboarding/initiate-docusign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentType: docId,
-          profileId: tokenData?.profileId,
-          signerName: tokenData ? `${tokenData.firstName} ${tokenData.lastName}` : 'Agent',
-          signerEmail: tokenData?.email,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.signingUrl) {
-        setSigningUrl(data.signingUrl);
-        setSigningDocId(docId);
-      } else {
-        setSigningUrl(null);
-        setSigningDocId(null);
-      }
-    } catch (error) {
-      console.error(`Failed to initiate DocuSign for ${docId}:`, error);
-      setSigningUrl(null);
-      setSigningDocId(null);
-    } finally {
-      setIsInitiating(false);
-    }
-  }, [tokenData]);
-
-  const handleDocuSignComplete = useCallback(async (envelopeId: string) => {
-    if (!signingDocId) return;
-    const doc = DOC_TABS.find((d) => d.id === signingDocId);
-    if (!doc) return;
-
-    try {
-      await fetch('/api/onboarding/complete-docusign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentType: signingDocId,
-          profileId: tokenData?.profileId,
-          envelopeId,
-        }),
-      });
-
-      updateNewAgentField(doc.fieldKey, 'signed' as never);
-      toast.success(`${doc.fullName} signed successfully`);
-
-      setSigningUrl(null);
-      setSigningDocId(null);
-
-      const nextUnsigned = DOC_TABS.find(
-        (d) => d.id !== signingDocId && newAgent[d.fieldKey] !== 'signed',
-      );
-      if (nextUnsigned) {
-        setActiveTab(nextUnsigned.id);
-      }
-    } catch (error) {
-      console.error('Failed to complete DocuSign:', error);
-    }
-  }, [signingDocId, tokenData, newAgent, updateNewAgentField]);
-
-  const handleLocalSign = useCallback(async (docId: string, signatureData: string) => {
+  const handleSign = useCallback(async (docId: string, signatureData: string) => {
     const doc = DOC_TABS.find((d) => d.id === docId);
     if (!doc) return;
 
@@ -132,8 +62,6 @@ export function NewAgentStep6ESign() {
     }
   }, [tokenData, newAgent, updateNewAgentField]);
 
-  const showDocuSignIframe = signingUrl && signingDocId === activeTab;
-
   return (
     <StepCard
       icon={FileSignature}
@@ -163,8 +91,8 @@ export function NewAgentStep6ESign() {
           }}
         >
           {signedCount === 3
-            ? 'All documents signed — you may proceed'
-            : `${signedCount} of 3 documents signed — ${3 - signedCount} remaining`}
+            ? 'All documents signed - you may proceed'
+            : `${signedCount} of 3 documents signed - ${3 - signedCount} remaining`}
         </p>
       </div>
 
@@ -187,13 +115,7 @@ export function NewAgentStep6ESign() {
             <button
               key={doc.id}
               type="button"
-              onClick={() => {
-                setActiveTab(doc.id);
-                if (signingDocId !== doc.id) {
-                  setSigningUrl(null);
-                  setSigningDocId(null);
-                }
-              }}
+              onClick={() => setActiveTab(doc.id)}
               style={{
                 flex: 1,
                 padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px`,
@@ -221,38 +143,14 @@ export function NewAgentStep6ESign() {
         })}
       </div>
 
-      {/* Loading state */}
-      {isInitiating && (
-        <div className="flex items-center justify-center" style={{ padding: GRID.spacing.xl }}>
-          <Loader2 size={24} className="animate-spin" style={{ color: COLORS.primary.violet[500] }} />
-          <span style={{ fontSize: TYPE.meta, color: COLORS.gray[500], marginLeft: GRID.spacing.xs }}>
-            Preparing DocuSign...
-          </span>
-        </div>
-      )}
-
-      {/* DocuSign iframe */}
-      {showDocuSignIframe && !isInitiating && (
-        <DocuSignEmbed
-          signingUrl={signingUrl}
-          documentType={activeTab}
-          onComplete={handleDocuSignComplete}
-          onError={(err) => {
-            toast.error(err);
-            setSigningUrl(null);
-            setSigningDocId(null);
-          }}
-        />
-      )}
-
-      {/* Local document viewer (fallback) */}
-      {!showDocuSignIframe && !isInitiating && DOC_TABS.map((doc) =>
+      {/* Document viewer with signature pad */}
+      {DOC_TABS.map((doc) =>
         activeTab === doc.id ? (
           <DocumentViewer
             key={doc.id}
             documentId={doc.id}
             isSigned={newAgent[doc.fieldKey] === 'signed'}
-            onSign={(signatureData: string) => handleLocalSign(doc.id, signatureData)}
+            onSign={(signatureData: string) => handleSign(doc.id, signatureData)}
           />
         ) : null,
       )}
