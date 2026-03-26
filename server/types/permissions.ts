@@ -147,6 +147,18 @@ export const Permission = {
   HIERARCHY_VIEW_TEAM: 'hierarchy:view:team',
   HIERARCHY_VIEW_ALL: 'hierarchy:view:all',
   HIERARCHY_MANAGE: 'hierarchy:manage',
+  HIERARCHY_REQUEST_CREATE: 'hierarchy:request:create',
+  HIERARCHY_REQUEST_REVIEW: 'hierarchy:request:review',
+  HIERARCHY_REQUEST_APPROVE: 'hierarchy:request:approve',
+
+  // ===== COMMISSION TARGETS =====
+  COMMISSION_TARGETS_VIEW: 'commission:targets:view',
+  COMMISSION_TARGETS_MANAGE: 'commission:targets:manage',
+
+  // ===== CALLS / RECORDINGS =====
+  CALLS_VIEW_OWN: 'calls:view:own',
+  CALLS_VIEW_TEAM: 'calls:view:team',
+  CALLS_VIEW_ALL: 'calls:view:all',
 } as const;
 
 export type PermissionType = typeof Permission[keyof typeof Permission];
@@ -237,6 +249,14 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     // Hierarchy
     Permission.HIERARCHY_VIEW_ALL,
     Permission.HIERARCHY_MANAGE,
+    Permission.HIERARCHY_REQUEST_CREATE,
+    Permission.HIERARCHY_REQUEST_REVIEW,
+    Permission.HIERARCHY_REQUEST_APPROVE,
+    // Commission Targets
+    Permission.COMMISSION_TARGETS_VIEW,
+    Permission.COMMISSION_TARGETS_MANAGE,
+    // Calls / Recordings
+    Permission.CALLS_VIEW_ALL,
   ],
 
   // ===== AGENCY MANAGER - Team and operations management =====
@@ -297,6 +317,12 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     // Hierarchy
     Permission.HIERARCHY_VIEW_TEAM,
     Permission.HIERARCHY_MANAGE,
+    Permission.HIERARCHY_REQUEST_CREATE,
+    Permission.HIERARCHY_REQUEST_REVIEW,
+    // Commission Targets
+    Permission.COMMISSION_TARGETS_VIEW,
+    // Calls / Recordings
+    Permission.CALLS_VIEW_TEAM,
   ],
 
   // ===== SALES AGENT - Lead work and own data =====
@@ -331,6 +357,11 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     Permission.CLAIMS_VIEW_OWN,
     // Hierarchy
     Permission.HIERARCHY_VIEW_OWN,
+    Permission.HIERARCHY_REQUEST_CREATE,
+    // Commission Targets
+    Permission.COMMISSION_TARGETS_VIEW,
+    // Calls / Recordings
+    Permission.CALLS_VIEW_OWN,
   ],
 
   // ===== MARKETING STAFF - Content and marketing focus =====

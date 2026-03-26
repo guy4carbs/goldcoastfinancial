@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLoungeAccess } from '@/hooks/useLoungeAccess';
 import {
   ChevronDown,
   Users,
@@ -164,9 +165,17 @@ export function LoungeSwitcher({ variant = 'dropdown', className }: LoungeSwitch
   const { user } = useAuth();
   const [location] = useLocation();
   const currentLounge = getCurrentLounge(location);
+  const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
 
-  // Filter lounges by user role
-  const accessibleLounges = LOUNGES.filter((lounge) => canAccessLounge(lounge, user?.role));
+  // Filter lounges by user role AND DB lounge access
+  const accessibleLounges = LOUNGES.filter((lounge) => {
+    // Role check first (baseline)
+    if (!canAccessLounge(lounge, user?.role)) return false;
+    // If DB access hasn't loaded yet, show role-based defaults
+    if (loungeAccessLoading) return true;
+    // Check DB-level access
+    return hasAccess(lounge.id);
+  });
 
   if (accessibleLounges.length <= 1) {
     // Don't show switcher if user can only access one lounge

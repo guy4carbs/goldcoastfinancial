@@ -384,7 +384,6 @@ export default function AgentPerformance() {
                             background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                           }}
                         >
-                          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                           <CardContent className="p-4 relative z-10">
                             <div className="flex items-center gap-2 mb-2">
                               <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -592,7 +591,6 @@ export default function AgentPerformance() {
                       background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                     }}
                   >
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                     <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -615,7 +613,6 @@ export default function AgentPerformance() {
                       background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                     }}
                   >
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                     <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -638,7 +635,6 @@ export default function AgentPerformance() {
                       background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                     }}
                   >
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                     <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -666,7 +662,6 @@ export default function AgentPerformance() {
                       background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                     }}
                   >
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                     <CardContent className="p-4 relative z-10">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -1209,8 +1204,7 @@ export default function AgentPerformance() {
                           background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                         }}
                       >
-                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                        <CardContent className="p-4 relative z-10">
+                            <CardContent className="p-4 relative z-10">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold text-white/90">New Leads</span>
                             <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -1234,8 +1228,7 @@ export default function AgentPerformance() {
                           background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                         }}
                       >
-                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                        <CardContent className="p-4 relative z-10">
+                            <CardContent className="p-4 relative z-10">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold text-white/90">Close Rate</span>
                             <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
@@ -1259,8 +1252,7 @@ export default function AgentPerformance() {
                           background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #f59e0b 100%)',
                         }}
                       >
-                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                        <CardContent className="p-4 relative z-10">
+                            <CardContent className="p-4 relative z-10">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold text-white/90">Avg Deal Size</span>
                             <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">

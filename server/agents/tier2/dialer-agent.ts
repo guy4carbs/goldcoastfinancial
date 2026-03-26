@@ -5,6 +5,8 @@
  */
 
 import { BaseAgent, EventType, AgentEvent, memoryGraph, LeadData, analyticsLedger, MetricType } from '../core';
+import { dialOutbound, extractAreaCode, formatPhoneNumber } from '../../services/telnyxVoiceService';
+import { storage } from '../../storage';
 
 // ─── Types ───────────────────────────────────────────────────────
 interface DialAttempt {
@@ -52,12 +54,22 @@ export class DialerAgent extends BaseAgent {
       tier: 2,
       description: 'Auto-dialer with voicemail detection, DNC, and timezone windows',
       capabilities: ['auto_dial', 'voicemail_drop', 'hot_transfer', 'dnc_enforcement', 'timezone_dialing'],
-      consumesEvents: [EventType.LEAD_SCORED, EventType.SMS_RESPONSE_RECEIVED],
+      consumesEvents: [EventType.LEAD_SCORED, EventType.SMS_RESPONSE_RECEIVED, EventType.CALL_CONNECTED, EventType.CALL_FAILED],
       producesEvents: [EventType.CALL_CONNECTED, EventType.CALL_FAILED],
     });
   }
 
   protected async onStart(): Promise<void> {
+    // Load DNC list from database on startup
+    try {
+      const { numbers } = await storage.getDncList({ limit: 10000 });
+      for (const entry of numbers) {
+        this.dncList.add(this.normalizePhone(entry.phoneNumber));
+      }
+      console.log(`[DIALER] Loaded ${this.dncList.size} DNC numbers from database`);
+    } catch (err) {
+      console.warn('[DIALER] Failed to load DNC list from DB:', err);
+    }
     this.dialTimer = setInterval(() => this.processDialQueue(), 5000);
   }
 
@@ -78,6 +90,64 @@ export class DialerAgent extends BaseAgent {
           await this.prioritizeLead(event.payload.leadId);
         }
         break;
+      case EventType.CALL_CONNECTED:
+        await this.handleCallConnected(event.payload);
+        break;
+      case EventType.CALL_FAILED:
+        await this.handleCallFailed(event.payload);
+        break;
+    }
+  }
+
+  // Handle webhook-driven call connected result
+  private async handleCallConnected(payload: { leadId?: string; agentUserId?: string; phoneNumber?: string; amdResult?: string }): Promise<void> {
+    const leadId = payload.leadId;
+    if (!leadId) return;
+
+    const entry = this.dialQueue.get(leadId);
+    if (!entry) return;
+
+    this.activeCallCount = Math.max(0, this.activeCallCount - 1);
+    this.dialQueue.delete(leadId);
+
+    this.recordAttempt(leadId, entry.phone, 'connected', 0, true);
+    analyticsLedger.record(MetricType.OUTREACH_CALL_MADE, 1, this.id, {
+      entityId: leadId,
+      metadata: { outcome: 'connected', attempt: entry.attempts, amdResult: payload.amdResult },
+    });
+
+    console.log(`[DIALER] ✅ Human answered for lead ${leadId} — transferred to agent`);
+  }
+
+  // Handle webhook-driven call failed result
+  private async handleCallFailed(payload: { leadId?: string; reason?: string }): Promise<void> {
+    const leadId = payload.leadId;
+    if (!leadId) return;
+
+    const entry = this.dialQueue.get(leadId);
+    if (!entry) return;
+
+    this.activeCallCount = Math.max(0, this.activeCallCount - 1);
+
+    const outcome = payload.reason === 'machine' ? 'voicemail' : 'no_answer';
+    this.recordAttempt(leadId, entry.phone, outcome, 0, false);
+    analyticsLedger.record(MetricType.OUTREACH_CALL_MADE, 1, this.id, {
+      entityId: leadId,
+      metadata: { outcome, attempt: entry.attempts },
+    });
+
+    this.scheduleRetry(entry);
+
+    if (entry.attempts >= MAX_ATTEMPTS) {
+      this.dialQueue.delete(leadId);
+      this.emit(EventType.CALL_FAILED, {
+        leadId,
+        phone: entry.phone,
+        totalAttempts: entry.attempts,
+        lastOutcome: outcome,
+        reason: 'max_attempts_reached',
+      });
+      console.log(`[DIALER] ❌ Exhausted attempts for lead ${leadId}`);
     }
   }
 
@@ -138,7 +208,7 @@ export class DialerAgent extends BaseAgent {
     }
   }
 
-  // ─── Core dial logic ──────────────────────────────────────
+  // ─── Core dial logic (Telnyx Call Control + Premium AMD) ───
   private async dial(entry: DialQueueEntry): Promise<void> {
     this.activeCallCount++;
     entry.attempts++;
@@ -148,79 +218,72 @@ export class DialerAgent extends BaseAgent {
 
     console.log(`[DIALER] 📞 Dialing ${leadName} at ${entry.phone} (attempt ${entry.attempts}/${MAX_ATTEMPTS})...`);
 
-    // Simulate call outcome (production: SIP/Twilio integration)
-    const outcome = this.simulateCallOutcome();
-    const durationSec = outcome === 'connected' ? Math.floor(Math.random() * 300) + 30 : 0;
+    const connectionId = process.env.TELNYX_CONNECTION_ID;
+    const appUrl = process.env.APP_URL || '';
+    const webhookUrl = `${appUrl}/api/calls/webhook`;
 
-    this.activeCallCount--;
+    if (!connectionId) {
+      console.error('[DIALER] TELNYX_CONNECTION_ID not configured — cannot dial');
+      this.activeCallCount--;
+      return;
+    }
 
-    const attempt = this.recordAttempt(entry.leadId, entry.phone, outcome, durationSec, false);
+    // Local presence: match caller ID to prospect's area code
+    const prospectAreaCode = extractAreaCode(entry.phone);
+    let callerId = process.env.TELNYX_DEFAULT_CALLER_ID || '';
+    try {
+      const localNumber = await storage.getNumberByAreaCode(prospectAreaCode);
+      if (localNumber) {
+        callerId = localNumber.phoneNumber;
+        console.log(`[DIALER] 📍 Local presence: using ${callerId} for area code ${prospectAreaCode}`);
+      }
+    } catch (err: any) {
+      console.warn('[DIALER] Local presence lookup failed:', err.message);
+    }
 
-    analyticsLedger.record(MetricType.OUTREACH_CALL_MADE, 1, this.id, {
-      entityId: entry.leadId,
-      metadata: { outcome, attempt: entry.attempts },
-    });
+    try {
+      // Fire the call via Telnyx Call Control API with Premium AMD
+      // Webhook handler in calls.ts processes AMD results and emits CALL_CONNECTED/CALL_FAILED
+      const { callControlId } = await dialOutbound({
+        to: entry.phone,
+        from: callerId,
+        connectionId,
+        webhookUrl,
+        amd: true,
+        clientState: {
+          source: 'power_dialer',
+          agentUserId: node?.data.assignedAgent || '',
+          leadId: entry.leadId,
+          leadFirstName: node?.data.firstName || '',
+        },
+      });
 
-    switch (outcome) {
-      case 'connected': {
+      console.log(`[DIALER] 📞 Call initiated: ${callControlId} → ${entry.phone}`);
+
+      analyticsLedger.record(MetricType.OUTREACH_CALL_MADE, 1, this.id, {
+        entityId: entry.leadId,
+        metadata: { callControlId, attempt: entry.attempts },
+      });
+
+      // Note: activeCallCount is decremented when CALL_CONNECTED or CALL_FAILED event arrives
+      // from the webhook handler. The AMD + voicemail drop is fully handled by webhooks.
+    } catch (dialError: any) {
+      console.error(`[DIALER] ❌ Dial failed for ${leadName}:`, dialError.message);
+      this.activeCallCount--;
+      this.recordAttempt(entry.leadId, entry.phone, 'no_answer', 0, false);
+      this.scheduleRetry(entry);
+
+      if (entry.attempts >= MAX_ATTEMPTS) {
         this.dialQueue.delete(entry.leadId);
-        const shouldTransfer = entry.score >= 80;
-        attempt.transferred = shouldTransfer;
-
-        this.emit(EventType.CALL_CONNECTED, {
+        this.emit(EventType.CALL_FAILED, {
           leadId: entry.leadId,
           phone: entry.phone,
-          durationSec,
-          attempt: entry.attempts,
-          transferred: shouldTransfer,
-          score: entry.score,
-        }, { metadata: { tier: 2, priority: 'high' } });
-
-        console.log(`[DIALER] ✅ Connected with ${leadName} | ${durationSec}s${shouldTransfer ? ' | 🔥 HOT TRANSFER' : ''}`);
-        break;
-      }
-
-      case 'voicemail': {
-        await this.dropVoicemail(entry.leadId, entry.phone);
-        this.scheduleRetry(entry);
-        break;
-      }
-
-      case 'no_answer':
-      case 'busy': {
-        this.scheduleRetry(entry);
-        if (entry.attempts >= MAX_ATTEMPTS) {
-          this.dialQueue.delete(entry.leadId);
-          this.emit(EventType.CALL_FAILED, {
-            leadId: entry.leadId,
-            phone: entry.phone,
-            totalAttempts: entry.attempts,
-            lastOutcome: outcome,
-            reason: 'max_attempts_reached',
-          });
-          console.log(`[DIALER] ❌ Exhausted attempts for ${leadName}`);
-        }
-        break;
+          totalAttempts: entry.attempts,
+          lastOutcome: 'no_answer',
+          reason: 'dial_api_error',
+        });
       }
     }
-  }
-
-  // ─── Voicemail drop ────────────────────────────────────────
-  private async dropVoicemail(leadId: string, phone: string): Promise<void> {
-    const node = this.memory.getNode<LeadData>(leadId);
-    const firstName = node?.data.firstName || 'there';
-
-    const vmMessages = [
-      `Hi ${firstName}, this is your insurance advisor following up on the coverage quote you requested. I have some great options for you — call me back at your convenience or reply to my text.`,
-      `Hey ${firstName}, just a quick follow-up on your insurance inquiry. I've got your personalized rates ready. Give me a call back when you get a chance!`,
-    ];
-    const selected = vmMessages[Math.floor(Math.random() * vmMessages.length)];
-
-    console.log(`[DIALER] 📭 Voicemail dropped for ${firstName} at ${phone}: "${selected.substring(0, 50)}..."`);
-    analyticsLedger.record(MetricType.OUTREACH_CALL_MADE, 1, this.id, {
-      entityId: leadId,
-      metadata: { type: 'voicemail_drop' },
-    });
   }
 
   // ─── Retry scheduling ─────────────────────────────────────
@@ -252,9 +315,20 @@ export class DialerAgent extends BaseAgent {
   }
 
   // ─── DNC management ────────────────────────────────────────
-  addToDnc(phone: string): void {
+  async addToDnc(phone: string, userId?: string): Promise<void> {
     const normalized = this.normalizePhone(phone);
     this.dncList.add(normalized);
+    // Persist to database
+    try {
+      await storage.addToDnc({
+        phoneNumber: normalized,
+        reason: 'agent_flagged',
+        addedByUserId: userId || '',
+        source: 'dialer_agent',
+      });
+    } catch (err) {
+      console.warn('[DIALER] Failed to persist DNC to DB:', err);
+    }
     // Remove from queue if present
     for (const [leadId, entry] of Array.from(this.dialQueue.entries())) {
       if (entry.phone === normalized) {
@@ -274,14 +348,6 @@ export class DialerAgent extends BaseAgent {
     if (!this.callHistory.has(leadId)) this.callHistory.set(leadId, []);
     this.callHistory.get(leadId)!.push(attempt);
     return attempt;
-  }
-
-  private simulateCallOutcome(): 'connected' | 'voicemail' | 'no_answer' | 'busy' {
-    const r = Math.random();
-    if (r < 0.25) return 'connected';
-    if (r < 0.50) return 'voicemail';
-    if (r < 0.80) return 'no_answer';
-    return 'busy';
   }
 
   getQueueSize(): number { return this.dialQueue.size; }

@@ -191,6 +191,18 @@ export async function convertLeadToClient(
       console.error('[LeadConversion] Welcome email failed (non-blocking):', emailError);
     }
 
+    // 14. Create post-close workflow record (non-blocking)
+    try {
+      await pool.query(
+        `INSERT INTO post_close_workflows (lead_id, agent_user_id, client_user_id, policy_id, status)
+         VALUES ($1, $2, $3, $4, 'pending')
+         ON CONFLICT DO NOTHING`,
+        [leadId, agentUserId, clientUserId, newPolicy.id]
+      );
+    } catch (pcErr) {
+      console.error('[LeadConversion] Post-close workflow creation failed (non-blocking):', pcErr);
+    }
+
     console.log(`[LeadConversion] Successfully converted lead ${leadId} to client ${clientUserId}, policy ${newPolicy.id}`);
 
     return {

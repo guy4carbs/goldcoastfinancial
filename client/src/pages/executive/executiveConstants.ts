@@ -56,11 +56,11 @@ export const DEMO_TEAMS = [
 
 // Revenue by product line
 export const DEMO_REVENUE_BY_PRODUCT = [
-  { product: 'IUL', revenue: 618000, percentage: 33, color: '#7c3aed' },
-  { product: 'Whole Life', revenue: 431000, percentage: 23, color: '#f59e0b' },
-  { product: 'Term Life', revenue: 356000, percentage: 19, color: '#10b981' },
-  { product: 'Annuity', revenue: 263000, percentage: 14, color: '#3b82f6' },
-  { product: 'Final Expense', revenue: 207000, percentage: 11, color: '#f43f5e' },
+  { product: 'IUL', revenue: 618000, percentage: 33, color: '#ea580c' },
+  { product: 'Whole Life', revenue: 431000, percentage: 23, color: '#b91c1c' },
+  { product: 'Term Life', revenue: 356000, percentage: 19, color: '#f59e0b' },
+  { product: 'Annuity', revenue: 263000, percentage: 14, color: '#f97316' },
+  { product: 'Final Expense', revenue: 207000, percentage: 11, color: '#dc2626' },
 ];
 
 // Recent activity for executive feed
@@ -112,9 +112,9 @@ export const DEMO_EXEC_REVENUE_MONTHLY = [
 
 // ─── FORECAST SCENARIOS ─────────────────────────────
 export const DEMO_EXEC_SCENARIOS = [
-  { id: 'best', label: 'Best Case', value: 3500000, probability: 20, color: '#10b981' },
-  { id: 'likely', label: 'Most Likely', value: 2800000, probability: 60, color: '#f59e0b' },
-  { id: 'worst', label: 'Worst Case', value: 2200000, probability: 20, color: '#ef4444' },
+  { id: 'best', label: 'Best Case', value: 3500000, probability: 20, color: '#f59e0b' },
+  { id: 'likely', label: 'Most Likely', value: 2800000, probability: 60, color: '#ea580c' },
+  { id: 'worst', label: 'Worst Case', value: 2200000, probability: 20, color: '#b91c1c' },
 ] as const;
 
 // ─── COMMISSION WATERFALL HIERARCHY ─────────────────
@@ -149,12 +149,12 @@ export const DEMO_EXEC_PAYOUTS = [
 
 // ─── PIPELINE STAGES ────────────────────────────────
 export const DEMO_EXEC_PIPELINE_STAGES = [
-  { stage: 'New Leads', count: 420, value: 2100000, color: '#8b5cf6', conversionRate: 67.9 },
-  { stage: 'Contacted', count: 285, value: 1600000, color: '#3b82f6', conversionRate: 63.2 },
-  { stage: 'Qualified', count: 180, value: 1200000, color: '#10b981', conversionRate: 52.8 },
-  { stage: 'Proposal', count: 95, value: 840000, color: '#f59e0b', conversionRate: 44.2 },
-  { stage: 'Negotiation', count: 42, value: 480000, color: '#f97316', conversionRate: 61.9 },
-  { stage: 'Closed Won', count: 68, value: 1870000, color: '#ef4444', conversionRate: 100 },
+  { stage: 'New Leads', count: 420, value: 2100000, color: '#fdba74', conversionRate: 67.9 },
+  { stage: 'Contacted', count: 285, value: 1600000, color: '#f97316', conversionRate: 63.2 },
+  { stage: 'Qualified', count: 180, value: 1200000, color: '#ea580c', conversionRate: 52.8 },
+  { stage: 'Proposal', count: 95, value: 840000, color: '#c2410c', conversionRate: 44.2 },
+  { stage: 'Negotiation', count: 42, value: 480000, color: '#b91c1c', conversionRate: 61.9 },
+  { stage: 'Closed Won', count: 68, value: 1870000, color: '#dc2626', conversionRate: 100 },
 ] as const;
 
 // ─── SALES VELOCITY ─────────────────────────────────
@@ -168,12 +168,12 @@ export const DEMO_EXEC_SALES_VELOCITY = {
 
 // ─── RECRUITING FUNNEL ──────────────────────────────
 export const DEMO_EXEC_RECRUITING_FUNNEL = [
-  { stage: 'Prospect', count: 120, color: '#8b5cf6' },
-  { stage: 'Contacted', count: 85, color: '#6366f1' },
-  { stage: 'Applied', count: 48, color: '#3b82f6' },
-  { stage: 'Interviewing', count: 22, color: '#10b981' },
-  { stage: 'Offer', count: 12, color: '#f59e0b' },
-  { stage: 'Onboarding', count: 8, color: '#ef4444' },
+  { stage: 'Prospect', count: 120, color: '#fdba74' },
+  { stage: 'Contacted', count: 85, color: '#fb923c' },
+  { stage: 'Applied', count: 48, color: '#f97316' },
+  { stage: 'Interviewing', count: 22, color: '#ea580c' },
+  { stage: 'Offer', count: 12, color: '#c2410c' },
+  { stage: 'Onboarding', count: 8, color: '#b91c1c' },
 ] as const;
 
 // ─── CANDIDATES ─────────────────────────────────────
@@ -383,12 +383,12 @@ export const AGENT_STATUS_COLORS = {
 } as const;
 
 export const PIPELINE_STAGE_COLORS: Record<string, string> = {
-  'New Leads': '#8b5cf6',
-  'Contacted': '#3b82f6',
-  'Qualified': '#10b981',
-  'Proposal': '#f59e0b',
-  'Negotiation': '#f97316',
-  'Closed Won': '#ef4444',
+  'New Leads': '#fdba74',
+  'Contacted': '#f97316',
+  'Qualified': '#ea580c',
+  'Proposal': '#c2410c',
+  'Negotiation': '#b91c1c',
+  'Closed Won': '#dc2626',
 };
 
 export const LICENSE_STATUS_COLORS = {
@@ -407,6 +407,8 @@ export const LOUNGES = [
   { key: 'ai_lounge', name: 'AI Lounge', description: 'AI assistants, avatar council, and automation', roles: ['owner', 'system_admin'] },
   { key: 'marketing_lounge', name: 'Marketing', description: 'Campaigns, content, and lead generation', roles: ['marketing_staff', 'owner', 'system_admin'] },
   { key: 'admin_panel', name: 'Admin Panel', description: 'System settings and administration', roles: ['owner', 'system_admin'] },
+  { key: 'client_lounge', name: 'Client Lounge', description: 'Client portal — policies, documents, billing, and claims', roles: ['client', 'owner', 'system_admin'] },
+  { key: 'onboarding_lounge', name: 'Onboarding', description: 'New agent onboarding and license setup', roles: ['sales_agent', 'manager', 'owner', 'system_admin'] },
 ] as const;
 
 export const ROLE_DISPLAY: Record<string, { label: string; level: number; color: string }> = {
@@ -423,9 +425,10 @@ export const ACTION_TYPE_COLORS: Record<string, { bg: string; text: string }> = 
   registration_approved: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
   registration_rejected: { bg: 'bg-red-50', text: 'text-red-700' },
   promoted: { bg: 'bg-orange-50', text: 'text-orange-700' },
+  demoted: { bg: 'bg-amber-50', text: 'text-amber-700' },
   role_changed: { bg: 'bg-blue-50', text: 'text-blue-700' },
   account_activated: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  account_deactivated: { bg: 'bg-gray-50', text: 'text-gray-700' },
+  account_deactivated: { bg: 'bg-stone-50', text: 'text-stone-700' },
   onboarding_completed: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
   lounge_access_changed: { bg: 'bg-blue-50', text: 'text-blue-700' },
   onboarding_started: { bg: 'bg-indigo-50', text: 'text-indigo-700' },
@@ -1317,7 +1320,7 @@ export const LEAD_PRIORITY_CFG: Record<string, { label: string; color: string; b
   urgent: { label: 'Urgent', color: '#ef4444', bg: 'bg-red-50',    text: 'text-red-600',    border: 'border-red-200' },
   high:   { label: 'High',   color: '#f97316', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200' },
   medium: { label: 'Medium', color: '#f59e0b', bg: 'bg-amber-50',  text: 'text-amber-600',  border: 'border-amber-200' },
-  low:    { label: 'Low',    color: '#9ca3af', bg: 'bg-gray-50',   text: 'text-gray-600',   border: 'border-gray-200' },
+  low:    { label: 'Low',    color: '#9ca3af', bg: 'bg-stone-50',   text: 'text-stone-600',   border: 'border-stone-200' },
 };
 
 export const LEAD_SOURCE_LABELS: Record<string, string> = {

@@ -113,6 +113,7 @@ export const agentRegisterSchema = z.object({
   whyJoinHeritage: z.string().min(50, "Please write at least 50 characters"),
   referralSource: z.string().min(1, "Please tell us how you heard about us"),
   referringAgentName: z.string().optional(),
+  preferredUplineId: z.string().optional(),
 
   // Step 6: Consent
   agreedToTerms: z.literal(true, { errorMap: () => ({ message: "You must agree to the Terms of Service" }) }),

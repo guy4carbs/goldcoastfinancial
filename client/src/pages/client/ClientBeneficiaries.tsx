@@ -146,12 +146,27 @@ export default function ClientBeneficiaries() {
   const [deleteReason, setDeleteReason] = useState('');
   const [showSuccess, setShowSuccess] = useState<{ title: string; subtitle: string } | null>(null);
 
-  // Derive beneficiaries from policy data (each policy has one beneficiary)
-  const derivedBeneficiaries: DerivedBeneficiary[] = policies
-    .filter((p) => p.beneficiaryName)
-    .map((p) => {
+  // Derive beneficiaries from policy data (supports JSONB array + legacy single columns)
+  const derivedBeneficiaries: DerivedBeneficiary[] = policies.flatMap((p) => {
+    // Use JSONB beneficiaries array if available
+    const benArray = (p as any).beneficiaries;
+    if (Array.isArray(benArray) && benArray.length > 0) {
+      return benArray.map((b: any, idx: number) => ({
+        id: `ben-${p.id}-${idx}`,
+        policyId: p.id,
+        policyNumber: p.policyNumber,
+        type: 'primary' as const,
+        firstName: (b.name || '').split(' ')[0] || '',
+        lastName: (b.name || '').split(' ').slice(1).join(' ') || '',
+        relationship: b.relationship || 'N/A',
+        dateOfBirth: '',
+        allocationPercent: b.percentage || 0,
+      }));
+    }
+    // Fallback to legacy single-beneficiary columns
+    if (p.beneficiaryName) {
       const nameParts = (p.beneficiaryName ?? '').split(' ');
-      return {
+      return [{
         id: `ben-${p.id}`,
         policyId: p.id,
         policyNumber: p.policyNumber,
@@ -161,8 +176,10 @@ export default function ClientBeneficiaries() {
         relationship: p.beneficiaryRelationship || 'N/A',
         dateOfBirth: '',
         allocationPercent: 100,
-      };
-    });
+      }];
+    }
+    return [];
+  });
 
   // Group beneficiaries by policyId
   const policiesWithBeneficiaries = policies.map((policy) => {

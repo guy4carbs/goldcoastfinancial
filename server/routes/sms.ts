@@ -8,9 +8,40 @@ import {
   smsMessages,
   type InsertSmsMessage,
 } from "@shared/models/sms";
-import twilio from "twilio";
+import { TelnyxWebhook } from 'telnyx/webhooks';
 
 const router = Router();
+
+/**
+ * Verify Telnyx webhook signature (Ed25519)
+ * Reuses same pattern as server/routes/calls.ts
+ */
+async function verifyTelnyxSignature(req: Request): Promise<boolean> {
+  if (process.env.NODE_ENV !== "production") return true;
+
+  const publicKey = process.env.TELNYX_PUBLIC_KEY;
+  if (!publicKey) {
+    console.warn("[SMS Webhook] TELNYX_PUBLIC_KEY not configured, skipping verification");
+    return true;
+  }
+
+  try {
+    const signature = req.headers["telnyx-signature-ed25519"] as string;
+    const timestamp = req.headers["telnyx-timestamp"] as string;
+    if (!signature || !timestamp) return false;
+
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const webhook = new TelnyxWebhook(publicKey);
+    await webhook.verify(rawBody, {
+      'telnyx-signature-ed25519': signature,
+      'telnyx-timestamp': timestamp,
+    });
+    return true;
+  } catch (error: any) {
+    console.warn("[SMS Webhook] Signature verification failed:", error.message);
+    return false;
+  }
+}
 
 // ── GET /conversations - List all SMS conversations for the agent ──
 router.get("/conversations", requireAuth, async (req: Request, res: Response) => {
@@ -66,17 +97,21 @@ router.post("/send", requireAuth, async (req: Request, res: Response) => {
       return res.status(503).json({ error: "SMS service not configured" });
     }
 
-    // Send via Twilio
+    // Send via Telnyx
     const result = await sendSms(to, message);
+
+    if (!result.success) {
+      return res.status(500).json({ error: result.error || "Failed to send SMS" });
+    }
 
     // Find or create conversation
     let [conversation] = await db.select()
       .from(smsConversations)
-      .where(eq(smsConversations.phoneNumber, result.to));
+      .where(eq(smsConversations.phoneNumber, result.to || to));
 
     if (!conversation) {
       [conversation] = await db.insert(smsConversations).values({
-        phoneNumber: result.to,
+        phoneNumber: result.to || to,
         contactName: contactName || null,
         leadId: leadId || null,
         agentId: req.user!.id,
@@ -91,11 +126,11 @@ router.post("/send", requireAuth, async (req: Request, res: Response) => {
     const [smsMessage] = await db.insert(smsMessages).values({
       conversationId: conversation.id,
       direction: "outbound",
-      from: result.from,
-      to: result.to,
+      from: result.from || process.env.TELNYX_SMS_FROM || "",
+      to: result.to || to,
       body: message,
-      status: result.status,
-      twilioSid: result.sid,
+      status: (result.status || "queued") as "queued" | "sending" | "sent" | "delivered" | "failed",
+      externalId: result.messageId || null,
       isRead: true,
     }).returning();
 
@@ -129,35 +164,39 @@ router.post("/validate", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// ── POST /webhook - Receive inbound SMS from Twilio ──
+// ── POST /webhook - Receive inbound SMS from Telnyx ──
 router.post("/webhook", async (req: Request, res: Response) => {
   try {
-    // Validate Twilio signature in production
-    if (process.env.NODE_ENV === "production") {
-      const signature = req.headers["x-twilio-signature"] as string;
-      const authToken = process.env.TWILIO_AUTH_TOKEN!;
-      const url = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-      const isValid = twilio.validateRequest(authToken, signature, url, req.body);
-      if (!isValid) {
-        console.warn("[SMS Webhook] Invalid Twilio signature");
-        return res.status(403).send("Forbidden");
-      }
+    if (!await verifyTelnyxSignature(req)) {
+      console.warn("[SMS Webhook] Invalid Telnyx signature");
+      return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { From, To, Body, MessageSid } = req.body;
+    const eventType = req.body?.data?.event_type;
+    const payload = req.body?.data?.payload;
 
-    if (!From || !Body) {
-      return res.status(400).send("Missing required fields");
+    if (eventType !== 'message.received' || !payload) {
+      // Acknowledge non-inbound events gracefully
+      return res.status(200).json({ status: 'ok' });
+    }
+
+    const fromNumber = payload.from?.phone_number;
+    const toNumber = payload.to?.[0]?.phone_number || process.env.TELNYX_SMS_FROM || "";
+    const body = payload.text || "";
+    const messageId = payload.id || null;
+
+    if (!fromNumber || !body) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     // Find or create conversation for this phone number
     let [conversation] = await db.select()
       .from(smsConversations)
-      .where(eq(smsConversations.phoneNumber, From));
+      .where(eq(smsConversations.phoneNumber, fromNumber));
 
     if (!conversation) {
       [conversation] = await db.insert(smsConversations).values({
-        phoneNumber: From,
+        phoneNumber: fromNumber,
         contactName: null,
         leadId: null,
         agentId: null,
@@ -167,16 +206,16 @@ router.post("/webhook", async (req: Request, res: Response) => {
     }
 
     // Store the inbound message
-    const preview = Body.length > 100 ? Body.substring(0, 100) + "..." : Body;
+    const preview = body.length > 100 ? body.substring(0, 100) + "..." : body;
 
     await db.insert(smsMessages).values({
       conversationId: conversation.id,
       direction: "inbound",
-      from: From,
-      to: To || process.env.TWILIO_PHONE_NUMBER || "",
-      body: Body,
+      from: fromNumber,
+      to: toNumber,
+      body,
       status: "received",
-      twilioSid: MessageSid || null,
+      externalId: messageId,
       isRead: false,
     });
 
@@ -190,47 +229,70 @@ router.post("/webhook", async (req: Request, res: Response) => {
       })
       .where(eq(smsConversations.id, conversation.id));
 
-    console.log(`[SMS Webhook] Inbound from ${From}: ${Body}`);
+    console.log(`[SMS Webhook] Inbound from ${fromNumber}: ${body}`);
 
-    // Respond with empty TwiML (acknowledges receipt)
-    res.type("text/xml").send("<Response></Response>");
+    res.status(200).json({ status: 'ok' });
   } catch (error) {
     console.error("[SMS Webhook] Error:", error);
-    res.type("text/xml").send("<Response></Response>");
+    res.status(200).json({ status: 'ok' });
   }
 });
 
-// ── POST /webhook/fallback - Fallback handler for Twilio errors ──
+// ── POST /webhook/fallback - Fallback handler for Telnyx errors ──
 router.post("/webhook/fallback", async (req: Request, res: Response) => {
-  console.error("[SMS Webhook Fallback] Twilio error:", {
-    errorCode: req.body.ErrorCode,
-    errorMessage: req.body.ErrorMessage,
-    errorUrl: req.body.ErrorUrl,
+  console.error("[SMS Webhook Fallback] Telnyx error:", {
+    eventType: req.body?.data?.event_type,
+    payload: req.body?.data?.payload,
   });
-  res.type("text/xml").send("<Response></Response>");
+  res.status(200).json({ status: 'ok' });
 });
 
 // ── POST /status - Status callback for outbound message updates ──
 router.post("/status", async (req: Request, res: Response) => {
   try {
-    const { MessageSid, MessageStatus, ErrorCode, ErrorMessage } = req.body;
-
-    if (MessageSid && MessageStatus) {
-      await db.update(smsMessages)
-        .set({
-          status: MessageStatus,
-          errorCode: ErrorCode || null,
-          errorMessage: ErrorMessage || null,
-        })
-        .where(eq(smsMessages.twilioSid, MessageSid));
-
-      console.log(`[SMS Status] ${MessageSid}: ${MessageStatus}`);
+    if (!await verifyTelnyxSignature(req)) {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
-    res.sendStatus(200);
+    const eventType = req.body?.data?.event_type;
+    const payload = req.body?.data?.payload;
+
+    // Handle message.sent and message.finalized events
+    if ((eventType === 'message.sent' || eventType === 'message.finalized') && payload) {
+      const messageId = payload.id;
+      const toStatus = payload.to?.[0]?.status;
+      const errors = payload.errors;
+
+      if (messageId && toStatus) {
+        // Map Telnyx statuses to our DB statuses
+        const statusMap: Record<string, string> = {
+          'queued': 'queued',
+          'sending': 'sending',
+          'sent': 'sent',
+          'delivered': 'delivered',
+          'delivery_failed': 'failed',
+          'sending_failed': 'failed',
+          'delivery_unconfirmed': 'delivery_unconfirmed',
+          'expired': 'expired',
+        };
+        const dbStatus = statusMap[toStatus] || toStatus;
+
+        await db.update(smsMessages)
+          .set({
+            status: dbStatus,
+            errorCode: errors?.[0]?.code?.toString() || null,
+            errorMessage: errors?.[0]?.detail || null,
+          })
+          .where(eq(smsMessages.externalId, messageId));
+
+        console.log(`[SMS Status] ${messageId}: ${toStatus}`);
+      }
+    }
+
+    res.status(200).json({ status: 'ok' });
   } catch (error) {
     console.error("[SMS Status] Error:", error);
-    res.sendStatus(200);
+    res.status(200).json({ status: 'ok' });
   }
 });
 

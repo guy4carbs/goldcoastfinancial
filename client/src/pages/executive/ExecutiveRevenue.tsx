@@ -382,7 +382,7 @@ export function ExecutiveRevenue() {
                           </span>
                         </div>
                         <p
-                          className="font-bold text-gray-900"
+                          className="font-bold text-stone-900"
                           style={{ fontSize: TYPE.body, lineHeight: 1.3 }}
                         >
                           {m.label}
@@ -457,7 +457,7 @@ export function ExecutiveRevenue() {
                           </div>
                           <div>
                             <h4
-                              className="font-bold text-gray-900"
+                              className="font-bold text-stone-900"
                               style={{ fontSize: TYPE.body }}
                             >
                               {scenario.label}
@@ -468,7 +468,7 @@ export function ExecutiveRevenue() {
                           </div>
                         </div>
                         <p
-                          className="font-bold text-gray-900"
+                          className="font-bold text-stone-900"
                           style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
                         >
                           {fmtCurrency(scenario.value)}
@@ -550,7 +550,7 @@ export function ExecutiveRevenue() {
                           }}
                         >
                           <span
-                            className="font-medium text-gray-700"
+                            className="font-medium text-stone-700"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {item.label}
@@ -572,7 +572,7 @@ export function ExecutiveRevenue() {
                       }}
                     >
                       <p
-                        className="font-bold text-gray-900"
+                        className="font-bold text-stone-900"
                         style={{ fontSize: TYPE.display, lineHeight: 1 }}
                       >
                         87%
@@ -694,7 +694,7 @@ export function ExecutiveRevenue() {
                             (h) => (
                               <th
                                 key={h}
-                                className="text-left font-semibold text-gray-600 px-4 py-3"
+                                className="text-left font-semibold text-stone-600 px-4 py-3"
                                 style={{ fontSize: TYPE.micro }}
                               >
                                 {h}
@@ -711,25 +711,25 @@ export function ExecutiveRevenue() {
                           return (
                             <tr
                               key={team.id}
-                              className="transition-colors hover:bg-gray-50/50"
+                              className="transition-colors hover:bg-orange-50/50"
                               style={{
                                 borderBottom: `1px solid ${COLORS.gray[100]}`,
                               }}
                             >
                               <td
-                                className="px-4 py-3 font-semibold text-gray-900"
+                                className="px-4 py-3 font-semibold text-stone-900"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {team.name.replace('Team ', '')}
                               </td>
                               <td
-                                className="px-4 py-3 font-medium text-gray-700"
+                                className="px-4 py-3 font-medium text-stone-700"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {fmtCurrency(team.revenue)}
                               </td>
                               <td
-                                className="px-4 py-3 text-gray-600"
+                                className="px-4 py-3 text-stone-600"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {team.agents}
@@ -844,7 +844,7 @@ export function ExecutiveRevenue() {
                               }}
                             />
                             <span
-                              className="font-semibold text-gray-800"
+                              className="font-semibold text-stone-800"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {product.product}
@@ -852,7 +852,7 @@ export function ExecutiveRevenue() {
                           </div>
                           <div className="text-right">
                             <span
-                              className="font-bold text-gray-900"
+                              className="font-bold text-stone-900"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {fmtCurrency(product.revenue)}
@@ -905,13 +905,13 @@ export function ExecutiveRevenue() {
                       }}
                     >
                       <span
-                        className="font-bold text-gray-700"
+                        className="font-bold text-stone-700"
                         style={{ fontSize: TYPE.meta }}
                       >
                         Total Revenue
                       </span>
                       <span
-                        className="font-bold text-gray-900"
+                        className="font-bold text-stone-900"
                         style={{ fontSize: TYPE.body }}
                       >
                         {fmtCurrency(DEMO_ORG_METRICS.totalRevenue)}

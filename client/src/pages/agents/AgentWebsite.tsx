@@ -465,7 +465,7 @@ export default function AgentWebsite() {
         {/* ─── PERFORMANCE ─── */}
         <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(124,58,237,0.1)" }}>
                   <TrendingUp className="w-5 h-5 text-violet-600" />
@@ -477,15 +477,33 @@ export default function AgentWebsite() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            {/* Primary Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-4">
               {[
-                { label: "Page Views", value: websiteStats?.pageViews ?? 0 },
-                { label: "Leads Generated", value: websiteStats?.leadsGenerated ?? 0 },
-                { label: "Conversion Rate", value: `${websiteStats?.conversionRate ?? 0}%` },
+                { label: "Page Views", value: websiteStats?.pageViews ?? 0, icon: Eye, bg: "bg-violet-50", iconColor: "text-violet-600", valueColor: "text-violet-700" },
+                { label: "Leads Generated", value: websiteStats?.leadsGenerated ?? 0, icon: User, bg: "bg-violet-50", iconColor: "text-violet-600", valueColor: "text-violet-700" },
+                { label: "Conversion Rate", value: `${websiteStats?.conversionRate ?? 0}%`, icon: TrendingUp, bg: "bg-violet-50", iconColor: "text-violet-600", valueColor: "text-violet-700" },
               ].map(stat => (
-                <div key={stat.label} className="text-center p-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: SERIF }}>{stat.value}</div>
-                  <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
+                <div key={stat.label} className={`${stat.bg} rounded-2xl p-5`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <stat.icon className={`w-4 h-4 ${stat.iconColor}`} />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{stat.label}</span>
+                  </div>
+                  <div className={`text-3xl font-bold ${stat.valueColor}`}>{stat.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Time-Based Breakdown */}
+            <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-gray-50">
+              {[
+                { label: "Today", value: websiteStats?.pageViewsToday ?? 0 },
+                { label: "This Week", value: websiteStats?.pageViewsThisWeek ?? 0 },
+                { label: "This Month", value: websiteStats?.pageViewsThisMonth ?? 0 },
+              ].map(stat => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-xs text-gray-400 font-medium">{stat.label}</div>
                 </div>
               ))}
             </div>

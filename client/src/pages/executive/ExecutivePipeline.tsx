@@ -5,6 +5,7 @@
  * Tracks deal flow, conversion rates, pipeline health, and team pipeline breakdown.
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   ClipboardList,
@@ -128,9 +129,79 @@ function getStatusStyle(status: 'on-track' | 'at-risk' | 'behind') {
 }
 
 // ─── MAIN COMPONENT ─────────────────────────────
+// ─── PIPELINE STAGE CONFIG ─────────────────────────
+const PIPELINE_STAGE_ORDER = [
+  'new', 'contacted', 'qualified', 'appointment_set', 'quoted',
+  'application', 'underwriting', 'issued', 'placed', 'lost',
+] as const;
+
+const PIPELINE_STAGE_COLORS: Record<string, string> = {
+  new: '#fdba74',
+  contacted: '#fb923c',
+  qualified: '#f97316',
+  appointment_set: '#ea580c',
+  quoted: '#c2410c',
+  application: '#9a3412',
+  underwriting: '#7c2d12',
+  issued: '#dc2626',
+  placed: '#22c55e',
+  lost: '#b91c1c',
+};
+
+const PIPELINE_STAGE_LABELS: Record<string, string> = {
+  new: 'New Leads',
+  contacted: 'Contacted',
+  qualified: 'Qualified',
+  appointment_set: 'Appointment Set',
+  quoted: 'Quoted',
+  application: 'Application',
+  underwriting: 'Underwriting',
+  issued: 'Issued',
+  placed: 'Placed',
+  lost: 'Lost',
+};
+
 export function ExecutivePipeline() {
+  // Fetch real CRM dashboard data
+  const { data: dashboardData } = useQuery<{
+    summary: { totalLeads: number; totalClients: number; totalPipelineValue: number; conversionRate: number; staleLeadsCount: number };
+    leadsByStatus: Record<string, number>;
+    funnel: Array<{ stage: string; count: number; conversionFromPrevious: number }>;
+    pipeline: Record<string, { value: number; count: number }>;
+    sources: Array<{ source: string; totalLeads: number; wonLeads: number; conversionRate: number; avgValue: number; totalWonValue: number }>;
+    performance: { leadsThisMonth: number; wonThisMonth: number; revenueThisMonth: number; leadsThisWeek: number };
+  }>({ queryKey: ['/api/crm/dashboard'] });
+
+  // Map real pipeline data to the stage shape, falling back to DEMO data
+  const pipelineStages: Array<{ stage: string; count: number; value: number; color: string; conversionRate?: number }> = (() => {
+    if (dashboardData?.pipeline && Object.keys(dashboardData.pipeline).length > 0) {
+      const stages: Array<{ stage: string; count: number; value: number; color: string; conversionRate?: number }> = [];
+      for (const key of PIPELINE_STAGE_ORDER) {
+        const entry = dashboardData.pipeline[key];
+        if (entry) {
+          // Find matching funnel entry for conversion rate
+          const funnelEntry = dashboardData.funnel?.find((f) => f.stage === key);
+          stages.push({
+            stage: PIPELINE_STAGE_LABELS[key] || key,
+            count: entry.count,
+            value: entry.value,
+            color: PIPELINE_STAGE_COLORS[key] || '#ea580c',
+            conversionRate: funnelEntry?.conversionFromPrevious,
+          });
+        }
+      }
+      return stages.length > 0 ? stages : [...DEMO_EXEC_PIPELINE_STAGES];
+    }
+    return [...DEMO_EXEC_PIPELINE_STAGES];
+  })();
+
+  // Summary stats from real data (fallback to hardcoded demo values)
+  const totalPipelineValue = dashboardData?.summary?.totalPipelineValue ?? 4800000;
+  const totalActiveDeals = dashboardData?.summary?.totalLeads ?? 142;
+  const staleDealsCount = dashboardData?.summary?.staleLeadsCount ?? 18;
+
   // Compute max count for funnel width calculation
-  const maxCount = Math.max(...DEMO_EXEC_PIPELINE_STAGES.map((s) => s.count));
+  const maxCount = Math.max(...pipelineStages.map((s) => s.count));
 
   // Team pipeline data for bar chart
   const teamPipelineData = DEMO_TEAMS.map((t) => ({
@@ -159,14 +230,14 @@ export function ExecutivePipeline() {
             <ExecutiveStatCard
               icon={Layers}
               label="Active Pipeline"
-              value="$4.8M"
+              value={fmtCurrency(totalPipelineValue)}
               delta={28}
               periodLabel="vs last quarter"
             />
             <ExecutiveStatCard
               icon={ClipboardList}
               label="Active Deals"
-              value="142"
+              value={String(totalActiveDeals)}
               delta={15}
               periodLabel="vs last month"
             />
@@ -180,7 +251,7 @@ export function ExecutivePipeline() {
             <ExecutiveStatCard
               icon={AlertTriangle}
               label="Stale Deals"
-              value="18"
+              value={String(staleDealsCount)}
               delta={-12}
               periodLabel="vs last month"
             />
@@ -205,7 +276,7 @@ export function ExecutivePipeline() {
                 <SectionHeader
                   icon={Filter}
                   title="Pipeline Funnel"
-                  subtitle="6 stages from lead to close"
+                  subtitle={`${pipelineStages.length} stages from lead to close`}
                 />
                 <Card
                   className="border-0"
@@ -217,7 +288,7 @@ export function ExecutivePipeline() {
                 >
                   <CardContent className="p-6">
                     <div className="flex flex-col items-center" style={{ gap: GRID.spacing.xs }}>
-                      {DEMO_EXEC_PIPELINE_STAGES.map((stage) => {
+                      {pipelineStages.map((stage) => {
                         const widthPercent = Math.max((stage.count / maxCount) * 100, 20);
                         return (
                           <motion.div
@@ -280,7 +351,7 @@ export function ExecutivePipeline() {
                     {
                       icon: AlertTriangle,
                       title: 'Stale Deal Alert',
-                      value: '18 deals',
+                      value: `${staleDealsCount} deals`,
                       subtitle: '>30 days without activity',
                       color: '#f59e0b',
                     },
@@ -317,14 +388,14 @@ export function ExecutivePipeline() {
                             <item.icon style={{ width: 18, height: 18, color: item.color }} />
                           </div>
                           <span
-                            className="font-semibold text-gray-700"
+                            className="font-semibold text-stone-700"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {item.title}
                           </span>
                         </div>
                         <p
-                          className="font-bold text-gray-900"
+                          className="font-bold text-stone-900"
                           style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
                         >
                           {item.value}
@@ -347,8 +418,8 @@ export function ExecutivePipeline() {
                 subtitle="Conversion rates and drop-off between pipeline stages"
               />
               <div className="flex flex-col items-center" style={{ gap: 0 }}>
-                {DEMO_EXEC_PIPELINE_STAGES.map((stage, idx) => {
-                  const prevStage = idx > 0 ? DEMO_EXEC_PIPELINE_STAGES[idx - 1] : null;
+                {pipelineStages.map((stage, idx) => {
+                  const prevStage = idx > 0 ? pipelineStages[idx - 1] : null;
                   const dropOff = prevStage ? prevStage.count - stage.count : 0;
 
                   return (
@@ -369,10 +440,10 @@ export function ExecutivePipeline() {
                               className="font-bold"
                               style={{
                                 fontSize: TYPE.meta,
-                                color: prevStage!.conversionRate >= 60 ? '#10b981' : '#f59e0b',
+                                color: (prevStage!.conversionRate ?? 0) >= 60 ? '#10b981' : '#f59e0b',
                               }}
                             >
-                              {prevStage!.conversionRate}%
+                              {prevStage!.conversionRate ?? 0}%
                             </span>
                             <span style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>
                               conversion
@@ -413,15 +484,15 @@ export function ExecutivePipeline() {
                                   backgroundColor: stage.color,
                                 }}
                               />
-                              <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.body }}>
+                              <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.body }}>
                                 {stage.stage}
                               </span>
                             </div>
                             <div className="flex items-center gap-4">
-                              <span className="text-gray-600" style={{ fontSize: TYPE.meta }}>
+                              <span className="text-stone-600" style={{ fontSize: TYPE.meta }}>
                                 {stage.count} deals
                               </span>
-                              <span className="font-bold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              <span className="font-bold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                 {fmtCurrency(stage.value)}
                               </span>
                             </div>
@@ -445,11 +516,11 @@ export function ExecutivePipeline() {
                 className="overflow-x-auto"
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(6, minmax(200px, 1fr))',
+                  gridTemplateColumns: `repeat(${pipelineStages.length}, minmax(200px, 1fr))`,
                   gap: GRID.spacing.sm,
                 }}
               >
-                {DEMO_EXEC_PIPELINE_STAGES.map((stage) => {
+                {pipelineStages.map((stage) => {
                   const deals = SAMPLE_DEALS[stage.stage] || [];
                   return (
                     <div key={stage.stage}>
@@ -485,7 +556,7 @@ export function ExecutivePipeline() {
                           >
                             <CardContent className="p-3">
                               <p
-                                className="font-semibold text-gray-900 truncate"
+                                className="font-semibold text-stone-900 truncate"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {deal.name}
@@ -606,7 +677,7 @@ export function ExecutivePipeline() {
                             {['Team', 'Pipeline Value', 'Conversion Rate', 'Status'].map((h) => (
                               <th
                                 key={h}
-                                className="text-left font-semibold text-gray-600 px-6 py-4"
+                                className="text-left font-semibold text-stone-600 px-6 py-4"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {h}
@@ -620,12 +691,12 @@ export function ExecutivePipeline() {
                             return (
                               <tr
                                 key={team.id}
-                                className="transition-colors hover:bg-gray-50/50"
+                                className="transition-colors hover:bg-orange-50/50"
                                 style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                               >
                                 <td className="px-6 py-4">
                                   <span
-                                    className="font-semibold text-gray-900"
+                                    className="font-semibold text-stone-900"
                                     style={{ fontSize: TYPE.meta }}
                                   >
                                     {team.name}
@@ -639,7 +710,7 @@ export function ExecutivePipeline() {
                                 </td>
                                 <td className="px-6 py-4">
                                   <span
-                                    className="font-semibold text-gray-900"
+                                    className="font-semibold text-stone-900"
                                     style={{ fontSize: TYPE.meta }}
                                   >
                                     {fmtCurrency(team.pipeline)}

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, varchar, integer, boolean, decimal, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, integer, boolean, decimal, uuid, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { users } from "./auth";
@@ -16,6 +16,7 @@ export const policies = pgTable("policies", {
   nextPaymentDate: timestamp("next_payment_date"),
   beneficiaryName: varchar("beneficiary_name"),
   beneficiaryRelationship: varchar("beneficiary_relationship"),
+  beneficiaries: jsonb("beneficiaries").$type<Array<{name: string; relationship: string; percentage: number}>>().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 

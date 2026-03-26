@@ -128,7 +128,7 @@ router.get('/health', (req, res) => {
       database: true, // Could add actual health checks
       redis: !!process.env.REDIS_URL,
       push: !!process.env.APNS_KEY_ID,
-      sms: !!process.env.TWILIO_ACCOUNT_SID,
+      sms: !!process.env.TELNYX_API_KEY,
     },
   });
 });

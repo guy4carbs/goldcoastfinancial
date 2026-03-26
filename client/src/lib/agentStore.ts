@@ -1650,7 +1650,7 @@ interface AgentStore {
   xpGain: { amount: number; reason: string; type: string } | null;
   levelUp: number | null;
   websiteSettings: AgentWebsiteSettings;
-  websiteStats: { pageViews: number; leadsGenerated: number; conversionRate: number } | null;
+  websiteStats: { pageViews: number; pageViewsToday: number; pageViewsThisWeek: number; pageViewsThisMonth: number; leadsGenerated: number; conversionRate: number } | null;
   // Website Settings
   updateWebsiteSettings: (updates: Partial<AgentWebsiteSettings>) => void;
   saveWebsiteSettings: (agentSlug: string, settings: Partial<AgentWebsiteSettings>) => Promise<void>;

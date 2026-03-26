@@ -131,11 +131,11 @@ function HealthMetricCard({
       }}
     >
       <CardContent className="p-4 flex items-center justify-between">
-        <span className="text-gray-600 font-medium" style={{ fontSize: TYPE.meta }}>
+        <span className="text-stone-600 font-medium" style={{ fontSize: TYPE.meta }}>
           {label}
         </span>
         <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900" style={{ fontSize: TYPE.title }}>
+          <span className="font-bold text-stone-900" style={{ fontSize: TYPE.title }}>
             {value}
           </span>
           <span
@@ -253,7 +253,7 @@ export function ExecutiveAgencyManagement() {
                   >
                     <CardContent className="p-6">
                       <h4
-                        className="font-bold text-gray-900"
+                        className="font-bold text-stone-900"
                         style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.sm }}
                       >
                         Heritage Life Solutions
@@ -266,10 +266,10 @@ export function ExecutiveAgencyManagement() {
                           { label: 'Licensed States', value: '12' },
                         ].map((row) => (
                           <div key={row.label} className="flex justify-between">
-                            <span className="text-gray-500" style={{ fontSize: TYPE.meta }}>
+                            <span className="text-stone-500" style={{ fontSize: TYPE.meta }}>
                               {row.label}
                             </span>
-                            <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                            <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                               {row.value}
                             </span>
                           </div>
@@ -278,7 +278,7 @@ export function ExecutiveAgencyManagement() {
 
                       {/* Team Distribution */}
                       <h5
-                        className="font-semibold text-gray-700"
+                        className="font-semibold text-stone-700"
                         style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.sm }}
                       >
                         Team Distribution
@@ -290,7 +290,7 @@ export function ExecutiveAgencyManagement() {
                           return (
                             <div key={team.id} className="flex items-center gap-3">
                               <span
-                                className="font-medium text-gray-700 flex-shrink-0"
+                                className="font-medium text-stone-700 flex-shrink-0"
                                 style={{ fontSize: TYPE.caption, width: 90 }}
                               >
                                 {team.name}
@@ -317,7 +317,7 @@ export function ExecutiveAgencyManagement() {
                                   />
                                 </div>
                                 <span
-                                  className="font-semibold text-gray-900 flex-shrink-0"
+                                  className="font-semibold text-stone-900 flex-shrink-0"
                                   style={{ fontSize: TYPE.caption, width: 24, textAlign: 'right' }}
                                 >
                                   {team.agents}
@@ -374,7 +374,7 @@ export function ExecutiveAgencyManagement() {
                         >
                           {stat.value}
                         </p>
-                        <p className="text-gray-500 font-medium" style={{ fontSize: TYPE.caption }}>
+                        <p className="text-stone-500 font-medium" style={{ fontSize: TYPE.caption }}>
                           {stat.label}
                         </p>
                       </CardContent>
@@ -396,7 +396,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Name',
                         sortable: true,
                         render: (item: typeof LICENSE_ATTENTION_DATA[number]) => (
-                          <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                             {item.name}
                           </span>
                         ),
@@ -406,7 +406,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Team',
                         sortable: true,
                         render: (item: typeof LICENSE_ATTENTION_DATA[number]) => (
-                          <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+                          <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
                             {item.team}
                           </span>
                         ),
@@ -416,7 +416,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'License Type',
                         sortable: true,
                         render: (item: typeof LICENSE_ATTENTION_DATA[number]) => (
-                          <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+                          <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
                             {item.licenseType}
                           </span>
                         ),
@@ -426,7 +426,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Expiration',
                         sortable: true,
                         render: (item: typeof LICENSE_ATTENTION_DATA[number]) => (
-                          <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+                          <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
                             {item.expirationDate}
                           </span>
                         ),
@@ -473,7 +473,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Team',
                         sortable: true,
                         render: (item: typeof complianceData[number]) => (
-                          <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                             {item.team}
                           </span>
                         ),
@@ -540,7 +540,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Last Audit',
                         sortable: true,
                         render: (item: typeof complianceData[number]) => (
-                          <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+                          <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
                             {item.lastAudit}
                           </span>
                         ),
@@ -568,7 +568,7 @@ export function ExecutiveAgencyManagement() {
                       subtitle="Overall compliance trajectory"
                     />
                     <div className="space-y-3">
-                      <p className="text-gray-700" style={{ fontSize: TYPE.meta, lineHeight: 1.6 }}>
+                      <p className="text-stone-700" style={{ fontSize: TYPE.meta, lineHeight: 1.6 }}>
                         Overall agency compliance score stands at{' '}
                         <span className="font-bold" style={{ color: '#059669' }}>94%</span>,
                         reflecting a{' '}
@@ -577,7 +577,7 @@ export function ExecutiveAgencyManagement() {
                         with scores above 95%, while Delta and Echo have been flagged for targeted
                         compliance coaching.
                       </p>
-                      <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                      <p className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                         Next scheduled agency-wide audit: April 15, 2026
                       </p>
                     </div>
@@ -603,7 +603,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Carrier Name',
                         sortable: true,
                         render: (item: typeof carrierData[number]) => (
-                          <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                             {item.name}
                           </span>
                         ),
@@ -613,7 +613,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Contract Type',
                         sortable: true,
                         render: (item: typeof carrierData[number]) => (
-                          <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+                          <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
                             {item.contractType}
                           </span>
                         ),
@@ -624,7 +624,7 @@ export function ExecutiveAgencyManagement() {
                         sortable: true,
                         align: 'right' as const,
                         render: (item: typeof carrierData[number]) => (
-                          <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                             {item.baseRate}%
                           </span>
                         ),
@@ -635,7 +635,7 @@ export function ExecutiveAgencyManagement() {
                         sortable: true,
                         align: 'right' as const,
                         render: (item: typeof carrierData[number]) => (
-                          <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                          <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                             {item.overrideRate}%
                           </span>
                         ),
@@ -645,7 +645,7 @@ export function ExecutiveAgencyManagement() {
                         label: 'Renewal Date',
                         sortable: true,
                         render: (item: typeof carrierData[number]) => (
-                          <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+                          <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
                             {item.renewalDate}
                           </span>
                         ),
@@ -700,7 +700,7 @@ export function ExecutiveAgencyManagement() {
                         >
                           <CardContent className="p-5">
                             <div className="flex items-start justify-between" style={{ marginBottom: GRID.spacing.xs }}>
-                              <h4 className="font-bold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              <h4 className="font-bold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                 {carrier.name}
                               </h4>
                               <span
@@ -717,26 +717,26 @@ export function ExecutiveAgencyManagement() {
                             </div>
                             <div className="space-y-1">
                               <div className="flex justify-between">
-                                <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                                <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                                   Contract Type
                                 </span>
-                                <span className="font-medium text-gray-700" style={{ fontSize: TYPE.caption }}>
+                                <span className="font-medium text-stone-700" style={{ fontSize: TYPE.caption }}>
                                   {carrier.contractType}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                                <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                                   Renewal Date
                                 </span>
-                                <span className="font-medium text-gray-700" style={{ fontSize: TYPE.caption }}>
+                                <span className="font-medium text-stone-700" style={{ fontSize: TYPE.caption }}>
                                   {carrier.renewalDate}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                                <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                                   Base / Override
                                 </span>
-                                <span className="font-medium text-gray-700" style={{ fontSize: TYPE.caption }}>
+                                <span className="font-medium text-stone-700" style={{ fontSize: TYPE.caption }}>
                                   {carrier.baseRate}% / {carrier.overrideRate}%
                                 </span>
                               </div>

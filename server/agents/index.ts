@@ -38,7 +38,7 @@ import { ClientPortalAgent, CustomerSupportAgent, ClaimsAgent, RetentionAgent } 
 import { SocialPostingAgent, ContentGenerationAgent, ReputationAgent } from './tier8';
 
 // Tier 9
-import { RealTimeAnalyticsAgent, AgentPerformanceAgent, OptimizationAgent } from './tier9';
+import { RealTimeAnalyticsAgent, AgentPerformanceAgent, OptimizationAgent, LeaderboardAgent } from './tier9';
 
 // Tier 10
 import { SecurityAgent, ErrorRecoveryAgent, HumanEscalationAgent, TrainingAgent } from './tier10';
@@ -91,7 +91,7 @@ export async function bootstrapAgentSystem(): Promise<AgentRegistry> {
     // Tier 8 — Marketing & Brand
     [new SocialPostingAgent(), new ContentGenerationAgent(), new ReputationAgent()],
     // Tier 9 — Analytics & Learning
-    [new RealTimeAnalyticsAgent(), new AgentPerformanceAgent(), new OptimizationAgent()],
+    [new RealTimeAnalyticsAgent(), new AgentPerformanceAgent(), new OptimizationAgent(), new LeaderboardAgent()],
     // Tier 10 — Governance & Meta
     [new SecurityAgent(), new ErrorRecoveryAgent(), new HumanEscalationAgent(), new TrainingAgent()],
     // Tier 11 — Governance Coordinator (starts before domain agents)

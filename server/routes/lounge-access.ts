@@ -15,7 +15,40 @@ import {
   sendRejectionEmail,
   sendPromotionEmail,
   sendOnboardingEmail,
+  sendAccessChangeEmail,
 } from "../gmail";
+import { notifyUser } from "../websocket/eventBridge";
+
+// ─── Lounge display names & paths (DB key → friendly name / frontend path) ───
+const LOUNGE_DISPLAY_NAMES: Record<string, string> = {
+  agent_portal: 'Agent Portal',
+  manager_lounge: 'Manager Lounge',
+  executive_lounge: 'Executive Lounge',
+  crm_lounge: 'CRM Lounge',
+  ai_lounge: 'AI Lounge',
+  marketing_lounge: 'Marketing Lounge',
+  admin_panel: 'Admin Panel',
+  client_lounge: 'Client Lounge',
+  onboarding_lounge: 'Onboarding',
+  finance_lounge: 'Finance Lounge',
+  support_lounge: 'Support Lounge',
+  investor_lounge: 'Investor Lounge',
+};
+
+const LOUNGE_PATHS: Record<string, string> = {
+  agent_portal: '/agents/dashboard',
+  manager_lounge: '/manager/dashboard',
+  executive_lounge: '/executive/dashboard',
+  crm_lounge: '/crm',
+  ai_lounge: '/ai/dashboard',
+  marketing_lounge: '/marketing/dashboard',
+  admin_panel: '/admin',
+  client_lounge: '/client/dashboard',
+  onboarding_lounge: '/onboarding',
+  finance_lounge: '/finance/dashboard',
+  support_lounge: '/support/dashboard',
+  investor_lounge: '/investor/dashboard',
+};
 
 const router = Router();
 
@@ -120,6 +153,34 @@ router.post("/approve-registration", async (req: Request, res: Response) => {
     // 2. Activate the user account + set onboarding status
     const userId = profile.userId;
     await storage.updateUser(userId, { isActive: true, onboardingStatus: 'in_progress' });
+
+    // 2b. Auto-create hierarchy record if upline is specified
+    const uplineId = directUplineId || profile.preferredUplineId;
+    if (uplineId) {
+      try {
+        const uplineResult = await pool.query(`
+          SELECT upline_chain FROM agent_hierarchy
+          WHERE agent_user_id = $1 AND effective_to IS NULL
+        `, [uplineId]);
+        const parentChain: string[] = uplineResult.rows[0]?.upline_chain || [];
+        const fullChain = [uplineId, ...parentChain];
+
+        const level = profile.isLicensed === 'yes'
+          ? HIERARCHY_LEVELS.AGENT
+          : HIERARCHY_LEVELS.NEW_AGENT;
+
+        await pool.query(`
+          INSERT INTO agent_hierarchy (
+            id, agent_user_id, direct_upline_id, hierarchy_level,
+            hierarchy_title, upline_chain, override_eligible
+          ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, false)
+        `, [userId, uplineId, level, HIERARCHY_TITLES[level], JSON.stringify(fullChain)]);
+
+        console.log(`[Approval] Created hierarchy record for ${userId} under upline ${uplineId}`);
+      } catch (hierarchyErr) {
+        console.error("[Approval] Hierarchy record creation failed:", hierarchyErr);
+      }
+    }
 
     // 3. Get user details for email
     const user = await storage.getUserById(userId);
@@ -241,13 +302,17 @@ router.get("/members", async (req: Request, res: Response) => {
     const { role, status, search, page = '1', limit = '50' } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
-    let whereClause = "WHERE u.role NOT IN ('client')";
+    // Show all roles when a specific role is requested; otherwise exclude clients by default
+    let whereClause = (role && role !== 'all') ? `WHERE u.role = $1` : "WHERE 1=1";
     const params: any[] = [];
     let paramIdx = 1;
 
     if (role && role !== 'all') {
-      whereClause += ` AND u.role = $${paramIdx++}`;
       params.push(role);
+      paramIdx++;
+    } else {
+      // Default: exclude clients from "All" to keep the directory focused on internal team
+      whereClause += ` AND u.role NOT IN ('client')`;
     }
     if (status === 'active') {
       whereClause += ` AND u.is_active = true`;
@@ -265,15 +330,28 @@ router.get("/members", async (req: Request, res: Response) => {
       params
     );
 
+    // agent_hierarchy may not exist yet — check and join conditionally
+    let hierarchyJoin = '';
+    let hierarchySelect = 'NULL as hierarchy_level, NULL as hierarchy_title, NULL as direct_upline_id';
+    try {
+      const tableCheck = await pool.query(
+        `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'agent_hierarchy' LIMIT 1`
+      );
+      if (tableCheck.rows.length > 0) {
+        hierarchyJoin = 'LEFT JOIN agent_hierarchy ah ON ah.agent_user_id = u.id';
+        hierarchySelect = 'ah.hierarchy_level, ah.hierarchy_title, ah.direct_upline_id';
+      }
+    } catch { /* table doesn't exist */ }
+
     const result = await pool.query(`
       SELECT
         u.id, u.email, u.first_name, u.last_name, u.phone, u.role, u.is_active,
         u.avatar_url, u.last_login_at, u.created_at,
         ap.approval_status, ap.is_licensed, ap.years_experience,
-        ah.hierarchy_level, ah.hierarchy_title, ah.direct_upline_id
+        ${hierarchySelect}
       FROM users u
       LEFT JOIN agent_profiles ap ON ap.user_id = u.id::text
-      LEFT JOIN agent_hierarchy ah ON ah.agent_user_id = u.id
+      ${hierarchyJoin}
       ${whereClause}
       ORDER BY u.created_at DESC
       LIMIT $${paramIdx++} OFFSET $${paramIdx++}
@@ -296,7 +374,7 @@ router.get("/members", async (req: Request, res: Response) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 router.post("/promote", async (req: Request, res: Response) => {
   try {
-    const { userId, newRole, newHierarchyLevel, reason } = req.body;
+    const { userId, newRole, newHierarchyLevel, reason, silent } = req.body;
     const performedBy = (req as any).user?.id;
 
     if (!userId || !newRole) {
@@ -321,16 +399,46 @@ router.post("/promote", async (req: Request, res: Response) => {
     }
 
     const previousRole = user.role;
-    const previousLevel = await pool.query(
-      `SELECT hierarchy_level, hierarchy_title FROM agent_hierarchy WHERE agent_user_id = $1`,
-      [userId]
-    );
+
+    // Promotion ladder: Agent(3) → Manager(2) → Director/system_admin(1) → Executive/owner(0)
+    // Roles outside the main ladder (marketing_staff, investor, client) are lateral moves
+    const ROLE_RANK: Record<string, number> = {
+      owner: 0, system_admin: 1, manager: 2, sales_agent: 3,
+    };
+    const prevRank = ROLE_RANK[previousRole];
+    const newRank = ROLE_RANK[newRole];
+    const bothOnLadder = prevRank !== undefined && newRank !== undefined;
+    const isPromotion = bothOnLadder && newRank < prevRank;
+    const isDemotion = bothOnLadder && newRank > prevRank;
+
+    // Check if agent_hierarchy table exists before querying
+    let previousLevel: { rows: any[] } = { rows: [] };
+    let hierarchyTableExists = false;
+    try {
+      const tableCheck = await pool.query(
+        `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'agent_hierarchy' LIMIT 1`
+      );
+      hierarchyTableExists = tableCheck.rows.length > 0;
+      if (hierarchyTableExists) {
+        previousLevel = await pool.query(
+          `SELECT hierarchy_level, hierarchy_title FROM agent_hierarchy WHERE agent_user_id = $1`,
+          [userId]
+        );
+      }
+    } catch { /* table doesn't exist */ }
 
     // 1. Update user role
     await storage.updateUser(userId, { role: newRole });
 
-    // 2. Update hierarchy if level provided
-    if (newHierarchyLevel !== undefined) {
+    // 1b. Re-initialize lounge access for new role (revokes old, grants new)
+    try {
+      await storage.reinitializeLoungeAccess(userId, newRole, performedBy);
+    } catch (loungeErr) {
+      console.error("Failed to reinitialize lounge access:", loungeErr);
+    }
+
+    // 2. Update hierarchy if level provided and table exists
+    if (newHierarchyLevel !== undefined && hierarchyTableExists) {
       const title = HIERARCHY_TITLES[newHierarchyLevel] || newRole;
       const existing = previousLevel.rows[0];
       if (existing) {
@@ -348,10 +456,11 @@ router.post("/promote", async (req: Request, res: Response) => {
     }
 
     // 3. Log the change
+    const newTitle = HIERARCHY_TITLES[newHierarchyLevel] || newRole;
     await storage.createAccessChangeLog({
       targetUserId: userId,
       performedBy,
-      actionType: "promoted",
+      actionType: isPromotion ? "promoted" : isDemotion ? "demoted" : "role_changed",
       previousValue: {
         role: previousRole,
         hierarchyLevel: previousLevel.rows[0]?.hierarchy_level,
@@ -360,41 +469,47 @@ router.post("/promote", async (req: Request, res: Response) => {
       newValue: {
         role: newRole,
         hierarchyLevel: newHierarchyLevel,
-        hierarchyTitle: HIERARCHY_TITLES[newHierarchyLevel] || newRole,
+        hierarchyTitle: newTitle,
       },
-      reason: reason || `Promoted from ${previousRole} to ${newRole}`,
-      emailSent: true,
+      reason: reason || `${isPromotion ? 'Promoted' : isDemotion ? 'Demoted' : 'Role changed'} from ${previousRole} to ${newRole}`,
+      emailSent: isPromotion && !silent,
     });
 
-    // 4. Send promotion email
-    const prevTitle = previousLevel.rows[0]?.hierarchy_title || previousRole;
-    const newTitle = HIERARCHY_TITLES[newHierarchyLevel] || newRole;
+    // 4. Only send promotion email for actual promotions (going up in rank) and not silent
+    if (isPromotion && !silent) {
+      // Map role keys to friendly title names for the email
+      const ROLE_TITLES: Record<string, string> = {
+        sales_agent: 'Agent', manager: 'Manager', system_admin: 'Director', owner: 'Executive',
+      };
+      const prevTitle = ROLE_TITLES[previousRole] || previousLevel.rows[0]?.hierarchy_title || previousRole;
+      const emailNewTitle = ROLE_TITLES[newRole] || newTitle;
 
-    // Determine which lounges the new role gets access to
-    const roleLoungeMap: Record<string, string[]> = {
-      owner: ['Executive Lounge', 'Manager Lounge', 'Agent Portal', 'CRM', 'AI Lounge', 'Admin Panel'],
-      system_admin: ['Executive Lounge', 'Manager Lounge', 'Agent Portal', 'CRM', 'AI Lounge', 'Admin Panel'],
-      manager: ['Manager Lounge', 'Agent Portal', 'CRM'],
-      sales_agent: ['Agent Portal', 'CRM'],
-      marketing_staff: ['Marketing', 'CRM'],
-      investor: ['Executive Lounge'],
-    };
+      // Lounge access per promotion tier:
+      // Agent → Manager: + Manager Lounge
+      // Manager → Director: + Director-tier analytics (no Executive, AI, or Admin)
+      // Director → Executive: full access
+      const roleLoungeMap: Record<string, string[]> = {
+        manager: ['Agent Portal', 'CRM Lounge', 'Manager Lounge', 'Onboarding'],
+        system_admin: ['Agent Portal', 'CRM Lounge', 'Manager Lounge', 'Director Dashboard', 'Onboarding'],
+        owner: ['Executive Lounge', 'Manager Lounge', 'Agent Portal', 'CRM Lounge', 'AI Lounge', 'Admin Panel', 'Marketing', 'Onboarding'],
+      };
 
-    try {
-      await sendPromotionEmail({
-        agentName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Team Member',
-        agentEmail: user.email,
-        previousTitle: prevTitle,
-        newTitle,
-        newRole,
-        newLoungeAccess: roleLoungeMap[newRole] || [],
-        loginUrl: `${process.env.APP_URL || 'https://heritagels.org'}/agents/login`,
-      });
-    } catch (emailErr) {
-      console.error("Failed to send promotion email:", emailErr);
+      try {
+        await sendPromotionEmail({
+          agentName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Team Member',
+          agentEmail: user.email,
+          previousTitle: prevTitle,
+          newTitle: emailNewTitle,
+          newRole,
+          newLoungeAccess: roleLoungeMap[newRole] || [],
+          loginUrl: `${process.env.APP_URL || 'https://heritagels.org'}/agents/login`,
+        });
+      } catch (emailErr) {
+        console.error("Failed to send promotion email:", emailErr);
+      }
     }
 
-    res.json({ success: true, previousRole, newRole, newTitle });
+    res.json({ success: true, previousRole, newRole, newTitle, isPromotion, silent: !!silent });
   } catch (error: any) {
     console.error("Error promoting member:", error);
     res.status(500).json({ error: "Failed to promote member" });
@@ -515,7 +630,7 @@ router.get("/lounge-access/:userId", async (req: Request, res: Response) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 router.post("/lounge-access/toggle", async (req: Request, res: Response) => {
   try {
-    const { userId, loungeKey, granted } = req.body;
+    const { userId, loungeKey, granted, silent, notificationType } = req.body;
     const performedBy = (req as any).user?.id;
 
     if (!userId || !loungeKey || typeof granted !== 'boolean') {
@@ -524,18 +639,118 @@ router.post("/lounge-access/toggle", async (req: Request, res: Response) => {
 
     await storage.setUserLoungeAccess(userId, loungeKey, granted, performedBy);
 
-    // Log the change
+    // Fetch user details for notifications
+    const targetUser = await storage.getUserById(userId);
+    const loungeName = LOUNGE_DISPLAY_NAMES[loungeKey] || loungeKey;
+    const changeDesc = granted
+      ? `You have been granted access to the ${loungeName}.`
+      : `Your access to the ${loungeName} has been revoked.`;
+
+    const isPromotionNotify = notificationType === 'promotion' && granted;
+    const isSilent = silent === true;
+    console.log(`[LoungeToggle] userId=${userId} key=${loungeKey} granted=${granted} silent=${JSON.stringify(silent)} isSilent=${isSilent} notificationType=${notificationType} isPromo=${isPromotionNotify}`);
+
+    // Log the change (audit trail always recorded)
     await storage.createAccessChangeLog({
       targetUserId: userId,
       performedBy,
-      actionType: "lounge_access_changed",
+      actionType: isPromotionNotify ? "lounge_promoted" : "lounge_access_changed",
       previousValue: { loungeKey, granted: !granted },
-      newValue: { loungeKey, granted },
-      reason: `${granted ? 'Granted' : 'Revoked'} access to ${loungeKey}`,
-      emailSent: false,
+      newValue: { loungeKey, granted, silent: isSilent, notificationType: notificationType || 'access' },
+      reason: `${granted ? 'Granted' : 'Revoked'} access to ${loungeKey}${isSilent ? ' (silent)' : ''}${isPromotionNotify ? ' (promotion)' : ''}`,
+      emailSent: !!targetUser && !isSilent,
     });
 
-    res.json({ success: true, loungeKey, granted });
+    // Only send notifications if not silent
+    if (targetUser && !isSilent) {
+      // Choose email type based on notificationType
+      if (isPromotionNotify) {
+        // Send the Heritage promotion email — same format as the promote endpoint
+        const ROLE_TITLES: Record<string, string> = {
+          sales_agent: 'Agent', manager: 'Manager', system_admin: 'Director', owner: 'Executive',
+        };
+        const roleLoungeMap: Record<string, string[]> = {
+          manager: ['Agent Portal', 'CRM Lounge', 'Manager Lounge', 'Onboarding'],
+          system_admin: ['Agent Portal', 'CRM Lounge', 'Manager Lounge', 'Director Dashboard', 'Onboarding'],
+          owner: ['Executive Lounge', 'Manager Lounge', 'Agent Portal', 'CRM Lounge', 'AI Lounge', 'Admin Panel', 'Marketing', 'Onboarding'],
+        };
+        // Derive the "promoted-to" role from the lounge being granted
+        const loungeToRole: Record<string, string> = {
+          manager_lounge: 'manager',
+          executive_lounge: 'owner',
+          ai_lounge: 'system_admin',
+          admin_panel: 'system_admin',
+          marketing_lounge: 'manager',
+        };
+        const memberName = `${targetUser.firstName || ''} ${targetUser.lastName || ''}`.trim() || 'Team Member';
+        const currentRole = targetUser.role || 'sales_agent';
+        const promotedToRole = loungeToRole[loungeKey] || currentRole;
+        const prevTitle = ROLE_TITLES[currentRole] || currentRole;
+        const newTitle = ROLE_TITLES[promotedToRole] || promotedToRole;
+        try {
+          await sendPromotionEmail({
+            agentName: memberName,
+            agentEmail: targetUser.email,
+            previousTitle: prevTitle,
+            newTitle,
+            newRole: promotedToRole,
+            newLoungeAccess: roleLoungeMap[promotedToRole] || [loungeName],
+            loginUrl: `${process.env.APP_URL || 'https://heritagels.org'}/agents/login`,
+          });
+        } catch (emailErr) {
+          console.error("Failed to send promotion email for lounge access:", emailErr);
+        }
+      } else {
+        // Send standard access change email
+        try {
+          await sendAccessChangeEmail({
+            memberName: `${targetUser.firstName || ''} ${targetUser.lastName || ''}`.trim() || 'Team Member',
+            memberEmail: targetUser.email,
+            changeDescription: changeDesc,
+            reason: `${granted ? 'Granted' : 'Revoked'} by admin`,
+            loginUrl: `${process.env.APP_URL || 'https://heritagels.org'}/agents/login`,
+          });
+        } catch (emailErr) {
+          console.error("Failed to send access change email:", emailErr);
+        }
+      }
+
+      // Create in-app notification
+      try {
+        await storage.createNotification({
+          userId,
+          type: isPromotionNotify ? 'promotion' : 'access_change',
+          title: isPromotionNotify
+            ? `Welcome to the ${loungeName}!`
+            : (granted ? 'New Lounge Access' : 'Access Updated'),
+          message: isPromotionNotify
+            ? `Congratulations! You've been granted access to the ${loungeName}. Log in to explore your new area.`
+            : changeDesc,
+          actionUrl: granted ? (LOUNGE_PATHS[loungeKey] || '/agents/dashboard') : '/agents/dashboard',
+        });
+      } catch (notifErr) {
+        console.error("Failed to create notification:", notifErr);
+      }
+
+      // WebSocket real-time notification
+      try {
+        const wsServer = req.app.get('wsServer');
+        if (wsServer) {
+          notifyUser(wsServer, userId, {
+            type: 'lounge_access_changed',
+            title: isPromotionNotify
+              ? `Welcome to the ${loungeName}!`
+              : (granted ? 'New Lounge Access' : 'Access Updated'),
+            message: isPromotionNotify
+              ? `Congratulations! You've been granted access to the ${loungeName}.`
+              : changeDesc,
+            data: { loungeKey, granted, notificationType: notificationType || 'access' },
+          });
+        }
+      } catch { /* ws not available */ }
+    }
+
+    res.json({ success: true, loungeKey, granted, silent: isSilent, notificationType: notificationType || 'access' });
   } catch (error: any) {
     console.error("Error toggling lounge access:", error);
     res.status(500).json({ error: "Failed to toggle lounge access" });
@@ -568,14 +783,19 @@ router.get("/member/:userId/onboarding", async (req: Request, res: Response) => 
       return res.json({ profile: null });
     }
 
-    // Mask sensitive fields before returning
+    // Mask sensitive fields and normalize names for frontend
     const { maskField } = await import("../services/encryptionService");
     const masked = {
       ...profile,
-      ssn_encrypted: profile.ssn_encrypted ? maskField(profile.ssn_encrypted, 4) : null,
-      emergency_contact_ssn_encrypted: profile.emergency_contact_ssn_encrypted ? maskField(profile.emergency_contact_ssn_encrypted, 4) : null,
-      routing_number_encrypted: profile.routing_number_encrypted ? maskField(profile.routing_number_encrypted, 4) : null,
-      account_number_encrypted: profile.account_number_encrypted ? maskField(profile.account_number_encrypted, 4) : null,
+      // Map encrypted fields to _masked names the frontend expects
+      ssn_masked: profile.ssn_encrypted ? maskField(profile.ssn_encrypted, 4) : null,
+      routing_number_masked: profile.routing_number_encrypted ? maskField(profile.routing_number_encrypted, 4) : null,
+      account_number_masked: profile.account_number_encrypted ? maskField(profile.account_number_encrypted, 4) : null,
+      // Clean up raw encrypted fields from response
+      ssn_encrypted: undefined,
+      emergency_contact_ssn_encrypted: undefined,
+      routing_number_encrypted: undefined,
+      account_number_encrypted: undefined,
     };
 
     res.json({ profile: masked });

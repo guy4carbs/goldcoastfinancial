@@ -224,7 +224,7 @@ export function ExecutiveReports() {
 
                         {/* Template name & description */}
                         <h4
-                          className="font-bold text-gray-900 mb-1"
+                          className="font-bold text-stone-900 mb-1"
                           style={{ fontSize: TYPE.meta, lineHeight: 1.3 }}
                         >
                           {template.name}
@@ -284,7 +284,7 @@ export function ExecutiveReports() {
                         {['Report Name', 'Generated', 'Format', 'Size', 'Actions'].map((h) => (
                           <th
                             key={h}
-                            className="text-left font-semibold text-gray-600 px-5 py-3"
+                            className="text-left font-semibold text-stone-600 px-5 py-3"
                             style={{ fontSize: TYPE.micro }}
                           >
                             {h}
@@ -296,7 +296,7 @@ export function ExecutiveReports() {
                       {REPORT_HISTORY.map((report) => (
                         <tr
                           key={report.id}
-                          className="transition-colors hover:bg-gray-50/50"
+                          className="transition-colors hover:bg-orange-50/50"
                           style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                         >
                           <td className="px-5 py-4">
@@ -319,7 +319,7 @@ export function ExecutiveReports() {
                                 />
                               </div>
                               <span
-                                className="font-semibold text-gray-900"
+                                className="font-semibold text-stone-900"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {report.name}
@@ -327,7 +327,7 @@ export function ExecutiveReports() {
                             </div>
                           </td>
                           <td
-                            className="px-5 py-4 text-gray-600"
+                            className="px-5 py-4 text-stone-600"
                             style={{ fontSize: TYPE.caption }}
                           >
                             {report.generated}
@@ -347,7 +347,7 @@ export function ExecutiveReports() {
                             </span>
                           </td>
                           <td
-                            className="px-5 py-4 text-gray-500"
+                            className="px-5 py-4 text-stone-500"
                             style={{ fontSize: TYPE.caption }}
                           >
                             {report.size}
@@ -407,7 +407,7 @@ export function ExecutiveReports() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <h4
-                              className="font-bold text-gray-900"
+                              className="font-bold text-stone-900"
                               style={{ fontSize: TYPE.meta, lineHeight: 1.3 }}
                             >
                               {schedule.name}

@@ -3,7 +3,8 @@
  * Heritage Design System — Orange/Amber theme
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   Users,
@@ -80,12 +81,53 @@ function getStatusStyle(status: 'on-track' | 'at-risk' | 'behind') {
   return map[status];
 }
 
-// ─── TEAM COMPARISON BAR DATA ────────────────
-const teamBarData = DEMO_TEAMS.map((t) => ({
-  name: t.name.replace('Team ', ''),
-  revenue: t.revenue,
-  fill: TEAM_COLORS[t.name.replace('Team ', '')] || '#ea580c',
-}));
+// ─── API RESPONSE TYPES ─────────────────────
+type TeamData = {
+  id: string;
+  name: string;
+  manager: string;
+  agents: number;
+  revenue: number;
+  pipeline: number;
+  conversion: number;
+  status: 'on-track' | 'at-risk' | 'behind';
+};
+
+type TopPerformerData = {
+  id: string;
+  name: string;
+  role: string;
+  team: string;
+  revenue: number;
+  deals: number;
+  trend: 'up' | 'down';
+};
+
+type AgentRosterData = {
+  id: string;
+  name: string;
+  team: string;
+  manager: string;
+  status: 'active' | 'on-leave' | 'probation';
+  contractLevel: number;
+  quotaAttainment: number;
+  revenueMTD: number;
+  complianceScore: number;
+  startDate: string;
+  role: string;
+};
+
+type ExecDashboardResponse = {
+  orgMetrics: {
+    activeAgents: number;
+    newAgentsThisMonth: number;
+    totalRevenue: number;
+    [key: string]: unknown;
+  };
+  teams: TeamData[];
+  topPerformers: TopPerformerData[];
+  [key: string]: unknown;
+};
 
 // ─── TREND DATA (6 months, inline) ──────────
 const TEAM_TREND_DATA = [
@@ -133,15 +175,70 @@ function SectionHeader({
   );
 }
 
-// ─── SORTED ROSTER ───────────────────────────
-const sortedRoster = [...DEMO_EXEC_AGENT_ROSTER].sort((a, b) => b.quotaAttainment - a.quotaAttainment);
-
 // ─── MAIN COMPONENT ─────────────────────────
 export function ExecutiveTeamPerformance() {
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
 
+  // ── Fetch real data from APIs ──
+  const { data: dashboardData } = useQuery<ExecDashboardResponse>({
+    queryKey: ['/api/executive/dashboard'],
+  });
+
+  const { data: teamTreeData } = useQuery({
+    queryKey: ['/api/hierarchy/team-tree'],
+  });
+
+  // ── Local variables with real data → DEMO fallbacks ──
+  const teams: TeamData[] = useMemo(() => {
+    if (dashboardData?.teams && dashboardData.teams.length > 0) {
+      return dashboardData.teams.map((t) => ({
+        ...t,
+        id: String(t.id),
+        status: (t.status || 'behind') as 'on-track' | 'at-risk' | 'behind',
+      }));
+    }
+    return DEMO_TEAMS as unknown as TeamData[];
+  }, [dashboardData]);
+
+  const topPerformers: TopPerformerData[] = useMemo(() => {
+    if (dashboardData?.topPerformers && dashboardData.topPerformers.length > 0) {
+      return dashboardData.topPerformers.map((p) => ({
+        ...p,
+        id: String(p.id),
+        team: String(p.team).replace('Team ', ''),
+        trend: (p.trend || 'up') as 'up' | 'down',
+      }));
+    }
+    return DEMO_TOP_PERFORMERS as unknown as TopPerformerData[];
+  }, [dashboardData]);
+
+  const agentRoster: AgentRosterData[] = useMemo(() => {
+    // For now, DEMO_EXEC_AGENT_ROSTER is the only source for the full roster
+    // The team-tree endpoint could enrich this in the future
+    return DEMO_EXEC_AGENT_ROSTER as unknown as AgentRosterData[];
+  }, [teamTreeData]);
+
+  // ── Derived data ──
+  const teamBarData = useMemo(
+    () =>
+      teams.map((t) => ({
+        name: t.name.replace('Team ', ''),
+        revenue: t.revenue,
+        fill: TEAM_COLORS[t.name.replace('Team ', '')] || '#ea580c',
+      })),
+    [teams]
+  );
+
+  const sortedRoster = useMemo(
+    () => [...agentRoster].sort((a, b) => b.quotaAttainment - a.quotaAttainment),
+    [agentRoster]
+  );
+
   // Count on-track teams
-  const onTrackCount = DEMO_TEAMS.filter((t) => t.status === 'on-track').length;
+  const onTrackCount = teams.filter((t) => t.status === 'on-track').length;
+
+  // Org metrics with fallback
+  const orgMetrics = dashboardData?.orgMetrics ?? DEMO_ORG_METRICS;
 
   return (
     <ExecutiveLoungeLayout>
@@ -164,8 +261,8 @@ export function ExecutiveTeamPerformance() {
             <ExecutiveStatCard
               icon={Users}
               label="Active Agents"
-              value={`${DEMO_ORG_METRICS.activeAgents}`}
-              delta={DEMO_ORG_METRICS.newAgentsThisMonth}
+              value={`${orgMetrics.activeAgents}`}
+              delta={orgMetrics.newAgentsThisMonth}
               periodLabel="new this month"
             />
             <ExecutiveStatCard
@@ -177,15 +274,15 @@ export function ExecutiveTeamPerformance() {
             />
             <ExecutiveStatCard
               icon={Trophy}
-              label="Top Team Alpha"
-              value={fmtCurrency(542000)}
+              label={`Top ${teams[0]?.name ?? 'Team Alpha'}`}
+              value={fmtCurrency(teams[0]?.revenue ?? 542000)}
               delta={12}
               periodLabel="vs last quarter"
             />
             <ExecutiveStatCard
               icon={BarChart3}
               label="Teams On Track"
-              value={`${onTrackCount}/${DEMO_TEAMS.length}`}
+              value={`${onTrackCount}/${teams.length}`}
               delta={onTrackCount >= 3 ? 1 : -1}
               periodLabel="vs last month"
             />
@@ -278,7 +375,7 @@ export function ExecutiveTeamPerformance() {
                     gap: GRID.spacing.sm,
                   }}
                 >
-                  {DEMO_TEAMS.map((team) => {
+                  {teams.map((team) => {
                     const status = getStatusStyle(team.status);
                     const teamColor = TEAM_COLORS[team.name.replace('Team ', '')] || '#ea580c';
                     return (
@@ -294,7 +391,7 @@ export function ExecutiveTeamPerformance() {
                       >
                         <CardContent className="p-5">
                           <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                            <h4 className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>
                               {team.name}
                             </h4>
                             <span
@@ -323,19 +420,19 @@ export function ExecutiveTeamPerformance() {
                           <div className="grid grid-cols-3 gap-3">
                             <div>
                               <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Agents</p>
-                              <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              <p className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                 {team.agents}
                               </p>
                             </div>
                             <div>
                               <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Revenue</p>
-                              <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              <p className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                 {fmtCurrency(team.revenue)}
                               </p>
                             </div>
                             <div>
                               <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Pipeline</p>
-                              <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              <p className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                 {fmtCurrency(team.pipeline)}
                               </p>
                             </div>
@@ -396,17 +493,17 @@ export function ExecutiveTeamPerformance() {
                       >
                         2
                       </div>
-                      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.meta }}>
-                        {DEMO_TOP_PERFORMERS[1].name}
+                      <p className="font-bold text-stone-900" style={{ fontSize: TYPE.meta }}>
+                        {topPerformers[1]?.name}
                       </p>
                       <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
-                        Team {DEMO_TOP_PERFORMERS[1].team}
+                        Team {topPerformers[1]?.team}
                       </p>
                       <p className="font-bold mt-2" style={{ fontSize: TYPE.body, color: '#ea580c' }}>
-                        {fmtCurrency(DEMO_TOP_PERFORMERS[1].revenue)}
+                        {fmtCurrency(topPerformers[1]?.revenue ?? 0)}
                       </p>
                       <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>
-                        {DEMO_TOP_PERFORMERS[1].deals} deals
+                        {topPerformers[1]?.deals ?? 0} deals
                       </p>
                     </CardContent>
                   </Card>
@@ -437,17 +534,17 @@ export function ExecutiveTeamPerformance() {
                       >
                         1
                       </div>
-                      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
-                        {DEMO_TOP_PERFORMERS[0].name}
+                      <p className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>
+                        {topPerformers[0]?.name}
                       </p>
                       <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
-                        Team {DEMO_TOP_PERFORMERS[0].team}
+                        Team {topPerformers[0]?.team}
                       </p>
                       <p className="font-bold mt-2" style={{ fontSize: TYPE.section, color: '#ea580c' }}>
-                        {fmtCurrency(DEMO_TOP_PERFORMERS[0].revenue)}
+                        {fmtCurrency(topPerformers[0]?.revenue ?? 0)}
                       </p>
                       <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>
-                        {DEMO_TOP_PERFORMERS[0].deals} deals
+                        {topPerformers[0]?.deals ?? 0} deals
                       </p>
                       <div className="flex items-center justify-center mt-2 gap-1">
                         <Trophy style={{ width: 14, height: 14, color: '#fbbf24' }} />
@@ -480,17 +577,17 @@ export function ExecutiveTeamPerformance() {
                       >
                         3
                       </div>
-                      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.meta }}>
-                        {DEMO_TOP_PERFORMERS[2].name}
+                      <p className="font-bold text-stone-900" style={{ fontSize: TYPE.meta }}>
+                        {topPerformers[2]?.name}
                       </p>
                       <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
-                        Team {DEMO_TOP_PERFORMERS[2].team}
+                        Team {topPerformers[2]?.team}
                       </p>
                       <p className="font-bold mt-2" style={{ fontSize: TYPE.body, color: '#ea580c' }}>
-                        {fmtCurrency(DEMO_TOP_PERFORMERS[2].revenue)}
+                        {fmtCurrency(topPerformers[2]?.revenue ?? 0)}
                       </p>
                       <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>
-                        {DEMO_TOP_PERFORMERS[2].deals} deals
+                        {topPerformers[2]?.deals ?? 0} deals
                       </p>
                     </CardContent>
                   </Card>
@@ -570,7 +667,7 @@ export function ExecutiveTeamPerformance() {
                               (header) => (
                                 <th
                                   key={header}
-                                  className="text-left font-semibold text-gray-600 px-6 py-4"
+                                  className="text-left font-semibold text-stone-600 px-6 py-4"
                                   style={{ fontSize: TYPE.caption }}
                                 >
                                   {header}
@@ -585,7 +682,7 @@ export function ExecutiveTeamPerformance() {
                             return (
                               <tr
                                 key={agent.id}
-                                className="transition-colors hover:bg-gray-50/50"
+                                className="transition-colors hover:bg-orange-50/50"
                                 style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                               >
                                 <td className="px-6 py-3">
@@ -600,11 +697,11 @@ export function ExecutiveTeamPerformance() {
                                   </span>
                                 </td>
                                 <td className="px-6 py-3">
-                                  <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                  <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                     {agent.name}
                                   </span>
                                 </td>
-                                <td className="px-6 py-3 text-gray-600" style={{ fontSize: TYPE.meta }}>
+                                <td className="px-6 py-3 text-stone-600" style={{ fontSize: TYPE.meta }}>
                                   {agent.team}
                                 </td>
                                 <td className="px-6 py-3">
@@ -619,7 +716,7 @@ export function ExecutiveTeamPerformance() {
                                   </span>
                                 </td>
                                 <td className="px-6 py-3">
-                                  <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                  <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                     {fmtCurrency(agent.revenueMTD)}
                                   </span>
                                 </td>
@@ -713,11 +810,11 @@ export function ExecutiveTeamPerformance() {
                 title="Team Rosters"
                 subtitle="Click to expand each team and view agent details"
               />
-              {DEMO_TEAMS.map((team) => {
+              {teams.map((team) => {
                 const isExpanded = expandedTeam === team.id;
                 const status = getStatusStyle(team.status);
                 const teamColor = TEAM_COLORS[team.name.replace('Team ', '')] || '#ea580c';
-                const teamAgents = DEMO_EXEC_AGENT_ROSTER.filter(
+                const teamAgents = agentRoster.filter(
                   (a) => a.team === team.name.replace('Team ', '')
                 );
 
@@ -748,7 +845,7 @@ export function ExecutiveTeamPerformance() {
                               }}
                             />
                             <div>
-                              <h4 className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                              <h4 className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>
                                 {team.name}
                               </h4>
                               <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
@@ -757,7 +854,7 @@ export function ExecutiveTeamPerformance() {
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                            <span className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>
                               {fmtCurrency(team.revenue)}
                             </span>
                             <span
@@ -796,7 +893,7 @@ export function ExecutiveTeamPerformance() {
                                   (header) => (
                                     <th
                                       key={header}
-                                      className="text-left font-semibold text-gray-500 px-6 py-3"
+                                      className="text-left font-semibold text-stone-500 px-6 py-3"
                                       style={{ fontSize: TYPE.micro }}
                                     >
                                       {header}
@@ -809,15 +906,15 @@ export function ExecutiveTeamPerformance() {
                               {teamAgents.map((agent) => (
                                 <tr
                                   key={agent.id}
-                                  className="hover:bg-gray-50/50 transition-colors"
+                                  className="hover:bg-orange-50/50 transition-colors"
                                   style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                                 >
                                   <td className="px-6 py-3">
-                                    <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                    <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                       {agent.name}
                                     </span>
                                   </td>
-                                  <td className="px-6 py-3 text-gray-600" style={{ fontSize: TYPE.meta }}>
+                                  <td className="px-6 py-3 text-stone-600" style={{ fontSize: TYPE.meta }}>
                                     {agent.role}
                                   </td>
                                   <td className="px-6 py-3">
@@ -832,7 +929,7 @@ export function ExecutiveTeamPerformance() {
                                     </span>
                                   </td>
                                   <td className="px-6 py-3">
-                                    <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                    <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                       {fmtCurrency(agent.revenueMTD)}
                                     </span>
                                   </td>

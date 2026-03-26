@@ -46,10 +46,10 @@ export function ExecutiveEmptyState({ icon: Icon, title, description, actionLabe
       >
         <Icon style={{ width: 28, height: 28, color: 'white' }} />
       </div>
-      <h3 className="font-semibold text-gray-900" style={{ fontSize: TYPE.title, marginBottom: GRID.spacing.xs }}>
+      <h3 className="font-semibold text-stone-900" style={{ fontSize: TYPE.title, marginBottom: GRID.spacing.xs }}>
         {title}
       </h3>
-      <p className="text-gray-500 max-w-sm" style={{ fontSize: TYPE.meta, lineHeight: 1.5 }}>
+      <p className="text-stone-500 max-w-sm" style={{ fontSize: TYPE.meta, lineHeight: 1.5 }}>
         {description}
       </p>
       {actionLabel && onAction && (

@@ -246,6 +246,7 @@ router.put("/:clientId/policies/:policyId", requireAuth, requireClientAssignment
     const allowedFields = [
       "type", "carrier", "status", "coverageAmount", "monthlyPremium",
       "startDate", "nextPaymentDate", "beneficiaryName", "beneficiaryRelationship",
+      "policyNumber", "beneficiaries",
     ];
 
     for (const field of allowedFields) {
@@ -256,6 +257,8 @@ router.put("/:clientId/policies/:policyId", requireAuth, requireClientAssignment
           updateData[field] = Number(req.body[field]);
         } else if (field === "monthlyPremium") {
           updateData[field] = String(req.body[field]);
+        } else if (field === "beneficiaries") {
+          updateData[field] = Array.isArray(req.body[field]) ? req.body[field] : [];
         } else {
           updateData[field] = req.body[field];
         }
@@ -370,7 +373,7 @@ router.post(
       }
 
       console.log(`[AgentClients] Document uploaded: ${document.id} for client ${clientId} by agent ${agent.id}`);
-      res.status(201).json(document);
+      res.status(201).json({ ...document, url: uploadResult.url || document.s3Key });
     } catch (error: any) {
       console.error("[AgentClients] Failed to upload document:", error);
       res.status(500).json({ error: "Failed to upload document" });

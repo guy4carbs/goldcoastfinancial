@@ -86,17 +86,22 @@ export default function AgentLogin() {
     setResetError("");
 
     try {
-      await resetPassword(resetEmail);
-      setResetStatus("success");
-    } catch (err: any) {
-      setResetStatus("error");
-      if (err.code === "auth/user-not-found") {
-        setResetError("No account found with this email address.");
-      } else if (err.code === "auth/invalid-email") {
-        setResetError("Please enter a valid email address.");
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResetStatus("success");
       } else {
-        setResetError("Failed to send reset email. Please try again.");
+        setResetStatus("error");
+        setResetError(data.error || "Failed to send reset email. Please try again.");
       }
+    } catch {
+      setResetStatus("error");
+      setResetError("Failed to send reset email. Please try again.");
     }
   };
 

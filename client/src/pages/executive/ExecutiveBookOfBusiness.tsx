@@ -199,11 +199,11 @@ export function ExecutiveBookOfBusiness() {
       <div style={{ padding: GRID.spacing.md }}>
         {/* Search */}
         <div className="relative" style={{ marginBottom: GRID.spacing.sm }}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
           <input
             type="text" placeholder="Search agents..."
             value={agentSearch} onChange={e => setAgentSearch(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
+            className="w-full bg-stone-50 border border-stone-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
             style={{ padding: '10px 12px 10px 36px', borderRadius: RADIUS.input, fontSize: TYPE.meta }}
           />
         </div>
@@ -240,7 +240,7 @@ export function ExecutiveBookOfBusiness() {
                 whileHover={{ x: 2 }}
                 transition={{ duration: MOTION.duration.hover }}
                 onClick={() => setSelectedAgentId(agent.id)}
-                className="flex items-center gap-3 cursor-pointer bg-white hover:bg-gray-50 transition-colors overflow-hidden"
+                className="flex items-center gap-3 cursor-pointer bg-white hover:bg-orange-50 transition-colors overflow-hidden"
                 style={{
                   borderRadius: RADIUS.button,
                   border: `1px solid ${COLORS.gray[100]}`,
@@ -276,14 +276,14 @@ export function ExecutiveBookOfBusiness() {
                 </span>
 
                 {/* Chevron */}
-                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
+                <ChevronRight className="w-4 h-4 text-stone-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
               </motion.div>
             );
           })}
           {teamAgents.length === 0 && (
             <div className="text-center py-12">
-              <Users className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium text-gray-400">No agents found</p>
+              <Users className="w-10 h-10 mx-auto mb-3 text-stone-300" />
+              <p className="font-medium text-stone-400">No agents found</p>
             </div>
           )}
         </div>
@@ -343,11 +343,11 @@ export function ExecutiveBookOfBusiness() {
       <div style={{ padding: GRID.spacing.md }}>
         {/* Search */}
         <div className="relative" style={{ marginBottom: GRID.spacing.sm }}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
           <input
             type="text" placeholder="Search clients..."
             value={clientSearch} onChange={e => setClientSearch(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
+            className="w-full bg-stone-50 border border-stone-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
             style={{ padding: '10px 12px 10px 36px', borderRadius: RADIUS.input, fontSize: TYPE.meta }}
           />
         </div>
@@ -385,7 +385,7 @@ export function ExecutiveBookOfBusiness() {
                 whileHover={{ x: 2 }}
                 transition={{ duration: MOTION.duration.hover }}
                 onClick={() => setSelectedClientId(client.id)}
-                className="flex items-center gap-3 cursor-pointer bg-white hover:bg-gray-50 transition-colors overflow-hidden"
+                className="flex items-center gap-3 cursor-pointer bg-white hover:bg-orange-50 transition-colors overflow-hidden"
                 style={{
                   borderRadius: RADIUS.button,
                   border: `1px solid ${COLORS.gray[100]}`,
@@ -416,14 +416,14 @@ export function ExecutiveBookOfBusiness() {
                 </span>
 
                 {/* Chevron */}
-                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
+                <ChevronRight className="w-4 h-4 text-stone-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
               </motion.div>
             );
           })}
           {agentClients.length === 0 && (
             <div className="text-center py-12">
-              <BookOpen className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium text-gray-400">No clients found</p>
+              <BookOpen className="w-10 h-10 mx-auto mb-3 text-stone-300" />
+              <p className="font-medium text-stone-400">No clients found</p>
             </div>
           )}
         </div>
@@ -441,7 +441,7 @@ export function ExecutiveBookOfBusiness() {
     return (
       <div style={{ padding: GRID.spacing.md }}>
         {/* Back link */}
-        <button onClick={goBackToAgent} className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
+        <button onClick={goBackToAgent} className="flex items-center gap-1 text-stone-500 hover:text-stone-700 transition-colors" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
           <ChevronLeft className="w-4 h-4" /> Back to files
         </button>
 
@@ -465,7 +465,7 @@ export function ExecutiveBookOfBusiness() {
         </div>
 
         {/* Personal Information card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Personal Information</h4>
           <div className="grid grid-cols-2 gap-4">
             <InfoCell icon={<Cake className="w-4 h-4" />} label="Date of Birth" value={selectedClient.dob} />
@@ -476,7 +476,7 @@ export function ExecutiveBookOfBusiness() {
         </div>
 
         {/* Policy Details card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.sm }}>
             <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900] }}>Policy Details</h4>
             <span style={{ fontSize: TYPE.title, fontWeight: 700, color: '#ea580c' }}>{fmtCurrency(selectedClient.annualPremium)}<span style={{ fontSize: TYPE.caption, fontWeight: 400, color: COLORS.gray[500] }}>/yr</span></span>
@@ -496,7 +496,7 @@ export function ExecutiveBookOfBusiness() {
         </div>
 
         {/* Beneficiary card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Beneficiary</h4>
           <div className="grid grid-cols-2 gap-4">
             <PolicyCell label="Name" value={selectedClient.beneficiaryName} />
@@ -505,7 +505,7 @@ export function ExecutiveBookOfBusiness() {
         </div>
 
         {/* Timeline card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Timeline</h4>
           <div className="grid grid-cols-2 gap-4">
             <InfoCell icon={<Clock className="w-4 h-4" />} label="Last Contact" value={selectedClient.lastContactDate} />
@@ -517,7 +517,7 @@ export function ExecutiveBookOfBusiness() {
 
         {/* Agent Notes card */}
         {selectedClient.agentNotes && (
-          <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
+          <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md }}>
             <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.xs }}>Agent Notes</h4>
             <p style={{ fontSize: TYPE.caption, color: COLORS.gray[600], lineHeight: 1.5 }}>{selectedClient.agentNotes}</p>
           </div>
@@ -633,7 +633,7 @@ export function ExecutiveBookOfBusiness() {
 function InfoCell({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2">
-      <span className="text-gray-400 mt-0.5 flex-shrink-0">{icon}</span>
+      <span className="text-stone-400 mt-0.5 flex-shrink-0">{icon}</span>
       <div className="min-w-0">
         <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>{label}</p>
         <p className="truncate" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>{value}</p>

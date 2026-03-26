@@ -270,7 +270,7 @@ export function ExecutiveRecruitingPipeline() {
                       {/* Stage Header */}
                       <div className="flex items-center gap-3 mb-3">
                         <h4
-                          className="font-semibold text-gray-800"
+                          className="font-semibold text-stone-800"
                           style={{ fontSize: TYPE.body }}
                         >
                           {stage.stage}
@@ -311,7 +311,7 @@ export function ExecutiveRecruitingPipeline() {
                             >
                               <CardContent className="p-4">
                                 <p
-                                  className="font-semibold text-gray-900 mb-2"
+                                  className="font-semibold text-stone-900 mb-2"
                                   style={{ fontSize: TYPE.meta }}
                                 >
                                   {candidate.name}
@@ -343,7 +343,7 @@ export function ExecutiveRecruitingPipeline() {
                         </div>
                       ) : (
                         <p
-                          className="text-gray-400 italic ml-2"
+                          className="text-stone-400 italic ml-2"
                           style={{ fontSize: TYPE.caption }}
                         >
                           {stage.count} candidates
@@ -367,7 +367,7 @@ export function ExecutiveRecruitingPipeline() {
                             }}
                           >
                             {stage.count} &rarr; {nextStage.count} ={' '}
-                            <span className="font-semibold text-gray-700">
+                            <span className="font-semibold text-stone-700">
                               {((nextStage.count / stage.count) * 100).toFixed(
                                 1
                               )}
@@ -438,7 +438,7 @@ export function ExecutiveRecruitingPipeline() {
 
                           <div className="flex-1">
                             <h4
-                              className="font-semibold text-gray-900 mb-0.5"
+                              className="font-semibold text-stone-900 mb-0.5"
                               style={{ fontSize: TYPE.body }}
                             >
                               {phase.label}
@@ -475,7 +475,7 @@ export function ExecutiveRecruitingPipeline() {
                                   >
                                     <div>
                                       <p
-                                        className="font-medium text-gray-800"
+                                        className="font-medium text-stone-800"
                                         style={{ fontSize: TYPE.meta }}
                                       >
                                         {c.name}
@@ -495,7 +495,7 @@ export function ExecutiveRecruitingPipeline() {
                               </div>
                             ) : (
                               <p
-                                className="text-gray-400 italic"
+                                className="text-stone-400 italic"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 No candidates in this phase
@@ -546,7 +546,7 @@ export function ExecutiveRecruitingPipeline() {
                           ].map((header) => (
                             <th
                               key={header}
-                              className="text-left font-semibold text-gray-600 px-6 py-4"
+                              className="text-left font-semibold text-stone-600 px-6 py-4"
                               style={{ fontSize: TYPE.caption }}
                             >
                               {header}
@@ -558,33 +558,33 @@ export function ExecutiveRecruitingPipeline() {
                         {TEAM_HIRING_DATA.map((row) => (
                           <tr
                             key={row.team}
-                            className="transition-colors hover:bg-gray-50/50"
+                            className="transition-colors hover:bg-orange-50/50"
                             style={{
                               borderBottom: `1px solid ${COLORS.gray[100]}`,
                             }}
                           >
                             <td className="px-6 py-4">
                               <span
-                                className="font-semibold text-gray-900"
+                                className="font-semibold text-stone-900"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 Team {row.team}
                               </span>
                             </td>
                             <td
-                              className="px-6 py-4 text-gray-700"
+                              className="px-6 py-4 text-stone-700"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {row.manager}
                             </td>
                             <td
-                              className="px-6 py-4 text-gray-700"
+                              className="px-6 py-4 text-stone-700"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {row.currentSize}
                             </td>
                             <td
-                              className="px-6 py-4 text-gray-700"
+                              className="px-6 py-4 text-stone-700"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {row.hiringNeed}

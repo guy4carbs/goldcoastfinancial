@@ -38,6 +38,7 @@ export interface PortalPolicy {
   nextPaymentDate?: string;
   beneficiaryName?: string;
   beneficiaryRelationship?: string;
+  beneficiaries?: Array<{name: string; relationship: string; percentage: number}>;
   autoPayEnabled?: boolean;
   cashValue?: number;
 }

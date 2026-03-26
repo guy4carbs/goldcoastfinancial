@@ -20,7 +20,7 @@ export class ConduitAgent extends GovernanceAgent {
       id: GOV_AGENT_IDS.CONDUIT,
       name: 'CONDUIT_GOVERNANCE',
       tier: 12,
-      description: 'Integrations — Only agent that builds/modifies third-party API integrations for Heritage Life Solutions. Governs Gmail API, Google Calendar, Google Sheets, Twilio SMS, AWS S3, Firebase, and Apple Push Notification connections.',
+      description: 'Integrations — Only agent that builds/modifies third-party API integrations for Heritage Life Solutions. Governs Gmail API, Google Calendar, Google Sheets, Telnyx SMS/Voice, AWS S3, Firebase, and Apple Push Notification connections.',
       capabilities: ['integration_review', 'api_contract_validation', 'webhook_management', 'external_service_audit'],
       consumesEvents: [],
       producesEvents: [],
@@ -32,7 +32,7 @@ export class ConduitAgent extends GovernanceAgent {
   }
 
   protected async onGovernanceStart(): Promise<void> {
-    console.log('[CONDUIT] 🔌 Integration governance online for Heritage Life Solutions. Gmail, Twilio, S3, Firebase, and APNs oversight active.');
+    console.log('[CONDUIT] 🔌 Integration governance online for Heritage Life Solutions. Gmail, Telnyx, S3, Firebase, and APNs oversight active.');
   }
 
   protected async onGovernanceStop(): Promise<void> {}

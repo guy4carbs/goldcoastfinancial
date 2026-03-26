@@ -10,6 +10,7 @@ import { Link } from 'wouter';
 import { toast } from 'sonner';
 import { ManagerLoungeLayout } from './ManagerLoungeLayout';
 import { ManagerPageHero, ManagerStatCard, ManagerStatCardGrid, ManagerEmptyState } from './primitives';
+import { useCallMonitor, type MonitorRole } from '@/hooks/useCallMonitor';
 import {
   MANAGER_ICON_GRADIENT,
   DEMO_AGENT_ACTIVITY,
@@ -60,6 +61,9 @@ import {
   Send,
   Headphones,
   Download,
+  Ear,
+  PhoneCall,
+  Loader2,
 } from 'lucide-react';
 
 // ─── STATUS FILTER OPTIONS ───
@@ -330,8 +334,25 @@ export function ActivityMonitorContent({ timeRange = 'today' as TimeRange }: { t
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [heatmapPopup, setHeatmapPopup] = useState<{ cellKey: string; day: number; hour: number; x: number; y: number } | null>(null);
-  const [listeningTo, setListeningTo] = useState<string | null>(null);
   const [showAllAgents, setShowAllAgents] = useState(false);
+
+  // Real call monitoring
+  const {
+    monitorStatus,
+    currentRole,
+    monitoredCallId,
+    monitoredAgentName,
+    error: monitorError,
+    activeCalls,
+    startMonitoring,
+    stopMonitoring,
+    switchRole,
+  } = useCallMonitor();
+
+  // Derive listeningTo from monitoring state for backward compat with UI
+  const listeningTo = monitoredCallId ? (
+    activeCalls.find(c => c.id === monitoredCallId)?.agentUserId || null
+  ) : null;
   const [allAgentsSearch, setAllAgentsSearch] = useState('');
 
   const GRID_MAX = 9;
@@ -1218,33 +1239,45 @@ export function ActivityMonitorContent({ timeRange = 'today' as TimeRange }: { t
                           <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{selectedAgent.lastAction}</p>
                         </div>
 
-                        {/* Live Call Listen-In */}
-                        {selectedAgent.status === 'on_call' && (
+                        {/* Live Call Listen-In / Monitor / Whisper / Barge */}
+                        {selectedAgent.status === 'on_call' && (() => {
+                          // Find matching active call for this agent
+                          const agentActiveCall = activeCalls.find(c => c.agentUserId === selectedAgent.id && c.status === 'active');
+                          const isListening = listeningTo === selectedAgent.id;
+                          const isConnecting = monitorStatus === 'connecting' && monitoredCallId === agentActiveCall?.id;
+
+                          return (
                           <div
                             style={{
                               padding: GRID.spacing.sm,
                               borderRadius: RADIUS.button,
-                              border: listeningTo === selectedAgent.id ? '1px solid #059669' : '1px solid #e5e7eb',
-                              backgroundColor: listeningTo === selectedAgent.id ? '#ecfdf5' : 'white',
+                              border: isListening ? '1px solid #059669' : '1px solid #e5e7eb',
+                              backgroundColor: isListening ? '#ecfdf5' : 'white',
                             }}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
-                                {listeningTo === selectedAgent.id ? (
+                                {isListening ? (
                                   <motion.div
                                     animate={{ scale: [1, 1.15, 1] }}
                                     transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                                   >
                                     <Headphones className="text-emerald-600" style={{ width: 18, height: 18 }} />
                                   </motion.div>
+                                ) : isConnecting ? (
+                                  <Loader2 className="text-emerald-500 animate-spin" style={{ width: 18, height: 18 }} />
                                 ) : (
                                   <Headphones className="text-gray-400" style={{ width: 18, height: 18 }} />
                                 )}
                                 <div>
-                                  <p className={`font-semibold ${listeningTo === selectedAgent.id ? 'text-emerald-700' : 'text-gray-700'}`} style={{ fontSize: TYPE.meta }}>
-                                    {listeningTo === selectedAgent.id ? 'Listening to live call...' : 'Live call in progress'}
+                                  <p className={`font-semibold ${isListening ? 'text-emerald-700' : 'text-gray-700'}`} style={{ fontSize: TYPE.meta }}>
+                                    {isListening
+                                      ? `${currentRole === 'monitor' ? 'Listening' : currentRole === 'whisper' ? 'Whispering' : 'Barged in'} — live call`
+                                      : isConnecting
+                                        ? 'Connecting...'
+                                        : 'Live call in progress'}
                                   </p>
-                                  {listeningTo === selectedAgent.id && (
+                                  {isListening && (
                                     <div className="flex items-center" style={{ gap: 4, marginTop: 2 }}>
                                       {[0, 1, 2, 3, 4].map((i) => (
                                         <motion.div
@@ -1258,34 +1291,47 @@ export function ActivityMonitorContent({ timeRange = 'today' as TimeRange }: { t
                                       <span className="text-emerald-600 ml-1 font-mono" style={{ fontSize: TYPE.micro }}>Live</span>
                                     </div>
                                   )}
+                                  {monitorError && (
+                                    <p className="text-red-500 mt-1" style={{ fontSize: TYPE.micro }}>{monitorError}</p>
+                                  )}
                                 </div>
                               </div>
                               <motion.button
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
-                                onClick={() => {
-                                  if (listeningTo === selectedAgent.id) {
-                                    setListeningTo(null);
+                                disabled={isConnecting}
+                                onClick={async () => {
+                                  if (isListening) {
+                                    await stopMonitoring();
                                     toast('Stopped listening', { description: `Disconnected from ${selectedAgent.name}'s call.` });
+                                  } else if (agentActiveCall) {
+                                    toast.loading('Connecting...', { id: 'monitor-connect' });
+                                    await startMonitoring(agentActiveCall.id, 'monitor');
+                                    toast.success('Connected', { id: 'monitor-connect', description: `Now listening to ${selectedAgent.name}'s live call.` });
                                   } else {
-                                    setListeningTo(selectedAgent.id);
-                                    toast.success('Connected', { description: `Now listening to ${selectedAgent.name}'s live call.` });
+                                    toast.error('No active call found', { description: 'The agent may not be on a registered call.' });
                                   }
                                 }}
-                                className={`flex items-center font-semibold border-0 ${listeningTo === selectedAgent.id ? 'bg-gray-200 text-gray-700' : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'}`}
+                                className={`flex items-center font-semibold border-0 ${isListening ? 'bg-gray-200 text-gray-700' : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'}`}
                                 style={{
                                   gap: 6,
                                   padding: '6px 14px',
                                   borderRadius: RADIUS.pill,
                                   fontSize: TYPE.caption,
-                                  cursor: 'pointer',
-                                  boxShadow: listeningTo === selectedAgent.id ? 'none' : '0 2px 8px rgba(5, 150, 105, 0.3)',
+                                  cursor: isConnecting ? 'wait' : 'pointer',
+                                  boxShadow: isListening ? 'none' : '0 2px 8px rgba(5, 150, 105, 0.3)',
+                                  opacity: isConnecting ? 0.7 : 1,
                                 }}
                               >
-                                {listeningTo === selectedAgent.id ? (
+                                {isListening ? (
                                   <>
                                     <PhoneOff style={{ width: 13, height: 13 }} />
                                     Disconnect
+                                  </>
+                                ) : isConnecting ? (
+                                  <>
+                                    <Loader2 className="animate-spin" style={{ width: 13, height: 13 }} />
+                                    Connecting
                                   </>
                                 ) : (
                                   <>
@@ -1295,8 +1341,44 @@ export function ActivityMonitorContent({ timeRange = 'today' as TimeRange }: { t
                                 )}
                               </motion.button>
                             </div>
+
+                            {/* Role Switcher — visible when actively monitoring */}
+                            {isListening && (
+                              <div className="flex items-center mt-3 pt-3 border-t border-emerald-200" style={{ gap: 6 }}>
+                                {([
+                                  { role: 'monitor' as MonitorRole, icon: Ear, label: 'Monitor', desc: 'Silent listen' },
+                                  { role: 'whisper' as MonitorRole, icon: MessageSquare, label: 'Whisper', desc: 'Agent hears you' },
+                                  { role: 'barge' as MonitorRole, icon: PhoneCall, label: 'Barge', desc: 'All hear you' },
+                                ] as const).map(({ role, icon: Icon, label, desc }) => (
+                                  <motion.button
+                                    key={role}
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={() => {
+                                      switchRole(role);
+                                      toast.success(`Switched to ${label}`, { description: desc });
+                                    }}
+                                    className={`flex-1 flex flex-col items-center py-2 border-0 ${
+                                      currentRole === role
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-white text-gray-600 hover:bg-emerald-50'
+                                    }`}
+                                    style={{
+                                      borderRadius: RADIUS.button,
+                                      fontSize: TYPE.micro,
+                                      cursor: 'pointer',
+                                      border: currentRole === role ? 'none' : '1px solid #e5e7eb',
+                                    }}
+                                  >
+                                    <Icon style={{ width: 14, height: 14, marginBottom: 2 }} />
+                                    {label}
+                                  </motion.button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
+                          );
+                        })()}
 
                         {/* Recent Activity */}
                         {profile?.recentActivity && (

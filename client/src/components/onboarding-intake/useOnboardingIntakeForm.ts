@@ -90,6 +90,7 @@ const defaultLicensedData: LicensedFormData = {
   docusignNda: 'pending',
   docusignDebtRollup: 'pending',
   docusignCompliance: 'pending',
+  smsConsent: false,
 };
 
 const defaultNewAgentData: NewAgentFormData = {
@@ -126,6 +127,7 @@ const defaultNewAgentData: NewAgentFormData = {
   docusignNda: 'pending',
   docusignDebtRollup: 'pending',
   docusignCompliance: 'pending',
+  smsConsent: false,
 };
 
 export const useOnboardingIntakeForm = create<OnboardingIntakeState>((set) => ({

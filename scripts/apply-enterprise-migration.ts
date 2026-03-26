@@ -365,7 +365,7 @@ const enterpriseTables = [
     phone_number varchar(50),
     duration integer,
     status varchar(50) NOT NULL,
-    twilio_sid varchar(100),
+    external_id varchar(100),
     recording_url varchar(500),
     transcription text,
     sentiment varchar(50),

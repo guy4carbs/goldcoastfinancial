@@ -33,13 +33,18 @@ export default function BecomeAgent() {
     phone: "",
     experience: "",
     licensed: "",
-    message: ""
+    message: "",
+    smsConsent: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.smsConsent) {
+      alert('Please agree to the SMS consent before submitting.');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -73,7 +78,8 @@ export default function BecomeAgent() {
         phone: "",
         experience: "",
         licensed: "",
-        message: ""
+        message: "",
+        smsConsent: false,
       });
     } catch (error) {
       console.error('Error submitting application:', error);
@@ -434,6 +440,20 @@ export default function BecomeAgent() {
                     style={{ borderRadius: RADIUS.input }}
                   />
                 </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.smsConsent || false}
+                    onChange={(e) => setFormData({ ...formData, smsConsent: e.target.checked })}
+                    className="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                  />
+                  <span className="text-xs text-gray-500 leading-relaxed">
+                    By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including appointment reminders, application updates, and verification codes. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                  </span>
+                </label>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-6">

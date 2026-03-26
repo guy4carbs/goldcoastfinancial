@@ -283,10 +283,11 @@ router.get("/pipeline", async (req: Request, res: Response) => {
     const params: any[] = [];
     let paramIndex = 1;
 
-    // Filter by assignedTo
+    // Filter by assignedTo (resolve 'me' to current user)
     if (assignedTo && assignedTo !== 'all') {
+      const resolvedId = assignedTo === 'me' ? (req as any).user?.id : assignedTo;
       query += ` AND l.assigned_to = $${paramIndex}`;
-      params.push(assignedTo);
+      params.push(resolvedId);
       paramIndex++;
     }
 
@@ -494,6 +495,24 @@ router.patch("/pipeline/:leadId/stage", async (req: Request, res: Response) => {
     if (newStage === 'placed' && userId) {
       try {
         conversionResult = await convertLeadToClient(leadId, userId);
+        // Emit POLICY_SOLD event — activates downstream agents (commission, billing, retention, etc.)
+        if (conversionResult?.success) {
+          try {
+            const { EventBus, EventType } = await import('../agents/core/event-bus');
+            EventBus.getInstance().emit({
+              type: EventType.POLICY_SOLD,
+              source: 'crm-pipeline',
+              data: {
+                leadId,
+                agentUserId: userId,
+                clientUserId: conversionResult.clientUserId,
+                policyId: conversionResult.policyId,
+              },
+            });
+          } catch (eventErr) {
+            console.error('[CRM Pipeline] POLICY_SOLD event emission failed:', eventErr);
+          }
+        }
       } catch (err) {
         console.error('[CRM Pipeline] Lead conversion failed (non-blocking):', err);
       }
@@ -690,6 +709,158 @@ router.get("/pipeline/forecast", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("[CRM Pipeline Forecast] Error:", error);
     res.status(500).json({ error: "Failed to load pipeline forecast" });
+  }
+});
+
+/**
+ * GET /api/crm/pipeline/closing-stats
+ * Agent-specific closing statistics for the Closing tab
+ */
+router.get("/pipeline/closing-stats", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const closingStages = ['quoted', 'application', 'underwriting', 'issued'];
+
+    // Deals in closing pipeline
+    const pipelineCount = await pool.query(`
+      SELECT
+        COUNT(*) as count,
+        SUM(COALESCE(estimated_value, 0)) as total_value,
+        SUM(ROUND(COALESCE(estimated_value, 0) * COALESCE(close_probability, 50) / 100.0)) as weighted_value
+      FROM leads
+      WHERE assigned_to = $1::text
+        AND pipeline_stage = ANY($2)
+        AND status NOT IN ('won', 'lost')
+    `, [userId, closingStages]);
+
+    // Close rate (last 30 days)
+    const closeRate = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'won') as won,
+        COUNT(*) FILTER (WHERE status IN ('won', 'lost')) as closed
+      FROM leads
+      WHERE assigned_to = $1::text
+        AND COALESCE(won_date, updated_at) >= CURRENT_DATE - INTERVAL '30 days'
+        AND status IN ('won', 'lost')
+    `, [userId]);
+
+    // Average days to close (won leads, last 90 days)
+    const avgDays = await pool.query(`
+      SELECT AVG(EXTRACT(EPOCH FROM (COALESCE(won_date, updated_at) - created_at)) / 86400)::int as avg_days
+      FROM leads
+      WHERE assigned_to = $1::text
+        AND status = 'won'
+        AND won_date >= CURRENT_DATE - INTERVAL '90 days'
+    `, [userId]);
+
+    // Revenue this month
+    const revenue = await pool.query(`
+      SELECT SUM(COALESCE(won_amount, estimated_value, 0)) as value
+      FROM leads
+      WHERE assigned_to = $1::text
+        AND status = 'won'
+        AND won_date >= DATE_TRUNC('month', CURRENT_DATE)
+    `, [userId]);
+
+    // Post-close workflow counts
+    const postClose = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'completed') as complete,
+        COUNT(*) FILTER (WHERE status IN ('pending', 'in_progress')) as pending
+      FROM post_close_workflows
+      WHERE agent_user_id = $1::text
+    `, [userId]);
+
+    const won = parseInt(closeRate.rows[0]?.won) || 0;
+    const closed = parseInt(closeRate.rows[0]?.closed) || 1;
+
+    res.json({
+      dealsInPipeline: parseInt(pipelineCount.rows[0]?.count) || 0,
+      pipelineValue: parseInt(pipelineCount.rows[0]?.total_value) || 0,
+      weightedPipelineValue: parseInt(pipelineCount.rows[0]?.weighted_value) || 0,
+      closeRate: Math.round((won / closed) * 100),
+      avgDaysToClose: parseInt(avgDays.rows[0]?.avg_days) || 0,
+      revenueThisMonth: parseInt(revenue.rows[0]?.value) || 0,
+      postCloseComplete: parseInt(postClose.rows[0]?.complete) || 0,
+      postClosePending: parseInt(postClose.rows[0]?.pending) || 0,
+    });
+  } catch (error) {
+    console.error("[CRM Closing Stats] Error:", error);
+    res.status(500).json({ error: "Failed to load closing stats" });
+  }
+});
+
+/**
+ * GET /api/crm/pipeline/recent-closings
+ * Recently placed/won deals for this agent with policy and commission data
+ */
+router.get("/pipeline/recent-closings", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+
+    const result = await pool.query(`
+      SELECT
+        l.id,
+        l.first_name,
+        l.last_name,
+        l.email,
+        l.coverage_type,
+        l.estimated_value,
+        l.won_amount,
+        l.won_date,
+        l.converted_user_id,
+        p.id as policy_id,
+        p.policy_number,
+        p.type as policy_type,
+        p.coverage_amount as policy_coverage,
+        p.monthly_premium,
+        p.carrier,
+        c.amount as commission_amount,
+        c.status as commission_status,
+        pcw.status as workflow_status,
+        pcw.welcome_email_sent_at,
+        pcw.welcome_sms_sent_at,
+        pcw.book_of_business_updated_at,
+        pcw.details_verified_at
+      FROM leads l
+      LEFT JOIN policies p ON p.lead_id = l.id::text
+      LEFT JOIN commissions c ON c.lead_id = l.id::text AND c.agent_user_id = $1::uuid
+      LEFT JOIN post_close_workflows pcw ON pcw.lead_id = l.id::text AND pcw.agent_user_id = $1::text
+      WHERE l.assigned_to = $1::text
+        AND l.status = 'won'
+        AND l.won_date >= CURRENT_DATE - INTERVAL '30 days'
+      ORDER BY l.won_date DESC
+      LIMIT 20
+    `, [userId]);
+
+    const closings = result.rows.map((row: any) => ({
+      id: row.id,
+      clientName: `${row.first_name} ${row.last_name}`,
+      email: row.email,
+      coverageType: row.coverage_type,
+      estimatedValue: row.estimated_value,
+      wonAmount: row.won_amount,
+      wonDate: row.won_date,
+      convertedUserId: row.converted_user_id,
+      policyId: row.policy_id,
+      policyNumber: row.policy_number,
+      policyType: row.policy_type,
+      coverageAmount: parseInt(row.policy_coverage) || row.estimated_value || 0,
+      monthlyPremium: parseFloat(row.monthly_premium) || 0,
+      carrier: row.carrier || 'Pending',
+      commissionEarned: row.commission_amount ? parseFloat(row.commission_amount) : null,
+      commissionStatus: row.commission_status,
+      workflowStatus: row.workflow_status || null,
+      welcomeEmailSent: !!row.welcome_email_sent_at,
+      welcomeSmsSent: !!row.welcome_sms_sent_at,
+      bookOfBusinessUpdated: !!row.book_of_business_updated_at,
+      detailsVerified: !!row.details_verified_at,
+    }));
+
+    res.json(closings);
+  } catch (error) {
+    console.error("[CRM Recent Closings] Error:", error);
+    res.status(500).json({ error: "Failed to load recent closings" });
   }
 });
 
@@ -1952,6 +2123,23 @@ router.patch("/leads/:id", async (req: Request, res: Response) => {
     if (updates.status === 'won' && currentLead.status !== 'won' && userId) {
       try {
         conversionResult = await convertLeadToClient(id, userId);
+        if (conversionResult?.success) {
+          try {
+            const { EventBus, EventType } = await import('../agents/core/event-bus');
+            EventBus.getInstance().emit({
+              type: EventType.POLICY_SOLD,
+              source: 'crm-lead-update',
+              data: {
+                leadId: id,
+                agentUserId: userId,
+                clientUserId: conversionResult.clientUserId,
+                policyId: conversionResult.policyId,
+              },
+            });
+          } catch (eventErr) {
+            console.error('[CRM Update Lead] POLICY_SOLD event emission failed:', eventErr);
+          }
+        }
       } catch (err) {
         console.error('[CRM Update Lead] Lead conversion failed (non-blocking):', err);
       }

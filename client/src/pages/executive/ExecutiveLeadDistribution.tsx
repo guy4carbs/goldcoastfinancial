@@ -588,11 +588,11 @@ function ExecutiveLeadDistribution() {
       <div style={{ padding: GRID.spacing.md }}>
         {/* Search */}
         <div className="relative" style={{ marginBottom: GRID.spacing.sm }}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
           <input
             type="text" placeholder="Search leads..."
             value={managerLeadSearch} onChange={e => setManagerLeadSearch(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
+            className="w-full bg-stone-50 border border-stone-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
             style={{ padding: '10px 12px 10px 36px', borderRadius: RADIUS.input, fontSize: TYPE.meta }}
           />
         </div>
@@ -629,7 +629,7 @@ function ExecutiveLeadDistribution() {
                 whileHover={{ x: 2 }}
                 transition={{ duration: MOTION.duration.hover }}
                 onClick={() => setSelectedLeadId(lead.id)}
-                className="flex items-center gap-3 cursor-pointer bg-white hover:bg-gray-50 transition-colors overflow-hidden"
+                className="flex items-center gap-3 cursor-pointer bg-white hover:bg-orange-50 transition-colors overflow-hidden"
                 style={{
                   borderRadius: RADIUS.button,
                   border: `1px solid ${COLORS.gray[100]}`,
@@ -661,14 +661,14 @@ function ExecutiveLeadDistribution() {
                 </span>
 
                 {/* Chevron */}
-                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
+                <ChevronRight className="w-4 h-4 text-stone-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
               </motion.div>
             );
           })}
           {managerLeads.length === 0 && (
             <div className="text-center py-12">
-              <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium text-gray-400">No leads found</p>
+              <Inbox className="w-10 h-10 mx-auto mb-3 text-stone-300" />
+              <p className="font-medium text-stone-400">No leads found</p>
             </div>
           )}
         </div>
@@ -686,7 +686,7 @@ function ExecutiveLeadDistribution() {
     return (
       <div style={{ padding: GRID.spacing.md }}>
         {/* Back link */}
-        <button onClick={goBackToManager} className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
+        <button onClick={goBackToManager} className="flex items-center gap-1 text-stone-500 hover:text-stone-700 transition-colors" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
           <ChevronLeft className="w-4 h-4" /> {selectedManagerName ? `Back to ${selectedManager?.manager}'s leads` : 'Back to leads'}
         </button>
 
@@ -731,7 +731,7 @@ function ExecutiveLeadDistribution() {
         )}
 
         {/* Contact Info card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Contact Information</h4>
           <div className="grid grid-cols-2 gap-4">
             <InfoCell icon={<Phone className="w-4 h-4" />} label="Phone" value={selectedLead.phone} />
@@ -739,7 +739,7 @@ function ExecutiveLeadDistribution() {
           </div>
           <div style={{ marginTop: GRID.spacing.sm }}>
             <div className="flex items-start gap-2">
-              <span className="text-gray-400 mt-0.5 flex-shrink-0"><MapPin className="w-4 h-4" /></span>
+              <span className="text-stone-400 mt-0.5 flex-shrink-0"><MapPin className="w-4 h-4" /></span>
               <div className="min-w-0">
                 <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>Address</p>
                 <p style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>
@@ -755,7 +755,7 @@ function ExecutiveLeadDistribution() {
 
         {/* Quoter Profile card (website leads only) */}
         {selectedLead.source === 'website' && (
-          <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+          <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
             <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Applicant Profile</h4>
             <div className="grid grid-cols-2 gap-4">
               {selectedLead.age && <DetailCell label="Age" value={String(selectedLead.age)} />}
@@ -785,7 +785,7 @@ function ExecutiveLeadDistribution() {
 
         {/* Medical Background card (website leads only) */}
         {selectedLead.source === 'website' && selectedLead.medicalBackground && (
-          <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+          <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
             <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Medical Background</h4>
             <p style={{ fontSize: TYPE.caption, color: COLORS.gray[700], lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
               {selectedLead.medicalBackground.replace(/_/g, ' ')}
@@ -794,7 +794,7 @@ function ExecutiveLeadDistribution() {
         )}
 
         {/* Lead Details card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <div className="flex items-center justify-between" style={{ marginBottom: GRID.spacing.sm }}>
             <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900] }}>Lead Details</h4>
             <span style={{ fontSize: TYPE.title, fontWeight: 700, color: '#ea580c' }}>
@@ -823,7 +823,7 @@ function ExecutiveLeadDistribution() {
         </div>
 
         {/* Assignment History card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Assignment History</h4>
           <div className="space-y-3">
             {/* Imported step */}
@@ -870,7 +870,7 @@ function ExecutiveLeadDistribution() {
         </div>
 
         {/* Pipeline Stage card */}
-        <div className="border border-gray-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
+        <div className="border border-stone-200 bg-white" style={{ borderRadius: RADIUS.button, padding: GRID.spacing.md, marginBottom: GRID.spacing.sm }}>
           <h4 style={{ fontSize: TYPE.meta, fontWeight: 700, color: COLORS.gray[900], marginBottom: GRID.spacing.md }}>Pipeline Stage</h4>
           <div className="flex items-start justify-between overflow-x-auto" style={{ gap: 2 }}>
             {PIPELINE_STAGE_ORDER.map((stage, i) => {
@@ -943,7 +943,7 @@ function ExecutiveLeadDistribution() {
     return (
       <div style={{ padding: GRID.spacing.md }}>
         {/* Back link */}
-        <button onClick={goBackToLead} className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
+        <button onClick={goBackToLead} className="flex items-center gap-1 text-stone-500 hover:text-stone-700 transition-colors" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
           <ChevronLeft className="w-4 h-4" /> Back to lead detail
         </button>
 
@@ -991,8 +991,8 @@ function ExecutiveLeadDistribution() {
             })}
             {leadActivities.length === 0 && (
               <div className="text-center py-12">
-                <Activity className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium text-gray-400">No activities recorded</p>
+                <Activity className="w-10 h-10 mx-auto mb-3 text-stone-300" />
+                <p className="font-medium text-stone-400">No activities recorded</p>
               </div>
             )}
           </div>
@@ -1165,11 +1165,11 @@ function ExecutiveLeadDistribution() {
 
               {/* Search */}
               <div className="relative" style={{ marginBottom: GRID.spacing.sm }}>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                 <input
                   type="text" placeholder="Search leads..."
                   value={leadSearch} onChange={e => { setLeadSearch(e.target.value); setCurrentPage(1); }}
-                  className="w-full bg-gray-50 border border-gray-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
+                  className="w-full bg-stone-50 border border-stone-200 text-sm outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-200 transition-colors"
                   style={{ padding: '10px 12px 10px 36px', borderRadius: RADIUS.input, fontSize: TYPE.meta }}
                 />
               </div>
@@ -1200,7 +1200,7 @@ function ExecutiveLeadDistribution() {
                       whileHover={{ x: 2 }}
                       transition={{ duration: MOTION.duration.hover }}
                       onClick={() => handleLeadRowClick(lead)}
-                      className="flex items-center gap-3 cursor-pointer bg-white hover:bg-gray-50 transition-colors overflow-hidden"
+                      className="flex items-center gap-3 cursor-pointer bg-white hover:bg-orange-50 transition-colors overflow-hidden"
                       style={{
                         borderRadius: RADIUS.button,
                         border: `1px solid ${COLORS.gray[100]}`,
@@ -1225,14 +1225,14 @@ function ExecutiveLeadDistribution() {
                       >
                         {cfg.label}
                       </span>
-                      <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
+                      <ChevronRight className="w-4 h-4 text-stone-300 flex-shrink-0" style={{ marginRight: GRID.spacing.sm }} />
                     </motion.div>
                   );
                 })}
                 {tabLeads.length === 0 && (
                   <div className="text-center py-12">
-                    <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                    <p className="font-medium text-gray-400">No leads match your search</p>
+                    <Inbox className="w-10 h-10 mx-auto mb-3 text-stone-300" />
+                    <p className="font-medium text-stone-400">No leads match your search</p>
                   </div>
                 )}
               </div>
@@ -1498,7 +1498,7 @@ function ExecutiveLeadDistribution() {
 function InfoCell({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2">
-      <span className="text-gray-400 mt-0.5 flex-shrink-0">{icon}</span>
+      <span className="text-stone-400 mt-0.5 flex-shrink-0">{icon}</span>
       <div className="min-w-0">
         <p style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>{label}</p>
         <p className="truncate" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>{value}</p>

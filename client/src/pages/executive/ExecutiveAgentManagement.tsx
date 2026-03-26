@@ -147,7 +147,7 @@ export function ExecutiveAgentManagement() {
         const badge = ROLE_BADGE_COLORS[item.role];
         return (
           <div>
-            <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+            <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
               {item.name}
             </span>
             <div style={{ marginTop: 2 }}>
@@ -173,7 +173,7 @@ export function ExecutiveAgentManagement() {
       label: 'Team',
       sortable: true,
       render: (item: Agent) => (
-        <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+        <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
           {item.team}
         </span>
       ),
@@ -183,7 +183,7 @@ export function ExecutiveAgentManagement() {
       label: 'Manager',
       sortable: true,
       render: (item: Agent) => (
-        <span className="text-gray-700" style={{ fontSize: TYPE.meta }}>
+        <span className="text-stone-700" style={{ fontSize: TYPE.meta }}>
           {item.manager}
         </span>
       ),
@@ -214,7 +214,7 @@ export function ExecutiveAgentManagement() {
       sortable: true,
       align: 'right' as const,
       render: (item: Agent) => (
-        <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+        <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
           {item.contractLevel}%
         </span>
       ),
@@ -239,7 +239,7 @@ export function ExecutiveAgentManagement() {
       sortable: true,
       align: 'right' as const,
       render: (item: Agent) => (
-        <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+        <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
           {fmtCurrency(item.revenueMTD)}
         </span>
       ),
@@ -319,7 +319,7 @@ export function ExecutiveAgentManagement() {
               <div className="flex flex-wrap items-center gap-6">
                 {/* Status Filters */}
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-500" style={{ fontSize: TYPE.caption }}>
+                  <span className="font-medium text-stone-500" style={{ fontSize: TYPE.caption }}>
                     Status:
                   </span>
                   {['All', 'Active', 'On Leave', 'Probation'].map((s) => (
@@ -334,7 +334,7 @@ export function ExecutiveAgentManagement() {
 
                 {/* Team Filters */}
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-500" style={{ fontSize: TYPE.caption }}>
+                  <span className="font-medium text-stone-500" style={{ fontSize: TYPE.caption }}>
                     Team:
                   </span>
                   {['All Teams', 'Alpha', 'Beta', 'Gamma', 'Delta', 'Echo'].map((t) => (
@@ -349,7 +349,7 @@ export function ExecutiveAgentManagement() {
 
                 {/* Role Filters */}
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-500" style={{ fontSize: TYPE.caption }}>
+                  <span className="font-medium text-stone-500" style={{ fontSize: TYPE.caption }}>
                     Role:
                   </span>
                   {['All Roles', 'Senior Agent', 'Agent', 'Junior Agent'].map((r) => (
@@ -412,7 +412,7 @@ export function ExecutiveAgentManagement() {
               {/* Close Button */}
               <button
                 onClick={() => setSelectedAgent(null)}
-                className="absolute hover:bg-gray-100 transition-colors"
+                className="absolute hover:bg-stone-100 transition-colors"
                 style={{
                   top: GRID.spacing.md,
                   right: GRID.spacing.md,
@@ -424,13 +424,13 @@ export function ExecutiveAgentManagement() {
                 }}
                 aria-label="Close drawer"
               >
-                <X className="text-gray-500" style={{ width: 20, height: 20 }} />
+                <X className="text-stone-500" style={{ width: 20, height: 20 }} />
               </button>
 
               <div style={{ padding: GRID.spacing.lg }}>
                 {/* Agent Name & Role */}
                 <h2
-                  className="font-bold text-gray-900"
+                  className="font-bold text-stone-900"
                   style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs }}
                 >
                   {selectedAgent.name}
@@ -476,18 +476,18 @@ export function ExecutiveAgentManagement() {
                   }}
                 >
                   <div className="flex justify-between" style={{ marginBottom: GRID.spacing.xs }}>
-                    <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                    <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                       Team
                     </span>
-                    <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                    <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                       {selectedAgent.team}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                    <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                       Manager
                     </span>
-                    <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                    <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                       {selectedAgent.manager}
                     </span>
                   </div>
@@ -495,7 +495,7 @@ export function ExecutiveAgentManagement() {
 
                 {/* Performance Section */}
                 <h3
-                  className="font-bold text-gray-900"
+                  className="font-bold text-stone-900"
                   style={{ fontSize: TYPE.title, marginBottom: GRID.spacing.sm }}
                 >
                   Performance
@@ -511,11 +511,11 @@ export function ExecutiveAgentManagement() {
                     }}
                   >
                     <CardContent className="p-4 flex items-center justify-between">
-                      <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                      <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                         Revenue MTD
                       </span>
                       <span
-                        className="font-bold text-gray-900"
+                        className="font-bold text-stone-900"
                         style={{ fontSize: TYPE.title }}
                       >
                         {fmtCurrency(selectedAgent.revenueMTD)}
@@ -533,7 +533,7 @@ export function ExecutiveAgentManagement() {
                     }}
                   >
                     <CardContent className="p-4 flex items-center justify-between">
-                      <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                      <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                         Quota Attainment
                       </span>
                       <span
@@ -558,7 +558,7 @@ export function ExecutiveAgentManagement() {
                     }}
                   >
                     <CardContent className="p-4 flex items-center justify-between">
-                      <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                      <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                         Compliance Score
                       </span>
                       <span
@@ -582,18 +582,18 @@ export function ExecutiveAgentManagement() {
                   }}
                 >
                   <div className="flex justify-between" style={{ marginBottom: GRID.spacing.xs }}>
-                    <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                    <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                       Contract Level
                     </span>
-                    <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                    <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                       {selectedAgent.contractLevel}%
                     </span>
                   </div>
                   <div className="flex justify-between" style={{ marginBottom: GRID.spacing.xs }}>
-                    <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                    <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                       Start Date
                     </span>
-                    <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                    <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                       {selectedAgent.startDate}
                     </span>
                   </div>

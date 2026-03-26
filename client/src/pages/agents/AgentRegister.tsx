@@ -85,6 +85,7 @@ export default function AgentRegister() {
           whyJoinHeritage: formData.whyJoinHeritage,
           referralSource: formData.referralSource,
           referringAgentName: formData.referringAgentName || undefined,
+          preferredUplineId: formData.preferredUplineId || undefined,
           agreedToTerms: formData.agreedToTerms,
           agreedToPrivacy: formData.agreedToPrivacy,
         }),

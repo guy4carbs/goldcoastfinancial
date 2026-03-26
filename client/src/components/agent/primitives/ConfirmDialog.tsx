@@ -91,27 +91,27 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
       <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent style={{ borderRadius: 24 }} className="border-0 shadow-xl overflow-hidden">
           <AlertDialogHeader>
             <div className="flex items-start gap-4">
               <div className={cn("w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0", config.iconBg)}>
                 <Icon className={cn("w-6 h-6", config.iconColor)} />
               </div>
               <div>
-                <AlertDialogTitle>{options?.title}</AlertDialogTitle>
-                <AlertDialogDescription className="mt-2">
+                <AlertDialogTitle className="text-gray-900">{options?.title}</AlertDialogTitle>
+                <AlertDialogDescription className="mt-2 text-gray-500">
                   {options?.description}
                 </AlertDialogDescription>
               </div>
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel}>
+            <AlertDialogCancel onClick={handleCancel} className="rounded-2xl">
               {options?.cancelLabel || 'Cancel'}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
-              className={cn(config.confirmBg, "text-white")}
+              className={cn(config.confirmBg, "text-white rounded-2xl")}
             >
               {options?.confirmLabel || 'Confirm'}
             </AlertDialogAction>
@@ -161,9 +161,9 @@ export function ConfirmDialog({
     },
     info: {
       icon: RefreshCw,
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      confirmBg: 'bg-blue-600 hover:bg-blue-700',
+      iconBg: 'bg-violet-100',
+      iconColor: 'text-violet-600',
+      confirmBg: 'bg-violet-600 hover:bg-violet-700',
     },
   };
 
@@ -172,25 +172,25 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent style={{ borderRadius: 24 }} className="border-0 shadow-xl overflow-hidden">
         <AlertDialogHeader>
           <div className="flex items-start gap-4">
             <div className={cn("w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0", config.iconBg)}>
               <Icon className={cn("w-6 h-6", config.iconColor)} />
             </div>
             <div>
-              <AlertDialogTitle>{title}</AlertDialogTitle>
-              <AlertDialogDescription className="mt-2">
+              <AlertDialogTitle className="text-gray-900">{title}</AlertDialogTitle>
+              <AlertDialogDescription className="mt-2 text-gray-500">
                 {description}
               </AlertDialogDescription>
             </div>
           </div>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel className="rounded-2xl">{cancelLabel}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className={cn(config.confirmBg, "text-white")}
+            className={cn(config.confirmBg, "text-white rounded-2xl")}
           >
             {confirmLabel}
           </AlertDialogAction>

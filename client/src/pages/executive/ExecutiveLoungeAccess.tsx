@@ -16,6 +16,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   GRID,
   TYPE,
   RADIUS,
@@ -170,6 +178,8 @@ interface OnboardingProfile {
   eo_certificate_s3_key: string | null;
   aml_certificate_s3_key: string | null;
   drivers_license_s3_key: string | null;
+  drivers_license_back_s3_key: string | null;
+  direct_deposit_form_s3_key: string | null;
   has_felony: boolean;
   felony_details: string | null;
   has_bankruptcy: boolean;
@@ -252,7 +262,7 @@ function StatusDot({ active }: { active: boolean }) {
 
 // ─── ACTION BADGE ───
 function ActionBadge({ actionType }: { actionType: string }) {
-  const colors = ACTION_TYPE_COLORS[actionType] || { bg: 'bg-gray-50', text: 'text-gray-700' };
+  const colors = ACTION_TYPE_COLORS[actionType] || { bg: 'bg-stone-50', text: 'text-stone-700' };
   const label = actionType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   return (
     <span className={`inline-flex items-center font-medium px-2 py-0.5 ${colors.bg} ${colors.text}`}
@@ -275,6 +285,23 @@ export function ExecutiveLoungeAccess() {
   const [rejectReason, setRejectReason] = useState('');
   const [promoteRole, setPromoteRole] = useState('');
   const [promoteReason, setPromoteReason] = useState('');
+  const [pendingToggle, setPendingToggle] = useState<{
+    userId: string;
+    loungeKey: string;
+    loungeName: string;
+    granted: boolean;
+    memberName: string;
+  } | null>(null);
+  const [pendingPromote, setPendingPromote] = useState<{
+    userId: string;
+    newRole: string;
+    newRoleLabel: string;
+    newHierarchyLevel: number;
+    reason: string;
+    memberName: string;
+    currentRole: string;
+    isPromotion: boolean;
+  } | null>(null);
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [historyFilter, setHistoryFilter] = useState('All');
@@ -291,7 +318,18 @@ export function ExecutiveLoungeAccess() {
     queryKey: ['admin-members', roleFilter, statusFilter],
     queryFn: () => {
       const params = new URLSearchParams();
-      if (roleFilter !== 'All') params.set('role', roleFilter.toLowerCase().replace(' ', '_'));
+      const roleMap: Record<string, string> = {
+        Owners: 'owner',
+        Admins: 'system_admin',
+        Managers: 'manager',
+        Agents: 'sales_agent',
+        Marketing: 'marketing_staff',
+        Clients: 'client',
+        Investors: 'investor',
+      };
+      if (roleFilter !== 'All' && roleMap[roleFilter]) {
+        params.set('role', roleMap[roleFilter]);
+      }
       if (statusFilter === 'Active') params.set('status', 'active');
       if (statusFilter === 'Inactive') params.set('status', 'inactive');
       return fetchJSON(`/api/admin/members?${params}`);
@@ -330,16 +368,27 @@ export function ExecutiveLoungeAccess() {
 
   // ─── MUTATIONS ───
   const loungeToggleMutation = useMutation({
-    mutationFn: ({ userId, loungeKey, granted }: { userId: string; loungeKey: string; granted: boolean }) =>
-      postJSON('/api/admin/lounge-access/toggle', { userId, loungeKey, granted }),
+    mutationFn: ({ userId, loungeKey, granted, silent, notificationType }: {
+      userId: string; loungeKey: string; granted: boolean; silent?: boolean; notificationType?: 'access' | 'promotion';
+    }) =>
+      postJSON('/api/admin/lounge-access/toggle', { userId, loungeKey, granted, silent, notificationType }),
     onSuccess: (_data, variables) => {
       refetchMemberAccess();
       queryClient.invalidateQueries({ queryKey: ['lounge-members'] });
       queryClient.invalidateQueries({ queryKey: ['access-history'] });
       const lounge = LOUNGES.find(l => l.key === variables.loungeKey);
-      toast.success(`${lounge?.name || variables.loungeKey} access ${variables.granted ? 'granted' : 'revoked'}`);
+      const name = lounge?.name || variables.loungeKey;
+      const action = variables.granted ? 'granted' : 'revoked';
+      if (variables.silent) {
+        toast.success(`${name} access ${action} (silent)`);
+      } else if (variables.notificationType === 'promotion') {
+        toast.success(`${name} access ${action} — promotion email sent`);
+      } else {
+        toast.success(`${name} access ${action} — notification sent`);
+      }
+      setPendingToggle(null);
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => { toast.error(err.message); setPendingToggle(null); },
   });
 
   const approveMutation = useMutation({
@@ -367,15 +416,23 @@ export function ExecutiveLoungeAccess() {
   });
 
   const promoteMutation = useMutation({
-    mutationFn: (data: { userId: string; newRole: string; newHierarchyLevel: number; reason: string }) =>
+    mutationFn: (data: { userId: string; newRole: string; newHierarchyLevel: number; reason: string; silent?: boolean }) =>
       postJSON('/api/admin/promote', data),
-    onSuccess: (data: any) => {
+    onSuccess: (data: any, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
       queryClient.invalidateQueries({ queryKey: ['access-history'] });
-      toast.success(`Promoted to ${data.newTitle}! Email sent.`);
+      if (data.isPromotion) {
+        toast.success(variables.silent
+          ? `Promoted to ${data.newTitle} (silent — no email)`
+          : `Promoted to ${data.newTitle} — notification sent`
+        );
+      } else {
+        toast.success(`Role changed to ${data.newTitle}`);
+      }
+      setPendingPromote(null);
       closeDrawer();
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => { toast.error(err.message); setPendingPromote(null); },
   });
 
   const deactivateMutation = useMutation({
@@ -461,7 +518,7 @@ export function ExecutiveLoungeAccess() {
           <ExecutiveStatCard icon={Clock} label="Pending Approvals" value={String(pendingCount)} delta={pendingCount > 0 ? pendingCount : undefined} periodLabel="awaiting review" />
           <ExecutiveStatCard icon={Users} label="Active Members" value={String(activeCount)} periodLabel="internal team" />
           <ExecutiveStatCard icon={TrendingUp} label="Promotions This Month" value={String(promotionsThisMonth)} periodLabel="role changes" />
-          <ExecutiveStatCard icon={Layers} label="Total Lounges" value="7" periodLabel="access-controlled" />
+          <ExecutiveStatCard icon={Layers} label="Total Lounges" value={String(LOUNGES.length)} periodLabel="access-controlled" />
         </ExecutiveStatCardGrid>
 
         {/* Tabs */}
@@ -493,7 +550,7 @@ export function ExecutiveLoungeAccess() {
                         <thead>
                           <tr style={{ backgroundColor: COLORS.gray[50] }}>
                             {['Applicant', 'Email', 'Licensed', 'Experience', 'Applied', 'Actions'].map(h => (
-                              <th key={h} className="text-left font-medium text-gray-500"
+                              <th key={h} className="text-left font-medium text-stone-500"
                                 style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>
                                 {h}
                               </th>
@@ -504,12 +561,12 @@ export function ExecutiveLoungeAccess() {
                           {pendingRegistrations.map((reg) => (
                             <tr
                               key={reg.profile_id}
-                              className="cursor-pointer transition-colors duration-150 hover:bg-gray-50"
+                              className="cursor-pointer transition-colors duration-150 hover:bg-orange-50"
                               style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                               onClick={() => openRegistrationDrawer(reg)}
                             >
                               <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                                <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                   {reg.first_name} {reg.last_name}
                                 </span>
                               </td>
@@ -517,7 +574,7 @@ export function ExecutiveLoungeAccess() {
                                 {reg.email}
                               </td>
                               <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                                <span className={`inline-flex items-center font-medium px-2 py-0.5 ${reg.is_licensed ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}
+                                <span className={`inline-flex items-center font-medium px-2 py-0.5 ${reg.is_licensed ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}
                                   style={{ fontSize: TYPE.micro, borderRadius: RADIUS.pill }}>
                                   {reg.is_licensed ? 'Yes' : 'No'}
                                 </span>
@@ -609,7 +666,7 @@ export function ExecutiveLoungeAccess() {
               </div>
 
               <ExecutiveFilterBar
-                periods={['All', 'Owners', 'Admins', 'Managers', 'Agents']}
+                periods={['All', 'Owners', 'Admins', 'Managers', 'Agents', 'Marketing', 'Clients', 'Investors']}
                 activePeriod={roleFilter}
                 onPeriodChange={setRoleFilter}
                 teams={['All', 'Active', 'Inactive']}
@@ -624,7 +681,7 @@ export function ExecutiveLoungeAccess() {
                       <thead>
                         <tr style={{ backgroundColor: COLORS.gray[50] }}>
                           {['Member', 'Role', 'Hierarchy', 'Status', 'Last Login', ''].map(h => (
-                            <th key={h} className="text-left font-medium text-gray-500"
+                            <th key={h} className="text-left font-medium text-stone-500"
                               style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>
                               {h}
                             </th>
@@ -635,13 +692,13 @@ export function ExecutiveLoungeAccess() {
                         {members.map((member) => (
                           <tr
                             key={member.id}
-                            className="cursor-pointer transition-colors duration-150 hover:bg-gray-50"
+                            className="cursor-pointer transition-colors duration-150 hover:bg-orange-50"
                             style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                             onClick={() => openMemberDrawer(member)}
                           >
                             <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                               <div>
-                                <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                   {member.first_name} {member.last_name}
                                 </span>
                                 <p style={{ fontSize: TYPE.micro, color: COLORS.gray[500] }}>{member.email}</p>
@@ -666,7 +723,7 @@ export function ExecutiveLoungeAccess() {
                         ))}
                         {members.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="text-center text-gray-400" style={{ padding: GRID.spacing.xl, fontSize: TYPE.meta }}>
+                            <td colSpan={6} className="text-center text-stone-400" style={{ padding: GRID.spacing.xl, fontSize: TYPE.meta }}>
                               No members found
                             </td>
                           </tr>
@@ -689,7 +746,7 @@ export function ExecutiveLoungeAccess() {
                 {LOUNGES.map((lounge) => (
                   <Card key={lounge.key} className="border-0" style={{ ...GLASS.css.light, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                     <CardContent style={{ padding: GRID.spacing.md }}>
-                      <h4 className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>{lounge.name}</h4>
+                      <h4 className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>{lounge.name}</h4>
                       <p style={{ fontSize: TYPE.micro, color: COLORS.gray[500], marginBottom: 12 }}>{lounge.description}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {lounge.roles.map(role => {
@@ -736,7 +793,7 @@ export function ExecutiveLoungeAccess() {
                         backgroundColor: 'rgba(255,255,255,0.7)',
                       }}>
                         <div>
-                          <p className="font-semibold text-gray-800" style={{ fontSize: TYPE.caption }}>{p.from} → {p.to}</p>
+                          <p className="font-semibold text-stone-800" style={{ fontSize: TYPE.caption }}>{p.from} → {p.to}</p>
                           <p style={{ fontSize: TYPE.micro, color: COLORS.gray[500] }}>{p.desc}</p>
                         </div>
                       </div>
@@ -751,7 +808,17 @@ export function ExecutiveLoungeAccess() {
           <TabsContent value="history">
             <motion.div variants={fadeInUp} className="space-y-4 mt-4">
               <ExecutiveFilterBar
-                periods={['All', 'registration_approved', 'registration_rejected', 'promoted', 'account_deactivated', 'onboarding_completed', 'lounge_access_changed']}
+                periods={['All', 'registration_approved', 'registration_rejected', 'promoted', 'demoted', 'role_changed', 'account_deactivated', 'onboarding_completed', 'lounge_access_changed']}
+                periodLabels={{
+                  registration_approved: 'Approved',
+                  registration_rejected: 'Rejected',
+                  promoted: 'Promoted',
+                  demoted: 'Demoted',
+                  role_changed: 'Role Changed',
+                  account_deactivated: 'Deactivated',
+                  onboarding_completed: 'Onboarding',
+                  lounge_access_changed: 'Access Changed',
+                }}
                 activePeriod={historyFilter}
                 onPeriodChange={setHistoryFilter}
                 teams={[]}
@@ -764,7 +831,7 @@ export function ExecutiveLoungeAccess() {
                       <thead>
                         <tr style={{ backgroundColor: COLORS.gray[50] }}>
                           {['Date', 'Member', 'Action', 'Details', 'Performed By', 'Reason'].map(h => (
-                            <th key={h} className="text-left font-medium text-gray-500"
+                            <th key={h} className="text-left font-medium text-stone-500"
                               style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>
                               {h}
                             </th>
@@ -778,7 +845,7 @@ export function ExecutiveLoungeAccess() {
                               {new Date(entry.created_at).toLocaleDateString()}
                             </td>
                             <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              <span className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                              <span className="font-medium text-stone-900" style={{ fontSize: TYPE.meta }}>
                                 {entry.target_first_name} {entry.target_last_name}
                               </span>
                             </td>
@@ -787,8 +854,10 @@ export function ExecutiveLoungeAccess() {
                             </td>
                             <td style={{ fontSize: TYPE.micro, color: COLORS.gray[600], padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px`, maxWidth: 200 }}>
                               {entry.previous_value && entry.new_value
-                                ? `${(entry.previous_value as any).role || '—'} → ${(entry.new_value as any).role || '—'}`
-                                : '—'}
+                                ? `${ROLE_DISPLAY[(entry.previous_value as any).role]?.label || (entry.previous_value as any).role || '—'} → ${ROLE_DISPLAY[(entry.new_value as any).role]?.label || (entry.new_value as any).role || '—'}`
+                                : entry.new_value && (entry.new_value as any).loungeKey
+                                  ? `${(entry.new_value as any).loungeKey.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())} — ${(entry.new_value as any).granted ? 'Granted' : 'Revoked'}`
+                                  : '—'}
                             </td>
                             <td style={{ fontSize: TYPE.meta, color: COLORS.gray[500], padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                               {entry.performer_first_name} {entry.performer_last_name}
@@ -801,7 +870,7 @@ export function ExecutiveLoungeAccess() {
                         ))}
                         {history.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="text-center text-gray-400" style={{ padding: GRID.spacing.xl, fontSize: TYPE.meta }}>
+                            <td colSpan={6} className="text-center text-stone-400" style={{ padding: GRID.spacing.xl, fontSize: TYPE.meta }}>
                               No activity logged yet
                             </td>
                           </tr>
@@ -854,7 +923,7 @@ export function ExecutiveLoungeAccess() {
                   <h3 style={{ fontSize: TYPE.title, fontWeight: 700 }}>
                     {drawerMode === 'registration' ? 'Application Review' : 'Member Details'}
                   </h3>
-                  <button onClick={closeDrawer} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                  <button onClick={closeDrawer} className="p-1.5 rounded-lg hover:bg-stone-100 transition-colors">
                     <X style={{ width: 20, height: 20, color: COLORS.gray[500] }} />
                   </button>
                 </div>
@@ -865,20 +934,20 @@ export function ExecutiveLoungeAccess() {
                     <div className="space-y-5">
                       {/* Name + Contact */}
                       <div>
-                        <h4 className="text-xl font-bold text-gray-900">
+                        <h4 className="text-xl font-bold text-stone-900">
                           {selectedRegistration.first_name} {selectedRegistration.last_name}
                         </h4>
                         <div className="mt-2 space-y-1">
-                          <div className="flex items-center gap-2 text-gray-600" style={{ fontSize: TYPE.meta }}>
+                          <div className="flex items-center gap-2 text-stone-600" style={{ fontSize: TYPE.meta }}>
                             <Mail style={{ width: 14, height: 14 }} /> {selectedRegistration.email}
                           </div>
                           {selectedRegistration.phone && (
-                            <div className="flex items-center gap-2 text-gray-600" style={{ fontSize: TYPE.meta }}>
+                            <div className="flex items-center gap-2 text-stone-600" style={{ fontSize: TYPE.meta }}>
                               <Phone style={{ width: 14, height: 14 }} /> {selectedRegistration.phone}
                             </div>
                           )}
                           {selectedRegistration.city && (
-                            <div className="flex items-center gap-2 text-gray-600" style={{ fontSize: TYPE.meta }}>
+                            <div className="flex items-center gap-2 text-stone-600" style={{ fontSize: TYPE.meta }}>
                               <MapPin style={{ width: 14, height: 14 }} />
                               {selectedRegistration.city}, {selectedRegistration.state} {selectedRegistration.zip_code}
                             </div>
@@ -889,7 +958,7 @@ export function ExecutiveLoungeAccess() {
                       {/* Professional Info */}
                       <Card className="border-0" style={{ ...GLASS.css.light, borderRadius: RADIUS.card }}>
                         <CardContent style={{ padding: GRID.spacing.sm }}>
-                          <h5 className="font-semibold text-gray-800 mb-3" style={{ fontSize: TYPE.meta }}>
+                          <h5 className="font-semibold text-stone-800 mb-3" style={{ fontSize: TYPE.meta }}>
                             <Briefcase style={{ width: 14, height: 14, display: 'inline', marginRight: 6 }} />
                             Professional Background
                           </h5>
@@ -908,7 +977,7 @@ export function ExecutiveLoungeAccess() {
                       {selectedRegistration.why_join_heritage && (
                         <Card className="border-0" style={{ ...GLASS.css.light, borderRadius: RADIUS.card }}>
                           <CardContent style={{ padding: GRID.spacing.sm }}>
-                            <h5 className="font-semibold text-gray-800 mb-2" style={{ fontSize: TYPE.meta }}>
+                            <h5 className="font-semibold text-stone-800 mb-2" style={{ fontSize: TYPE.meta }}>
                               <Award style={{ width: 14, height: 14, display: 'inline', marginRight: 6 }} />
                               Why Heritage?
                             </h5>
@@ -942,7 +1011,7 @@ export function ExecutiveLoungeAccess() {
                             placeholder="Rejection reason (required)..."
                             value={rejectReason}
                             onChange={e => setRejectReason(e.target.value)}
-                            className="w-full p-3 text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                            className="w-full p-3 text-stone-700 placeholder:text-stone-400 outline-none focus:ring-2 focus:ring-red-300 resize-none"
                             style={{
                               fontSize: TYPE.meta,
                               borderRadius: RADIUS.input,
@@ -987,7 +1056,7 @@ export function ExecutiveLoungeAccess() {
                           {(selectedMember.first_name?.[0] || '') + (selectedMember.last_name?.[0] || '')}
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-gray-900">
+                          <h4 className="text-xl font-bold text-stone-900">
                             {selectedMember.first_name} {selectedMember.last_name}
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
@@ -1001,7 +1070,7 @@ export function ExecutiveLoungeAccess() {
                       {/* Lounge Access Toggles */}
                       <Card className="border-0" style={{ ...GLASS.css.light, borderRadius: RADIUS.card }}>
                         <CardContent style={{ padding: GRID.spacing.sm }}>
-                          <h5 className="font-semibold text-gray-800 mb-3" style={{ fontSize: TYPE.meta }}>
+                          <h5 className="font-semibold text-stone-800 mb-3" style={{ fontSize: TYPE.meta }}>
                             <ShieldCheck style={{ width: 14, height: 14, display: 'inline', marginRight: 6 }} />
                             Lounge Access
                           </h5>
@@ -1019,10 +1088,12 @@ export function ExecutiveLoungeAccess() {
                                   <Switch
                                     checked={hasAccess}
                                     onCheckedChange={(granted) => {
-                                      loungeToggleMutation.mutate({
+                                      setPendingToggle({
                                         userId: selectedMember.id,
                                         loungeKey: lounge.key,
+                                        loungeName: lounge.name,
                                         granted,
+                                        memberName: `${selectedMember.first_name} ${selectedMember.last_name}`,
                                       });
                                     }}
                                     disabled={loungeToggleMutation.isPending}
@@ -1051,7 +1122,7 @@ export function ExecutiveLoungeAccess() {
                         <Card className="border-0" style={{ ...GLASS.css.light, borderRadius: RADIUS.card }}>
                           <CardContent style={{ padding: GRID.spacing.sm }}>
                             <div className="flex items-center justify-between mb-3">
-                              <h5 className="font-semibold text-gray-800" style={{ fontSize: TYPE.meta }}>
+                              <h5 className="font-semibold text-stone-800" style={{ fontSize: TYPE.meta }}>
                                 <FileText style={{ width: 14, height: 14, display: 'inline', marginRight: 6 }} />
                                 Onboarding Profile
                               </h5>
@@ -1091,7 +1162,7 @@ export function ExecutiveLoungeAccess() {
                               <div className="space-y-4">
                                 {/* Personal */}
                                 <div>
-                                  <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                  <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                     <Shield style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                     Personal & Sensitive
                                   </p>
@@ -1104,7 +1175,7 @@ export function ExecutiveLoungeAccess() {
 
                                 {/* Banking */}
                                 <div>
-                                  <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                  <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                     <CreditCard style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                     Direct Deposit
                                   </p>
@@ -1118,7 +1189,7 @@ export function ExecutiveLoungeAccess() {
 
                                 {/* License & E&O */}
                                 <div>
-                                  <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                  <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                     <Award style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                     License & E&O
                                   </p>
@@ -1138,7 +1209,7 @@ export function ExecutiveLoungeAccess() {
                               <div className="space-y-4">
                                 {/* Background */}
                                 <div>
-                                  <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                  <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                     <GraduationCap style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                     Background & Education
                                   </p>
@@ -1155,7 +1226,7 @@ export function ExecutiveLoungeAccess() {
 
                                 {/* Study Preferences */}
                                 <div>
-                                  <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                  <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                     <BookOpen style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                     Study Preferences
                                   </p>
@@ -1168,7 +1239,7 @@ export function ExecutiveLoungeAccess() {
 
                                 {/* Training */}
                                 <div>
-                                  <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                  <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                     <Building2 style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                     Training Schedule
                                   </p>
@@ -1182,7 +1253,7 @@ export function ExecutiveLoungeAccess() {
 
                             {/* Compliance (both paths) */}
                             <div className="mt-4">
-                              <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                              <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                 <AlertTriangle style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                 Compliance
                               </p>
@@ -1195,7 +1266,7 @@ export function ExecutiveLoungeAccess() {
 
                             {/* DocuSign Status */}
                             <div className="mt-4">
-                              <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                              <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                 <FileText style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                 E-Sign Documents
                               </p>
@@ -1207,9 +1278,9 @@ export function ExecutiveLoungeAccess() {
                             </div>
 
                             {/* Documents */}
-                            {(onboarding.eo_certificate_s3_key || onboarding.aml_certificate_s3_key || onboarding.drivers_license_s3_key) && (
+                            {(onboarding.eo_certificate_s3_key || onboarding.aml_certificate_s3_key || onboarding.drivers_license_s3_key || onboarding.drivers_license_back_s3_key || onboarding.direct_deposit_form_s3_key) && (
                               <div className="mt-4">
-                                <p className="font-semibold text-gray-700 mb-2" style={{ fontSize: TYPE.caption }}>
+                                <p className="font-semibold text-stone-700 mb-2" style={{ fontSize: TYPE.caption }}>
                                   <Upload style={{ width: 12, height: 12, display: 'inline', marginRight: 4 }} />
                                   Uploaded Documents
                                 </p>
@@ -1221,7 +1292,13 @@ export function ExecutiveLoungeAccess() {
                                     <DocumentRow label="AML Certificate" s3Key={onboarding.aml_certificate_s3_key} />
                                   )}
                                   {onboarding.drivers_license_s3_key && (
-                                    <DocumentRow label="Driver's License" s3Key={onboarding.drivers_license_s3_key} />
+                                    <DocumentRow label="Driver's License (Front)" s3Key={onboarding.drivers_license_s3_key} />
+                                  )}
+                                  {onboarding.drivers_license_back_s3_key && (
+                                    <DocumentRow label="Driver's License (Back)" s3Key={onboarding.drivers_license_back_s3_key} />
+                                  )}
+                                  {onboarding.direct_deposit_form_s3_key && (
+                                    <DocumentRow label="Direct Deposit Form" s3Key={onboarding.direct_deposit_form_s3_key} />
                                   )}
                                 </div>
                               </div>
@@ -1234,14 +1311,14 @@ export function ExecutiveLoungeAccess() {
                       {selectedMember.role !== 'owner' && (
                         <Card className="border-0" style={{ ...GLASS.css.light, borderRadius: RADIUS.card }}>
                           <CardContent style={{ padding: GRID.spacing.sm }}>
-                            <h5 className="font-semibold text-gray-800 mb-3" style={{ fontSize: TYPE.meta }}>
+                            <h5 className="font-semibold text-stone-800 mb-3" style={{ fontSize: TYPE.meta }}>
                               <ArrowUpRight style={{ width: 14, height: 14, display: 'inline', marginRight: 6 }} />
                               Change Role
                             </h5>
                             <select
                               value={promoteRole}
                               onChange={e => setPromoteRole(e.target.value)}
-                              className="w-full p-2.5 text-gray-700 outline-none focus:ring-2 focus:ring-orange-300 mb-2"
+                              className="w-full p-2.5 text-stone-700 outline-none focus:ring-2 focus:ring-orange-300 mb-2"
                               style={{
                                 fontSize: TYPE.meta,
                                 borderRadius: RADIUS.input,
@@ -1259,7 +1336,7 @@ export function ExecutiveLoungeAccess() {
                               placeholder="Reason for change..."
                               value={promoteReason}
                               onChange={e => setPromoteReason(e.target.value)}
-                              className="w-full p-2.5 text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-orange-300 resize-none mb-2"
+                              className="w-full p-2.5 text-stone-700 placeholder:text-stone-400 outline-none focus:ring-2 focus:ring-orange-300 resize-none mb-2"
                               style={{
                                 fontSize: TYPE.meta,
                                 borderRadius: RADIUS.input,
@@ -1272,15 +1349,27 @@ export function ExecutiveLoungeAccess() {
                               style={{ background: EXECUTIVE_GRADIENT_CSS, borderRadius: RADIUS.button }}
                               disabled={!promoteRole || promoteMutation.isPending}
                               onClick={() => {
-                                promoteMutation.mutate({
+                                const rank: Record<string, number> = { owner: 0, system_admin: 1, manager: 2, sales_agent: 3 };
+                                const isUp = promoteRole && rank[promoteRole] !== undefined && rank[selectedMember.role] !== undefined && rank[promoteRole] < rank[selectedMember.role];
+                                setPendingPromote({
                                   userId: selectedMember.id,
                                   newRole: promoteRole,
+                                  newRoleLabel: ROLE_DISPLAY[promoteRole]?.label || promoteRole,
                                   newHierarchyLevel: roleToLevel[promoteRole] ?? 5,
                                   reason: promoteReason || `Role changed to ${promoteRole}`,
+                                  memberName: `${selectedMember.first_name} ${selectedMember.last_name}`,
+                                  currentRole: ROLE_DISPLAY[selectedMember.role]?.label || selectedMember.role,
+                                  isPromotion: !!isUp,
                                 });
                               }}
                             >
-                              {promoteMutation.isPending ? 'Promoting...' : 'Promote & Notify'}
+                              {(() => {
+                                if (promoteMutation.isPending) return 'Updating...';
+                                // Promotion ladder: Agent(3) → Manager(2) → Director(1) → Executive(0)
+                                const rank: Record<string, number> = { owner: 0, system_admin: 1, manager: 2, sales_agent: 3 };
+                                const isUp = promoteRole && rank[promoteRole] !== undefined && rank[selectedMember.role] !== undefined && rank[promoteRole] < rank[selectedMember.role];
+                                return isUp ? 'Promote & Notify' : 'Change Role';
+                              })()}
                             </Button>
                           </CardContent>
                         </Card>
@@ -1312,6 +1401,208 @@ export function ExecutiveLoungeAccess() {
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* ─── Toggle Access Confirmation Dialog ─── */}
+      <Dialog open={!!pendingToggle} onOpenChange={(open) => { if (!open) setPendingToggle(null); }}>
+        <DialogContent style={{ borderRadius: RADIUS.card, maxWidth: 480 }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" style={{ fontSize: TYPE.body, fontWeight: 700 }}>
+              <ShieldCheck style={{ width: 20, height: 20, color: pendingToggle?.granted ? '#7c3aed' : '#dc2626' }} />
+              {pendingToggle?.granted ? 'Grant Access' : 'Revoke Access'}
+            </DialogTitle>
+            <DialogDescription style={{ fontSize: TYPE.meta, lineHeight: 1.5 }}>
+              {pendingToggle?.granted
+                ? `Grant "${pendingToggle.loungeName}" access to ${pendingToggle.memberName}?`
+                : `Revoke "${pendingToggle?.loungeName}" access from ${pendingToggle?.memberName}?`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div
+            className="flex items-start gap-2 px-3 py-2.5"
+            style={{
+              borderRadius: RADIUS.input,
+              backgroundColor: '#f5f3ff',
+              border: '1px solid #ede9fe',
+              fontSize: TYPE.caption,
+              color: '#6d28d9',
+            }}
+          >
+            <Mail style={{ width: 14, height: 14, marginTop: 1, flexShrink: 0 }} />
+            <span>
+              They will receive an <strong>email</strong> and <strong>in-app notification</strong> about this change.
+            </span>
+          </div>
+
+          <div className="grid gap-2 pt-2" style={{ gridTemplateColumns: pendingToggle?.granted ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr' }}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.caption }}
+              onClick={() => setPendingToggle(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-stone-600 border-stone-300 hover:bg-orange-50"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.caption }}
+              disabled={loungeToggleMutation.isPending}
+              onClick={() => {
+                if (!pendingToggle) return;
+                loungeToggleMutation.mutate({
+                  userId: pendingToggle.userId,
+                  loungeKey: pendingToggle.loungeKey,
+                  granted: pendingToggle.granted,
+                  silent: true,
+                });
+              }}
+            >
+              Silent
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-violet-700 border-violet-300 hover:bg-violet-50"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.caption }}
+              disabled={loungeToggleMutation.isPending}
+              onClick={() => {
+                if (!pendingToggle) return;
+                loungeToggleMutation.mutate({
+                  userId: pendingToggle.userId,
+                  loungeKey: pendingToggle.loungeKey,
+                  granted: pendingToggle.granted,
+                  silent: false,
+                  notificationType: 'access',
+                });
+              }}
+            >
+              Notify
+            </Button>
+            {pendingToggle?.granted && (
+              <Button
+                size="sm"
+                className="w-full text-white font-semibold"
+                style={{ background: EXECUTIVE_GRADIENT_CSS, borderRadius: RADIUS.button, fontSize: TYPE.caption }}
+                disabled={loungeToggleMutation.isPending}
+                onClick={() => {
+                  if (!pendingToggle) return;
+                  loungeToggleMutation.mutate({
+                    userId: pendingToggle.userId,
+                    loungeKey: pendingToggle.loungeKey,
+                    granted: pendingToggle.granted,
+                    silent: false,
+                    notificationType: 'promotion',
+                  });
+                }}
+              >
+                <Crown style={{ width: 13, height: 13 }} />
+                Promote
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Promote / Role Change Confirmation Dialog ─── */}
+      <Dialog open={!!pendingPromote} onOpenChange={(open) => { if (!open) setPendingPromote(null); }}>
+        <DialogContent style={{ borderRadius: RADIUS.card, maxWidth: 460 }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" style={{ fontSize: TYPE.body, fontWeight: 700 }}>
+              {pendingPromote?.isPromotion ? (
+                <>
+                  <Crown style={{ width: 20, height: 20, color: '#f59e0b' }} />
+                  Confirm Promotion
+                </>
+              ) : (
+                <>
+                  <UserCog style={{ width: 20, height: 20, color: '#6b7280' }} />
+                  Confirm Role Change
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription style={{ fontSize: TYPE.meta, lineHeight: 1.5 }}>
+              {pendingPromote?.isPromotion
+                ? `Promote ${pendingPromote.memberName} from ${pendingPromote.currentRole} to ${pendingPromote.newRoleLabel}?`
+                : `Change ${pendingPromote?.memberName} from ${pendingPromote?.currentRole} to ${pendingPromote?.newRoleLabel}?`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div
+            className="space-y-1.5 px-3 py-2.5"
+            style={{
+              borderRadius: RADIUS.input,
+              backgroundColor: pendingPromote?.isPromotion ? '#fffbeb' : '#f9fafb',
+              border: `1px solid ${pendingPromote?.isPromotion ? '#fde68a' : '#e5e7eb'}`,
+              fontSize: TYPE.caption,
+              color: COLORS.gray[700],
+            }}
+          >
+            <p>This will:</p>
+            <ul className="list-disc list-inside space-y-0.5" style={{ fontSize: TYPE.caption }}>
+              <li>Update their role to <strong>{pendingPromote?.newRoleLabel}</strong></li>
+              <li>Adjust lounge access accordingly</li>
+              {pendingPromote?.isPromotion ? (
+                <li>Send a <strong>promotion email</strong></li>
+              ) : (
+                <li style={{ color: COLORS.gray[400] }}>No email will be sent (lateral/demotion)</li>
+              )}
+            </ul>
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              style={{ borderRadius: RADIUS.button }}
+              onClick={() => setPendingPromote(null)}
+            >
+              Cancel
+            </Button>
+            {pendingPromote?.isPromotion && (
+              <Button
+                variant="outline"
+                className="text-stone-600 border-stone-300 hover:bg-orange-50"
+                style={{ borderRadius: RADIUS.button }}
+                disabled={promoteMutation.isPending}
+                onClick={() => {
+                  if (!pendingPromote) return;
+                  promoteMutation.mutate({
+                    userId: pendingPromote.userId,
+                    newRole: pendingPromote.newRole,
+                    newHierarchyLevel: pendingPromote.newHierarchyLevel,
+                    reason: pendingPromote.reason,
+                    silent: true,
+                  });
+                }}
+              >
+                Silent (no email)
+              </Button>
+            )}
+            <Button
+              className="text-white font-semibold"
+              style={{ background: EXECUTIVE_GRADIENT_CSS, borderRadius: RADIUS.button }}
+              disabled={promoteMutation.isPending}
+              onClick={() => {
+                if (!pendingPromote) return;
+                promoteMutation.mutate({
+                  userId: pendingPromote.userId,
+                  newRole: pendingPromote.newRole,
+                  newHierarchyLevel: pendingPromote.newHierarchyLevel,
+                  reason: pendingPromote.reason,
+                  silent: false,
+                });
+              }}
+            >
+              {promoteMutation.isPending
+                ? 'Updating...'
+                : pendingPromote?.isPromotion
+                  ? 'Promote & Notify'
+                  : 'Change Role'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ExecutiveLoungeLayout>
   );
 }

@@ -30,9 +30,11 @@ export interface RegistrationFormData {
   whyJoinHeritage: string;
   referralSource: string;
   referringAgentName: string;
+  preferredUplineId: string;
   // Step 6: Consent
   agreedToTerms: boolean;
   agreedToPrivacy: boolean;
+  agreedToSms: boolean;
 }
 
 const defaultFormData: RegistrationFormData = {
@@ -58,8 +60,10 @@ const defaultFormData: RegistrationFormData = {
   whyJoinHeritage: "",
   referralSource: "",
   referringAgentName: "",
+  preferredUplineId: "",
   agreedToTerms: false,
   agreedToPrivacy: false,
+  agreedToSms: false,
 };
 
 export type StepErrors = Record<string, string>;
@@ -175,6 +179,8 @@ export function useRegistrationForm() {
           newErrors.agreedToTerms = "You must agree to the Terms of Service";
         if (!formData.agreedToPrivacy)
           newErrors.agreedToPrivacy = "You must agree to the Privacy Policy";
+        if (!formData.agreedToSms)
+          newErrors.agreedToSms = "You must agree to SMS communications";
         break;
       }
     }

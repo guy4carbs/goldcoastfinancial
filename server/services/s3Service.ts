@@ -1,115 +1,71 @@
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-  HeadObjectCommand,
-  ListObjectsV2Command,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+/**
+ * Document Storage Service
+ * Uses Firebase Storage REST API (no service account needed)
+ * Same interface as the original S3 service — all callers work unchanged
+ */
 import crypto from 'crypto';
 import path from 'path';
 
-/**
- * S3 Document Storage Service
- * Handles secure file uploads with signed URLs
- */
+// =============================================================================
+// FIREBASE STORAGE CONFIG
+// =============================================================================
 
-let s3Client: S3Client | null = null;
+function getStorageBucket(): string | null {
+  return process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || null;
+}
 
-// Allowed file types and their MIME types
+function getApiKey(): string | null {
+  return process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || null;
+}
+
+// =============================================================================
+// ALLOWED FILE TYPES
+// =============================================================================
+
 const ALLOWED_DOCUMENT_TYPES: Record<string, string[]> = {
-  // Documents
   '.pdf': ['application/pdf'],
   '.doc': ['application/msword'],
   '.docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
   '.xls': ['application/vnd.ms-excel'],
   '.xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-  // Images
   '.jpg': ['image/jpeg'],
   '.jpeg': ['image/jpeg'],
   '.png': ['image/png'],
   '.gif': ['image/gif'],
   '.webp': ['image/webp'],
-  // Text
   '.txt': ['text/plain'],
   '.csv': ['text/csv'],
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-/**
- * Get the S3 client instance
- */
-function getS3Client(): S3Client | null {
-  if (s3Client) return s3Client;
+// =============================================================================
+// AVAILABILITY CHECK
+// =============================================================================
 
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const region = process.env.AWS_REGION || 'us-east-1';
-
-  if (!accessKeyId || !secretAccessKey) {
-    console.warn('[S3] AWS credentials not configured');
-    return null;
-  }
-
-  try {
-    s3Client = new S3Client({
-      region,
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
-
-    console.log('[S3] S3 client initialized');
-    return s3Client;
-  } catch (error: any) {
-    console.error('[S3] Failed to initialize S3 client:', error.message);
-    return null;
-  }
-}
-
-/**
- * Get the S3 bucket name
- */
-function getBucket(): string {
-  return process.env.AWS_S3_BUCKET || 'heritage-documents';
-}
-
-/**
- * Check if S3 is configured and available
- */
 export function isS3Available(): boolean {
-  return getS3Client() !== null;
+  return !!(getStorageBucket() && getApiKey());
 }
 
 // =============================================================================
 // FILE VALIDATION
 // =============================================================================
 
-/**
- * Validate a file before upload
- */
 export function validateFile(
   filename: string,
   mimeType: string,
   size: number
 ): { valid: boolean; error?: string } {
-  // Check file size
   if (size > MAX_FILE_SIZE) {
     return { valid: false, error: `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB` };
   }
 
-  // Get file extension
   const ext = path.extname(filename).toLowerCase();
 
-  // Check if extension is allowed
   if (!ALLOWED_DOCUMENT_TYPES[ext]) {
     return { valid: false, error: `File type ${ext} is not allowed` };
   }
 
-  // Check if MIME type matches
   if (!ALLOWED_DOCUMENT_TYPES[ext].includes(mimeType)) {
     return { valid: false, error: `Invalid file type for extension ${ext}` };
   }
@@ -118,18 +74,9 @@ export function validateFile(
 }
 
 // =============================================================================
-// FILE OPERATIONS
+// FILE KEY GENERATION
 // =============================================================================
 
-interface UploadOptions {
-  contentType?: string;
-  metadata?: Record<string, string>;
-  serverSideEncryption?: boolean;
-}
-
-/**
- * Generate a unique file key
- */
 function generateFileKey(userId: string, filename: string, folder?: string): string {
   const timestamp = Date.now();
   const random = crypto.randomBytes(8).toString('hex');
@@ -145,8 +92,38 @@ function generateFileKey(userId: string, filename: string, folder?: string): str
   return keyParts.join('/');
 }
 
+// =============================================================================
+// FIREBASE STORAGE REST API HELPERS
+// =============================================================================
+
+function encodeFirebasePath(filePath: string): string {
+  return encodeURIComponent(filePath);
+}
+
+function getUploadUrl(bucket: string, filePath: string): string {
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodeFirebasePath(filePath)}`;
+}
+
+function getFileUrl(bucket: string, filePath: string): string {
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeFirebasePath(filePath)}`;
+}
+
+function getDownloadUrl(bucket: string, filePath: string, token: string): string {
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeFirebasePath(filePath)}?alt=media&token=${token}`;
+}
+
+// =============================================================================
+// FILE OPERATIONS
+// =============================================================================
+
+interface UploadOptions {
+  contentType?: string;
+  metadata?: Record<string, string>;
+  serverSideEncryption?: boolean;
+}
+
 /**
- * Upload a file to S3
+ * Upload a file to Firebase Storage
  */
 export async function uploadFile(
   userId: string,
@@ -154,93 +131,111 @@ export async function uploadFile(
   content: Buffer | Uint8Array | string,
   options?: UploadOptions,
   folder?: string
-): Promise<{ success: boolean; key?: string; error?: string }> {
-  const client = getS3Client();
-  if (!client) {
-    return { success: false, error: 'S3 not configured' };
+): Promise<{ success: boolean; key?: string; url?: string; error?: string }> {
+  const bucket = getStorageBucket();
+  if (!bucket) {
+    return { success: false, error: 'Storage not configured' };
   }
 
   const key = generateFileKey(userId, filename, folder);
-  const bucket = getBucket();
+  const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content);
 
   try {
-    const command = new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: content,
-      ContentType: options?.contentType || 'application/octet-stream',
-      Metadata: {
-        userId,
-        originalFilename: filename,
-        uploadedAt: new Date().toISOString(),
-        ...options?.metadata,
+    // Upload via Firebase Storage REST API
+    const uploadUrl = getUploadUrl(bucket, key);
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': options?.contentType || 'application/octet-stream',
       },
-      ServerSideEncryption: options?.serverSideEncryption !== false ? 'AES256' : undefined,
+      body: buffer,
     });
 
-    await client.send(command);
-    console.log(`[S3] File uploaded: ${key}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Storage] Upload failed:', response.status, errorText);
+      return { success: false, error: `Upload failed: ${response.status}` };
+    }
 
-    return { success: true, key };
+    const result = await response.json();
+    const downloadToken = result.downloadTokens || '';
+    const url = getDownloadUrl(bucket, key, downloadToken);
+
+    // Set custom metadata if provided
+    if (options?.metadata && Object.keys(options.metadata).length > 0) {
+      try {
+        const metadataUrl = getFileUrl(bucket, key);
+        await fetch(metadataUrl, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            metadata: {
+              userId,
+              originalFilename: filename,
+              uploadedAt: new Date().toISOString(),
+              ...options.metadata,
+            },
+          }),
+        });
+      } catch {
+        // Metadata update is non-critical
+      }
+    }
+
+    console.log(`[Storage] File uploaded: ${key}`);
+    return { success: true, key, url };
   } catch (error: any) {
-    console.error('[S3] Upload failed:', error.message);
+    console.error('[Storage] Upload failed:', error.message);
     return { success: false, error: 'Failed to upload file' };
   }
 }
 
 /**
- * Get a file from S3
+ * Get a file from Firebase Storage
  */
 export async function getFile(key: string): Promise<{ success: boolean; data?: Buffer; error?: string }> {
-  const client = getS3Client();
-  if (!client) {
-    return { success: false, error: 'S3 not configured' };
+  const bucket = getStorageBucket();
+  if (!bucket) {
+    return { success: false, error: 'Storage not configured' };
   }
 
   try {
-    const command = new GetObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    });
+    const url = `${getFileUrl(bucket, key)}?alt=media`;
+    const response = await fetch(url);
 
-    const response = await client.send(command);
-    const chunks: Uint8Array[] = [];
-
-    if (response.Body) {
-      // Convert stream to buffer
-      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
-        chunks.push(chunk);
-      }
+    if (!response.ok) {
+      return { success: false, error: `Failed to get file: ${response.status}` };
     }
 
-    return { success: true, data: Buffer.concat(chunks) };
+    const arrayBuffer = await response.arrayBuffer();
+    return { success: true, data: Buffer.from(arrayBuffer) };
   } catch (error: any) {
-    console.error('[S3] Get file failed:', error.message);
+    console.error('[Storage] Get file failed:', error.message);
     return { success: false, error: 'Failed to get file' };
   }
 }
 
 /**
- * Delete a file from S3
+ * Delete a file from Firebase Storage
  */
 export async function deleteFile(key: string): Promise<{ success: boolean; error?: string }> {
-  const client = getS3Client();
-  if (!client) {
-    return { success: false, error: 'S3 not configured' };
+  const bucket = getStorageBucket();
+  if (!bucket) {
+    return { success: false, error: 'Storage not configured' };
   }
 
   try {
-    const command = new DeleteObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    });
+    const url = getFileUrl(bucket, key);
+    const response = await fetch(url, { method: 'DELETE' });
 
-    await client.send(command);
-    console.log(`[S3] File deleted: ${key}`);
+    if (!response.ok && response.status !== 404) {
+      return { success: false, error: `Failed to delete: ${response.status}` };
+    }
 
+    console.log(`[Storage] File deleted: ${key}`);
     return { success: true };
   } catch (error: any) {
-    console.error('[S3] Delete failed:', error.message);
+    console.error('[Storage] Delete failed:', error.message);
     return { success: false, error: 'Failed to delete file' };
   }
 }
@@ -249,17 +244,13 @@ export async function deleteFile(key: string): Promise<{ success: boolean; error
  * Check if a file exists
  */
 export async function fileExists(key: string): Promise<boolean> {
-  const client = getS3Client();
-  if (!client) return false;
+  const bucket = getStorageBucket();
+  if (!bucket) return false;
 
   try {
-    const command = new HeadObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    });
-
-    await client.send(command);
-    return true;
+    const url = getFileUrl(bucket, key);
+    const response = await fetch(url);
+    return response.ok;
   } catch {
     return false;
   }
@@ -274,21 +265,21 @@ export async function getFileMetadata(key: string): Promise<{
   lastModified?: Date;
   metadata?: Record<string, string>;
 } | null> {
-  const client = getS3Client();
-  if (!client) return null;
+  const bucket = getStorageBucket();
+  if (!bucket) return null;
 
   try {
-    const command = new HeadObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    });
+    const url = getFileUrl(bucket, key);
+    const response = await fetch(url);
 
-    const response = await client.send(command);
+    if (!response.ok) return null;
+
+    const data = await response.json();
     return {
-      contentType: response.ContentType,
-      size: response.ContentLength,
-      lastModified: response.LastModified,
-      metadata: response.Metadata,
+      contentType: data.contentType || undefined,
+      size: data.size ? Number(data.size) : undefined,
+      lastModified: data.updated ? new Date(data.updated) : undefined,
+      metadata: data.metadata || undefined,
     };
   } catch {
     return null;
@@ -296,70 +287,65 @@ export async function getFileMetadata(key: string): Promise<{
 }
 
 // =============================================================================
-// SIGNED URLS
+// DOWNLOAD URLS
 // =============================================================================
 
 /**
- * Generate a signed URL for downloading a file
+ * Get a download URL for a file
  */
 export async function getSignedDownloadUrl(
   key: string,
-  expiresInSeconds: number = 3600 // 1 hour
+  _expiresInSeconds: number = 3600
 ): Promise<{ success: boolean; url?: string; error?: string }> {
-  const client = getS3Client();
-  if (!client) {
-    return { success: false, error: 'S3 not configured' };
+  // If the key is already a full URL (Firebase client-side upload), return it directly
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    return { success: true, url: key };
+  }
+
+  const bucket = getStorageBucket();
+  if (!bucket) {
+    return { success: false, error: 'Storage not configured' };
   }
 
   try {
-    const command = new GetObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-    });
+    // Fetch file metadata to get download token
+    const metaUrl = getFileUrl(bucket, key);
+    const response = await fetch(metaUrl);
 
-    const url = await getSignedUrl(client, command, { expiresIn: expiresInSeconds });
+    if (!response.ok) {
+      return { success: false, error: `File not found: ${response.status}` };
+    }
+
+    const data = await response.json();
+    const token = data.downloadTokens || '';
+    const url = getDownloadUrl(bucket, key, token);
+
     return { success: true, url };
   } catch (error: any) {
-    console.error('[S3] Signed URL generation failed:', error.message);
+    console.error('[Storage] Download URL generation failed:', error.message);
     return { success: false, error: 'Failed to generate download URL' };
   }
 }
 
 /**
- * Generate a signed URL for uploading a file
+ * Generate a signed URL for uploading (returns the REST upload endpoint)
  */
 export async function getSignedUploadUrl(
   userId: string,
   filename: string,
   contentType: string,
-  expiresInSeconds: number = 3600,
+  _expiresInSeconds: number = 3600,
   folder?: string
 ): Promise<{ success: boolean; url?: string; key?: string; error?: string }> {
-  const client = getS3Client();
-  if (!client) {
-    return { success: false, error: 'S3 not configured' };
+  const bucket = getStorageBucket();
+  if (!bucket) {
+    return { success: false, error: 'Storage not configured' };
   }
 
   const key = generateFileKey(userId, filename, folder);
+  const url = getUploadUrl(bucket, key);
 
-  try {
-    const command = new PutObjectCommand({
-      Bucket: getBucket(),
-      Key: key,
-      ContentType: contentType,
-      Metadata: {
-        userId,
-        originalFilename: filename,
-      },
-      ServerSideEncryption: 'AES256',
-    });
-
-    const url = await getSignedUrl(client, command, { expiresIn: expiresInSeconds });
-    return { success: true, url, key };
-  } catch (error: any) {
-    console.error('[S3] Signed upload URL generation failed:', error.message);
-    return { success: false, error: 'Failed to generate upload URL' };
-  }
+  return { success: true, url, key };
 }
 
 // =============================================================================
@@ -371,34 +357,35 @@ export async function getSignedUploadUrl(
  */
 export async function listFiles(
   prefix: string,
-  maxKeys: number = 100
+  _maxKeys: number = 100
 ): Promise<{
   success: boolean;
   files?: Array<{ key: string; size: number; lastModified: Date }>;
   error?: string;
 }> {
-  const client = getS3Client();
-  if (!client) {
-    return { success: false, error: 'S3 not configured' };
+  const bucket = getStorageBucket();
+  if (!bucket) {
+    return { success: false, error: 'Storage not configured' };
   }
 
   try {
-    const command = new ListObjectsV2Command({
-      Bucket: getBucket(),
-      Prefix: prefix,
-      MaxKeys: maxKeys,
-    });
+    const url = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?prefix=${encodeURIComponent(prefix)}`;
+    const response = await fetch(url);
 
-    const response = await client.send(command);
-    const files = (response.Contents || []).map(item => ({
-      key: item.Key!,
-      size: item.Size!,
-      lastModified: item.LastModified!,
+    if (!response.ok) {
+      return { success: false, error: `List failed: ${response.status}` };
+    }
+
+    const data = await response.json();
+    const files = (data.items || []).map((item: any) => ({
+      key: item.name,
+      size: Number(item.size || 0),
+      lastModified: new Date(item.updated || Date.now()),
     }));
 
     return { success: true, files };
   } catch (error: any) {
-    console.error('[S3] List files failed:', error.message);
+    console.error('[Storage] List files failed:', error.message);
     return { success: false, error: 'Failed to list files' };
   }
 }
@@ -415,12 +402,9 @@ export async function listUserFiles(userId: string): Promise<{
 }
 
 // =============================================================================
-// DOCUMENT TYPES
+// DOCUMENT TYPE HELPERS
 // =============================================================================
 
-/**
- * Upload a policy document
- */
 export async function uploadPolicyDocument(
   userId: string,
   policyId: string,
@@ -432,9 +416,6 @@ export async function uploadPolicyDocument(
   }, `policies/${policyId}`);
 }
 
-/**
- * Upload a user document (ID, proof of income, etc.)
- */
 export async function uploadUserDocument(
   userId: string,
   documentType: string,
@@ -446,9 +427,6 @@ export async function uploadUserDocument(
   }, 'user-documents');
 }
 
-/**
- * Upload a form submission document
- */
 export async function uploadFormDocument(
   userId: string,
   formType: string,

@@ -218,7 +218,7 @@ export function ExecutiveRecruiting() {
                       return (
                         <div key={stage.stage} className="flex items-center gap-3">
                           <span
-                            className="font-medium text-gray-700 flex-shrink-0"
+                            className="font-medium text-stone-700 flex-shrink-0"
                             style={{
                               fontSize: TYPE.meta,
                               width: 100,
@@ -285,13 +285,13 @@ export function ExecutiveRecruiting() {
                       <div key={src.source}>
                         <div className="flex items-center justify-between mb-1.5">
                           <span
-                            className="font-medium text-gray-700"
+                            className="font-medium text-stone-700"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {src.source}
                           </span>
                           <span
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {src.conversion}%
@@ -421,7 +421,7 @@ export function ExecutiveRecruiting() {
                       >
                         <div>
                           <p
-                            className="font-semibold text-gray-900"
+                            className="font-semibold text-stone-900"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {hire.name}
@@ -480,13 +480,13 @@ export function ExecutiveRecruiting() {
                         <div key={goal.team}>
                           <div className="flex items-center justify-between mb-1.5">
                             <span
-                              className="font-medium text-gray-700"
+                              className="font-medium text-stone-700"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {goal.team}
                             </span>
                             <span
-                              className="font-semibold text-gray-900"
+                              className="font-semibold text-stone-900"
                               style={{ fontSize: TYPE.caption }}
                             >
                               {goal.filled}/{goal.total}
@@ -550,7 +550,7 @@ export function ExecutiveRecruiting() {
                           }}
                         >
                           <p
-                            className="font-medium text-gray-800"
+                            className="font-medium text-stone-800"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {req.title}

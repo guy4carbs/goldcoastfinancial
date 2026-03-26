@@ -123,6 +123,430 @@ This message was sent from the Heritage Life Solutions website contact form.
   });
 }
 
+// =============================================================================
+// POST-CLOSE WELCOME EMAIL — branded HTML with Heritage design
+// =============================================================================
+export async function sendPostCloseWelcomeEmail(data: {
+  clientFirstName: string;
+  clientEmail: string;
+  coverageType: string;
+  agentName: string;
+  agentEmail: string;
+  agentPhone?: string;
+  portalUrl: string;
+  tempPassword?: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const primaryColor = '#7c3aed';
+  const goldColor = '#D4AF37';
+  const gradientFrom = '#7c3aed';
+  const gradientTo = '#D4AF37';
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+  const agentInitials = data.agentName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  const subject = `Congratulations ${data.clientFirstName}! Welcome to Heritage Life Solutions`;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); padding: 32px 40px; text-align: center;">
+              <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 80px; height: 80px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+              <h1 style="color: #ffffff; margin: 16px 0 8px 0; font-size: 24px; font-weight: 700;">Welcome to the Family!</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; font-weight: 500;">Your ${data.coverageType || 'life insurance'} coverage is all set</p>
+            </td>
+          </tr>
+
+          <!-- Congratulations Banner -->
+          <tr>
+            <td style="padding: 24px 40px; background-color: #f5f3ff; border-bottom: 1px solid #e9d5ff;">
+              <table cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="text-align: center;">
+                    <span style="font-size: 32px;">🎉</span>
+                    <p style="color: #5b21b6; font-size: 15px; margin: 8px 0 0 0; font-weight: 600;">Congratulations on securing your financial future!</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <!-- Welcome Message -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ff; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0;">
+                      Hi <strong style="color: ${primaryColor};">${data.clientFirstName}</strong>,
+                    </p>
+                    <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 12px 0 0 0;">
+                      We are honored that you chose Heritage Life Solutions for your ${data.coverageType || 'life insurance'} coverage. Your dedicated agent, <strong>${data.agentName}</strong>, will be with you every step of the way.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Next Steps -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; margin: 30px 0;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="color: #374151; font-size: 14px; font-weight: 600; margin: 0 0 16px 0;">Here's what happens next:</p>
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="padding: 10px 0; vertical-align: top; width: 40px;">
+                          <table cellpadding="0" cellspacing="0"><tr><td style="width: 28px; height: 28px; background-color: ${primaryColor}; border-radius: 50%; text-align: center; vertical-align: middle;"><span style="color: #ffffff; font-size: 13px; font-weight: 700;">1</span></td></tr></table>
+                        </td>
+                        <td style="padding: 10px 0; color: #374151; font-size: 14px; line-height: 1.5;">
+                          <strong>Set up your Client Portal</strong><br><span style="color: #6b7280;">View your policy, documents, and more</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; vertical-align: top; width: 40px;">
+                          <table cellpadding="0" cellspacing="0"><tr><td style="width: 28px; height: 28px; background-color: ${primaryColor}; border-radius: 50%; text-align: center; vertical-align: middle;"><span style="color: #ffffff; font-size: 13px; font-weight: 700;">2</span></td></tr></table>
+                        </td>
+                        <td style="padding: 10px 0; color: #374151; font-size: 14px; line-height: 1.5;">
+                          <strong>Policy review</strong><br><span style="color: #6b7280;">Your agent will ensure everything is perfect</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; vertical-align: top; width: 40px;">
+                          <table cellpadding="0" cellspacing="0"><tr><td style="width: 28px; height: 28px; background-color: ${primaryColor}; border-radius: 50%; text-align: center; vertical-align: middle;"><span style="color: #ffffff; font-size: 13px; font-weight: 700;">3</span></td></tr></table>
+                        </td>
+                        <td style="padding: 10px 0; color: #374151; font-size: 14px; line-height: 1.5;">
+                          <strong>Full client services</strong><br><span style="color: #6b7280;">Access our complete suite of tools and support</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              ${data.tempPassword ? `
+              <!-- Login Credentials -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fefce8; border: 1px solid #fde68a; border-radius: 12px; margin: 30px 0;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="color: #92400e; font-size: 14px; font-weight: 700; margin: 0 0 16px 0;">🔑 Your Login Credentials</p>
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="padding: 8px 12px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px;">
+                          <p style="color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 4px 0;">Email</p>
+                          <p style="color: #111827; font-size: 15px; font-weight: 600; margin: 0; font-family: monospace;">${data.clientEmail}</p>
+                        </td>
+                      </tr>
+                      <tr><td style="height: 8px;"></td></tr>
+                      <tr>
+                        <td style="padding: 8px 12px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
+                          <p style="color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 4px 0;">Temporary Password</p>
+                          <p style="color: #111827; font-size: 15px; font-weight: 600; margin: 0; font-family: monospace;">${data.tempPassword}</p>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="color: #92400e; font-size: 12px; margin: 12px 0 0 0;">
+                      ⚠️ Please change your password after your first login for security.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${data.portalUrl}/client/login" style="display: inline-block; background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 17px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+                      🔐 Log In to Your Client Portal
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #9ca3af; font-size: 13px; text-align: center; margin: 0;">
+                Or copy this link: <a href="${data.portalUrl}/client/login" style="color: ${primaryColor};">${data.portalUrl}/client/login</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Agent Signature -->
+          <tr>
+            <td style="padding: 0 40px 40px 40px; border-top: 1px solid #e5e7eb;">
+              <table cellpadding="0" cellspacing="0" style="padding-top: 30px;">
+                <tr>
+                  <td style="padding-right: 16px; vertical-align: top;">
+                    <table cellpadding="0" cellspacing="0"><tr>
+                      <td style="width: 56px; height: 56px; background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); border-radius: 14px; text-align: center; vertical-align: middle;">
+                        <span style="color: #ffffff; font-size: 22px; font-weight: 700;">${agentInitials}</span>
+                      </td>
+                    </tr></table>
+                  </td>
+                  <td>
+                    <p style="color: #111827; font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">${data.agentName}</p>
+                    <p style="color: ${primaryColor}; font-size: 13px; font-weight: 600; margin: 0 0 8px 0;">Licensed Insurance Agent</p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 0;">📧 <a href="mailto:${data.agentEmail}" style="color: #6b7280; text-decoration: none;">${data.agentEmail}</a></p>
+                    ${data.agentPhone ? `<p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">📱 <a href="tel:${data.agentPhone.replace(/[^0-9+]/g, '')}" style="color: ${primaryColor}; text-decoration: none; font-weight: 600;">${data.agentPhone}</a></p>` : ''}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">Heritage Life Solutions</p>
+              <p style="color: #9ca3af; font-size: 12px; margin: 0;">Protecting families with personalized insurance solutions</p>
+            </td>
+          </tr>
+
+          <!-- Legal Footer -->
+          <tr>
+            <td style="background-color: #f1f5f9; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #64748b; font-size: 11px; line-height: 1.6; margin: 0 0 12px 0; text-align: center;">
+                &copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
+              </p>
+              <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
+                At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.
+              </p>
+              <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
+                Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term.
+              </p>
+              <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0; text-align: center;">
+                Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  const plainTextBody = `
+HERITAGE LIFE SOLUTIONS
+Welcome to the Family!
+
+Hi ${data.clientFirstName},
+
+Congratulations on securing your financial future with Heritage Life Solutions! We are honored that you chose us for your ${data.coverageType || 'life insurance'} coverage.
+
+Your dedicated agent, ${data.agentName}, will be with you every step of the way.
+
+Here's what happens next:
+1. Set up your Client Portal to view your policy, documents, and more
+2. Your agent will review your policy details to ensure everything is perfect
+3. You'll have access to our full suite of client services
+
+${data.tempPassword ? `YOUR LOGIN CREDENTIALS:
+Email: ${data.clientEmail}
+Temporary Password: ${data.tempPassword}
+(Please change your password after first login)
+
+` : ''}Log in to your Client Portal: ${data.portalUrl}/client/login
+
+If you have any questions, reach out to ${data.agentName}${data.agentPhone ? ` at ${data.agentPhone}` : ''} or reply to this email.
+
+Welcome to the Heritage family!
+
+Best regards,
+${data.agentName}
+Licensed Insurance Agent
+${data.agentEmail}
+${data.agentPhone || ''}
+
+--------------------------------------------
+Heritage Life Solutions
+
+(c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
+  `.trim();
+
+  const boundary = `boundary_${Date.now()}`;
+  const message = [
+    'MIME-Version: 1.0',
+    `From: Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    `To: ${data.clientEmail}`,
+    `Reply-To: ${data.agentEmail}`,
+    `Subject: ${subject}`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    plainTextBody,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    htmlBody,
+    '',
+    `--${boundary}--`
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(message)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  const result = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw: encodedMessage }
+  });
+
+  console.log(`[PostCloseEmail] Welcome email sent to ${data.clientEmail}`);
+  return result;
+}
+
+// =============================================================================
+// FOLLOW-UP EMAIL — branded HTML for 30/60/90 day check-ins
+// =============================================================================
+export async function sendFollowUpEmail(data: {
+  clientFirstName: string;
+  clientEmail: string;
+  coverageType: string;
+  agentName: string;
+  agentEmail: string;
+  agentPhone?: string;
+  portalUrl: string;
+  subject: string;
+  headline: string;
+  subheadline: string;
+  message: string;
+  emoji?: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const primaryColor = '#7c3aed';
+  const gradientFrom = '#7c3aed';
+  const gradientTo = '#D4AF37';
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+  const agentInitials = data.agentName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const emoji = data.emoji || '📋';
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+        <!-- Header -->
+        <tr><td style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); padding: 32px 40px; text-align: center;">
+          <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 80px; height: 80px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+          <h1 style="color: #ffffff; margin: 16px 0 8px 0; font-size: 24px; font-weight: 700;">${data.headline}</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px; font-weight: 500;">${data.subheadline}</p>
+        </td></tr>
+
+        <!-- Emoji Banner -->
+        <tr><td style="padding: 24px 40px; background-color: #f5f3ff; border-bottom: 1px solid #e9d5ff; text-align: center;">
+          <span style="font-size: 32px;">${emoji}</span>
+          <p style="color: #5b21b6; font-size: 15px; margin: 8px 0 0 0; font-weight: 600;">Time to check in, ${data.clientFirstName}!</p>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding: 40px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ff; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 30px;">
+            <tr><td style="padding: 20px 24px;">
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0;">Hi <strong style="color: ${primaryColor};">${data.clientFirstName}</strong>,</p>
+              <p style="color: #6b7280; font-size: 15px; line-height: 1.8; margin: 12px 0 0 0; white-space: pre-line;">${data.message}</p>
+            </td></tr>
+          </table>
+
+          <!-- CTA -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+            <tr><td align="center">
+              <a href="${data.portalUrl}/client/login" style="display: inline-block; background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 17px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+                🔐 View Your Client Portal
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Agent Signature -->
+        <tr><td style="padding: 0 40px 40px 40px; border-top: 1px solid #e5e7eb;">
+          <table cellpadding="0" cellspacing="0" style="padding-top: 30px;">
+            <tr>
+              <td style="padding-right: 16px; vertical-align: top;">
+                <table cellpadding="0" cellspacing="0"><tr>
+                  <td style="width: 56px; height: 56px; background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); border-radius: 14px; text-align: center; vertical-align: middle;">
+                    <span style="color: #ffffff; font-size: 22px; font-weight: 700;">${agentInitials}</span>
+                  </td>
+                </tr></table>
+              </td>
+              <td>
+                <p style="color: #111827; font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">${data.agentName}</p>
+                <p style="color: ${primaryColor}; font-size: 13px; font-weight: 600; margin: 0 0 8px 0;">Licensed Insurance Agent</p>
+                <p style="color: #6b7280; font-size: 13px; margin: 0;">📧 <a href="mailto:${data.agentEmail}" style="color: #6b7280; text-decoration: none;">${data.agentEmail}</a></p>
+                ${data.agentPhone ? `<p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">📱 <a href="tel:${data.agentPhone.replace(/[^0-9+]/g, '')}" style="color: ${primaryColor}; text-decoration: none; font-weight: 600;">${data.agentPhone}</a></p>` : ''}
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">Heritage Life Solutions</p>
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">Protecting families with personalized insurance solutions</p>
+        </td></tr>
+
+        <!-- Legal -->
+        <tr><td style="background-color: #f1f5f9; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+          <p style="color: #64748b; font-size: 11px; line-height: 1.6; margin: 0 0 12px 0; text-align: center;">
+            &copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
+          </p>
+          <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
+            At Heritage, we believe protecting your family shouldn't be complicated. Our streamlined process connects you with coverage options from top-rated carriers, often without the need for medical exams. Most applications take just minutes to complete, and approvals can happen within 24-48 hours.
+          </p>
+          <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
+            Life insurance premiums are based on factors including age, health, and coverage amount. Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium remains fixed for the duration of your term.
+          </p>
+          <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0; text-align: center;">
+            Heritage Life Solutions partners with A-rated insurance carriers to provide comprehensive coverage options. All quotes are subject to underwriting approval by the issuing carrier.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+
+  const plainTextBody = `${data.headline}\n\nHi ${data.clientFirstName},\n\n${data.message}\n\nLog in to your Client Portal: ${data.portalUrl}/client/login\n\nBest regards,\n${data.agentName}\nHeritage Life Solutions`;
+
+  const boundary = `boundary_${Date.now()}`;
+  const message = [
+    'MIME-Version: 1.0',
+    `From: Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    `To: ${data.clientEmail}`,
+    `Reply-To: ${data.agentEmail}`,
+    `Subject: ${data.subject}`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '', `--${boundary}`, 'Content-Type: text/plain; charset="UTF-8"', 'Content-Transfer-Encoding: 8bit', '', plainTextBody,
+    '', `--${boundary}`, 'Content-Type: text/html; charset="UTF-8"', 'Content-Transfer-Encoding: 8bit', '', htmlBody,
+    '', `--${boundary}--`
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  await gmail.users.messages.send({ userId: 'me', requestBody: { raw: encodedMessage } });
+  console.log(`[FollowUpEmail] ${data.headline} sent to ${data.clientEmail}`);
+}
+
 export async function sendPortalMessage(data: {
   senderName: string;
   senderEmail: string;
@@ -2461,20 +2885,46 @@ export async function sendPromotionEmail(data: {
   const gmail = await getGmailClient();
   const firstName = data.agentName.split(' ')[0];
 
-  // Heritage Executive/orange brand colors
-  const primaryColor = '#ea580c';
-  const secondaryColor = '#b91c1c';
-  const accentColor = '#fbbf24';
-  const gradient = 'linear-gradient(135deg, #ea580c 0%, #b91c1c 50%, #fbbf24 100%)';
+  // Heritage brand colors — violet/purple primary, amber/gold accent
+  const primaryColor = '#7c3aed';
+  const primaryDark = '#6d28d9';
+  const accentColor = '#f59e0b';
+  const gradient = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)';
+  const accentGradient = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
 
   const subject = `Congratulations on Your Promotion to ${data.newTitle}!`;
+
+  // Role-specific messaging
+  const roleContent: Record<string, { headline: string; body: string; whatsChanged: string }> = {
+    manager: {
+      headline: `You're Now a Manager`,
+      body: `Your hard work and leadership have earned you a well-deserved promotion from <strong style="color: #374151;">${data.previousTitle}</strong> to <strong style="color: ${primaryColor};">${data.newTitle}</strong>. This is a significant milestone in your career at Heritage, and we're excited to see you take on this new challenge.`,
+      whatsChanged: `As a Manager, you now lead your own team of agents. You'll have access to team performance dashboards, coaching tools, and the Manager Lounge — your hub for tracking production, onboarding new agents, and driving results. Your agents are counting on you, and we know you'll deliver.`,
+    },
+    system_admin: {
+      headline: `You've Been Elevated to Director`,
+      body: `Your consistent results and leadership as a Manager have set you apart. We're proud to promote you from <strong style="color: #374151;">${data.previousTitle}</strong> to <strong style="color: ${primaryColor};">${data.newTitle}</strong> — a role reserved for Heritage's top performers.`,
+      whatsChanged: `As a Director, you now oversee multiple teams and play a key role in shaping agency strategy. You'll have expanded reporting, the ability to manage managers, and access to advanced analytics to drive growth across your region.`,
+    },
+    owner: {
+      headline: `Welcome to the Executive Team`,
+      body: `This is the pinnacle — you've been promoted from <strong style="color: #374151;">${data.previousTitle}</strong> to <strong style="color: ${primaryColor};">${data.newTitle}</strong>. Your vision, dedication, and track record of building successful teams have earned you a seat at the executive table.`,
+      whatsChanged: `As an Executive, you have full access to every area of the Heritage platform — agency-wide KPIs, financial oversight, AI tools, strategic planning, and the Executive Lounge. You're now part of the team that sets the direction for Heritage Life Solutions.`,
+    },
+  };
+
+  const content = roleContent[data.newRole] || {
+    headline: `Congratulations on Your Promotion`,
+    body: `We're pleased to announce your promotion from <strong style="color: #374151;">${data.previousTitle}</strong> to <strong style="color: ${primaryColor};">${data.newTitle}</strong>. Your dedication and results have made this possible.`,
+    whatsChanged: `Your new role comes with expanded access and responsibilities within the Heritage platform. Log in to explore everything that's now available to you.`,
+  };
 
   // Build lounge access list HTML
   const loungeAccessHtml = data.newLoungeAccess.map(item =>
     `<tr>
       <td style="padding: 6px 0; vertical-align: top; width: 24px;">
-        <span style="color: #16a34a; font-size: 16px;">&#x2705;</span>
+        <span style="color: ${primaryColor}; font-size: 14px;">&#x2713;</span>
       </td>
       <td style="padding: 6px 0 6px 8px; color: #374151; font-size: 14px; line-height: 1.5;">
         ${item}
@@ -2505,8 +2955,8 @@ export async function sendPromotionEmail(data: {
                 <tr>
                   <td align="center">
                     <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 80px; height: 80px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
-                    <h1 style="color: #ffffff; margin: 16px 0 8px 0; font-size: 28px; font-weight: 700;">&#x1F31F; Congratulations! &#x1F389;</h1>
-                    <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 15px; font-weight: 500;">You've been promoted to ${data.newTitle}</p>
+                    <h1 style="color: #ffffff; margin: 16px 0 8px 0; font-size: 26px; font-weight: 700;">${content.headline}</h1>
+                    <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 15px; font-weight: 500;">${data.previousTitle} &rarr; ${data.newTitle}</p>
                   </td>
                 </tr>
               </table>
@@ -2517,32 +2967,32 @@ export async function sendPromotionEmail(data: {
           <tr>
             <td style="padding: 40px;">
               <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
-                Dear <strong style="color: ${primaryColor};">${firstName}</strong>,
+                ${firstName},
               </p>
               <p style="color: #6b7280; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
-                We are excited to congratulate you on your well-deserved promotion from <strong style="color: #374151;">${data.previousTitle}</strong> to <strong style="color: ${primaryColor};">${data.newTitle}</strong>. Your dedication, hard work, and commitment to excellence have made this achievement possible.
+                ${content.body}
               </p>
 
-              <!-- New Access Section -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff7ed; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 24px;">
+              <!-- What's Changed Section -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ff; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 24px;">
                 <tr>
                   <td style="padding: 24px;">
-                    <p style="color: #374151; font-size: 16px; font-weight: 700; margin: 0 0 16px 0;">&#x1F511; Your New Access</p>
-                    <table cellpadding="0" cellspacing="0" width="100%">
-                      ${loungeAccessHtml}
-                    </table>
+                    <p style="color: #374151; font-size: 15px; font-weight: 700; margin: 0 0 12px 0;">What This Means for You</p>
+                    <p style="color: #6b7280; font-size: 14px; line-height: 1.7; margin: 0;">
+                      ${content.whatsChanged}
+                    </p>
                   </td>
                 </tr>
               </table>
 
-              <!-- What's Changed Section -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fefce8; border: 1px solid #fde68a; border-radius: 12px; margin-bottom: 30px;">
+              <!-- New Access Section -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; margin-bottom: 30px;">
                 <tr>
                   <td style="padding: 24px;">
-                    <p style="color: #374151; font-size: 16px; font-weight: 700; margin: 0 0 12px 0;">What's Changed</p>
-                    <p style="color: #6b7280; font-size: 14px; line-height: 1.7; margin: 0;">
-                      As a <strong style="color: ${primaryColor};">${data.newTitle}</strong>, you now have expanded responsibilities and access within the Heritage platform. Your new role as <strong>${data.newRole}</strong> comes with enhanced tools, reporting capabilities, and team management features. Explore your updated dashboard to see everything that's available to you.
-                    </p>
+                    <p style="color: #374151; font-size: 15px; font-weight: 700; margin: 0 0 16px 0;">Your Platform Access</p>
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                      ${loungeAccessHtml}
+                    </table>
                   </td>
                 </tr>
               </table>
@@ -2551,8 +3001,8 @@ export async function sendPromotionEmail(data: {
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${data.loginUrl}" style="display: inline-block; background: ${gradient}; color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 17px; font-weight: 700; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);">
-                      &#x1F680; Explore Your New Access
+                    <a href="${data.loginUrl}" style="display: inline-block; background: ${gradient}; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 12px; font-size: 16px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);">
+                      Log In to Your Dashboard
                     </a>
                   </td>
                 </tr>
@@ -2578,7 +3028,13 @@ export async function sendPromotionEmail(data: {
           <tr>
             <td style="background-color: #f1f5f9; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
               <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 0; text-align: center;">
-                &copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states.
+                &copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
+              </p>
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 12px 0 0 0; text-align: center;">
+                Commission rates referenced are based on product type and production level. Income examples represent averages and are not guarantees of earnings. Individual results may vary based on effort, experience, and market conditions.
+              </p>
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 12px 0 0 0; text-align: center;">
+                Heritage Life Solutions is an equal opportunity organization. All applicants are welcome regardless of background, experience level, or prior industry knowledge.
               </p>
             </td>
           </tr>
@@ -2590,28 +3046,35 @@ export async function sendPromotionEmail(data: {
 </html>
   `.trim();
 
+  const contentPlain = roleContent[data.newRole] || { whatsChanged: 'Your new role comes with expanded access and responsibilities within the Heritage platform.' };
+
   const textBody = `
 HERITAGE LIFE SOLUTIONS
-Congratulations!
 
-Dear ${firstName},
+${content.headline}
 
-We are excited to congratulate you on your well-deserved promotion from ${data.previousTitle} to ${data.newTitle}. Your dedication, hard work, and commitment to excellence have made this achievement possible.
+${firstName},
 
-YOUR NEW ACCESS:
+${content.body.replace(/<[^>]+>/g, '')}
+
+WHAT THIS MEANS FOR YOU:
+${content.whatsChanged}
+
+YOUR PLATFORM ACCESS:
 ${loungeAccessText}
 
-WHAT'S CHANGED:
-As a ${data.newTitle}, you now have expanded responsibilities and access within the Heritage platform. Your new role as ${data.newRole} comes with enhanced tools, reporting capabilities, and team management features.
-
-EXPLORE YOUR NEW ACCESS:
+LOG IN TO YOUR DASHBOARD:
 ${data.loginUrl}
 
 --------------------------------------------
 Heritage Life Solutions
 Protecting families with personalized insurance solutions
 
-(c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners.
+(c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
+
+Commission rates referenced are based on product type and production level. Income examples represent averages and are not guarantees of earnings. Individual results may vary based on effort, experience, and market conditions.
+
+Heritage Life Solutions is an equal opportunity organization. All applicants are welcome regardless of background, experience level, or prior industry knowledge.
   `.trim();
 
   const boundary = `boundary_${Date.now()}`;
@@ -2665,9 +3128,9 @@ export async function sendAccessChangeEmail(data: {
   const gmail = await getGmailClient();
   const firstName = data.memberName.split(' ')[0];
 
-  // Heritage Executive/orange brand colors
-  const primaryColor = '#ea580c';
-  const gradient = 'linear-gradient(135deg, #ea580c 0%, #b91c1c 50%, #fbbf24 100%)';
+  // Heritage violet-to-amber brand colors
+  const primaryColor = '#7c3aed';
+  const gradient = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)';
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
 
   const subject = 'Your Access Has Been Updated - Heritage Life Solutions';
@@ -2722,7 +3185,7 @@ export async function sendAccessChangeEmail(data: {
               </p>
 
               <!-- Change Description Box -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff7ed; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ff; border-left: 4px solid ${primaryColor}; border-radius: 0 12px 12px 0; margin-bottom: 24px;">
                 <tr>
                   <td style="padding: 20px 24px;">
                     <p style="color: #64748b; font-size: 13px; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.05em;">Change Summary</p>
@@ -2743,7 +3206,7 @@ export async function sendAccessChangeEmail(data: {
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${data.loginUrl}" style="display: inline-block; background: ${gradient}; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-size: 16px; font-weight: 700; box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4);">
+                    <a href="${data.loginUrl}" style="display: inline-block; background: ${gradient}; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-size: 16px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
                       Sign In
                     </a>
                   </td>
@@ -2967,16 +3430,20 @@ export async function sendWebsiteLinkEmail(data: {
                   <td>
                     <p style="color: #64748b; font-size: 11px; line-height: 1.6; margin: 0 0 12px 0; text-align: center;">
                       This email was sent by ${data.agent.name} via Heritage Life Solutions.<br/>
-                      &copy; 2024-2026 Gold Coast Financial Group. All rights reserved.
+                      &copy; 2024-2026 Gold Coast Financial Partners. All rights reserved.
                     </p>
                     <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
-                      Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states.
+                      Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states.
                     </p>
                     <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
                       All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes. Quotes are for informational purposes only and do not constitute a binding contract or guarantee of coverage. Final rates, terms, and coverage are subject to underwriting approval. Premiums may vary based on age, health status, and other factors determined during the underwriting process.
                     </p>
-                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0; text-align: center;">
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
                       Please review all policy documents carefully before making a decision.
+                    </p>
+                    <p style="color: #b0b8c4; font-size: 10px; line-height: 1.5; margin: 0; text-align: center;">
+                      Heritage Life Solutions &middot; 1007 N. Orange St., Suite 1432 &middot; Wilmington, DE 19801<br/>
+                      Don't want to receive these emails? <a href="mailto:${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}?subject=Unsubscribe" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
                     </p>
                   </td>
                 </tr>
@@ -3017,18 +3484,25 @@ ${data.agent.phone || ''}
 
 ---
 This email was sent by ${data.agent.name} via Heritage Life Solutions.
-(c) 2024-2026 Gold Coast Financial Group. All rights reserved.
+(c) 2024-2026 Gold Coast Financial Partners. All rights reserved.
 
-Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes. Quotes are for informational purposes only and do not constitute a binding contract or guarantee of coverage. Final rates, terms, and coverage are subject to underwriting approval. Premiums may vary based on age, health status, and other factors determined during the underwriting process. Please review all policy documents carefully before making a decision.
+Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes. Quotes are for informational purposes only and do not constitute a binding contract or guarantee of coverage. Final rates, terms, and coverage are subject to underwriting approval. Premiums may vary based on age, health status, and other factors determined during the underwriting process. Please review all policy documents carefully before making a decision.
+
+To stop receiving emails, reply with "Unsubscribe" in the subject line.
+Heritage Life Solutions | 1007 N. Orange St., Suite 1432 | Wilmington, DE 19801
 `.trim();
 
   const boundary = `boundary_${Date.now()}`;
+  const messageId = `<website-${Date.now()}-${Math.random().toString(36).slice(2)}@heritagels.org>`;
   const rawMessage = [
     'MIME-Version: 1.0',
-    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.recipientEmail}`,
+    `Message-ID: ${messageId}`,
+    `From: ${data.agent.name} via Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    `To: ${data.recipientName} <${data.recipientEmail}>`,
     `Reply-To: ${data.agent.name} <${data.agent.email}>`,
     `Subject: ${subject}`,
+    'X-Mailer: Heritage Life Solutions',
+    `List-Unsubscribe: <mailto:${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}?subject=Unsubscribe>`,
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
     '',
     `--${boundary}`,
@@ -3058,6 +3532,251 @@ Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an
   });
 
   console.log(`[WebsiteLink] Email sent to ${data.recipientEmail} from agent ${data.agent.name}`);
+  return result;
+}
+
+// ─── PRODUCT GUIDE EMAIL ──────────────────────────────────────────────────────
+
+export async function sendProductGuideEmail(data: {
+  recipientName: string;
+  recipientEmail: string;
+  guideUrl: string;
+  guideTitle: string;
+  guideDescription: string;
+  personalMessage?: string;
+  agent: {
+    name: string;
+    email: string;
+    phone: string;
+    npn?: string;
+  };
+}) {
+  const gmail = await getGmailClient();
+
+  const recipientFirst = data.recipientName.split(' ')[0];
+  const agentFirst = data.agent.name.split(' ')[0];
+  const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  const primaryColor = '#7c3aed';
+  const gradientTo = '#D4AF37';
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+
+  const subject = `${agentFirst} prepared a ${data.guideTitle} guide for you`;
+
+  const defaultMessage = `I put together a comprehensive guide on ${data.guideTitle} that I think would be really helpful for you. It covers key benefits, common questions, and the top carriers we work with — all in one easy-to-read page. Take a look when you get a chance, and feel free to reach out if you have any questions.`;
+  const bodyMessage = data.personalMessage || defaultMessage;
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${gradientTo} 100%); padding: 32px 40px; text-align: center;">
+              <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+            </td>
+          </tr>
+
+          <!-- Product Title Banner -->
+          <tr>
+            <td style="padding: 24px 40px 0;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; border-left: 4px solid ${primaryColor};">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="color: #1f2937; font-size: 18px; font-weight: 700; margin: 0 0 4px 0;">${data.guideTitle}</p>
+                    <p style="color: #6b7280; font-size: 14px; margin: 0;">${data.guideDescription}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 24px 40px 32px;">
+              <p style="color: #1f2937; font-size: 16px; font-weight: 600; margin: 0 0 16px 0;">Hi ${recipientFirst},</p>
+              <p style="color: #374151; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">${bodyMessage}</p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #f3f4f6; margin-bottom: 28px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <p style="color: #374151; font-size: 14px; font-weight: 600; margin: 0 0 12px 0;">In this guide, you&rsquo;ll learn about:</p>
+                    <p style="color: #4b5563; font-size: 14px; line-height: 1.8; margin: 0;">
+                      &#x2705; Key benefits and what makes this coverage valuable<br/>
+                      &#x2705; Who this product is designed for<br/>
+                      &#x2705; Answers to the most common questions<br/>
+                      &#x2705; Top-rated carriers we recommend
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="${data.guideUrl}" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 15px; font-weight: 600;">
+                      &#x1F4D6; Read the Full Guide
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 24px 0 0 0;">
+                Looking forward to connecting,<br/>
+                ${agentFirst}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Agent Signature -->
+          <tr>
+            <td style="padding: 0 40px 40px 40px; border-top: 1px solid #e5e7eb;">
+              <table cellpadding="0" cellspacing="0" style="padding-top: 30px;">
+                <tr>
+                  <td style="padding-right: 16px; vertical-align: top;">
+                    <!-- Agent Avatar -->
+                    <table cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="width: 56px; height: 56px; background: linear-gradient(135deg, ${primaryColor} 0%, #D4AF37 100%); border-radius: 14px; text-align: center; vertical-align: middle;">
+                          <span style="color: #ffffff; font-size: 22px; font-weight: 700;">${agentInitials}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td>
+                    <p style="color: #111827; font-size: 17px; font-weight: 700; margin: 0 0 4px 0;">${data.agent.name}</p>
+                    <p style="color: ${primaryColor}; font-size: 13px; font-weight: 600; margin: 0 0 8px 0;">Licensed Insurance Agent${data.agent.npn ? ` &middot; NPN: ${data.agent.npn}` : ''}</p>
+                    <p style="color: #6b7280; font-size: 13px; margin: 0;">&#x1F4E7; <a href="mailto:${data.agent.email}" style="color: #6b7280; text-decoration: none;">${data.agent.email}</a></p>
+                    ${data.agent.phone ? `<p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">&#x1F4F1; <a href="tel:${data.agent.phone.replace(/[^0-9+]/g, '')}" style="color: ${primaryColor}; text-decoration: none; font-weight: 600;">${data.agent.phone}</a></p>` : ''}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">Heritage Life Solutions</p>
+                    <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                      Protecting families with personalized insurance solutions
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Legal Footer -->
+          <tr>
+            <td style="background-color: #f1f5f9; padding: 24px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #64748b; font-size: 11px; line-height: 1.7; margin: 0; text-align: center;">
+                &copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
+              </p>
+              <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 12px 0 0 0; text-align: center;">
+                All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes. This guide is for informational purposes only and does not constitute a binding contract or guarantee of coverage. Final rates, terms, and coverage are subject to underwriting approval. Please review all policy documents carefully before making a decision.
+              </p>
+              <p style="color: #b0b8c4; font-size: 10px; line-height: 1.5; margin: 12px 0 0 0; text-align: center;">
+                Heritage Life Solutions &middot; 1007 N. Orange St., Suite 1432 &middot; Wilmington, DE 19801<br/>
+                Don't want to receive these emails? <a href="mailto:${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}?subject=Unsubscribe" style="color: #94a3b8; text-decoration: underline;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const plainTextBody = `
+Hi ${recipientFirst},
+
+${bodyMessage}
+
+Read the full guide: ${data.guideUrl}
+
+In this guide, you'll learn about:
+- Key benefits and what makes this coverage valuable
+- Who this product is designed for
+- Answers to the most common questions
+- Top-rated carriers we recommend
+
+Looking forward to connecting,
+${agentFirst}
+
+---
+
+${data.agent.name}
+Licensed Insurance Agent
+Heritage Life Solutions${data.agent.npn ? ` | NPN: ${data.agent.npn}` : ''}
+${data.agent.email}
+${data.agent.phone || ''}
+
+---
+This email was sent by ${data.agent.name} via Heritage Life Solutions.
+(c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144. Policies are issued by our carrier partners and product availability may vary by state.
+
+This guide is for informational purposes only and does not constitute a binding contract or guarantee of coverage. Final rates, terms, and coverage are subject to underwriting approval. Please review all policy documents carefully before making a decision.
+
+To stop receiving emails, reply with "Unsubscribe" in the subject line.
+Heritage Life Solutions | 1007 N. Orange St., Suite 1432 | Wilmington, DE 19801
+`.trim();
+
+  const boundary = `boundary_${Date.now()}`;
+  const messageId = `<guide-${Date.now()}-${Math.random().toString(36).slice(2)}@heritagels.org>`;
+  const rawMessage = [
+    'MIME-Version: 1.0',
+    `Message-ID: ${messageId}`,
+    `From: ${data.agent.name} via Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    `To: ${data.recipientName} <${data.recipientEmail}>`,
+    `Reply-To: ${data.agent.name} <${data.agent.email}>`,
+    `Subject: ${subject}`,
+    'X-Mailer: Heritage Life Solutions',
+    `List-Unsubscribe: <mailto:${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}?subject=Unsubscribe>`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    plainTextBody,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    htmlBody,
+    '',
+    `--${boundary}--`,
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(rawMessage)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  const result = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw: encodedMessage },
+  });
+
+  console.log(`[ProductGuide] Email sent to ${data.recipientEmail} — guide: ${data.guideTitle} — from agent ${data.agent.name}`);
   return result;
 }
 
@@ -3215,10 +3934,10 @@ export async function sendOnboardingEmail(data: {
                 <tr>
                   <td>
                     <p style="color: #64748b; font-size: 11px; line-height: 1.6; margin: 0 0 10px 0; text-align: center;">
-                      &copy; 2024-2026 Gold Coast Financial Group. All rights reserved.
+                      &copy; 2024-2026 Gold Coast Financial Partners. All rights reserved.
                     </p>
                     <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
-                      Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
+                      Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
                     </p>
                     <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
                       All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes. This email is confidential and intended only for the named recipient.
@@ -3264,8 +3983,8 @@ Heritage Life Solutions
 Protecting families with personalized insurance solutions
 contact@heritagels.org
 
-(c) 2024-2026 Gold Coast Financial Group. All rights reserved.
-Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
+(c) 2024-2026 Gold Coast Financial Partners. All rights reserved.
+Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
 All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes.
   `.trim();
 
@@ -3424,12 +4143,27 @@ export async function sendOnboardingCompletionEmail(data: {
                 ${stepsHtml}
               </table>
 
+              <!-- Login Info -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <p style="color: #374151; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">Your Login Credentials</p>
+                    <p style="color: #6b7280; font-size: 13px; line-height: 1.6; margin: 0;">
+                      Log in using <strong style="color: ${primaryColor};">${data.agentEmail}</strong> and the password you created when you registered.
+                    </p>
+                    <p style="color: #9ca3af; font-size: 12px; margin: 8px 0 0 0;">
+                      Can't remember? Click <a href="${data.loungeUrl}" style="color: #9ca3af; text-decoration: underline;">Log In</a> and tap "Forgot Password" to reset it.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
               <!-- CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td align="center">
                     <a href="${data.loungeUrl}" style="display: inline-block; background: ${gradient}; color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 17px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
-                      Enter Your Lounge &rarr;
+                      Log In to Your Lounge &rarr;
                     </a>
                   </td>
                 </tr>
@@ -3465,10 +4199,10 @@ export async function sendOnboardingCompletionEmail(data: {
                 <tr>
                   <td>
                     <p style="color: #64748b; font-size: 11px; line-height: 1.6; margin: 0 0 10px 0; text-align: center;">
-                      &copy; 2024-2026 Gold Coast Financial Group. All rights reserved.
+                      &copy; 2024-2026 Gold Coast Financial Partners. All rights reserved.
                     </p>
                     <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
-                      Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
+                      Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
                     </p>
                     <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0 0 10px 0; text-align: center;">
                       All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes. This email is confidential and intended only for the named recipient.
@@ -3502,9 +4236,12 @@ ${isLicensed
 All Documents Signed & Verified: NDA, Debt Roll-Up, Compliance Agreement
 
 What's Next:
-${nextSteps.map((s, i) => `${i + 1}. ${s.title} -${s.desc}`).join('\n')}
+${nextSteps.map((s, i) => `${i + 1}. ${s.title} - ${s.desc}`).join('\n')}
 
-ENTER YOUR LOUNGE:
+YOUR LOGIN: ${data.agentEmail} (use the password you created during registration)
+Can't remember? Go to ${data.loungeUrl} and tap "Forgot Password" to reset it.
+
+LOG IN TO YOUR LOUNGE:
 ${data.loungeUrl}
 
 Questions? Reach out to your manager or email us at contact@heritagels.org
@@ -3514,8 +4251,8 @@ Heritage Life Solutions
 Protecting families with personalized insurance solutions
 contact@heritagels.org
 
-(c) 2024-2026 Gold Coast Financial Group. All rights reserved.
-Heritage Life Solutions is a DBA of Gold Coast Financial Group. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
+(c) 2024-2026 Gold Coast Financial Partners. All rights reserved.
+Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
 All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes.
 Your signed documents are securely stored with AES-256 encryption and SHA-256 integrity verification.
   `.trim();
@@ -3556,5 +4293,159 @@ Your signed documents are securely stored with AES-256 encryption and SHA-256 in
   });
 
   console.log(`[Onboarding] Completion email sent to ${data.agentEmail} (${data.onboardingType})`);
+  return result;
+}
+
+// ─── PASSWORD RESET EMAIL ─────────────────────────────────────────────────────
+
+export async function sendPasswordResetEmail(data: {
+  recipientEmail: string;
+  resetLink: string;
+}): Promise<any> {
+  const gmail = await getGmailClient();
+
+  const primaryColor = '#7c3aed';
+  const gradient = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)';
+  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+
+  const subject = 'Reset Your Password - Heritage Life Solutions';
+
+  const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+          <!-- Header -->
+          <tr>
+            <td style="background: ${gradient}; padding: 32px 40px; text-align: center;">
+              <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 64px; height: 64px; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" />
+              <h1 style="color: #ffffff; margin: 12px 0 4px 0; font-size: 24px; font-weight: 700;">Password Reset</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">Heritage Life Solutions</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 40px;">
+              <p style="color: #374151; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+                We received a request to reset the password for your Heritage Life Solutions account. Click the button below to set a new password.
+              </p>
+
+              <!-- CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${data.resetLink}" style="display: inline-block; background: ${gradient}; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 12px; font-size: 16px; font-weight: 700; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+                      Reset My Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Expiry -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 12px 16px;">
+                    <p style="color: #92400e; font-size: 13px; margin: 0; font-weight: 600;">This link expires in 1 hour.</p>
+                    <p style="color: #a16207; font-size: 12px; margin: 4px 0 0 0;">If it expires, you can request a new one from the login page.</p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0;">
+                If you didn't request this, you can safely ignore this email. Your password will not be changed.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 20px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 32px; height: 32px; border-radius: 8px;" />
+              <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 10px 0 4px 0;">Heritage Life Solutions</p>
+              <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                <a href="mailto:contact@heritagels.org" style="color: ${primaryColor}; text-decoration: none;">contact@heritagels.org</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Legal Footer -->
+          <tr>
+            <td style="background-color: #f1f5f9; padding: 20px 40px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; margin: 0; text-align: center;">
+                &copy; 2024-2026 Gold Coast Financial Partners. All rights reserved. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. IL License #22128144.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  const textBody = `
+HERITAGE LIFE SOLUTIONS
+Password Reset
+
+We received a request to reset the password for your Heritage Life Solutions account.
+
+RESET YOUR PASSWORD:
+${data.resetLink}
+
+This link expires in 1 hour. If it expires, you can request a new one from the login page.
+
+If you didn't request this, you can safely ignore this email. Your password will not be changed.
+
+--------------------------------------------
+Heritage Life Solutions
+contact@heritagels.org
+(c) 2024-2026 Gold Coast Financial Partners. All rights reserved. IL License #22128144.
+  `.trim();
+
+  const boundary = `boundary_${Date.now()}`;
+  const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
+  const messageParts = [
+    'MIME-Version: 1.0',
+    `From: Heritage Life Solutions <${fromEmail}>`,
+    `To: ${data.recipientEmail}`,
+    `Subject: ${subject}`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    textBody,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: 8bit',
+    '',
+    htmlBody,
+    '',
+    `--${boundary}--`,
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(messageParts)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  const result = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw: encodedMessage },
+  });
+
+  console.log(`[PasswordReset] Reset email sent to ${data.recipientEmail}`);
   return result;
 }

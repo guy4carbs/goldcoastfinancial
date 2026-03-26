@@ -57,7 +57,7 @@ import {
   pageViews,
   analyticsEvents,
 } from "@shared/schema";
-import { leads, leadActivities, distributionRecords, type Lead, type InsertLead, type LeadActivity, type InsertLeadActivity, type DistributionRecord, type InsertDistributionRecord, type DistributionAssignment } from "@shared/models/crm";
+import { leads, leadActivities, distributionRecords, activeCalls, callMonitorSessions, type Lead, type InsertLead, type LeadActivity, type InsertLeadActivity, type DistributionRecord, type InsertDistributionRecord, type DistributionAssignment, type ActiveCall, type InsertActiveCall, type CallMonitorSession, type InsertCallMonitorSession } from "@shared/models/crm";
 import { memberCards } from "@shared/models/memberCards";
 import {
   agentLicenses,
@@ -118,6 +118,20 @@ import {
   type ReferralPoint,
   type InsertReferralPoint,
   agentHierarchy,
+  callRecordings,
+  type CallRecording,
+  type InsertCallRecording,
+  callAnalysis,
+  type CallAnalysis,
+  type InsertCallAnalysis,
+  telnyxNumberPool,
+  type TelnyxPoolNumber,
+  type InsertTelnyxPoolNumber,
+  agentTelephonyCredentials,
+  type AgentTelephonyCredential,
+  type InsertAgentTelephonyCredential,
+  dncNumbers,
+  type DncNumber,
 } from "@shared/models/enterprise";
 import { db, pool } from "./db";
 import { eq, desc, and, or, inArray, asc, sql, isNull, like, gte, count } from "drizzle-orm";
@@ -209,6 +223,7 @@ export interface IStorage {
   getPageViews(startDate?: Date, endDate?: Date): Promise<PageView[]>;
   getAnalyticsEvents(startDate?: Date, endDate?: Date): Promise<AnalyticsEvent[]>;
   getPageViewStats(): Promise<{ page: string; count: number }[]>;
+  getPageViewCountByPath(pathPrefix: string): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }>;
   getEventStats(): Promise<{ eventName: string; count: number }[]>;
 
   // Scalable analytics counts (uses SQL aggregation instead of loading all records)
@@ -343,11 +358,76 @@ export interface IStorage {
   getFullAgentProfile(userId: string): Promise<any>;
   setOnboardingToken(profileId: string, tokenHash: string, expiresAt: Date): Promise<void>;
 
+  // Call Recordings
+  createCallRecording(data: InsertCallRecording): Promise<CallRecording>;
+  getCallRecordingsByAgent(agentId: string, limit?: number, offset?: number): Promise<CallRecording[]>;
+  getCallRecordingById(id: string): Promise<CallRecording | null>;
+  updateCallRecording(id: string, data: Partial<CallRecording>): Promise<CallRecording | null>;
+  getCallRecordingByProviderCallSid(providerCallSid: string): Promise<CallRecording | null>;
+  getAgentCallStats(agentId: string): Promise<{ today: number; week: number; month: number; avgDuration: number }>;
+  batchGetCallCounts(phoneNumbers: string[]): Promise<Record<string, number>>;
+  getFilteredCallRecordings(agentId: string, filters: {
+    search?: string; direction?: string; status?: string;
+    dateRange?: string; hasRecording?: boolean;
+    sortBy?: string; limit?: number; offset?: number;
+  }): Promise<{ recordings: any[]; totalCount: number }>;
+  getRecordingStats(agentId: string): Promise<{
+    totalCalls: number; callsToday: number; callsThisWeek: number;
+    connectedCount: number; connectedRate: number;
+    withRecording: number; avgDuration: number;
+  }>;
+  getTeamAgentIds(userId: string, scope: 'direct' | 'full'): Promise<string[]>;
+  getFilteredCallRecordingsMultiAgent(agentIds: string[], filters: {
+    search?: string; direction?: string; status?: string;
+    dateRange?: string; hasRecording?: boolean;
+    sortBy?: string; limit?: number; offset?: number;
+  }): Promise<{ recordings: any[]; totalCount: number }>;
+  getRecordingStatsMultiAgent(agentIds: string[]): Promise<{
+    totalCalls: number; callsToday: number; callsThisWeek: number;
+    connectedCount: number; connectedRate: number;
+    withRecording: number; avgDuration: number;
+  }>;
+
+  // Call Analysis
+  createCallAnalysis(data: InsertCallAnalysis): Promise<CallAnalysis>;
+  getCallAnalysisByRecordingId(callRecordingId: string): Promise<CallAnalysis | null>;
+
+  // DNC List
+  addToDnc(data: { phoneNumber: string; reason?: string; addedByUserId: string; source: string }): Promise<DncNumber>;
+  removeFromDnc(phoneNumber: string, removedByUserId: string): Promise<void>;
+  isOnDnc(phoneNumber: string): Promise<boolean>;
+  getDncList(options?: { limit?: number; offset?: number; search?: string }): Promise<{ numbers: DncNumber[]; total: number }>;
+  batchCheckDnc(phoneNumbers: string[]): Promise<Set<string>>;
+
+  // Agent Telephony Credentials
+  getAgentTelephonyCredential(agentUserId: string): Promise<AgentTelephonyCredential | null>;
+  createAgentTelephonyCredential(data: InsertAgentTelephonyCredential): Promise<AgentTelephonyCredential>;
+
+  // Telnyx Number Pool
+  getNumberByAreaCode(areaCode: string): Promise<TelnyxPoolNumber | null>;
+  createPoolNumber(data: InsertTelnyxPoolNumber): Promise<TelnyxPoolNumber>;
+  getPoolNumbers(): Promise<TelnyxPoolNumber[]>;
+
   // Lounge Access
   getUserLoungeAccess(userId: string): Promise<any[]>;
   setUserLoungeAccess(userId: string, loungeKey: string, granted: boolean, grantedBy: string): Promise<void>;
   getLoungeMembers(loungeKey: string): Promise<any[]>;
   initializeDefaultLoungeAccess(userId: string, role: string): Promise<void>;
+
+  // Active Call Tracking
+  createActiveCall(data: InsertActiveCall): Promise<ActiveCall>;
+  updateActiveCall(id: string, data: Partial<ActiveCall>): Promise<ActiveCall>;
+  getActiveCallByControlId(callControlId: string): Promise<ActiveCall | null>;
+  getActiveCallsByAgent(agentUserId: string): Promise<ActiveCall[]>;
+  getActiveCalls(): Promise<ActiveCall[]>;
+  deleteActiveCall(id: string): Promise<void>;
+
+  // Call Monitor Sessions
+  createMonitorSession(data: InsertCallMonitorSession): Promise<CallMonitorSession>;
+  updateMonitorSession(id: string, data: Partial<CallMonitorSession>): Promise<CallMonitorSession>;
+  getActiveMonitorSession(supervisorUserId: string): Promise<CallMonitorSession | null>;
+  getMonitorSessionsByCall(activeCallId: string): Promise<CallMonitorSession[]>;
+  endMonitorSession(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1050,6 +1130,31 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`COUNT(*) DESC`)
       .limit(20);
     return results.map(r => ({ page: r.page, count: Number(r.count) }));
+  }
+
+  async getPageViewCountByPath(pathPrefix: string): Promise<{ total: number; today: number; thisWeek: number; thisMonth: number }> {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfDay);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const results = await db.select({
+      total: sql<number>`COUNT(*)`,
+      today: sql<number>`COUNT(*) FILTER (WHERE ${pageViews.createdAt} >= ${startOfDay})`,
+      thisWeek: sql<number>`COUNT(*) FILTER (WHERE ${pageViews.createdAt} >= ${startOfWeek})`,
+      thisMonth: sql<number>`COUNT(*) FILTER (WHERE ${pageViews.createdAt} >= ${startOfMonth})`,
+    })
+      .from(pageViews)
+      .where(sql`${pageViews.page} LIKE ${pathPrefix + '%'}`);
+
+    const row = results[0];
+    return {
+      total: Number(row?.total) || 0,
+      today: Number(row?.today) || 0,
+      thisWeek: Number(row?.thisWeek) || 0,
+      thisMonth: Number(row?.thisMonth) || 0,
+    };
   }
 
   async getEventStats(): Promise<{ eventName: string; count: number }[]> {
@@ -2123,6 +2228,8 @@ export class DatabaseStorage implements IStorage {
 
     const conditions = [
       eq(leads.assignedTo, userId),
+      // Exclude leads whose phone is on the DNC list
+      sql`(${leads.phone} IS NULL OR ${leads.phone} NOT IN (SELECT phone_number FROM dnc_numbers WHERE is_active = true))`,
     ];
 
     if (options.status) {
@@ -2321,12 +2428,13 @@ export class DatabaseStorage implements IStorage {
 
   async initializeDefaultLoungeAccess(userId: string, role: string): Promise<void> {
     const roleToLounges: Record<string, string[]> = {
-      owner: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'marketing_lounge', 'admin_panel', 'investor_lounge'],
-      system_admin: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'marketing_lounge', 'admin_panel', 'investor_lounge'],
-      manager: ['agent_portal', 'manager_lounge', 'crm_lounge'],
-      sales_agent: ['agent_portal', 'crm_lounge'],
+      owner: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'],
+      system_admin: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'],
+      manager: ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'],
+      sales_agent: ['agent_portal', 'crm_lounge', 'onboarding_lounge'],
       marketing_staff: ['marketing_lounge', 'crm_lounge'],
-      investor: ['executive_lounge'],
+      investor: ['executive_lounge', 'investor_lounge'],
+      client: ['client_lounge'],
     };
 
     const lounges = roleToLounges[role] || [];
@@ -2336,6 +2444,671 @@ export class DatabaseStorage implements IStorage {
         [userId, lounge],
       );
     }
+  }
+
+  async reinitializeLoungeAccess(userId: string, newRole: string, performedBy: string): Promise<void> {
+    const roleToLounges: Record<string, string[]> = {
+      owner: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'],
+      system_admin: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'],
+      manager: ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'],
+      sales_agent: ['agent_portal', 'crm_lounge', 'onboarding_lounge'],
+      marketing_staff: ['marketing_lounge', 'crm_lounge'],
+      investor: ['executive_lounge', 'investor_lounge'],
+      client: ['client_lounge'],
+    };
+
+    // Revoke all current access
+    await pool.query(
+      `UPDATE user_lounge_access SET granted = false, granted_by = $2, revoked_at = NOW() WHERE user_id = $1 AND granted = true`,
+      [userId, performedBy],
+    );
+
+    // Grant new role's lounges
+    const newLounges = roleToLounges[newRole] || [];
+    for (const lounge of newLounges) {
+      await pool.query(
+        `INSERT INTO user_lounge_access (user_id, lounge_key, granted, granted_by, granted_at)
+         VALUES ($1, $2, true, $3, NOW())
+         ON CONFLICT (user_id, lounge_key) DO UPDATE SET granted = true, granted_by = $3, granted_at = NOW(), revoked_at = NULL`,
+        [userId, lounge, performedBy],
+      );
+    }
+  }
+  // ===========================================================================
+  // CALL RECORDINGS
+  // ===========================================================================
+
+  async createCallRecording(data: InsertCallRecording): Promise<CallRecording> {
+    const [record] = await db.insert(callRecordings).values(data).returning();
+    return record;
+  }
+
+  async getCallRecordingsByAgent(agentId: string, limit = 50, offset = 0): Promise<CallRecording[]> {
+    return db.select()
+      .from(callRecordings)
+      .where(eq(callRecordings.agentUserId, agentId))
+      .orderBy(desc(callRecordings.calledAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getCallRecordingById(id: string): Promise<CallRecording | null> {
+    const [record] = await db.select().from(callRecordings).where(eq(callRecordings.id, id));
+    return record || null;
+  }
+
+  async updateCallRecording(id: string, data: Partial<CallRecording>): Promise<CallRecording | null> {
+    const [record] = await db.update(callRecordings)
+      .set(data)
+      .where(eq(callRecordings.id, id))
+      .returning();
+    return record || null;
+  }
+
+  async getCallRecordingByProviderCallSid(providerCallSid: string): Promise<CallRecording | null> {
+    const [record] = await db.select().from(callRecordings)
+      .where(eq(callRecordings.providerCallSid, providerCallSid));
+    return record || null;
+  }
+
+  async getAgentCallStats(agentId: string): Promise<{ today: number; week: number; month: number; avgDuration: number }> {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - 7);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const result = await pool.query(
+      `SELECT
+        COUNT(*) FILTER (WHERE called_at >= $2) AS today,
+        COUNT(*) FILTER (WHERE called_at >= $3) AS week,
+        COUNT(*) FILTER (WHERE called_at >= $4) AS month,
+        COALESCE(AVG(duration) FILTER (WHERE duration IS NOT NULL AND duration > 0), 0) AS avg_duration
+      FROM call_recordings
+      WHERE agent_user_id = $1`,
+      [agentId, todayStart.toISOString(), weekStart.toISOString(), monthStart.toISOString()]
+    );
+
+    const row = result.rows[0];
+    return {
+      today: parseInt(row.today) || 0,
+      week: parseInt(row.week) || 0,
+      month: parseInt(row.month) || 0,
+      avgDuration: Math.round(parseFloat(row.avg_duration) || 0),
+    };
+  }
+
+  async batchGetCallCounts(phoneNumbers: string[]): Promise<Record<string, number>> {
+    if (phoneNumbers.length === 0) return {};
+    const result = await pool.query(
+      `SELECT phone_number, COUNT(*)::int as count
+       FROM call_recordings
+       WHERE phone_number = ANY($1)
+       GROUP BY phone_number`,
+      [phoneNumbers]
+    );
+    const counts: Record<string, number> = {};
+    for (const phone of phoneNumbers) {
+      counts[phone] = 0;
+    }
+    for (const row of result.rows) {
+      counts[row.phone_number] = row.count;
+    }
+    return counts;
+  }
+
+  async getFilteredCallRecordings(agentId: string, filters: {
+    search?: string; direction?: string; status?: string;
+    dateRange?: string; hasRecording?: boolean;
+    sortBy?: string; limit?: number; offset?: number;
+  }): Promise<{ recordings: any[]; totalCount: number }> {
+    const conditions: string[] = ['cr.agent_user_id = $1'];
+    const params: any[] = [agentId];
+    let paramIndex = 2;
+
+    if (filters.direction && filters.direction !== 'all') {
+      conditions.push(`cr.direction = $${paramIndex}`);
+      params.push(filters.direction);
+      paramIndex++;
+    }
+
+    if (filters.status && filters.status !== 'all') {
+      conditions.push(`cr.status = $${paramIndex}`);
+      params.push(filters.status);
+      paramIndex++;
+    }
+
+    if (filters.hasRecording) {
+      conditions.push('cr.recording_url IS NOT NULL');
+    }
+
+    if (filters.search) {
+      conditions.push(`(cr.phone_number ILIKE $${paramIndex} OR CONCAT(l.first_name, ' ', l.last_name) ILIKE $${paramIndex})`);
+      params.push(`%${filters.search}%`);
+      paramIndex++;
+    }
+
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const now = new Date();
+      let dateStart: Date;
+      if (filters.dateRange === 'today') {
+        dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (filters.dateRange === 'week') {
+        dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      } else {
+        dateStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+      conditions.push(`cr.called_at >= $${paramIndex}`);
+      params.push(dateStart.toISOString());
+      paramIndex++;
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    let orderBy = 'cr.called_at DESC';
+    if (filters.sortBy === 'longest') orderBy = 'cr.duration DESC NULLS LAST';
+    else if (filters.sortBy === 'shortest') orderBy = 'cr.duration ASC NULLS LAST';
+
+    const limit = Math.min(filters.limit || 20, 50);
+    const offset = filters.offset || 0;
+
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(
+        `SELECT cr.*, l.first_name AS lead_first_name, l.last_name AS lead_last_name, l.coverage_type AS lead_coverage_type
+         FROM call_recordings cr
+         LEFT JOIN leads l ON cr.lead_id::text = l.id::text
+         WHERE ${whereClause}
+         ORDER BY ${orderBy}
+         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...params, limit, offset]
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS total
+         FROM call_recordings cr
+         LEFT JOIN leads l ON cr.lead_id::text = l.id::text
+         WHERE ${whereClause}`,
+        params
+      ),
+    ]);
+
+    const recordings = dataResult.rows.map((r: any) => ({
+      id: r.id,
+      leadId: r.lead_id,
+      leadName: r.lead_first_name ? `${r.lead_first_name} ${r.lead_last_name || ''}`.trim() : null,
+      leadCoverageType: r.lead_coverage_type,
+      agentUserId: r.agent_user_id,
+      direction: r.direction,
+      phoneNumber: r.phone_number,
+      duration: r.duration,
+      status: r.status,
+      recordingUrl: r.recording_url ? true : false, // don't expose raw URL
+      transcription: r.transcription,
+      disposition: r.disposition,
+      notes: r.notes,
+      sentiment: r.sentiment,
+      isAnalyzed: r.is_analyzed,
+      calledAt: r.called_at,
+      createdAt: r.created_at,
+    }));
+
+    return { recordings, totalCount: countResult.rows[0]?.total || 0 };
+  }
+
+  async getRecordingStats(agentId: string): Promise<{
+    totalCalls: number; callsToday: number; callsThisWeek: number;
+    connectedCount: number; connectedRate: number;
+    withRecording: number; avgDuration: number;
+  }> {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - 7);
+
+    const result = await pool.query(
+      `SELECT
+        COUNT(*)::int AS total_calls,
+        COUNT(*) FILTER (WHERE called_at >= $2)::int AS today,
+        COUNT(*) FILTER (WHERE called_at >= $3)::int AS this_week,
+        COUNT(*) FILTER (WHERE status = 'connected')::int AS connected,
+        COUNT(*) FILTER (WHERE recording_url IS NOT NULL)::int AS with_recording,
+        COALESCE(AVG(duration) FILTER (WHERE duration IS NOT NULL AND duration > 0), 0) AS avg_duration
+      FROM call_recordings
+      WHERE agent_user_id = $1`,
+      [agentId, todayStart.toISOString(), weekStart.toISOString()]
+    );
+
+    const row = result.rows[0];
+    const totalCalls = row.total_calls || 0;
+    const connectedCount = row.connected || 0;
+
+    return {
+      totalCalls,
+      callsToday: row.today || 0,
+      callsThisWeek: row.this_week || 0,
+      connectedCount,
+      connectedRate: totalCalls > 0 ? Math.round((connectedCount / totalCalls) * 100) : 0,
+      withRecording: row.with_recording || 0,
+      avgDuration: Math.round(parseFloat(row.avg_duration) || 0),
+    };
+  }
+
+  async getTeamAgentIds(userId: string, scope: 'direct' | 'full'): Promise<string[]> {
+    if (scope === 'direct') {
+      const result = await pool.query(
+        `SELECT agent_user_id FROM agent_hierarchy WHERE direct_upline_id = $1 AND effective_to IS NULL`,
+        [userId]
+      );
+      return result.rows.map((r: any) => r.agent_user_id);
+    }
+    // full: recursive CTE for full team tree
+    const result = await pool.query(`
+      WITH RECURSIVE team_tree AS (
+        SELECT agent_user_id, 1 as depth
+        FROM agent_hierarchy
+        WHERE direct_upline_id = $1 AND effective_to IS NULL
+        UNION ALL
+        SELECT h.agent_user_id, tt.depth + 1
+        FROM agent_hierarchy h
+        JOIN team_tree tt ON h.direct_upline_id = tt.agent_user_id
+        WHERE h.effective_to IS NULL AND tt.depth < 10
+      )
+      SELECT agent_user_id FROM team_tree
+    `, [userId]);
+    return result.rows.map((r: any) => r.agent_user_id);
+  }
+
+  async getFilteredCallRecordingsMultiAgent(agentIds: string[], filters: {
+    search?: string; direction?: string; status?: string;
+    dateRange?: string; hasRecording?: boolean;
+    sortBy?: string; limit?: number; offset?: number;
+  }): Promise<{ recordings: any[]; totalCount: number }> {
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    // If agentIds is empty, no filter (view all). Otherwise filter by agent list.
+    if (agentIds.length > 0) {
+      conditions.push(`cr.agent_user_id = ANY($${paramIndex}::uuid[])`);
+      params.push(agentIds);
+      paramIndex++;
+    }
+
+    if (filters.direction && filters.direction !== 'all') {
+      conditions.push(`cr.direction = $${paramIndex}`);
+      params.push(filters.direction);
+      paramIndex++;
+    }
+
+    if (filters.status && filters.status !== 'all') {
+      conditions.push(`cr.status = $${paramIndex}`);
+      params.push(filters.status);
+      paramIndex++;
+    }
+
+    if (filters.hasRecording) {
+      conditions.push('cr.recording_url IS NOT NULL');
+    }
+
+    if (filters.search) {
+      conditions.push(`(cr.phone_number ILIKE $${paramIndex} OR CONCAT(l.first_name, ' ', l.last_name) ILIKE $${paramIndex})`);
+      params.push(`%${filters.search}%`);
+      paramIndex++;
+    }
+
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const now = new Date();
+      let dateStart: Date;
+      if (filters.dateRange === 'today') {
+        dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (filters.dateRange === 'week') {
+        dateStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      } else {
+        dateStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+      conditions.push(`cr.called_at >= $${paramIndex}`);
+      params.push(dateStart.toISOString());
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length > 0 ? conditions.join(' AND ') : '1=1';
+
+    let orderBy = 'cr.called_at DESC';
+    if (filters.sortBy === 'longest') orderBy = 'cr.duration DESC NULLS LAST';
+    else if (filters.sortBy === 'shortest') orderBy = 'cr.duration ASC NULLS LAST';
+
+    const limit = Math.min(filters.limit || 20, 50);
+    const offset = filters.offset || 0;
+
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(
+        `SELECT cr.*, l.first_name AS lead_first_name, l.last_name AS lead_last_name, l.coverage_type AS lead_coverage_type,
+                u.first_name AS agent_first_name, u.last_name AS agent_last_name
+         FROM call_recordings cr
+         LEFT JOIN leads l ON cr.lead_id::text = l.id::text
+         LEFT JOIN users u ON cr.agent_user_id = u.id
+         WHERE ${whereClause}
+         ORDER BY ${orderBy}
+         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+        [...params, limit, offset]
+      ),
+      pool.query(
+        `SELECT COUNT(*)::int AS total
+         FROM call_recordings cr
+         LEFT JOIN leads l ON cr.lead_id::text = l.id::text
+         WHERE ${whereClause}`,
+        params
+      ),
+    ]);
+
+    const recordings = dataResult.rows.map((r: any) => ({
+      id: r.id,
+      leadId: r.lead_id,
+      leadName: r.lead_first_name ? `${r.lead_first_name} ${r.lead_last_name || ''}`.trim() : null,
+      leadCoverageType: r.lead_coverage_type,
+      agentUserId: r.agent_user_id,
+      agentName: r.agent_first_name ? `${r.agent_first_name} ${r.agent_last_name || ''}`.trim() : null,
+      direction: r.direction,
+      phoneNumber: r.phone_number,
+      duration: r.duration,
+      status: r.status,
+      recordingUrl: r.recording_url ? true : false,
+      s3Key: r.s3_key || null,
+      transcription: r.transcription,
+      disposition: r.disposition,
+      notes: r.notes,
+      sentiment: r.sentiment,
+      isAnalyzed: r.is_analyzed,
+      calledAt: r.called_at,
+      createdAt: r.created_at,
+    }));
+
+    return { recordings, totalCount: countResult.rows[0]?.total || 0 };
+  }
+
+  async getRecordingStatsMultiAgent(agentIds: string[]): Promise<{
+    totalCalls: number; callsToday: number; callsThisWeek: number;
+    connectedCount: number; connectedRate: number;
+    withRecording: number; avgDuration: number;
+  }> {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - 7);
+
+    let whereClause: string;
+    let params: any[];
+
+    if (agentIds.length > 0) {
+      whereClause = 'WHERE agent_user_id = ANY($1::uuid[])';
+      params = [agentIds, todayStart.toISOString(), weekStart.toISOString()];
+    } else {
+      // Empty array = all agents (owner/admin view)
+      whereClause = 'WHERE 1=1';
+      params = [todayStart.toISOString(), weekStart.toISOString()];
+    }
+
+    // Adjust param references based on whether we have the agentIds param
+    const todayParam = agentIds.length > 0 ? '$2' : '$1';
+    const weekParam = agentIds.length > 0 ? '$3' : '$2';
+
+    const result = await pool.query(
+      `SELECT
+        COUNT(*)::int AS total_calls,
+        COUNT(*) FILTER (WHERE called_at >= ${todayParam})::int AS today,
+        COUNT(*) FILTER (WHERE called_at >= ${weekParam})::int AS this_week,
+        COUNT(*) FILTER (WHERE status = 'connected')::int AS connected,
+        COUNT(*) FILTER (WHERE recording_url IS NOT NULL)::int AS with_recording,
+        COALESCE(AVG(duration) FILTER (WHERE duration IS NOT NULL AND duration > 0), 0) AS avg_duration
+      FROM call_recordings
+      ${whereClause}`,
+      params
+    );
+
+    const row = result.rows[0];
+    const totalCalls = row.total_calls || 0;
+    const connectedCount = row.connected || 0;
+
+    return {
+      totalCalls,
+      callsToday: row.today || 0,
+      callsThisWeek: row.this_week || 0,
+      connectedCount,
+      connectedRate: totalCalls > 0 ? Math.round((connectedCount / totalCalls) * 100) : 0,
+      withRecording: row.with_recording || 0,
+      avgDuration: Math.round(parseFloat(row.avg_duration) || 0),
+    };
+  }
+
+  // Call Analysis
+  async createCallAnalysis(data: InsertCallAnalysis): Promise<CallAnalysis> {
+    const [record] = await db.insert(callAnalysis).values(data as any).returning();
+    return record;
+  }
+
+  async getCallAnalysisByRecordingId(callRecordingId: string): Promise<CallAnalysis | null> {
+    const [record] = await db.select().from(callAnalysis)
+      .where(eq(callAnalysis.callRecordingId, callRecordingId));
+    return record || null;
+  }
+
+  // DNC List
+  async addToDnc(data: { phoneNumber: string; reason?: string; addedByUserId: string; source: string }): Promise<DncNumber> {
+    const [record] = await db.insert(dncNumbers).values({
+      phoneNumber: data.phoneNumber,
+      reason: data.reason || null,
+      addedByUserId: data.addedByUserId,
+      source: data.source,
+      isActive: true,
+    }).onConflictDoUpdate({
+      target: dncNumbers.phoneNumber,
+      set: {
+        isActive: true,
+        reason: data.reason || null,
+        addedByUserId: data.addedByUserId,
+        source: data.source,
+        removedAt: null,
+        removedByUserId: null,
+      },
+    }).returning();
+    return record;
+  }
+
+  async removeFromDnc(phoneNumber: string, removedByUserId: string): Promise<void> {
+    await db.update(dncNumbers)
+      .set({ isActive: false, removedAt: new Date(), removedByUserId })
+      .where(eq(dncNumbers.phoneNumber, phoneNumber));
+  }
+
+  async isOnDnc(phoneNumber: string): Promise<boolean> {
+    const result = await pool.query(
+      `SELECT 1 FROM dnc_numbers WHERE phone_number = $1 AND is_active = true LIMIT 1`,
+      [phoneNumber]
+    );
+    return result.rows.length > 0;
+  }
+
+  async getDncList(options?: { limit?: number; offset?: number; search?: string }): Promise<{ numbers: DncNumber[]; total: number }> {
+    const limit = options?.limit || 50;
+    const offset = options?.offset || 0;
+    const search = options?.search;
+
+    let whereClause = 'WHERE is_active = true';
+    const params: any[] = [];
+    if (search) {
+      params.push(`%${search}%`);
+      whereClause += ` AND phone_number LIKE $${params.length}`;
+    }
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int as total FROM dnc_numbers ${whereClause}`,
+      params
+    );
+
+    params.push(limit, offset);
+    const result = await pool.query(
+      `SELECT * FROM dnc_numbers ${whereClause} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+
+    return {
+      numbers: result.rows.map((r: any) => ({
+        id: r.id,
+        phoneNumber: r.phone_number,
+        reason: r.reason,
+        addedByUserId: r.added_by_user_id,
+        source: r.source,
+        isActive: r.is_active,
+        removedAt: r.removed_at,
+        removedByUserId: r.removed_by_user_id,
+        createdAt: r.created_at,
+      })),
+      total: countResult.rows[0].total,
+    };
+  }
+
+  async batchCheckDnc(phoneNumbers: string[]): Promise<Set<string>> {
+    if (phoneNumbers.length === 0) return new Set();
+    const result = await pool.query(
+      `SELECT phone_number FROM dnc_numbers WHERE phone_number = ANY($1) AND is_active = true`,
+      [phoneNumbers]
+    );
+    return new Set(result.rows.map((r: any) => r.phone_number));
+  }
+
+  // Agent Telephony Credentials
+  async getAgentTelephonyCredential(agentUserId: string): Promise<AgentTelephonyCredential | null> {
+    const [cred] = await db.select().from(agentTelephonyCredentials)
+      .where(and(eq(agentTelephonyCredentials.agentUserId, agentUserId), eq(agentTelephonyCredentials.isActive, true)));
+    return cred || null;
+  }
+
+  async createAgentTelephonyCredential(data: InsertAgentTelephonyCredential): Promise<AgentTelephonyCredential> {
+    const [cred] = await db.insert(agentTelephonyCredentials).values(data).returning();
+    return cred;
+  }
+
+  // Telnyx Number Pool
+  async getNumberByAreaCode(areaCode: string): Promise<TelnyxPoolNumber | null> {
+    const [num] = await db.select().from(telnyxNumberPool)
+      .where(and(eq(telnyxNumberPool.areaCode, areaCode), eq(telnyxNumberPool.isActive, true)))
+      .limit(1);
+    return num || null;
+  }
+
+  async createPoolNumber(data: InsertTelnyxPoolNumber): Promise<TelnyxPoolNumber> {
+    const [num] = await db.insert(telnyxNumberPool).values(data).returning();
+    return num;
+  }
+
+  async getPoolNumbers(): Promise<TelnyxPoolNumber[]> {
+    return db.select().from(telnyxNumberPool).where(eq(telnyxNumberPool.isActive, true));
+  }
+
+  // =========================================================================
+  // Active Call Tracking
+  // =========================================================================
+
+  async createActiveCall(data: InsertActiveCall): Promise<ActiveCall> {
+    const [call] = await db.insert(activeCalls).values(data).returning();
+    return call;
+  }
+
+  async updateActiveCall(id: string, data: Partial<ActiveCall>): Promise<ActiveCall> {
+    const [call] = await db
+      .update(activeCalls)
+      .set(data)
+      .where(eq(activeCalls.id, id))
+      .returning();
+    return call;
+  }
+
+  async getActiveCallByControlId(callControlId: string): Promise<ActiveCall | null> {
+    const [call] = await db
+      .select()
+      .from(activeCalls)
+      .where(eq(activeCalls.callControlId, callControlId))
+      .limit(1);
+    return call || null;
+  }
+
+  async getActiveCallsByAgent(agentUserId: string): Promise<ActiveCall[]> {
+    return db
+      .select()
+      .from(activeCalls)
+      .where(
+        and(
+          eq(activeCalls.agentUserId, agentUserId),
+          eq(activeCalls.status, "active")
+        )
+      );
+  }
+
+  async getActiveCalls(): Promise<ActiveCall[]> {
+    return db
+      .select()
+      .from(activeCalls)
+      .where(
+        or(
+          eq(activeCalls.status, "initiated"),
+          eq(activeCalls.status, "ringing"),
+          eq(activeCalls.status, "active")
+        )
+      );
+  }
+
+  async deleteActiveCall(id: string): Promise<void> {
+    await db.delete(activeCalls).where(eq(activeCalls.id, id));
+  }
+
+  // =========================================================================
+  // Call Monitor Sessions
+  // =========================================================================
+
+  async createMonitorSession(data: InsertCallMonitorSession): Promise<CallMonitorSession> {
+    const [session] = await db.insert(callMonitorSessions).values(data).returning();
+    return session;
+  }
+
+  async updateMonitorSession(id: string, data: Partial<CallMonitorSession>): Promise<CallMonitorSession> {
+    const [session] = await db
+      .update(callMonitorSessions)
+      .set(data)
+      .where(eq(callMonitorSessions.id, id))
+      .returning();
+    return session;
+  }
+
+  async getActiveMonitorSession(supervisorUserId: string): Promise<CallMonitorSession | null> {
+    const [session] = await db
+      .select()
+      .from(callMonitorSessions)
+      .where(
+        and(
+          eq(callMonitorSessions.supervisorUserId, supervisorUserId),
+          eq(callMonitorSessions.status, "active")
+        )
+      )
+      .limit(1);
+    return session || null;
+  }
+
+  async getMonitorSessionsByCall(activeCallId: string): Promise<CallMonitorSession[]> {
+    return db
+      .select()
+      .from(callMonitorSessions)
+      .where(
+        and(
+          eq(callMonitorSessions.activeCallId, activeCallId),
+          eq(callMonitorSessions.status, "active")
+        )
+      );
+  }
+
+  async endMonitorSession(id: string): Promise<void> {
+    await db
+      .update(callMonitorSessions)
+      .set({ status: "ended", endedAt: new Date() })
+      .where(eq(callMonitorSessions.id, id));
   }
 }
 

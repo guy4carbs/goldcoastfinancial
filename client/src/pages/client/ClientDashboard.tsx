@@ -110,8 +110,8 @@ export default function ClientDashboard() {
 
   // Compute stats from live data
   const activePolicies = policies.filter((p) => p.status === 'active');
-  const totalCoverage = activePolicies.reduce((sum, p) => sum + p.coverageAmount, 0);
-  const totalPremium = activePolicies.reduce((sum, p) => sum + p.monthlyPremium, 0);
+  const totalCoverage = activePolicies.reduce((sum, p) => sum + (Number(p.coverageAmount) || 0), 0);
+  const totalPremium = activePolicies.reduce((sum, p) => sum + (Number(p.monthlyPremium) || 0), 0);
 
   const STAT_CARDS: { icon: LucideIcon; value: string; label: string }[] = [
     { icon: Shield, value: fmtCurrency(totalCoverage), label: 'Total Coverage' },

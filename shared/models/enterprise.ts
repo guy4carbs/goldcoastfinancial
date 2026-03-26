@@ -798,9 +798,15 @@ export const callRecordings = pgTable("call_recordings", {
   status: varchar("status", { length: 50 }).notNull(), // connected, voicemail, no_answer, busy, failed
 
   // Recording
-  twilioSid: varchar("twilio_sid", { length: 100 }),
+  providerRecordingSid: varchar("provider_recording_sid", { length: 100 }),
+  providerCallSid: varchar("provider_call_sid", { length: 100 }),
   recordingUrl: varchar("recording_url", { length: 500 }),
+  s3Key: varchar("s3_key", { length: 500 }),
   transcription: text("transcription"),
+
+  // Disposition & Notes
+  disposition: varchar("disposition", { length: 50 }),
+  notes: text("notes"),
 
   // Analysis
   sentiment: varchar("sentiment", { length: 50 }),
@@ -817,6 +823,30 @@ export const insertCallRecordingSchema = createInsertSchema(callRecordings).omit
 
 export type CallRecording = typeof callRecordings.$inferSelect;
 export type InsertCallRecording = z.infer<typeof insertCallRecordingSchema>;
+
+// =============================================================================
+// DO NOT CALL (DNC) LIST
+// =============================================================================
+
+export const dncNumbers = pgTable("dnc_numbers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  phoneNumber: varchar("phone_number", { length: 50 }).notNull().unique(),
+  reason: varchar("reason", { length: 255 }),
+  addedByUserId: uuid("added_by_user_id").references(() => users.id),
+  source: varchar("source", { length: 50 }).notNull(), // "manual", "sms_opt_out", "compliance"
+  isActive: boolean("is_active").default(true).notNull(),
+  removedAt: timestamp("removed_at"),
+  removedByUserId: uuid("removed_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertDncNumberSchema = createInsertSchema(dncNumbers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type DncNumber = typeof dncNumbers.$inferSelect;
+export type InsertDncNumber = z.infer<typeof insertDncNumberSchema>;
 
 // =============================================================================
 // CALL ANALYSIS
@@ -1116,7 +1146,7 @@ export type SystemLog = typeof systemLogs.$inferSelect;
 export const integrationConfigs = pgTable("integration_configs", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 100 }).notNull().unique(),
-  provider: varchar("provider", { length: 100 }).notNull(), // twilio, sendgrid, google, etc.
+  provider: varchar("provider", { length: 100 }).notNull(), // telnyx, sendgrid, google, etc.
   credentials: jsonb("credentials"), // Encrypted credentials
   settings: jsonb("settings"),
   isActive: boolean("is_active").default(true),
@@ -1260,7 +1290,7 @@ export type Script = typeof scripts.$inferSelect;
 
 export const agentHierarchy = pgTable("agent_hierarchy", {
   id: uuid("id").primaryKey().defaultRandom(),
-  agentUserId: uuid("agent_user_id").references(() => users.id).notNull().unique(),
+  agentUserId: uuid("agent_user_id").references(() => users.id).notNull(),
   directUplineId: uuid("direct_upline_id").references(() => users.id),
 
   // Position in hierarchy
@@ -1269,6 +1299,9 @@ export const agentHierarchy = pgTable("agent_hierarchy", {
 
   // Full upline chain for quick lookups (array of user IDs from direct upline to owner)
   uplineChain: jsonb("upline_chain").$type<string[]>().default([]),
+
+  // Commission contract level (e.g., 120%, 90%, 80%)
+  contractLevel: decimal("contract_level", { precision: 5, scale: 2 }),
 
   // Override commission settings
   overrideEligible: boolean("override_eligible").default(false),
@@ -1316,6 +1349,124 @@ export const HIERARCHY_TITLES: Record<number, string> = {
   6: 'New Agent',
 };
 
+// ─── HIERARCHY REQUESTS (Approval Workflow) ──────────────────────────────────────
+
+export const hierarchyRequests = pgTable("hierarchy_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  requestType: varchar("request_type", { length: 30 }).notNull(), // 'placement' | 'commission_change'
+
+  // Requester
+  requesterId: uuid("requester_id").references(() => users.id).notNull(),
+
+  // Placement fields (used when requestType = 'placement')
+  requestedUplineId: uuid("requested_upline_id").references(() => users.id),
+
+  // Commission change fields (used when requestType = 'commission_change')
+  currentContractLevel: decimal("current_contract_level", { precision: 5, scale: 2 }),
+  requestedContractLevel: decimal("requested_contract_level", { precision: 5, scale: 2 }),
+  proofDocumentUrl: varchar("proof_document_url", { length: 500 }),
+  proofDescription: text("proof_description"),
+  monthlyApAmount: decimal("monthly_ap_amount", { precision: 12, scale: 2 }),
+
+  // Manager review
+  managerReviewerId: uuid("manager_reviewer_id").references(() => users.id),
+  managerStatus: varchar("manager_status", { length: 20 }).default("pending").notNull(),
+  managerNotes: text("manager_notes"),
+  managerRecommendedLevel: decimal("manager_recommended_level", { precision: 5, scale: 2 }),
+  managerReviewedAt: timestamp("manager_reviewed_at"),
+
+  // Executive review
+  executiveReviewerId: uuid("executive_reviewer_id").references(() => users.id),
+  executiveStatus: varchar("executive_status", { length: 20 }).default("pending").notNull(),
+  executiveNotes: text("executive_notes"),
+  executiveFinalLevel: decimal("executive_final_level", { precision: 5, scale: 2 }),
+  executiveFinalUplineId: uuid("executive_final_upline_id").references(() => users.id),
+  executiveReviewedAt: timestamp("executive_reviewed_at"),
+
+  // Carrier update tracking
+  carrierUpdated: boolean("carrier_updated").default(false).notNull(),
+  carrierUpdateNotes: text("carrier_update_notes"),
+  carrierReminderSentAt: timestamp("carrier_reminder_sent_at"),
+
+  // Overall status: pending_manager → pending_executive → approved/rejected/cancelled
+  status: varchar("status", { length: 20 }).default("pending_manager").notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_hierarchy_requests_requester").on(table.requesterId),
+  index("idx_hierarchy_requests_status").on(table.status),
+  index("idx_hierarchy_requests_type").on(table.requestType),
+  index("idx_hierarchy_requests_manager").on(table.managerReviewerId),
+]);
+
+export const insertHierarchyRequestSchema = createInsertSchema(hierarchyRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type HierarchyRequest = typeof hierarchyRequests.$inferSelect;
+export type InsertHierarchyRequest = z.infer<typeof insertHierarchyRequestSchema>;
+
+// ─── COMMISSION TARGETS ──────────────────────────────────────────────────────────
+
+export const commissionTargets = pgTable("commission_targets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  // Scope: 'agency_default' (per hierarchy level) or 'agent_specific' (per agent)
+  scope: varchar("scope", { length: 20 }).notNull(),
+  agentUserId: uuid("agent_user_id").references(() => users.id), // NULL for agency defaults
+
+  hierarchyLevel: integer("hierarchy_level"), // Which level (0-6), NULL for per-agent
+  minContractLevel: decimal("min_contract_level", { precision: 5, scale: 2 }).notNull(),
+  maxContractLevel: decimal("max_contract_level", { precision: 5, scale: 2 }).notNull(),
+  defaultContractLevel: decimal("default_contract_level", { precision: 5, scale: 2 }).notNull(),
+
+  // AP thresholds for level increases: [{monthlyAp: 10000, contractLevel: 75}, ...]
+  levelProgression: jsonb("level_progression").$type<Array<{ monthlyAp: number; contractLevel: number }>>().default([]),
+
+  setBy: uuid("set_by").references(() => users.id).notNull(),
+
+  effectiveFrom: timestamp("effective_from").defaultNow().notNull(),
+  effectiveTo: timestamp("effective_to"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_commission_targets_scope").on(table.scope),
+  index("idx_commission_targets_agent").on(table.agentUserId),
+  index("idx_commission_targets_level").on(table.hierarchyLevel),
+]);
+
+export const insertCommissionTargetSchema = createInsertSchema(commissionTargets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CommissionTarget = typeof commissionTargets.$inferSelect;
+export type InsertCommissionTarget = z.infer<typeof insertCommissionTargetSchema>;
+
+// ─── COMMISSION AUDIT LOG ────────────────────────────────────────────────────────
+
+export const commissionAuditLog = pgTable("commission_audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentUserId: uuid("agent_user_id").references(() => users.id).notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // contract_level_changed, placement_completed, etc.
+  previousValue: jsonb("previous_value"),
+  newValue: jsonb("new_value"),
+  requestId: uuid("request_id"), // links to hierarchy_requests.id
+  performedBy: uuid("performed_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_commission_audit_agent").on(table.agentUserId),
+  index("idx_commission_audit_action").on(table.action),
+]);
+
+export type CommissionAuditLog = typeof commissionAuditLog.$inferSelect;
+export type InsertCommissionAuditLog = typeof commissionAuditLog.$inferInsert;
+
 // ─── ACCESS CHANGE LOG ─────────────────────────────────────────────────────────
 export const accessChangeLog = pgTable("access_change_log", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1335,3 +1486,38 @@ export const accessChangeLog = pgTable("access_change_log", {
 
 export type AccessChangeLog = typeof accessChangeLog.$inferSelect;
 export type InsertAccessChangeLog = typeof accessChangeLog.$inferInsert;
+
+// =============================================================================
+// TELNYX NUMBER POOL (Local Presence Dialing)
+// =============================================================================
+
+export const telnyxNumberPool = pgTable("telnyx_number_pool", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+  areaCode: varchar("area_code", { length: 10 }).notNull(),
+  state: varchar("state", { length: 2 }),
+  connectionId: varchar("connection_id", { length: 100 }).notNull(),
+  telnyxPhoneNumberId: varchar("telnyx_phone_number_id", { length: 100 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type TelnyxPoolNumber = typeof telnyxNumberPool.$inferSelect;
+export type InsertTelnyxPoolNumber = typeof telnyxNumberPool.$inferInsert;
+
+// =============================================================================
+// AGENT TELEPHONY CREDENTIALS (Per-Agent WebRTC Auth)
+// =============================================================================
+
+export const agentTelephonyCredentials = pgTable("agent_telephony_credentials", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agentUserId: uuid("agent_user_id").references(() => users.id).notNull(),
+  telnyxCredentialId: varchar("telnyx_credential_id", { length: 100 }).notNull(),
+  sipUsername: varchar("sip_username", { length: 100 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AgentTelephonyCredential = typeof agentTelephonyCredentials.$inferSelect;
+export type InsertAgentTelephonyCredential = typeof agentTelephonyCredentials.$inferInsert;

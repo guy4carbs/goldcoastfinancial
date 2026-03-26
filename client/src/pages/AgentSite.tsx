@@ -111,12 +111,14 @@ export default function AgentSite() {
       .then(r => r.json())
       .then(data => { if (data) setSettings(data); })
       .catch(() => {});
-    // Track page view
-    fetch('/api/analytics/pageview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ page: `/a/${slug}`, title: `${agentName} - Heritage Life Solutions` }),
-    }).catch(() => {});
+    // Track page view (skip if loaded inside iframe preview)
+    if (window.self === window.top) {
+      fetch('/api/analytics/pageview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: `/a/${slug}`, title: `${agentName} - Heritage Life Solutions` }),
+      }).catch(() => {});
+    }
   }, [slug]);
 
   // Filter products based on settings

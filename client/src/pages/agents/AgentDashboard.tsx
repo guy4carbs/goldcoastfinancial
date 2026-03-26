@@ -13,10 +13,11 @@ import {
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { DailyChallenge } from "@/components/agent/DailyChallenge";
 import { ActivityFeed } from "@/components/agent/ActivityFeed";
-import { QuickActions } from "@/components/agent/QuickActions";
+import { DeltaBadge } from "@/pages/manager/primitives/DeltaBadge";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LogCallModal } from "@/components/agent/LogCallModal";
 import { AddTaskModal } from "@/components/agent/AddTaskModal";
+import { useQuery } from "@tanstack/react-query";
 import { LeaderboardModal } from "@/components/agent/LeaderboardModal";
 import { StateMapWidget } from "@/components/agent/StateMapWidget";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -50,6 +51,8 @@ import {
   AlertCircle,
   Mail,
   User,
+  Sparkles,
+  Shield,
 } from "lucide-react";
 import { cn, formatProductLabel } from "@/lib/utils";
 
@@ -133,6 +136,27 @@ export default function AgentDashboard() {
 
   const { showXP, showAchievement } = useCelebration();
   const [, navigate] = useLocation();
+
+  // Override Zustand leaderboard with real deals API data
+  const { data: apiLeaderboardData } = useQuery<{ success: boolean; data: Array<{
+    rank: number; agentUserId: string; firstName: string; lastName: string; name: string; totalAP: number; dealCount: number;
+  }> }>({
+    queryKey: ['/api/deals/leaderboard?period=month'],
+    staleTime: 60000,
+  });
+
+  const realLeaderboard = apiLeaderboardData?.data?.length ? apiLeaderboardData.data.map((e) => ({
+    id: e.agentUserId,
+    name: e.name || `${e.firstName} ${e.lastName}`.trim(),
+    avatar: undefined,
+    xp: e.totalAP,
+    level: e.totalAP >= 50000 ? 5 : e.totalAP >= 30000 ? 4 : e.totalAP >= 15000 ? 3 : e.totalAP >= 5000 ? 2 : 1,
+    closedDeals: e.dealCount,
+    streak: 0,
+    rank: e.rank,
+    trend: 'same' as const,
+    ap: { daily: e.totalAP, weekly: e.totalAP, monthly: e.totalAP, yearly: e.totalAP },
+  })) : leaderboard;
 
   const [showLogCall, setShowLogCall] = useState(false);
   const [showAddLead, setShowAddLead] = useState(false);
@@ -254,7 +278,7 @@ export default function AgentDashboard() {
       <LeaderboardModal
         open={showLeaderboard}
         onOpenChange={setShowLeaderboard}
-        leaderboard={leaderboard}
+        leaderboard={realLeaderboard}
         currentUserId={currentUser?.id || ''}
       />
 
@@ -290,15 +314,6 @@ export default function AgentDashboard() {
                 : COLORS.gradients.heroWithAccent,
             }}
           >
-            {/* Dot pattern overlay */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-
             {/* Decorative floating circles - Fibonacci sizes: 89, 55, 34 (×4 for visibility) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
@@ -429,44 +444,65 @@ export default function AgentDashboard() {
           </Card>
         </motion.div>
 
-        {/* Quick Actions Bar */}
+        {/* Quick Actions — Command Center */}
         <motion.div variants={fadeInUp}>
-          <QuickActions
-            variant="horizontal"
-            onPersonalMetrics={() => navigate('/agents/performance')}
-            onDataEncryption={() => navigate('/agents/data-encryption')}
-            onSchedule={() => setShowAddTask(true)}
-            onSendEmail={() => navigate('/agents/email')}
-            onCreateQuote={() => navigate('/agents/quotes')}
-            onOpenChat={() => navigate('/agents/chat')}
-          />
+          <Card
+            className="border-0 overflow-hidden"
+            style={{
+              ...GLASS.css.light,
+              border: 'none',
+              borderRadius: RADIUS.card,
+              boxShadow: SHADOW.card,
+            }}
+          >
+            <CardContent style={{ padding: GRID.spacing.md }}>
+              <div className="flex items-center" style={{ gap: GRID.spacing.sm, marginBottom: GRID.spacing.sm }}>
+                <div
+                  className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ width: LAYOUT.icon.xxl, height: LAYOUT.icon.xxl, borderRadius: RADIUS.button }}
+                >
+                  <Sparkles className="text-amber-200" size={LAYOUT.icon.md} />
+                </div>
+                <h3 className="font-bold text-gray-900" style={{ fontSize: TYPE.title }}>Your Command Center</h3>
+              </div>
+              <div className="grid grid-cols-4" style={{ gap: GRID.spacing.sm }}>
+                {[
+                  { icon: Phone, label: 'Dialer', description: 'Call leads & prospects', href: '/agents/dialer' },
+                  { icon: BarChart3, label: 'Performance', description: 'Track your metrics & goals', href: '/agents/performance' },
+                  { icon: Shield, label: 'Data Security', description: 'Encrypt client data', href: '/agents/data-encryption' },
+                  { icon: FileText, label: 'Create Quote', description: 'Generate insurance quotes', href: '/agents/quotes' },
+                ].map((action) => (
+                  <Link key={action.label} href={action.href}>
+                    <motion.div
+                      whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                      transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                      className="bg-violet-50 border border-violet-100 hover:bg-violet-100 transition-colors cursor-pointer"
+                      style={{ padding: GRID.spacing.sm, borderRadius: RADIUS.input }}
+                    >
+                      <action.icon className="text-violet-600" size={LAYOUT.icon.lg} style={{ marginBottom: GRID.spacing.xs }} />
+                      <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>{action.label}</p>
+                      <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{action.description}</p>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
-        {/* Your Progress Section - Wrapped */}
+        {/* Your Progress Section */}
         <motion.div variants={fadeInUp}>
-          {/* Section Header - Icon badge + title only */}
-          <div className="flex items-center gap-3 mb-4">
-            <div
-              className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20"
-              style={{ width: 40, height: 40, borderRadius: RADIUS.button }}
-            >
-              <TrendingUp className="w-5 h-5 text-amber-200" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900">Your Progress</h2>
-          </div>
-
-          {/* Clean KPI Stats Grid */}
           <motion.div
             variants={staggerContainer}
             className="grid grid-cols-2 lg:grid-cols-4"
             style={{ gap: GRID.spacing.sm }}
           >
-          {[
-            { icon: Phone, value: performance.dailyCalls.toString(), label: "Calls Today", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
-            { icon: Target, value: performance.dailyCloses.toString(), label: "Closes This Week", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
-            { icon: BarChart3, value: `${performance.conversionRate}%`, label: "Conversion Rate", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
-            { icon: Flame, value: `${performance.currentStreak}`, label: "Day Streak", gradient: "from-amber-500 to-orange-500", shadow: "shadow-amber-500/20" },
-          ].map((stat, i) => (
+          {([
+            { icon: Phone, value: performance.dailyCalls.toString(), label: "Calls Today", delta: 5, deltaFormat: 'number' as const, periodLabel: "vs yesterday" },
+            { icon: Target, value: performance.dailyCloses.toString(), label: "Closes This Week", delta: 1, deltaFormat: 'number' as const, periodLabel: "vs last week" },
+            { icon: BarChart3, value: `${performance.conversionRate}%`, label: "Conversion Rate", delta: 2.1, deltaFormat: 'percent' as const, periodLabel: "vs last month" },
+            { icon: Flame, value: `${performance.currentStreak}`, label: "Day Streak", periodLabel: "consecutive days" },
+          ] as Array<{ icon: typeof Phone; value: string; label: string; delta?: number; deltaFormat?: 'percent' | 'number'; periodLabel?: string }>).map((stat) => (
             <motion.div
               key={stat.label}
               variants={fadeInUp}
@@ -474,7 +510,7 @@ export default function AgentDashboard() {
               transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
             >
               <Card
-                className="border-0 group cursor-pointer overflow-hidden relative"
+                className="border-0 overflow-hidden relative"
                 style={{
                   borderRadius: RADIUS.card,
                   boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)',
@@ -483,29 +519,48 @@ export default function AgentDashboard() {
                 {/* Gradient background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500" />
                 {/* Decorative blobs */}
-                <div style={{ width: 80, height: 80 }} className="absolute top-0 right-0 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
-                <div style={{ width: 50, height: 50 }} className="absolute bottom-0 left-0 bg-amber-400/15 rounded-full blur-xl translate-y-1/2 -translate-x-1/4" />
+                <div className="absolute top-0 right-0 bg-white/10 blur-2xl -translate-y-1/2 translate-x-1/3" style={{ width: 80, height: 80, borderRadius: RADIUS.pill }} />
+                <div className="absolute bottom-0 left-0 bg-amber-400/15 blur-xl translate-y-1/2 -translate-x-1/4" style={{ width: 50, height: 50, borderRadius: RADIUS.pill }} />
 
                 <CardContent className="relative z-10" style={{ padding: GRID.spacing.md }}>
-                  <div className="flex items-center gap-4">
-                    {/* Icon Badge */}
+                  {/* Row 1: Icon + Value */}
+                  <div className="flex items-center gap-3">
                     <div
-                      className="flex items-center justify-center bg-white/20 backdrop-blur shadow-lg"
+                      className="flex items-center justify-center flex-shrink-0"
                       style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: RADIUS.button,
+                        width: LAYOUT.icon.xxl,
+                        height: LAYOUT.icon.xxl,
+                        borderRadius: RADIUS.input,
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.10) 100%)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
+                        border: '1px solid rgba(255,255,255,0.2)',
                       }}
                     >
-                      <stat.icon className="w-5 h-5 text-amber-200" />
+                      <stat.icon className="text-amber-200 drop-shadow-sm" size={LAYOUT.icon.md} aria-hidden="true" />
                     </div>
-
-                    {/* Value + Label */}
-                    <div>
-                      <p className="text-3xl font-bold text-white">{stat.value}</p>
-                      <p className="text-sm text-white/70 font-medium">{stat.label}</p>
-                    </div>
+                    <p className="font-bold text-white" style={{ fontSize: TYPE.section, lineHeight: 1.1 }}>
+                      {stat.value}
+                    </p>
                   </div>
+
+                  {/* Row 2: Label */}
+                  <p className="text-white/70 mt-1.5" style={{ fontSize: TYPE.caption, fontWeight: 500 }}>
+                    {stat.label}
+                  </p>
+
+                  {/* Row 3: Delta + Period */}
+                  {(stat.delta != null || stat.periodLabel) && (
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {stat.delta != null && <DeltaBadge value={stat.delta} format={stat.deltaFormat} size="sm" />}
+                      {stat.periodLabel && (
+                        <span className="text-white/40" style={{ fontSize: TYPE.micro }}>
+                          {stat.periodLabel}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -754,7 +809,7 @@ export default function AgentDashboard() {
                 </CardHeader>
                 <CardContent className="relative z-10">
                   <div className="space-y-2">
-                    {leaderboard.slice(0, 5).map((entry, idx) => (
+                    {realLeaderboard.slice(0, 5).map((entry, idx) => (
                       <motion.div
                         key={entry.id}
                         whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}

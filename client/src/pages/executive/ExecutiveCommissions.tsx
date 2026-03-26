@@ -6,6 +6,7 @@
  * Features waterfall/spread override visualization
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   PieChart as PieChartIcon,
@@ -126,7 +127,7 @@ function WaterfallNode({
         borderTop: `3px solid ${color}`,
       }}
     >
-      <p className="font-bold text-gray-900" style={{ fontSize: TYPE.meta }}>{name}</p>
+      <p className="font-bold text-stone-900" style={{ fontSize: TYPE.meta }}>{name}</p>
       <span
         className="inline-block mt-1"
         style={{
@@ -141,9 +142,9 @@ function WaterfallNode({
         {role}
       </span>
       <p className="font-bold mt-2" style={{ fontSize: TYPE.section, color }}>{contractLevel}%</p>
-      {team && <p className="text-gray-500 mt-1" style={{ fontSize: TYPE.micro }}>Team {team}</p>}
-      {agents != null && <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>{agents} agents</p>}
-      {revenue != null && <p className="text-gray-500 mt-1" style={{ fontSize: TYPE.caption }}>{fmtCurrency(revenue)}</p>}
+      {team && <p className="text-stone-500 mt-1" style={{ fontSize: TYPE.micro }}>Team {team}</p>}
+      {agents != null && <p className="text-stone-400" style={{ fontSize: TYPE.micro }}>{agents} agents</p>}
+      {revenue != null && <p className="text-stone-500 mt-1" style={{ fontSize: TYPE.caption }}>{fmtCurrency(revenue)}</p>}
     </div>
   );
 }
@@ -171,10 +172,106 @@ function SpreadLabel({ spread }: { spread: number }) {
   );
 }
 
+// ── API response types ──
+interface CommissionSummaryResponse {
+  totalPaid: number;
+  totalPending: number;
+  totalOverrides: number;
+  totalChargebacks: number;
+  paidCount: number;
+  pendingCount: number;
+  totalCount: number;
+}
+
+interface CommissionByAgent {
+  id: string;
+  name: string;
+  totalEarned: number;
+  dealCount: number;
+  overrideEarned: number;
+}
+
+interface CommissionRecent {
+  id: string;
+  agentName: string;
+  type: string;
+  amount: number;
+  status: string;
+  earnedAt: string;
+  paidAt: string | null;
+}
+
+interface CommissionsApiResponse {
+  summary: CommissionSummaryResponse;
+  byAgent: CommissionByAgent[];
+  recent: CommissionRecent[];
+}
+
 export function ExecutiveCommissions() {
-  const ownerTier = DEMO_EXEC_COMMISSION_TIERS.find((t) => t.role === 'owner')!;
-  const managerTiers = DEMO_EXEC_COMMISSION_TIERS.filter((t) => t.role === 'manager');
-  const upcomingPayouts = DEMO_EXEC_PAYOUTS.filter((p) => p.status === 'upcoming' || p.status === 'processing');
+  // ── Fetch real commissions data ──
+  const { data: commissionsData } = useQuery<CommissionsApiResponse>({
+    queryKey: ['/api/executive/commissions'],
+  });
+
+  // ── Map API response to local shapes, falling back to demo constants ──
+  const commissionSummary = commissionsData?.summary
+    ? {
+        totalPending: commissionsData.summary.totalPending,
+        paidYTD: commissionsData.summary.totalPaid,
+        overrideEarnings: commissionsData.summary.totalOverrides,
+        chargebackRate:
+          commissionsData.summary.totalPaid > 0
+            ? parseFloat(
+                ((commissionsData.summary.totalChargebacks / commissionsData.summary.totalPaid) * 100).toFixed(1)
+              )
+            : 0,
+        chargebackTotal: commissionsData.summary.totalChargebacks,
+        avgCommissionRate: DEMO_EXEC_COMMISSION_SUMMARY.avgCommissionRate,
+      }
+    : DEMO_EXEC_COMMISSION_SUMMARY;
+
+  // Map recent commissions to payout-like rows for the Payouts tab
+  const payouts = commissionsData?.recent
+    ? commissionsData.recent.map((r) => ({
+        id: r.id,
+        date: r.paidAt || r.earnedAt,
+        amount: r.amount,
+        agentCount: 1,
+        status: r.status as 'paid' | 'processing' | 'upcoming',
+      }))
+    : [...DEMO_EXEC_PAYOUTS];
+
+  // Map byAgent data to agent roster shape for the By Agent tab
+  const agentRoster = commissionsData?.byAgent
+    ? commissionsData.byAgent.map((a) => {
+        // Try to find matching demo agent for supplemental fields
+        const demoAgent = DEMO_EXEC_AGENT_ROSTER.find(
+          (d) => d.name === a.name || d.id === a.id
+        );
+        return {
+          id: a.id,
+          name: a.name,
+          team: demoAgent?.team ?? '',
+          manager: demoAgent?.manager ?? '',
+          status: demoAgent?.status ?? ('active' as const),
+          contractLevel: demoAgent?.contractLevel ?? 0,
+          quotaAttainment: demoAgent?.quotaAttainment ?? 0,
+          revenueMTD: a.totalEarned,
+          complianceScore: demoAgent?.complianceScore ?? 0,
+          startDate: demoAgent?.startDate ?? '',
+          role: demoAgent?.role ?? ('Agent' as const),
+        };
+      })
+    : [...DEMO_EXEC_AGENT_ROSTER];
+
+  // Revenue by product and hierarchy tree don't have API equivalents yet
+  const revenueByProduct = DEMO_REVENUE_BY_PRODUCT;
+  const commissionTiers = DEMO_EXEC_COMMISSION_TIERS;
+  const hierarchyTree = DEMO_EXEC_HIERARCHY_TREE;
+
+  const ownerTier = commissionTiers.find((t) => t.role === 'owner')!;
+  const managerTiers = commissionTiers.filter((t) => t.role === 'manager');
+  const upcomingPayouts = payouts.filter((p) => p.status === 'upcoming' || p.status === 'processing');
 
   return (
     <ExecutiveLoungeLayout>
@@ -197,23 +294,23 @@ export function ExecutiveCommissions() {
             <ExecutiveStatCard
               icon={DollarSign}
               label="Total Pending"
-              value={fmtCurrency(DEMO_EXEC_COMMISSION_SUMMARY.totalPending)}
+              value={fmtCurrency(commissionSummary.totalPending)}
             />
             <ExecutiveStatCard
               icon={TrendingUp}
               label="Paid YTD"
-              value={fmtCurrency(DEMO_EXEC_COMMISSION_SUMMARY.paidYTD)}
+              value={fmtCurrency(commissionSummary.paidYTD)}
             />
             <ExecutiveStatCard
               icon={Layers}
               label="Override Earnings"
-              value={fmtCurrency(DEMO_EXEC_COMMISSION_SUMMARY.overrideEarnings)}
+              value={fmtCurrency(commissionSummary.overrideEarnings)}
             />
             <ExecutiveStatCard
               icon={AlertTriangle}
               label="Chargeback Rate"
-              value={`${DEMO_EXEC_COMMISSION_SUMMARY.chargebackRate}%`}
-              delta={-DEMO_EXEC_COMMISSION_SUMMARY.chargebackRate}
+              value={`${commissionSummary.chargebackRate}%`}
+              delta={-commissionSummary.chargebackRate}
             />
           </ExecutiveStatCardGrid>
         </motion.section>
@@ -255,14 +352,14 @@ export function ExecutiveCommissions() {
                   <CardContent style={{ padding: GRID.spacing.md }}>
                     <SectionHeader icon={PieChartIcon} title="Commission by Product" subtitle="Revenue split across product lines" />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.sm }}>
-                      {DEMO_REVENUE_BY_PRODUCT.map((product) => (
+                      {revenueByProduct.map((product) => (
                         <div key={product.product}>
                           <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
                             <div className="flex items-center" style={{ gap: GRID.spacing.xs }}>
                               <div style={{ width: 10, height: 10, borderRadius: RADIUS.pill, backgroundColor: product.color }} />
-                              <span className="font-medium text-gray-700" style={{ fontSize: TYPE.meta }}>{product.product}</span>
+                              <span className="font-medium text-stone-700" style={{ fontSize: TYPE.meta }}>{product.product}</span>
                             </div>
-                            <span className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                            <span className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                               {fmtCurrency(product.revenue)} ({product.percentage}%)
                             </span>
                           </div>
@@ -299,14 +396,14 @@ export function ExecutiveCommissions() {
                               boxShadow: SHADOW.level1,
                             }}
                           >
-                            <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                            <p className="text-stone-500" style={{ fontSize: TYPE.caption }}>
                               {new Date(payout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </p>
-                            <p className="font-bold text-gray-900 mt-1" style={{ fontSize: TYPE.title }}>
+                            <p className="font-bold text-stone-900 mt-1" style={{ fontSize: TYPE.title }}>
                               {fmtCurrency(payout.amount)}
                             </p>
                             <div className="flex items-center justify-between mt-2">
-                              <span className="text-gray-400" style={{ fontSize: TYPE.micro }}>{payout.agentCount} agents</span>
+                              <span className="text-stone-400" style={{ fontSize: TYPE.micro }}>{payout.agentCount} agents</span>
                               <span
                                 className={`${statusColor.bg} ${statusColor.text} font-medium`}
                                 style={{ fontSize: TYPE.micro, padding: '2px 8px', borderRadius: RADIUS.pill }}
@@ -366,7 +463,7 @@ export function ExecutiveCommissions() {
                       >
                         {managerTiers.map((manager) => {
                           const spread = ownerTier.contractLevel - manager.contractLevel;
-                          const hierarchyChildren = DEMO_EXEC_HIERARCHY_TREE.children.find(
+                          const hierarchyChildren = hierarchyTree.children.find(
                             (c) => c.name === manager.name
                           );
                           const agentExamples = hierarchyChildren?.children?.slice(0, 2) || [];
@@ -426,10 +523,10 @@ export function ExecutiveCommissions() {
                         border: `1px solid ${COLORS.gray[200]}`,
                       }}
                     >
-                      <p className="font-semibold text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: 4 }}>
+                      <p className="font-semibold text-stone-700" style={{ fontSize: TYPE.meta, marginBottom: 4 }}>
                         How Waterfall Overrides Work
                       </p>
-                      <p className="text-gray-500" style={{ fontSize: TYPE.caption, lineHeight: 1.5 }}>
+                      <p className="text-stone-500" style={{ fontSize: TYPE.caption, lineHeight: 1.5 }}>
                         Each level earns the <strong>spread</strong> (difference) between their contract level and the level
                         directly below them. The Owner (120%) earns overrides only on the gap to each Manager — not directly
                         down to agents. Example: Owner(120%) to Marcus Rivera(105%) = 15% override on that team's production.
@@ -449,14 +546,14 @@ export function ExecutiveCommissions() {
                       <table className="w-full">
                         <thead>
                           <tr style={{ backgroundColor: COLORS.gray[50] }}>
-                            <th className="text-left font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Date</th>
-                            <th className="text-right font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Amount</th>
-                            <th className="text-right font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Agent Count</th>
-                            <th className="text-right font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Status</th>
+                            <th className="text-left font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Date</th>
+                            <th className="text-right font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Amount</th>
+                            <th className="text-right font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Agent Count</th>
+                            <th className="text-right font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Status</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {DEMO_EXEC_PAYOUTS.map((payout) => {
+                          {payouts.map((payout) => {
                             const statusColor = PAYOUT_STATUS_COLORS[payout.status];
                             return (
                               <tr
@@ -466,13 +563,13 @@ export function ExecutiveCommissions() {
                                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = COLORS.gray[50]; }}
                                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                               >
-                                <td className="text-gray-700" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
+                                <td className="text-stone-700" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                   {new Date(payout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </td>
-                                <td className="text-right font-semibold text-gray-900" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
+                                <td className="text-right font-semibold text-stone-900" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                   {fmtCurrency(payout.amount)}
                                 </td>
-                                <td className="text-right text-gray-600" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
+                                <td className="text-right text-stone-600" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                   {payout.agentCount}
                                 </td>
                                 <td className="text-right" style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
@@ -503,15 +600,15 @@ export function ExecutiveCommissions() {
                       <table className="w-full">
                         <thead>
                           <tr style={{ backgroundColor: COLORS.gray[50] }}>
-                            <th className="text-left font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Name</th>
-                            <th className="text-left font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Team</th>
-                            <th className="text-right font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Contract Level</th>
-                            <th className="text-right font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Revenue MTD</th>
-                            <th className="text-right font-medium text-gray-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Status</th>
+                            <th className="text-left font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Name</th>
+                            <th className="text-left font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Team</th>
+                            <th className="text-right font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Contract Level</th>
+                            <th className="text-right font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Revenue MTD</th>
+                            <th className="text-right font-medium text-stone-500" style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>Status</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {[...DEMO_EXEC_AGENT_ROSTER]
+                          {[...agentRoster]
                             .sort((a, b) => b.revenueMTD - a.revenueMTD)
                             .map((agent) => {
                               const statusColor = AGENT_STATUS_COLORS[agent.status] || AGENT_STATUS_COLORS.active;
@@ -525,17 +622,17 @@ export function ExecutiveCommissions() {
                                 >
                                   <td style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                     <div>
-                                      <p className="font-medium text-gray-900">{agent.name}</p>
-                                      <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>{agent.role}</p>
+                                      <p className="font-medium text-stone-900">{agent.name}</p>
+                                      <p className="text-stone-500" style={{ fontSize: TYPE.caption }}>{agent.role}</p>
                                     </div>
                                   </td>
-                                  <td className="text-gray-600" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
+                                  <td className="text-stone-600" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                     {agent.team}
                                   </td>
-                                  <td className="text-right font-semibold text-gray-900" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
+                                  <td className="text-right font-semibold text-stone-900" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                     {agent.contractLevel}%
                                   </td>
-                                  <td className="text-right font-semibold text-gray-900" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
+                                  <td className="text-right font-semibold text-stone-900" style={{ fontSize: TYPE.meta, padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
                                     {fmtCurrency(agent.revenueMTD)}
                                   </td>
                                   <td className="text-right" style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>

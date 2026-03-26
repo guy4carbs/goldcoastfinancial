@@ -260,7 +260,7 @@ export function ExecutiveInvestorView() {
                             <MetricIcon style={{ width: 20, height: 20, color: metric.color }} />
                           </div>
                           <p
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.section, lineHeight: 1.1 }}
                           >
                             {metric.value}
@@ -358,7 +358,7 @@ export function ExecutiveInvestorView() {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-1">
                           <span
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.meta }}
                           >
                             {q.quarter}
@@ -377,7 +377,7 @@ export function ExecutiveInvestorView() {
                           </span>
                         </div>
                         <p
-                          className="font-bold text-gray-900"
+                          className="font-bold text-stone-900"
                           style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
                         >
                           {fmtCurrency(q.revenue)}
@@ -443,7 +443,7 @@ export function ExecutiveInvestorView() {
                     >
                       <CardContent className="p-4">
                         <p
-                          className="font-semibold text-gray-700 mb-1"
+                          className="font-semibold text-stone-700 mb-1"
                           style={{ fontSize: TYPE.meta }}
                         >
                           {config.label}
@@ -500,7 +500,7 @@ export function ExecutiveInvestorView() {
                         </div>
                         <div>
                           <h4
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.meta }}
                           >
                             Net Agent Acquisition
@@ -545,7 +545,7 @@ export function ExecutiveInvestorView() {
                         </div>
                         <div>
                           <h4
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.meta }}
                           >
                             Agent Churn
@@ -558,7 +558,7 @@ export function ExecutiveInvestorView() {
                       <div className="flex items-baseline gap-4">
                         <div>
                           <p
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.section, lineHeight: 1.1 }}
                           >
                             3

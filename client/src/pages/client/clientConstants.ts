@@ -314,8 +314,13 @@ export const PAYMENT_STATUS_COLORS = {
 
 // ─── CURRENCY FORMATTER ─────────────────────────────────
 
-export function fmtCurrency(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n.toFixed(0)}`;
+export function fmtCurrency(n: number | string): string {
+  const v = typeof n === 'string' ? parseFloat(n) || 0 : n;
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) {
+    const k = v / 1_000;
+    if (k >= 1_000) return `$${(k / 1_000).toFixed(1)}M`;
+    return `$${k.toFixed(k >= 100 ? 0 : 1)}K`;
+  }
+  return `$${v.toFixed(0)}`;
 }

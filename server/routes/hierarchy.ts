@@ -28,6 +28,7 @@ interface HierarchyMember {
   role: string;
   level: number;
   title: string;
+  contractLevel: number | null;
   ytdCommission: number;
   policiesSold: number;
   teamSize: number;
@@ -116,6 +117,7 @@ async function formatHierarchyMember(user: any, hierarchyData: any): Promise<Hie
     role: user.role,
     level,
     title: hierarchyData?.hierarchy_title || HIERARCHY_TITLES[level] || 'Agent',
+    contractLevel: hierarchyData?.contract_level ? parseFloat(hierarchyData.contract_level) : null,
     ytdCommission: stats.ytdCommission,
     policiesSold: stats.policiesSold,
     teamSize: stats.teamSize,
@@ -141,7 +143,7 @@ router.get("/my-position", async (req: Request, res: Response) => {
 
     // Get user and hierarchy data
     const result = await pool.query(`
-      SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.upline_chain, h.override_eligible, h.override_percentage
+      SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.upline_chain, h.override_eligible, h.override_percentage, h.contract_level
       FROM users u
       LEFT JOIN agent_hierarchy h ON u.id = h.agent_user_id AND h.effective_to IS NULL
       WHERE u.id = $1
@@ -237,7 +239,7 @@ router.get("/downline", async (req: Request, res: Response) => {
 
     // Get direct reports
     const downlineResult = await pool.query(`
-      SELECT u.*, h.hierarchy_level, h.hierarchy_title
+      SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.contract_level
       FROM users u
       JOIN agent_hierarchy h ON u.id = h.agent_user_id
       WHERE h.direct_upline_id = $1 AND h.effective_to IS NULL
@@ -292,7 +294,7 @@ router.get("/full", async (req: Request, res: Response) => {
     let userResult;
     if (tableExists) {
       userResult = await pool.query(`
-        SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.upline_chain
+        SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.upline_chain, h.contract_level
         FROM users u
         LEFT JOIN agent_hierarchy h ON u.id = h.agent_user_id AND h.effective_to IS NULL
         WHERE u.id = $1
@@ -318,7 +320,7 @@ router.get("/full", async (req: Request, res: Response) => {
     const uplineMembers: HierarchyMember[] = [];
     if (tableExists && uplineChain.length > 0) {
       const uplineResult = await pool.query(`
-        SELECT u.*, h.hierarchy_level, h.hierarchy_title
+        SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.contract_level
         FROM users u
         LEFT JOIN agent_hierarchy h ON u.id = h.agent_user_id AND h.effective_to IS NULL
         WHERE u.id = ANY($1)
@@ -387,7 +389,7 @@ router.get("/team-tree", async (req: Request, res: Response) => {
       WITH RECURSIVE team_tree AS (
         -- Base case: direct reports
         SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
-               h.hierarchy_level, h.hierarchy_title, h.direct_upline_id,
+               h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
                1 as depth
         FROM users u
         JOIN agent_hierarchy h ON u.id = h.agent_user_id
@@ -397,7 +399,7 @@ router.get("/team-tree", async (req: Request, res: Response) => {
 
         -- Recursive case: reports of reports
         SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
-               h.hierarchy_level, h.hierarchy_title, h.direct_upline_id,
+               h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
                tt.depth + 1
         FROM users u
         JOIN agent_hierarchy h ON u.id = h.agent_user_id
@@ -425,6 +427,40 @@ router.get("/team-tree", async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/hierarchy/unplaced
+ * Returns agents who are approved and active but have no hierarchy record.
+ * Used by executives to place agents into the hierarchy.
+ */
+router.get("/unplaced", async (req: Request, res: Response) => {
+  try {
+    const userRole = (req as any).user?.role;
+    if (!hasPermission(userRole, Permission.HIERARCHY_MANAGE)) {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+
+    const result = await pool.query(`
+      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName",
+             u.email, u.role, u.created_at AS "createdAt",
+             ap.preferred_upline_id AS "preferredUplineId",
+             ap.referring_agent_name AS "referringAgentName",
+             ap.approved_at AS "approvedAt"
+      FROM users u
+      JOIN agent_profiles ap ON u.id::text = ap.user_id
+      LEFT JOIN agent_hierarchy h ON u.id = h.agent_user_id AND h.effective_to IS NULL
+      WHERE u.is_active = true
+        AND ap.approval_status = 'approved'
+        AND h.id IS NULL
+      ORDER BY ap.approved_at DESC
+    `);
+
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching unplaced agents:", error);
+    res.status(500).json({ error: "Failed to fetch unplaced agents" });
+  }
+});
+
+/**
  * POST /api/hierarchy/setup
  * Set up or update an agent's hierarchy position
  * Only available to managers and above
@@ -437,7 +473,7 @@ router.post("/setup", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Not authorized to manage hierarchy" });
     }
 
-    const { agentUserId, directUplineId, hierarchyLevel, hierarchyTitle, overrideEligible, overridePercentage } = req.body;
+    const { agentUserId, directUplineId, hierarchyLevel, hierarchyTitle, overrideEligible, overridePercentage, contractLevel } = req.body;
 
     if (!agentUserId) {
       return res.status(400).json({ error: "agentUserId is required" });
@@ -466,8 +502,8 @@ router.post("/setup", async (req: Request, res: Response) => {
     const result = await pool.query(`
       INSERT INTO agent_hierarchy (
         agent_user_id, direct_upline_id, hierarchy_level, hierarchy_title,
-        upline_chain, override_eligible, override_percentage
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        upline_chain, override_eligible, override_percentage, contract_level
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [
       agentUserId,
@@ -477,6 +513,7 @@ router.post("/setup", async (req: Request, res: Response) => {
       JSON.stringify(uplineChain),
       overrideEligible ?? false,
       overridePercentage,
+      contractLevel ?? null,
     ]);
 
     res.json({ success: true, data: result.rows[0] });

@@ -149,7 +149,7 @@ All managed via `server/services/` and integration bridges:
 - Gmail API (`server/gmail.ts`) — transactional email
 - Google Calendar (`server/googleCalendar.ts`) — appointment sync
 - Google Sheets (`server/sheets.ts`) — lead export
-- Twilio/SMS (`server/services/smsService.ts`)
+- Telnyx SMS (`server/services/smsService.ts`) + Voice (`server/services/telnyxVoiceService.ts`)
 - AWS S3 (`server/services/s3Service.ts`) — document storage
 - Apple Push Notifications (`@parse/node-apn`)
 - Sentry (`server/services/errorTracking.ts`) — error tracking

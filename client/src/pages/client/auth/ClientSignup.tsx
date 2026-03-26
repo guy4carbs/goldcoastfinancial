@@ -51,6 +51,7 @@ interface FormData {
   phone: string;
   agreedToTerms: boolean;
   agreedToPrivacy: boolean;
+  smsConsent: boolean;
 }
 
 const initialFormData: FormData = {
@@ -62,6 +63,7 @@ const initialFormData: FormData = {
   phone: '',
   agreedToTerms: false,
   agreedToPrivacy: false,
+  smsConsent: false,
 };
 
 function getPasswordStrength(password: string): number {
@@ -174,6 +176,9 @@ export default function ClientSignup() {
     }
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
+    }
+    if (formData.phone.trim() && !formData.smsConsent) {
+      newErrors.smsConsent = 'You must agree to SMS communications or remove your phone number';
     }
     if (!formData.agreedToTerms) {
       newErrors.agreedToTerms = 'You must agree to the Terms of Service';
@@ -685,6 +690,28 @@ export default function ClientSignup() {
                         />
                       </div>
                     </div>
+
+                    {/* SMS Consent — only visible when phone is provided */}
+                    {formData.phone.trim() && (
+                      <div>
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={formData.smsConsent}
+                            onChange={(e) => updateField('smsConsent', e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 mt-0.5"
+                          />
+                          <span className="text-gray-500 group-hover:text-gray-700 transition-colors" style={{ fontSize: TYPE.micro, lineHeight: 1.5 }}>
+                            By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC
+                            including appointment reminders, application updates, and verification codes. Message frequency varies.
+                            Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                          </span>
+                        </label>
+                        {errors.smsConsent && (
+                          <p className="text-red-500 mt-1 ml-7" style={{ fontSize: TYPE.micro }}>{errors.smsConsent}</p>
+                        )}
+                      </div>
+                    )}
 
                     {/* Terms checkbox */}
                     <div>

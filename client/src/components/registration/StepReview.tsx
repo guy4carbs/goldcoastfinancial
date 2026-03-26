@@ -216,6 +216,19 @@ export function StepReview({ formData, updateField, errors, onGoToStep }: Props)
           </span>
         </label>
         <FieldError error={errors.agreedToPrivacy} />
+
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={formData.agreedToSms || false}
+            onChange={(e) => updateField("agreedToSms", e.target.checked)}
+            className="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+          />
+          <span className="text-gray-700 group-hover:text-gray-900 transition-colors" style={{ fontSize: TYPE.meta }}>
+            By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including appointment reminders, application updates, and verification codes. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+          </span>
+        </label>
+        <FieldError error={errors.agreedToSms} />
       </div>
     </div>
   );

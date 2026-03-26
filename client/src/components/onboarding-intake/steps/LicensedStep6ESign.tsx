@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { FileSignature, CheckCircle, Clock, FileText } from 'lucide-react';
+import { FileSignature, CheckCircle, Clock, FileText, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { GRID, TYPE, RADIUS, COLORS } from '@/lib/heritageDesignSystem';
 import { useOnboardingIntakeForm } from '../useOnboardingIntakeForm';
@@ -153,6 +153,40 @@ export function LicensedStep6ESign() {
             onSign={(signatureData: string) => handleSign(doc.id, signatureData)}
           />
         ) : null,
+      )}
+
+      {/* SMS Consent — appears after all documents signed */}
+      {signedCount === 3 && (
+        <div
+          style={{
+            borderRadius: RADIUS.input,
+            border: `1px solid ${licensed.smsConsent ? '#a7f3d0' : COLORS.gray[200]}`,
+            backgroundColor: licensed.smsConsent ? '#ecfdf5' : '#fafafa',
+            padding: `${GRID.spacing.sm}px`,
+          }}
+        >
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={licensed.smsConsent === true}
+              onChange={(e) => updateLicensedField('smsConsent' as keyof LicensedFormData, e.target.checked as never)}
+              className="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+            />
+            <div>
+              <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                <MessageSquare size={14} style={{ color: COLORS.primary.violet[600] }} />
+                <span style={{ fontSize: TYPE.meta, fontWeight: 600, color: COLORS.gray[800] }}>
+                  SMS Communications Consent
+                </span>
+              </div>
+              <span style={{ fontSize: TYPE.caption, color: COLORS.gray[600], lineHeight: 1.5, display: 'block' }}>
+                By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including
+                appointment reminders, application updates, and verification codes. Message frequency varies.
+                Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+              </span>
+            </div>
+          </label>
+        </div>
       )}
     </StepCard>
   );

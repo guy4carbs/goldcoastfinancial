@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema, agentRegisterSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail, sendRecruitInviteEmail, sendPolicyQuoteEmail, sendAgentLeadNotification, sendWebsiteLinkEmail } from "./gmail";
+import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail, sendRecruitInviteEmail, sendPolicyQuoteEmail, sendAgentLeadNotification, sendWebsiteLinkEmail, sendPasswordResetEmail, sendProductGuideEmail } from "./gmail";
 import { sendSecureFormLink, sendBookingLink, sendSms, isSmsAvailable } from "./services/smsService";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
@@ -25,6 +25,8 @@ import memberCardsRouter from "./routes/member-cards";
 import walletRouter from "./routes/wallet";
 import verifyRouter from "./routes/verify";
 import hierarchyRouter from "./routes/hierarchy";
+import hierarchyRequestsRouter from "./routes/hierarchy-requests";
+import commissionTargetsRouter from "./routes/commission-targets";
 import clientChatRouter from "./routes/client-chat";
 import automationsRouter from "./routes/automations";
 import workflowAutomationsRouter from "./routes/workflow-automations";
@@ -38,6 +40,12 @@ import claimsRouter from "./routes/claims";
 import referralsRouter from "./routes/referrals";
 import agentClientsRouter from "./routes/agent-clients";
 import leadDistributionRouter from "./routes/lead-distribution";
+import callsRouter from "./routes/calls";
+import monitorRouter from "./routes/monitor";
+import dncRouter from "./routes/dnc";
+import executiveRouter from "./routes/executive";
+import postCloseRouter, { postCloseWebhookRouter } from "./routes/post-close";
+import dealsRouter from "./routes/deals";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -186,6 +194,25 @@ export async function registerRoutes(
     }
   });
 
+  // Public: Available uplines for registration dropdown (no auth required)
+  app.get("/api/agents/available-uplines", async (_req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName",
+               h.hierarchy_title AS "title"
+        FROM users u
+        JOIN agent_hierarchy h ON u.id = h.agent_user_id AND h.effective_to IS NULL
+        WHERE u.is_active = true
+          AND u.role IN ('owner', 'system_admin', 'manager', 'sales_agent')
+        ORDER BY h.hierarchy_level ASC, u.last_name ASC
+      `);
+      res.json({ agents: result.rows });
+    } catch (error) {
+      console.error("Error fetching available uplines:", error);
+      res.json({ agents: [] });
+    }
+  });
+
   // Auth: Register new agent (multi-step, rate limited)
   app.post("/api/auth/register-agent", registrationLimiter, async (req, res) => {
     try {
@@ -230,6 +257,7 @@ export async function registerRoutes(
         whyJoinHeritage: validatedData.whyJoinHeritage,
         referralSource: validatedData.referralSource,
         referringAgentName: validatedData.referringAgentName || null,
+        preferredUplineId: validatedData.preferredUplineId || null,
         approvalStatus: "pending_review",
         agreedToTerms: validatedData.agreedToTerms,
         agreedToPrivacy: validatedData.agreedToPrivacy,
@@ -584,10 +612,13 @@ export async function registerRoutes(
       // Always return success to prevent email enumeration
       // In production, send the email with the reset link
       if (result) {
-        // TODO: Send email with reset link
-        // const resetLink = `${process.env.APP_URL}/reset-password?token=${result.token}`;
-        // await sendPasswordResetEmail(email, resetLink);
-        console.log(`[PasswordReset] Token for ${email}: ${result.token}`);
+        const appUrl = process.env.APP_URL || (process.env.NODE_ENV === "production" ? "https://heritagels.org" : "http://localhost:4500");
+        const resetLink = `${appUrl}/reset-password?token=${result.token}`;
+        try {
+          await sendPasswordResetEmail({ recipientEmail: email, resetLink });
+        } catch (emailErr) {
+          console.error("[PasswordReset] Failed to send email:", emailErr);
+        }
       }
 
       res.json({
@@ -1592,23 +1623,26 @@ export async function registerRoutes(
       const leadsGenerated = Array.from(leadInboxStore.values())
         .filter(lead => lead.agentSlug === agentSlug).length;
 
-      // Get page views for agent's page
-      let pageViews = 0;
+      // Get page view counts for agent's page (direct DB query, no top-N limit)
+      let views = { total: 0, today: 0, thisWeek: 0, thisMonth: 0 };
       try {
-        const pageStats = await storage.getPageViewStats();
-        const agentPageStats = pageStats.filter((s: any) =>
-          s.page?.startsWith(`/a/${agentSlug}`)
-        );
-        pageViews = agentPageStats.reduce((sum: number, s: any) => sum + (Number(s.count) || 0), 0);
+        views = await storage.getPageViewCountByPath(`/a/${agentSlug}`);
       } catch {
         // Page view stats may not be available
       }
 
-      const conversionRate = pageViews > 0
-        ? Math.round((leadsGenerated / pageViews) * 1000) / 10
+      const conversionRate = views.total > 0
+        ? Math.round((leadsGenerated / views.total) * 1000) / 10
         : 0;
 
-      res.json({ pageViews, leadsGenerated, conversionRate });
+      res.json({
+        pageViews: views.total,
+        pageViewsToday: views.today,
+        pageViewsThisWeek: views.thisWeek,
+        pageViewsThisMonth: views.thisMonth,
+        leadsGenerated,
+        conversionRate,
+      });
     } catch (error: any) {
       console.error("[AgentStats] Error:", error);
       res.status(500).json({ error: "Failed to fetch stats" });
@@ -1702,6 +1736,127 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("[RecruitingStats] Error:", error);
       res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // ─── PRODUCT GUIDE SENDING ───────────────────────────────────────────────────
+
+  const productGuideStore = new Map<string, {
+    linkId: string;
+    guideId: string;
+    guideTitle: string;
+    guideDescription: string;
+    clientName: string;
+    clientEmail: string;
+    agentName: string;
+    agentEmail: string;
+    agentPhone: string;
+    agentNpn: string;
+    personalMessage?: string;
+    createdAt: Date;
+    status: 'sent' | 'opened';
+  }>();
+
+  // Send product guide email to a client
+  app.post("/api/product-guides/send", requireAuth, async (req, res) => {
+    try {
+      const { clientName, clientEmail, guideId, guideTitle, guideDescription, personalMessage, agent } = req.body;
+
+      if (!clientName || !clientEmail || !guideId || !guideTitle) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      if (!agent?.name || !agent?.email) {
+        return res.status(400).json({ error: "Agent information is required" });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(clientEmail)) {
+        return res.status(400).json({ error: "Invalid email address format" });
+      }
+
+      const linkId = crypto.randomBytes(16).toString('hex');
+      const appUrl = process.env.APP_URL || (process.env.NODE_ENV === 'production' ? 'https://heritagels.org' : `http://localhost:${process.env.PORT || 4500}`);
+      const guideUrl = `${appUrl}/guides/view/${linkId}`;
+
+      // Fetch NPN from agent profile if not provided
+      let agentNpn = agent.npn || '';
+      if (!agentNpn && req.user?.id) {
+        try {
+          const profile = await storage.getAgentProfileByUserId(req.user.id);
+          if (profile?.npn) agentNpn = profile.npn;
+        } catch (e) { /* NPN is optional */ }
+      }
+
+      productGuideStore.set(linkId, {
+        linkId,
+        guideId,
+        guideTitle,
+        guideDescription: guideDescription || '',
+        clientName,
+        clientEmail,
+        agentName: agent.name,
+        agentEmail: agent.email,
+        agentPhone: agent.phone || '',
+        agentNpn,
+        personalMessage: personalMessage || undefined,
+        createdAt: new Date(),
+        status: 'sent',
+      });
+
+      await sendProductGuideEmail({
+        recipientName: clientName,
+        recipientEmail: clientEmail,
+        guideUrl,
+        guideTitle,
+        guideDescription: guideDescription || '',
+        personalMessage: personalMessage || undefined,
+        agent: {
+          name: agent.name,
+          email: agent.email,
+          phone: agent.phone || '',
+          npn: agentNpn,
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Product guide sent successfully",
+        linkId,
+        guideUrl,
+      });
+    } catch (error: any) {
+      console.error("[ProductGuide] Error:", error);
+      res.status(500).json({ error: "Failed to send product guide" });
+    }
+  });
+
+  // Fetch product guide metadata (public — accessed via email link)
+  app.get("/api/product-guides/:linkId", async (req, res) => {
+    try {
+      const { linkId } = req.params;
+      const guideData = productGuideStore.get(linkId);
+
+      if (!guideData) {
+        return res.status(404).json({ error: "Guide link not found" });
+      }
+
+      if (guideData.status === 'sent') {
+        guideData.status = 'opened';
+      }
+
+      res.json({
+        guideId: guideData.guideId,
+        guideTitle: guideData.guideTitle,
+        guideDescription: guideData.guideDescription,
+        clientName: guideData.clientName,
+        agentName: guideData.agentName,
+        agentEmail: guideData.agentEmail,
+        agentPhone: guideData.agentPhone,
+        agentNpn: guideData.agentNpn,
+      });
+    } catch (error: any) {
+      console.error("[ProductGuide] Error fetching guide:", error);
+      res.status(500).json({ error: "Failed to load guide" });
     }
   });
 
@@ -2061,6 +2216,42 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error sending portal message:", error);
       res.status(500).json({ error: "Failed to send message. Please try again." });
+    }
+  });
+
+  // Backfill lounge access for all existing users (admin-only, one-time use)
+  app.post("/api/admin/backfill-lounge-access", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.session.userId!);
+      if (!user || (user.role !== 'owner' && user.role !== 'system_admin')) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      const allUsers = await pool.query(`SELECT id, role FROM users WHERE is_active = true`);
+      let count = 0;
+      for (const u of allUsers.rows) {
+        await storage.initializeDefaultLoungeAccess(u.id, u.role);
+        count++;
+      }
+      res.json({ success: true, usersProcessed: count });
+    } catch (error) {
+      console.error("Error backfilling lounge access:", error);
+      res.status(500).json({ error: "Failed to backfill lounge access" });
+    }
+  });
+
+  // My Lounge Access — returns current user's lounge access map (for sidebar filtering)
+  app.get("/api/my-lounge-access", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const access = await storage.getUserLoungeAccess(userId);
+      const accessMap: Record<string, boolean> = {};
+      for (const row of access) {
+        accessMap[row.lounge_key] = row.granted;
+      }
+      res.json({ access: accessMap });
+    } catch (error) {
+      console.error("Error fetching my lounge access:", error);
+      res.status(500).json({ error: "Failed to fetch lounge access" });
     }
   });
 
@@ -2589,6 +2780,12 @@ export async function registerRoutes(
   // Agent Hierarchy
   app.use("/api/hierarchy", hierarchyRouter);
 
+  // Hierarchy Requests (Approval Workflow)
+  app.use("/api/hierarchy-requests", hierarchyRequestsRouter);
+
+  // Commission Targets
+  app.use("/api/commission-targets", commissionTargetsRouter);
+
   // Client Chat (Agent-Client Messaging)
   app.use("/api/client-chat", clientChatRouter);
   app.use("/api/app/chat", clientChatRouter);
@@ -2617,7 +2814,7 @@ export async function registerRoutes(
   // Policy management
   app.use("/api/policies", policiesRouter);
 
-  // SMS / Twilio
+  // SMS / Telnyx
   app.use("/api/sms", smsRouter);
 
   // Lounge Access Control (admin only — auth built into router)
@@ -2628,6 +2825,23 @@ export async function registerRoutes(
 
   // Lead Distribution Pipeline (auth built into router)
   app.use("/api/lead-distribution", leadDistributionRouter);
+
+  // Telnyx Voice Calls (auth built into router)
+  app.use("/api/calls", callsRouter);
+
+  // Call Monitoring (listen in / whisper / barge)
+  app.use("/api/monitor", monitorRouter);
+
+  // DNC (Do Not Call) list
+  app.use("/api/dnc", dncRouter);
+
+  // Executive Dashboard (auth built into router)
+  app.use("/api/executive", executiveRouter);
+
+  // Post-Close Workflow (auth built into router)
+  app.use("/api/post-close", postCloseRouter);
+  app.use("/api/webhooks/post-close", postCloseWebhookRouter);
+  app.use("/api/deals", dealsRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

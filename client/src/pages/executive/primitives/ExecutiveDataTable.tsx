@@ -115,7 +115,7 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
   // ─── SORT ICON ───
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sortKey !== columnKey || !sortDir) {
-      return <ChevronsUpDown style={{ width: 14, height: 14 }} className="text-gray-400" />;
+      return <ChevronsUpDown style={{ width: 14, height: 14 }} className="text-stone-400" />;
     }
     return sortDir === 'asc' ? (
       <ChevronUp style={{ width: 14, height: 14 }} className="text-orange-600" />
@@ -143,7 +143,7 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
             {/* Search Input */}
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
                 style={{ width: 16, height: 16 }}
               />
               <input
@@ -151,7 +151,7 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-orange-300"
+                className="w-full pl-9 pr-3 py-2 text-stone-700 placeholder:text-stone-400 outline-none focus:ring-2 focus:ring-orange-300"
                 style={{
                   fontSize: TYPE.meta,
                   borderRadius: RADIUS.input,
@@ -167,7 +167,7 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-gray-700"
+              className="text-stone-500 hover:text-stone-700"
               onClick={() => toast.success('Exporting data...')}
             >
               <Download style={{ width: 16, height: 16, marginRight: 6 }} />
@@ -183,8 +183,8 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
                   {columns.map((col) => (
                     <th
                       key={col.key}
-                      className={`font-medium text-gray-500 ${
-                        col.sortable !== false ? 'cursor-pointer select-none hover:text-gray-700' : ''
+                      className={`font-medium text-stone-500 ${
+                        col.sortable !== false ? 'cursor-pointer select-none hover:text-stone-700' : ''
                       }`}
                       style={{
                         fontSize: TYPE.caption,
@@ -214,7 +214,7 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
                   <tr>
                     <td
                       colSpan={columns.length}
-                      className="text-center text-gray-400"
+                      className="text-center text-stone-400"
                       style={{
                         padding: `${GRID.spacing.xl}px ${GRID.spacing.sm}px`,
                         fontSize: TYPE.meta,
@@ -246,7 +246,7 @@ export function ExecutiveDataTable<T extends Record<string, any>>({
                       {columns.map((col) => (
                         <td
                           key={col.key}
-                          className="text-gray-700"
+                          className="text-stone-700"
                           style={{
                             fontSize: TYPE.meta,
                             padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px`,

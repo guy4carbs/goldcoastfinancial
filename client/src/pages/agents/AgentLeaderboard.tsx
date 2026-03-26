@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,13 +77,38 @@ export default function AgentLeaderboard() {
   const [sortBy, setSortBy] = useState<SortKey>('revenue');
 
   const timeKey = TIME_RANGE_KEY[timeRange];
+  const periodParam = timeKey === 'week' ? 'week' : timeKey === 'month' ? 'month' : 'all';
 
-  const sortedLeaderboard = useMemo(() =>
-    [...DEMO_LEADERBOARD]
+  // Fetch real leaderboard from deals API
+  const { data: apiLeaderboard } = useQuery<{ success: boolean; data: Array<{
+    rank: number; agentUserId: string; firstName: string; lastName: string; name: string; totalAP: number; dealCount: number;
+  }> }>({
+    queryKey: [`/api/deals/leaderboard?period=${periodParam}`],
+    staleTime: 30000,
+  });
+
+  // Map API data to the SalesLeaderboardEntry format, falling back to demo data if empty
+  const sortedLeaderboard = useMemo(() => {
+    const apiData = apiLeaderboard?.data;
+    if (apiData && apiData.length > 0) {
+      return apiData.map((entry, index): SalesLeaderboardEntry => ({
+        rank: index + 1,
+        name: entry.name || `${entry.firstName} ${entry.lastName}`.trim(),
+        avatar: null,
+        level: entry.totalAP >= 50000 ? 'Diamond' : entry.totalAP >= 30000 ? 'Platinum' : entry.totalAP >= 15000 ? 'Gold' : entry.totalAP >= 5000 ? 'Silver' : 'Bronze',
+        sales: { week: entry.dealCount, month: entry.dealCount, allTime: entry.dealCount },
+        revenue: { week: entry.totalAP, month: entry.totalAP, allTime: entry.totalAP },
+        streak: 0,
+        trend: { week: 'same' as const, month: 'same' as const, allTime: 'same' as const },
+        change: { week: 0, month: 0, allTime: 0 },
+        isCurrentUser: false,
+      }));
+    }
+    // Fallback to demo data if no real deals
+    return [...DEMO_LEADERBOARD]
       .sort((a, b) => b[sortBy][timeKey] - a[sortBy][timeKey])
-      .map((entry, index) => ({ ...entry, rank: index + 1 })),
-    [sortBy, timeKey]
-  );
+      .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  }, [apiLeaderboard, sortBy, timeKey]);
 
   const currentUser = sortedLeaderboard.find(e => e.isCurrentUser);
 

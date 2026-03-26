@@ -65,6 +65,7 @@ export interface LicensedFormData {
   docusignNda: 'pending' | 'signed';
   docusignDebtRollup: 'pending' | 'signed';
   docusignCompliance: 'pending' | 'signed';
+  smsConsent: boolean;
 }
 
 export interface NewAgentFormData {
@@ -101,6 +102,7 @@ export interface NewAgentFormData {
   docusignNda: 'pending' | 'signed';
   docusignDebtRollup: 'pending' | 'signed';
   docusignCompliance: 'pending' | 'signed';
+  smsConsent: boolean;
 }
 
 export interface Mentor {

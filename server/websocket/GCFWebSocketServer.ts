@@ -54,6 +54,12 @@ export const Channels = {
 
   // Notifications
   NOTIFICATIONS: 'notifications',
+
+  // Voice / Calls
+  CALLS: 'calls',
+
+  // Deals / Leaderboard
+  DEALS: 'deals',
 } as const;
 
 export type Channel = typeof Channels[keyof typeof Channels];
@@ -78,13 +84,13 @@ const ROLE_CHANNEL_ACCESS: Record<Role, Channel[]> = {
     Channels.ESCALATIONS, Channels.COMPLIANCE,
     Channels.REVENUE, Channels.KPIS,
     Channels.CONTENT, Channels.SOCIAL, Channels.CAMPAIGNS, Channels.REPUTATION,
-    Channels.NOTIFICATIONS,
+    Channels.NOTIFICATIONS, Channels.CALLS, Channels.DEALS,
   ],
 
   [Roles.SALES_AGENT]: [
     Channels.MY_LEADS, Channels.PIPELINE,
     Channels.MY_APPOINTMENTS, Channels.COACHING,
-    Channels.NOTIFICATIONS,
+    Channels.NOTIFICATIONS, Channels.DEALS,
   ],
 
   [Roles.MARKETING_STAFF]: [
@@ -109,7 +115,7 @@ const ROLE_CHANNEL_ACCESS: Record<Role, Channel[]> = {
 const DEFAULT_CHANNELS: Record<Role, Channel[]> = {
   [Roles.OWNER]: [Channels.AGENTS, Channels.ALERTS, Channels.NOTIFICATIONS],
   [Roles.SYSTEM_ADMIN]: [Channels.AGENTS, Channels.ALERTS, Channels.ERRORS, Channels.NOTIFICATIONS],
-  [Roles.AGENCY_MANAGER]: [Channels.LEADS, Channels.TEAM, Channels.ALERTS, Channels.NOTIFICATIONS],
+  [Roles.AGENCY_MANAGER]: [Channels.LEADS, Channels.TEAM, Channels.ALERTS, Channels.NOTIFICATIONS, Channels.CALLS],
   [Roles.SALES_AGENT]: [Channels.MY_LEADS, Channels.MY_APPOINTMENTS, Channels.NOTIFICATIONS],
   [Roles.MARKETING_STAFF]: [Channels.CONTENT, Channels.NOTIFICATIONS],
   [Roles.CLIENT]: [Channels.MY_POLICIES, Channels.NOTIFICATIONS],

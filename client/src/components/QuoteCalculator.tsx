@@ -74,6 +74,7 @@ interface ApplicationData {
   zipCode: string; // Pre-filled from personal info
   healthAnswers: Record<string, boolean | null>;
   beneficiaries: Beneficiary[];
+  smsConsent: boolean;
 }
 
 interface Recommendation {
@@ -714,6 +715,7 @@ export default function QuoteCalculator({ prefillData }: QuoteCalculatorProps) {
     zipCode: prefillData?.zipCode || "",
     healthAnswers: {},
     beneficiaries: [{ firstName: "", lastName: "", relationship: "", percentage: 100 }],
+    smsConsent: false,
   });
 
   // Store height/weight for potential use in underwriting
@@ -1196,7 +1198,8 @@ Estimated Monthly Rate: $${recommendation?.monthlyRate?.toFixed(2) || 'N/A'}
     applicationData.lastName.length >= 2 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(applicationData.email) &&
     applicationData.phone.replace(/\D/g, "").length === 10 &&
-    applicationData.dateOfBirth !== "";
+    applicationData.dateOfBirth !== "" &&
+    applicationData.smsConsent === true;
 
   const isAppStep2Valid = () =>
     applicationData.street.length >= 5 &&
@@ -1816,6 +1819,20 @@ Estimated Monthly Rate: $${recommendation?.monthlyRate?.toFixed(2) || 'N/A'}
                 onChange={(e) => setApplicationData({ ...applicationData, dateOfBirth: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+            </div>
+
+            <div>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={applicationData.smsConsent || false}
+                  onChange={(e) => setApplicationData({ ...applicationData, smsConsent: e.target.checked })}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <span className="text-xs text-gray-500 leading-relaxed">
+                  By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including appointment reminders, application updates, and verification codes. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                </span>
+              </label>
             </div>
           </motion.div>
         )}

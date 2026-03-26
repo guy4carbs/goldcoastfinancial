@@ -320,7 +320,7 @@ export default function AgentCalendar() {
           description: `Sent from ${agentEmail} to ${bookingLinkData.customerEmail}`
         });
       } else if (method === 'sms') {
-        // SMS sending - currently simulated (would need Twilio/SMS provider integration)
+        // SMS sending - currently simulated (would need Telnyx SMS integration)
         await new Promise(resolve => setTimeout(resolve, 1500));
         toast.success('Booking link sent via SMS!', {
           description: `Sent from ${agentPhone} to ${bookingLinkData.customerPhone}`

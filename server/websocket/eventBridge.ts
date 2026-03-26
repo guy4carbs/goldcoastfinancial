@@ -163,6 +163,53 @@ const BRIDGE_RULES: BridgeRule[] = [
     channels: [Channels.REVENUE, Channels.KPIS],
   },
 
+  // ─── Hierarchy & Commission Approval Workflow ───
+  {
+    eventType: EventType.HIERARCHY_REQUEST_CREATED,
+    channels: [Channels.TEAM, Channels.NOTIFICATIONS],
+    transform: (event) => ({
+      type: 'hierarchy_request',
+      action: 'created',
+      requestId: event.payload.requestId,
+      requestType: event.payload.requestType,
+      requesterName: event.payload.requesterName,
+    }),
+  },
+  {
+    eventType: EventType.HIERARCHY_REQUEST_MANAGER_REVIEWED,
+    channels: [Channels.TEAM, Channels.NOTIFICATIONS, Channels.ALERTS],
+    transform: (event) => ({
+      type: 'hierarchy_request',
+      action: 'manager_reviewed',
+      requestId: event.payload.requestId,
+      status: event.payload.status,
+    }),
+  },
+  {
+    eventType: EventType.HIERARCHY_REQUEST_EXECUTIVE_REVIEWED,
+    channels: [Channels.TEAM, Channels.NOTIFICATIONS, Channels.KPIS],
+    transform: (event) => ({
+      type: 'hierarchy_request',
+      action: 'executive_reviewed',
+      requestId: event.payload.requestId,
+      status: event.payload.status,
+    }),
+  },
+  {
+    eventType: EventType.HIERARCHY_REQUEST_COMPLETED,
+    channels: [Channels.TEAM, Channels.KPIS, Channels.REVENUE],
+  },
+  {
+    eventType: EventType.COMMISSION_LEVEL_CHANGED,
+    channels: [Channels.REVENUE, Channels.KPIS, Channels.TEAM],
+    transform: (event) => ({
+      type: 'commission_level_changed',
+      agentId: event.payload.agentId,
+      previousLevel: event.payload.previousLevel,
+      newLevel: event.payload.newLevel,
+    }),
+  },
+
   // ─── Client Lifecycle ───
   {
     eventType: EventType.SUPPORT_RESOLVED,

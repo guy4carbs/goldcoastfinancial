@@ -335,3 +335,65 @@ export const insertDistributionRecordSchema = createInsertSchema(distributionRec
 
 export type DistributionRecord = typeof distributionRecords.$inferSelect;
 export type InsertDistributionRecord = z.infer<typeof insertDistributionRecordSchema>;
+
+// =============================================================================
+// ACTIVE CALLS — Ephemeral tracking of live agent calls
+// =============================================================================
+
+export const activeCalls = pgTable("active_calls", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentUserId: text("agent_user_id").notNull(),
+  callControlId: text("call_control_id").notNull(),
+  callLegId: text("call_leg_id"),
+  conferenceId: text("conference_id"),
+  conferenceName: text("conference_name"),
+  direction: text("direction").notNull(), // 'outbound' | 'inbound'
+  callerNumber: text("caller_number"),
+  destinationNumber: text("destination_number"),
+  contactName: text("contact_name"),
+  status: text("status").notNull().default("initiated"), // 'initiated' | 'ringing' | 'active' | 'ended'
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  answeredAt: timestamp("answered_at"),
+  endedAt: timestamp("ended_at"),
+}, (table) => [
+  index("idx_active_calls_agent").on(table.agentUserId),
+  index("idx_active_calls_status").on(table.status),
+  index("idx_active_calls_call_control_id").on(table.callControlId),
+]);
+
+export const insertActiveCallSchema = createInsertSchema(activeCalls).omit({
+  id: true,
+  startedAt: true,
+});
+
+export type ActiveCall = typeof activeCalls.$inferSelect;
+export type InsertActiveCall = z.infer<typeof insertActiveCallSchema>;
+
+// =============================================================================
+// CALL MONITOR SESSIONS — Audit trail for supervisor monitoring
+// =============================================================================
+
+export const callMonitorSessions = pgTable("call_monitor_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  supervisorUserId: text("supervisor_user_id").notNull(),
+  activeCallId: text("active_call_id").notNull(),
+  agentUserId: text("agent_user_id").notNull(),
+  supervisorCallControlId: text("supervisor_call_control_id"),
+  conferenceId: text("conference_id"),
+  role: text("role").notNull().default("monitor"), // 'monitor' | 'whisper' | 'barge'
+  status: text("status").notNull().default("connecting"), // 'connecting' | 'active' | 'ended'
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  endedAt: timestamp("ended_at"),
+}, (table) => [
+  index("idx_monitor_sessions_supervisor").on(table.supervisorUserId),
+  index("idx_monitor_sessions_active_call").on(table.activeCallId),
+  index("idx_monitor_sessions_status").on(table.status),
+]);
+
+export const insertCallMonitorSessionSchema = createInsertSchema(callMonitorSessions).omit({
+  id: true,
+  startedAt: true,
+});
+
+export type CallMonitorSession = typeof callMonitorSessions.$inferSelect;
+export type InsertCallMonitorSession = z.infer<typeof insertCallMonitorSessionSchema>;

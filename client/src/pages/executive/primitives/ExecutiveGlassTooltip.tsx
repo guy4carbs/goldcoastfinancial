@@ -34,7 +34,7 @@ export function ExecutiveGlassTooltip({
     >
       {label && (
         <p
-          className="font-semibold text-gray-900"
+          className="font-semibold text-stone-900"
           style={{ fontSize: TYPE.meta, marginBottom: 4 }}
         >
           {label}
@@ -57,13 +57,13 @@ export function ExecutiveGlassTooltip({
                 }}
               />
               <span
-                className="text-gray-600"
+                className="text-stone-600"
                 style={{ fontSize: TYPE.caption }}
               >
                 {entry.name}
               </span>
               <span
-                className="font-semibold text-gray-900 ml-auto"
+                className="font-semibold text-stone-900 ml-auto"
                 style={{ fontSize: TYPE.caption }}
               >
                 {displayValue}

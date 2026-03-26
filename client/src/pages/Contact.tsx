@@ -53,7 +53,8 @@ export default function Contact() {
     email: "",
     phone: "",
     subject: "",
-    message: ""
+    message: "",
+    smsConsent: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -64,7 +65,7 @@ export default function Contact() {
   useEffect(() => {
     const handleBeforeUnload = () => {
       // Check if form has been started (any field has value) and not submitted
-      const fieldsWithValue = Object.values(formData).filter(value => value.trim() !== '').length;
+      const fieldsWithValue = Object.values(formData).filter(value => typeof value === 'string' && value.trim() !== '').length;
       if (fieldsWithValue > 0 && !isSubmittedRef.current) {
         const data = JSON.stringify({
           event: 'contact_form_abandoned',
@@ -88,14 +89,20 @@ export default function Contact() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const target = e.target;
+    const value = target instanceof HTMLInputElement && target.type === 'checkbox' ? target.checked : target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [target.name]: value
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.phone.trim() && !formData.smsConsent) {
+      alert('Please agree to the SMS consent to provide a phone number.');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -297,6 +304,21 @@ export default function Contact() {
                         placeholder="(555) 123-4567"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="smsConsent"
+                        checked={formData.smsConsent || false}
+                        onChange={handleChange}
+                        className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-xs text-gray-500 leading-relaxed">
+                        By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including appointment reminders, application updates, and verification codes. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                      </span>
+                    </label>
                   </div>
 
                   <div>

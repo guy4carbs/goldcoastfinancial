@@ -48,7 +48,7 @@ export function ExecutiveTabSection({
               key={tab.value}
               value={tab.value}
               className={cn(
-                'font-medium text-gray-500',
+                'font-medium text-stone-500',
                 'transition-colors transition-[background-color] duration-150',
                 'data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm',
               )}

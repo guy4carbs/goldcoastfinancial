@@ -82,6 +82,7 @@ import {
   Tag,
   RefreshCcw,
   UserPlus,
+  PhoneOff,
 } from 'lucide-react';
 
 // =============================================================================
@@ -630,6 +631,76 @@ export function LeadProfile() {
     onError: () => toast.error('Failed to update lead'),
   });
 
+  // DNC check
+  const phone = data?.lead?.phone;
+  const { data: dncData } = useQuery({
+    queryKey: ['dnc-check', phone],
+    queryFn: async () => {
+      const res = await fetch(`/api/dnc/check/${encodeURIComponent(phone!)}`, { credentials: 'include' });
+      if (!res.ok) return { isDnc: false };
+      return res.json();
+    },
+    enabled: !!phone,
+  });
+
+  // Call count
+  const { data: callCountData } = useQuery({
+    queryKey: ['call-count', phone],
+    queryFn: async () => {
+      const res = await fetch('/api/calls/count-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phoneNumbers: [phone] }),
+      });
+      if (!res.ok) return {};
+      return res.json();
+    },
+    enabled: !!phone,
+  });
+
+  const isDnc = dncData?.isDnc ?? false;
+  const phoneCallCount = phone ? (callCountData?.[phone] ?? 0) : 0;
+
+  // DNC state
+  const [dncDialogOpen, setDncDialogOpen] = useState(false);
+  const [dncReason, setDncReason] = useState('customer_request');
+
+  const addDncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/dnc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phoneNumber: phone, reason: dncReason, source: 'manual' }),
+      });
+      if (!res.ok) throw new Error('Failed to add to DNC');
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success('Number added to Do Not Call list');
+      setDncDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['dnc-check', phone] });
+    },
+    onError: () => toast.error('Failed to add to DNC'),
+  });
+
+  const removeDncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/dnc/${encodeURIComponent(phone!)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to remove from DNC');
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success('Number removed from Do Not Call list');
+      queryClient.invalidateQueries({ queryKey: ['dnc-check', phone] });
+    },
+    onError: () => toast.error('Failed to remove from DNC'),
+  });
+
   // Handlers
   const handleAction = useCallback((action: string) => {
     if (!data?.lead) return;
@@ -868,7 +939,42 @@ export function LeadProfile() {
                     <Phone className="w-3.5 h-3.5" />
                     Phone
                   </p>
-                  <p className="font-medium">{lead.phone || 'Not provided'}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{lead.phone || 'Not provided'}</p>
+                    {lead.phone && (
+                      <>
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-slate-100 text-slate-600">
+                          {phoneCallCount > 0 ? `Called ${phoneCallCount}x` : 'Never called'}
+                        </Badge>
+                        {isDnc && (
+                          <Badge className="text-[10px] px-1.5 py-0 h-5 bg-red-100 text-red-700 border-red-200">
+                            DNC
+                          </Badge>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn("h-6 w-6", isDnc ? "text-red-500 hover:text-red-600" : "text-gray-400 hover:text-red-500")}
+                              onClick={() => {
+                                if (isDnc) {
+                                  removeDncMutation.mutate();
+                                } else {
+                                  setDncDialogOpen(true);
+                                }
+                              }}
+                            >
+                              <PhoneOff className="w-3.5 h-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {isDnc ? 'Remove from Do Not Call list' : 'Add to Do Not Call list'}
+                          </TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <p className="text-gray-500 flex items-center gap-1.5">
@@ -1263,6 +1369,43 @@ export function LeadProfile() {
               </Button>
               <Button onClick={handleLogActivity} disabled={activityMutation.isPending}>
                 {activityMutation.isPending ? 'Saving...' : 'Log Activity'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* DNC Confirmation Dialog */}
+        <Dialog open={dncDialogOpen} onOpenChange={setDncDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add to Do Not Call List</DialogTitle>
+              <DialogDescription>
+                This number ({phone}) will be blocked from all outbound dialing. This action is tracked for compliance.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Reason</label>
+              <Select value={dncReason} onValueChange={setDncReason}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer_request">Customer Request</SelectItem>
+                  <SelectItem value="wrong_number">Wrong Number</SelectItem>
+                  <SelectItem value="deceased">Deceased</SelectItem>
+                  <SelectItem value="compliance">Compliance</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDncDialogOpen(false)}>Cancel</Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => addDncMutation.mutate()}
+                disabled={addDncMutation.isPending}
+              >
+                {addDncMutation.isPending ? 'Adding...' : 'Add to DNC'}
               </Button>
             </DialogFooter>
           </DialogContent>

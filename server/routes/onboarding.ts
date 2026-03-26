@@ -397,7 +397,7 @@ router.post("/submit", attachUser, requireAuth, async (req: Request, res: Respon
       agentName: `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || requestingUser.name || "Agent",
       agentEmail: profile.email || requestingUser.email,
       onboardingType,
-      loungeUrl: `${appUrl}/agent-lounge`,
+      loungeUrl: `${appUrl}/agents/login`,
     }).then(() => {
       console.log(`[Onboarding] Completion email sent to ${profile.email || requestingUser.email}`);
     }).catch((err: any) => {
@@ -597,7 +597,7 @@ router.post("/test-completion-email", async (req: Request, res: Response) => {
       agentName: name || "Test Agent",
       agentEmail: email,
       onboardingType: onboardingType || "licensed",
-      loungeUrl: `${appUrl}/agent-lounge`,
+      loungeUrl: `${appUrl}/agents/login`,
     });
 
     res.json({ success: true, message: `Test completion email sent to ${email}` });

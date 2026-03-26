@@ -17,6 +17,7 @@ interface ExecutiveFilterBarProps {
   periods?: string[];
   activePeriod?: string;
   onPeriodChange?: (period: string) => void;
+  periodLabels?: Record<string, string>;
   teams?: string[];
   activeTeam?: string;
   onTeamChange?: (team: string) => void;
@@ -28,6 +29,7 @@ export function ExecutiveFilterBar({
   periods = DEFAULT_PERIODS,
   activePeriod,
   onPeriodChange,
+  periodLabels,
   teams = DEFAULT_TEAMS,
   activeTeam,
   onTeamChange,
@@ -45,7 +47,7 @@ export function ExecutiveFilterBar({
       {/* ─── PERIOD PILLS ─── */}
       <div className="flex flex-wrap items-center gap-1.5">
         <Calendar
-          className="text-gray-400 mr-1"
+          className="text-stone-400 mr-1"
           style={{ width: 16, height: 16 }}
           aria-hidden="true"
         />
@@ -57,7 +59,7 @@ export function ExecutiveFilterBar({
               onClick={() => onPeriodChange?.(period)}
               className={cn(
                 'font-medium transition-all duration-150',
-                isActive ? 'text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100',
+                isActive ? 'text-white shadow-sm' : 'text-stone-600 hover:bg-stone-100',
               )}
               style={{
                 fontSize: TYPE.caption,
@@ -74,7 +76,7 @@ export function ExecutiveFilterBar({
                     }),
               }}
             >
-              {period}
+              {periodLabels?.[period] ?? period}
             </button>
           );
         })}
@@ -95,7 +97,7 @@ export function ExecutiveFilterBar({
                 'font-medium transition-all duration-150',
                 isActive
                   ? 'bg-gray-900 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100',
+                  : 'text-stone-600 hover:bg-stone-100',
               )}
               style={{
                 fontSize: TYPE.caption,
@@ -123,7 +125,7 @@ export function ExecutiveFilterBar({
         <Button
           variant="ghost"
           size="sm"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-stone-500 hover:text-stone-700"
           onClick={onExport || (() => toast.success('Exporting data...'))}
         >
           <Download style={{ width: 16, height: 16, marginRight: 6 }} />

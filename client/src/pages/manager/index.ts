@@ -30,3 +30,4 @@ export { ManagerOnboardingTracker } from './ManagerOnboardingTracker';
 export { ManagerClientHealth } from './ManagerClientHealth';
 export { default as ManagerGuide } from './ManagerGuide';
 export { ManagerLeadDistribution } from './ManagerLeadDistribution';
+export { default as ManagerHierarchy } from './ManagerHierarchy';

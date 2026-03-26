@@ -30,6 +30,7 @@ export const agentProfiles = pgTable("agent_profiles", {
   whyJoinHeritage: text("why_join_heritage"),
   referralSource: varchar("referral_source", { length: 50 }),
   referringAgentName: text("referring_agent_name"),
+  preferredUplineId: varchar("preferred_upline_id", { length: 100 }),
 
   // Approval Workflow
   approvalStatus: varchar("approval_status", { length: 20 }).notNull().default("pending_review"),

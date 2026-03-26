@@ -11,6 +11,7 @@ import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAgentStore } from '@/lib/agentStore';
 import { cn } from '@/lib/utils';
+import { useLoungeAccess } from '@/hooks/useLoungeAccess';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +69,7 @@ import {
   LineChart,
   Crosshair,
   Send,
+  Network,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -140,11 +142,13 @@ const homeItems: NavItem[] = [
 const teamItems: NavItem[] = [
   { icon: Trophy, label: 'Performance', href: '/manager/team-performance' },
   { icon: ClipboardList, label: 'Scorecard', href: '/manager/scorecard' },
+  { icon: Network, label: 'Hierarchy', href: '/manager/hierarchy' },
   { icon: Briefcase, label: 'Book of Business', href: '/manager/client-health' },
   { icon: Zap, label: 'Onboarding', href: '/manager/onboarding-tracker' },
 ];
 
 const actionItems: NavItem[] = [
+  { icon: HeadphonesIcon, label: 'Activity Monitor', href: '/manager/activity-monitor' },
   { icon: AlertTriangle, label: 'Escalations', href: '/manager/escalations' },
   { icon: Send, label: 'Lead Distribution', href: '/manager/lead-distribution' },
 ];
@@ -190,6 +194,12 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [contactSupportOpen, setContactSupportOpen] = useState(false);
   const [location, setLocation] = useLocation();
+  const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
+
+  // Filter LOUNGE_OPTIONS by DB access (current lounge always visible)
+  const visibleLounges = LOUNGE_OPTIONS.filter(
+    lounge => lounge.id === 'manager' || loungeAccessLoading || hasAccess(lounge.id)
+  );
 
   const {
     currentUser,
@@ -729,7 +739,7 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                     backdropFilter: 'blur(20px)',
                   }}
                 >
-                  {LOUNGE_OPTIONS.map((lounge) => {
+                  {visibleLounges.map((lounge) => {
                     const Icon = lounge.icon;
                     const isActive = lounge.id === 'manager';
                     return (

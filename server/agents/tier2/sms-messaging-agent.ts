@@ -51,7 +51,7 @@ export class SmsMessagingAgent extends BaseAgent {
         console.error(`[SMS] Failed to send to ${phone}:`, error?.message || error);
       }
     } else {
-      console.warn(`[SMS] Twilio not configured, skipping send to ${phone}`);
+      console.warn(`[SMS] Telnyx not configured, skipping send to ${phone}`);
     }
 
     if (!this.conversations.has(leadId)) {

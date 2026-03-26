@@ -9,12 +9,18 @@ if (!process.env.DATABASE_URL) {
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10,
-  idleTimeoutMillis: 30000,
+  idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 10000,
+  allowExitOnIdle: true,
 });
 
+// Prevent idle connection timeouts from crashing the process (Neon serverless)
 pool.on('error', (err) => {
-  console.error('Unexpected database pool error:', err);
+  if (err.message?.includes('terminating connection') || err.message?.includes('Connection terminated') || err.message?.includes('ECONNRESET') || (err as any).code === 'ECONNRESET') {
+    console.warn('[DB] Connection recycled (Neon idle timeout) — pool will reconnect automatically');
+  } else {
+    console.error('[DB] Unexpected pool error:', err.message);
+  }
 });
 
 export const db = drizzle(pool);
@@ -114,10 +120,15 @@ export async function initializeDatabase() {
         next_payment_date TIMESTAMP,
         beneficiary_name VARCHAR,
         beneficiary_relationship VARCHAR,
+        beneficiaries JSONB DEFAULT '[]',
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS beneficiaries JSONB DEFAULT '[]';`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS agent_id UUID;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS lead_id VARCHAR;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS carrier VARCHAR;`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS documents (
@@ -839,6 +850,165 @@ export async function initializeDatabase() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_user_lounge_access_user_id ON user_lounge_access (user_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_user_lounge_access_lounge_key ON user_lounge_access (lounge_key);`);
+
+    // Post-close workflows — tracks post-close process per converted lead
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS post_close_workflows (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lead_id VARCHAR NOT NULL,
+        agent_user_id VARCHAR NOT NULL,
+        client_user_id VARCHAR,
+        policy_id VARCHAR,
+        workflow_started_at TIMESTAMP,
+        welcome_email_sent_at TIMESTAMP,
+        welcome_sms_sent_at TIMESTAMP,
+        ai_call_completed_at TIMESTAMP,
+        ai_call_scheduled_at TIMESTAMP,
+        ai_call_job_id VARCHAR(255),
+        nps_scheduled_at TIMESTAMP,
+        nps_score INTEGER,
+        nps_received_at TIMESTAMP,
+        referral_asked_at TIMESTAMP,
+        book_of_business_updated_at TIMESTAMP,
+        details_verified_at TIMESTAMP,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        completed_at TIMESTAMP,
+        verification_notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_workflows_lead_id ON post_close_workflows (lead_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_workflows_agent ON post_close_workflows (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_workflows_status ON post_close_workflows (status);`);
+
+    // Add new columns to existing post_close_workflows tables (safe for existing databases)
+    await client.query(`ALTER TABLE post_close_workflows ADD COLUMN IF NOT EXISTS ai_call_scheduled_at TIMESTAMP;`);
+    await client.query(`ALTER TABLE post_close_workflows ADD COLUMN IF NOT EXISTS ai_call_job_id VARCHAR(255);`);
+    await client.query(`ALTER TABLE post_close_workflows ADD COLUMN IF NOT EXISTS nps_scheduled_at TIMESTAMP;`);
+    await client.query(`ALTER TABLE post_close_workflows ADD COLUMN IF NOT EXISTS nps_score INTEGER;`);
+    await client.query(`ALTER TABLE post_close_workflows ADD COLUMN IF NOT EXISTS nps_received_at TIMESTAMP;`);
+    await client.query(`ALTER TABLE post_close_workflows ADD COLUMN IF NOT EXISTS referral_asked_at TIMESTAMP;`);
+
+    // Post-close follow-ups — tracks 30/60/90 day scheduled check-ins
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS post_close_follow_ups (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        workflow_id UUID,
+        lead_id VARCHAR NOT NULL,
+        agent_user_id UUID NOT NULL,
+        client_user_id VARCHAR,
+        follow_up_type VARCHAR(20) NOT NULL,
+        scheduled_for TIMESTAMP NOT NULL,
+        status VARCHAR(20) DEFAULT 'scheduled',
+        completed_at TIMESTAMP,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_follow_ups_workflow ON post_close_follow_ups (workflow_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_follow_ups_lead ON post_close_follow_ups (lead_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_follow_ups_agent ON post_close_follow_ups (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_post_close_follow_ups_status ON post_close_follow_ups (status);`);
+    await client.query(`ALTER TABLE post_close_follow_ups ADD COLUMN IF NOT EXISTS auto_send_enabled BOOLEAN DEFAULT false;`);
+    await client.query(`ALTER TABLE post_close_follow_ups ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMP;`);
+    await client.query(`ALTER TABLE post_close_follow_ups ADD COLUMN IF NOT EXISTS sms_sent_at TIMESTAMP;`);
+
+    // ─── HIERARCHY REQUESTS (Approval Workflow) ─────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hierarchy_requests (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        request_type VARCHAR(30) NOT NULL,
+        requester_id UUID NOT NULL REFERENCES users(id),
+        requested_upline_id UUID REFERENCES users(id),
+        current_contract_level DECIMAL(5,2),
+        requested_contract_level DECIMAL(5,2),
+        proof_document_url VARCHAR(500),
+        proof_description TEXT,
+        monthly_ap_amount DECIMAL(12,2),
+        manager_reviewer_id UUID REFERENCES users(id),
+        manager_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        manager_notes TEXT,
+        manager_recommended_level DECIMAL(5,2),
+        manager_reviewed_at TIMESTAMP,
+        executive_reviewer_id UUID REFERENCES users(id),
+        executive_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        executive_notes TEXT,
+        executive_final_level DECIMAL(5,2),
+        executive_final_upline_id UUID REFERENCES users(id),
+        executive_reviewed_at TIMESTAMP,
+        carrier_updated BOOLEAN NOT NULL DEFAULT false,
+        carrier_update_notes TEXT,
+        carrier_reminder_sent_at TIMESTAMP,
+        status VARCHAR(20) NOT NULL DEFAULT 'pending_manager',
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_hierarchy_requests_requester ON hierarchy_requests (requester_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_hierarchy_requests_status ON hierarchy_requests (status);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_hierarchy_requests_type ON hierarchy_requests (request_type);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_hierarchy_requests_manager ON hierarchy_requests (manager_reviewer_id);`);
+
+    // ─── COMMISSION TARGETS ──────────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS commission_targets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        scope VARCHAR(20) NOT NULL,
+        agent_user_id UUID REFERENCES users(id),
+        hierarchy_level INTEGER,
+        min_contract_level DECIMAL(5,2) NOT NULL,
+        max_contract_level DECIMAL(5,2) NOT NULL,
+        default_contract_level DECIMAL(5,2) NOT NULL,
+        level_progression JSONB DEFAULT '[]',
+        set_by UUID NOT NULL REFERENCES users(id),
+        effective_from TIMESTAMP DEFAULT NOW() NOT NULL,
+        effective_to TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_targets_scope ON commission_targets (scope);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_targets_agent ON commission_targets (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_targets_level ON commission_targets (hierarchy_level);`);
+
+    // ─── COMMISSION AUDIT LOG ────────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS commission_audit_log (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        action VARCHAR(50) NOT NULL,
+        previous_value JSONB,
+        new_value JSONB,
+        request_id UUID,
+        performed_by UUID NOT NULL REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_audit_agent ON commission_audit_log (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_audit_action ON commission_audit_log (action);`);
+
+    // Agency Deals — tracks submitted deals for leaderboard
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS deals (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        client_name VARCHAR(255),
+        carrier VARCHAR(100) NOT NULL,
+        monthly_premium DECIMAL(10, 2) NOT NULL,
+        annual_premium DECIMAL(10, 2) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'submitted',
+        submitted_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        verified_at TIMESTAMP,
+        verified_by UUID REFERENCES users(id),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_deals_agent ON deals (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_deals_submitted ON deals (submitted_at);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_deals_status ON deals (status);`);
 
     console.log("Database tables initialized successfully.");
   } catch (error) {

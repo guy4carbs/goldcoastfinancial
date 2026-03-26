@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { useAgentStore, type ClientStatus, type BookOfBusinessClient, type ActivityLog, type Beneficiary, type MedicalInfo } from "@/lib/agentStore";
@@ -35,6 +35,54 @@ const CARRIERS = [
   'John Hancock', 'Securian Financial',
 ];
 
+// Input formatters
+function formatSSN(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 9);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+}
+
+function formatHeight(value: string): string {
+  const digits = value.replace(/[^0-9]/g, '').slice(0, 3);
+  if (digits.length === 0) return '';
+  if (digits.length === 1) return `${digits}'`;
+  return `${digits[0]}'${digits.slice(1)}"`;
+}
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function formatCurrencyInput(value: string | number): string {
+  const raw = String(value).replace(/[^0-9.]/g, '');
+  if (!raw) return '';
+  const dotIdx = raw.indexOf('.');
+  let cleaned = raw;
+  if (dotIdx !== -1) {
+    cleaned = raw.slice(0, dotIdx + 1) + raw.slice(dotIdx + 1).replace(/\./g, '');
+  }
+  const parts = cleaned.split('.');
+  const whole = (parts[0] || '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  if (cleaned.endsWith('.')) return `$${whole}.`;
+  if (parts.length > 1) return `$${whole}.${parts[1].slice(0, 2)}`;
+  return `$${whole}`;
+}
+
+function parseCurrencyInput(value: string): number {
+  const num = parseFloat(String(value).replace(/[$,\s]/g, ''));
+  return isNaN(num) ? 0 : num;
+}
+
+const BOB_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const BOB_DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+const BOB_CURRENT_YEAR = new Date().getFullYear();
+const BOB_YEARS = Array.from({ length: 100 }, (_, i) => BOB_CURRENT_YEAR - i);
+
 const statusConfig: Record<ClientStatus, { label: string; icon: typeof Clock; color: string; bg: string; ring: string }> = {
   pending: { label: 'Pending', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100', ring: 'ring-amber-200' },
   active: { label: 'Active', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-100', ring: 'ring-emerald-200' },
@@ -56,6 +104,10 @@ export default function AgentBookOfBusiness() {
   const [reminderType, setReminderType] = useState<'text' | 'email' | null>(null);
   const [reminderMessage, setReminderMessage] = useState('');
   const [reminderClientId, setReminderClientId] = useState<string | null>(null);
+  const [bobDobMonth, setBobDobMonth] = useState('');
+  const [bobDobDay, setBobDobDay] = useState('');
+  const [bobDobYear, setBobDobYear] = useState('');
+
   const [newClient, setNewClient] = useState({
     name: '', email: '', phone: '', dateOfBirth: '', ssn: '', state: '',
     idType: 'drivers_license' as 'drivers_license' | 'state_id',
@@ -69,6 +121,10 @@ export default function AgentBookOfBusiness() {
     clientStatus: 'pending' as ClientStatus,
   });
   const [newBeneficiary, setNewBeneficiary] = useState({ name: '', relationship: '', percentage: 0 });
+  const [bobSelectedFiles, setBobSelectedFiles] = useState<File[]>([]);
+  const handleBobFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) setBobSelectedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+  }, []);
   const [showSensitive, setShowSensitive] = useState(false);
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
   const isVisible = (key: string) => showSensitive || visibleFields[key];
@@ -126,8 +182,13 @@ export default function AgentBookOfBusiness() {
 
   const handleAddClient = () => {
     if (!newClient.name || !newClient.policyNumber) { toast.error('Name and policy number are required'); return; }
-    addClientToBook(newClient);
+    const computedDob = bobDobMonth && bobDobDay && bobDobYear
+      ? `${bobDobYear}-${bobDobMonth.padStart(2, '0')}-${bobDobDay.padStart(2, '0')}`
+      : '';
+    addClientToBook({ ...newClient, dateOfBirth: computedDob });
     setNewClient({ name: '', email: '', phone: '', dateOfBirth: '', ssn: '', state: '', idType: 'drivers_license', idNumber: '', idState: '', idExpiration: '', bankName: '', bankRoutingNumber: '', bankAccountNumber: '', beneficiaries: [], medicalInfo: { tobaccoUse: false, healthConditions: '', medications: '', height: '', weight: '' }, policyNumber: '', policyType: 'Term Life', carrier: '', coverageAmount: 0, monthlyPremium: 0, draftDate: '', commissionRate: 0, policyEffectiveDate: '', notes: '', clientStatus: 'pending' });
+    setBobDobMonth(''); setBobDobDay(''); setBobDobYear('');
+    setBobSelectedFiles([]);
     setShowAddDialog(false);
     toast.success('Client added to Book of Business!');
   };
@@ -526,16 +587,33 @@ export default function AgentBookOfBusiness() {
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Personal Information</p>
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><Label>Full Name *</Label><Input placeholder="John Smith" value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
-                    <div><Label>Date of Birth</Label><Input type="date" value={newClient.dateOfBirth} onChange={(e) => setNewClient({ ...newClient, dateOfBirth: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
+                  <div>
+                    <Label>Full Name *</Label>
+                    <Input placeholder="John Smith" value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} style={{ borderRadius: RADIUS.input }} />
+                  </div>
+                  <div>
+                    <Label>Date of Birth</Label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      <Select value={bobDobMonth} onValueChange={setBobDobMonth}>
+                        <SelectTrigger style={{ borderRadius: RADIUS.input }}><SelectValue placeholder="Month" /></SelectTrigger>
+                        <SelectContent>{BOB_MONTHS.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
+                      </Select>
+                      <Select value={bobDobDay} onValueChange={setBobDobDay}>
+                        <SelectTrigger style={{ borderRadius: RADIUS.input }}><SelectValue placeholder="Day" /></SelectTrigger>
+                        <SelectContent>{BOB_DAYS.map(d => <SelectItem key={d} value={String(d)}>{d}</SelectItem>)}</SelectContent>
+                      </Select>
+                      <Select value={bobDobYear} onValueChange={setBobDobYear}>
+                        <SelectTrigger style={{ borderRadius: RADIUS.input }}><SelectValue placeholder="Year" /></SelectTrigger>
+                        <SelectContent>{BOB_YEARS.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div><Label>Email</Label><Input type="email" placeholder="john@email.com" value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
-                    <div><Label>Phone</Label><Input placeholder="(555) 123-4567" value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>Phone</Label><Input placeholder="(555) 123-4567" value={newClient.phone} onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })} maxLength={14} style={{ borderRadius: RADIUS.input }} /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div><Label>SSN</Label><Input placeholder="XXX-XX-XXXX" value={newClient.ssn} onChange={(e) => setNewClient({ ...newClient, ssn: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>SSN</Label><Input placeholder="XXX-XX-XXXX" value={newClient.ssn} onChange={(e) => setNewClient({ ...newClient, ssn: formatSSN(e.target.value) })} maxLength={11} style={{ borderRadius: RADIUS.input }} /></div>
                     <div><Label>State</Label><Input placeholder="FL" value={newClient.state} onChange={(e) => setNewClient({ ...newClient, state: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
                   </div>
                 </div>
@@ -616,7 +694,7 @@ export default function AgentBookOfBusiness() {
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2"><Activity className="w-3.5 h-3.5" /> Medical Questions</p>
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4">
-                    <div><Label>Height</Label><Input placeholder={`5'10"`} value={newClient.medicalInfo.height || ''} onChange={(e) => setNewClient({ ...newClient, medicalInfo: { ...newClient.medicalInfo, height: e.target.value } })} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>Height</Label><Input placeholder={`5'10"`} value={newClient.medicalInfo.height || ''} onChange={(e) => setNewClient({ ...newClient, medicalInfo: { ...newClient.medicalInfo, height: formatHeight(e.target.value) } })} maxLength={5} style={{ borderRadius: RADIUS.input }} /></div>
                     <div><Label>Weight</Label><Input placeholder="180 lbs" value={newClient.medicalInfo.weight || ''} onChange={(e) => setNewClient({ ...newClient, medicalInfo: { ...newClient.medicalInfo, weight: e.target.value } })} style={{ borderRadius: RADIUS.input }} /></div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -658,7 +736,7 @@ export default function AgentBookOfBusiness() {
                         <SelectContent>{['Term Life', 'Whole Life', 'IUL', 'Final Expense', 'Mortgage Protection', 'Annuity'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Coverage Amount</Label><Input type="number" placeholder="500000" value={newClient.coverageAmount || ''} onChange={(e) => setNewClient({ ...newClient, coverageAmount: Number(e.target.value) })} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>Coverage Amount</Label><Input placeholder="$500,000" value={newClient.coverageAmount ? formatCurrencyInput(newClient.coverageAmount) : ''} onChange={(e) => setNewClient({ ...newClient, coverageAmount: parseCurrencyInput(e.target.value) })} style={{ borderRadius: RADIUS.input }} /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div><Label>Effective Date</Label><Input type="date" value={newClient.policyEffectiveDate} onChange={(e) => setNewClient({ ...newClient, policyEffectiveDate: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
@@ -671,7 +749,7 @@ export default function AgentBookOfBusiness() {
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Premium & Commission</p>
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-4">
-                    <div><Label>Monthly Premium</Label><Input type="number" placeholder="89.50" value={newClient.monthlyPremium || ''} onChange={(e) => setNewClient({ ...newClient, monthlyPremium: Number(e.target.value) })} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>Monthly Premium</Label><Input placeholder="$89.50" value={newClient.monthlyPremium ? formatCurrencyInput(newClient.monthlyPremium) : ''} onChange={(e) => setNewClient({ ...newClient, monthlyPremium: parseCurrencyInput(e.target.value) })} style={{ borderRadius: RADIUS.input }} /></div>
                     <div>
                       <Label>Annual Premium</Label>
                       <div className="h-10 flex items-center px-3 bg-gray-100 text-gray-700 font-medium" style={{ borderRadius: RADIUS.input, fontSize: TYPE.meta }}>
@@ -692,6 +770,43 @@ export default function AgentBookOfBusiness() {
               <div>
                 <Label>Notes</Label>
                 <Textarea placeholder="Any additional notes about this client..." value={newClient.notes} onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })} rows={3} style={{ borderRadius: RADIUS.input }} />
+              </div>
+              {/* Document Upload */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2"><Upload className="w-3.5 h-3.5" /> Documents</p>
+                <div
+                  className="border-2 border-dashed border-gray-200 p-5 text-center cursor-pointer hover:border-violet-300 hover:bg-violet-50/30 transition-colors"
+                  style={{ borderRadius: RADIUS.input }}
+                  onClick={() => document.getElementById('bob-page-doc-upload')?.click()}
+                >
+                  <Upload className="w-5 h-5 mx-auto mb-1.5 text-gray-300" />
+                  <p className="text-xs text-gray-500">Click to upload policy documents</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Declaration page, application copy, etc.</p>
+                  <input
+                    id="bob-page-doc-upload"
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleBobFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  />
+                </div>
+                {bobSelectedFiles.length > 0 && (
+                  <div className="space-y-1 mt-2">
+                    {bobSelectedFiles.map((f, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 text-xs" style={{ borderRadius: RADIUS.input }}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-3 h-3 text-gray-400 shrink-0" />
+                          <span className="truncate text-gray-700">{f.name}</span>
+                          <span className="text-gray-400 shrink-0">({(f.size / 1024).toFixed(0)}KB)</span>
+                        </div>
+                        <button className="p-1 hover:bg-red-50 rounded" onClick={() => setBobSelectedFiles(prev => prev.filter((_, i) => i !== idx))}>
+                          <Trash2 className="w-2.5 h-2.5 text-red-400" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </ScrollArea>

@@ -13,7 +13,8 @@ export default function NewsletterBanner() {
     lastName: "",
     email: "",
     phone: "",
-    agreedToTerms: false
+    agreedToTerms: false,
+    smsConsent: false,
   });
 
   useEffect(() => {
@@ -34,6 +35,10 @@ export default function NewsletterBanner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.firstName || !formData.agreedToTerms) return;
+    if (formData.phone.trim() && !formData.smsConsent) {
+      alert("Please agree to receive SMS communications or remove your phone number.");
+      return;
+    }
 
     setIsLoading(true);
 
@@ -233,6 +238,24 @@ export default function NewsletterBanner() {
                           placeholder="(555) 123-4567"
                         />
                       </div>
+
+                      {formData.phone.trim() && (
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="checkbox"
+                            name="smsConsent"
+                            id="smsConsent"
+                            checked={formData.smsConsent}
+                            onChange={handleChange}
+                            className="mt-1 w-4 h-4 text-violet-500 border-gray-300 rounded focus:ring-violet-500"
+                          />
+                          <label htmlFor="smsConsent" className="text-xs text-gray-500">
+                            By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC
+                            including appointment reminders, application updates, and verification codes. Message frequency varies.
+                            Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                          </label>
+                        </div>
+                      )}
 
                       <div className="flex items-start gap-2">
                         <input

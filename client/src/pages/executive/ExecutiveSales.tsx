@@ -253,7 +253,7 @@ export function ExecutiveSales() {
                             {['Week', 'Policies', 'Revenue'].map((h) => (
                               <th
                                 key={h}
-                                className="text-left font-semibold text-gray-600 px-6 py-4"
+                                className="text-left font-semibold text-stone-600 px-6 py-4"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {h}
@@ -265,23 +265,23 @@ export function ExecutiveSales() {
                           {WEEKLY_PRODUCTION.map((w) => (
                             <tr
                               key={w.week}
-                              className="transition-colors hover:bg-gray-50/50"
+                              className="transition-colors hover:bg-orange-50/50"
                               style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                             >
                               <td
-                                className="px-6 py-4 font-semibold text-gray-900"
+                                className="px-6 py-4 font-semibold text-stone-900"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {w.week}
                               </td>
                               <td
-                                className="px-6 py-4 text-gray-700"
+                                className="px-6 py-4 text-stone-700"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {w.policies}
                               </td>
                               <td
-                                className="px-6 py-4 font-semibold text-gray-900"
+                                className="px-6 py-4 font-semibold text-stone-900"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {fmtCurrency(w.revenue)}
@@ -319,7 +319,7 @@ export function ExecutiveSales() {
                           {['Product', 'Revenue', 'Volume %', 'Distribution'].map((h) => (
                             <th
                               key={h}
-                              className="text-left font-semibold text-gray-600 px-6 py-4"
+                              className="text-left font-semibold text-stone-600 px-6 py-4"
                               style={{ fontSize: TYPE.caption }}
                             >
                               {h}
@@ -331,23 +331,23 @@ export function ExecutiveSales() {
                         {DEMO_REVENUE_BY_PRODUCT.map((p) => (
                           <tr
                             key={p.product}
-                            className="transition-colors hover:bg-gray-50/50"
+                            className="transition-colors hover:bg-orange-50/50"
                             style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                           >
                             <td
-                              className="px-6 py-4 font-semibold text-gray-900"
+                              className="px-6 py-4 font-semibold text-stone-900"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {p.product}
                             </td>
                             <td
-                              className="px-6 py-4 font-semibold text-gray-900"
+                              className="px-6 py-4 font-semibold text-stone-900"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {fmtCurrency(p.revenue)}
                             </td>
                             <td
-                              className="px-6 py-4 text-gray-700"
+                              className="px-6 py-4 text-stone-700"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {p.percentage}%
@@ -441,7 +441,7 @@ export function ExecutiveSales() {
                     >
                       <CardContent className="p-5 text-center">
                         <p
-                          className="font-bold text-gray-900"
+                          className="font-bold text-stone-900"
                           style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
                         >
                           {metric.value}
@@ -498,7 +498,7 @@ export function ExecutiveSales() {
                             {['Team', 'Avg Close Time', 'Win Rate'].map((h) => (
                               <th
                                 key={h}
-                                className="text-left font-semibold text-gray-600 px-6 py-4"
+                                className="text-left font-semibold text-stone-600 px-6 py-4"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {h}
@@ -510,17 +510,17 @@ export function ExecutiveSales() {
                           {TEAM_VELOCITY.map((t) => (
                             <tr
                               key={t.team}
-                              className="transition-colors hover:bg-gray-50/50"
+                              className="transition-colors hover:bg-orange-50/50"
                               style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                             >
                               <td
-                                className="px-6 py-4 font-semibold text-gray-900"
+                                className="px-6 py-4 font-semibold text-stone-900"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {t.team}
                               </td>
                               <td
-                                className="px-6 py-4 text-gray-700"
+                                className="px-6 py-4 text-stone-700"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {t.avgCloseTime}
@@ -589,7 +589,7 @@ export function ExecutiveSales() {
                           >
                             2
                           </div>
-                          <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                          <p className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>
                             {top3[1].name}
                           </p>
                           <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
@@ -649,7 +649,7 @@ export function ExecutiveSales() {
                           >
                             1
                           </div>
-                          <p className="font-bold text-gray-900" style={{ fontSize: TYPE.title }}>
+                          <p className="font-bold text-stone-900" style={{ fontSize: TYPE.title }}>
                             {top3[0].name}
                           </p>
                           <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
@@ -699,7 +699,7 @@ export function ExecutiveSales() {
                           >
                             3
                           </div>
-                          <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                          <p className="font-bold text-stone-900" style={{ fontSize: TYPE.body }}>
                             {top3[2].name}
                           </p>
                           <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
@@ -744,7 +744,7 @@ export function ExecutiveSales() {
                             {['Rank', 'Name', 'Team', 'Revenue', 'Deals'].map((h) => (
                               <th
                                 key={h}
-                                className="text-left font-semibold text-gray-600 px-6 py-4"
+                                className="text-left font-semibold text-stone-600 px-6 py-4"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {h}
@@ -756,7 +756,7 @@ export function ExecutiveSales() {
                           {DEMO_TOP_PERFORMERS.map((p, idx) => (
                             <tr
                               key={p.id}
-                              className="transition-colors hover:bg-gray-50/50"
+                              className="transition-colors hover:bg-orange-50/50"
                               style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                             >
                               <td className="px-6 py-4">
@@ -782,7 +782,7 @@ export function ExecutiveSales() {
                               </td>
                               <td className="px-6 py-4">
                                 <span
-                                  className="font-semibold text-gray-900"
+                                  className="font-semibold text-stone-900"
                                   style={{ fontSize: TYPE.meta }}
                                 >
                                   {p.name}
@@ -795,21 +795,21 @@ export function ExecutiveSales() {
                                 </span>
                               </td>
                               <td
-                                className="px-6 py-4 text-gray-700"
+                                className="px-6 py-4 text-stone-700"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {p.team}
                               </td>
                               <td className="px-6 py-4">
                                 <span
-                                  className="font-semibold text-gray-900"
+                                  className="font-semibold text-stone-900"
                                   style={{ fontSize: TYPE.meta }}
                                 >
                                   {fmtCurrency(p.revenue)}
                                 </span>
                               </td>
                               <td
-                                className="px-6 py-4 text-gray-700"
+                                className="px-6 py-4 text-stone-700"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {p.deals}

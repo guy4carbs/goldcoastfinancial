@@ -27,6 +27,7 @@ export { ExecutiveSupport } from './ExecutiveSupport';
 export { ExecutiveLoungeAccess } from './ExecutiveLoungeAccess';
 export { ExecutiveBookOfBusiness } from './ExecutiveBookOfBusiness';
 export { ExecutiveLeadDistribution } from './ExecutiveLeadDistribution';
+export { ExecutiveCallMonitoring } from './ExecutiveCallMonitoring';
 
 // Primitives
 export { ExecutivePageHero } from './primitives/ExecutivePageHero';

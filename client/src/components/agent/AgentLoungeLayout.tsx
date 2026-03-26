@@ -14,11 +14,13 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAgentStore } from "@/lib/agentStore";
 import { cn } from "@/lib/utils";
+import { useLoungeAccess } from "@/hooks/useLoungeAccess";
 import {
   Home,
   Users,
   BarChart3,
   DollarSign,
+  Handshake,
   FileText,
   BookOpen,
   Trophy,
@@ -116,6 +118,7 @@ const commandCenterItems: NavItem[] = [
   { icon: Inbox, label: "Lead Inbox", href: "/agents/inbox" },
   { icon: Calendar, label: "Calendar", href: "/agents/calendar" },
   { icon: Briefcase, label: "Book of Business", href: "/agents/book-of-business" },
+  { icon: Handshake, label: "Agency Deals", href: "/agents/deals" },
 ];
 
 // CLIENTS - Client management & servicing
@@ -147,6 +150,7 @@ const growthItems: NavItem[] = [
   { icon: Trophy, label: "Leaderboard", href: "/agents/leaderboard" },
   { icon: Star, label: "Achievements", href: "/agents/achievements" },
   { icon: Network, label: "My Hierarchy", href: "/agents/hierarchy" },
+  { icon: DollarSign, label: "My Commissions", href: "/agents/commissions" },
   { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
   { icon: Lightbulb, label: "Ideas & Feedback", href: "/agents/ideas" },
 ];
@@ -167,6 +171,12 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [location, setLocation] = useLocation();
+  const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
+
+  // Filter LOUNGE_OPTIONS by DB access (current lounge always visible)
+  const visibleLounges = LOUNGE_OPTIONS.filter(
+    lounge => lounge.id === 'agent' || loungeAccessLoading || hasAccess(lounge.id)
+  );
 
   // Persist sidebar state
   useEffect(() => {
@@ -659,7 +669,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                     backdropFilter: 'blur(20px)',
                   }}
                 >
-                  {LOUNGE_OPTIONS.map((lounge) => {
+                  {visibleLounges.map((lounge) => {
                     const Icon = lounge.icon;
                     const isActive = lounge.id === 'agent';
                     return (

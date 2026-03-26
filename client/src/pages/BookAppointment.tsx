@@ -161,6 +161,7 @@ export default function BookAppointment() {
     email: '',
     phone: '',
     notes: '',
+    smsConsent: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBooked, setIsBooked] = useState(false);
@@ -204,6 +205,10 @@ export default function BookAppointment() {
   const handleSubmit = async () => {
     if (!formData.name || !formData.email) {
       toast.error('Please fill in your name and email');
+      return;
+    }
+    if (formData.phone.trim() && !formData.smsConsent) {
+      toast.error('Please agree to the SMS consent to provide a phone number.');
       return;
     }
 
@@ -601,6 +606,20 @@ export default function BookAppointment() {
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                         className="mt-1"
                       />
+                    </div>
+
+                    <div>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.smsConsent || false}
+                          onChange={(e) => setFormData(prev => ({ ...prev, smsConsent: e.target.checked }))}
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <span className="text-xs text-gray-500 leading-relaxed">
+                          By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including appointment reminders, application updates, and verification codes. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                        </span>
+                      </label>
                     </div>
 
                     <div>

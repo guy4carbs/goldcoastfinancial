@@ -52,6 +52,8 @@ export type JobName =
   | 'notification:sms'
   | 'reminder:appointment'
   | 'reminder:lead-followup'
+  | 'reminder:post-close-followup'
+  | 'call:ai-welcome'
   | 'report:generate'
   | 'cleanup:expired-tokens'
   | 'cleanup:audit-logs';
@@ -234,6 +236,7 @@ const EMAIL_QUEUE = 'email';
 const NOTIFICATION_QUEUE = 'notifications';
 const REMINDER_QUEUE = 'reminders';
 const CLEANUP_QUEUE = 'cleanup';
+const CALLS_QUEUE = 'calls';
 
 /**
  * Queue an email to be sent
@@ -306,6 +309,44 @@ export async function scheduleLeadFollowup(
   );
 }
 
+/**
+ * Queue an AI welcome call with a delay (post-close workflow)
+ */
+export async function queueAiWelcomeCall(data: {
+  leadId: string;
+  workflowId: string;
+  clientPhone: string;
+  clientFirstName: string;
+  agentName: string;
+  coverageType?: string;
+}, delayMs: number): Promise<Job | null> {
+  return addJob(CALLS_QUEUE, 'call:ai-welcome', data, {
+    delay: delayMs,
+    attempts: 2,
+  });
+}
+
+/**
+ * Schedule a post-close follow-up reminder
+ */
+export async function schedulePostCloseFollowup(
+  data: {
+    leadId: string;
+    agentUserId: string;
+    followUpType: string;
+    title: string;
+    clientName: string;
+  },
+  scheduledFor: Date
+): Promise<Job | null> {
+  return scheduleJob(
+    REMINDER_QUEUE,
+    'reminder:post-close-followup',
+    data,
+    scheduledFor
+  );
+}
+
 // =============================================================================
 // QUEUE STATUS
 // =============================================================================
@@ -370,6 +411,7 @@ export function initialize(): boolean {
   getQueue(NOTIFICATION_QUEUE);
   getQueue(REMINDER_QUEUE);
   getQueue(CLEANUP_QUEUE);
+  getQueue(CALLS_QUEUE);
 
   console.log('[JobQueue] Job queue system initialized');
   return true;
@@ -424,6 +466,8 @@ export default {
   queueSmsNotification,
   scheduleAppointmentReminder,
   scheduleLeadFollowup,
+  queueAiWelcomeCall,
+  schedulePostCloseFollowup,
   getQueueStats,
   getAllQueueStats,
 };

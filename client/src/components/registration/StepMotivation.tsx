@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Search, Users, Briefcase, Globe, Megaphone, Calendar, HelpCircle } from "lucide-react";
+import { AlertCircle, Search, Users, Briefcase, Globe, Megaphone, Calendar, HelpCircle, ChevronDown } from "lucide-react";
 import { RADIUS, MOTION, TYPE, COLORS, spacing } from "@/lib/heritageDesignSystem";
+import { useQuery } from "@tanstack/react-query";
 import type { RegistrationFormData, StepErrors } from "./useRegistrationForm";
 
 interface Props {
@@ -30,6 +31,13 @@ const inputStyle = {
 const inputClass = "w-full border border-gray-200 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 bg-gray-50/50 hover:bg-white";
 
 export function StepMotivation({ formData, updateField, errors }: Props) {
+  const { data: uplineData } = useQuery<{ agents: { id: string; firstName: string; lastName: string; title: string }[] }>({
+    queryKey: ["/api/agents/available-uplines"],
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const availableUplines = uplineData?.agents || [];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: spacing(2.5) }}>
       <div>
@@ -137,6 +145,37 @@ export function StepMotivation({ formData, updateField, errors }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Upline selector — visible when uplines exist in hierarchy */}
+      {availableUplines.length > 0 && (
+        <div>
+          <label className="block font-medium text-gray-700" style={{ fontSize: TYPE.meta, marginBottom: spacing(1) }}>
+            Select your upline <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <p className="text-gray-400 mb-2" style={{ fontSize: TYPE.caption }}>
+            If you know who recruited you or who your manager will be, select them below.
+          </p>
+          <div className="relative">
+            <select
+              value={formData.preferredUplineId}
+              onChange={(e) => updateField("preferredUplineId", e.target.value)}
+              className={inputClass + " appearance-none pr-10"}
+              style={inputStyle}
+            >
+              <option value="">I don't know / Skip</option>
+              {availableUplines.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                  {agent.firstName} {agent.lastName} — {agent.title || "Agent"}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+              style={{ width: 16, height: 16 }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

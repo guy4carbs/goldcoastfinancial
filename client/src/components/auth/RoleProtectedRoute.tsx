@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLoungeAccess } from '@/hooks/useLoungeAccess';
 import {
   Role,
   PermissionType,
@@ -50,6 +51,11 @@ interface RoleProtectedRouteProps {
    * Custom message to show on AccessDenied page
    */
   accessDeniedMessage?: string;
+  /**
+   * DB lounge key to check access against (e.g., 'manager_lounge')
+   * If provided, user must have DB-level lounge access in addition to role
+   */
+  loungeKey?: string;
 }
 
 export function RoleProtectedRoute({
@@ -61,10 +67,12 @@ export function RoleProtectedRoute({
   fallbackPath,
   showAccessDenied = true,
   accessDeniedMessage,
+  loungeKey,
 }: RoleProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied' | 'needs-login' | 'needs-2fa'>('checking');
+  const { hasAccessByKey, isLoading: loungeLoading } = useLoungeAccess();
 
   useEffect(() => {
     // Still loading auth state
@@ -108,9 +116,23 @@ export function RoleProtectedRoute({
       }
     }
 
+    // Check DB-level lounge access if loungeKey is specified
+    if (loungeKey && !loungeLoading) {
+      if (!hasAccessByKey(loungeKey)) {
+        setAccessState('denied');
+        return;
+      }
+    }
+
+    // Still waiting for lounge access data
+    if (loungeKey && loungeLoading) {
+      setAccessState('checking');
+      return;
+    }
+
     // All checks passed
     setAccessState('allowed');
-  }, [user, isLoading, allowedRoles, requiredPermissions, requireAll, require2FA]);
+  }, [user, isLoading, allowedRoles, requiredPermissions, requireAll, require2FA, loungeKey, loungeLoading, hasAccessByKey]);
 
   // Handle different access states
   useEffect(() => {

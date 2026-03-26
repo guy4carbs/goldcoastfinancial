@@ -10,6 +10,7 @@ import React, { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { fmtCurrency } from './clientConstants';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
@@ -452,7 +453,7 @@ export function ClientLoungeLayout({ children }: ClientLoungeLayoutProps) {
                   style={{ width: 16, height: 16, color: AMBER[300] }}
                 />
                 <span className="font-medium" style={{ fontSize: TYPE.meta }}>
-                  ${(TOTAL_COVERAGE / 1000).toLocaleString()}K Coverage
+                  {fmtCurrency(TOTAL_COVERAGE)} Coverage
                 </span>
               </div>
               <div className="flex items-center" style={{ gap: 4 }}>

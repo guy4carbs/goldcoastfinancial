@@ -298,7 +298,7 @@ export async function generateSignedPdf(
     doc
       .font("Helvetica")
       .fontSize(8)
-      .text("Heritage Life Solutions — Gold Coast Financial Group, LLC", 60, 47, {
+      .text("Heritage Life Solutions — Gold Coast Financial Partners, LLC", 60, 47, {
         width: contentWidth,
         align: "center",
       });

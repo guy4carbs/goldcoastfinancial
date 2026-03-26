@@ -124,7 +124,8 @@ export default function Careers() {
     phone: "",
     linkedin: "",
     experience: "",
-    whyJoinUs: ""
+    whyJoinUs: "",
+    smsConsent: false,
   });
 
   // Track form abandonment when user leaves page with incomplete application
@@ -132,7 +133,7 @@ export default function Careers() {
     const handleBeforeUnload = () => {
       if (selectedPosition && !isSubmittedRef.current) {
         // Count filled fields for abandonment tracking
-        const filledFields = Object.values(formData).filter(value => value.trim() !== '').length;
+        const filledFields = Object.values(formData).filter(value => typeof value === 'string' && value.trim() !== '').length;
         trackJobApplicationAbandoned(selectedPosition.title, filledFields);
       }
     };
@@ -152,7 +153,8 @@ export default function Careers() {
       phone: "",
       linkedin: "",
       experience: "",
-      whyJoinUs: ""
+      whyJoinUs: "",
+      smsConsent: false,
     });
     // Track that user opened job position
     track('careers_page_viewed', { position: position.title, department: position.department });
@@ -165,14 +167,19 @@ export default function Careers() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, type, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     });
   };
 
   const handleSubmitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.smsConsent) {
+      alert("Please agree to receive SMS communications to continue.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -606,6 +613,22 @@ export default function Careers() {
                         className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="(555) 123-4567"
                       />
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        name="smsConsent"
+                        id="careersSmsConsent"
+                        checked={formData.smsConsent}
+                        onChange={handleInputChange}
+                        className="mt-1 w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500"
+                      />
+                      <label htmlFor="careersSmsConsent" className="text-xs text-gray-500 leading-relaxed">
+                        By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC
+                        including appointment reminders, application updates, and verification codes. Message frequency varies.
+                        Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                      </label>
                     </div>
 
                     <div>

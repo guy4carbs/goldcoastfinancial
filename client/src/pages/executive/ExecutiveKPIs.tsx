@@ -6,6 +6,8 @@
  * with detailed breakdowns by team, trends, and OKR progress.
  */
 
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   Target,
@@ -55,91 +57,7 @@ import {
   TEAM_STATUS_COLORS,
 } from './executiveConstants';
 
-// ─── KPI CARD DATA ─────────────────────────────
-const KPI_CARDS = [
-  {
-    label: 'Revenue',
-    value: fmtCurrency(DEMO_ORG_METRICS.totalRevenue),
-    target: fmtCurrency(DEMO_ORG_METRICS.quarterlyTarget),
-    delta: DEMO_ORG_METRICS.revenueGrowth,
-    progress: DEMO_ORG_METRICS.quarterlyProgress,
-    icon: DollarSign,
-    color: '#ea580c',
-  },
-  {
-    label: 'Pipeline Value',
-    value: fmtCurrency(DEMO_ORG_METRICS.pipelineValue),
-    target: '$5.5M',
-    delta: DEMO_ORG_METRICS.pipelineGrowth,
-    progress: 87,
-    icon: BarChart3,
-    color: '#f59e0b',
-  },
-  {
-    label: 'Policies Written',
-    value: '412',
-    target: '500',
-    delta: 12,
-    progress: 82,
-    icon: FileText,
-    color: '#10b981',
-  },
-  {
-    label: 'Win Rate',
-    value: `${DEMO_ORG_METRICS.conversionRate}%`,
-    target: `${DEMO_ORG_METRICS.conversionTarget}%`,
-    delta: 2.4,
-    progress: Math.round((DEMO_ORG_METRICS.conversionRate / DEMO_ORG_METRICS.conversionTarget) * 100),
-    icon: Crosshair,
-    color: '#3b82f6',
-  },
-  {
-    label: 'Avg Deal Size',
-    value: fmtCurrency(DEMO_ORG_METRICS.avgDealSize),
-    target: '$20K',
-    delta: 8.5,
-    progress: 92,
-    icon: Award,
-    color: '#8b5cf6',
-  },
-  {
-    label: 'Agent Count',
-    value: `${DEMO_ORG_METRICS.activeAgents}`,
-    target: '70',
-    delta: DEMO_ORG_METRICS.newAgentsThisMonth,
-    progress: Math.round((DEMO_ORG_METRICS.activeAgents / 70) * 100),
-    icon: Users,
-    color: '#06b6d4',
-  },
-  {
-    label: 'Retention Rate',
-    value: `${DEMO_ORG_METRICS.retentionRate}%`,
-    target: `${DEMO_ORG_METRICS.retentionTarget}%`,
-    delta: 1.2,
-    progress: Math.round((DEMO_ORG_METRICS.retentionRate / DEMO_ORG_METRICS.retentionTarget) * 100),
-    icon: UserCheck,
-    color: '#14b8a6',
-  },
-  {
-    label: 'Revenue / Agent',
-    value: fmtCurrency(Math.round(DEMO_ORG_METRICS.totalRevenue / DEMO_ORG_METRICS.activeAgents)),
-    target: '$35K',
-    delta: 14,
-    progress: 88,
-    icon: ArrowUpRight,
-    color: '#f43f5e',
-  },
-];
-
-// ─── TARGET CARD DATA (mirrors KPI_CARDS for Targets tab) ─────
-const TARGET_CARDS = KPI_CARDS.map((kpi) => ({
-  label: kpi.label,
-  current: kpi.value,
-  target: kpi.target,
-  progress: kpi.progress,
-  icon: kpi.icon,
-  color: kpi.color,
-}));
+// KPI_CARDS and TARGET_CARDS are now built inside the component to use live API data.
 
 // ─── TEAM STATUS STYLES ─────────────────────────
 function getStatusStyle(status: 'on-track' | 'at-risk' | 'behind') {
@@ -215,6 +133,150 @@ function ProgressBar({ value, color }: { value: number; color: string }) {
 
 // ─── MAIN COMPONENT ─────────────────────────────
 export function ExecutiveKPIs() {
+  // ── Live data queries ──
+  const { data: kpiData } = useQuery<{
+    leads: { total: number; thisMonth: number; won: number; wonThisMonth: number; totalRevenue: number; revenueThisMonth: number; pipelineValue: number; avgLeadScore: number };
+    calls: { total: number; thisMonth: number; avgDuration: number };
+    licenses: { total: number; valid: number; expiring: number; expired: number };
+  }>({ queryKey: ['/api/executive/kpis'] });
+
+  const { data: dashboardData } = useQuery<{
+    orgMetrics?: typeof DEMO_ORG_METRICS;
+    teams?: typeof DEMO_TEAMS;
+    topPerformers?: any[];
+    quarterlyGoals?: typeof DEMO_QUARTERLY_GOALS;
+    monthlyTrends?: typeof DEMO_EXEC_MONTHLY_TRENDS;
+  }>({ queryKey: ['/api/executive/dashboard'] });
+
+  // ── Map API responses to local variables, falling back to DEMO_* constants ──
+  const orgMetrics = useMemo(() => {
+    const dash = dashboardData?.orgMetrics;
+    const kpi = kpiData?.leads;
+    if (dash) return dash;
+    if (kpi) {
+      // Build orgMetrics shape from KPI endpoint data
+      return {
+        ...DEMO_ORG_METRICS,
+        totalRevenue: kpi.totalRevenue,
+        pipelineValue: kpi.pipelineValue,
+        activeAgents: DEMO_ORG_METRICS.activeAgents, // not in KPI endpoint
+        conversionRate: kpi.won && kpi.total ? Math.round((kpi.won / kpi.total) * 1000) / 10 : DEMO_ORG_METRICS.conversionRate,
+        quarterlyProgress: DEMO_ORG_METRICS.quarterlyTarget > 0
+          ? Math.round((kpi.totalRevenue / DEMO_ORG_METRICS.quarterlyTarget) * 100)
+          : DEMO_ORG_METRICS.quarterlyProgress,
+      };
+    }
+    return DEMO_ORG_METRICS;
+  }, [kpiData, dashboardData]);
+
+  const teams = dashboardData?.teams ?? DEMO_TEAMS;
+
+  const quarterlyGoals = useMemo(() => {
+    if (dashboardData?.quarterlyGoals) return dashboardData.quarterlyGoals;
+    if (kpiData?.leads) {
+      // Patch the Revenue goal with live data
+      return DEMO_QUARTERLY_GOALS.map((goal) => {
+        if (goal.label === 'Revenue') {
+          const current = kpiData.leads.totalRevenue;
+          const target = DEMO_ORG_METRICS.quarterlyTarget;
+          return { ...goal, current, target, progress: Math.round((current / target) * 100) };
+        }
+        if (goal.label === 'New Policies') {
+          return { ...goal, current: kpiData.leads.won, progress: Math.round((kpiData.leads.won / goal.target) * 100) };
+        }
+        return goal;
+      });
+    }
+    return DEMO_QUARTERLY_GOALS;
+  }, [kpiData, dashboardData]);
+
+  const monthlyTrends = dashboardData?.monthlyTrends ?? DEMO_EXEC_MONTHLY_TRENDS;
+
+  // ── Build KPI cards from live orgMetrics ──
+  const KPI_CARDS = useMemo(() => [
+    {
+      label: 'Revenue',
+      value: fmtCurrency(orgMetrics.totalRevenue),
+      target: fmtCurrency(orgMetrics.quarterlyTarget),
+      delta: orgMetrics.revenueGrowth,
+      progress: orgMetrics.quarterlyProgress,
+      icon: DollarSign,
+      color: '#ea580c',
+    },
+    {
+      label: 'Pipeline Value',
+      value: fmtCurrency(orgMetrics.pipelineValue),
+      target: '$5.5M',
+      delta: orgMetrics.pipelineGrowth,
+      progress: 87,
+      icon: BarChart3,
+      color: '#f59e0b',
+    },
+    {
+      label: 'Policies Written',
+      value: kpiData?.leads?.won?.toString() ?? '412',
+      target: '500',
+      delta: 12,
+      progress: kpiData?.leads?.won ? Math.round((kpiData.leads.won / 500) * 100) : 82,
+      icon: FileText,
+      color: '#10b981',
+    },
+    {
+      label: 'Win Rate',
+      value: `${orgMetrics.conversionRate}%`,
+      target: `${orgMetrics.conversionTarget}%`,
+      delta: 2.4,
+      progress: Math.round((orgMetrics.conversionRate / orgMetrics.conversionTarget) * 100),
+      icon: Crosshair,
+      color: '#3b82f6',
+    },
+    {
+      label: 'Avg Deal Size',
+      value: fmtCurrency(orgMetrics.avgDealSize),
+      target: '$20K',
+      delta: 8.5,
+      progress: 92,
+      icon: Award,
+      color: '#8b5cf6',
+    },
+    {
+      label: 'Agent Count',
+      value: `${orgMetrics.activeAgents}`,
+      target: '70',
+      delta: orgMetrics.newAgentsThisMonth,
+      progress: Math.round((orgMetrics.activeAgents / 70) * 100),
+      icon: Users,
+      color: '#06b6d4',
+    },
+    {
+      label: 'Retention Rate',
+      value: `${orgMetrics.retentionRate}%`,
+      target: `${orgMetrics.retentionTarget}%`,
+      delta: 1.2,
+      progress: Math.round((orgMetrics.retentionRate / orgMetrics.retentionTarget) * 100),
+      icon: UserCheck,
+      color: '#14b8a6',
+    },
+    {
+      label: 'Revenue / Agent',
+      value: fmtCurrency(Math.round(orgMetrics.totalRevenue / orgMetrics.activeAgents)),
+      target: '$35K',
+      delta: 14,
+      progress: 88,
+      icon: ArrowUpRight,
+      color: '#f43f5e',
+    },
+  ], [orgMetrics, kpiData]);
+
+  const TARGET_CARDS = useMemo(() => KPI_CARDS.map((kpi) => ({
+    label: kpi.label,
+    current: kpi.value,
+    target: kpi.target,
+    progress: kpi.progress,
+    icon: kpi.icon,
+    color: kpi.color,
+  })), [KPI_CARDS]);
+
   return (
     <ExecutiveLoungeLayout>
       <motion.div
@@ -236,28 +298,28 @@ export function ExecutiveKPIs() {
             <ExecutiveStatCard
               icon={DollarSign}
               label="Revenue vs Target"
-              value={`${fmtCurrency(DEMO_ORG_METRICS.totalRevenue)} / ${fmtCurrency(DEMO_ORG_METRICS.quarterlyTarget)}`}
-              delta={DEMO_ORG_METRICS.revenueGrowth}
+              value={`${fmtCurrency(orgMetrics.totalRevenue)} / ${fmtCurrency(orgMetrics.quarterlyTarget)}`}
+              delta={orgMetrics.revenueGrowth}
               periodLabel="vs last quarter"
             />
             <ExecutiveStatCard
               icon={BarChart3}
               label="Pipeline Coverage"
-              value="3.2x"
-              delta={28}
+              value={orgMetrics.quarterlyTarget > 0 ? `${(orgMetrics.pipelineValue / orgMetrics.quarterlyTarget).toFixed(1)}x` : '3.2x'}
+              delta={orgMetrics.pipelineGrowth}
               periodLabel="vs last quarter"
             />
             <ExecutiveStatCard
               icon={Crosshair}
               label="Org Win Rate"
-              value={`${DEMO_ORG_METRICS.conversionRate}%`}
+              value={`${orgMetrics.conversionRate}%`}
               delta={2.4}
               periodLabel="vs last month"
             />
             <ExecutiveStatCard
               icon={UserCheck}
               label="Agent Retention"
-              value={`${DEMO_ORG_METRICS.retentionRate}%`}
+              value={`${orgMetrics.retentionRate}%`}
               delta={1.2}
               periodLabel="trailing 12 months"
             />
@@ -328,7 +390,7 @@ export function ExecutiveKPIs() {
                         </div>
 
                         <p
-                          className="font-bold text-gray-900"
+                          className="font-bold text-stone-900"
                           style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
                         >
                           {kpi.value}
@@ -372,7 +434,7 @@ export function ExecutiveKPIs() {
                   }}
                 >
                   <CardContent className="p-6 space-y-5">
-                    {DEMO_QUARTERLY_GOALS.map((goal) => {
+                    {quarterlyGoals.map((goal) => {
                       const isRevenue = goal.label === 'Revenue';
                       const currentDisplay = isRevenue
                         ? fmtCurrency(goal.current)
@@ -392,7 +454,7 @@ export function ExecutiveKPIs() {
                           <div className="flex items-center justify-between mb-2">
                             <div>
                               <span
-                                className="font-semibold text-gray-800"
+                                className="font-semibold text-stone-800"
                                 style={{ fontSize: TYPE.body }}
                               >
                                 {goal.label}
@@ -438,7 +500,7 @@ export function ExecutiveKPIs() {
                 <CardContent className="p-6">
                   <ResponsiveContainer width="100%" height={320}>
                     <LineChart
-                      data={DEMO_EXEC_MONTHLY_TRENDS.map((d) => ({ ...d }))}
+                      data={monthlyTrends.map((d) => ({ ...d }))}
                       margin={{ top: 8, right: 24, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke={COLORS.gray[200]} />
@@ -529,7 +591,7 @@ export function ExecutiveKPIs() {
                             (header) => (
                               <th
                                 key={header}
-                                className="text-left font-semibold text-gray-600 px-6 py-4"
+                                className="text-left font-semibold text-stone-600 px-6 py-4"
                                 style={{ fontSize: TYPE.caption }}
                               >
                                 {header}
@@ -539,7 +601,7 @@ export function ExecutiveKPIs() {
                         </tr>
                       </thead>
                       <tbody>
-                        {DEMO_TEAMS.map((team) => {
+                        {teams.map((team) => {
                           const status = getStatusStyle(team.status);
                           const conversionColor =
                             team.conversion >= 22
@@ -551,14 +613,14 @@ export function ExecutiveKPIs() {
                           return (
                             <tr
                               key={team.id}
-                              className="transition-colors hover:bg-gray-50/50"
+                              className="transition-colors hover:bg-orange-50/50"
                               style={{
                                 borderBottom: `1px solid ${COLORS.gray[100]}`,
                               }}
                             >
                               <td className="px-6 py-4">
                                 <span
-                                  className="font-semibold text-gray-900"
+                                  className="font-semibold text-stone-900"
                                   style={{ fontSize: TYPE.meta }}
                                 >
                                   {team.name}
@@ -574,21 +636,21 @@ export function ExecutiveKPIs() {
                                 </span>
                               </td>
                               <td
-                                className="px-6 py-4 text-gray-700"
+                                className="px-6 py-4 text-stone-700"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {team.manager}
                               </td>
                               <td className="px-6 py-4">
                                 <span
-                                  className="font-semibold text-gray-900"
+                                  className="font-semibold text-stone-900"
                                   style={{ fontSize: TYPE.meta }}
                                 >
                                   {fmtCurrency(team.revenue)}
                                 </span>
                               </td>
                               <td
-                                className="px-6 py-4 text-gray-700"
+                                className="px-6 py-4 text-stone-700"
                                 style={{ fontSize: TYPE.meta }}
                               >
                                 {fmtCurrency(team.pipeline)}
@@ -675,7 +737,7 @@ export function ExecutiveKPIs() {
                           <t.icon style={{ width: 18, height: 18, color: t.color }} />
                         </div>
                         <span
-                          className="font-semibold text-gray-700"
+                          className="font-semibold text-stone-700"
                           style={{ fontSize: TYPE.meta }}
                         >
                           {t.label}
@@ -690,7 +752,7 @@ export function ExecutiveKPIs() {
                             Current
                           </span>
                           <span
-                            className="font-bold text-gray-900"
+                            className="font-bold text-stone-900"
                             style={{ fontSize: TYPE.title }}
                           >
                             {t.current}

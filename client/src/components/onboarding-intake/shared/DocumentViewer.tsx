@@ -244,7 +244,7 @@ export function DocumentViewer({ documentId, isSigned, onSign }: DocumentViewerP
         {/* Document header */}
         <div style={{ textAlign: 'center', marginBottom: GRID.spacing.lg, paddingBottom: GRID.spacing.md, borderBottom: `2px solid ${COLORS.gray[200]}` }}>
           <p style={{ fontSize: TYPE.micro, color: COLORS.gray[500], letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>
-            Heritage Life Solutions — Gold Coast Financial Group, LLC
+            Heritage Life Solutions — Gold Coast Financial Partners, LLC
           </p>
           <h3 style={{ fontSize: TYPE.section, fontWeight: 800, color: COLORS.gray[900], letterSpacing: 0.5 }}>
             {doc.title}

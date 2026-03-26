@@ -11,6 +11,7 @@ import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAgentStore } from '@/lib/agentStore';
 import { cn } from '@/lib/utils';
+import { useLoungeAccess } from '@/hooks/useLoungeAccess';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +65,7 @@ import {
   LineChart,
   ShieldCheck,
   Send,
+  Phone,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -156,6 +158,7 @@ const analyticsItems: NavItem[] = [
 const operationsItems: NavItem[] = [
   { icon: UserCog, label: 'Agent Management', href: '/executive/agent-management' },
   { icon: Building, label: 'Agency Management', href: '/executive/agency-management' },
+  { icon: Phone, label: 'Call Monitoring', href: '/executive/call-monitoring' },
   { icon: ShieldCheck, label: 'Lounge Access', href: '/executive/lounge-access' },
 ];
 
@@ -190,6 +193,12 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [contactSupportOpen, setContactSupportOpen] = useState(false);
   const [location, setLocation] = useLocation();
+  const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
+
+  // Filter LOUNGE_OPTIONS by DB access (current lounge always visible)
+  const visibleLounges = LOUNGE_OPTIONS.filter(
+    lounge => lounge.id === 'executive' || loungeAccessLoading || hasAccess(lounge.id)
+  );
 
   const {
     currentUser,
@@ -321,7 +330,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
     <div style={{ marginBottom: GRID.spacing.md }}>
       {!sidebarCollapsed && (
         <p
-          className="font-semibold text-gray-400 uppercase tracking-wider"
+          className="font-semibold text-stone-400 uppercase tracking-wider"
           style={{
             paddingLeft: GRID.spacing.md - 8,
             paddingRight: GRID.spacing.md - 8,
@@ -367,8 +376,8 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
         </div>
         {!sidebarCollapsed && (
           <div>
-            <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body - 2 }}>Heritage</p>
-            <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>Executive Lounge</p>
+            <p className="font-bold text-stone-900" style={{ fontSize: TYPE.body - 2 }}>Heritage</p>
+            <p className="text-stone-500" style={{ fontSize: TYPE.caption }}>Executive Lounge</p>
           </div>
         )}
       </div>
@@ -476,7 +485,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
               whileHover={{ x: 2, backgroundColor: getHoverBg(ORANGE[500], 0.08) }}
               transition={{ duration: MOTION.duration.hover }}
               className={cn(
-                'flex items-center cursor-pointer text-gray-600 hover:text-gray-900 transition-colors',
+                'flex items-center cursor-pointer text-stone-600 hover:text-stone-900 transition-colors',
                 sidebarCollapsed && 'justify-center',
               )}
               style={{
@@ -516,7 +525,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
             >
               <Search style={{ width: 16, height: 16 }} />
               <span className="flex-1">Search Commands</span>
-              <kbd className="text-gray-400" style={{ fontSize: TYPE.micro }}>⌘K</kbd>
+              <kbd className="text-stone-400" style={{ fontSize: TYPE.micro }}>⌘K</kbd>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-orange-50"
@@ -533,7 +542,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex overflow-x-hidden">
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
@@ -555,7 +564,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           transition={{ duration: MOTION.duration.hover }}
-          className="absolute -right-3 bg-white border flex items-center justify-center hover:bg-gray-50 transition-colors z-40"
+          className="absolute -right-3 bg-white border flex items-center justify-center hover:bg-orange-50 transition-colors z-40"
           style={{
             top: GRID.spacing.xxxxl,
             width: GRID.spacing.md,
@@ -567,9 +576,9 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {sidebarCollapsed ? (
-            <ChevronRight className="text-gray-600" style={{ width: 12, height: 12 }} />
+            <ChevronRight className="text-stone-600" style={{ width: 12, height: 12 }} />
           ) : (
-            <ChevronLeft className="text-gray-600" style={{ width: 12, height: 12 }} />
+            <ChevronLeft className="text-stone-600" style={{ width: 12, height: 12 }} />
           )}
         </motion.button>
       </motion.aside>
@@ -601,7 +610,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
             >
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="absolute hover:bg-gray-100 transition-colors"
+                className="absolute hover:bg-stone-100 transition-colors"
                 style={{
                   top: GRID.spacing.sm,
                   right: GRID.spacing.sm,
@@ -610,7 +619,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                 }}
                 aria-label="Close menu"
               >
-                <X className="text-gray-600" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
+                <X className="text-stone-600" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
               </button>
               <SidebarContent />
             </motion.aside>
@@ -623,7 +632,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
         initial={false}
         animate={{ marginLeft: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
         transition={{ duration: MOTION.duration.expand, ease: MOTION.easing }}
-        className="flex-1 flex flex-col min-h-screen lg:ml-0"
+        className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden lg:ml-0"
         style={{ marginLeft: 0 }}
       >
         {/* Header — Glass Material */}
@@ -642,19 +651,19 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
             style={{ paddingLeft: GRID.spacing.md, paddingRight: GRID.spacing.md }}
           >
             {/* Left: Mobile Menu + Search */}
-            <div className="flex items-center" style={{ gap: GRID.spacing.md }}>
+            <div className="flex items-center min-w-0 flex-1" style={{ gap: GRID.spacing.md }}>
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden hover:bg-gray-100 transition-colors"
+                className="lg:hidden hover:bg-stone-100 transition-colors"
                 style={{ padding: GRID.spacing.xs, borderRadius: RADIUS.button }}
                 aria-label="Open menu"
               >
-                <Menu className="text-gray-600" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
+                <Menu className="text-stone-600" style={{ width: ICON_SIZE - 4, height: ICON_SIZE - 4 }} />
               </button>
 
               <button
                 onClick={() => setCommandPaletteOpen(true)}
-                className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+                className="flex items-center text-stone-500 hover:text-stone-700 transition-colors"
                 style={{
                   gap: GRID.spacing.xs,
                   padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
@@ -695,7 +704,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                               </Link>
                             </BreadcrumbLink>
                           ) : (
-                            <span className="text-gray-400" style={{ fontSize: TYPE.meta }}>{crumb.label}</span>
+                            <span className="text-stone-400" style={{ fontSize: TYPE.meta }}>{crumb.label}</span>
                           )}
                         </BreadcrumbItem>
                       </React.Fragment>
@@ -706,12 +715,12 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
             </div>
 
             {/* Right: Lounge Switcher + Notifications + User + Logout */}
-            <div className="flex items-center" style={{ gap: GRID.spacing.sm - 4 }}>
+            <div className="flex items-center flex-shrink-0" style={{ gap: GRID.spacing.sm - 4 }}>
               {/* Lounge Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-1.5 text-stone-600 hover:text-stone-900 transition-colors"
                     style={{
                       padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
                       borderRadius: RADIUS.button,
@@ -720,7 +729,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                   >
                     <Crown style={{ width: 16, height: 16 }} />
                     <span className="hidden sm:inline font-medium" style={{ fontSize: TYPE.meta }}>Executive</span>
-                    <ChevronDown style={{ width: 14, height: 14 }} className="text-gray-400" />
+                    <ChevronDown style={{ width: 14, height: 14 }} className="text-stone-400" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -733,7 +742,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                     backdropFilter: 'blur(20px)',
                   }}
                 >
-                  {LOUNGE_OPTIONS.map((lounge) => {
+                  {visibleLounges.map((lounge) => {
                     const Icon = lounge.icon;
                     const isActive = lounge.id === 'executive';
                     return (
@@ -753,10 +762,10 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                             <Icon className="text-white" size={LAYOUT.icon.sm} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={cn('font-medium', isActive ? 'text-orange-700' : 'text-gray-900')} style={{ fontSize: TYPE.meta }}>
+                            <p className={cn('font-medium', isActive ? 'text-orange-700' : 'text-stone-900')} style={{ fontSize: TYPE.meta }}>
                               {lounge.name}
                             </p>
-                            <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>{lounge.description}</p>
+                            <p className="text-stone-500 truncate" style={{ fontSize: TYPE.caption }}>{lounge.description}</p>
                           </div>
                           {isActive && (
                             <div className="bg-orange-500 flex-shrink-0" style={{ width: 8, height: 8, borderRadius: RADIUS.pill }} />
@@ -805,11 +814,11 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                     borderColor: GLASS.border,
                   }}
                 >
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900" style={{ fontSize: TYPE.meta }}>
+                  <div className="text-right" style={{ maxWidth: 140 }}>
+                    <p className="font-medium text-stone-900 truncate" style={{ fontSize: TYPE.meta }}>
                       {currentUser?.name || 'Executive'}
                     </p>
-                    <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>
+                    <p className="text-stone-500 truncate" style={{ fontSize: TYPE.micro }}>
                       Level {performance.level} · ${(performance.xp || 0).toLocaleString()}
                     </p>
                   </div>
@@ -837,7 +846,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
                   logout();
                   setLocation('/agents/login');
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-stone-500 hover:text-stone-700"
               >
                 <LogOut style={{ width: 16, height: 16 }} />
               </Button>
@@ -846,7 +855,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 pb-24 lg:pb-6" style={{ padding: GRID.spacing.md }}>
+        <main className="flex-1 pb-24 lg:pb-6 overflow-x-hidden" style={{ padding: GRID.spacing.md }}>
           {children}
         </main>
       </motion.div>
@@ -896,7 +905,7 @@ export function ExecutiveLoungeLayout({ children }: ExecutiveLoungeLayoutProps) 
             onClick={() => setMobileMenuOpen(true)}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: MOTION.duration.hover }}
-            className="flex flex-col items-center transition-colors text-gray-500"
+            className="flex flex-col items-center transition-colors text-stone-500"
             style={{
               gap: 4,
               padding: `${GRID.spacing.xs}px ${GRID.spacing.sm - 4}px`,

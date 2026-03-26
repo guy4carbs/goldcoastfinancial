@@ -63,10 +63,10 @@ export class ExecutiveErrorBoundary extends Component<Props, State> {
           >
             <AlertTriangle style={{ width: 28, height: 28, color: 'white' }} />
           </div>
-          <h3 className="font-semibold text-gray-900" style={{ fontSize: TYPE.title, marginBottom: GRID.spacing.xs }}>
+          <h3 className="font-semibold text-stone-900" style={{ fontSize: TYPE.title, marginBottom: GRID.spacing.xs }}>
             Something went wrong
           </h3>
-          <p className="text-gray-500" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
+          <p className="text-stone-500" style={{ fontSize: TYPE.meta, marginBottom: GRID.spacing.md }}>
             {this.state.error?.message || 'An unexpected error occurred'}
           </p>
           <button

@@ -492,7 +492,7 @@ export function ExecutiveGrowthAnalytics() {
                               (header) => (
                                 <th
                                   key={header}
-                                  className="text-left font-semibold text-gray-600 px-6 py-4"
+                                  className="text-left font-semibold text-stone-600 px-6 py-4"
                                   style={{ fontSize: TYPE.caption }}
                                 >
                                   {header}
@@ -519,18 +519,18 @@ export function ExecutiveGrowthAnalytics() {
                             return (
                               <tr
                                 key={cohort.cohort}
-                                className="transition-colors hover:bg-gray-50/50"
+                                className="transition-colors hover:bg-orange-50/50"
                                 style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
                               >
                                 <td className="px-6 py-4">
-                                  <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                  <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                     {cohort.cohort}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 text-gray-700" style={{ fontSize: TYPE.meta }}>
+                                <td className="px-6 py-4 text-stone-700" style={{ fontSize: TYPE.meta }}>
                                   {cohort.agentsHired}
                                 </td>
-                                <td className="px-6 py-4 text-gray-700" style={{ fontSize: TYPE.meta }}>
+                                <td className="px-6 py-4 text-stone-700" style={{ fontSize: TYPE.meta }}>
                                   {cohort.retained}
                                 </td>
                                 <td className="px-6 py-4">
@@ -547,7 +547,7 @@ export function ExecutiveGrowthAnalytics() {
                                   </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                  <span className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
+                                  <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
                                     {fmtCurrency(cohort.avgRevenue)}
                                   </span>
                                 </td>
@@ -743,7 +743,7 @@ export function ExecutiveGrowthAnalytics() {
                               />
                             </div>
                             <h4
-                              className="font-bold text-gray-900"
+                              className="font-bold text-stone-900"
                               style={{ fontSize: TYPE.meta }}
                             >
                               {milestone.title}

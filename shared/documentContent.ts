@@ -26,7 +26,7 @@ export const DOCUMENT_CONTENT: Record<string, DocumentDefinition> = {
     sections: [
       {
         heading: 'PARTIES',
-        body: 'This Non-Disclosure, Non-Use, Non-Solicitation, and Lead Protection Agreement ("Agreement") is entered into as of the date of electronic signature below, by and between Heritage Life Solutions, a subsidiary of Gold Coast Financial Group, LLC, an Illinois limited liability company, located at 1240 Iroquois Avenue, Naperville, Illinois ("Company"), and the undersigned individual ("Recipient" or "Agent"). The Company and the Agent are collectively referred to as the "Parties."',
+        body: 'This Non-Disclosure, Non-Use, Non-Solicitation, and Lead Protection Agreement ("Agreement") is entered into as of the date of electronic signature below, by and between Heritage Life Solutions, a subsidiary of Gold Coast Financial Partners, LLC, an Illinois limited liability company, located at 1240 Iroquois Avenue, Naperville, Illinois ("Company"), and the undersigned individual ("Recipient" or "Agent"). The Company and the Agent are collectively referred to as the "Parties."',
       },
       {
         heading: '1. PURPOSE',
@@ -42,7 +42,7 @@ export const DOCUMENT_CONTENT: Record<string, DocumentDefinition> = {
       },
       {
         heading: '4. LEAD OWNERSHIP AND PROTECTION',
-        body: 'All leads provided to, accessed by, or generated through the Company remain the exclusive property of Gold Coast Financial Group, LLC, regardless of the source, method of generation, or the Agent\'s involvement in cultivating such leads. The Agent shall not contact, solicit, service, or transfer any Company lead outside of authorized Company channels. Any unauthorized use, transfer, disclosure, or exploitation of leads shall result in: (a) liquidated damages of one thousand dollars ($1,000) per lead, per violation; and (b) full reimbursement of all legal fees, investigative costs, and enforcement expenses incurred by the Company in connection with such violation.',
+        body: 'All leads provided to, accessed by, or generated through the Company remain the exclusive property of Gold Coast Financial Partners, LLC, regardless of the source, method of generation, or the Agent\'s involvement in cultivating such leads. The Agent shall not contact, solicit, service, or transfer any Company lead outside of authorized Company channels. Any unauthorized use, transfer, disclosure, or exploitation of leads shall result in: (a) liquidated damages of one thousand dollars ($1,000) per lead, per violation; and (b) full reimbursement of all legal fees, investigative costs, and enforcement expenses incurred by the Company in connection with such violation.',
       },
       {
         heading: '5. STANDARD OF CARE',
@@ -111,7 +111,7 @@ export const DOCUMENT_CONTENT: Record<string, DocumentDefinition> = {
     sections: [
       {
         heading: 'PARTIES',
-        body: 'This Debt Roll-Up Protection and Authorization Agreement ("Agreement") is entered into as of the date of electronic signature below, by and between Heritage Life Solutions, a subsidiary of Gold Coast Financial Group, LLC ("Company" or "Creditor"), and the undersigned independent contractor agent ("Agent" or "Debtor").',
+        body: 'This Debt Roll-Up Protection and Authorization Agreement ("Agreement") is entered into as of the date of electronic signature below, by and between Heritage Life Solutions, a subsidiary of Gold Coast Financial Partners, LLC ("Company" or "Creditor"), and the undersigned independent contractor agent ("Agent" or "Debtor").',
       },
       {
         heading: '1. PURPOSE',
@@ -196,7 +196,7 @@ export const DOCUMENT_CONTENT: Record<string, DocumentDefinition> = {
     sections: [
       {
         heading: 'PARTIES',
-        body: 'This Compliance and Ethical Conduct Agreement ("Agreement") is entered into as of the date of electronic signature below by the undersigned agent ("Agent") in connection with the Agent\'s engagement with Heritage Life Solutions, a subsidiary of Gold Coast Financial Group, LLC ("Company" or "Agency"). The Company requires strict adherence to all applicable laws, carrier guidelines, and ethical standards in order to protect clients, insurance carriers, and the Company.',
+        body: 'This Compliance and Ethical Conduct Agreement ("Agreement") is entered into as of the date of electronic signature below by the undersigned agent ("Agent") in connection with the Agent\'s engagement with Heritage Life Solutions, a subsidiary of Gold Coast Financial Partners, LLC ("Company" or "Agency"). The Company requires strict adherence to all applicable laws, carrier guidelines, and ethical standards in order to protect clients, insurance carriers, and the Company.',
       },
       {
         heading: '1. PURPOSE',
@@ -279,7 +279,11 @@ export const DOCUMENT_CONTENT: Record<string, DocumentDefinition> = {
         body: 'This Agreement shall be governed by the laws of the State of Illinois. Any legal action arising under this Agreement shall be brought exclusively in the state or federal courts located in DuPage County, Illinois, and the Parties hereby consent to the personal jurisdiction of such courts.',
       },
       {
-        heading: '21. ENTIRE AGREEMENT AND ELECTRONIC SIGNATURES',
+        heading: '21. CONSENT TO RECEIVE SMS/TEXT COMMUNICATIONS',
+        body: 'By signing this Agreement, the Agent expressly consents to receive SMS/text messages from Gold Coast Financial Partners LLC (d/b/a Heritage Life Solutions) at the mobile phone number provided during registration. These messages may include, but are not limited to: appointment reminders, application and onboarding status updates, compliance alerts, verification codes, and other business-related communications. Message frequency varies based on activity. Standard message and data rates may apply. The Agent may opt out of SMS communications at any time by replying STOP to any message received from the Company. The Agent may reply HELP for assistance. Opting out of SMS communications does not affect the Agent\'s obligations under this Agreement or any other agreement with the Company. The Company will not share the Agent\'s mobile phone number with third parties for marketing purposes unrelated to the Agent\'s engagement with Heritage Life Solutions.',
+      },
+      {
+        heading: '22. ENTIRE AGREEMENT AND ELECTRONIC SIGNATURES',
         body: 'This Agreement constitutes the entire understanding between the Parties regarding compliance and ethical conduct and supersedes any prior verbal or written agreements on the same subject matter. If any provision of this Agreement is found to be invalid or unenforceable, the remaining provisions shall remain fully enforceable. The Parties agree that electronic signatures, including signatures executed through the Company\'s onboarding platform, shall be considered legally binding and enforceable. By signing below, the Agent certifies that they have read, understood, and agree to comply with all provisions of this Agreement, and further acknowledges that this Agreement supplements and does not replace any other agreements, policies, or obligations applicable to the Agent\'s engagement with Heritage Life Solutions.',
       },
     ],
