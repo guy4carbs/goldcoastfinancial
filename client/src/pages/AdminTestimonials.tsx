@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import AdminNav from "@/components/AdminNav";
+import { motion } from "framer-motion";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
+import { AdminPageHero, AdminGlassCard, AdminStaggerContainer, AdminStatCard, AdminStatCardGrid, AdminEmptyState, ADMIN_GRADIENT } from "@/components/admin/AdminHeritagePrimitives";
+import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
 import {
   Plus,
   Search,
@@ -17,7 +20,8 @@ import {
   X,
   User,
   Quote,
-  MapPin
+  MapPin,
+  MessageSquare
 } from "lucide-react";
 
 interface Testimonial {
@@ -310,137 +314,149 @@ export default function AdminTestimonials() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-        <AdminNav />
-        <div className="flex-1 flex items-center justify-center pt-[72px] lg:pt-0">
-          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+      <AdminLoungeLayout breadcrumbs={[{ label: 'Testimonials' }]}>
+        <div className="flex-1 flex items-center justify-center">
+          <AdminGlassCard className="flex items-center justify-center" style={{ padding: GRID.spacing.xl, minWidth: 200 }}>
+            <RefreshCw className="w-8 h-8 animate-spin text-slate-500" />
+          </AdminGlassCard>
         </div>
-      </div>
+      </AdminLoungeLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-        <AdminNav />
-        <div className="flex-1 p-8 pt-[72px] lg:pt-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <AdminLoungeLayout breadcrumbs={[{ label: 'Testimonials' }]}>
+        <div className="flex-1 p-8 flex items-center justify-center">
+          <AdminGlassCard className="text-center max-w-md w-full" style={{ padding: GRID.spacing.xl }}>
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Testimonials</h3>
-            <p className="text-gray-600">Please try refreshing the page</p>
-          </div>
+            <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900], marginBottom: 8 }}>Failed to Load Testimonials</h3>
+            <p style={{ fontSize: TYPE.body, color: COLORS.gray[600] }}>Please try refreshing the page</p>
+          </AdminGlassCard>
         </div>
-      </div>
+      </AdminLoungeLayout>
     );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Testimonials' }]}>
+      <div className="flex-1">
+        <AdminStaggerContainer className="p-4 md:p-6">
+          {/* Hero Header */}
+          <AdminPageHero
+            icon={Star}
+            title="Testimonials"
+            subtitle="Manage customer reviews and testimonials"
+            actions={
+              <button
+                onClick={openAddModal}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white transition-colors"
+                style={{ borderRadius: RADIUS.button, backdropFilter: 'blur(12px)' }}
+              >
+                <Plus className="w-4 h-4" />
+                Add Testimonial
+              </button>
+            }
+          />
 
-      <div className="flex-1 pt-[72px] lg:pt-0">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Testimonials</h1>
-              <p className="text-gray-600">Manage customer reviews and testimonials</p>
-            </div>
-            <button
-              onClick={openAddModal}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Testimonial
-            </button>
-          </div>
-        </div>
-
-        <div className="p-4 md:p-6 space-y-6">
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-              <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
-              <div className="text-sm text-gray-600">Pending Review</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-              <div className="text-sm text-gray-600">Approved</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-              <div className="text-2xl font-bold text-purple-600">{stats.featured}</div>
-              <div className="text-sm text-gray-600">Featured</div>
-            </div>
-          </div>
+          <AdminStatCardGrid cols={4}>
+            <AdminStatCard icon={MessageSquare} iconColor="text-slate-500" value={stats.total} label="Total" />
+            <AdminStatCard icon={Clock} iconColor="text-amber-500" value={stats.pending} label="Pending Review" />
+            <AdminStatCard icon={CheckCircle} iconColor="text-green-500" value={stats.approved} label="Approved" />
+            <AdminStatCard icon={Star} iconColor="text-purple-500" value={stats.featured} label="Featured" />
+          </AdminStatCardGrid>
 
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search testimonials..."
-                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+          <AdminGlassCard>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search testimonials..."
+                  style={{ borderRadius: RADIUS.input }}
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ borderRadius: RADIUS.input }}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <select
+                value={productFilter}
+                onChange={(e) => setProductFilter(e.target.value)}
+                style={{ borderRadius: RADIUS.input }}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              >
+                {PRODUCT_TYPES.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <select
-              value={productFilter}
-              onChange={(e) => setProductFilter(e.target.value)}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              {PRODUCT_TYPES.map(p => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
-          </div>
+          </AdminGlassCard>
 
           {/* Testimonials Grid */}
           {filteredTestimonials.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-              <Quote className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No testimonials found</h3>
-              <p className="text-gray-600 mb-4">
-                {searchQuery || statusFilter || productFilter
-                  ? "Try adjusting your filters"
-                  : "Add your first customer testimonial"}
-              </p>
-              {!searchQuery && !statusFilter && !productFilter && (
-                <button
-                  onClick={openAddModal}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Testimonial
-                </button>
-              )}
-            </div>
+            <AdminGlassCard>
+              <AdminEmptyState
+                icon={Quote}
+                title="No testimonials found"
+                description={
+                  searchQuery || statusFilter || productFilter
+                    ? "Try adjusting your filters"
+                    : "Add your first customer testimonial"
+                }
+                action={
+                  !searchQuery && !statusFilter && !productFilter ? (
+                    <button
+                      onClick={openAddModal}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-white transition-colors hover:opacity-90"
+                      style={{
+                        borderRadius: RADIUS.button,
+                        background: ADMIN_GRADIENT,
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Testimonial
+                    </button>
+                  ) : undefined
+                }
+              />
+            </AdminGlassCard>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <motion.div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {filteredTestimonials.map((testimonial) => {
                 const statusConfig = STATUS_CONFIG[testimonial.status];
                 return (
-                  <div
+                  <motion.div
                     key={testimonial.id}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                    variants={fadeInUp}
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                    style={{
+                      ...GLASS.css.standard,
+                      borderRadius: RADIUS.card,
+                      boxShadow: SHADOW.card,
+                      overflow: 'hidden',
+                    }}
                   >
                     {/* Card Header */}
-                    <div className="p-4 border-b border-gray-100">
+                    <div className="p-4" style={{ borderBottom: `1px solid ${GLASS.border}` }}>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {testimonial.photoUrl ? (
@@ -450,14 +466,17 @@ export default function AdminTestimonials() {
                               className="w-12 h-12 rounded-full object-cover"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <User className="w-6 h-6 text-primary" />
+                            <div
+                              className="w-12 h-12 rounded-full flex items-center justify-center"
+                              style={{ background: COLORS.lounges.admin.light }}
+                            >
+                              <User className="w-6 h-6 text-slate-500" />
                             </div>
                           )}
                           <div>
-                            <h3 className="font-semibold text-gray-900">{testimonial.name}</h3>
+                            <h3 style={{ fontWeight: 600, color: COLORS.gray[900] }}>{testimonial.name}</h3>
                             {(testimonial.title || testimonial.company) && (
-                              <p className="text-sm text-gray-500">
+                              <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>
                                 {testimonial.title}
                                 {testimonial.title && testimonial.company && " at "}
                                 {testimonial.company}
@@ -465,7 +484,10 @@ export default function AdminTestimonials() {
                             )}
                           </div>
                         </div>
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig.bgColor} ${statusConfig.textColor}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium ${statusConfig.bgColor} ${statusConfig.textColor}`}
+                          style={{ borderRadius: RADIUS.pill }}
+                        >
                           {statusConfig.icon}
                           {statusConfig.label}
                         </span>
@@ -475,18 +497,24 @@ export default function AdminTestimonials() {
                     {/* Card Body */}
                     <div className="p-4">
                       <div className="mb-3">{renderStars(testimonial.rating)}</div>
-                      <p className="text-gray-700 text-sm line-clamp-3 mb-3">
+                      <p className="line-clamp-3 mb-3" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                         "{testimonial.quote}"
                       </p>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {testimonial.location && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs"
+                            style={{ borderRadius: RADIUS.pill, background: COLORS.gray[100], color: COLORS.gray[600] }}
+                          >
                             <MapPin className="w-3 h-3" />
                             {testimonial.location}
                           </span>
                         )}
                         {testimonial.productType && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs"
+                            style={{ borderRadius: RADIUS.pill, background: COLORS.gray[100], color: COLORS.gray[600] }}
+                          >
                             <ShoppingBag className="w-3 h-3" />
                             {PRODUCT_TYPES.find(p => p.value === testimonial.productType)?.label || testimonial.productType}
                           </span>
@@ -500,6 +528,7 @@ export default function AdminTestimonials() {
                               ? "bg-amber-100 text-amber-600"
                               : "bg-gray-100 text-gray-500 hover:text-amber-600"
                           }`}
+                          style={{ borderRadius: RADIUS.input }}
                           title={testimonial.isFeatured ? "Remove from featured" : "Mark as featured"}
                         >
                           <Star className={`w-4 h-4 ${testimonial.isFeatured ? "fill-current" : ""}`} />
@@ -511,6 +540,7 @@ export default function AdminTestimonials() {
                               ? "bg-blue-100 text-blue-600"
                               : "bg-gray-100 text-gray-500 hover:text-blue-600"
                           }`}
+                          style={{ borderRadius: RADIUS.input }}
                           title={testimonial.showOnHomepage ? "Hide from homepage" : "Show on homepage"}
                         >
                           <Home className="w-4 h-4" />
@@ -520,14 +550,16 @@ export default function AdminTestimonials() {
                           <>
                             <button
                               onClick={() => quickApprove(testimonial)}
-                              className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
+                              className="p-2 bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+                              style={{ borderRadius: RADIUS.input }}
                               title="Approve"
                             >
                               <CheckCircle className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => quickReject(testimonial)}
-                              className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
+                              className="p-2 bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                              style={{ borderRadius: RADIUS.input }}
                               title="Reject"
                             >
                               <XCircle className="w-4 h-4" />
@@ -536,39 +568,66 @@ export default function AdminTestimonials() {
                         )}
                         <button
                           onClick={() => openEditModal(testimonial)}
-                          className="p-2 bg-gray-100 text-gray-500 rounded hover:text-gray-900 transition-colors"
+                          className="p-2 bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+                          style={{ borderRadius: RADIUS.input }}
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeleteConfirm(testimonial.id)}
-                          className="p-2 bg-gray-100 text-gray-500 rounded hover:text-red-600 transition-colors"
+                          className="p-2 bg-gray-100 text-gray-500 hover:text-red-600 transition-colors"
+                          style={{ borderRadius: RADIUS.input }}
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </AdminStaggerContainer>
       </div>
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            style={{
+              ...GLASS.css.light,
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+          >
+            <div
+              className="sticky top-0 px-6 py-4 flex items-center justify-between z-10"
+              style={{
+                ...GLASS.css.light,
+                borderBottom: `1px solid ${GLASS.border}`,
+                borderRadius: `${RADIUS.hero}px ${RADIUS.hero}px 0 0`,
+              }}
+            >
+              <h2 style={{ fontSize: TYPE.section, fontWeight: 600, color: COLORS.gray[900] }}>
                 {editingTestimonial ? "Edit Testimonial" : "Add Testimonial"}
               </h2>
               <button
                 onClick={closeModal}
                 className="p-2 text-gray-500 hover:text-gray-900 transition-colors"
+                style={{ borderRadius: RADIUS.input }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -577,7 +636,7 @@ export default function AdminTestimonials() {
               {/* Person Info */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                     Name *
                   </label>
                   <input
@@ -585,11 +644,12 @@ export default function AdminTestimonials() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ borderRadius: RADIUS.input }}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                     Title/Position
                   </label>
                   <input
@@ -597,22 +657,24 @@ export default function AdminTestimonials() {
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="e.g., Business Owner"
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ borderRadius: RADIUS.input }}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                     Company
                   </label>
                   <input
                     type="text"
                     value={formData.company}
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ borderRadius: RADIUS.input }}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                     Location
                   </label>
                   <input
@@ -620,14 +682,15 @@ export default function AdminTestimonials() {
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                     placeholder="e.g., Chicago, IL"
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ borderRadius: RADIUS.input }}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                   />
                 </div>
               </div>
 
               {/* Photo URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                   Photo URL
                 </label>
                 <input
@@ -635,13 +698,14 @@ export default function AdminTestimonials() {
                   value={formData.photoUrl}
                   onChange={(e) => setFormData(prev => ({ ...prev, photoUrl: e.target.value }))}
                   placeholder="https://..."
-                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{ borderRadius: RADIUS.input }}
+                  className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                 />
               </div>
 
               {/* Quote */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                   Testimonial Quote *
                 </label>
                 <textarea
@@ -650,13 +714,14 @@ export default function AdminTestimonials() {
                   value={formData.quote}
                   onChange={(e) => setFormData(prev => ({ ...prev, quote: e.target.value }))}
                   placeholder="What did the customer say about your service?"
-                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  style={{ borderRadius: RADIUS.input }}
+                  className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500 resize-none"
                 />
               </div>
 
               {/* Rating */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                   Rating
                 </label>
                 {renderStars(formData.rating, true, (r) => setFormData(prev => ({ ...prev, rating: r })))}
@@ -665,13 +730,14 @@ export default function AdminTestimonials() {
               {/* Category & Product */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                     Category
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ borderRadius: RADIUS.input }}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                   >
                     {CATEGORIES.filter(c => c.value).map(c => (
                       <option key={c.value} value={c.value}>{c.label}</option>
@@ -679,13 +745,14 @@ export default function AdminTestimonials() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                     Related Product
                   </label>
                   <select
                     value={formData.productType}
                     onChange={(e) => setFormData(prev => ({ ...prev, productType: e.target.value }))}
-                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                    style={{ borderRadius: RADIUS.input }}
+                    className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                   >
                     {PRODUCT_TYPES.map(p => (
                       <option key={p.value} value={p.value}>{p.label || "None"}</option>
@@ -696,13 +763,14 @@ export default function AdminTestimonials() {
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>
                   Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{ borderRadius: RADIUS.input }}
+                  className="w-full px-4 py-2 bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
                 >
                   <option value="pending">Pending Review</option>
                   <option value="approved">Approved</option>
@@ -717,32 +785,32 @@ export default function AdminTestimonials() {
                     type="checkbox"
                     checked={formData.isFeatured}
                     onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-gray-300 text-slate-600 focus:ring-slate-500"
                   />
-                  <span className="text-gray-900">Featured testimonial</span>
+                  <span style={{ color: COLORS.gray[900] }}>Featured testimonial</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.showOnHomepage}
                     onChange={(e) => setFormData(prev => ({ ...prev, showOnHomepage: e.target.checked }))}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-gray-300 text-slate-600 focus:ring-slate-500"
                   />
-                  <span className="text-gray-900">Show on homepage</span>
+                  <span style={{ color: COLORS.gray[900] }}>Show on homepage</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.showOnProductPages}
                     onChange={(e) => setFormData(prev => ({ ...prev, showOnProductPages: e.target.checked }))}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-gray-300 text-slate-600 focus:ring-slate-500"
                   />
-                  <span className="text-gray-900">Show on product pages</span>
+                  <span style={{ color: COLORS.gray[900] }}>Show on product pages</span>
                 </label>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-4" style={{ borderTop: `1px solid ${GLASS.border}` }}>
                 <button
                   type="button"
                   onClick={closeModal}
@@ -753,7 +821,11 @@ export default function AdminTestimonials() {
                 <button
                   type="submit"
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-2 text-white transition-colors hover:opacity-90 disabled:opacity-50"
+                  style={{
+                    borderRadius: RADIUS.button,
+                    background: ADMIN_GRADIENT,
+                  }}
                 >
                   {(createMutation.isPending || updateMutation.isPending) && (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -762,16 +834,34 @@ export default function AdminTestimonials() {
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Testimonial?</h3>
-            <p className="text-gray-600 mb-6">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+            className="w-full max-w-md"
+            style={{
+              ...GLASS.css.light,
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+              padding: GRID.spacing.md,
+            }}
+          >
+            <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900], marginBottom: 8 }}>Delete Testimonial?</h3>
+            <p style={{ fontSize: TYPE.body, color: COLORS.gray[600], marginBottom: GRID.spacing.md }}>
               This action cannot be undone. The testimonial will be permanently removed.
             </p>
             <div className="flex justify-end gap-3">
@@ -784,15 +874,16 @@ export default function AdminTestimonials() {
               <button
                 onClick={() => deleteMutation.mutate(deleteConfirm)}
                 disabled={deleteMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                style={{ borderRadius: RADIUS.button }}
               >
                 {deleteMutation.isPending && <RefreshCw className="w-4 h-4 animate-spin" />}
                 Delete
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </AdminLoungeLayout>
   );
 }

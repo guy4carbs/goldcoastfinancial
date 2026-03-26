@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Image,
   Video,
@@ -12,9 +13,20 @@ import {
   Settings,
   Star,
   ArrowRight,
+  LayoutDashboard,
 } from "lucide-react";
-import AdminNav from "@/components/AdminNav";
-import LoadingScreen from "@/components/LoadingScreen";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
+import {
+  GLASS,
+  RADIUS,
+  SHADOW,
+  MOTION,
+  TYPE,
+  GRID,
+  COLORS,
+  fadeInUp,
+  staggerContainer,
+} from "@/lib/heritageDesignSystem";
 
 interface DashboardStats {
   totalImages: number;
@@ -174,218 +186,327 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <LoadingScreen />
-      <AdminNav />
-
-      <div className="flex-1 p-4 md:p-6 lg:p-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-sm md:text-base text-gray-600">Manage your Heritage Life Solutions website</p>
-          </div>
-
-          {/* Alerts / Action Items */}
-          {stats.pendingTestimonials > 0 && (
-            <div className="mb-6 space-y-3">
-              <a
-                href="/admin/testimonials"
-                className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <Star className="w-5 h-5 text-blue-600" />
-                <span className="flex-1 text-blue-800">
-                  <strong>{stats.pendingTestimonials}</strong> testimonial{stats.pendingTestimonials !== 1 ? "s" : ""} pending review
-                </span>
-                <ArrowRight className="w-5 h-5 text-blue-600" />
-              </a>
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Dashboard' }]}>
+      <motion.div
+        className="max-w-7xl mx-auto space-y-6 md:space-y-8"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Hero Section */}
+        <motion.div
+          variants={fadeInUp}
+          style={{
+            background: 'linear-gradient(135deg, #475569 0%, #334155 50%, #64748b 100%)',
+            borderRadius: RADIUS.hero,
+            padding: `${GRID.spacing.xl}px`,
+            boxShadow: SHADOW.hero,
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Decorative elements */}
+          <div
+            style={{
+              position: 'absolute',
+              top: -40,
+              right: -40,
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.05)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -20,
+              left: '40%',
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.03)',
+            }}
+          />
+          <div className="relative z-10 flex items-center gap-4">
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: RADIUS.button,
+                background: 'rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(12px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}
+            >
+              <LayoutDashboard className="w-7 h-7 text-white" />
             </div>
-          )}
-
-          {/* Submissions Stats */}
-          <div className="mb-6 md:mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Inbox className="w-5 h-5 text-orange-500" />
-              Submissions
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Quote Requests</h3>
-                  <Users className="w-5 h-5 text-blue-500" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {loading ? "..." : stats.quoteRequestsThisMonth}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  This month ({loading ? "..." : stats.totalQuoteRequests} total)
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Contact Messages</h3>
-                  <Mail className="w-5 h-5 text-green-500" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {loading ? "..." : stats.totalContactMessages}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">Total messages</p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Job Applications</h3>
-                  <Briefcase className="w-5 h-5 text-purple-500" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {loading ? "..." : stats.totalJobApplications}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">Total applications</p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Testimonials</h3>
-                  <Star className="w-5 h-5 text-amber-500" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {loading ? "..." : stats.totalTestimonials}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {loading ? "..." : stats.pendingTestimonials} pending review
-                </p>
-              </div>
+            <div>
+              <h1 style={{ fontSize: TYPE.hero, fontWeight: 700, color: 'white', lineHeight: 1.2 }}>
+                Admin Dashboard
+              </h1>
+              <p style={{ fontSize: TYPE.body, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>
+                Manage your Heritage Life Solutions website
+              </p>
             </div>
           </div>
+        </motion.div>
 
-          {/* Newsletter Stats */}
-          <div className="mb-6 md:mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Mail className="w-5 h-5 text-violet-500" />
-              Newsletter
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-600">Total Subscribers</h3>
-                  <Users className="w-5 h-5 text-violet-500" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {loading ? "..." : stats.newsletterTotal.toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {loading ? "..." : stats.newsletterActive.toLocaleString()} active
-                </p>
+        {/* Alerts / Action Items */}
+        {stats.pendingTestimonials > 0 && (
+          <motion.div variants={fadeInUp}>
+            <a
+              href="/admin/testimonials"
+              className="flex items-center gap-3 p-4 hover:opacity-90 transition-opacity"
+              style={{
+                ...GLASS.css.standard,
+                borderRadius: RADIUS.card,
+                borderLeft: '4px solid #64748b',
+              }}
+            >
+              <Star className="w-5 h-5 text-slate-600" />
+              <span className="flex-1 text-gray-800">
+                <strong>{stats.pendingTestimonials}</strong> testimonial{stats.pendingTestimonials !== 1 ? "s" : ""} pending review
+              </span>
+              <ArrowRight className="w-5 h-5 text-slate-500" />
+            </a>
+          </motion.div>
+        )}
+
+        {/* Submissions Stats */}
+        <motion.div variants={fadeInUp}>
+          <h2 className="flex items-center gap-2 mb-4" style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>
+            <Inbox className="w-5 h-5 text-slate-500" />
+            Submissions
+          </h2>
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {[
+              { label: 'Quote Requests', value: loading ? '...' : stats.quoteRequestsThisMonth, sub: `This month (${loading ? '...' : stats.totalQuoteRequests} total)`, icon: Users, iconColor: 'text-blue-500' },
+              { label: 'Contact Messages', value: loading ? '...' : stats.totalContactMessages, sub: 'Total messages', icon: Mail, iconColor: 'text-emerald-500' },
+              { label: 'Job Applications', value: loading ? '...' : stats.totalJobApplications, sub: 'Total applications', icon: Briefcase, iconColor: 'text-purple-500' },
+              { label: 'Testimonials', value: loading ? '...' : stats.totalTestimonials, sub: `${loading ? '...' : stats.pendingTestimonials} pending review`, icon: Star, iconColor: 'text-amber-500' },
+            ].map((card) => {
+              const CardIcon = card.icon;
+              return (
+                <motion.div
+                  key={card.label}
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                  style={{
+                    ...GLASS.css.standard,
+                    borderRadius: RADIUS.card,
+                    padding: GRID.spacing.md,
+                    boxShadow: SHADOW.card,
+                    cursor: 'default',
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>{card.label}</h3>
+                    <CardIcon className={`w-5 h-5 ${card.iconColor}`} />
+                  </div>
+                  <p style={{ fontSize: TYPE.hero, fontWeight: 700, color: COLORS.gray[900] }}>
+                    {card.value}
+                  </p>
+                  <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500], marginTop: 4 }}>
+                    {card.sub}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </motion.div>
+
+        {/* Newsletter Stats */}
+        <motion.div variants={fadeInUp}>
+          <h2 className="flex items-center gap-2 mb-4" style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>
+            <Mail className="w-5 h-5 text-violet-500" />
+            Newsletter
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              style={{
+                ...GLASS.css.standard,
+                borderRadius: RADIUS.card,
+                padding: GRID.spacing.md,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Total Subscribers</h3>
+                <Users className="w-5 h-5 text-violet-500" />
               </div>
+              <p style={{ fontSize: TYPE.hero, fontWeight: 700, color: COLORS.gray[900] }}>
+                {loading ? "..." : stats.newsletterTotal.toLocaleString()}
+              </p>
+              <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500], marginTop: 4 }}>
+                {loading ? "..." : stats.newsletterActive.toLocaleString()} active
+              </p>
+            </motion.div>
 
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-600">New This Month</h3>
-                  <Users className="w-5 h-5 text-green-500" />
-                </div>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {loading ? "..." : `+${stats.newsletterThisMonth}`}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">Subscribers gained</p>
+            <motion.div
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              style={{
+                ...GLASS.css.standard,
+                borderRadius: RADIUS.card,
+                padding: GRID.spacing.md,
+                boxShadow: SHADOW.card,
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>New This Month</h3>
+                <Users className="w-5 h-5 text-emerald-500" />
               </div>
+              <p style={{ fontSize: TYPE.hero, fontWeight: 700, color: COLORS.gray[900] }}>
+                {loading ? "..." : `+${stats.newsletterThisMonth}`}
+              </p>
+              <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500], marginTop: 4 }}>Subscribers gained</p>
+            </motion.div>
 
-              <a
-                href="/admin/newsletter"
-                className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg shadow-sm p-4 text-white hover:from-violet-600 hover:to-purple-700 transition-all"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-white/90">Manage</h3>
-                  <ArrowRight className="w-5 h-5" />
-                </div>
-                <p className="text-lg font-semibold">Newsletter Dashboard</p>
-                <p className="text-sm text-white/80 mt-1">View all subscribers</p>
-              </a>
-            </div>
+            <motion.a
+              href="/admin/newsletter"
+              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+              style={{
+                background: 'linear-gradient(135deg, #475569 0%, #334155 100%)',
+                borderRadius: RADIUS.card,
+                padding: GRID.spacing.md,
+                boxShadow: SHADOW.card,
+                color: 'white',
+                display: 'block',
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 style={{ fontSize: TYPE.meta, fontWeight: 500, color: 'rgba(255,255,255,0.85)' }}>Manage</h3>
+                <ArrowRight className="w-5 h-5" />
+              </div>
+              <p style={{ fontSize: TYPE.title, fontWeight: 600 }}>Newsletter Dashboard</p>
+              <p style={{ fontSize: TYPE.caption, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>View all subscribers</p>
+            </motion.a>
           </div>
+        </motion.div>
 
-          {/* Admin Tools Grid */}
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Admin Tools</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {tools.map((tool) => {
-                const Icon = tool.icon;
-
-                return (
-                  <a
-                    key={tool.title}
-                    href={tool.href}
-                    className="bg-white rounded-lg shadow-sm p-4 md:p-6 hover:shadow-md transition-shadow group relative"
-                  >
-                    {tool.badge && (
-                      <span className="absolute top-3 right-3 px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                        {tool.badge}
-                      </span>
-                    )}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className={`${tool.color} rounded-lg p-3 group-hover:scale-110 transition-transform`}>
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">{tool.title}</h3>
+        {/* Admin Tools Grid */}
+        <motion.div variants={fadeInUp}>
+          <h2 className="mb-4 md:mb-6" style={{ fontSize: TYPE.section, fontWeight: 700, color: COLORS.gray[900] }}>
+            Admin Tools
+          </h2>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {tools.map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <motion.a
+                  key={tool.title}
+                  href={tool.href}
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                  className="relative group"
+                  style={{
+                    ...GLASS.css.standard,
+                    borderRadius: RADIUS.card,
+                    padding: GRID.spacing.md,
+                    boxShadow: SHADOW.card,
+                    display: 'block',
+                  }}
+                >
+                  {tool.badge && (
+                    <span
+                      className="absolute top-3 right-3 px-2 py-1 text-xs font-medium"
+                      style={{
+                        background: COLORS.lounges.admin.light,
+                        color: COLORS.lounges.admin.dark,
+                        borderRadius: RADIUS.pill,
+                      }}
+                    >
+                      {tool.badge}
+                    </span>
+                  )}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div
+                      className={`${tool.color} group-hover:scale-110 transition-transform`}
+                      style={{
+                        borderRadius: RADIUS.button,
+                        padding: 12,
+                      }}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <p className="text-gray-600">{tool.description}</p>
-                  </a>
-                );
-              })}
-            </div>
+                    <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>{tool.title}</h3>
+                  </div>
+                  <p style={{ fontSize: TYPE.body, color: COLORS.gray[600] }}>{tool.description}</p>
+                </motion.a>
+              );
+            })}
+          </motion.div>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          variants={fadeInUp}
+          style={{
+            ...GLASS.css.standard,
+            borderRadius: RADIUS.card,
+            padding: GRID.spacing.md,
+            boxShadow: SHADOW.card,
+          }}
+        >
+          <h2 className="mb-4" style={{ fontSize: TYPE.title, fontWeight: 700, color: COLORS.gray[900] }}>Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            {[
+              { href: '/admin/testimonials', icon: Star, iconColor: 'text-amber-500', borderColor: '#f59e0b', title: 'Add Testimonial', sub: 'New customer review' },
+              { href: '/admin/settings', icon: Settings, iconColor: 'text-slate-500', borderColor: '#64748b', title: 'Site Settings', sub: 'Update config' },
+              { href: '/admin/submissions', icon: Inbox, iconColor: 'text-orange-500', borderColor: '#f97316', title: 'View Submissions', sub: 'Quotes & contacts' },
+              { href: '/admin/newsletter', icon: Mail, iconColor: 'text-violet-500', borderColor: '#8b5cf6', title: 'Newsletter', sub: 'Manage subscribers' },
+            ].map((action) => {
+              const ActionIcon = action.icon;
+              return (
+                <a
+                  key={action.title}
+                  href={action.href}
+                  className="flex items-center gap-3 p-4 transition-all hover:opacity-80"
+                  style={{
+                    border: `1px solid ${COLORS.gray[200]}`,
+                    borderRadius: RADIUS.button,
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = action.borderColor;
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(0,0,0,0.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = COLORS.gray[200];
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <ActionIcon className={`w-5 h-5 ${action.iconColor}`} />
+                  <div>
+                    <p style={{ fontWeight: 600, color: COLORS.gray[900], fontSize: TYPE.body }}>
+                      {action.title}
+                    </p>
+                    <p style={{ fontSize: TYPE.caption, color: COLORS.gray[600] }}>{action.sub}</p>
+                  </div>
+                </a>
+              );
+            })}
           </div>
-
-          {/* Quick Actions */}
-          <div className="mt-6 md:mt-8 bg-white rounded-lg shadow-sm p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-              <a
-                href="/admin/testimonials"
-                className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50/50 transition-colors"
-              >
-                <Star className="w-5 h-5 text-amber-500" />
-                <div>
-                  <p className="font-semibold text-gray-900">Add Testimonial</p>
-                  <p className="text-sm text-gray-600">New customer review</p>
-                </div>
-              </a>
-
-              <a
-                href="/admin/settings"
-                className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-slate-500 hover:bg-slate-50/50 transition-colors"
-              >
-                <Settings className="w-5 h-5 text-slate-500" />
-                <div>
-                  <p className="font-semibold text-gray-900">Site Settings</p>
-                  <p className="text-sm text-gray-600">Update config</p>
-                </div>
-              </a>
-
-              <a
-                href="/admin/submissions"
-                className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50/50 transition-colors"
-              >
-                <Inbox className="w-5 h-5 text-orange-500" />
-                <div>
-                  <p className="font-semibold text-gray-900">View Submissions</p>
-                  <p className="text-sm text-gray-600">Quotes & contacts</p>
-                </div>
-              </a>
-
-              <a
-                href="/admin/newsletter"
-                className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-violet-500 hover:bg-violet-50/50 transition-colors"
-              >
-                <Mail className="w-5 h-5 text-violet-500" />
-                <div>
-                  <p className="font-semibold text-gray-900">Newsletter</p>
-                  <p className="text-sm text-gray-600">Manage subscribers</p>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AdminLoungeLayout>
   );
 }

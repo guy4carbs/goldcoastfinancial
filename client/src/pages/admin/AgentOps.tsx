@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { AdminLoungeLayout } from "./AdminLoungeLayout";
 
 // Types
 interface Agent {
@@ -227,8 +228,9 @@ export default function AgentOps() {
   }
 
   return (
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Agent Ops' }]}>
     <motion.div
-      className="min-h-screen bg-background p-4 md:p-8 space-y-6"
+      className="space-y-6"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
@@ -610,5 +612,6 @@ export default function AgentOps() {
         </div>
       </motion.div>
     </motion.div>
+    </AdminLoungeLayout>
   );
 }

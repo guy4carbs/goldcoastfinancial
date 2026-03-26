@@ -540,7 +540,7 @@ export default function AgentClaims() {
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
-      className="space-y-6 p-6"
+      className="space-y-6"
     >
       {/* ─── HERO ─────────────────────────────────────────── */}
       <motion.div variants={fadeInUp}>

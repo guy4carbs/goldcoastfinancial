@@ -145,6 +145,13 @@ export default function AgentDashboard() {
     staleTime: 60000,
   });
 
+  // Agent's personal deal stats
+  const { data: myDealStats } = useQuery<{ success: boolean; data: { totalAP: number; totalDeals: number; rank: number } }>({
+    queryKey: ['/api/deals/my-stats?period=month'],
+    staleTime: 60000,
+  });
+  const personalAP = myDealStats?.data?.totalAP || 0;
+
   const realLeaderboard = apiLeaderboardData?.data?.length ? apiLeaderboardData.data.map((e) => ({
     id: e.agentUserId,
     name: e.name || `${e.firstName} ${e.lastName}`.trim(),
@@ -399,7 +406,7 @@ export default function AgentDashboard() {
                     <div>
                       <p className="text-[10px] text-white/70 uppercase tracking-wider font-medium">Monthly AP</p>
                       <p className="text-lg font-bold text-white">
-                        ${(pendingEarnings + paidEarnings).toLocaleString()}
+                        ${(personalAP || (pendingEarnings + paidEarnings)).toLocaleString()}
                       </p>
                     </div>
                   </div>

@@ -58,7 +58,7 @@ import {
   SHADOW,
   MOTION,
   COLORS,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 // Import content components
 import { VideoPlayer, type TrainingVideo } from "@/components/training/VideoPlayer";

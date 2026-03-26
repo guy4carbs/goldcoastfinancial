@@ -5,21 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import {
   Rocket,
   Target,
   Calendar,
   CalendarDays,
-  CalendarRange,
   Trophy,
-  GraduationCap,
   CheckCircle2,
   Clock,
   Zap,
   ChevronRight,
   BookOpen,
   Award,
-  TrendingUp,
   Flame,
   Sparkles,
   ArrowRight,
@@ -35,12 +34,10 @@ import {
   TYPE,
   RADIUS,
   SHADOW,
-  MOTION,
-  GLASS,
+  CARD_STYLES,
   fadeInUp,
   staggerContainer,
-  scaleIn,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
 interface MilestonePhase {
@@ -62,7 +59,7 @@ const PHASE_DEFINITIONS: Omit<MilestonePhase, "status" | "progress" | "completed
   {
     id: "day-1",
     title: "Day 1",
-    subtitle: "Welcome & Setup",
+    subtitle: "Launch & Learn the Platform",
     dayRange: "Day 1",
     href: "/agents/onboarding/day-1",
     icon: Rocket,
@@ -72,7 +69,7 @@ const PHASE_DEFINITIONS: Omit<MilestonePhase, "status" | "progress" | "completed
   {
     id: "day-2",
     title: "Day 2",
-    subtitle: "First Steps",
+    subtitle: "Master the Sales Script",
     dayRange: "Day 2",
     href: "/agents/onboarding/day-2",
     icon: Target,
@@ -82,7 +79,7 @@ const PHASE_DEFINITIONS: Omit<MilestonePhase, "status" | "progress" | "completed
   {
     id: "days-3-7",
     title: "Days 3-7",
-    subtitle: "First Week",
+    subtitle: "Train with Live Roleplay",
     dayRange: "Days 3-7",
     href: "/agents/onboarding/days-3-7",
     icon: Calendar,
@@ -92,48 +89,19 @@ const PHASE_DEFINITIONS: Omit<MilestonePhase, "status" | "progress" | "completed
   {
     id: "days-8-30",
     title: "Days 8-30",
-    subtitle: "First Month",
+    subtitle: "Write Your First AP",
     dayRange: "Days 8-30",
     href: "/agents/onboarding/days-8-30",
     icon: CalendarDays,
     tasks: 12, // Weekly activities
     taskPrefix: "week",
   },
-  {
-    id: "days-31-90",
-    title: "Days 31-90",
-    subtitle: "Months 2-3",
-    dayRange: "Days 31-90",
-    href: "/agents/onboarding/days-31-90",
-    icon: CalendarRange,
-    tasks: 20,
-    taskPrefix: "month2-",
-  },
-  {
-    id: "days-91-180",
-    title: "Days 91-180",
-    subtitle: "Months 4-6",
-    dayRange: "Days 91-180",
-    href: "/agents/onboarding/days-91-180",
-    icon: Trophy,
-    tasks: 15,
-    taskPrefix: "month4-",
-  },
-  {
-    id: "days-181-365",
-    title: "Days 181-365",
-    subtitle: "Year One",
-    dayRange: "Days 181-365",
-    href: "/agents/onboarding/days-181-365",
-    icon: GraduationCap,
-    tasks: 12,
-    taskPrefix: "year1-",
-  },
 ];
 
 export default function OnboardingDashboard() {
   // Get persistent progress data
-  const { currentDay, completedTasks, totalXp, startDate, badges } = useOnboardingProgress();
+  const { currentDay, completedTasks, totalXp, badges, progress } = useOnboardingProgress();
+  const startDate = progress.startDate;
 
   // Calculate day streak
   const streakDays = useMemo(() => {
@@ -159,9 +127,6 @@ export default function OnboardingDashboard() {
                 "script-close-video", "roleplay-intro", "objection-handling", "day2-assessment"],
       "days-3-7": ["day3-", "day4-", "day5-", "day6-", "day7-"],
       "days-8-30": ["week2-", "week3-", "week4-"],
-      "days-31-90": ["month2-", "month3-"],
-      "days-91-180": ["month4-", "month5-", "month6-"],
-      "days-181-365": ["year1-"],
     };
 
     return PHASE_DEFINITIONS.map((phase, index) => {
@@ -236,20 +201,20 @@ export default function OnboardingDashboard() {
     const currentPhase = milestonePhases.find(p => p.status === "current");
 
     if (currentPhase?.id === "day-1" || !currentPhase) {
-      tasks.push({ id: 1, title: "Watch Welcome Video", dueDay: 1, priority: "high" });
-      tasks.push({ id: 2, title: "Complete Your Profile", dueDay: 1, priority: "high" });
-      tasks.push({ id: 3, title: "Tour the Agent Portal", dueDay: 1, priority: "medium" });
+      tasks.push({ id: 1, title: "Watch Your Welcome Video", dueDay: 1, priority: "high" });
+      tasks.push({ id: 2, title: "Set Up Your Agent Profile", dueDay: 1, priority: "high" });
+      tasks.push({ id: 3, title: "Explore the Agent Portal", dueDay: 1, priority: "medium" });
     } else if (currentPhase?.id === "day-2") {
-      tasks.push({ id: 1, title: "Review Compliance Handbook", dueDay: 2, priority: "high" });
-      tasks.push({ id: 2, title: "Learn Script Introduction", dueDay: 2, priority: "high" });
-      tasks.push({ id: 3, title: "Practice Fact Finder", dueDay: 2, priority: "medium" });
+      tasks.push({ id: 1, title: "Review the Compliance Handbook", dueDay: 2, priority: "high" });
+      tasks.push({ id: 2, title: "Learn the Script Opening", dueDay: 2, priority: "high" });
+      tasks.push({ id: 3, title: "Practice the Fact Finder", dueDay: 2, priority: "medium" });
     } else if (currentPhase?.id === "days-3-7") {
-      tasks.push({ id: 1, title: "Complete Product Knowledge", dueDay: currentDay + 1, priority: "high" });
-      tasks.push({ id: 2, title: "Shadow Session with Mentor", dueDay: currentDay + 2, priority: "high" });
-      tasks.push({ id: 3, title: "Practice Call Roleplay", dueDay: currentDay + 1, priority: "medium" });
+      tasks.push({ id: 1, title: "Deepen Product Knowledge", dueDay: currentDay + 1, priority: "high" });
+      tasks.push({ id: 2, title: "Shadow a Live Sales Call", dueDay: currentDay + 2, priority: "high" });
+      tasks.push({ id: 3, title: "Run a Full Roleplay Call", dueDay: currentDay + 1, priority: "medium" });
     } else {
-      tasks.push({ id: 1, title: "Continue Your Training", dueDay: currentDay + 1, priority: "medium" });
-      tasks.push({ id: 2, title: "Review Progress with Mentor", dueDay: currentDay + 7, priority: "high" });
+      tasks.push({ id: 1, title: "Complete This Week's Training", dueDay: currentDay + 1, priority: "medium" });
+      tasks.push({ id: 2, title: "Debrief with Your Mentor", dueDay: currentDay + 7, priority: "high" });
     }
     return tasks;
   }, [milestonePhases, currentDay]);
@@ -260,181 +225,43 @@ export default function OnboardingDashboard() {
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        style={{ gap: GRID.spacing.md }}
-        className="flex flex-col"
+        className="space-y-6"
       >
-        {/* Hero Section - follows RADIUS.hero (32px) and hero dominance principle */}
-        <motion.div
-          variants={fadeInUp}
-          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
-        >
-          <div
-            className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
-            style={{
-              borderRadius: RADIUS.hero,
-              padding: `${GRID.spacing.xl}px ${GRID.spacing.xxxl}px`,
-              boxShadow: SHADOW.hero,
-            }}
-          >
-            {/* Background decorative elements */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-400/10 rounded-full translate-y-1/2 -translate-x-1/3 blur-2xl" />
-
-            {/* Subtle pattern overlay - radial gradient dots */}
-            <div
-              className="absolute inset-0 opacity-[0.03]"
-              style={{
-                backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-
-            <div className="relative">
-              {/* Badge - uses RADIUS.pill with glass morphism */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: MOTION.duration.normal }}
-                className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20"
-                style={{
-                  padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                  borderRadius: RADIUS.pill,
-                  marginBottom: GRID.spacing.md,
-                }}
-              >
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span style={{ fontSize: TYPE.meta }} className="font-medium text-white/90">Welcome to Your Journey</span>
-              </motion.div>
-
-              {/* Headline - uses TYPE.display */}
-              <h1
-                className="font-bold text-white leading-tight"
-                style={{ fontSize: TYPE.display, marginBottom: GRID.spacing.sm, lineHeight: 1.2 }}
-              >
-                Transform Into a<br />
-                <span className="text-amber-300">Top Producer</span>
-              </h1>
-
-              {/* Description - uses TYPE.body */}
-              <p
-                className="text-white/80 max-w-2xl leading-relaxed"
-                style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.lg }}
-              >
-                Your comprehensive 365-day onboarding program designed to transform you into an elite agent at Heritage Life Solutions.
-              </p>
-
-              {/* CTA Button - uses RADIUS.pill and proper height (48px = 6U) */}
-              <Link href="/agents/onboarding/day-1">
-                <motion.div
-                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                >
-                  <Button
-                    size="lg"
-                    className="bg-white text-violet-700 hover:bg-white/90 shadow-xl shadow-black/20 font-semibold"
-                    style={{
-                      borderRadius: RADIUS.pill,
-                      height: 48,
-                      paddingLeft: GRID.spacing.lg,
-                      paddingRight: GRID.spacing.lg,
-                      fontSize: TYPE.body,
-                    }}
-                  >
-                    <Zap className="w-5 h-5 mr-2" />
-                    Start Day 1
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Quick Stats Section Header */}
-        <motion.div variants={fadeInUp} className="flex items-center" style={{ gap: GRID.spacing.sm }}>
-          <div
-            className="flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
-            style={{
-              width: GRID.spacing.xl,
-              height: GRID.spacing.xl,
-              borderRadius: RADIUS.button,
-            }}
-          >
-            <TrendingUp className="w-5 h-5 text-amber-200" />
-          </div>
-          <div>
-            <h2 style={{ fontSize: TYPE.title }} className="font-semibold text-gray-900">Your Progress</h2>
-            <p style={{ fontSize: TYPE.meta }} className="text-gray-500">Track your onboarding achievements</p>
-          </div>
-        </motion.div>
-
-        {/* Quick Stats - uses GLASS material system and proper spacing - 2x2 grid on mobile, 4-column on desktop */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 lg:grid-cols-4"
-          style={{ gap: GRID.spacing.sm }}
-        >
-          {[
-            { icon: CheckCircle2, value: "14", label: "Tasks Done", gradient: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20", bgLight: "bg-violet-50" },
-            { icon: BookOpen, value: "3", label: "Modules", gradient: "from-purple-500 to-violet-600", shadow: "shadow-purple-500/20", bgLight: "bg-purple-50" },
-            { icon: Flame, value: String(streakDays), label: "Day Streak", gradient: "from-violet-500 to-amber-500", shadow: "shadow-violet-500/20", bgLight: "bg-amber-50" },
-            { icon: Award, value: "4", label: "Badges", gradient: "from-purple-500 to-violet-600", shadow: "shadow-purple-500/20", bgLight: "bg-purple-50" },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-            >
-              <Card
-                className="border-0 group cursor-pointer overflow-hidden"
-                style={{
-                  background: 'rgba(255,255,255,0.85)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card,
-                }}
-              >
-                {/* Subtle gradient overlay on hover */}
-                <div className={cn(
-                  "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                  stat.bgLight
-                )} style={{ opacity: 0.3 }} />
-                <CardContent style={{ padding: GRID.spacing.md }} className="relative">
-                  <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
-                    <motion.div
-                      className={`flex items-center justify-center bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.shadow}`}
-                      style={{
-                        width: GRID.spacing.xxl,
-                        height: GRID.spacing.xxl,
-                        borderRadius: RADIUS.button,
-                      }}
-                      whileHover={{ scale: 1.05, rotate: 3 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <stat.icon style={{ width: GRID.spacing.md, height: GRID.spacing.md }} className="text-amber-200" />
-                    </motion.div>
-                    <div>
-                      <p style={{ fontSize: TYPE.section }} className="font-bold text-gray-900">{stat.value}</p>
-                      <p style={{ fontSize: TYPE.caption }} className="text-gray-500">{stat.label}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Journey Section - Hero Card */}
+        {/* Hero Section — shared AgentPageHero component */}
         <motion.div variants={fadeInUp}>
+          <AgentPageHero
+            icon={Sparkles}
+            title="Your Path to Production"
+            subtitle="Everything you need to launch, learn, and start writing business"
+          >
+            <Link href="/agents/onboarding/day-1">
+              <Button
+                className="bg-white text-violet-600 hover:bg-violet-50 font-semibold shadow-lg"
+                style={{ borderRadius: 16 }}
+              >
+                Begin Your Launch
+              </Button>
+            </Link>
+          </AgentPageHero>
+        </motion.div>
+
+        {/* Quick Stats — shared AgentStatCard components */}
+        <motion.section variants={fadeInUp}>
+          <AgentStatCardGrid>
+            <AgentStatCard icon={CheckCircle2} value={completedTasks.length} label="Tasks Done" />
+            <AgentStatCard icon={BookOpen} value="3" label="Modules" />
+            <AgentStatCard icon={Flame} value={streakDays} label="Streak" />
+            <AgentStatCard icon={Award} value={badges.length} label="Badges" />
+          </AgentStatCardGrid>
+        </motion.section>
+
+        {/* Journey Section */}
+        <motion.section variants={fadeInUp}>
           <Card
             className="border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
+            style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
           >
-            {/* Hero Header */}
+            {/* Journey Header */}
             <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white overflow-hidden">
               {/* Decorative Pattern */}
               <div
@@ -473,16 +300,16 @@ export default function OnboardingDashboard() {
                         style={{ padding: '4px 12px' }}
                       >
                         <Star className="w-3 h-3 mr-1" />
-                        365-Day Program
+                        30-Day Program
                       </Badge>
                       <h2
                         className="font-bold tracking-tight text-white"
                         style={{ fontSize: TYPE.section, lineHeight: 1.2 }}
                       >
-                        Your Journey
+                        Your Roadmap
                       </h2>
                       <p className="text-white/80 mt-1" style={{ fontSize: TYPE.meta }}>
-                        Navigate through your transformation to elite agent status
+                        Each phase builds on the last — follow the path to your first sale
                       </p>
                     </div>
                   </div>
@@ -527,7 +354,7 @@ export default function OnboardingDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <ListChecks className="w-5 h-5 text-violet-600" />
-                  <h3 style={{ fontSize: TYPE.body }} className="font-semibold text-gray-900">Milestone Phases</h3>
+                  <h3 style={{ fontSize: TYPE.body }} className="font-semibold text-gray-900">Training Phases</h3>
                 </div>
                 <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
                   {milestonePhases.filter(p => p.status === 'completed').length} of {milestonePhases.length} Complete
@@ -632,96 +459,91 @@ export default function OnboardingDashboard() {
               </div>
             </div>
           </Card>
-        </motion.div>
+        </motion.section>
 
         {/* Quick Actions Row */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Continue Where You Left Off */}
-          <motion.div variants={fadeInUp}>
-            <Card
-              className="bg-gradient-to-br from-violet-600 via-purple-600 to-violet-700 border-0 text-white overflow-hidden relative"
-              style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <CardContent className="relative p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <Play style={{ width: 14, height: 14 }} className="text-white" />
+        <motion.section variants={fadeInUp}>
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Continue Where You Left Off */}
+            <div className="flex flex-col gap-4">
+              <Card
+                className="bg-gradient-to-br from-violet-600 via-purple-600 to-violet-700 border-0 text-white overflow-hidden relative"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+              >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <CardContent className="relative p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <Play style={{ width: 14, height: 14 }} className="text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-white/70">Continue Learning</p>
+                      <h3 className="text-sm font-semibold text-white truncate">Product Knowledge Module</h3>
+                    </div>
+                    <div className="text-right flex-shrink-0 mr-2">
+                      <p className="text-lg font-bold text-white">40%</p>
+                      <p className="text-xs text-white/70">18 min</p>
+                    </div>
+                    <Link href="/agents/onboarding/days-3-7">
+                      <Button
+                        size="sm"
+                        className="bg-white text-violet-700 hover:bg-violet-50 font-semibold"
+                        style={{ borderRadius: RADIUS.button }}
+                      >
+                        Continue
+                        <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-white/70">Continue Learning</p>
-                    <h3 className="text-sm font-semibold text-white truncate">Product Knowledge Module</h3>
-                  </div>
-                  <div className="text-right flex-shrink-0 mr-2">
-                    <p className="text-lg font-bold text-white">40%</p>
-                    <p className="text-xs text-white/70">18 min</p>
-                  </div>
-                  <Link href="/agents/onboarding/days-3-7">
-                    <Button
-                      size="sm"
-                      className="bg-white text-violet-700 hover:bg-violet-50 font-semibold"
-                      style={{ borderRadius: RADIUS.button }}
-                    >
-                      Continue
-                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-            {/* Recent Badges */}
-            <Card
-              className="border-0 overflow-hidden bg-white mt-4"
-              style={{
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
-            >
-              <CardHeader style={{ paddingBottom: GRID.spacing.sm }}>
-                <CardTitle
-                  className="font-semibold flex items-center"
-                  style={{ fontSize: TYPE.body, gap: GRID.spacing.xs }}
-                >
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center shadow-sm">
-                    <Trophy style={{ width: 14, height: 14 }} className="text-amber-200" />
-                  </div>
-                  Recent Badges
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2" style={{ gap: GRID.spacing.xs }}>
-                  {recentAchievements.map((achievement, index) => (
-                    <motion.div
-                      key={achievement.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center bg-gray-50 border border-gray-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-violet-200 transition-all"
-                      style={{
-                        gap: GRID.spacing.xs,
-                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                        borderRadius: RADIUS.button,
-                      }}
-                    >
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-400 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <achievement.icon style={{ width: 12, height: 12 }} className="text-white" />
-                      </div>
-                      <span style={{ fontSize: TYPE.caption }} className="font-medium text-gray-700 truncate">{achievement.title}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                </CardContent>
+              </Card>
 
-          {/* Upcoming Tasks */}
-          <motion.div variants={fadeInUp}>
+              {/* Recent Badges */}
+              <Card
+                className="border-0 overflow-hidden bg-white"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
+              >
+                <CardHeader style={{ paddingBottom: GRID.spacing.sm }}>
+                  <CardTitle
+                    className="font-semibold flex items-center"
+                    style={{ fontSize: TYPE.body, gap: GRID.spacing.xs }}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center shadow-sm">
+                      <Trophy style={{ width: 14, height: 14 }} className="text-amber-200" />
+                    </div>
+                    Recent Badges
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2" style={{ gap: GRID.spacing.xs }}>
+                    {recentAchievements.map((achievement, index) => (
+                      <motion.div
+                        key={achievement.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-center bg-gray-50 border border-gray-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] hover:border-violet-200 transition-all"
+                        style={{
+                          gap: GRID.spacing.xs,
+                          padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                          borderRadius: RADIUS.button,
+                        }}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-400 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <achievement.icon style={{ width: 12, height: 12 }} className="text-white" />
+                        </div>
+                        <span style={{ fontSize: TYPE.caption }} className="font-medium text-gray-700 truncate">{achievement.title}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Upcoming Tasks */}
             <Card
               className="border-0 overflow-hidden bg-white h-full"
-              style={{
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
+              style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
             >
               <CardHeader style={{ paddingBottom: GRID.spacing.sm }}>
                 <CardTitle
@@ -761,8 +583,8 @@ export default function OnboardingDashboard() {
                 ))}
               </CardContent>
             </Card>
-          </motion.div>
-        </div>
+          </div>
+        </motion.section>
       </motion.div>
     </OnboardingLoungeLayout>
   );

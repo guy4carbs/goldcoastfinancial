@@ -148,6 +148,54 @@ router.get("/leaderboard", async (req: Request, res: Response) => {
 });
 
 // =============================================================================
+// GET /my-stats — Current agent's personal deal stats
+// =============================================================================
+router.get("/my-stats", async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    const period = (req.query.period as string) || 'month';
+    const periodStart = getPeriodStart(period);
+
+    const result = await pool.query(`
+      SELECT
+        COALESCE(SUM(annual_premium::numeric), 0) as total_ap,
+        COUNT(*)::int as total_deals
+      FROM deals
+      WHERE agent_user_id = $1::uuid
+        AND status != 'rejected'
+        AND submitted_at >= $2
+    `, [userId, periodStart]);
+
+    const stats = result.rows[0];
+
+    // Get rank among all agents
+    const rankResult = await pool.query(`
+      SELECT agent_user_id, SUM(annual_premium::numeric) as total_ap
+      FROM deals
+      WHERE status != 'rejected' AND submitted_at >= $1
+      GROUP BY agent_user_id
+      ORDER BY total_ap DESC
+    `, [periodStart]);
+
+    const rank = rankResult.rows.findIndex((r: any) => r.agent_user_id === userId) + 1;
+
+    res.json({
+      success: true,
+      data: {
+        totalAP: parseFloat(stats.total_ap) || 0,
+        totalDeals: stats.total_deals || 0,
+        rank: rank || 0,
+      },
+    });
+  } catch (error: any) {
+    console.error("[Deals] Error fetching my stats:", error?.message);
+    res.status(500).json({ success: false, message: "Failed to fetch personal stats" });
+  }
+});
+
+// =============================================================================
 // GET /stats — Team aggregate stats
 // =============================================================================
 router.get("/stats", async (req: Request, res: Response) => {

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import {
   Target,
   CheckCircle2,
@@ -18,8 +20,6 @@ import {
   ListChecks,
   GraduationCap,
   Trophy,
-  Sparkles,
-  TrendingUp,
   Shield,
   MessageSquare,
   ArrowRight,
@@ -32,11 +32,10 @@ import {
   SHADOW,
   MOTION,
   COLORS,
-  GLASS,
   fadeInUp,
   staggerContainer,
   scaleIn,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 import { TaskContentModal } from "@/components/onboarding/TaskContentModal";
 import { getTaskContent } from "@/data/onboardingTaskContent";
 import { useDayProgress } from "@/hooks/useOnboardingProgress";
@@ -57,54 +56,54 @@ interface Task {
 const SECTIONS = {
   compliance: {
     id: "compliance",
-    title: "Compliance & Handbook",
-    subtitle: "Essential policies and regulations",
+    title: "Know the Rules",
+    subtitle: "Policies and regulations every licensed agent must follow",
     icon: Shield,
   },
   "script-intro": {
     id: "script-intro",
-    title: "Script Part 1: Introduction",
-    subtitle: "Building credibility & rapport with prospects",
+    title: "Open the Call",
+    subtitle: "Build instant credibility and rapport in the first 30 seconds",
     icon: MessageSquare,
     scriptPart: 1,
   },
   "script-fact": {
     id: "script-fact",
-    title: "Script Part 2: Fact Finder",
-    subtitle: "Discovering coverage needs and premium expectations",
+    title: "Uncover the Need",
+    subtitle: "Ask the right questions to find coverage gaps and set premium expectations",
     icon: FileText,
     scriptPart: 2,
   },
   "script-app": {
     id: "script-app",
-    title: "Script Parts 3-4: Application & Banking",
-    subtitle: "Medical underwriting, SSN, and payment setup",
+    title: "Complete the Application",
+    subtitle: "Navigate underwriting, collect sensitive info, and set up payment",
     icon: FileText,
     scriptPart: 3,
   },
   "script-close": {
     id: "script-close",
-    title: "Script Parts 5-6: Close & Follow-up",
-    subtitle: "Closing techniques and ongoing client care",
+    title: "Close the Deal",
+    subtitle: "Ask for the business and set up long-term client relationships",
     icon: Trophy,
     scriptPart: 5,
   },
   roleplay: {
     id: "roleplay",
-    title: "Roleplay Practice",
-    subtitle: "Put your script knowledge into action",
+    title: "Prove It Live",
+    subtitle: "Run full sales calls with AI prospects and get real-time coaching",
     icon: MessageSquare,
   },
   objections: {
     id: "objections",
-    title: "Objection Handling Intro",
-    subtitle: "Learn to overcome common prospect concerns",
+    title: "Handle Every Objection",
+    subtitle: "Turn 'no' and 'let me think about it' into signed applications",
     icon: Shield,
   },
   assessment: {
     id: "assessment",
-    title: "Day 2 Assessment",
-    subtitle: "Test your script mastery",
+    title: "Show What You Know",
+    subtitle: "Pass the script mastery assessment to unlock Days 3-7",
     icon: GraduationCap,
   },
 };
@@ -113,8 +112,8 @@ const day2Tasks: Task[] = [
   // Section 1: Compliance & Handbook
   {
     id: "read-handbook",
-    title: "Read Agent Handbook",
-    description: "Review Heritage Life policies, procedures, and expectations",
+    title: "Review the Agent Handbook",
+    description: "Know Heritage policies, expectations, and how the agency operates",
     type: "read",
     duration: "20 min",
     xp: 75,
@@ -124,8 +123,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "compliance-intro",
-    title: "Compliance Introduction",
-    description: "Understanding insurance regulations and compliance requirements",
+    title: "Learn Compliance Essentials",
+    description: "Understand the regulations that protect you, your clients, and your license",
     type: "module",
     duration: "15 min",
     xp: 100,
@@ -137,8 +136,8 @@ const day2Tasks: Task[] = [
   // Section 2: Script Part 1 - Introduction (Building credibility & rapport)
   {
     id: "script-credibility",
-    title: "Building Credibility",
-    description: "Learn how to establish trust and authority in the first 30 seconds",
+    title: "Establish Instant Credibility",
+    description: "Learn the exact words that build trust before the prospect can object",
     type: "video",
     duration: "10 min",
     xp: 75,
@@ -148,8 +147,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-rapport",
-    title: "Building Rapport Techniques",
-    description: "Master conversation starters and connection-building strategies",
+    title: "Master Rapport Building",
+    description: "Use conversation starters that make prospects feel heard and valued",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -161,8 +160,8 @@ const day2Tasks: Task[] = [
   // Section 3: Script Part 2 - Fact Finder (Coverage and premium)
   {
     id: "script-coverage-questions",
-    title: "Coverage Discovery Questions",
-    description: "Learn the key questions to uncover client protection needs",
+    title: "Ask the Right Questions",
+    description: "Use discovery questions that reveal exactly what coverage each client needs",
     type: "module",
     duration: "15 min",
     xp: 100,
@@ -172,8 +171,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-premium-framework",
-    title: "Premium Discussion Framework",
-    description: "How to discuss budget and present affordable options",
+    title: "Frame the Premium",
+    description: "Present coverage options that fit the client's budget without underselling",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -185,8 +184,8 @@ const day2Tasks: Task[] = [
   // Section 4: Script Parts 3-4 - Application & Banking
   {
     id: "script-medical-underwriting",
-    title: "Medical Underwriting Questions",
-    description: "Navigate health questions professionally and thoroughly",
+    title: "Navigate Health Questions",
+    description: "Walk clients through underwriting questions with confidence and care",
     type: "module",
     duration: "15 min",
     xp: 100,
@@ -196,8 +195,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-application-walkthrough",
-    title: "Application Walkthrough",
-    description: "Step-by-step guide to completing applications accurately",
+    title: "Walk Through the E-App",
+    description: "Complete an application step-by-step so nothing gets kicked back",
     type: "video",
     duration: "10 min",
     xp: 75,
@@ -207,8 +206,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-sensitive-info",
-    title: "Handling Sensitive Information",
-    description: "Best practices for collecting SSN and banking details securely",
+    title: "Collect SSN & Banking Info",
+    description: "Ask for sensitive details smoothly while keeping the client at ease",
     type: "module",
     duration: "10 min",
     xp: 100,
@@ -218,8 +217,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-security-compliance",
-    title: "Security Compliance",
-    description: "Data protection requirements and secure handling procedures",
+    title: "Protect Client Data",
+    description: "Follow required data security procedures to stay compliant and build trust",
     type: "read",
     duration: "5 min",
     xp: 50,
@@ -231,8 +230,8 @@ const day2Tasks: Task[] = [
   // Section 5: Script Parts 5-6 - Close & Follow-up
   {
     id: "script-closing-techniques",
-    title: "Closing Techniques",
-    description: "Learn assumptive closes and how to ask for the business",
+    title: "Master the Close",
+    description: "Use assumptive closes that make signing the application feel natural",
     type: "module",
     duration: "15 min",
     xp: 100,
@@ -242,8 +241,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-closing-old-policies",
-    title: "Closing Old Policies",
-    description: "How to help clients transition from existing coverage",
+    title: "Replace Existing Coverage",
+    description: "Help clients upgrade from outdated policies to better protection",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -253,8 +252,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "script-client-checkin",
-    title: "Client Check-in Best Practices",
-    description: "Building long-term relationships through regular follow-ups",
+    title: "Build Client Loyalty",
+    description: "Set up follow-up rhythms that generate referrals and repeat business",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -266,8 +265,8 @@ const day2Tasks: Task[] = [
   // Section 6: Roleplay Practice
   {
     id: "roleplay-call-1",
-    title: "Full Script Roleplay - Phone Call #1",
-    description: "Practice a complete sales call from introduction to close",
+    title: "Run Your First Sales Call",
+    description: "Deliver the full script from intro to close with an AI prospect",
     type: "roleplay",
     duration: "15 min",
     xp: 150,
@@ -277,8 +276,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "roleplay-call-2",
-    title: "Full Script Roleplay - Phone Call #2",
-    description: "Second practice call with a different prospect scenario",
+    title: "Run a Tougher Scenario",
+    description: "Handle a skeptical prospect who pushes back on coverage and price",
     type: "roleplay",
     duration: "15 min",
     xp: 150,
@@ -288,8 +287,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "roleplay-feedback",
-    title: "AI Avatar Feedback Review",
-    description: "Review your roleplay performance and get personalized tips",
+    title: "Review Your Performance",
+    description: "Get AI coaching on what you nailed and where to sharpen up",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -301,8 +300,8 @@ const day2Tasks: Task[] = [
   // Section 7: Objection Handling Intro
   {
     id: "objections-overview",
-    title: "Common Objections Overview",
-    description: "Learn the top 10 objections and why prospects raise them",
+    title: "Learn the Top 10 Objections",
+    description: "Understand why prospects say no and the proven responses that turn them around",
     type: "video",
     duration: "15 min",
     xp: 100,
@@ -312,8 +311,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "objections-practice",
-    title: "Objection Handling Practice",
-    description: "Roleplay responding to common objections with AI coach",
+    title: "Drill Objection Responses",
+    description: "Practice rebutting live objections with your AI coach until they feel natural",
     type: "roleplay",
     duration: "15 min",
     xp: 150,
@@ -325,8 +324,8 @@ const day2Tasks: Task[] = [
   // Section 8: Day 2 Assessment
   {
     id: "script-quiz",
-    title: "Script Knowledge Check",
-    description: "Test your understanding of the 6-part script structure",
+    title: "Script Knowledge Quiz",
+    description: "Prove you know every part of the 6-part Heritage script",
     type: "quiz",
     duration: "10 min",
     xp: 100,
@@ -336,8 +335,8 @@ const day2Tasks: Task[] = [
   },
   {
     id: "day2-assessment",
-    title: "Day 2 Skills Assessment",
-    description: "Comprehensive assessment of Day 2 learning objectives",
+    title: "Day 2 Final Assessment",
+    description: "Pass this to prove you are ready for live practice on Days 3-7",
     type: "quiz",
     duration: "10 min",
     xp: 150,
@@ -499,161 +498,30 @@ export default function OnboardingDay2() {
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        style={{ gap: GRID.spacing.md }}
-        className="flex flex-col"
+        className="space-y-6"
       >
-        {/* Header - Hero Card with Pattern Overlay */}
-        <motion.div
-          variants={fadeInUp}
-          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
-        >
+        {/* Hero */}
+        <AgentPageHero
+          icon={Target}
+          title="Day 2: Own the Script"
+          subtitle="Learn every part of the Heritage sales call — from opening to close"
+        />
+
+        {/* Stats */}
+        <motion.section variants={fadeInUp}>
+          <AgentStatCardGrid>
+            <AgentStatCard icon={CheckCircle2} value={`${completedCount}/${totalTasks}`} label="Tasks Done" />
+            <AgentStatCard icon={Zap} value={totalXP} label="XP Earned" />
+            <AgentStatCard icon={Clock} value="~3hrs" label="Time Left" />
+            <AgentStatCard icon={Trophy} value={`${progress}%`} label="Complete" />
+          </AgentStatCardGrid>
+        </motion.section>
+
+        {/* Learning Objectives */}
+        <motion.section variants={fadeInUp}>
           <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Pattern overlay */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)`,
-                backgroundSize: '24px 24px',
-              }}
-            />
-            {/* Floating decorative circles */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
-            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-purple-300/15 rounded-full blur-sm" />
-
-            <CardContent style={{ padding: GRID.spacing.lg }} className="relative">
-              <div className="flex items-start" style={{ gap: GRID.spacing.md }}>
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    type: "spring",
-                    damping: 15,
-                    stiffness: 200,
-                    delay: 0.2
-                  }}
-                  className="bg-white/20 backdrop-blur-md flex items-center justify-center"
-                  style={{
-                    width: GRID.spacing.xxxxl,
-                    height: GRID.spacing.xxxxl,
-                    borderRadius: RADIUS.card,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  <Target style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }} className="text-amber-200" />
-                </motion.div>
-                <div className="flex-1">
-                  <Badge
-                    className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium"
-                    style={{ marginBottom: GRID.spacing.xs, padding: '4px 12px' }}
-                  >
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Day 2 of 30
-                  </Badge>
-                  <h1
-                    className="font-bold tracking-tight text-white"
-                    style={{ fontSize: TYPE.display, marginBottom: GRID.spacing.xs, lineHeight: 1.1 }}
-                  >
-                    Script Mastery
-                  </h1>
-                  <p style={{ fontSize: TYPE.body, lineHeight: 1.5 }} className="text-white/90 max-w-xl">
-                    Master the Heritage 6-part sales script. Today you'll learn Introduction, Fact Finding, Application, Banking, Close, and Follow-up.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Progress Stats Grid - Enhanced with Glass Morphism */}
-        <motion.div
-          variants={fadeInUp}
-          className="grid grid-cols-3"
-          style={{ gap: GRID.spacing.sm }}
-        >
-          {[
-            {
-              value: `${completedCount}/${totalTasks}`,
-              label: "Tasks Complete",
-              gradient: `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.violet[600]} 100%)`,
-              icon: ListChecks,
-              bgGlow: COLORS.primary.violet[100],
-            },
-            {
-              value: `${progress}%`,
-              label: "Progress",
-              gradient: `linear-gradient(135deg, ${COLORS.primary.purple[500]} 0%, ${COLORS.primary.purple[600]} 100%)`,
-              icon: TrendingUp,
-              bgGlow: COLORS.primary.purple[100],
-            },
-            {
-              value: totalXP,
-              label: "XP Earned",
-              gradient: `linear-gradient(135deg, ${COLORS.accent.amber[500]} 0%, ${COLORS.accent.amber[600]} 100%)`,
-              icon: Zap,
-              bgGlow: COLORS.accent.amber[100],
-            },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-            >
-              <Card
-                className="relative overflow-hidden border-0"
-                style={{
-                  borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card,
-                  background: GLASS.background,
-                  backdropFilter: `blur(${GLASS.blur}px)`,
-                  WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
-                }}
-              >
-                {/* Subtle gradient glow in background */}
-                <div
-                  className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-40 blur-2xl"
-                  style={{ background: stat.bgGlow }}
-                />
-                <CardContent style={{ padding: GRID.spacing.md }} className="text-center relative">
-                  <div
-                    className="mx-auto flex items-center justify-center text-white mb-3"
-                    style={{
-                      width: GRID.spacing.xl,
-                      height: GRID.spacing.xl,
-                      borderRadius: RADIUS.button,
-                      background: stat.gradient,
-                      boxShadow: `0 4px 12px ${stat.bgGlow}`,
-                    }}
-                  >
-                    <stat.icon style={{ width: GRID.spacing.md, height: GRID.spacing.md }} />
-                  </div>
-                  <div
-                    className="font-bold mb-1"
-                    style={{ fontSize: TYPE.section }}
-                  >
-                    {stat.value}
-                  </div>
-                  <p style={{ fontSize: TYPE.caption }} className="text-gray-500 font-medium">{stat.label}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Learning Objectives - Glass Morphism */}
-        <motion.div variants={scaleIn}>
-          <Card
-            className="relative overflow-hidden border-0"
-            style={{
-              borderRadius: RADIUS.card,
-              boxShadow: SHADOW.card,
-              background: 'white',
-            }}
+            className="border-0 overflow-hidden"
+            style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
           >
             {/* Decorative corner accent */}
             <div
@@ -667,17 +535,17 @@ export default function OnboardingDay2() {
             <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
               <SectionHeader
                 icon={GraduationCap}
-                title="Learning Objectives"
-                subtitle="Master these skills to advance"
+                title="What You Will Master Today"
+                subtitle="Complete these and you are ready to get on the phone"
               />
             </CardHeader>
             <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
               <div className="grid sm:grid-cols-2" style={{ gap: GRID.spacing.sm }}>
                 {[
-                  { text: "Master the 6-part Heritage script", icon: FileText },
-                  { text: "Practice full sales conversations", icon: MessageSquare },
-                  { text: "Handle common objections", icon: Shield },
-                  { text: "Complete roleplay assessments", icon: GraduationCap },
+                  { text: "Deliver the full 6-part script confidently", icon: FileText },
+                  { text: "Run a complete sales call start to finish", icon: MessageSquare },
+                  { text: "Overcome the top objections prospects raise", icon: Shield },
+                  { text: "Pass your script mastery assessment", icon: GraduationCap },
                 ].map((objective, i) => (
                   <motion.div
                     key={i}
@@ -708,17 +576,13 @@ export default function OnboardingDay2() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </motion.section>
 
         {/* Overall Progress Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.section variants={fadeInUp}>
           <Card
-            className="relative overflow-hidden border-0"
-            style={{
-              borderRadius: RADIUS.card,
-              boxShadow: SHADOW.card,
-              background: 'white',
-            }}
+            className="border-0 overflow-hidden"
+            style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
           >
             <CardContent style={{ padding: GRID.spacing.md }}>
               <div className="flex items-center justify-between mb-3">
@@ -752,7 +616,7 @@ export default function OnboardingDay2() {
               <GradientProgress value={progress} />
             </CardContent>
           </Card>
-        </motion.div>
+        </motion.section>
 
         {/* Task Sections - Organized by Script Parts */}
         {(Object.keys(SECTIONS) as Array<keyof typeof SECTIONS>).map((sectionKey) => {
@@ -766,14 +630,10 @@ export default function OnboardingDay2() {
           if (sectionTotal === 0) return null;
 
           return (
-            <motion.div key={sectionKey} variants={fadeInUp}>
+            <motion.section key={sectionKey} variants={fadeInUp}>
               <Card
-                className="relative overflow-hidden border-0"
-                style={{
-                  borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card,
-                  background: 'white',
-                }}
+                className="border-0 overflow-hidden"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
               >
                 {/* Decorative corner accent */}
                 <div
@@ -976,7 +836,7 @@ export default function OnboardingDay2() {
                   })}
                 </CardContent>
               </Card>
-            </motion.div>
+            </motion.section>
           );
         })}
 
@@ -1047,10 +907,10 @@ export default function OnboardingDay2() {
                   style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs }}
                   className="font-bold tracking-tight text-white"
                 >
-                  Day 2 Complete!
+                  Day 2 — Script Mastered.
                 </h3>
                 <p style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.md }} className="text-white/90 max-w-md mx-auto">
-                  You have mastered the basics and earned {totalXP} XP. Ready for the next challenge!
+                  You earned {totalXP} XP and you know the script inside out. Time for live practice and real conversations.
                 </p>
                 <div className="flex items-center justify-center" style={{ gap: GRID.spacing.sm }}>
                   <Link href="/agents/onboarding/days-3-7">
@@ -1062,7 +922,7 @@ export default function OnboardingDay2() {
                         className="bg-white text-violet-600 hover:bg-violet-50 font-semibold shadow-lg"
                         style={{ borderRadius: RADIUS.button, height: 48, padding: '0 24px' }}
                       >
-                        Continue to Days 3-7
+                        Start Days 3-7: Live Practice
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </motion.div>

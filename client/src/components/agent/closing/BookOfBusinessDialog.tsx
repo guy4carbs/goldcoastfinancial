@@ -106,7 +106,10 @@ export function BookOfBusinessDialog({ open, onOpenChange, leadId, workflow, onC
       phone: e?.phone || workflow?.lead_phone || '',
       dateOfBirth: e?.dateOfBirth || '',
       ssn: e?.ssn || '',
+      streetAddress: e?.streetAddress || '',
+      city: e?.city || workflow?.city || '',
       state: e?.state || workflow?.state || '',
+      zipCode: e?.zipCode || '',
       idType: (e?.idType || 'drivers_license') as 'drivers_license' | 'state_id',
       idNumber: e?.idNumber || '',
       idState: e?.idState || '',
@@ -146,7 +149,10 @@ export function BookOfBusinessDialog({ open, onOpenChange, leadId, workflow, onC
           phone: saved.phone || workflow?.lead_phone || '',
           dateOfBirth: saved.dateOfBirth || '',
           ssn: saved.ssn || '',
+          streetAddress: saved.streetAddress || '',
+          city: saved.city || workflow?.city || '',
           state: saved.state || workflow?.state || '',
+          zipCode: saved.zipCode || '',
           idType: (saved.idType || 'drivers_license') as 'drivers_license' | 'state_id',
           idNumber: saved.idNumber || '',
           idState: saved.idState || '',
@@ -349,6 +355,11 @@ export function BookOfBusinessDialog({ open, onOpenChange, leadId, workflow, onC
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>SSN</Label><Input placeholder="XXX-XX-XXXX" value={newClient.ssn} onChange={(e) => setNewClient({ ...newClient, ssn: formatSSN(e.target.value) })} maxLength={11} style={{ borderRadius: RADIUS.input }} /></div>
+                  <div><Label>Zip Code</Label><Input placeholder="33101" value={newClient.zipCode || ''} onChange={(e) => setNewClient({ ...newClient, zipCode: e.target.value })} maxLength={10} style={{ borderRadius: RADIUS.input }} /></div>
+                </div>
+                <div><Label>Street Address</Label><Input placeholder="123 Main St, Apt 4" value={newClient.streetAddress || ''} onChange={(e) => setNewClient({ ...newClient, streetAddress: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><Label>City</Label><Input placeholder="Miami" value={newClient.city || ''} onChange={(e) => setNewClient({ ...newClient, city: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
                   <div><Label>State</Label><Input placeholder="FL" value={newClient.state} onChange={(e) => setNewClient({ ...newClient, state: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
                 </div>
               </div>

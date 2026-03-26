@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import { LessonContentModal } from "@/components/onboarding/LessonContentModal";
 import {
   BookOpen,
@@ -17,7 +19,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Lock,
-  Sparkles,
   FileText,
   Video,
   Brain,
@@ -34,92 +35,93 @@ import {
   RADIUS,
   SHADOW,
   COLORS,
-  GLASS,
-} from "@/lib/onboardingDesignSystem";
+  fadeInUp,
+  staggerContainer,
+} from "@/lib/heritageDesignSystem";
 
 // Course modules data
 const COURSE_MODULES = [
   {
     id: "mod-1",
-    title: "Introduction to Life Insurance",
-    description: "Learn the basics of life insurance and why it matters",
+    title: "The Foundation: Why Life Insurance Matters",
+    description: "Understand the purpose, history, and real-world impact of life insurance",
     duration: "30 min",
     lessons: [
-      { id: "l1-1", title: "What is Life Insurance?", duration: "8 min", type: "video" },
-      { id: "l1-2", title: "The History of Life Insurance", duration: "6 min", type: "reading" },
-      { id: "l1-3", title: "Why Life Insurance Matters", duration: "10 min", type: "video" },
-      { id: "l1-4", title: "Module 1 Quiz", duration: "6 min", type: "quiz" },
+      { id: "l1-1", title: "What Life Insurance Really Does", duration: "8 min", type: "video" },
+      { id: "l1-2", title: "A Brief History of Life Insurance", duration: "6 min", type: "reading" },
+      { id: "l1-3", title: "Why Families Need Coverage Today", duration: "10 min", type: "video" },
+      { id: "l1-4", title: "Knowledge Check: Foundations", duration: "6 min", type: "quiz" },
     ],
     icon: BookOpen,
     color: "violet",
   },
   {
     id: "mod-2",
-    title: "Types of Life Insurance",
-    description: "Understand term, whole, universal, and variable life policies",
+    title: "Product Mastery: Term, Whole, Universal & More",
+    description: "Learn to compare every major policy type so you can match clients with the right product",
     duration: "45 min",
     lessons: [
-      { id: "l2-1", title: "Term Life Insurance", duration: "12 min", type: "video" },
-      { id: "l2-2", title: "Whole Life Insurance", duration: "12 min", type: "video" },
-      { id: "l2-3", title: "Universal Life Insurance", duration: "10 min", type: "video" },
-      { id: "l2-4", title: "Variable Life Insurance", duration: "8 min", type: "reading" },
-      { id: "l2-5", title: "Module 2 Quiz", duration: "8 min", type: "quiz" },
+      { id: "l2-1", title: "Term Life: Affordable Protection for a Set Period", duration: "12 min", type: "video" },
+      { id: "l2-2", title: "Whole Life: Lifetime Coverage with Guaranteed Growth", duration: "12 min", type: "video" },
+      { id: "l2-3", title: "Universal Life: Flexible Premiums & Adjustable Benefits", duration: "10 min", type: "video" },
+      { id: "l2-4", title: "Variable & Indexed Life: Market-Linked Options", duration: "8 min", type: "reading" },
+      { id: "l2-5", title: "Knowledge Check: Product Types", duration: "8 min", type: "quiz" },
     ],
     icon: FileText,
     color: "purple",
   },
   {
     id: "mod-3",
-    title: "Underwriting Basics",
-    description: "How insurance companies assess and price risk",
+    title: "Underwriting: How Risk Gets Priced",
+    description: "Discover how carriers evaluate applicants and assign risk classifications",
     duration: "40 min",
     lessons: [
-      { id: "l3-1", title: "What is Underwriting?", duration: "10 min", type: "video" },
-      { id: "l3-2", title: "Risk Classification", duration: "12 min", type: "video" },
-      { id: "l3-3", title: "Medical Underwriting", duration: "10 min", type: "reading" },
-      { id: "l3-4", title: "Module 3 Quiz", duration: "8 min", type: "quiz" },
+      { id: "l3-1", title: "The Underwriting Process Step by Step", duration: "10 min", type: "video" },
+      { id: "l3-2", title: "Risk Classes: Preferred to Substandard", duration: "12 min", type: "video" },
+      { id: "l3-3", title: "Medical Exams, Labs & MIB Checks", duration: "10 min", type: "reading" },
+      { id: "l3-4", title: "Knowledge Check: Underwriting", duration: "8 min", type: "quiz" },
     ],
     icon: Shield,
     color: "violet",
   },
   {
     id: "mod-4",
-    title: "Policy Components",
-    description: "Riders, beneficiaries, premiums, and cash value",
+    title: "Inside the Policy: Riders, Benefits & Cash Value",
+    description: "Master every component of a life insurance policy your clients will ask about",
     duration: "50 min",
     lessons: [
-      { id: "l4-1", title: "Understanding Premiums", duration: "10 min", type: "video" },
-      { id: "l4-2", title: "Death Benefits Explained", duration: "12 min", type: "video" },
-      { id: "l4-3", title: "Cash Value & Loans", duration: "10 min", type: "video" },
-      { id: "l4-4", title: "Common Policy Riders", duration: "10 min", type: "reading" },
-      { id: "l4-5", title: "Module 4 Quiz", duration: "8 min", type: "quiz" },
+      { id: "l4-1", title: "How Premiums Are Calculated", duration: "10 min", type: "video" },
+      { id: "l4-2", title: "Death Benefits: Level, Increasing & Decreasing", duration: "12 min", type: "video" },
+      { id: "l4-3", title: "Cash Value, Policy Loans & Withdrawals", duration: "10 min", type: "video" },
+      { id: "l4-4", title: "Essential Riders Every Agent Should Know", duration: "10 min", type: "reading" },
+      { id: "l4-5", title: "Knowledge Check: Policy Components", duration: "8 min", type: "quiz" },
     ],
     icon: Target,
     color: "violet",
   },
   {
     id: "mod-5",
-    title: "Selling Life Insurance",
-    description: "Ethical sales practices and client needs analysis",
+    title: "Client Conversations: Ethical Sales in Practice",
+    description: "Build trust through needs-based selling, discovery, and handling objections the right way",
     duration: "55 min",
     lessons: [
-      { id: "l5-1", title: "Needs-Based Selling", duration: "15 min", type: "video" },
-      { id: "l5-2", title: "Client Discovery Process", duration: "12 min", type: "video" },
-      { id: "l5-3", title: "Ethical Considerations", duration: "10 min", type: "reading" },
-      { id: "l5-4", title: "Overcoming Objections", duration: "10 min", type: "video" },
-      { id: "l5-5", title: "Module 5 Quiz", duration: "8 min", type: "quiz" },
+      { id: "l5-1", title: "Needs-Based Selling: Putting the Client First", duration: "15 min", type: "video" },
+      { id: "l5-2", title: "The Discovery Call: Asking the Right Questions", duration: "12 min", type: "video" },
+      { id: "l5-3", title: "Compliance, Ethics & Avoiding Common Violations", duration: "10 min", type: "reading" },
+      { id: "l5-4", title: "Handling Objections with Confidence", duration: "10 min", type: "video" },
+      { id: "l5-5", title: "Knowledge Check: Sales & Ethics", duration: "8 min", type: "quiz" },
     ],
     icon: Users,
     color: "violet",
   },
   {
     id: "mod-6",
-    title: "Final Assessment",
-    description: "Comprehensive exam covering all course material",
+    title: "Final Assessment & Certification",
+    description: "Review everything you have learned and earn your Heritage certification",
     duration: "30 min",
     lessons: [
-      { id: "l6-1", title: "Course Review", duration: "15 min", type: "reading" },
-      { id: "l6-2", title: "Final Exam", duration: "15 min", type: "quiz" },
+      { id: "l6-1", title: "Comprehensive Course Review", duration: "15 min", type: "reading" },
+      { id: "l6-2", title: "Certification Exam", duration: "15 min", type: "quiz" },
     ],
     icon: Award,
     color: "violet",
@@ -238,96 +240,42 @@ export default function StudyFundamentals() {
 
   return (
     <OnboardingLoungeLayout>
-      <div className="max-w-5xl mx-auto space-y-6 pb-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="space-y-6"
+      >
         {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative elements */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
+        <AgentPageHero
+          icon={BookOpen}
+          title="Course Modules"
+          subtitle="Work through each module at your own pace -- your progress is saved automatically"
+        />
 
-            <CardContent className="relative p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="flex items-start gap-4">
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                    className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
-                    style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: RADIUS.card,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                    }}
-                  >
-                    <BookOpen className="w-9 h-9 text-amber-200" />
-                  </motion.div>
-                  <div>
-                    <Badge
-                      className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium mb-2"
-                      style={{ padding: '4px 12px' }}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Heritage Life Academy
-                    </Badge>
-                    <h1
-                      className="font-bold tracking-tight text-white"
-                      style={{ fontSize: TYPE.hero, lineHeight: 1.1 }}
-                    >
-                      Life Insurance Fundamentals
-                    </h1>
-                    <p className="text-white/80 mt-2" style={{ fontSize: TYPE.body }}>
-                      Master the essentials of life insurance in this comprehensive course
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
-                    <p className="text-3xl font-bold text-white">{progress}%</p>
-                    <p className="text-white/70 text-xs">Complete</p>
-                  </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
-                    <p className="text-3xl font-bold text-white">6</p>
-                    <p className="text-white/70 text-xs">Hours</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-2 text-sm">
-                  <span className="text-white/80">{completedCount} of {totalLessons} lessons completed</span>
-                  <span className="text-white font-medium">{progress}%</span>
-                </div>
-                <div className="h-3 bg-white/20 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    className="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Progress Stats */}
+        <AgentStatCardGrid>
+          <AgentStatCard
+            icon={TrendingUp}
+            value={`${progress}%`}
+            label="Progress"
+          />
+          <AgentStatCard
+            icon={CheckCircle2}
+            value={`${completedCount}/${totalLessons}`}
+            label="Lessons Completed"
+          />
+          <AgentStatCard
+            icon={Clock}
+            value="4"
+            label="Est. Hours"
+          />
+          <AgentStatCard
+            icon={Award}
+            value={progress >= 100 ? "Earned" : "In Progress"}
+            label="Certification"
+          />
+        </AgentStatCardGrid>
 
         {/* Back Navigation */}
         <Link href="/agents/onboarding/study/course">
@@ -569,9 +517,9 @@ export default function StudyFundamentals() {
             >
               <CardContent className="p-8 text-center">
                 <Award className="w-16 h-16 mx-auto mb-4 text-amber-300" />
-                <h2 className="text-2xl font-bold mb-2">Course Complete!</h2>
+                <h2 className="text-2xl font-bold mb-2">You Did It -- Course Complete!</h2>
                 <p className="text-white/80 mb-6">
-                  Congratulations! You've completed the Life Insurance Fundamentals course.
+                  You have completed every module in the Life Insurance Mastery Course. Your Heritage certification is ready.
                 </p>
                 <Button
                   size="lg"
@@ -579,13 +527,13 @@ export default function StudyFundamentals() {
                   style={{ borderRadius: RADIUS.button }}
                 >
                   <Award className="w-5 h-5 mr-2" />
-                  Download Certificate
+                  Download Your Certification
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Lesson Content Modal */}
       <LessonContentModal

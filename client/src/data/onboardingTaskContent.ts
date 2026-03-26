@@ -819,7 +819,7 @@ CHECK YOUR STATUS:
 3. Check that all required documents are listed
 
 IF ANYTHING IS MISSING:
-• Contact HR immediately at hr@heritagelife.com
+• Contact HR immediately at hr@heritagels.org
 • Provide any missing documentation
 • Don't wait - delays affect your start date
 
@@ -828,7 +828,7 @@ WHILE YOU WAIT:
 • You can practice everything before going live
 • Use this time to prepare for your first clients
 
-Your contracts team contact: contracts@heritagelife.com`,
+Your contracts team contact: contracts@heritagels.org`,
         keyPoints: [
           "Verify contract shows as submitted",
           "Contact HR if documents are missing",
@@ -966,11 +966,11 @@ A: Yes! You can sell with appointed carriers while others process
 SUPPORT CONTACTS:
 
 Contracting Questions:
-• Email: contracts@heritagelife.com
+• Email: contracts@heritagels.org
 • Phone: (800) 555-1234, Option 2
 
 Background Check Issues:
-• Email: hr@heritagelife.com
+• Email: hr@heritagels.org
 
 Carrier Appointment Status:
 • Check toolkit portal
@@ -4757,6 +4757,1069 @@ Choose one primary focus for year two and align all activities to support it.`,
       }
     ]
   },
+
+  // Shadow & Supervised Training Modules
+  "pre-shadow-briefing": {
+    id: "pre-shadow-briefing",
+    title: "Pre-Shadow Session Briefing",
+    description: "What to expect during shadow sessions and how to maximize your observation time",
+    sections: [
+      {
+        id: "shadow-overview",
+        title: "What Is a Shadow Session?",
+        duration: 5,
+        content: `A shadow session is your chance to observe an experienced agent in action before you take the lead yourself.
+
+WHY SHADOWING MATTERS:
+• See real client interactions, not just theory
+• Learn how top producers handle objections naturally
+• Understand pacing, tone, and rapport-building in practice
+• Build confidence before your first solo call
+
+YOUR ROLE DURING SHADOWING:
+• Listen actively — do not speak unless invited
+• Take detailed notes on what you observe
+• Pay attention to transitions between conversation phases
+• Note the agent's body language and tone shifts`,
+        keyPoints: [
+          "Shadowing bridges the gap between training and real calls",
+          "Your job is to observe, not participate",
+          "Every session is a learning opportunity",
+        ]
+      },
+      {
+        id: "observation-checklist",
+        title: "Observation Checklist",
+        duration: 5,
+        content: `Use this checklist during every shadow session:
+
+INTRODUCTION PHASE:
+□ How does the agent introduce themselves?
+□ What tone do they set in the first 30 seconds?
+□ How do they establish credibility?
+
+DISCOVERY PHASE:
+□ What questions do they ask first?
+□ How do they listen and respond to answers?
+□ When do they transition from discovery to presentation?
+
+PRESENTATION PHASE:
+□ How do they explain products without jargon?
+□ Do they use stories or analogies?
+□ How do they check for understanding?
+
+CLOSING PHASE:
+□ How do they handle objections?
+□ What closing language do they use?
+□ How do they confirm next steps?
+
+GENERAL OBSERVATIONS:
+□ Overall pacing of the call
+□ Moments where the client seemed most engaged
+□ Anything you would do differently`,
+        keyPoints: [
+          "Print this checklist and use it on every shadow call",
+          "Focus on one phase per session if it helps",
+          "Debrief with your upline after every session",
+        ]
+      },
+      {
+        id: "note-taking-tips",
+        title: "How to Take Effective Notes",
+        duration: 5,
+        content: `BEST PRACTICES FOR SHADOW NOTES:
+
+FORMAT:
+• Use a dedicated notebook or digital doc for all shadow sessions
+• Date and label each session
+• Note the client type (age, family situation, product interest)
+
+WHAT TO CAPTURE:
+• Exact phrases that worked well (write them down verbatim)
+• Objections raised and how they were handled
+• Transitions that felt natural vs. awkward
+• Questions the client asked that surprised you
+
+AFTER THE SESSION:
+• Review your notes within 1 hour
+• Highlight your top 3 takeaways
+• Write down 1 thing you want to try on your own calls
+• Discuss observations with your upline during debrief`,
+        keyPoints: [
+          "Write down exact phrases that resonate",
+          "Review notes soon after the session",
+          "Convert observations into personal action items",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Understand the purpose and structure of shadow sessions",
+      "Use an observation checklist to capture key insights",
+      "Take effective notes that translate into your own selling approach",
+    ]
+  },
+
+  "shadow-call-1": {
+    id: "shadow-call-1",
+    title: "Shadow Call 1 — Introduction & Rapport",
+    description: "First shadow observation focusing on your upline's introduction, rapport building, and fact-finding approach",
+    sections: [
+      {
+        id: "call-1-focus",
+        title: "Focus Areas for Call 1",
+        duration: 5,
+        content: `Your first shadow call is all about the OPENING of the conversation.
+
+WHAT TO WATCH FOR:
+
+INTRODUCTION:
+• How does your upline introduce themselves and Heritage Life?
+• Do they mention credentials, experience, or shared connections?
+• How quickly do they get the client talking?
+
+RAPPORT BUILDING:
+• What small talk topics work best?
+• How does the agent find common ground?
+• When do they transition from rapport to business?
+
+FACT-FINDING:
+• What are the first 3-5 questions they ask?
+• How do they listen and acknowledge responses?
+• Do they take notes visibly (building trust) or silently?
+• How do they handle it when a client gives a vague answer?
+
+TONE & ENERGY:
+• Is the agent conversational or formal?
+• How do they match the client's energy level?
+• What makes the client open up?`,
+        keyPoints: [
+          "The first 2 minutes set the tone for the entire call",
+          "Rapport is not wasted time — it is the foundation",
+          "Great fact-finding starts with great listening",
+        ]
+      },
+      {
+        id: "call-1-debrief",
+        title: "Debrief Questions",
+        duration: 5,
+        content: `After Call 1, discuss these questions with your upline:
+
+REFLECTION QUESTIONS:
+1. What did the client respond to most positively?
+2. Was there a moment where the conversation shifted — what caused it?
+3. How did the agent adjust when something did not go as planned?
+4. What would the agent do differently next time?
+5. What surprised you about the interaction?
+
+SELF-ASSESSMENT:
+• Could you replicate the introduction? If not, what would you need to practice?
+• Did you understand all the products mentioned?
+• Were there any compliance considerations you noticed?
+
+ACTION ITEMS:
+• Write down the opening script the agent used
+• Practice the introduction out loud 3 times
+• Identify 2-3 rapport-building techniques to try`,
+        keyPoints: [
+          "Debrief immediately while the call is fresh",
+          "Be honest about what confused you",
+          "Practice the opening until it feels natural",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Observe effective introduction and rapport-building techniques",
+      "Understand how experienced agents approach fact-finding",
+      "Identify specific techniques to incorporate into your own approach",
+    ]
+  },
+
+  "shadow-call-2": {
+    id: "shadow-call-2",
+    title: "Shadow Call 2 — Objection Handling & Close",
+    description: "Second shadow observation focusing on objection handling and closing techniques",
+    sections: [
+      {
+        id: "call-2-focus",
+        title: "Focus Areas for Call 2",
+        duration: 5,
+        content: `Your second shadow call shifts focus to the MIDDLE and END of the conversation.
+
+OBJECTION HANDLING:
+• What objections come up? (Price, timing, need to think about it, spouse)
+• How does the agent acknowledge the objection before responding?
+• Do they use stories, statistics, or logic to address concerns?
+• How many times do they circle back before accepting a "no"?
+
+PRODUCT PRESENTATION:
+• How do they explain coverage amounts and options?
+• Do they use comparison or simplification techniques?
+• How do they handle medical history discussions?
+
+CLOSING APPROACH:
+• What language signals the transition to closing?
+• Is the close assumptive, direct, or consultative?
+• How do they handle hesitation at the close?
+• What urgency or motivation do they create?
+
+COMPARE TO CALL 1:
+• How does this agent's style differ from Call 1 (if different agent)?
+• What techniques are consistent across both calls?
+• Which approach felt more natural to you?`,
+        keyPoints: [
+          "Objections are buying signals — they mean the client is engaged",
+          "The close should feel like a natural next step, not pressure",
+          "Compare approaches to find what fits your personality",
+        ]
+      },
+      {
+        id: "call-2-debrief",
+        title: "Debrief Questions",
+        duration: 5,
+        content: `After Call 2, discuss these questions with your upline:
+
+OBJECTION ANALYSIS:
+1. List every objection you heard — how was each one handled?
+2. Which response was most effective and why?
+3. Were there objections the agent could have handled better?
+
+CLOSING ANALYSIS:
+4. At what point did you know the call would close (or not)?
+5. What specific words or phrases triggered the client's decision?
+6. How did the agent confirm the sale and set expectations?
+
+PATTERN RECOGNITION:
+• What patterns do you see across both shadow calls?
+• What do successful calls have in common?
+• What separates a close from a "think about it"?
+
+YOUR PREPARATION:
+• Write out responses to the top 3 objections you heard
+• Practice the closing language until it is comfortable
+• Rate your readiness to handle a similar call (1-10)`,
+        keyPoints: [
+          "Document objections and responses for your own reference",
+          "Closing confidence comes from preparation",
+          "Rate your readiness honestly — it guides your next steps",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Observe real-world objection handling techniques",
+      "Understand different closing approaches and when to use them",
+      "Compare multiple agent styles to develop your own approach",
+    ]
+  },
+
+  "shadow-debrief-1": {
+    id: "shadow-debrief-1",
+    title: "Post-Shadow Debrief Framework",
+    description: "Structured framework for debriefing after shadow sessions with your upline",
+    sections: [
+      {
+        id: "debrief-structure",
+        title: "Debrief Structure",
+        duration: 5,
+        content: `Use this framework after EVERY shadow session:
+
+STEP 1 — WHAT WENT WELL (5 minutes):
+• What were the strongest moments of the call?
+• What techniques would you want to replicate?
+• What felt smooth and natural?
+
+STEP 2 — WHAT COULD IMPROVE (5 minutes):
+• Were there awkward transitions or missed opportunities?
+• Did the client seem confused or disengaged at any point?
+• What would you do differently in the same situation?
+
+STEP 3 — KEY TAKEAWAYS (3 minutes):
+• What is the single most important thing you learned?
+• What concept or technique was new to you?
+• What confirmed something you already knew?
+
+STEP 4 — ACTION ITEMS (2 minutes):
+• List 2-3 specific things to practice before the next session
+• Set a timeline for when you will practice them
+• Schedule your next shadow or supervised call`,
+        keyPoints: [
+          "Structure your debrief — do not just wing it",
+          "Balance positives and improvements",
+          "Always leave with concrete action items",
+        ]
+      },
+      {
+        id: "debrief-journal",
+        title: "Maintaining Your Debrief Journal",
+        duration: 5,
+        content: `KEEP A RUNNING DEBRIEF JOURNAL:
+
+Each entry should include:
+• Date and session type (shadow, supervised, solo)
+• Client profile summary (age, family, product interest)
+• Top 3 things that went well
+• Top 3 areas for improvement
+• Action items and follow-up
+
+WHY THIS MATTERS:
+• Track your progress over time
+• Identify recurring patterns (good and bad)
+• Show your upline you are serious about improvement
+• Build a personal playbook of what works
+
+REVIEW SCHEDULE:
+• After each session: Write your entry
+• Weekly: Review the week's entries, look for patterns
+• Monthly: Assess overall progress, update goals
+• Share highlights with your upline at check-ins`,
+        keyPoints: [
+          "Consistent journaling accelerates your growth",
+          "Patterns in your notes reveal your strengths and gaps",
+          "Your journal becomes your personal sales playbook",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Use a structured debrief process after every observation",
+      "Maintain a debrief journal to track progress over time",
+      "Convert observations into actionable improvement steps",
+    ]
+  },
+
+  "shadow-application": {
+    id: "shadow-application",
+    title: "Observing the Application Process",
+    description: "How your upline walks through medical questions, collects sensitive information, and ensures application accuracy",
+    sections: [
+      {
+        id: "application-walkthrough",
+        title: "The Application Walkthrough",
+        duration: 10,
+        content: `The application is where the sale becomes real. Observe how your upline handles it.
+
+SETTING THE STAGE:
+• How does the agent transition from closing to application?
+• Do they explain the process before starting?
+• How do they set expectations about timing and questions?
+
+MEDICAL QUESTIONS:
+• How do they ask about health history without making it feel like an interrogation?
+• What tone do they use for sensitive health topics?
+• How do they handle it when a client is unsure about dates or details?
+• Do they explain WHY certain questions are asked (underwriting context)?
+
+ACCURACY IS EVERYTHING:
+• How do they verify spelling of names and addresses?
+• Do they read information back to the client?
+• How do they handle discrepancies between what the client says and what they wrote?
+
+COMMON PITFALLS TO WATCH:
+• Rushing through questions
+• Assuming information from earlier in the call
+• Not explaining what happens next after submission`,
+        keyPoints: [
+          "The application sets the tone for the client relationship",
+          "Accuracy prevents delays, cancellations, and compliance issues",
+          "A calm, patient approach builds client confidence",
+        ]
+      },
+      {
+        id: "sensitive-info-handling",
+        title: "Handling Sensitive Information (SSN & Banking)",
+        duration: 10,
+        content: `Collecting Social Security numbers and banking information requires special care.
+
+BUILDING TRUST FOR SENSITIVE DATA:
+• Explain WHY you need it (identity verification, premium payments)
+• Reassure about security measures and encryption
+• Never rush this part — let the client feel in control
+
+SSN COLLECTION:
+• "For the application to be processed, we'll need your Social Security number. This is used solely for identity verification by the carrier."
+• Read it back digit by digit for accuracy
+• Confirm the client is comfortable before proceeding
+
+BANKING INFORMATION:
+• Explain the draft process clearly — date, amount, frequency
+• Offer multiple payment options if available
+• Confirm routing and account numbers by reading them back
+• Explain the free-look period and cancellation rights
+
+COMPLIANCE REMINDERS:
+• Never store SSN or banking info in personal notes, texts, or emails
+• All sensitive data must go directly into the carrier's secure application
+• Follow Heritage's data handling protocols at all times
+• If a client is on speaker phone, suggest switching to private mode`,
+        keyPoints: [
+          "Trust is earned through transparency and professionalism",
+          "Always explain WHY sensitive info is needed",
+          "Never store sensitive data outside secure systems",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Observe how experienced agents walk through the application process",
+      "Understand best practices for collecting sensitive information",
+      "Recognize compliance requirements during the application phase",
+    ]
+  },
+
+  "shadow-close": {
+    id: "shadow-close",
+    title: "Observing the Close",
+    description: "How your upline handles final objections, confirms coverage, secures payment, and sets delivery expectations",
+    sections: [
+      {
+        id: "closing-observation",
+        title: "The Close in Action",
+        duration: 10,
+        content: `The close is the moment everything comes together. Watch carefully.
+
+FINAL OBJECTIONS:
+• Expect last-minute hesitation — it is normal
+• How does the agent address "I want to think about it" at this stage?
+• Do they revisit the client's original motivation (why they called)?
+• How do they differentiate between a genuine concern and cold feet?
+
+CONFIRMING COVERAGE DETAILS:
+• The agent should summarize the policy: type, coverage amount, premium, riders
+• Does the client confirm understanding of what they are buying?
+• Are exclusions or limitations mentioned clearly?
+• How does the agent handle requests to change coverage at the last minute?
+
+SECURING PAYMENT:
+• How is the first premium collected?
+• Does the agent explain the billing cycle and draft dates?
+• What happens if the payment method does not work?
+• How do they handle a client who wants to delay payment?
+
+SETTING EXPECTATIONS:
+• What does the agent tell the client about next steps?
+• Do they explain the underwriting timeline?
+• How do they describe the free-look period?
+• Do they schedule a follow-up call to check in?`,
+        keyPoints: [
+          "Last-minute objections are normal — stay calm and confident",
+          "Confirm everything clearly — no surprises for the client",
+          "Setting expectations prevents post-sale cancellations",
+        ]
+      },
+      {
+        id: "post-close-process",
+        title: "After the Close",
+        duration: 5,
+        content: `What happens after the client says yes:
+
+IMMEDIATE NEXT STEPS:
+1. Submit the application through the carrier portal
+2. Send a confirmation email or text with a summary
+3. Log the interaction in the Heritage CRM
+4. Set a follow-up reminder for underwriting updates
+
+CLIENT COMMUNICATION:
+• Thank them for their trust in Heritage Life
+• Provide your direct contact information
+• Explain who to call if they have questions before the policy is issued
+• Mention the welcome kit they will receive
+
+UPLINE NOTIFICATION:
+• Let your upline know about the close
+• Discuss any issues that came up during the process
+• Celebrate the win — positive reinforcement matters
+
+COMPLIANCE DOCUMENTATION:
+• Ensure all required disclosures were provided
+• Confirm the suitability questionnaire was completed
+• File any state-specific documents as required`,
+        keyPoints: [
+          "Prompt application submission reduces errors and delays",
+          "Post-close communication builds long-term retention",
+          "Documentation protects you and the client",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Observe how experienced agents handle the closing process",
+      "Understand post-close procedures and compliance requirements",
+      "Learn how to set proper expectations for policy delivery",
+    ]
+  },
+
+  "agent-practice-upline": {
+    id: "agent-practice-upline",
+    title: "Practice Presentation with Upline",
+    description: "Run through your full presentation script with your upline and receive real-time coaching",
+    sections: [
+      {
+        id: "practice-setup",
+        title: "Setting Up Your Practice Session",
+        duration: 5,
+        content: `This is your first time running the full presentation. Your upline will play the client.
+
+PREPARATION:
+• Review your script one more time before starting
+• Have your product materials and rate sheets ready
+• Set up your screen share or presentation tools
+• Clear your environment of distractions
+
+SESSION FORMAT:
+1. You deliver your full presentation (15-20 minutes)
+2. Your upline plays a realistic client — they will ask questions and raise objections
+3. After the run-through, you get immediate feedback
+4. You practice specific sections that need work
+
+MINDSET:
+• This is practice, not a test — mistakes are expected and valuable
+• Focus on flow and confidence, not perfection
+• Your upline wants you to succeed — take their feedback seriously
+• Record the session (with permission) for self-review later`,
+        keyPoints: [
+          "Preparation reduces anxiety and improves performance",
+          "Treat the practice like a real call — it builds muscle memory",
+          "Embrace feedback — it is the fastest path to improvement",
+        ]
+      },
+      {
+        id: "practice-evaluation",
+        title: "Evaluation Areas",
+        duration: 5,
+        content: `Your upline will evaluate you on these areas:
+
+INTRODUCTION & RAPPORT (1-5):
+• Did you set a professional, warm tone?
+• Did you establish credibility early?
+• Did the opening feel natural or scripted?
+
+DISCOVERY & FACT-FINDING (1-5):
+• Did you ask enough open-ended questions?
+• Did you listen actively and respond thoughtfully?
+• Did you uncover the client's real needs?
+
+PRODUCT PRESENTATION (1-5):
+• Were your product explanations clear and jargon-free?
+• Did you connect features to the client's specific needs?
+• Did you offer appropriate options without overwhelming?
+
+OBJECTION HANDLING (1-5):
+• Did you acknowledge objections before responding?
+• Were your responses empathetic and logical?
+• Did you know when to push and when to pivot?
+
+CLOSE (1-5):
+• Was the transition to close smooth?
+• Did you ask for the sale confidently?
+• Did you handle last-minute hesitation well?
+
+OVERALL IMPRESSION:
+• Would this client buy from you? Why or why not?
+• What is the one change that would make the biggest difference?`,
+        keyPoints: [
+          "Focus on the area with the lowest score first",
+          "Ask your upline to model the sections you struggled with",
+          "Schedule another practice before your first real call",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Deliver a complete sales presentation from open to close",
+      "Receive structured feedback from an experienced agent",
+      "Identify specific areas to improve before client calls",
+    ]
+  },
+
+  "upline-feedback-session": {
+    id: "upline-feedback-session",
+    title: "Structured Upline Feedback Session",
+    description: "Review practice calls with your upline, discuss strengths and weaknesses, and set goals for the next day",
+    sections: [
+      {
+        id: "feedback-framework",
+        title: "Feedback Session Framework",
+        duration: 10,
+        content: `This session reviews everything from your practice and shadow calls.
+
+PART 1 — SELF-ASSESSMENT (5 minutes):
+Before your upline gives feedback, assess yourself first:
+• What did you do well today?
+• Where did you struggle?
+• What would you do differently?
+• Rate your confidence (1-10) for handling a real call tomorrow
+
+PART 2 — UPLINE FEEDBACK (10 minutes):
+Your upline will share:
+• Specific moments that were strong (with examples)
+• Areas that need improvement (with specific suggestions)
+• Comparison to other new agents at this stage
+• Realistic expectations for your first calls
+
+PART 3 — GOAL SETTING (5 minutes):
+Set 3 goals for the next day:
+1. One skill to focus on improving
+2. One technique to try for the first time
+3. One area where you already feel confident
+
+PART 4 — NEXT STEPS:
+• Schedule tomorrow's calls or sessions
+• Identify any materials to review tonight
+• Confirm your upline's availability for support`,
+        keyPoints: [
+          "Self-assessment builds self-awareness",
+          "Specific feedback is more useful than general praise",
+          "Three focused goals are better than ten vague ones",
+        ]
+      },
+      {
+        id: "growth-mindset",
+        title: "Maintaining a Growth Mindset",
+        duration: 5,
+        content: `REMEMBER — Every great agent started where you are.
+
+COMMON FEELINGS AT THIS STAGE:
+• Overwhelmed — there is a lot to learn, and that is normal
+• Nervous — you care about doing well, which is a good sign
+• Uncertain — you have not done this before, but you will get there
+• Motivated — you chose this career for a reason
+
+WHAT TO FOCUS ON:
+• Progress, not perfection — are you better than yesterday?
+• Patterns, not individual mistakes — one bad moment does not define you
+• Effort, not outcomes — the results will follow consistent effort
+• Support, not isolation — lean on your team
+
+HERITAGE PROMISE:
+We do not expect you to be perfect on day one. We expect you to show up, stay coachable, and improve every day. Your upline, your manager, and the AI Council are all here to help you succeed.
+
+YOUR COMMITMENT:
+• Stay open to feedback
+• Practice daily
+• Ask questions without hesitation
+• Trust the process`,
+        keyPoints: [
+          "Progress over perfection is the Heritage way",
+          "Feeling nervous means you care — channel it into preparation",
+          "You have a full team behind you",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Conduct an honest self-assessment of your performance",
+      "Receive and apply structured feedback from your upline",
+      "Set specific, actionable goals for continuous improvement",
+    ]
+  },
+
+  "agent-call-1": {
+    id: "agent-call-1",
+    title: "First Supervised Call — You Lead",
+    description: "Your first client call where you lead the conversation while your upline listens and can jump in if needed",
+    sections: [
+      {
+        id: "call-1-preparation",
+        title: "Preparing for Your First Call",
+        duration: 5,
+        content: `This is it — your first real conversation with a client. You lead; your upline listens.
+
+PRE-CALL CHECKLIST:
+□ Review the client's information in the CRM
+□ Have your script nearby (but do not read from it)
+□ Open your rate tools and product materials
+□ Test your audio and connection
+□ Take 3 deep breaths
+
+CALL STRUCTURE REMINDER:
+1. Introduction — who you are, why you are calling, what to expect
+2. Rapport — find common ground, build trust
+3. Discovery — ask questions, listen, take notes
+4. Presentation — match products to their needs
+5. Close — ask for the commitment
+
+YOUR UPLINE'S ROLE:
+• They are on mute, listening
+• They can unmute to help if you get stuck
+• They may send you messages or notes during the call
+• They will NOT take over unless absolutely necessary
+• After the call, you will debrief together
+
+STAY CALM:
+• It is okay to pause and think
+• If you do not know an answer, say "Great question — let me get you the exact information"
+• Silence is not awkward if you are listening
+• Your first call does not need to result in a sale — it needs to result in learning`,
+        keyPoints: [
+          "Preparation is the antidote to nervousness",
+          "Follow the structure — it is your safety net",
+          "Your upline is there for backup, not judgment",
+        ]
+      },
+      {
+        id: "call-1-focus-areas",
+        title: "Focus Areas for Call 1",
+        duration: 5,
+        content: `For your first call, focus on these three things:
+
+1. RAPPORT — Make the client feel comfortable
+• Use their name naturally
+• Find something you have in common
+• Let them talk more than you
+• Smile while you speak — they can hear it
+
+2. DISCOVERY — Ask the right questions
+• "What prompted your interest in life insurance today?"
+• "Tell me about your family — who would you want protected?"
+• "Do you have any existing coverage?"
+• "What is most important to you in a policy?"
+
+3. STAYING PRESENT — Do not rush
+• Listen to answers completely before speaking
+• Take brief notes
+• If your mind goes blank, ask another question
+• It is better to be thorough than fast
+
+WHAT NOT TO WORRY ABOUT:
+• Perfect product knowledge — basics are enough for now
+• Closing the sale — focus on the conversation
+• Sounding like a veteran — authenticity beats polish
+• Making mistakes — your upline will help
+
+REMEMBER: The client does not know this is your first call. To them, you are a Heritage Life professional. Own that.`,
+        keyPoints: [
+          "Focus on rapport, discovery, and presence",
+          "Do not try to be perfect — be genuine",
+          "The client sees you as a professional — act like one",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Lead a real client conversation with upline support",
+      "Apply rapport-building and discovery techniques in practice",
+      "Build confidence through real-world experience",
+    ]
+  },
+
+  "agent-call-2": {
+    id: "agent-call-2",
+    title: "Second Supervised Call — Apply Feedback",
+    description: "Apply feedback from your first call with smoother transitions and better discovery questions",
+    sections: [
+      {
+        id: "call-2-improvements",
+        title: "Building on Call 1",
+        duration: 5,
+        content: `Your second call is about applying what you learned from the first.
+
+BEFORE THE CALL — REVIEW:
+• What feedback did your upline give after Call 1?
+• What is the ONE thing you want to improve most?
+• Did you practice the specific areas that needed work?
+
+FOCUS AREAS FOR CALL 2:
+
+SMOOTHER TRANSITIONS:
+• Introduction → Rapport: "Before we dive in, tell me a little about yourself..."
+• Rapport → Discovery: "I appreciate you sharing that. Let me ask a few questions so I can find the right fit for you..."
+• Discovery → Presentation: "Based on what you have told me, I think there are a couple of options that would work really well..."
+• Presentation → Close: "Does this sound like something that would give you the peace of mind you are looking for?"
+
+BETTER DISCOVERY QUESTIONS:
+• Follow up on answers: "You mentioned your daughter — how old is she?"
+• Dig deeper: "When you say you want to protect your family, what does that look like for you?"
+• Qualify budget: "If the right coverage was available, what monthly investment would feel comfortable?"
+
+HANDLING THE UNEXPECTED:
+• If the client goes off-topic, gently redirect: "That is a great point. Let me make a note of that. Now, regarding your coverage needs..."
+• If they ask a question you cannot answer: "I want to make sure I give you accurate information. Can I look that up and get back to you today?"`,
+        keyPoints: [
+          "Apply specific feedback from Call 1",
+          "Focus on smooth transitions between phases",
+          "Better discovery questions lead to better recommendations",
+        ]
+      },
+      {
+        id: "call-2-self-evaluation",
+        title: "Self-Evaluation After Call 2",
+        duration: 5,
+        content: `After your second call, evaluate yourself before debriefing:
+
+RATE YOURSELF (1-5):
+• Introduction and first impression: ___
+• Rapport building: ___
+• Quality of discovery questions: ___
+• Product presentation clarity: ___
+• Objection handling: ___
+• Transitions between phases: ___
+• Overall confidence: ___
+
+COMPARE TO CALL 1:
+• What improved from your first call?
+• What still needs work?
+• Were there new challenges you did not face in Call 1?
+
+CLIENT ENGAGEMENT:
+• Did the client seem interested and engaged?
+• Were there moments where you lost them?
+• Did they ask questions (a good sign of engagement)?
+
+NEXT STEPS:
+• Based on these two calls, what are your top 3 priorities?
+• Are you ready for more calls, or do you need more practice first?
+• Schedule your next session with your upline
+• Update your personal playbook with new learnings`,
+        keyPoints: [
+          "Self-evaluation builds professional self-awareness",
+          "Compare performance across calls to track progress",
+          "Honest assessment leads to focused improvement",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Apply specific feedback from the first supervised call",
+      "Demonstrate smoother transitions and deeper discovery skills",
+      "Self-evaluate performance to guide continued development",
+    ]
+  },
+
+  "midday-debrief": {
+    id: "midday-debrief",
+    title: "Midday Check-In & Debrief",
+    description: "Review morning calls, adjust your approach for the afternoon, and address any compliance questions",
+    sections: [
+      {
+        id: "morning-review",
+        title: "Morning Call Review",
+        duration: 5,
+        content: `Take 15 minutes at midday to reset and refocus.
+
+REVIEW YOUR MORNING:
+• How many calls did you make or observe?
+• What went well in each call?
+• Were there any moments you want to discuss with your upline?
+• Did any compliance questions come up?
+
+ENERGY CHECK:
+• How is your energy level? (Energized, steady, tired, drained)
+• What is affecting your energy? (Positive calls boost you, difficult calls drain you)
+• Do you need a break, a snack, or a walk before the afternoon?
+
+QUICK WINS:
+• What is one small thing you can improve immediately for your afternoon calls?
+• Is there a phrase or technique from the morning you want to try again?
+• Did you learn anything from a colleague that you can apply?
+
+COMPLIANCE CHECKPOINT:
+• Did you document all morning interactions in the CRM?
+• Were there any client requests you need to follow up on?
+• Did anything happen that should be reported to compliance?`,
+        keyPoints: [
+          "Midday check-ins prevent bad habits from compounding",
+          "Energy management is as important as skill development",
+          "Document everything — your future self will thank you",
+        ]
+      },
+      {
+        id: "afternoon-plan",
+        title: "Setting Up the Afternoon",
+        duration: 5,
+        content: `Use the second half of the day intentionally.
+
+AFTERNOON PRIORITIES:
+1. Follow up on any morning commitments (callbacks, information requests)
+2. Apply one improvement from your morning review
+3. Focus on quality over quantity — fewer great calls beat many rushed ones
+
+ADJUSTMENTS TO MAKE:
+• If mornings were heavy on calls, use the afternoon for practice or admin
+• If you struggled with a specific part of the script, practice it now
+• If energy is low, start with warmer leads or easier tasks
+
+UPLINE SYNC:
+• Brief your upline on the morning (2-3 minute summary)
+• Ask for specific advice on one challenge
+• Confirm the afternoon schedule
+
+END OF DAY PREP:
+• Plan to wrap calls 30 minutes before end of day
+• Use the last 30 minutes for CRM updates, notes, and planning tomorrow
+• Set your top 3 priorities for the next morning`,
+        keyPoints: [
+          "Follow up on morning commitments first",
+          "Adjust your approach based on what you learned",
+          "End the day with preparation, not scrambling",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Review morning performance and identify quick improvements",
+      "Manage energy and focus throughout the full work day",
+      "Develop the habit of midday self-assessment and planning",
+    ]
+  },
+
+  "agent-close-upline-1": {
+    id: "agent-close-upline-1",
+    title: "Closing with Upline Support",
+    description: "Attempt your first close with your upline available for backup, using the Heritage closing framework",
+    sections: [
+      {
+        id: "heritage-closing-framework",
+        title: "The Heritage Closing Framework",
+        duration: 10,
+        content: `Heritage uses an education-first closing approach. You are not selling — you are helping.
+
+THE HERITAGE CLOSE — 5 STEPS:
+
+STEP 1 — SUMMARIZE:
+Restate what you learned during discovery.
+"Based on what you have shared, your primary concern is making sure your family is protected if something happens to you. You want $500,000 in coverage, and a monthly payment around $50 is comfortable."
+
+STEP 2 — RECOMMEND:
+Present your recommendation with conviction.
+"Based on your needs, I recommend a 20-year term policy with $500,000 in coverage. Your monthly premium would be $47, and your family would be fully protected."
+
+STEP 3 — CONNECT TO WHY:
+Remind them of their motivation.
+"You mentioned your daughter just started kindergarten. This policy ensures she will have everything she needs, no matter what."
+
+STEP 4 — ASK:
+Ask for the commitment directly but warmly.
+"Shall we get this coverage in place for your family today?"
+
+STEP 5 — HANDLE OR CONFIRM:
+If yes → move to the application with enthusiasm.
+If objection → acknowledge, address, and ask again.
+"I completely understand wanting to think about it. Many of my clients felt the same way. What specific concern can I help address right now?"`,
+        keyPoints: [
+          "Summarize before recommending — show you listened",
+          "Connect the product to their personal motivation",
+          "Ask confidently — hesitation signals uncertainty",
+        ]
+      },
+      {
+        id: "close-with-backup",
+        title: "Using Upline Support During the Close",
+        duration: 5,
+        content: `Your upline is available as backup, but this is YOUR close.
+
+WHEN TO USE YOUR UPLINE:
+• If the client raises an objection you cannot handle
+• If technical product questions are beyond your current knowledge
+• If the client asks about policy features you are not sure about
+• If you freeze and need a moment to regroup
+
+HOW TO BRING IN YOUR UPLINE:
+"That is an excellent question. I actually have my senior advisor on the line — they have 15 years of experience and can give you an expert perspective on that."
+
+This does NOT undermine you. It shows:
+• You have a team behind you
+• You prioritize accuracy over ego
+• You are connected to experienced professionals
+
+WHAT TO DO AFTER THE UPLINE HELPS:
+• Thank them and take back control of the conversation
+• Summarize what the upline said in your own words
+• Continue with your close
+
+AFTER THE CALL:
+• Debrief with your upline on what triggered the handoff
+• Practice that specific scenario until you can handle it solo
+• Note it in your development journal`,
+        keyPoints: [
+          "Using your upline is a strength, not a weakness",
+          "Always take back control after the upline assists",
+          "Practice the scenarios that required help",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Apply the Heritage 5-step closing framework in a real scenario",
+      "Know when and how to bring in upline support during a close",
+      "Build closing confidence through supported practice",
+    ]
+  },
+
+  "agent-close-until-confident": {
+    id: "agent-close-until-confident",
+    title: "Repeated Closing Practice",
+    description: "Keep practicing closes with upline support until you can handle common objections independently",
+    sections: [
+      {
+        id: "practice-methodology",
+        title: "The Practice Loop",
+        duration: 10,
+        content: `Confidence comes from repetition. This module is about doing the close AGAIN AND AGAIN.
+
+THE PRACTICE LOOP:
+1. Attempt the close on a real or practice call
+2. Note where you struggled
+3. Practice that specific area with your upline
+4. Attempt the close again
+5. Repeat until you feel confident
+
+COMMON OBJECTIONS TO MASTER:
+
+"I need to think about it."
+→ "Absolutely — this is an important decision. What specifically would you like to think about? Maybe I can help clarify right now."
+
+"I need to talk to my spouse."
+→ "Of course — your spouse should be part of this decision. Would it be helpful if we scheduled a quick call together so I can answer their questions directly?"
+
+"It is too expensive."
+→ "I understand budget is important. Let me show you a couple of options that might fit better. The key is getting some coverage in place — we can always adjust later."
+
+"I already have coverage through work."
+→ "That is great that your employer offers that. One thing to consider — employer coverage typically ends if you leave or change jobs. This policy stays with you no matter what."
+
+"I am healthy, I do not need it right now."
+→ "That is actually the best time to get coverage — when you are healthy, you qualify for the lowest rates. If something changes, it could cost significantly more or you might not qualify at all."`,
+        keyPoints: [
+          "Master the top 5 objections and you can handle 90% of calls",
+          "Practice the response until it feels conversational, not scripted",
+          "Confidence comes from knowing you have an answer for anything",
+        ]
+      },
+      {
+        id: "confidence-benchmarks",
+        title: "Confidence Benchmarks",
+        duration: 5,
+        content: `Use these benchmarks to gauge your readiness for independent calls:
+
+LEVEL 1 — NEEDS SUPPORT (Current stage):
+• You can deliver the presentation with a script nearby
+• You need upline help for most objections
+• You feel anxious before calls
+• Goal: Get through the full process without major stumbles
+
+LEVEL 2 — DEVELOPING:
+• You can handle 2-3 common objections independently
+• You only need upline help for complex scenarios
+• You feel nervous but prepared
+• Goal: Close 1 in 5 qualified conversations
+
+LEVEL 3 — CONFIDENT:
+• You can handle most objections without help
+• Your upline is there for backup but rarely needed
+• You feel focused and prepared before calls
+• Goal: Close 1 in 3 qualified conversations
+
+LEVEL 4 — INDEPENDENT:
+• You handle objections naturally and confidently
+• You no longer need upline on calls
+• You feel energized by the challenge
+• Goal: Consistent daily production
+
+WHERE ARE YOU NOW?
+Be honest with your upline about your current level. There is no shame in needing more practice — there IS a problem with pretending you are ready when you are not.`,
+        keyPoints: [
+          "Know your current level and work toward the next",
+          "Quality practice accelerates your progress",
+          "Independence is the goal — take it one level at a time",
+        ]
+      }
+    ],
+    learningObjectives: [
+      "Master responses to the five most common closing objections",
+      "Use the practice loop to continuously improve closing skills",
+      "Self-assess readiness for independent client calls",
+    ]
+  },
 };
 
 // ============================================================================
@@ -7307,6 +8370,27 @@ export const TASK_CONTENT_MAP: Record<string, TaskContentMapping> = {
   "expand-product-portfolio-expertise": { type: "module", contentId: "presentation-excellence" },
   "mentor-new-agents": { type: "module", contentId: "mentoring-guide" },
   "set-year-two-vision": { type: "module", contentId: "year-two-vision" },
+
+  // ============================================================================
+  // SHADOW & SUPERVISED TRAINING (Days 8-30)
+  // ============================================================================
+  "iul-deep-dive": { type: "module", contentId: "iul-training" },
+  "final-product-assessment": { type: "quiz", contentId: "product-assessment" },
+  "final-sales-assessment": { type: "quiz", contentId: "sales-assessment" },
+  "lead-qualification": { type: "module", contentId: "lead-qualification" },
+  "pre-shadow-briefing": { type: "module", contentId: "pre-shadow-briefing" },
+  "shadow-call-1": { type: "module", contentId: "shadow-call-1" },
+  "shadow-call-2": { type: "module", contentId: "shadow-call-2" },
+  "shadow-debrief-1": { type: "module", contentId: "shadow-debrief-1" },
+  "shadow-application": { type: "module", contentId: "shadow-application" },
+  "shadow-close": { type: "module", contentId: "shadow-close" },
+  "agent-practice-upline": { type: "module", contentId: "agent-practice-upline" },
+  "upline-feedback-session": { type: "module", contentId: "upline-feedback-session" },
+  "agent-call-1": { type: "module", contentId: "agent-call-1" },
+  "agent-call-2": { type: "module", contentId: "agent-call-2" },
+  "midday-debrief": { type: "module", contentId: "midday-debrief" },
+  "agent-close-upline-1": { type: "module", contentId: "agent-close-upline-1" },
+  "agent-close-until-confident": { type: "module", contentId: "agent-close-until-confident" },
 };
 
 // Helper function to get content for a task

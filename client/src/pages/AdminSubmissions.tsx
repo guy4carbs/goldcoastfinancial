@@ -17,7 +17,10 @@ import {
   ChevronDown,
   RefreshCw,
 } from "lucide-react";
-import AdminNav from "@/components/AdminNav";
+import { motion } from "framer-motion";
+import { AdminPageHero, AdminGlassCard, AdminStaggerContainer, AdminStatCard, AdminStatCardGrid, AdminEmptyState, ADMIN_GRADIENT } from "@/components/admin/AdminHeritagePrimitives";
+import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
 
 type TabType = "quotes" | "contacts" | "applications";
 
@@ -288,7 +291,10 @@ export default function AdminSubmissions() {
     const config = statusColors[status] || statusColors.new;
     const Icon = config.icon;
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium ${config.bg} ${config.text}`}
+        style={{ borderRadius: RADIUS.pill }}
+      >
         <Icon className="w-3 h-3" />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
@@ -300,10 +306,7 @@ export default function AdminSubmissions() {
 
     if (filteredQuotes.length === 0) {
       return (
-        <div className="text-center py-12">
-          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No quote requests found</p>
-        </div>
+        <AdminEmptyState icon={FileText} title="No quote requests found" />
       );
     }
 
@@ -311,14 +314,14 @@ export default function AdminSubmissions() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Name</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Contact</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Coverage</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Location</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Status</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Date</th>
-              <th className="text-right py-3 px-4 font-semibold text-gray-600 text-sm">Actions</th>
+            <tr style={{ borderBottom: `1px solid ${COLORS.gray[200]}` }}>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Name</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Contact</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Coverage</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Location</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Status</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Date</th>
+              <th className="text-right py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -327,7 +330,10 @@ export default function AdminSubmissions() {
               return (
                 <tr
                   key={quote.id}
-                  className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${!isRead ? "bg-blue-50/50" : ""}`}
+                  className={`transition-colors cursor-pointer ${!isRead ? "bg-blue-50/50" : ""}`}
+                  style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
+                  onMouseEnter={(e) => { if (isRead) e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.03)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = !isRead ? '' : 'transparent'; }}
                   onClick={() => openDrawer(quote)}
                 >
                   <td className="py-4 px-4">
@@ -397,10 +403,7 @@ export default function AdminSubmissions() {
 
     if (filteredContacts.length === 0) {
       return (
-        <div className="text-center py-12">
-          <Mail className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No contact messages found</p>
-        </div>
+        <AdminEmptyState icon={Mail} title="No contact messages found" />
       );
     }
 
@@ -408,13 +411,13 @@ export default function AdminSubmissions() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Name</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Contact</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Message Preview</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Status</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Date</th>
-              <th className="text-right py-3 px-4 font-semibold text-gray-600 text-sm">Actions</th>
+            <tr style={{ borderBottom: `1px solid ${COLORS.gray[200]}` }}>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Name</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Contact</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Message Preview</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Status</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Date</th>
+              <th className="text-right py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -423,7 +426,10 @@ export default function AdminSubmissions() {
               return (
                 <tr
                   key={contact.id}
-                  className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${!isRead ? "bg-blue-50/50" : ""}`}
+                  className={`transition-colors cursor-pointer ${!isRead ? "bg-blue-50/50" : ""}`}
+                  style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
+                  onMouseEnter={(e) => { if (isRead) e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.03)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = !isRead ? '' : 'transparent'; }}
                   onClick={() => openDrawer(contact)}
                 >
                   <td className="py-4 px-4">
@@ -487,10 +493,7 @@ export default function AdminSubmissions() {
 
     if (filteredApplications.length === 0) {
       return (
-        <div className="text-center py-12">
-          <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No job applications found</p>
-        </div>
+        <AdminEmptyState icon={Briefcase} title="No job applications found" />
       );
     }
 
@@ -498,14 +501,14 @@ export default function AdminSubmissions() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Applicant</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Contact</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Position</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Licensed</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Status</th>
-              <th className="text-left py-3 px-4 font-semibold text-gray-600 text-sm">Date</th>
-              <th className="text-right py-3 px-4 font-semibold text-gray-600 text-sm">Actions</th>
+            <tr style={{ borderBottom: `1px solid ${COLORS.gray[200]}` }}>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Applicant</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Contact</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Position</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Licensed</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Status</th>
+              <th className="text-left py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Date</th>
+              <th className="text-right py-3 px-4" style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[600] }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -514,7 +517,10 @@ export default function AdminSubmissions() {
               return (
                 <tr
                   key={app.id}
-                  className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${!isRead ? "bg-blue-50/50" : ""}`}
+                  className={`transition-colors cursor-pointer ${!isRead ? "bg-blue-50/50" : ""}`}
+                  style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
+                  onMouseEnter={(e) => { if (isRead) e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.03)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = !isRead ? '' : 'transparent'; }}
                   onClick={() => openDrawer(app)}
                 >
                   <td className="py-4 px-4">
@@ -546,9 +552,12 @@ export default function AdminSubmissions() {
                     <div className={`${!isRead ? "font-bold" : "font-medium"} text-gray-900`}>{app.position}</div>
                   </td>
                   <td className="py-4 px-4">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      app.hasLicense === "yes" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 text-xs font-medium ${
+                        app.hasLicense === "yes" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                      }`}
+                      style={{ borderRadius: RADIUS.pill }}
+                    >
                       {app.hasLicense === "yes" ? "Yes" : "No"}
                     </span>
                   </td>
@@ -609,24 +618,33 @@ export default function AdminSubmissions() {
 
         {/* Drawer */}
         <div
-          className={`fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl z-50 transform transition-transform duration-300 ${
+          className={`fixed right-0 top-0 h-full w-full max-w-lg z-50 transform transition-transform duration-300 ${
             drawerOpen ? "translate-x-0" : "translate-x-full"
           }`}
+          style={{
+            ...GLASS.css.light,
+            borderRadius: `${RADIUS.hero}px 0 0 ${RADIUS.hero}px`,
+            boxShadow: SHADOW.hero,
+          }}
         >
           <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div
+              className="flex items-center justify-between p-6"
+              style={{ borderBottom: `1px solid ${GLASS.border}` }}
+            >
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 style={{ fontSize: TYPE.title, fontWeight: 700, color: COLORS.gray[900] }}>
                   {selectedItem.firstName} {selectedItem.lastName}
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500], marginTop: 2 }}>
                   {isQuote ? "Quote Request" : isApplication ? "Job Application" : "Contact Message"}
                 </p>
               </div>
               <button
                 onClick={closeDrawer}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 transition-colors"
+                style={{ borderRadius: RADIUS.input }}
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -780,11 +798,19 @@ export default function AdminSubmissions() {
             </div>
 
             {/* Footer Actions */}
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div
+              className="p-6"
+              style={{
+                borderTop: `1px solid ${GLASS.border}`,
+                ...GLASS.css.standard,
+                borderRadius: 0,
+              }}
+            >
               <div className="flex gap-3">
                 <a
                   href={`mailto:${selectedItem.email}`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+                  style={{ borderRadius: RADIUS.button }}
                 >
                   <Mail className="w-4 h-4" />
                   Send Email
@@ -792,7 +818,8 @@ export default function AdminSubmissions() {
                 {"phone" in selectedItem && selectedItem.phone && (
                   <a
                     href={`tel:${selectedItem.phone}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition-colors"
+                    style={{ borderRadius: RADIUS.button }}
                   >
                     <Phone className="w-4 h-4" />
                     Call
@@ -807,119 +834,105 @@ export default function AdminSubmissions() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <div className="flex-1 p-4 md:p-6 lg:p-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-6 md:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Submissions</h1>
-                <p className="text-sm md:text-base text-gray-600">Manage quote requests, contact messages, and job applications</p>
-              </div>
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Submissions' }]}>
+        <AdminStaggerContainer>
+          {/* Hero Header */}
+          <AdminPageHero
+            icon={Inbox}
+            title="Submissions"
+            subtitle="Manage quote requests, contact messages, and job applications"
+            actions={
               <button
                 onClick={fetchData}
-                className="inline-flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-white/80 hover:text-white transition-colors"
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  borderRadius: RADIUS.button,
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  backdropFilter: 'blur(12px)',
+                }}
               >
                 <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
                 Refresh
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Quote Requests</h3>
-                <FileText className="w-5 h-5 text-blue-500" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{quotes.length}</p>
-              <p className="text-sm mt-1">
-                {(() => {
-                  const unreadCount = quotes.filter((q) => !isItemRead("quote", q.id)).length;
-                  return unreadCount > 0 ? (
-                    <span className="text-blue-600 font-medium">{unreadCount} unread</span>
-                  ) : (
-                    <span className="text-gray-500">All read</span>
-                  );
-                })()}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Contact Messages</h3>
-                <Mail className="w-5 h-5 text-green-500" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{contacts.length}</p>
-              <p className="text-sm mt-1">
-                {(() => {
-                  const unreadCount = contacts.filter((c) => !isItemRead("contact", c.id)).length;
-                  return unreadCount > 0 ? (
-                    <span className="text-blue-600 font-medium">{unreadCount} unread</span>
-                  ) : (
-                    <span className="text-gray-500">All read</span>
-                  );
-                })()}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Job Applications</h3>
-                <Briefcase className="w-5 h-5 text-purple-500" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{applications.length}</p>
-              <p className="text-sm mt-1">
-                {(() => {
-                  const unreadCount = applications.filter((a) => !isItemRead("application", a.id)).length;
-                  return unreadCount > 0 ? (
-                    <span className="text-blue-600 font-medium">{unreadCount} unread</span>
-                  ) : (
-                    <span className="text-gray-500">All read</span>
-                  );
-                })()}
-              </p>
-            </div>
-          </div>
+          <AdminStatCardGrid cols={3}>
+            <AdminStatCard
+              icon={FileText}
+              iconColor="text-blue-500"
+              value={quotes.length}
+              label="Quote Requests"
+              sub={(() => {
+                const unreadCount = quotes.filter((q) => !isItemRead("quote", q.id)).length;
+                return unreadCount > 0 ? `${unreadCount} unread` : "All read";
+              })()}
+            />
+            <AdminStatCard
+              icon={Mail}
+              iconColor="text-green-500"
+              value={contacts.length}
+              label="Contact Messages"
+              sub={(() => {
+                const unreadCount = contacts.filter((c) => !isItemRead("contact", c.id)).length;
+                return unreadCount > 0 ? `${unreadCount} unread` : "All read";
+              })()}
+            />
+            <AdminStatCard
+              icon={Briefcase}
+              iconColor="text-purple-500"
+              value={applications.length}
+              label="Job Applications"
+              sub={(() => {
+                const unreadCount = applications.filter((a) => !isItemRead("application", a.id)).length;
+                return unreadCount > 0 ? `${unreadCount} unread` : "All read";
+              })()}
+            />
+          </AdminStatCardGrid>
 
           {/* Main Content Card */}
-          <div className="bg-white rounded-lg shadow-sm">
+          <AdminGlassCard style={{ padding: 0, overflow: 'hidden' }}>
             {/* Tabs */}
-            <div className="border-b border-gray-200 overflow-x-auto">
+            <div className="overflow-x-auto" style={{ borderBottom: `1px solid ${GLASS.border}` }}>
               <div className="flex min-w-max">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-3 md:px-6 py-3 md:py-4 font-medium transition-colors relative whitespace-nowrap ${
-                        activeTab === tab.id
-                          ? "text-primary"
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
+                      className="flex items-center gap-2 px-3 md:px-6 py-3 md:py-4 font-medium transition-all relative whitespace-nowrap"
+                      style={{
+                        color: isActive ? '#fff' : COLORS.gray[500],
+                        background: isActive ? ADMIN_GRADIENT : 'transparent',
+                        borderRadius: isActive ? `${RADIUS.input}px ${RADIUS.input}px 0 0` : undefined,
+                      }}
+                      onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = COLORS.gray[700]; }}
+                      onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = COLORS.gray[500]; }}
                     >
                       <Icon className="w-4 h-4 md:w-5 md:h-5" />
                       <span className="text-sm md:text-base">{tab.label}</span>
                       {tab.unreadCount > 0 ? (
-                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-500 text-white font-semibold">
+                        <span
+                          className="ml-2 px-2 py-0.5 text-xs bg-blue-500 text-white font-semibold"
+                          style={{ borderRadius: RADIUS.pill }}
+                        >
                           {tab.unreadCount}
                         </span>
                       ) : (
-                        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                          activeTab === tab.id
-                            ? "bg-primary/10 text-primary"
-                            : "bg-gray-100 text-gray-600"
-                        }`}>
+                        <span
+                          className="ml-2 px-2 py-0.5 text-xs"
+                          style={{
+                            borderRadius: RADIUS.pill,
+                            background: isActive ? 'rgba(255,255,255,0.2)' : COLORS.gray[100],
+                            color: isActive ? 'rgba(255,255,255,0.9)' : COLORS.gray[600],
+                          }}
+                        >
                           {tab.count}
                         </span>
-                      )}
-                      {activeTab === tab.id && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                       )}
                     </button>
                   );
@@ -928,7 +941,13 @@ export default function AdminSubmissions() {
             </div>
 
             {/* Search and Filters */}
-            <div className="p-3 md:p-4 border-b border-gray-200 flex flex-col sm:flex-row gap-3 md:gap-4">
+            <div
+              className="flex flex-col sm:flex-row gap-3 md:gap-4"
+              style={{
+                padding: `${GRID.spacing.sm}px ${GRID.spacing.md}px`,
+                borderBottom: `1px solid ${GLASS.border}`,
+              }}
+            >
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -936,7 +955,8 @@ export default function AdminSubmissions() {
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 md:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm md:text-base"
+                  className="w-full pl-10 pr-4 py-2.5 md:py-2 border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm md:text-base"
+                  style={{ borderRadius: RADIUS.input }}
                 />
               </div>
               <div className="flex gap-2 sm:gap-3">
@@ -944,7 +964,8 @@ export default function AdminSubmissions() {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="appearance-none w-full sm:w-auto pl-4 pr-10 py-2.5 md:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-white text-sm md:text-base"
+                    className="appearance-none w-full sm:w-auto pl-4 pr-10 py-2.5 md:py-2 border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-white text-sm md:text-base"
+                    style={{ borderRadius: RADIUS.input }}
                   >
                     <option value="all">All Status</option>
                     <option value="new">New</option>
@@ -960,7 +981,8 @@ export default function AdminSubmissions() {
                     const items = activeTab === "quotes" ? quotes : activeTab === "contacts" ? contacts : applications;
                     items.forEach((item) => markAsRead(type, item.id));
                   }}
-                  className="inline-flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap"
+                  className="inline-flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors whitespace-nowrap"
+                  style={{ borderRadius: RADIUS.input }}
                 >
                   <CheckCircle className="w-4 h-4" />
                   <span className="hidden sm:inline">Mark all as read</span>
@@ -982,12 +1004,11 @@ export default function AdminSubmissions() {
                 </>
               )}
             </div>
-          </div>
-        </div>
-      </div>
+          </AdminGlassCard>
+        </AdminStaggerContainer>
 
       {/* Detail Drawer */}
       {renderDetailDrawer()}
-    </div>
+    </AdminLoungeLayout>
   );
 }

@@ -41,7 +41,10 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import AdminNav from "@/components/AdminNav";
+import { motion } from "framer-motion";
+import { AdminPageHero, AdminGlassCard, AdminStaggerContainer, AdminStatCard, AdminStatCardGrid, AdminEmptyState, ADMIN_GRADIENT } from "@/components/admin/AdminHeritagePrimitives";
+import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
 
 // Types
 interface Subscriber {
@@ -302,307 +305,372 @@ export default function AdminNewsletter() {
     : "0";
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <div className="flex-1 pt-[72px] lg:pt-0">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 md:px-6 lg:px-8 py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Newsletter Subscribers</h1>
-              <p className="text-gray-600">{stats.total.toLocaleString()} total subscribers</p>
-            </div>
-            <div className="flex items-center gap-2">
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Newsletter' }]}>
+      <AdminStaggerContainer>
+        {/* Hero Header */}
+        <AdminPageHero
+          icon={Mail}
+          title="Newsletter"
+          subtitle="Manage subscribers, tags, and exports"
+          actions={
+            <>
               <button
                 onClick={() => setShowTagManager(true)}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: RADIUS.button,
+                  background: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  color: 'white',
+                  fontSize: TYPE.meta,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
                 <Tags className="w-4 h-4" />
                 <span className="hidden md:inline">Tags</span>
               </button>
               <button
                 onClick={() => setShowImportModal(true)}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: RADIUS.button,
+                  background: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  color: 'white',
+                  fontSize: TYPE.meta,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
                 <Upload className="w-4 h-4" />
                 <span className="hidden md:inline">Import</span>
               </button>
               <button
                 onClick={() => setShowExportModal(true)}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: RADIUS.button,
+                  background: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  color: 'white',
+                  fontSize: TYPE.meta,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden md:inline">Export</span>
               </button>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-2"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: RADIUS.button,
+                  background: 'rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  color: 'white',
+                  fontSize: TYPE.meta,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
                 <UserPlus className="w-4 h-4" />
                 <span className="hidden md:inline">Add Subscriber</span>
               </button>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
+        {/* Stats Cards */}
+        <AdminStatCardGrid cols={4}>
+          <AdminStatCard
+            icon={Users}
+            iconColor="text-violet-500"
+            value={stats.total.toLocaleString()}
+            label="Total Subscribers"
+            sub={`+${stats.thisMonth} this month`}
+          />
+          <AdminStatCard
+            icon={CheckCircle}
+            iconColor="text-green-500"
+            value={stats.active.toLocaleString()}
+            label="Active Subscribers"
+            sub={`${stats.activeRate || ((stats.active / Math.max(stats.total, 1)) * 100).toFixed(1)}% of total`}
+          />
+          <AdminStatCard
+            icon={TrendingUp}
+            iconColor="text-blue-500"
+            value={`+${stats.thisMonth}`}
+            label="This Month"
+            sub={`${growthPercentage}% growth`}
+          />
+          <AdminStatCard
+            icon={TrendingDown}
+            iconColor="text-red-500"
+            value={`${stats.unsubscribeRate || ((stats.unsubscribed / Math.max(stats.total, 1)) * 100).toFixed(1)}%`}
+            label="Unsubscribe Rate"
+            sub={`${stats.unsubscribedThisMonth} this month`}
+          />
+        </AdminStatCardGrid>
 
-        <div className="p-4 md:p-6 space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500 text-sm">Total Subscribers</span>
-                <Users className="w-5 h-5 text-primary" />
-              </div>
-              <p className="text-2xl md:text-3xl font-bold text-gray-900">{stats.total.toLocaleString()}</p>
-              <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
-                <TrendingUp className="w-4 h-4" />
-                +{stats.thisMonth} this month
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500 text-sm">Active Subscribers</span>
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              </div>
-              <p className="text-2xl md:text-3xl font-bold text-gray-900">{stats.active.toLocaleString()}</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats.activeRate || ((stats.active / Math.max(stats.total, 1)) * 100).toFixed(1)}% of total
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500 text-sm">This Month</span>
-                <TrendingUp className="w-5 h-5 text-blue-500" />
-              </div>
-              <p className="text-2xl md:text-3xl font-bold text-gray-900">+{stats.thisMonth}</p>
-              <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
-                <TrendingUp className="w-4 h-4" />
-                {growthPercentage}% growth
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-500 text-sm">Unsubscribe Rate</span>
-                <TrendingDown className="w-5 h-5 text-red-500" />
-              </div>
-              <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                {stats.unsubscribeRate || ((stats.unsubscribed / Math.max(stats.total, 1)) * 100).toFixed(1)}%
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {stats.unsubscribedThisMonth} this month
-              </p>
-            </div>
-          </div>
-
-          {/* Growth Chart & Source Breakdown */}
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Growth Chart */}
-            <div className="lg:col-span-2 bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">Subscriber Growth</h3>
-                <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                  {(["daily", "weekly", "monthly"] as const).map((period) => (
-                    <button
-                      key={period}
-                      onClick={() => setChartPeriod(period)}
-                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                        chartPeriod === period
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      {period.charAt(0).toUpperCase() + period.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={growth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="period" tick={{ fontSize: 12 }} stroke="#888" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="#888" />
-                    <Tooltip
-                      contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb" }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="subscribed"
-                      stroke="#7c3aed"
-                      fill="#7c3aed"
-                      fillOpacity={0.2}
-                      name="Subscribed"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="unsubscribed"
-                      stroke="#ef4444"
-                      fill="#ef4444"
-                      fillOpacity={0.1}
-                      name="Unsubscribed"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+        {/* Growth Chart & Source Breakdown */}
+        <motion.div variants={fadeInUp} className="grid lg:grid-cols-3 gap-6">
+          {/* Growth Chart */}
+          <AdminGlassCard className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>Subscriber Growth</h3>
+              <div className="flex gap-1 p-1" style={{ background: COLORS.gray[100], borderRadius: RADIUS.input }}>
+                {(["daily", "weekly", "monthly"] as const).map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setChartPeriod(period)}
+                    style={{
+                      padding: '4px 12px',
+                      fontSize: TYPE.meta,
+                      borderRadius: RADIUS.input - 2,
+                      transition: `all ${MOTION.duration.hover}s`,
+                      background: chartPeriod === period ? 'white' : 'transparent',
+                      color: chartPeriod === period ? COLORS.gray[900] : COLORS.gray[600],
+                      boxShadow: chartPeriod === period ? SHADOW.level1 : 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={growth}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="period" tick={{ fontSize: 12 }} stroke="#888" />
+                  <YAxis tick={{ fontSize: 12 }} stroke="#888" />
+                  <Tooltip
+                    contentStyle={{ borderRadius: RADIUS.input, border: `1px solid ${COLORS.gray[200]}` }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="subscribed"
+                    stroke="#7c3aed"
+                    fill="#7c3aed"
+                    fillOpacity={0.2}
+                    name="Subscribed"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="unsubscribed"
+                    stroke="#ef4444"
+                    fill="#ef4444"
+                    fillOpacity={0.1}
+                    name="Unsubscribed"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </AdminGlassCard>
 
-            {/* Source Breakdown */}
-            <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Signup Sources</h3>
-              <div className="space-y-3">
-                {sourceBreakdown.length > 0 ? (
-                  sourceBreakdown.map((item) => {
-                    const config = SOURCE_CONFIG[item.source] || { label: item.source, icon: <Globe className="w-3 h-3" /> };
-                    const percentage = ((item.count / stats.active) * 100).toFixed(1);
-                    return (
-                      <div key={item.source} className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                          {config.icon}
+          {/* Source Breakdown */}
+          <AdminGlassCard>
+            <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Signup Sources</h3>
+            <div className="space-y-3">
+              {sourceBreakdown.length > 0 ? (
+                sourceBreakdown.map((item) => {
+                  const config = SOURCE_CONFIG[item.source] || { label: item.source, icon: <Globe className="w-3 h-3" /> };
+                  const percentage = ((item.count / stats.active) * 100).toFixed(1);
+                  return (
+                    <div key={item.source} className="flex items-center gap-3">
+                      <div className="w-8 h-8 flex items-center justify-center text-primary" style={{ background: 'rgba(139, 92, 246, 0.1)', borderRadius: RADIUS.input }}>
+                        {config.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[900] }}>{config.label}</span>
+                          <span style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>{item.count}</span>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-900">{config.label}</span>
-                            <span className="text-sm text-gray-500">{item.count}</span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
-                            <div
-                              className="bg-primary h-1.5 rounded-full"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
+                        <div className="w-full h-1.5 mt-1" style={{ background: COLORS.gray[100], borderRadius: RADIUS.pill }}>
+                          <div
+                            className="h-1.5"
+                            style={{ width: `${percentage}%`, background: COLORS.primary.violet[500], borderRadius: RADIUS.pill }}
+                          />
                         </div>
                       </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-gray-500 text-sm">No data yet</p>
-                )}
-              </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>No data yet</p>
+              )}
             </div>
+          </AdminGlassCard>
+        </motion.div>
+
+        {/* Filters & Search */}
+        <AdminGlassCard>
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: COLORS.gray[400] }} />
+              <input
+                type="text"
+                placeholder="Search by email or name..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                className="w-full pl-10 pr-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
+              />
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              className="px-4 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="unsubscribed">Unsubscribed</option>
+              <option value="bounced">Bounced</option>
+            </select>
+
+            {/* Source Filter */}
+            <select
+              value={sourceFilter}
+              onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }}
+              className="px-4 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
+            >
+              <option value="all">All Sources</option>
+              <option value="blog">Blog</option>
+              <option value="banner">Banner</option>
+              <option value="website">Website</option>
+              <option value="footer">Footer</option>
+              <option value="import">Import</option>
+              <option value="admin">Admin</option>
+            </select>
+
+            {/* Tag Filter */}
+            <select
+              value={tagFilter}
+              onChange={(e) => { setTagFilter(e.target.value); setPage(1); }}
+              className="px-4 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
+            >
+              <option value="">All Tags</option>
+              {tags.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name} ({tag.subscriberCount})
+                </option>
+              ))}
+            </select>
           </div>
+        </AdminGlassCard>
 
-          {/* Filters & Search */}
-          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by email or name..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-
-              {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+        {/* Bulk Actions Bar */}
+        {selectedIds.length > 0 && (
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
+            className="flex items-center justify-between"
+            style={{
+              ...GLASS.css.standard,
+              borderRadius: RADIUS.card,
+              padding: GRID.spacing.sm,
+              background: 'rgba(139, 92, 246, 0.08)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+            }}
+          >
+            <span style={{ fontSize: TYPE.meta, fontWeight: 600, color: COLORS.primary.violet[600], paddingLeft: GRID.spacing.xs }}>
+              {selectedIds.length} subscriber{selectedIds.length > 1 ? "s" : ""} selected
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => bulkUnsubscribeMutation.mutate(selectedIds)}
+                disabled={bulkUnsubscribeMutation.isPending}
+                className="px-3 py-1.5 text-amber-700 bg-amber-100 hover:bg-amber-200 flex items-center gap-1"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta }}
               >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="unsubscribed">Unsubscribed</option>
-                <option value="bounced">Bounced</option>
-              </select>
-
-              {/* Source Filter */}
-              <select
-                value={sourceFilter}
-                onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }}
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                <UserMinus className="w-4 h-4" />
+                Unsubscribe
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm(`Delete ${selectedIds.length} subscribers? This cannot be undone.`)) {
+                    bulkDeleteMutation.mutate(selectedIds);
+                  }
+                }}
+                disabled={bulkDeleteMutation.isPending}
+                className="px-3 py-1.5 text-red-700 bg-red-100 hover:bg-red-200 flex items-center gap-1"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta }}
               >
-                <option value="all">All Sources</option>
-                <option value="blog">Blog</option>
-                <option value="banner">Banner</option>
-                <option value="website">Website</option>
-                <option value="footer">Footer</option>
-                <option value="import">Import</option>
-                <option value="admin">Admin</option>
-              </select>
-
-              {/* Tag Filter */}
-              <select
-                value={tagFilter}
-                onChange={(e) => { setTagFilter(e.target.value); setPage(1); }}
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+              <button
+                onClick={() => setSelectedIds([])}
+                className="px-3 py-1.5 text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center gap-1"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta }}
               >
-                <option value="">All Tags</option>
-                {tags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name} ({tag.subscriberCount})
-                  </option>
-                ))}
-              </select>
+                <X className="w-4 h-4" />
+                Clear
+              </button>
             </div>
-          </div>
+          </motion.div>
+        )}
 
-          {/* Bulk Actions Bar */}
-          {selectedIds.length > 0 && (
-            <div className="bg-primary/10 rounded-xl p-4 flex items-center justify-between">
-              <span className="text-primary font-medium">
-                {selectedIds.length} subscriber{selectedIds.length > 1 ? "s" : ""} selected
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => bulkUnsubscribeMutation.mutate(selectedIds)}
-                  disabled={bulkUnsubscribeMutation.isPending}
-                  className="px-3 py-1.5 text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 flex items-center gap-1 text-sm"
-                >
-                  <UserMinus className="w-4 h-4" />
-                  Unsubscribe
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`Delete ${selectedIds.length} subscribers? This cannot be undone.`)) {
-                      bulkDeleteMutation.mutate(selectedIds);
-                    }
-                  }}
-                  disabled={bulkDeleteMutation.isPending}
-                  className="px-3 py-1.5 text-red-700 bg-red-100 rounded-lg hover:bg-red-200 flex items-center gap-1 text-sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
-                <button
-                  onClick={() => setSelectedIds([])}
-                  className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 flex items-center gap-1 text-sm"
-                >
-                  <X className="w-4 h-4" />
-                  Clear
-                </button>
-              </div>
+        {/* Subscribers Table */}
+        <AdminGlassCard style={{ padding: 0, overflow: 'hidden' }}>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <RefreshCw className="w-8 h-8 animate-spin text-primary" />
             </div>
-          )}
-
-          {/* Subscribers Table */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-20">
-                <RefreshCw className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : subscribers.length === 0 ? (
-              <div className="text-center py-20">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No subscribers found</p>
+          ) : subscribers.length === 0 ? (
+            <AdminEmptyState
+              icon={Users}
+              title="No subscribers found"
+              description="Start building your audience"
+              action={
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="mt-4 text-primary hover:underline"
+                  style={{
+                    padding: '8px 20px',
+                    borderRadius: RADIUS.button,
+                    background: COLORS.primary.violet[600],
+                    color: 'white',
+                    fontSize: TYPE.meta,
+                    fontWeight: 500,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
                 >
                   Add your first subscriber
                 </button>
-              </div>
+              }
+            />
             ) : (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead style={{ background: COLORS.gray[50], borderBottom: `1px solid ${COLORS.gray[200]}` }}>
                       <tr>
                         <th className="w-12 px-4 py-3">
                           <input
@@ -612,19 +680,19 @@ export default function AdminNewsletter() {
                             className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left uppercase tracking-wider" style={{ fontSize: TYPE.micro, fontWeight: 600, color: COLORS.gray[500] }}>
                           Subscriber
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                        <th className="px-4 py-3 text-left uppercase tracking-wider hidden md:table-cell" style={{ fontSize: TYPE.micro, fontWeight: 600, color: COLORS.gray[500] }}>
                           Source
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                        <th className="px-4 py-3 text-left uppercase tracking-wider hidden lg:table-cell" style={{ fontSize: TYPE.micro, fontWeight: 600, color: COLORS.gray[500] }}>
                           Tags
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left uppercase tracking-wider" style={{ fontSize: TYPE.micro, fontWeight: 600, color: COLORS.gray[500] }}>
                           Status
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                        <th className="px-4 py-3 text-left uppercase tracking-wider hidden md:table-cell" style={{ fontSize: TYPE.micro, fontWeight: 600, color: COLORS.gray[500] }}>
                           Joined
                         </th>
                         <th className="w-12 px-4 py-3"></th>
@@ -717,8 +785,8 @@ export default function AdminNewsletter() {
                 </div>
 
                 {/* Pagination */}
-                <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-                  <p className="text-sm text-gray-500">
+                <div className="px-4 py-3 flex items-center justify-between" style={{ borderTop: `1px solid ${COLORS.gray[200]}` }}>
+                  <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>
                     Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
                     {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
                   </p>
@@ -726,17 +794,19 @@ export default function AdminNewsletter() {
                     <button
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ borderRadius: RADIUS.button, border: `1px solid ${COLORS.gray[300]}` }}
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="text-sm text-gray-600">
+                    <span style={{ fontSize: TYPE.meta, color: COLORS.gray[600] }}>
                       Page {pagination.page} of {pagination.totalPages}
                     </span>
                     <button
                       onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
                       disabled={page >= pagination.totalPages}
-                      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ borderRadius: RADIUS.button, border: `1px solid ${COLORS.gray[300]}` }}
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -744,9 +814,8 @@ export default function AdminNewsletter() {
                 </div>
               </>
             )}
-          </div>
-        </div>
-      </div>
+          </AdminGlassCard>
+      </AdminStaggerContainer>
 
       {/* Add Subscriber Modal */}
       {showAddModal && (
@@ -811,7 +880,7 @@ export default function AdminNewsletter() {
           }}
         />
       )}
-    </div>
+    </AdminLoungeLayout>
   );
 }
 
@@ -865,79 +934,100 @@ function AddSubscriberModal({
     }
   };
 
+  const modalInputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 16px',
+    border: `1px solid ${COLORS.gray[300]}`,
+    borderRadius: RADIUS.input,
+    fontSize: TYPE.meta,
+  };
+
+  const modalLabelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: TYPE.meta,
+    fontWeight: 500,
+    color: COLORS.gray[700],
+    marginBottom: 4,
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Add Subscriber</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{
+          ...GLASS.css.light,
+          borderRadius: RADIUS.hero,
+          boxShadow: SHADOW.hero,
+        }}
+      >
+        <div className="sticky top-0 px-6 py-4 flex items-center justify-between" style={{ background: GLASS.backgroundLight, borderBottom: `1px solid ${GLASS.border}`, borderRadius: `${RADIUS.hero}px ${RADIUS.hero}px 0 0` }}>
+          <h2 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>Add Subscriber</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100" style={{ borderRadius: RADIUS.input }}>
+            <X className="w-5 h-5" style={{ color: COLORS.gray[500] }} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
-            </label>
+            <label style={modalLabelStyle}>Email *</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={modalInputStyle}
               placeholder="email@example.com"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
+              <label style={modalLabelStyle}>First Name</label>
               <input
                 type="text"
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={modalInputStyle}
                 placeholder="John"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
+              <label style={modalLabelStyle}>Last Name</label>
               <input
                 type="text"
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={modalInputStyle}
                 placeholder="Doe"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
-            </label>
+            <label style={modalLabelStyle}>Phone</label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={modalInputStyle}
               placeholder="(555) 123-4567"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Source
-            </label>
+            <label style={modalLabelStyle}>Source</label>
             <select
               value={formData.source}
               onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={modalInputStyle}
             >
               <option value="admin">Admin</option>
               <option value="import">Import</option>
@@ -947,21 +1037,18 @@ function AddSubscriberModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tags
-            </label>
-            <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg min-h-[44px]">
+            <label style={modalLabelStyle}>Tags</label>
+            <div className="flex flex-wrap gap-2 p-3 min-h-[44px]" style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input }}>
               {tags.map((tag) => (
                 <label
                   key={tag.id}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                    formData.tags.includes(tag.id)
-                      ? ""
-                      : "opacity-50"
+                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium cursor-pointer transition-colors ${
+                    formData.tags.includes(tag.id) ? "" : "opacity-50"
                   }`}
                   style={{
-                    backgroundColor: formData.tags.includes(tag.id) ? `${tag.color}20` : "#f3f4f6",
-                    color: formData.tags.includes(tag.id) ? tag.color : "#6b7280",
+                    borderRadius: RADIUS.pill,
+                    backgroundColor: formData.tags.includes(tag.id) ? `${tag.color}20` : COLORS.gray[100],
+                    color: formData.tags.includes(tag.id) ? tag.color : COLORS.gray[500],
                   }}
                 >
                   <input
@@ -983,14 +1070,13 @@ function AddSubscriberModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
-            </label>
+            <label style={modalLabelStyle}>Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+              className="focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+              style={{ ...modalInputStyle, padding: '8px 16px' }}
               placeholder="Any notes about this subscriber..."
             />
           </div>
@@ -999,20 +1085,22 @@ function AddSubscriberModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="flex-1 px-4 py-2 hover:bg-gray-200"
+              style={{ borderRadius: RADIUS.button, background: COLORS.gray[100], color: COLORS.gray[700], fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+              className="flex-1 px-4 py-2 disabled:opacity-50"
+              style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
             >
               {isSubmitting ? "Adding..." : "Add Subscriber"}
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -1121,17 +1209,26 @@ function SubscriberDrawer({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={onClose}>
-      <div
-        className="w-full max-w-md bg-white h-full overflow-y-auto shadow-xl"
+    <div className="fixed inset-0 z-50 flex justify-end" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+        className="w-full max-w-md h-full overflow-y-auto"
+        style={{
+          ...GLASS.css.light,
+          borderRadius: `${RADIUS.hero}px 0 0 ${RADIUS.hero}px`,
+          boxShadow: SHADOW.hero,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <ChevronLeft className="w-5 h-5 text-gray-500" />
+        <div className="sticky top-0 px-6 py-4 flex items-center justify-between" style={{ background: GLASS.backgroundLight, borderBottom: `1px solid ${GLASS.border}` }}>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100" style={{ borderRadius: RADIUS.input }}>
+            <ChevronLeft className="w-5 h-5" style={{ color: COLORS.gray[500] }} />
           </button>
-          <h2 className="font-semibold text-gray-900">
+          <h2 style={{ fontWeight: 600, color: COLORS.gray[900], fontSize: TYPE.body }}>
             {subscriber.firstName || subscriber.lastName
               ? `${subscriber.firstName || ""} ${subscriber.lastName || ""}`.trim()
               : "Subscriber Details"}
@@ -1270,7 +1367,7 @@ function SubscriberDrawer({
           </div>
 
           {/* Actions */}
-          <div className="pt-4 border-t border-gray-200 space-y-2">
+          <div className="pt-4 space-y-2" style={{ borderTop: `1px solid ${COLORS.gray[200]}` }}>
             {subscriber.status === "active" ? (
               <button
                 onClick={() => {
@@ -1278,7 +1375,8 @@ function SubscriberDrawer({
                     onUnsubscribe();
                   }
                 }}
-                className="w-full px-4 py-2 text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 text-amber-700 bg-amber-100 hover:bg-amber-200 flex items-center justify-center gap-2"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
               >
                 <UserMinus className="w-4 h-4" />
                 Unsubscribe
@@ -1286,7 +1384,8 @@ function SubscriberDrawer({
             ) : (
               <button
                 onClick={onResubscribe}
-                className="w-full px-4 py-2 text-green-700 bg-green-100 rounded-lg hover:bg-green-200 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 text-green-700 bg-green-100 hover:bg-green-200 flex items-center justify-center gap-2"
+                style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
               >
                 <RefreshCw className="w-4 h-4" />
                 Resubscribe
@@ -1298,14 +1397,15 @@ function SubscriberDrawer({
                   onDelete();
                 }
               }}
-              className="w-full px-4 py-2 text-red-700 bg-red-100 rounded-lg hover:bg-red-200 flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 text-red-700 bg-red-100 hover:bg-red-200 flex items-center justify-center gap-2"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
             >
               <Trash2 className="w-4 h-4" />
               Delete
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -1389,26 +1489,37 @@ function TagManagerModal({
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Manage Tags</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{
+          ...GLASS.css.light,
+          borderRadius: RADIUS.hero,
+          boxShadow: SHADOW.hero,
+        }}
+      >
+        <div className="sticky top-0 px-6 py-4 flex items-center justify-between" style={{ background: GLASS.backgroundLight, borderBottom: `1px solid ${GLASS.border}`, borderRadius: `${RADIUS.hero}px ${RADIUS.hero}px 0 0` }}>
+          <h2 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>Manage Tags</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100" style={{ borderRadius: RADIUS.input }}>
+            <X className="w-5 h-5" style={{ color: COLORS.gray[500] }} />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           {/* Create New Tag */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Create New Tag</h3>
+            <h3 style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: GRID.spacing.xs }}>Create New Tag</h3>
             <div className="space-y-3">
               <input
                 type="text"
                 value={newTag.name}
                 onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
                 placeholder="Tag name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
               />
               <div className="flex gap-2 flex-wrap">
                 {colorOptions.map((color) => (
@@ -1425,7 +1536,8 @@ function TagManagerModal({
               <button
                 onClick={() => createMutation.mutate(newTag)}
                 disabled={!newTag.name.trim() || createMutation.isPending}
-                className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                className="w-full px-4 py-2 disabled:opacity-50"
+                style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
               >
                 {createMutation.isPending ? "Creating..." : "Create Tag"}
               </button>
@@ -1434,30 +1546,31 @@ function TagManagerModal({
 
           {/* Existing Tags */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Existing Tags</h3>
+            <h3 style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: GRID.spacing.xs }}>Existing Tags</h3>
             <div className="space-y-2">
               {tags.length === 0 ? (
-                <p className="text-sm text-gray-400">No tags created yet</p>
+                <p style={{ fontSize: TYPE.meta, color: COLORS.gray[400] }}>No tags created yet</p>
               ) : (
                 tags.map((tag) => (
                   <div
                     key={tag.id}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                    className="flex items-center justify-between p-3"
+                    style={{ border: `1px solid ${COLORS.gray[200]}`, borderRadius: RADIUS.input }}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: tag.color }}
                       />
-                      <span className="font-medium text-gray-900">{tag.name}</span>
-                      <span className="text-sm text-gray-500">
+                      <span style={{ fontWeight: 500, color: COLORS.gray[900], fontSize: TYPE.meta }}>{tag.name}</span>
+                      <span style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>
                         {tag.subscriberCount} subscribers
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setEditingTag(tag)}
-                        className="text-sm text-gray-500 hover:text-gray-700"
+                        style={{ fontSize: TYPE.meta, color: COLORS.gray[500], background: 'none', border: 'none', cursor: 'pointer' }}
                       >
                         Edit
                       </button>
@@ -1467,7 +1580,7 @@ function TagManagerModal({
                             deleteMutation.mutate(tag.id);
                           }
                         }}
-                        className="text-sm text-red-500 hover:text-red-700"
+                        style={{ fontSize: TYPE.meta, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
                       >
                         Delete
                       </button>
@@ -1478,19 +1591,30 @@ function TagManagerModal({
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Edit Tag Modal */}
       {editingTag && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Tag</h3>
+        <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
+            className="w-full max-w-sm p-6"
+            style={{
+              ...GLASS.css.light,
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+          >
+            <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900], marginBottom: GRID.spacing.sm }}>Edit Tag</h3>
             <div className="space-y-3">
               <input
                 type="text"
                 value={editingTag.name}
                 onChange={(e) => setEditingTag({ ...editingTag, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
               />
               <div className="flex gap-2 flex-wrap">
                 {colorOptions.map((color) => (
@@ -1507,20 +1631,22 @@ function TagManagerModal({
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => setEditingTag(null)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="flex-1 px-4 py-2 hover:bg-gray-200"
+                  style={{ borderRadius: RADIUS.button, background: COLORS.gray[100], color: COLORS.gray[700], fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => updateMutation.mutate(editingTag)}
                   disabled={updateMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 disabled:opacity-50"
+                  style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
                 >
                   {updateMutation.isPending ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
@@ -1575,24 +1701,35 @@ function ExportModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Export Subscribers</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+        className="w-full max-w-md"
+        style={{
+          ...GLASS.css.light,
+          borderRadius: RADIUS.hero,
+          boxShadow: SHADOW.hero,
+        }}
+      >
+        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${GLASS.border}` }}>
+          <h2 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>Export Subscribers</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100" style={{ borderRadius: RADIUS.input }}>
+            <X className="w-5 h-5" style={{ color: COLORS.gray[500] }} />
           </button>
         </div>
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label style={{ display: 'block', fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: 8 }}>
               Status Filter
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-4 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
             >
               <option value="all">All Subscribers</option>
               <option value="active">Active Only</option>
@@ -1601,13 +1738,14 @@ function ExportModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label style={{ display: 'block', fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: 8 }}>
               Tag Filter
             </label>
             <select
               value={tagId}
               onChange={(e) => setTagId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-4 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
             >
               <option value="">All Tags</option>
               {tags.map((tag) => (
@@ -1619,14 +1757,15 @@ function ExportModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label style={{ display: 'block', fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: 8 }}>
               Include Fields
             </label>
             <div className="grid grid-cols-2 gap-2">
               {allFields.map((field) => (
                 <label
                   key={field.key}
-                  className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+                  className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-50"
+                  style={{ border: `1px solid ${COLORS.gray[200]}`, borderRadius: RADIUS.input }}
                 >
                   <input
                     type="checkbox"
@@ -1635,26 +1774,28 @@ function ExportModal({
                     disabled={field.key === "email"}
                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
-                  <span className="text-sm text-gray-700">{field.label}</span>
+                  <span style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>{field.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-500 mb-4">
+          <div className="pt-4" style={{ borderTop: `1px solid ${COLORS.gray[200]}` }}>
+            <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500], marginBottom: GRID.spacing.sm }}>
               Preview: ~{status === "active" ? stats.active : status === "unsubscribed" ? stats.unsubscribed : stats.total} subscribers will be exported
             </p>
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="flex-1 px-4 py-2 hover:bg-gray-200"
+                style={{ borderRadius: RADIUS.button, background: COLORS.gray[100], color: COLORS.gray[700], fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleExport}
-                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 flex items-center justify-center gap-2"
+                style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
               >
                 <Download className="w-4 h-4" />
                 Export CSV
@@ -1662,7 +1803,7 @@ function ExportModal({
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -1777,12 +1918,22 @@ function ImportModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Import Subscribers</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-500" />
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        style={{
+          ...GLASS.css.light,
+          borderRadius: RADIUS.hero,
+          boxShadow: SHADOW.hero,
+        }}
+      >
+        <div className="sticky top-0 px-6 py-4 flex items-center justify-between" style={{ background: GLASS.backgroundLight, borderBottom: `1px solid ${GLASS.border}`, borderRadius: `${RADIUS.hero}px ${RADIUS.hero}px 0 0` }}>
+          <h2 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>Import Subscribers</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100" style={{ borderRadius: RADIUS.input }}>
+            <X className="w-5 h-5" style={{ color: COLORS.gray[500] }} />
           </button>
         </div>
 
@@ -1791,12 +1942,13 @@ function ImportModal({
           {step === "upload" && (
             <div className="text-center py-8">
               <div
-                className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-primary transition-colors cursor-pointer"
+                className="border-2 border-dashed p-8 hover:border-primary transition-colors cursor-pointer"
+                style={{ borderColor: COLORS.gray[300], borderRadius: RADIUS.card }}
                 onClick={() => document.getElementById("csv-input")?.click()}
               >
-                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">Drag & drop CSV file here</p>
-                <p className="text-sm text-gray-400">or click to browse</p>
+                <Upload className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.gray[400] }} />
+                <p style={{ color: COLORS.gray[600], fontSize: TYPE.body, marginBottom: 8 }}>Drag & drop CSV file here</p>
+                <p style={{ fontSize: TYPE.meta, color: COLORS.gray[400] }}>or click to browse</p>
                 <input
                   id="csv-input"
                   type="file"
@@ -1805,7 +1957,7 @@ function ImportModal({
                   className="hidden"
                 />
               </div>
-              <p className="text-sm text-gray-500 mt-4">
+              <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500], marginTop: GRID.spacing.sm }}>
                 Supports .csv files with email, first name, last name, phone columns
               </p>
             </div>
@@ -1814,7 +1966,7 @@ function ImportModal({
           {/* Step 2: Map Columns */}
           {step === "map" && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">
+              <p style={{ fontSize: TYPE.meta, color: COLORS.gray[600] }}>
                 Map your CSV columns to subscriber fields. Found {csvData.length} rows.
               </p>
 
@@ -1822,16 +1974,17 @@ function ImportModal({
                 {headers.map((header, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div className="w-1/3">
-                      <span className="text-sm font-medium text-gray-700">{header}</span>
+                      <span style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>{header}</span>
                       {csvData[0] && (
-                        <p className="text-xs text-gray-400 truncate">e.g., {csvData[0][index]}</p>
+                        <p className="truncate" style={{ fontSize: TYPE.micro, color: COLORS.gray[400] }}>e.g., {csvData[0][index]}</p>
                       )}
                     </div>
-                    <span className="text-gray-400">→</span>
+                    <span style={{ color: COLORS.gray[400] }}>→</span>
                     <select
                       value={mapping[index] || ""}
                       onChange={(e) => setMapping({ ...mapping, [index]: e.target.value })}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                      className="flex-1 px-3 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
                     >
                       {fieldOptions.map((opt) => (
                         <option key={opt.key} value={opt.key}>
@@ -1844,7 +1997,7 @@ function ImportModal({
               </div>
 
               {!Object.values(mapping).includes("email") && (
-                <p className="text-sm text-red-500">
+                <p style={{ fontSize: TYPE.meta, color: '#ef4444' }}>
                   Email column is required. Please map a column to Email.
                 </p>
               )}
@@ -1852,14 +2005,16 @@ function ImportModal({
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setStep("upload")}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 hover:bg-gray-200"
+                  style={{ borderRadius: RADIUS.button, background: COLORS.gray[100], color: COLORS.gray[700], fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
                 >
                   Back
                 </button>
                 <button
                   onClick={() => setStep("options")}
                   disabled={!Object.values(mapping).includes("email")}
-                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 disabled:opacity-50"
+                  style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
                 >
                   Continue
                 </button>
@@ -1870,11 +2025,11 @@ function ImportModal({
           {/* Step 3: Options */}
           {step === "options" && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">
+              <p style={{ fontSize: TYPE.meta, color: COLORS.gray[600] }}>
                 Configure import options for {csvData.length} subscribers.
               </p>
 
-              <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50" style={{ border: `1px solid ${COLORS.gray[200]}`, borderRadius: RADIUS.input }}>
                 <input
                   type="checkbox"
                   checked={options.updateExisting}
@@ -1882,19 +2037,20 @@ function ImportModal({
                   className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <div>
-                  <span className="text-sm font-medium text-gray-700">Update existing subscribers</span>
-                  <p className="text-xs text-gray-500">If email exists, update their details</p>
+                  <span style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }}>Update existing subscribers</span>
+                  <p style={{ fontSize: TYPE.micro, color: COLORS.gray[500] }}>If email exists, update their details</p>
                 </div>
               </label>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label style={{ display: 'block', fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: 8 }}>
                   Add tag to imported subscribers
                 </label>
                 <select
                   value={options.tagId}
                   onChange={(e) => setOptions({ ...options, tagId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 bg-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ border: `1px solid ${COLORS.gray[300]}`, borderRadius: RADIUS.input, fontSize: TYPE.meta }}
                 >
                   <option value="">No tag</option>
                   {tags.map((tag) => (
@@ -1908,14 +2064,16 @@ function ImportModal({
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setStep("map")}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 hover:bg-gray-200"
+                  style={{ borderRadius: RADIUS.button, background: COLORS.gray[100], color: COLORS.gray[700], fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
                 >
                   Back
                 </button>
                 <button
                   onClick={handleImport}
                   disabled={isImporting}
-                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
                 >
                   {isImporting ? (
                     <>
@@ -1937,27 +2095,27 @@ function ImportModal({
           {step === "result" && result && (
             <div className="text-center py-8">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Import Complete!</h3>
+              <h3 style={{ fontSize: TYPE.section, fontWeight: 600, color: COLORS.gray[900], marginBottom: 8 }}>Import Complete!</h3>
 
               <div className="grid grid-cols-3 gap-4 my-6">
-                <div className="p-4 bg-green-50 rounded-lg">
+                <div className="p-4 bg-green-50" style={{ borderRadius: RADIUS.input }}>
                   <p className="text-2xl font-bold text-green-600">{result.imported}</p>
-                  <p className="text-sm text-green-700">Imported</p>
+                  <p style={{ fontSize: TYPE.meta, color: '#15803d' }}>Imported</p>
                 </div>
-                <div className="p-4 bg-amber-50 rounded-lg">
+                <div className="p-4 bg-amber-50" style={{ borderRadius: RADIUS.input }}>
                   <p className="text-2xl font-bold text-amber-600">{result.skipped}</p>
-                  <p className="text-sm text-amber-700">Skipped</p>
+                  <p style={{ fontSize: TYPE.meta, color: '#b45309' }}>Skipped</p>
                 </div>
-                <div className="p-4 bg-red-50 rounded-lg">
+                <div className="p-4 bg-red-50" style={{ borderRadius: RADIUS.input }}>
                   <p className="text-2xl font-bold text-red-600">{result.errors}</p>
-                  <p className="text-sm text-red-700">Errors</p>
+                  <p style={{ fontSize: TYPE.meta, color: '#b91c1c' }}>Errors</p>
                 </div>
               </div>
 
               {result.errorDetails && result.errorDetails.length > 0 && (
                 <div className="text-left mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Errors:</h4>
-                  <div className="max-h-32 overflow-y-auto text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                  <h4 style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700], marginBottom: 8 }}>Errors:</h4>
+                  <div className="max-h-32 overflow-y-auto text-red-600 bg-red-50 p-3" style={{ fontSize: TYPE.meta, borderRadius: RADIUS.input }}>
                     {result.errorDetails.map((err, i) => (
                       <p key={i}>Row: {err.row?.email || "unknown"} - {err.error}</p>
                     ))}
@@ -1967,14 +2125,15 @@ function ImportModal({
 
               <button
                 onClick={onSuccess}
-                className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                className="px-6 py-2"
+                style={{ borderRadius: RADIUS.button, background: COLORS.primary.violet[600], color: 'white', fontSize: TYPE.meta, fontWeight: 500, border: 'none', cursor: 'pointer' }}
               >
                 Done
               </button>
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

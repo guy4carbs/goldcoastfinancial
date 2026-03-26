@@ -46,6 +46,7 @@ import dncRouter from "./routes/dnc";
 import executiveRouter from "./routes/executive";
 import postCloseRouter, { postCloseWebhookRouter } from "./routes/post-close";
 import dealsRouter from "./routes/deals";
+import leadPurchasesRouter, { leadPurchasesWebhookRouter } from "./routes/lead-purchases";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -2842,6 +2843,8 @@ export async function registerRoutes(
   app.use("/api/post-close", postCloseRouter);
   app.use("/api/webhooks/post-close", postCloseWebhookRouter);
   app.use("/api/deals", dealsRouter);
+  app.use("/api/lead-purchases", leadPurchasesRouter);
+  app.use("/api/webhooks/lead-purchases", leadPurchasesWebhookRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

@@ -49,7 +49,7 @@ import {
   GLASS,
   scaleIn,
   staggerContainer,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 // ============================================================================
 // STATE DATA

@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import {
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   CheckCircle2,
   XCircle,
   Brain,
@@ -31,7 +32,9 @@ import {
   TYPE,
   RADIUS,
   SHADOW,
-} from "@/lib/onboardingDesignSystem";
+  fadeInUp,
+  staggerContainer,
+} from "@/lib/heritageDesignSystem";
 
 // Flashcard data organized by category
 const FLASHCARD_DECKS = {
@@ -393,80 +396,32 @@ export default function StudyFlashcards() {
 
   return (
     <OnboardingLoungeLayout>
-      <div className="max-w-5xl mx-auto space-y-6 pb-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="space-y-6"
+      >
         {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative elements */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
+        <AgentPageHero
+          icon={Layers}
+          title="Flashcard Drill"
+          subtitle="Lock in key concepts with quick recall practice across every topic"
+        />
 
-            <CardContent className="relative p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="flex items-start gap-4">
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                    className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
-                    style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: RADIUS.card,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                    }}
-                  >
-                    <Layers className="w-9 h-9 text-amber-200" />
-                  </motion.div>
-                  <div>
-                    <Badge
-                      className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium mb-2"
-                      style={{ padding: '4px 12px' }}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Heritage Life Academy
-                    </Badge>
-                    <h1
-                      className="font-bold tracking-tight text-white"
-                      style={{ fontSize: TYPE.hero, lineHeight: 1.1 }}
-                    >
-                      Flashcards
-                    </h1>
-                    <p className="text-white/80 mt-2" style={{ fontSize: TYPE.body }}>
-                      Master key concepts with interactive flashcards
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
-                    <p className="text-3xl font-bold text-white">{Object.keys(FLASHCARD_DECKS).length}</p>
-                    <p className="text-white/70 text-xs">Decks</p>
-                  </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
-                    <p className="text-3xl font-bold text-white">{totalCardsAll}</p>
-                    <p className="text-white/70 text-xs">Cards</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Stats */}
+        <AgentStatCardGrid className="grid-cols-2 lg:grid-cols-2">
+          <AgentStatCard
+            icon={Layers}
+            value={Object.keys(FLASHCARD_DECKS).length}
+            label="Topic Decks"
+          />
+          <AgentStatCard
+            icon={BookOpen}
+            value={totalCardsAll}
+            label="Total Cards"
+          />
+        </AgentStatCardGrid>
 
         {/* Back Navigation */}
         <Link href="/agents/onboarding/study/course">
@@ -508,7 +463,7 @@ export default function StudyFlashcards() {
                     onClick={startAllCards}
                   >
                     <Zap className="w-4 h-4" />
-                    Study All Cards ({totalCardsAll})
+                    Drill All {totalCardsAll} Cards
                   </Button>
                 </div>
               </CardContent>
@@ -634,7 +589,7 @@ export default function StudyFlashcards() {
                       {currentCard.front}
                     </h2>
                     <p className="text-gray-400 mt-8 text-sm">
-                      Click to reveal answer
+                      Tap or press Space to reveal the answer
                     </p>
                   </CardContent>
                 </Card>
@@ -675,7 +630,7 @@ export default function StudyFlashcards() {
                     onClick={() => markCard(false)}
                   >
                     <XCircle className="w-5 h-5" />
-                    Incorrect
+                    Got It Wrong
                   </Button>
                   <Button
                     size="lg"
@@ -684,7 +639,7 @@ export default function StudyFlashcards() {
                     onClick={() => markCard(true)}
                   >
                     <CheckCircle2 className="w-5 h-5" />
-                    Correct
+                    Got It Right
                   </Button>
                 </>
               ) : (
@@ -702,7 +657,7 @@ export default function StudyFlashcards() {
 
             {/* Keyboard Hint */}
             <p className="text-center text-sm text-gray-400">
-              Keyboard: Space/Enter to flip • Left arrow: Incorrect • Right arrow: Correct
+              Keyboard shortcuts: Space to flip | Left arrow = wrong | Right arrow = right
             </p>
           </motion.div>
         )}
@@ -733,10 +688,10 @@ export default function StudyFlashcards() {
                     <Trophy className="w-12 h-12 text-white" />
                   </motion.div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {score >= 80 ? "Excellent!" : score >= 60 ? "Good Progress!" : "Keep Practicing!"}
+                    {score >= 80 ? "Strong Recall!" : score >= 60 ? "Solid Progress!" : "Keep Going -- Repetition Builds Mastery"}
                   </h2>
                   <p className="text-gray-600">
-                    You completed the {selectedDeck} deck
+                    You finished the {selectedDeck} deck -- here is how you did
                   </p>
                 </div>
 
@@ -770,11 +725,11 @@ export default function StudyFlashcards() {
                     <div className="flex items-start gap-3">
                       <TrendingUp className="w-5 h-5 text-violet-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-medium text-violet-800 mb-1">Tips to Improve</p>
+                        <p className="font-medium text-violet-800 mb-1">How to Improve</p>
                         <ul className="text-violet-700 text-sm space-y-1">
-                          <li>• Focus on cards you marked incorrect</li>
-                          <li>• Use shuffle mode to test your recall</li>
-                          <li>• Review the fundamentals course for difficult topics</li>
+                          <li>Run the same deck again -- focus on the cards you missed</li>
+                          <li>Turn on Shuffle Mode to challenge your recall under pressure</li>
+                          <li>Review the related course module for any concepts that feel shaky</li>
                         </ul>
                       </div>
                     </div>
@@ -790,7 +745,7 @@ export default function StudyFlashcards() {
                     style={{ borderRadius: RADIUS.button }}
                   >
                     <Layers className="w-5 h-5" />
-                    Choose Another Deck
+                    Pick Another Deck
                   </Button>
                   <Button
                     className="gap-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 w-full sm:w-auto"
@@ -798,14 +753,14 @@ export default function StudyFlashcards() {
                     style={{ borderRadius: RADIUS.button }}
                   >
                     <RotateCcw className="w-5 h-5" />
-                    Study Again
+                    Drill Again
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
         )}
-      </div>
+      </motion.div>
     </OnboardingLoungeLayout>
   );
 }

@@ -92,7 +92,7 @@ export default function ClientPortalModal({ isOpen, onClose }: ClientPortalModal
                       (630) 778-0800
                     </a>
                     <a
-                      href="mailto:support@heritagels.com"
+                      href="mailto:support@heritagels.org"
                       className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                     >
                       <Mail className="w-4 h-4" />

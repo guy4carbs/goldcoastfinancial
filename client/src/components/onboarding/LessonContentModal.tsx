@@ -42,7 +42,7 @@ import {
   SHADOW,
   COLORS,
   MOTION,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 // ============================================
 // LESSON CONTENT DATA

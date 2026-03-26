@@ -94,7 +94,7 @@ export default function AgentIdeas() {
 
   return (
     <AgentLoungeLayout>
-      <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6 p-6">
+      <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
         {/* Hero */}
         <motion.div variants={fadeInUp}>
           <AgentPageHero

@@ -2191,7 +2191,7 @@ Estimated Monthly Rate: $${recommendation?.monthlyRate?.toFixed(2) || 'N/A'}
             (630) 778-0800
           </a>
           <a
-            href="mailto:support@heritagels.com"
+            href="mailto:support@heritagels.org"
             className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
           >
             <Mail className="w-4 h-4" />

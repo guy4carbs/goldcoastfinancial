@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Save, Trash2, Eye, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, Save, Trash2, Eye, CheckCircle, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
-import AdminNav from "@/components/AdminNav";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import {
+  AdminPageHero,
+  AdminGlassCard,
+  AdminStaggerContainer,
+  AdminGlassToolbar,
+} from "@/components/admin/AdminHeritagePrimitives";
+import { RADIUS, TYPE, COLORS, fadeInUp } from "@/lib/heritageDesignSystem";
 
 const FAQ_CATEGORIES = [
   { value: "basics", label: "Life Insurance Basics" },
@@ -151,38 +159,38 @@ export default function AdminFAQEditor() {
 
   if (loading) {
     return (
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-        <AdminNav />
+      <AdminLoungeLayout breadcrumbs={[{ label: 'Content', href: '/admin/content' }, { label: 'FAQ Editor' }]}>
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </div>
+      </AdminLoungeLayout>
     );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Content', href: '/admin/content' }, { label: 'FAQ Editor' }]}>
+      <AdminStaggerContainer className="max-w-5xl mx-auto">
+        {/* Hero */}
+        <AdminPageHero
+          icon={HelpCircle}
+          title={isNew ? "New FAQ" : "FAQ Editor"}
+          subtitle="Create and manage frequently asked questions"
+        />
 
-      <div className="flex-1 pt-[72px] lg:pt-0">
-        {/* Header */}
-        <div className="sticky top-0 lg:top-0 z-10 bg-white border-b border-gray-200 px-4 md:px-6 py-4">
+        {/* Sticky Toolbar */}
+        <AdminGlassToolbar>
           <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setLocation("/admin/content")}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/40 rounded-lg transition-colors"
+                style={{ borderRadius: RADIUS.input }}
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {isNew ? "New FAQ" : "Edit FAQ"}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {faq.status === "published" ? "Published" : "Draft"}
-                </p>
-              </div>
+              <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>
+                {faq.status === "published" ? "Published" : "Draft"}
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -191,6 +199,7 @@ export default function AdminFAQEditor() {
                   onClick={handleDelete}
                   className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Delete"
+                  style={{ borderRadius: RADIUS.input }}
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -198,7 +207,8 @@ export default function AdminFAQEditor() {
               <button
                 onClick={() => handleSave(false)}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <Save className="w-4 h-4" />
                 Save Draft
@@ -206,96 +216,99 @@ export default function AdminFAQEditor() {
               <button
                 onClick={() => handleSave(true)}
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+                style={{ borderRadius: RADIUS.button }}
               >
                 <CheckCircle className="w-4 h-4" />
                 {faq.status === "published" ? "Update" : "Publish"}
               </button>
             </div>
           </div>
-        </div>
+        </AdminGlassToolbar>
 
         {/* Content */}
-        <div className="max-w-5xl mx-auto p-4 md:p-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-            {/* Question */}
+        <AdminGlassCard className="space-y-6">
+          {/* Question */}
+          <div>
+            <label style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }} className="block mb-2">
+              Question *
+            </label>
+            <input
+              type="text"
+              value={faq.question}
+              onChange={(e) => handleQuestionChange(e.target.value)}
+              placeholder="What is life insurance?"
+              className="w-full px-4 py-3 border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent"
+              style={{ borderRadius: RADIUS.input, fontSize: TYPE.title }}
+            />
+          </div>
+
+          {/* Answer */}
+          <div>
+            <label style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }} className="block mb-2">
+              Answer *
+            </label>
+            <RichTextEditor
+              content={faq.answer}
+              onChange={(html) => setFaq((prev) => ({ ...prev, answer: html }))}
+              placeholder="Provide a clear, helpful answer..."
+            />
+          </div>
+
+          {/* Settings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
+            {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Question *
+              <label style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }} className="block mb-2">
+                Category
+              </label>
+              <select
+                value={faq.category}
+                onChange={(e) => setFaq((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ borderRadius: RADIUS.input }}
+              >
+                {FAQ_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div>
+              <label style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }} className="block mb-2">
+                Sort Order
+              </label>
+              <input
+                type="number"
+                value={faq.sortOrder}
+                onChange={(e) => setFaq((prev) => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
+                min="0"
+                className="w-full px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent"
+                style={{ borderRadius: RADIUS.input }}
+              />
+              <p style={{ fontSize: TYPE.caption, color: COLORS.gray[500], marginTop: 4 }}>Lower numbers appear first</p>
+            </div>
+
+            {/* Slug */}
+            <div className="md:col-span-2">
+              <label style={{ fontSize: TYPE.meta, fontWeight: 500, color: COLORS.gray[700] }} className="block mb-2">
+                URL Slug
               </label>
               <input
                 type="text"
-                value={faq.question}
-                onChange={(e) => handleQuestionChange(e.target.value)}
-                placeholder="What is life insurance?"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-lg"
+                value={faq.slug}
+                onChange={(e) => setFaq((prev) => ({ ...prev, slug: e.target.value }))}
+                placeholder="what-is-life-insurance"
+                className="w-full px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent font-mono"
+                style={{ borderRadius: RADIUS.input, fontSize: TYPE.meta }}
               />
-            </div>
-
-            {/* Answer */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Answer *
-              </label>
-              <RichTextEditor
-                content={faq.answer}
-                onChange={(html) => setFaq((prev) => ({ ...prev, answer: html }))}
-                placeholder="Provide a clear, helpful answer..."
-              />
-            </div>
-
-            {/* Settings */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <select
-                  value={faq.category}
-                  onChange={(e) => setFaq((prev) => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  {FAQ_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sort Order */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort Order
-                </label>
-                <input
-                  type="number"
-                  value={faq.sortOrder}
-                  onChange={(e) => setFaq((prev) => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
-              </div>
-
-              {/* Slug */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  URL Slug
-                </label>
-                <input
-                  type="text"
-                  value={faq.slug}
-                  onChange={(e) => setFaq((prev) => ({ ...prev, slug: e.target.value }))}
-                  placeholder="what-is-life-insurance"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-                />
-              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </AdminGlassCard>
+      </AdminStaggerContainer>
+    </AdminLoungeLayout>
   );
 }

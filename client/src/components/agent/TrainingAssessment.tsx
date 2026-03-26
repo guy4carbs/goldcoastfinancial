@@ -51,7 +51,7 @@ import {
   SHADOW,
   MOTION,
   COLORS,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 interface TrainingAssessmentProps {
   open: boolean;

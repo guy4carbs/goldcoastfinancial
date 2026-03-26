@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import {
   BookOpen,
   CheckCircle2,
@@ -17,7 +19,6 @@ import {
   Brain,
   Target,
   Shield,
-  Sparkles,
   GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,48 +27,50 @@ import {
   TYPE,
   RADIUS,
   SHADOW,
-} from "@/lib/onboardingDesignSystem";
+  fadeInUp,
+  staggerContainer,
+} from "@/lib/heritageDesignSystem";
 
 // Course curriculum modules
 const CURRICULUM = [
   {
     id: "mod-1",
-    title: "Introduction to Life Insurance",
+    title: "The Foundation: Why Life Insurance Matters",
     lessons: 4,
     duration: "30 min",
     icon: BookOpen,
   },
   {
     id: "mod-2",
-    title: "Types of Life Insurance",
+    title: "Product Mastery: Term, Whole, Universal & More",
     lessons: 5,
     duration: "45 min",
     icon: FileText,
   },
   {
     id: "mod-3",
-    title: "Underwriting Basics",
+    title: "Underwriting: How Risk Gets Priced",
     lessons: 4,
     duration: "40 min",
     icon: Shield,
   },
   {
     id: "mod-4",
-    title: "Policy Components",
+    title: "Inside the Policy: Riders, Benefits & Cash Value",
     lessons: 5,
     duration: "50 min",
     icon: Target,
   },
   {
     id: "mod-5",
-    title: "Selling Life Insurance",
+    title: "Client Conversations: Ethical Sales in Practice",
     lessons: 5,
     duration: "55 min",
     icon: Users,
   },
   {
     id: "mod-6",
-    title: "Final Assessment",
+    title: "Final Assessment & Certification",
     lessons: 2,
     duration: "30 min",
     icon: Award,
@@ -75,140 +78,80 @@ const CURRICULUM = [
 ];
 
 const COURSE_HIGHLIGHTS = [
-  { label: "Duration", value: "6 hours", icon: Clock },
-  { label: "Lessons", value: "23", icon: PlayCircle },
-  { label: "Rating", value: "4.8", icon: Star },
-  { label: "Enrolled", value: "1,240", icon: Users },
+  { label: "Total Duration", value: "4 hrs", icon: Clock },
+  { label: "Lessons", value: "25", icon: PlayCircle },
+  { label: "Avg. Rating", value: "4.9", icon: Star },
+  { label: "Agents Trained", value: "2,100+", icon: Users },
 ];
 
 const LEARNING_OUTCOMES = [
-  "Understand different types of life insurance products",
-  "Explain policy components and riders to clients",
-  "Navigate the underwriting process confidently",
-  "Apply ethical sales practices in client conversations",
-  "Prepare for state licensing examinations",
-  "Build a foundation for a successful insurance career",
+  "Confidently compare term, whole, universal, and IUL products for any client scenario",
+  "Break down policy riders, beneficiaries, and cash value so clients actually understand them",
+  "Walk a client through the underwriting process without hesitation",
+  "Use needs-based selling to recommend the right coverage, every time",
+  "Recognize and avoid compliance violations like twisting, churning, and rebating",
+  "Pass your state licensing exam on the first attempt",
 ];
 
 export default function StudyCourse() {
   return (
     <OnboardingLoungeLayout>
-      <div className="max-w-5xl mx-auto space-y-6 pb-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="space-y-6"
+      >
         {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <AgentPageHero
+          icon={GraduationCap}
+          title="Life Insurance Mastery Course"
+          subtitle="Everything you need to know before your first client conversation"
         >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative elements */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
-
-            <CardContent className="relative p-6 md:p-8">
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                      className="bg-white/20 backdrop-blur-md flex items-center justify-center"
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: RADIUS.card,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                      }}
-                    >
-                      <GraduationCap className="w-7 h-7 text-amber-200" />
-                    </motion.div>
-                    <div>
-                      <Badge
-                        className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium"
-                        style={{ padding: '4px 12px' }}
-                      >
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        Heritage Life Academy
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <h1
-                    className="font-bold tracking-tight text-white mb-3"
-                    style={{ fontSize: TYPE.hero, lineHeight: 1.1 }}
-                  >
-                    Life Insurance Fundamentals
-                  </h1>
-                  <p className="text-white/80 text-lg leading-relaxed max-w-2xl">
-                    Master the essential knowledge of life insurance products, coverage types, and industry practices.
-                    This comprehensive course prepares you for client conversations and state licensing exams.
-                  </p>
-
-                  {/* Stats Row */}
-                  <div className="flex flex-wrap items-center gap-4 mt-6">
-                    {COURSE_HIGHLIGHTS.map((stat, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-3 py-2"
-                      >
-                        <stat.icon className="w-4 h-4 text-white/70" />
-                        <span className="text-white font-semibold">{stat.value}</span>
-                        <span className="text-white/60 text-sm">{stat.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Start Course Card */}
-                <div className="lg:w-72 flex-shrink-0">
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-white/70">Price</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-white/50 line-through text-sm">$99</span>
-                        <Badge className="bg-amber-500 text-white border-0">FREE</Badge>
-                      </div>
-                    </div>
-
-                    <Link href="/agents/onboarding/study/fundamentals">
-                      <Button
-                        className="w-full bg-white text-violet-700 hover:bg-white/90 font-semibold shadow-lg"
-                        style={{ borderRadius: RADIUS.button, height: 48 }}
-                      >
-                        Start Course
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    </Link>
-
-                    <p className="text-white/60 text-xs text-center mt-3">
-                      Includes certificate of completion
-                    </p>
-                  </div>
+          <div className="flex-shrink-0">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-white/70">Price</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/50 line-through text-sm">$99</span>
+                  <Badge className="bg-amber-500 text-white border-0">FREE</Badge>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+
+              <Link href="/agents/onboarding/study/fundamentals">
+                <Button
+                  className="w-full bg-white text-violet-700 hover:bg-white/90 font-semibold shadow-lg"
+                  style={{ borderRadius: RADIUS.button, height: 48 }}
+                >
+                  Begin Learning
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+
+              <p className="text-white/60 text-xs text-center mt-3">
+                Includes Heritage certification upon completion
+              </p>
+            </div>
+          </div>
+        </AgentPageHero>
+
+        {/* Course Highlights Stats */}
+        <AgentStatCardGrid>
+          {COURSE_HIGHLIGHTS.map((stat, idx) => (
+            <AgentStatCard
+              key={idx}
+              icon={stat.icon}
+              value={stat.value}
+              label={stat.label}
+            />
+          ))}
+        </AgentStatCardGrid>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <motion.section variants={fadeInUp} className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Curriculum */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
+            variants={fadeInUp}
             className="lg:col-span-2"
           >
             <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
@@ -217,7 +160,7 @@ export default function StudyCourse() {
                   Course Curriculum
                 </h2>
                 <p className="text-gray-500 mb-6" style={{ fontSize: TYPE.meta }}>
-                  6 modules • 23 lessons • 6 hours total
+                  6 modules • 25 lessons • Self-paced
                 </p>
 
                 <div className="space-y-3">
@@ -257,9 +200,7 @@ export default function StudyCourse() {
 
           {/* Right Column - Learning Outcomes & Instructor */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
+            variants={fadeInUp}
             className="space-y-6"
           >
             {/* Learning Outcomes */}
@@ -291,13 +232,13 @@ export default function StudyCourse() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900" style={{ fontSize: TYPE.body }}>
-                      Earn a Certificate
+                      Heritage Certification
                     </h3>
-                    <p className="text-gray-500 text-sm">Upon course completion</p>
+                    <p className="text-gray-500 text-sm">Awarded upon completion</p>
                   </div>
                 </div>
                 <p className="text-gray-600 text-sm">
-                  Add this credential to your LinkedIn profile and resume to showcase your expertise.
+                  Earn your Heritage Life Solutions certification and demonstrate your readiness to serve clients.
                 </p>
               </CardContent>
             </Card>
@@ -306,20 +247,20 @@ export default function StudyCourse() {
             <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardContent className="p-6">
                 <h3 className="font-semibold text-gray-900 mb-4" style={{ fontSize: TYPE.body }}>
-                  Additional Resources
+                  Study Tools
                 </h3>
                 <div className="space-y-2">
                   <Link href="/agents/onboarding/study/practice-exam">
                     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                       <Brain className="w-5 h-5 text-violet-600" />
-                      <span className="text-gray-700 text-sm font-medium">Practice Exam</span>
+                      <span className="text-gray-700 text-sm font-medium">Practice Exam (20 Questions)</span>
                       <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
                     </div>
                   </Link>
                   <Link href="/agents/onboarding/study/flashcards">
                     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
                       <FileText className="w-5 h-5 text-violet-600" />
-                      <span className="text-gray-700 text-sm font-medium">Flashcards</span>
+                      <span className="text-gray-700 text-sm font-medium">Flashcards (36 Cards)</span>
                       <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
                     </div>
                   </Link>
@@ -327,8 +268,8 @@ export default function StudyCourse() {
               </CardContent>
             </Card>
           </motion.div>
-        </div>
-      </div>
+        </motion.section>
+      </motion.div>
     </OnboardingLoungeLayout>
   );
 }

@@ -10,7 +10,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  LayoutDashboard, Calendar, CalendarDays, CalendarRange, Trophy,
+  LayoutDashboard, Calendar, CalendarDays,
   GraduationCap, BookOpen, Rocket, Target, Users, HelpCircle,
   Layers, Brain, FileText, Search, Moon, Sun
 } from "lucide-react";
@@ -57,7 +57,7 @@ export function OnboardingCommandPalette({
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => onNavigate('day-2'))}>
               <Target className="mr-2 h-4 w-4 text-purple-600" />
-              <span>Day 2 - Foundation Building</span>
+              <span>Day 2 - Script Mastery</span>
               <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
                 2
               </kbd>
@@ -69,18 +69,6 @@ export function OnboardingCommandPalette({
             <CommandItem onSelect={() => runCommand(() => onNavigate('days-8-30'))}>
               <CalendarDays className="mr-2 h-4 w-4 text-violet-600" />
               <span>Days 8-30 - Production Mode</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('days-31-90'))}>
-              <CalendarRange className="mr-2 h-4 w-4 text-violet-600" />
-              <span>Days 31-90 - Mastery Phase</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('days-91-180'))}>
-              <Trophy className="mr-2 h-4 w-4 text-amber-500" />
-              <span>Days 91-180 - Advanced Growth</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('days-181-365'))}>
-              <GraduationCap className="mr-2 h-4 w-4 text-violet-600" />
-              <span>Days 181-365 - Expert Level</span>
             </CommandItem>
           </CommandGroup>
 

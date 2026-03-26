@@ -92,6 +92,7 @@ import AgentQuotes from "@/pages/agents/AgentQuotes";
 import AgentScripts from "@/pages/agents/AgentScripts";
 import AgentLeaderboard from "@/pages/agents/AgentLeaderboard";
 import AgentDeals from "@/pages/agents/AgentDeals";
+import AgentLeadMarketplace from "@/pages/agents/AgentLeadMarketplace";
 import AgentAchievements from "@/pages/agents/AgentAchievements";
 import AgentSettings from "@/pages/agents/AgentSettings";
 import AgentCalendar from "@/pages/agents/AgentCalendar";
@@ -116,16 +117,9 @@ import AgentMemberCards from "@/pages/agents/AgentMemberCards";
 import OnboardingDashboard from "@/pages/onboarding/OnboardingDashboard";
 import OnboardingDay1 from "@/pages/onboarding/OnboardingDay1";
 import OnboardingDay2 from "@/pages/onboarding/OnboardingDay2";
-import OnboardingDay3 from "@/pages/onboarding/OnboardingDay3";
-import OnboardingDay4 from "@/pages/onboarding/OnboardingDay4";
-import OnboardingDay5 from "@/pages/onboarding/OnboardingDay5";
-import OnboardingDay6 from "@/pages/onboarding/OnboardingDay6";
-import OnboardingDay7 from "@/pages/onboarding/OnboardingDay7";
 import OnboardingDays3to7 from "@/pages/onboarding/OnboardingDays3to7";
 import OnboardingDays8to30 from "@/pages/onboarding/OnboardingDays8to30";
-import OnboardingDays31to90 from "@/pages/onboarding/OnboardingDays31to90";
-import OnboardingDays91to180 from "@/pages/onboarding/OnboardingDays91to180";
-import OnboardingDays181to365 from "@/pages/onboarding/OnboardingDays181to365";
+
 import OnboardingHelp from "@/pages/onboarding/OnboardingHelp";
 import AgentOnboarding from "@/pages/agents/AgentOnboarding";
 import AgentWorkflowBuilder from "@/pages/agents/AgentWorkflowBuilder";
@@ -390,6 +384,11 @@ function Router() {
             <AgentDeals />
           </AgentProtectedRoute>
         </Route>
+        <Route path="/agents/lead-marketplace">
+          <AgentProtectedRoute>
+            <AgentLeadMarketplace />
+          </AgentProtectedRoute>
+        </Route>
         <Route path="/agents/achievements">
           <AgentProtectedRoute>
             <AgentAchievements />
@@ -532,31 +531,6 @@ function Router() {
             <OnboardingDay2 />
           </AgentProtectedRoute>
         </Route>
-        <Route path="/agents/onboarding/day-3">
-          <AgentProtectedRoute>
-            <OnboardingDay3 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/day-4">
-          <AgentProtectedRoute>
-            <OnboardingDay4 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/day-5">
-          <AgentProtectedRoute>
-            <OnboardingDay5 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/day-6">
-          <AgentProtectedRoute>
-            <OnboardingDay6 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/day-7">
-          <AgentProtectedRoute>
-            <OnboardingDay7 />
-          </AgentProtectedRoute>
-        </Route>
         <Route path="/agents/onboarding/days-3-7">
           <AgentProtectedRoute>
             <OnboardingDays3to7 />
@@ -565,21 +539,6 @@ function Router() {
         <Route path="/agents/onboarding/days-8-30">
           <AgentProtectedRoute>
             <OnboardingDays8to30 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/days-31-90">
-          <AgentProtectedRoute>
-            <OnboardingDays31to90 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/days-91-180">
-          <AgentProtectedRoute>
-            <OnboardingDays91to180 />
-          </AgentProtectedRoute>
-        </Route>
-        <Route path="/agents/onboarding/days-181-365">
-          <AgentProtectedRoute>
-            <OnboardingDays181to365 />
           </AgentProtectedRoute>
         </Route>
 
@@ -1047,94 +1006,94 @@ function Router() {
         ═══════════════════════════════════════════════════════════════════ */}
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/submissions">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminSubmissions />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/analytics">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminAnalytics />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/images">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminImages />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/videos">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminVideos />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/products">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminProducts />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminContent />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/blog/new">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminBlogEditor />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/blog/:id">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminBlogEditor />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/faqs/new">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminFAQEditor />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/faqs/:id">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminFAQEditor />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/pages/new">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminPageEditor />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/pages/:id">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminPageEditor />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/settings">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminSettings />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/testimonials">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminTestimonials />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/newsletter">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminNewsletter />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/avatar-council">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminAvatarCouncil />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin/agent-ops">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AgentOps />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/admin">
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AdminDashboard />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         </Route>
         <Route path="/legal/terms" component={TermsOfUse} />
         <Route path="/legal/privacy" component={PrivacyPolicy} />

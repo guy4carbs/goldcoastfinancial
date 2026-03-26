@@ -13,7 +13,7 @@ import {
   Clock, Search, Mail, MessageSquare, Phone, ChevronRight,
   Plus, ArrowUpDown, X, FileText, Calendar, Shield, User,
   TrendingUp, Loader2, Upload, Cake, CreditCard, Percent, StickyNote,
-  Lock, Landmark, IdCard, Heart, Activity, Trash2, UserPlus, Eye, EyeOff, Car
+  Lock, Landmark, IdCard, Heart, Activity, Trash2, UserPlus, Eye, EyeOff, Car, MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,7 +109,7 @@ export default function AgentBookOfBusiness() {
   const [bobDobYear, setBobDobYear] = useState('');
 
   const [newClient, setNewClient] = useState({
-    name: '', email: '', phone: '', dateOfBirth: '', ssn: '', state: '',
+    name: '', email: '', phone: '', dateOfBirth: '', ssn: '', streetAddress: '', city: '', state: '', zipCode: '',
     idType: 'drivers_license' as 'drivers_license' | 'state_id',
     idNumber: '', idState: '', idExpiration: '',
     bankName: '', bankRoutingNumber: '', bankAccountNumber: '',
@@ -186,7 +186,7 @@ export default function AgentBookOfBusiness() {
       ? `${bobDobYear}-${bobDobMonth.padStart(2, '0')}-${bobDobDay.padStart(2, '0')}`
       : '';
     addClientToBook({ ...newClient, dateOfBirth: computedDob });
-    setNewClient({ name: '', email: '', phone: '', dateOfBirth: '', ssn: '', state: '', idType: 'drivers_license', idNumber: '', idState: '', idExpiration: '', bankName: '', bankRoutingNumber: '', bankAccountNumber: '', beneficiaries: [], medicalInfo: { tobaccoUse: false, healthConditions: '', medications: '', height: '', weight: '' }, policyNumber: '', policyType: 'Term Life', carrier: '', coverageAmount: 0, monthlyPremium: 0, draftDate: '', commissionRate: 0, policyEffectiveDate: '', notes: '', clientStatus: 'pending' });
+    setNewClient({ name: '', email: '', phone: '', dateOfBirth: '', ssn: '', streetAddress: '', city: '', state: '', zipCode: '', idType: 'drivers_license', idNumber: '', idState: '', idExpiration: '', bankName: '', bankRoutingNumber: '', bankAccountNumber: '', beneficiaries: [], medicalInfo: { tobaccoUse: false, healthConditions: '', medications: '', height: '', weight: '' }, policyNumber: '', policyType: 'Term Life', carrier: '', coverageAmount: 0, monthlyPremium: 0, draftDate: '', commissionRate: 0, policyEffectiveDate: '', notes: '', clientStatus: 'pending' });
     setBobDobMonth(''); setBobDobDay(''); setBobDobYear('');
     setBobSelectedFiles([]);
     setShowAddDialog(false);
@@ -202,7 +202,7 @@ export default function AgentBookOfBusiness() {
 
   return (
     <AgentLoungeLayout>
-      <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6 p-6">
+      <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
         {/* Hero */}
         <motion.div variants={fadeInUp}>
           <AgentPageHero
@@ -341,6 +341,9 @@ export default function AgentBookOfBusiness() {
                       </div>
                     )}
                     {selectedClient.state && <div className="flex items-center gap-2 text-sm"><Shield className="w-4 h-4 text-gray-400" /> {selectedClient.state}</div>}
+                    {(selectedClient.streetAddress || selectedClient.city) && (
+                      <div className="flex items-center gap-2 text-sm"><MapPin className="w-4 h-4 text-gray-400" /> {[selectedClient.streetAddress, selectedClient.city, selectedClient.state, selectedClient.zipCode].filter(Boolean).join(', ')}</div>
+                    )}
                   </div>
                   {/* Identification */}
                   {(selectedClient.idNumber || selectedClient.idState) && (
@@ -614,6 +617,11 @@ export default function AgentBookOfBusiness() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div><Label>SSN</Label><Input placeholder="XXX-XX-XXXX" value={newClient.ssn} onChange={(e) => setNewClient({ ...newClient, ssn: formatSSN(e.target.value) })} maxLength={11} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>Zip Code</Label><Input placeholder="33101" value={newClient.zipCode || ''} onChange={(e) => setNewClient({ ...newClient, zipCode: e.target.value })} maxLength={10} style={{ borderRadius: RADIUS.input }} /></div>
+                  </div>
+                  <div><Label>Street Address</Label><Input placeholder="123 Main St, Apt 4" value={newClient.streetAddress || ''} onChange={(e) => setNewClient({ ...newClient, streetAddress: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><Label>City</Label><Input placeholder="Miami" value={newClient.city || ''} onChange={(e) => setNewClient({ ...newClient, city: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
                     <div><Label>State</Label><Input placeholder="FL" value={newClient.state} onChange={(e) => setNewClient({ ...newClient, state: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
                   </div>
                 </div>

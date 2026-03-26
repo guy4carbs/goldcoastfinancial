@@ -321,7 +321,10 @@ export interface BookOfBusinessClient {
   phone: string;
   dateOfBirth?: string;
   ssn?: string;
+  streetAddress?: string;
+  city?: string;
   state?: string;
+  zipCode?: string;
   idType?: 'drivers_license' | 'state_id';
   idNumber?: string;
   idState?: string;

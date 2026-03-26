@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
 import {
   ChevronLeft,
   ChevronRight,
   Clock,
   Award,
-  Sparkles,
   CheckCircle2,
   XCircle,
   Brain,
+  FileText,
   Target,
   TrendingUp,
   RotateCcw,
@@ -31,7 +32,9 @@ import {
   RADIUS,
   SHADOW,
   COLORS,
-} from "@/lib/onboardingDesignSystem";
+  fadeInUp,
+  staggerContainer,
+} from "@/lib/heritageDesignSystem";
 
 // Practice exam questions organized by category
 const EXAM_QUESTIONS = [
@@ -417,100 +420,49 @@ export default function StudyPracticeExam() {
 
   return (
     <OnboardingLoungeLayout>
-      <div className="max-w-5xl mx-auto space-y-6 pb-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="space-y-6"
+      >
         {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <AgentPageHero
+          icon={FileText}
+          title="Practice Licensing Exam"
+          subtitle="Simulate the real exam experience -- timed, scored, and reviewed"
         >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative elements */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
-
-            <CardContent className="relative p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="flex items-start gap-4">
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                    className="bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0"
-                    style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: RADIUS.card,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                    }}
-                  >
-                    <Brain className="w-9 h-9 text-amber-200" />
-                  </motion.div>
-                  <div>
-                    <Badge
-                      className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium mb-2"
-                      style={{ padding: '4px 12px' }}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Heritage Life Academy
-                    </Badge>
-                    <h1
-                      className="font-bold tracking-tight text-white"
-                      style={{ fontSize: TYPE.hero, lineHeight: 1.1 }}
-                    >
-                      Practice Exam
-                    </h1>
-                    <p className="text-white/80 mt-2" style={{ fontSize: TYPE.body }}>
-                      Test your knowledge with exam-style questions
-                    </p>
-                  </div>
+          {examMode === "in-progress" && (
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center",
+                timeRemaining < 300 && "bg-red-500/30 animate-pulse"
+              )}>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-white" />
+                  <p className="text-2xl font-bold text-white">{formatTime(timeRemaining)}</p>
                 </div>
-
-                {examMode === "in-progress" && (
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center",
-                      timeRemaining < 300 && "bg-red-500/30 animate-pulse"
-                    )}>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-white" />
-                        <p className="text-2xl font-bold text-white">{formatTime(timeRemaining)}</p>
-                      </div>
-                      <p className="text-white/70 text-xs">Time Remaining</p>
-                    </div>
-                    <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
-                      <p className="text-2xl font-bold text-white">{answeredCount}/{totalQuestions}</p>
-                      <p className="text-white/70 text-xs">Answered</p>
-                    </div>
-                  </div>
-                )}
-
-                {examMode === "completed" && (
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "backdrop-blur-sm rounded-xl px-6 py-4 text-center",
-                      passed ? "bg-emerald-500/30" : "bg-red-500/30"
-                    )}>
-                      <p className="text-4xl font-bold text-white">{score}%</p>
-                      <p className="text-white/70 text-sm">{passed ? "Passed!" : "Needs Review"}</p>
-                    </div>
-                  </div>
-                )}
+                <p className="text-white/70 text-xs">Remaining</p>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-5 py-3 text-center">
+                <p className="text-2xl font-bold text-white">{answeredCount}/{totalQuestions}</p>
+                <p className="text-white/70 text-xs">Answered</p>
+              </div>
+            </div>
+          )}
+
+          {examMode === "completed" && (
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "backdrop-blur-sm rounded-xl px-6 py-4 text-center",
+                passed ? "bg-emerald-500/30" : "bg-red-500/30"
+              )}>
+                <p className="text-4xl font-bold text-white">{score}%</p>
+                <p className="text-white/70 text-sm">{passed ? "Passing Score" : "Below 70% -- Review & Retry"}</p>
+              </div>
+            </div>
+          )}
+        </AgentPageHero>
 
         {/* Back Navigation */}
         <Link href="/agents/onboarding/study/course">
@@ -533,10 +485,10 @@ export default function StudyPracticeExam() {
                   <div className="w-20 h-20 mx-auto bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
                     <Target className="w-10 h-10 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Ready to Test Your Knowledge?</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">See Where You Stand</h2>
                   <p className="text-gray-600 mb-8">
-                    This practice exam contains {totalQuestions} questions covering all major topics.
-                    You'll have 40 minutes to complete it. A score of 70% or higher is considered passing.
+                    {totalQuestions} multiple-choice questions across every major topic.
+                    You have 40 minutes. Score 70% or higher to pass. You can flag questions and come back to them, and you can retake the exam as many times as you need.
                   </p>
 
                   <div className="grid grid-cols-3 gap-4 mb-8">
@@ -548,12 +500,12 @@ export default function StudyPracticeExam() {
                     <div className="bg-gray-50 rounded-xl p-4">
                       <Clock className="w-6 h-6 text-violet-600 mx-auto mb-2" />
                       <p className="font-semibold text-gray-900">40 min</p>
-                      <p className="text-sm text-gray-500">Time Limit</p>
+                      <p className="text-sm text-gray-500">Time Allowed</p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
                       <Award className="w-6 h-6 text-violet-600 mx-auto mb-2" />
                       <p className="font-semibold text-gray-900">70%</p>
-                      <p className="text-sm text-gray-500">Passing Score</p>
+                      <p className="text-sm text-gray-500">To Pass</p>
                     </div>
                   </div>
 
@@ -564,7 +516,7 @@ export default function StudyPracticeExam() {
                     onClick={startExam}
                   >
                     <PlayCircle className="w-5 h-5" />
-                    Start Practice Exam
+                    Begin Exam
                   </Button>
                 </div>
               </CardContent>
@@ -813,12 +765,12 @@ export default function StudyPracticeExam() {
                     )}
                   </motion.div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {passed ? "Congratulations!" : "Keep Practicing!"}
+                    {passed ? "You Passed -- Well Done!" : "Almost There -- Keep Building"}
                   </h2>
                   <p className="text-gray-600">
                     {passed
-                      ? "You've demonstrated strong knowledge of life insurance fundamentals."
-                      : "Review the material and try again to improve your score."}
+                      ? "You have demonstrated strong knowledge across every major topic. You are ready for the real thing."
+                      : "Review your weak categories below, revisit the course modules, then retake the exam. Most agents pass on the second or third try."}
                   </p>
                 </div>
 
@@ -834,27 +786,27 @@ export default function StudyPracticeExam() {
                     )}>
                       {score}%
                     </p>
-                    <p className="text-sm text-gray-600">Final Score</p>
+                    <p className="text-sm text-gray-600">Your Score</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4 text-center">
                     <p className="text-4xl font-bold text-amber-500">{correctAnswers}</p>
-                    <p className="text-sm text-gray-600">Correct</p>
+                    <p className="text-sm text-gray-600">Right</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4 text-center">
                     <p className="text-4xl font-bold text-red-600">{totalQuestions - correctAnswers}</p>
-                    <p className="text-sm text-gray-600">Incorrect</p>
+                    <p className="text-sm text-gray-600">Missed</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4 text-center">
                     <p className="text-4xl font-bold text-gray-700">
                       {formatTime(40 * 60 - timeRemaining)}
                     </p>
-                    <p className="text-sm text-gray-600">Time Used</p>
+                    <p className="text-sm text-gray-600">Time Spent</p>
                   </div>
                 </div>
 
                 {/* Category Breakdown */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">Performance by Category</h3>
+                  <h3 className="font-semibold text-gray-900">Breakdown by Topic</h3>
                   {Object.entries(getCategoryStats()).map(([category, stats]) => {
                     const categoryScore = Math.round((stats.correct / stats.total) * 100);
                     return (
@@ -890,7 +842,7 @@ export default function StudyPracticeExam() {
                     style={{ borderRadius: RADIUS.button }}
                   >
                     <Brain className="w-5 h-5" />
-                    Review Answers
+                    Review Every Answer
                   </Button>
                   <Button
                     className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 w-full sm:w-auto"
@@ -905,7 +857,7 @@ export default function StudyPracticeExam() {
             </Card>
           </motion.div>
         )}
-      </div>
+      </motion.div>
     </OnboardingLoungeLayout>
   );
 }

@@ -6,23 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
 import {
   HelpCircle,
   Search,
-  BookOpen,
-  Video,
   MessageSquare,
   Phone,
   Mail,
   ChevronRight,
-  Sparkles,
   GraduationCap,
   Calendar,
   FileText,
   Users,
   Lightbulb,
-  CheckCircle2,
-  Clock,
+  Sparkles,
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,56 +33,56 @@ import {
   fadeInUp,
   staggerContainer,
   scaleIn,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 // Help categories for onboarding
 const HELP_CATEGORIES = [
   {
     id: "getting-started",
     title: "Getting Started",
-    description: "New to onboarding? Start here",
+    description: "Your first steps in the onboarding program",
     icon: Lightbulb,
     articles: [
-      "How to navigate the Onboarding Lounge",
-      "Understanding your daily tasks",
-      "Tracking your progress and XP",
-      "Completing your first week",
+      "How the Onboarding Lounge works",
+      "What to expect each day",
+      "How XP and progress tracking work",
+      "Making the most of your first week",
     ],
   },
   {
     id: "training",
-    title: "Training & Courses",
-    description: "Complete your certification",
+    title: "Training & Study Tools",
+    description: "Course modules, flashcards, and practice exams",
     icon: GraduationCap,
     articles: [
-      "How to access training modules",
-      "Taking practice exams",
-      "Using flashcards effectively",
-      "Earning certifications",
+      "Navigating the Life Insurance Mastery Course",
+      "How practice exams prepare you for licensing",
+      "Using flashcards to lock in key concepts",
+      "Earning your Heritage certification",
     ],
   },
   {
     id: "licensing",
-    title: "Licensing Process",
-    description: "Get your insurance license",
+    title: "Licensing & Appointments",
+    description: "Everything about getting your state license",
     icon: FileText,
     articles: [
-      "State licensing requirements",
-      "Scheduling your exam",
-      "Background check process",
-      "Appointment with carriers",
+      "State licensing requirements by state",
+      "How to schedule your licensing exam",
+      "What happens during the background check",
+      "Getting appointed with insurance carriers",
     ],
   },
   {
     id: "mentorship",
-    title: "Mentorship & Support",
-    description: "Connect with your team",
+    title: "Your Mentor & Team",
+    description: "The people who are invested in your success",
     icon: Users,
     articles: [
-      "Meeting your mentor",
-      "Scheduling coaching calls",
-      "Joining team meetings",
-      "Getting feedback on calls",
+      "Who is your mentor and how to connect",
+      "Booking one-on-one coaching sessions",
+      "Weekly team meetings and what to expect",
+      "Getting feedback after your first calls",
     ],
   },
 ];
@@ -93,20 +90,24 @@ const HELP_CATEGORIES = [
 // FAQ items
 const FAQ_ITEMS = [
   {
-    question: "How long does the onboarding program take?",
-    answer: "The complete onboarding program spans 365 days, with the most intensive training in the first 90 days. You'll be production-ready within your first month.",
+    question: "How long does onboarding take before I can start working with clients?",
+    answer: "The core onboarding runs 30 days, with the most intensive training in your first week. Most agents are production-ready and taking supervised calls by the end of Week 1. After your first month, you transition to the Agent Lounge where ongoing coaching and advanced training continue.",
   },
   {
-    question: "When can I start selling?",
-    answer: "Once you complete your licensing requirements and first week of training, you can begin making sales calls with supervision. Full autonomy comes after your 30-day certification.",
+    question: "When can I actually start selling?",
+    answer: "After you complete your state licensing requirements and finish the first week of training, you can begin client conversations with your mentor's support. Full autonomy comes after your 30-day review and Heritage certification.",
   },
   {
     question: "How do I track my progress?",
-    answer: "Your dashboard shows your XP, completed tasks, badges earned, and overall progress through each phase of onboarding.",
+    answer: "Your Onboarding Dashboard shows your current day, completed tasks, XP earned, and overall progress percentage. Each day's checklist updates in real time as you complete activities.",
   },
   {
-    question: "Who do I contact if I have issues?",
-    answer: "Your assigned mentor is your first point of contact. You can also reach out to support via the chat feature or email support@heritagelife.com.",
+    question: "What if I fall behind on the daily schedule?",
+    answer: "That is completely normal. The daily structure is a guide, not a deadline. Focus on completing each phase in order. Your mentor can help you adjust the pace if life gets in the way.",
+  },
+  {
+    question: "Who should I reach out to if I need help?",
+    answer: "Your assigned mentor is always your first call. For technical issues or general questions, use the live chat below or email support@heritagels.org. We typically respond within a few hours during business days.",
   },
 ];
 
@@ -115,23 +116,23 @@ const CONTACT_OPTIONS = [
   {
     icon: MessageSquare,
     title: "Live Chat",
-    description: "Chat with support team",
+    description: "Get quick answers now",
     action: "Start Chat",
     actionType: "chat" as const,
     available: true,
   },
   {
     icon: Phone,
-    title: "Call Support",
-    description: "(630) 778-0888",
+    title: "Call Us",
+    description: "(630) 778-0800",
     action: "Call Now",
     actionType: "call" as const,
-    phoneNumber: "+16307780888",
+    phoneNumber: "+16307780800",
     available: true,
   },
   {
     icon: Mail,
-    title: "Email",
+    title: "Email Support",
     description: "support@heritagels.org",
     action: "Send Email",
     actionType: "email" as const,
@@ -140,8 +141,8 @@ const CONTACT_OPTIONS = [
   },
   {
     icon: Calendar,
-    title: "Schedule Call",
-    description: "Book with your mentor",
+    title: "Book a Call",
+    description: "Schedule time with your mentor",
     action: "Schedule",
     actionType: "schedule" as const,
     available: true,
@@ -157,7 +158,7 @@ const faqItemVariants = {
     transition: {
       delay: i * 0.1,
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: MOTION.easing,
     },
   }),
 };
@@ -167,7 +168,7 @@ const faqContentVariants = {
     height: 0,
     opacity: 0,
     transition: {
-      height: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+      height: { duration: 0.3, ease: MOTION.easing },
       opacity: { duration: 0.2 },
     },
   },
@@ -175,7 +176,7 @@ const faqContentVariants = {
     height: "auto",
     opacity: 1,
     transition: {
-      height: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+      height: { duration: 0.3, ease: MOTION.easing },
       opacity: { duration: 0.3, delay: 0.1 },
     },
   },
@@ -225,73 +226,25 @@ export default function OnboardingHelp() {
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        className="max-w-5xl mx-auto space-y-6 pb-8"
+        className="space-y-6"
       >
         {/* Hero Section */}
-        <motion.div variants={fadeInUp}>
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative elements */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)',
-                backgroundSize: '24px 24px',
-              }}
+        <AgentPageHero
+          icon={HelpCircle}
+          title="Support Center"
+          subtitle="Answers, guides, and real people -- whatever you need, we are here"
+        >
+          <div className="relative max-w-xl w-full mt-2">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder="Search for answers, guides, or topics..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 pr-4 h-12 bg-white/95 border-0 text-gray-900 placeholder:text-gray-500"
+              style={{ borderRadius: RADIUS.button, fontSize: TYPE.body }}
             />
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
-
-            <CardContent className="relative p-6 md:p-8">
-              <div className="flex items-start gap-4 mb-6">
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                  className="bg-white/20 backdrop-blur-md flex items-center justify-center"
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: RADIUS.card,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  <HelpCircle className="w-8 h-8 text-amber-200" />
-                </motion.div>
-                <div>
-                  <Badge
-                    className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium mb-2"
-                    style={{ padding: '4px 12px' }}
-                  >
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Support Center
-                  </Badge>
-                  <h1
-                    className="font-bold tracking-tight text-white"
-                    style={{ fontSize: TYPE.display, lineHeight: 1.1 }}
-                  >
-                    How Can We Help?
-                  </h1>
-                </div>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative max-w-xl">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="Search for help articles, FAQs, or topics..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 h-12 bg-white/95 border-0 text-gray-900 placeholder:text-gray-500"
-                  style={{ borderRadius: RADIUS.button, fontSize: TYPE.body }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+          </div>
+        </AgentPageHero>
 
         {/* Help Categories */}
         <motion.div variants={fadeInUp}>
@@ -364,8 +317,8 @@ export default function OnboardingHelp() {
                   <Lightbulb className="w-5 h-5 text-amber-200" />
                 </motion.div>
                 <div>
-                  <CardTitle style={{ fontSize: TYPE.title }}>Frequently Asked Questions</CardTitle>
-                  <CardDescription style={{ fontSize: TYPE.meta }}>Quick answers to common questions</CardDescription>
+                  <CardTitle style={{ fontSize: TYPE.title }}>Common Questions</CardTitle>
+                  <CardDescription style={{ fontSize: TYPE.meta }}>Straight answers from agents who have been where you are</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -468,8 +421,8 @@ export default function OnboardingHelp() {
                   <Phone className="w-5 h-5 text-amber-200" />
                 </motion.div>
                 <div>
-                  <CardTitle style={{ fontSize: TYPE.title }}>Need More Help?</CardTitle>
-                  <CardDescription style={{ fontSize: TYPE.meta }}>Get in touch with our support team</CardDescription>
+                  <CardTitle style={{ fontSize: TYPE.title }}>Talk to a Real Person</CardTitle>
+                  <CardDescription style={{ fontSize: TYPE.meta }}>Our team responds fast -- pick the channel that works for you</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -531,10 +484,10 @@ export default function OnboardingHelp() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2" style={{ fontSize: TYPE.title }}>
-                  Pro Tip: Use Keyboard Shortcuts
+                  Pro Tip: Quick Navigation
                 </h3>
                 <p className="text-gray-600" style={{ fontSize: TYPE.meta }}>
-                  Press <kbd className="px-2 py-1 bg-white rounded border text-xs font-mono">⌘</kbd> + <kbd className="px-2 py-1 bg-white rounded border text-xs font-mono">K</kbd> to quickly search and navigate anywhere in the onboarding lounge. You can also use it to jump to specific days, modules, or resources.
+                  Press <kbd className="px-2 py-1 bg-white rounded border text-xs font-mono">⌘</kbd> + <kbd className="px-2 py-1 bg-white rounded border text-xs font-mono">K</kbd> from anywhere to instantly jump to any day, module, or resource in your onboarding program. It is the fastest way to get where you need to go.
                 </p>
               </div>
             </div>

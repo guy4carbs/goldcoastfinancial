@@ -233,6 +233,26 @@ export function useOnboardingProgress() {
         if (badge) earnedBadges.push(badge);
       }
 
+      // Video master badge - awarded after completing 10 video/watch/tour tasks
+      const videoKeywords = ["video", "watch", "tour"];
+      const completedVideoTasks = newCompletedTasks.filter((id) =>
+        videoKeywords.some((keyword) => id.toLowerCase().includes(keyword))
+      );
+      if (completedVideoTasks.length >= 10) {
+        const badge = awardBadge("video-master");
+        if (badge) earnedBadges.push(badge);
+      }
+
+      // Quiz ace badge - awarded after completing 5 quiz/assessment/exam/cert tasks
+      const quizKeywords = ["quiz", "assessment", "exam", "cert"];
+      const completedQuizTasks = newCompletedTasks.filter((id) =>
+        quizKeywords.some((keyword) => id.toLowerCase().includes(keyword))
+      );
+      if (completedQuizTasks.length >= 5) {
+        const badge = awardBadge("quiz-ace");
+        if (badge) earnedBadges.push(badge);
+      }
+
       return { newBadges: earnedBadges };
     },
     [completedTasks, totalXp, saveCompletedTasks, saveXp, awardBadge]
@@ -422,7 +442,7 @@ export function useActivityProgress<
   T extends { title: string; xp: number; completed: boolean }
 >(
   weekId: string,
-  initialActivities: Record<number, { keyActivities: T[] }>
+  initialActivities: Record<number, { keyActivities: T[] } & Record<string, any>>
 ) {
   const {
     isLoaded,

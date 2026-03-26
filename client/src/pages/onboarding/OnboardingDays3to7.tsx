@@ -39,6 +39,8 @@ import {
   Package,
   Award,
 } from "lucide-react";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import { cn } from "@/lib/utils";
 import {
   GRID,
@@ -47,11 +49,9 @@ import {
   SHADOW,
   MOTION,
   COLORS,
-  GLASS,
   fadeInUp,
   staggerContainer,
-  scaleIn,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ENHANCED VISUAL COMPONENTS
@@ -296,7 +296,7 @@ const day3Tasks: Task[] = [
   {
     id: "pre-shadow-briefing",
     title: "Pre-Shadow Briefing",
-    description: "Learn what to observe and take notes on during upline shadow sessions",
+    description: "Know exactly what to watch for before your first upline shadow call.",
     type: "module",
     duration: "30 min",
     xp: 100,
@@ -306,8 +306,8 @@ const day3Tasks: Task[] = [
   },
   {
     id: "shadow-call-1",
-    title: "Shadow Upline - Live Call #1",
-    description: "Observe your upline on a live prospect call. Take notes on script usage and tone",
+    title: "Shadow Live Call #1",
+    description: "Observe your upline closing a real prospect -- note script flow and tone.",
     type: "call",
     duration: "45 min",
     xp: 200,
@@ -317,8 +317,8 @@ const day3Tasks: Task[] = [
   },
   {
     id: "shadow-call-2",
-    title: "Shadow Upline - Live Call #2",
-    description: "Second observation call. Focus on objection handling and closing techniques",
+    title: "Shadow Live Call #2",
+    description: "Second live observation -- focus on objection handling and the close.",
     type: "call",
     duration: "45 min",
     xp: 200,
@@ -328,8 +328,8 @@ const day3Tasks: Task[] = [
   },
   {
     id: "shadow-debrief-1",
-    title: "Debrief Session",
-    description: "Review observations with upline. Discuss what worked and areas for improvement",
+    title: "Shadow Debrief",
+    description: "Break down both calls with your upline -- what worked and what to steal.",
     type: "review",
     duration: "30 min",
     xp: 100,
@@ -340,8 +340,8 @@ const day3Tasks: Task[] = [
   // Afternoon: Product Knowledge
   {
     id: "term-life-deep",
-    title: "Term Life Insurance Deep Dive",
-    description: "Comprehensive training on term life products, riders, and underwriting",
+    title: "Term Life Deep Dive",
+    description: "Master term products, riders, and underwriting guidelines cold.",
     type: "module",
     duration: "45 min",
     xp: 200,
@@ -351,8 +351,8 @@ const day3Tasks: Task[] = [
   },
   {
     id: "whole-life-deep",
-    title: "Whole Life Insurance Mastery",
-    description: "Understanding cash value, dividends, and policy loans",
+    title: "Whole Life Mastery",
+    description: "Learn cash value, dividends, and policy loans inside and out.",
     type: "module",
     duration: "45 min",
     xp: 225,
@@ -362,8 +362,8 @@ const day3Tasks: Task[] = [
   },
   {
     id: "day3-quiz",
-    title: "Day 3 Product Quiz",
-    description: "Quick check on term and whole life product knowledge",
+    title: "Product Knowledge Quiz",
+    description: "Prove you can explain term and whole life coverage to any client.",
     type: "quiz",
     duration: "20 min",
     xp: 200,
@@ -380,8 +380,8 @@ const day4Tasks: Task[] = [
   // Morning: Shadow Upline Session 2
   {
     id: "shadow-application",
-    title: "Shadow Upline - Live Application",
-    description: "Observe your upline completing a full application with a client",
+    title: "Shadow Live Application",
+    description: "Watch your upline complete a real application from start to signature.",
     type: "call",
     duration: "60 min",
     xp: 250,
@@ -391,8 +391,8 @@ const day4Tasks: Task[] = [
   },
   {
     id: "shadow-close",
-    title: "Shadow Upline - Observe Close",
-    description: "Watch how your upline handles the close and secures commitment",
+    title: "Shadow the Close",
+    description: "Study how your upline handles final objections and secures commitment.",
     type: "call",
     duration: "60 min",
     xp: 250,
@@ -403,8 +403,8 @@ const day4Tasks: Task[] = [
   // Afternoon: Agent Practice
   {
     id: "agent-practice-upline",
-    title: "Practice Script in Front of Upline",
-    description: "Run through the full script with your upline observing and coaching",
+    title: "Deliver Full Script Live",
+    description: "Run the complete script with your upline coaching in real time.",
     type: "roleplay",
     duration: "45 min",
     xp: 200,
@@ -414,8 +414,8 @@ const day4Tasks: Task[] = [
   },
   {
     id: "upline-feedback-session",
-    title: "Upline Feedback Session",
-    description: "Receive detailed feedback on your script delivery and areas to improve",
+    title: "Script Feedback Review",
+    description: "Get direct coaching on your delivery, pacing, and confidence.",
     type: "review",
     duration: "30 min",
     xp: 100,
@@ -426,7 +426,7 @@ const day4Tasks: Task[] = [
   {
     id: "iul-deep-dive",
     title: "IUL Deep Dive",
-    description: "Advanced concepts: caps, floors, participation rates, and illustration strategies",
+    description: "Master caps, floors, participation rates, and illustration strategies.",
     type: "video",
     duration: "35 min",
     xp: 175,
@@ -436,8 +436,8 @@ const day4Tasks: Task[] = [
   },
   {
     id: "advanced-objections",
-    title: "Advanced Objection Handling",
-    description: "Master the LAER method for complex objections like price and timing concerns",
+    title: "Crush Common Objections",
+    description: "Use the LAER method to handle price, timing, and spouse objections.",
     type: "module",
     duration: "40 min",
     xp: 200,
@@ -448,7 +448,7 @@ const day4Tasks: Task[] = [
   {
     id: "day4-assessment",
     title: "Day 4 Skills Check",
-    description: "Quick assessment of today's shadow session and product learning",
+    description: "Show what you learned from shadowing and IUL product training.",
     type: "quiz",
     duration: "20 min",
     xp: 200,
@@ -465,8 +465,8 @@ const day5Tasks: Task[] = [
   // Morning: Agent Practice Calls with Upline Observation
   {
     id: "agent-call-1",
-    title: "Agent Practice Call #1 with Upline",
-    description: "Make your first practice call while upline observes and takes notes",
+    title: "Your First Live Call",
+    description: "Dial a real prospect while your upline listens and takes notes.",
     type: "call",
     duration: "45 min",
     xp: 300,
@@ -476,8 +476,8 @@ const day5Tasks: Task[] = [
   },
   {
     id: "agent-call-2",
-    title: "Agent Practice Call #2 with Upline",
-    description: "Second practice call. Apply feedback from the first call",
+    title: "Second Live Call",
+    description: "Apply feedback from call one -- sharper opening, stronger close.",
     type: "call",
     duration: "45 min",
     xp: 300,
@@ -487,8 +487,8 @@ const day5Tasks: Task[] = [
   },
   {
     id: "midday-debrief",
-    title: "Mid-Day Debrief",
-    description: "Review your practice calls with upline. Identify strengths and areas to improve",
+    title: "Call Performance Debrief",
+    description: "Review both calls with your upline -- lock in what's working.",
     type: "review",
     duration: "30 min",
     xp: 100,
@@ -499,8 +499,8 @@ const day5Tasks: Task[] = [
   // Afternoon: Compliance Deep Dive
   {
     id: "compliance-fundamentals",
-    title: "Insurance Compliance Deep Dive",
-    description: "Understanding state and federal regulations that govern insurance sales",
+    title: "Compliance Essentials",
+    description: "Know the state and federal regulations that protect you and your clients.",
     type: "module",
     duration: "45 min",
     xp: 200,
@@ -511,7 +511,7 @@ const day5Tasks: Task[] = [
   {
     id: "anti-fraud",
     title: "Anti-Fraud & AML Training",
-    description: "Recognize and report suspicious activities and fraud indicators",
+    description: "Spot red flags and know exactly when and how to report them.",
     type: "video",
     duration: "30 min",
     xp: 150,
@@ -521,8 +521,8 @@ const day5Tasks: Task[] = [
   },
   {
     id: "compliance-cert",
-    title: "Compliance Certification Exam",
-    description: "Complete certification to demonstrate compliance knowledge",
+    title: "Compliance Certification",
+    description: "Pass your compliance exam -- required before you can sell.",
     type: "certification",
     duration: "30 min",
     xp: 300,
@@ -539,8 +539,8 @@ const day6Tasks: Task[] = [
   // Morning: Communication Skills
   {
     id: "communication-styles",
-    title: "Understanding Communication Styles",
-    description: "Learn to adapt your communication to different personality types",
+    title: "Read Any Client",
+    description: "Adapt your pitch to analytical, expressive, driver, and amiable types.",
     type: "module",
     duration: "35 min",
     xp: 175,
@@ -550,8 +550,8 @@ const day6Tasks: Task[] = [
   },
   {
     id: "phone-skills",
-    title: "Phone Skills Mastery",
-    description: "Master the art of phone conversations and cold calling",
+    title: "Cold Call Mastery",
+    description: "Own the first 15 seconds -- hook, qualify, and book the appointment.",
     type: "video",
     duration: "25 min",
     xp: 125,
@@ -561,8 +561,8 @@ const day6Tasks: Task[] = [
   },
   {
     id: "lead-qualification",
-    title: "Lead Qualification Training",
-    description: "Learn to identify and qualify high-potential leads efficiently",
+    title: "Qualify Leads Fast",
+    description: "Separate buyers from tire-kickers in under 5 minutes.",
     type: "module",
     duration: "30 min",
     xp: 150,
@@ -573,8 +573,8 @@ const day6Tasks: Task[] = [
   // Afternoon: Presentation & First Close with Upline
   {
     id: "agent-close-upline-1",
-    title: "Agent Closes in Front of Upline - Session 1",
-    description: "Practice closing a sale with your upline observing and providing real-time guidance",
+    title: "Close with Upline Watching",
+    description: "Run a full close from presentation to signature while your upline coaches.",
     type: "call",
     duration: "60 min",
     xp: 350,
@@ -584,8 +584,8 @@ const day6Tasks: Task[] = [
   },
   {
     id: "presentation-basics",
-    title: "Presentation Fundamentals",
-    description: "Structure and deliver impactful client presentations",
+    title: "Nail the Presentation",
+    description: "Structure a compelling coverage presentation that drives decisions.",
     type: "video",
     duration: "40 min",
     xp: 200,
@@ -596,7 +596,7 @@ const day6Tasks: Task[] = [
   {
     id: "day6-assessment",
     title: "Day 6 Skills Assessment",
-    description: "Demonstrate your communication and closing abilities",
+    description: "Prove you can qualify, present, and close under pressure.",
     type: "quiz",
     duration: "20 min",
     xp: 200,
@@ -613,8 +613,8 @@ const day7Tasks: Task[] = [
   // Morning: Review & Simulation
   {
     id: "week-review",
-    title: "Week 1 Knowledge Review",
-    description: "Quick review of all concepts covered in Days 1-6",
+    title: "Week 1 Rapid Review",
+    description: "Consolidate everything from products to compliance in one session.",
     type: "review",
     duration: "30 min",
     xp: 150,
@@ -625,7 +625,7 @@ const day7Tasks: Task[] = [
   {
     id: "full-simulation",
     title: "Full Client Simulation",
-    description: "Complete a full client interaction from introduction to close",
+    description: "Run a complete sale: intro, needs analysis, presentation, and close.",
     type: "simulation",
     duration: "45 min",
     xp: 300,
@@ -635,8 +635,8 @@ const day7Tasks: Task[] = [
   },
   {
     id: "agent-close-until-confident",
-    title: "Agent Closes in Front of Upline Until Confident",
-    description: "Continue practicing closes with upline observation until you feel confident to go solo",
+    title: "Close Until Confident",
+    description: "Keep closing with your upline until you're ready to fly solo.",
     type: "call",
     duration: "90 min",
     xp: 400,
@@ -647,8 +647,8 @@ const day7Tasks: Task[] = [
   // Afternoon: Week 1 Final Assessments
   {
     id: "final-product-assessment",
-    title: "Week 1 Product Certification",
-    description: "Comprehensive test on all Heritage Life products - must pass to proceed",
+    title: "Product Certification Exam",
+    description: "Pass the full product exam -- term, whole life, and IUL required.",
     type: "assessment",
     duration: "30 min",
     xp: 250,
@@ -658,8 +658,8 @@ const day7Tasks: Task[] = [
   },
   {
     id: "final-sales-assessment",
-    title: "Week 1 Sales Certification",
-    description: "Demonstrate mastery of the full sales process from script to close",
+    title: "Sales Certification Exam",
+    description: "Demonstrate mastery of the full sales process from script to close.",
     type: "assessment",
     duration: "25 min",
     xp: 250,
@@ -669,8 +669,8 @@ const day7Tasks: Task[] = [
   },
   {
     id: "week1-complete",
-    title: "Week 1 Graduation Ceremony",
-    description: "Celebrate your achievements and receive your Week 1 badge",
+    title: "Boot Camp Graduation",
+    description: "You earned it -- collect your Week 1 badge and get ready to produce.",
     type: "celebration",
     duration: "10 min",
     xp: 500,
@@ -717,11 +717,11 @@ const typeColors: Record<string, string> = {
 
 // Day themes and descriptions - All use Heritage brand colors (violet/purple icons, amber accents)
 const dayInfo: Record<number, { title: string; subtitle: string; icon: React.ElementType }> = {
-  3: { title: "Shadow Session 1", subtitle: "Observe upline on live calls & product deep dive", icon: Users },
-  4: { title: "Shadow Session 2", subtitle: "Shadow application & practice with upline", icon: Target },
-  5: { title: "Agent Practice", subtitle: "Make practice calls with upline observation", icon: Phone },
-  6: { title: "Building Your Book", subtitle: "Lead qualification & first close with upline", icon: TrendingUp },
-  7: { title: "Week 1 Finale", subtitle: "Final assessments & graduation", icon: Trophy },
+  3: { title: "Shadow & Learn", subtitle: "Watch your upline sell, then master the products", icon: Users },
+  4: { title: "Shadow & Practice", subtitle: "Observe the close, then deliver the script yourself", icon: Target },
+  5: { title: "Make Live Calls", subtitle: "Dial real prospects with your upline coaching you", icon: Phone },
+  6: { title: "Qualify & Close", subtitle: "Build your pipeline and close with upline backup", icon: TrendingUp },
+  7: { title: "Certify & Graduate", subtitle: "Pass your exams and earn your Week 1 badge", icon: Trophy },
 };
 
 export default function OnboardingDays3to7() {
@@ -800,122 +800,16 @@ export default function OnboardingDays3to7() {
         style={{ gap: GRID.spacing.md }}
         className="flex flex-col"
       >
-        {/* Header - Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
-        >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative pattern overlay */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.15 }}>
-              <defs>
-                <radialGradient id="dotGradient37" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="white" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="white" stopOpacity="0" />
-                </radialGradient>
-                <pattern id="heroDotsPattern37" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                  <circle cx="2" cy="2" r="1.5" fill="url(#dotGradient37)" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#heroDotsPattern37)" />
-            </svg>
-            {/* Floating decorative circles */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+        <AgentPageHero icon={Calendar} title="Days 3-7: Boot Camp" subtitle="Shadow top producers, master products, and close your first sale" />
 
-            <CardContent style={{ padding: GRID.spacing.lg }} className="relative">
-              <div className="flex items-start" style={{ gap: GRID.spacing.md }}>
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                  className="bg-white/20 backdrop-blur-md flex items-center justify-center"
-                  style={{
-                    width: GRID.spacing.xxxxl,
-                    height: GRID.spacing.xxxxl,
-                    borderRadius: RADIUS.card,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                  }}
-                >
-                  <Calendar style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }} className="text-amber-200" />
-                </motion.div>
-                <div className="flex-1">
-                  <Badge
-                    className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium"
-                    style={{ marginBottom: GRID.spacing.xs, padding: '4px 12px' }}
-                  >
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Days 3-7
-                  </Badge>
-                  <h1
-                    className="font-bold tracking-tight text-white"
-                    style={{ fontSize: TYPE.display, marginBottom: GRID.spacing.xs, lineHeight: 1.1 }}
-                  >
-                    First Week Deep Dive
-                  </h1>
-                  <p style={{ fontSize: TYPE.body, lineHeight: 1.5 }} className="text-white/90 max-w-xl">
-                    Master product knowledge, sales techniques, compliance, and communication. Complete your first week strong!
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Progress Stats Grid */}
-        <motion.div
-          variants={fadeInUp}
-          className="grid grid-cols-3"
-          style={{ gap: GRID.spacing.sm }}
-        >
-          {[
-            { value: `${completedCount}/${totalTasks}`, label: "Tasks Complete", icon: ListChecks, color: "violet" },
-            { value: `${progress}%`, label: "Week Progress", icon: TrendingUp, color: "purple" },
-            { value: totalXP.toLocaleString(), label: "XP Earned", icon: Zap, color: "amber" },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-            >
-              <Card
-                className="relative overflow-hidden border-0"
-                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card, ...GLASS.css.standard }}
-              >
-                <CardContent style={{ padding: GRID.spacing.sm }}>
-                  <div className="flex items-center" style={{ gap: GRID.spacing.sm }}>
-                    <div
-                      className={cn(
-                        "flex items-center justify-center rounded-full",
-                        stat.color === "violet" && "bg-violet-100",
-                        stat.color === "purple" && "bg-purple-100",
-                        stat.color === "amber" && "bg-amber-100"
-                      )}
-                      style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }}
-                    >
-                      <stat.icon
-                        style={{ width: GRID.spacing.sm + 4, height: GRID.spacing.sm + 4 }}
-                        className={cn(
-                          stat.color === "violet" && "text-violet-600",
-                          stat.color === "purple" && "text-purple-600",
-                          stat.color === "amber" && "text-amber-600"
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <p style={{ fontSize: TYPE.meta }} className="text-gray-500">{stat.label}</p>
-                      <p style={{ fontSize: TYPE.title }} className="font-bold text-gray-900">{stat.value}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+        <motion.section variants={fadeInUp}>
+          <AgentStatCardGrid>
+            <AgentStatCard icon={CheckCircle2} value={`${completedCount}/${totalTasks}`} label="Tasks Complete" />
+            <AgentStatCard icon={Zap} value={totalXP.toLocaleString()} label="XP Earned" />
+            <AgentStatCard icon={Clock} value="~2hrs" label="Est. Time" />
+            <AgentStatCard icon={Trophy} value={`${progress}%`} label="Progress" />
+          </AgentStatCardGrid>
+        </motion.section>
 
         {/* Day Tabs */}
         <motion.div variants={fadeInUp}>
@@ -1278,13 +1172,13 @@ export default function OnboardingDays3to7() {
                   style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs }}
                   className="font-bold tracking-tight text-white"
                 >
-                  Day {activeDay} Training
+                  Day {activeDay} Complete
                 </h3>
                 <p style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.md }} className="text-white/90 max-w-md mx-auto">
-                  {activeDay === "3" && "Master product knowledge and prepare for sales training."}
-                  {activeDay === "4" && "Learn sales techniques and prepare for compliance."}
-                  {activeDay === "5" && "Complete compliance certification and prepare for communication skills."}
-                  {activeDay === "6" && "Develop communication mastery for your final day of Week 1."}
+                  {activeDay === "3" && "Products locked in. Tomorrow you shadow the close and practice your script."}
+                  {activeDay === "4" && "Script sharpened. Tomorrow you make live calls with your upline."}
+                  {activeDay === "5" && "Compliance certified. Tomorrow you qualify leads and close for real."}
+                  {activeDay === "6" && "Pipeline started. Tomorrow you certify and graduate from boot camp."}
                 </p>
                 <div className="flex items-center justify-center" style={{ gap: GRID.spacing.sm }}>
                   <motion.div
@@ -1384,7 +1278,7 @@ export default function OnboardingDays3to7() {
                   Week 1 Complete!
                 </h3>
                 <p style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.md }} className="text-white/90 max-w-md mx-auto">
-                  Congratulations! You've mastered products, sales, compliance, and communication. Ready for real-world application!
+                  You know the products, you've passed compliance, and you can close. Time to build your book of business.
                 </p>
                 <div className="flex flex-wrap justify-center gap-3 mb-6">
                   <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm px-3 py-1.5">
@@ -1420,6 +1314,26 @@ export default function OnboardingDays3to7() {
             </Card>
           </motion.div>
         )}
+
+        {/* Persistent Navigation to Days 8-30 */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0 overflow-hidden" style={{ borderRadius: RADIUS.hero, background: COLORS.gradients.heroWithAccent, boxShadow: SHADOW.hero }}>
+            <CardContent className="text-center relative" style={{ padding: GRID.spacing.lg }}>
+              <h3 className="font-bold tracking-tight text-white" style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs }}>
+                Launch into Production
+              </h3>
+              <p className="text-white/90 max-w-md mx-auto" style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.md }}>
+                Boot camp is done. Start making calls, booking appointments, and writing AP.
+              </p>
+              <Link href="/agents/onboarding/days-8-30">
+                <Button className="bg-white text-violet-600 hover:bg-violet-50 font-semibold shadow-lg" style={{ borderRadius: RADIUS.button, height: 48, padding: '0 24px' }}>
+                  Continue to Days 8-30
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
 
       {/* Shimmer animation keyframes */}

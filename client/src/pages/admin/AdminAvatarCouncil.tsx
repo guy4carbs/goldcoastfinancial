@@ -5,7 +5,7 @@ import {
   useConnectionStatus,
   type Avatar,
 } from "@/lib/avatarCouncilStore";
-import AdminNav from "@/components/AdminNav";
+import { AdminLoungeLayout } from "./AdminLoungeLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -373,14 +373,12 @@ export default function AdminAvatarCouncil() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
-      <AdminNav />
-
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Avatar Council' }]}>
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="flex-1 p-4 md:p-6 lg:p-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8"
+        className="space-y-6"
       >
         {/* Hero Header */}
         <motion.div variants={fadeInUp}>
@@ -1396,6 +1394,6 @@ export default function AdminAvatarCouncil() {
           </DialogContent>
         </Dialog>
       </motion.div>
-    </div>
+    </AdminLoungeLayout>
   );
 }

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import {
   CalendarDays,
   CheckCircle2,
@@ -22,10 +24,10 @@ import {
   Award,
   Briefcase,
   ListChecks,
-  Sparkles,
   Play,
   Trophy,
   ArrowRight,
+  ArrowLeft,
   MessageSquare,
 } from "lucide-react";
 import { TaskContentModal } from "@/components/onboarding/TaskContentModal";
@@ -39,11 +41,10 @@ import {
   SHADOW,
   MOTION,
   COLORS,
-  GLASS,
   fadeInUp,
   staggerContainer,
   scaleIn,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 
 // Section header component for visual consistency
 function SectionHeader({
@@ -135,8 +136,8 @@ const milestones: Milestone[] = [
   {
     id: "week-2",
     week: 2,
-    title: "Client Engagement Basics",
-    description: "Learn prospecting, lead qualification, and initial client contact strategies",
+    title: "Build Your Pipeline",
+    description: "Set your 30-day plan, qualify 20+ leads, and master your CRM workflow",
     tasks: 12,
     completedTasks: 4,
     xpReward: 500,
@@ -144,8 +145,8 @@ const milestones: Milestone[] = [
   {
     id: "week-3",
     week: 3,
-    title: "Sales Mastery",
-    description: "Master presentation skills, closing techniques, and follow-up processes",
+    title: "Close & Convert",
+    description: "Perfect your presentation, close 3+ deals, and launch your referral engine",
     tasks: 15,
     completedTasks: 0,
     xpReward: 600,
@@ -153,8 +154,8 @@ const milestones: Milestone[] = [
   {
     id: "week-4",
     week: 4,
-    title: "First Client Interactions",
-    description: "Shadow calls, practice presentations, and your first real client contacts",
+    title: "Own Your Book",
+    description: "Shadow a top producer, run solo client meetings, and earn Month 1 certification",
     tasks: 10,
     completedTasks: 0,
     xpReward: 750,
@@ -163,56 +164,56 @@ const milestones: Milestone[] = [
 
 const weekContent = {
   2: {
-    focus: "Client Engagement Basics",
+    focus: "Build Your Pipeline",
     objectives: [
-      "Create your 30-day plan with upline",
-      "Master lead qualification techniques",
-      "Learn CRM and pipeline management",
-      "Start tracking daily metrics",
+      "Set your 30-day production plan with upline",
+      "Qualify 20+ leads using the 5-minute framework",
+      "Log every contact and next step in your CRM",
+      "Track calls, appointments, and AP daily",
     ],
     keyActivities: [
-      { title: "30-Day Plan Creation with Upline", type: "planning", duration: "60 min", xp: 200, completed: false },
-      { title: "Lead Qualification Module", type: "module", duration: "45 min", xp: 150, completed: false },
-      { title: "Phone Script Workshop", type: "video", duration: "30 min", xp: 100, completed: false },
-      { title: "CRM Mastery Course", type: "module", duration: "60 min", xp: 200, completed: false },
-      { title: "Practice Calls with AI", type: "practice", duration: "45 min", xp: 175, completed: false },
-      { title: "Daily Metrics Tracking Setup", type: "action", duration: "20 min", xp: 100, completed: false },
-      { title: "Week 2 Assessment", type: "quiz", duration: "30 min", xp: 200, completed: false },
+      { title: "Build 30-Day Production Plan", type: "planning", duration: "60 min", xp: 200, completed: false },
+      { title: "Lead Qualification Framework", type: "module", duration: "45 min", xp: 150, completed: false },
+      { title: "Phone Script Drill", type: "video", duration: "30 min", xp: 100, completed: false },
+      { title: "CRM Pipeline Setup", type: "module", duration: "60 min", xp: 200, completed: false },
+      { title: "Make 10 AI Practice Calls", type: "practice", duration: "45 min", xp: 175, completed: false },
+      { title: "Launch Daily Metrics Tracker", type: "action", duration: "20 min", xp: 100, completed: false },
+      { title: "Week 2 Pipeline Assessment", type: "quiz", duration: "30 min", xp: 200, completed: false },
     ],
   },
   3: {
-    focus: "Sales Mastery",
+    focus: "Close & Convert",
     objectives: [
-      "Perfect your sales presentation",
-      "Learn advanced closing techniques",
-      "Master complex objection scenarios",
-      "Review weekly metrics with upline",
+      "Deliver 5+ full presentations this week",
+      "Close at least 3 applications with premium",
+      "Handle every objection without breaking stride",
+      "Review AP and close ratio with upline",
     ],
     keyActivities: [
-      { title: "Weekly Metrics Review with Upline", type: "review", duration: "30 min", xp: 150, completed: false },
-      { title: "Presentation Excellence", type: "module", duration: "60 min", xp: 200, completed: false },
-      { title: "Closing Techniques Deep Dive", type: "video", duration: "45 min", xp: 175, completed: false },
-      { title: "Complex Objection Scenarios", type: "module", duration: "50 min", xp: 200, completed: false },
-      { title: "Referral System Setup", type: "module", duration: "35 min", xp: 125, completed: false },
-      { title: "Role Play Sessions", type: "practice", duration: "60 min", xp: 250, completed: false },
-      { title: "Week 3 Assessment", type: "quiz", duration: "40 min", xp: 250, completed: false },
+      { title: "Review Weekly Metrics with Upline", type: "review", duration: "30 min", xp: 150, completed: false },
+      { title: "Sharpen Your Presentation", type: "module", duration: "60 min", xp: 200, completed: false },
+      { title: "Advanced Closing Techniques", type: "video", duration: "45 min", xp: 175, completed: false },
+      { title: "Tough Objection Scenarios", type: "module", duration: "50 min", xp: 200, completed: false },
+      { title: "Launch Your Referral Engine", type: "module", duration: "35 min", xp: 125, completed: false },
+      { title: "Live Role Play: Close 3 Deals", type: "practice", duration: "60 min", xp: 250, completed: false },
+      { title: "Week 3 Sales Assessment", type: "quiz", duration: "40 min", xp: 250, completed: false },
     ],
   },
   4: {
-    focus: "First Real Client Interactions",
+    focus: "Own Your Book",
     objectives: [
-      "Observe top producers in action",
-      "Complete supervised client presentations",
-      "Make your first real client contacts",
-      "Complete 30-day plan review",
+      "Shadow a top producer on 2 live client calls",
+      "Run 3+ solo client meetings this week",
+      "Submit at least 2 applications with AP",
+      "Complete your 30-day production review",
     ],
     keyActivities: [
-      { title: "Shadow Top Producer - Call 1", type: "call", duration: "90 min", xp: 200, completed: false },
-      { title: "Shadow Top Producer - Call 2", type: "call", duration: "90 min", xp: 200, completed: false },
-      { title: "Your First Real Client Call", type: "call", duration: "60 min", xp: 300, completed: false },
-      { title: "Client Contact Practice", type: "practice", duration: "45 min", xp: 150, completed: false },
-      { title: "30-Day Plan Review with Upline", type: "review", duration: "45 min", xp: 200, completed: false },
-      { title: "Month 1 Comprehensive Review", type: "module", duration: "45 min", xp: 175, completed: false },
+      { title: "Shadow Top Producer Call #1", type: "call", duration: "90 min", xp: 200, completed: false },
+      { title: "Shadow Top Producer Call #2", type: "call", duration: "90 min", xp: 200, completed: false },
+      { title: "Run Your First Solo Client Meeting", type: "call", duration: "60 min", xp: 300, completed: false },
+      { title: "Make 50 Outbound Calls", type: "practice", duration: "45 min", xp: 150, completed: false },
+      { title: "30-Day Production Review", type: "review", duration: "45 min", xp: 200, completed: false },
+      { title: "Month 1 Performance Review", type: "module", duration: "45 min", xp: 175, completed: false },
       { title: "Month 1 Certification Exam", type: "quiz", duration: "60 min", xp: 400, completed: false },
     ],
   },
@@ -336,145 +337,39 @@ export default function OnboardingDays8to30() {
         className="flex flex-col"
       >
         {/* Header - Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
-        >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative pattern overlay */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-                backgroundSize: '24px 24px',
-              }}
-            />
-            {/* Floating decorative circles */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
-            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-purple-300/15 rounded-full blur-sm" />
-
-            <CardContent style={{ padding: GRID.spacing.lg }} className="relative">
-              <div className="flex items-start" style={{ gap: GRID.spacing.md }}>
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    type: "spring",
-                    damping: 15,
-                    stiffness: 200,
-                    delay: 0.2
-                  }}
-                  className="bg-white/20 backdrop-blur-md flex items-center justify-center"
-                  style={{
-                    width: GRID.spacing.xxxxl,
-                    height: GRID.spacing.xxxxl,
-                    borderRadius: RADIUS.card,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  <CalendarDays style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }} className="text-amber-200" />
-                </motion.div>
-                <div className="flex-1">
-                  <Badge
-                    className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium"
-                    style={{ marginBottom: GRID.spacing.xs, padding: '4px 12px' }}
-                  >
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Days 8-30
-                  </Badge>
-                  <h1
-                    className="font-bold tracking-tight text-white"
-                    style={{ fontSize: TYPE.display, marginBottom: GRID.spacing.xs, lineHeight: 1.1 }}
-                  >
-                    First Month Mastery
-                  </h1>
-                  <p style={{ fontSize: TYPE.body, lineHeight: 1.5 }} className="text-white/90 max-w-xl">
-                    Transform knowledge into action. Practice with real scenarios and make your first client contacts.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <AgentPageHero
+          icon={CalendarDays}
+          title="Days 8-30: Go Produce"
+          subtitle="Make 50+ calls, close your first clients, and write real AP every week"
+        />
 
         {/* Progress Stats Grid */}
-        <motion.div
-          variants={fadeInUp}
-          className="grid grid-cols-3"
-          style={{ gap: GRID.spacing.sm }}
-        >
-          {[
-            {
-              value: `${completedTasks}/${totalTasks}`,
-              label: "Tasks Complete",
-              gradient: `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.violet[600]} 100%)`,
-              icon: ListChecks,
-              bgGlow: COLORS.primary.violet[100],
-            },
-            {
-              value: `${progress}%`,
-              label: "Progress",
-              gradient: `linear-gradient(135deg, ${COLORS.primary.purple[500]} 0%, ${COLORS.primary.purple[600]} 100%)`,
-              icon: TrendingUp,
-              bgGlow: COLORS.primary.purple[100],
-            },
-            {
-              value: Math.round(totalXP),
-              label: "XP Earned",
-              gradient: `linear-gradient(135deg, ${COLORS.accent.amber[500]} 0%, ${COLORS.accent.amber[600]} 100%)`,
-              icon: Zap,
-              bgGlow: COLORS.accent.amber[100],
-            },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-            >
-              <Card
-                className="relative overflow-hidden border-0"
-                style={{
-                  borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card,
-                  background: GLASS.background,
-                  backdropFilter: `blur(${GLASS.blur}px)`,
-                  WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
-                }}
-              >
-                <div
-                  className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-40 blur-2xl"
-                  style={{ background: stat.bgGlow }}
-                />
-                <CardContent style={{ padding: GRID.spacing.md }} className="text-center relative">
-                  <div
-                    className="mx-auto flex items-center justify-center text-white mb-3"
-                    style={{
-                      width: GRID.spacing.xl,
-                      height: GRID.spacing.xl,
-                      borderRadius: RADIUS.button,
-                      background: stat.gradient,
-                      boxShadow: `0 4px 12px ${stat.bgGlow}`,
-                    }}
-                  >
-                    <stat.icon style={{ width: GRID.spacing.md, height: GRID.spacing.md }} />
-                  </div>
-                  <div
-                    className="font-bold mb-1"
-                    style={{ fontSize: TYPE.section }}
-                  >
-                    {stat.value}
-                  </div>
-                  <p style={{ fontSize: TYPE.caption }} className="text-gray-500 font-medium">{stat.label}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+        <AgentStatCardGrid className="grid-cols-3 lg:grid-cols-3">
+          <AgentStatCard
+            icon={ListChecks}
+            value={`${completedTasks}/${totalTasks}`}
+            label="Tasks Complete"
+          />
+          <AgentStatCard
+            icon={TrendingUp}
+            value={`${progress}%`}
+            label="Progress"
+          />
+          <AgentStatCard
+            icon={Zap}
+            value={Math.round(totalXP)}
+            label="XP Earned"
+          />
+        </AgentStatCardGrid>
+
+        {/* Back to Days 3-7 */}
+        <motion.div variants={fadeInUp}>
+          <Link href="/agents/onboarding/days-3-7">
+            <Button variant="ghost" className="text-violet-600 hover:text-violet-700" style={{ fontSize: TYPE.meta }}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Review Boot Camp (Days 3-7)
+            </Button>
+          </Link>
         </motion.div>
 
         {/* Milestones Overview */}
@@ -498,8 +393,8 @@ export default function OnboardingDays8to30() {
             <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
               <SectionHeader
                 icon={Award}
-                title="Month 1 Milestones"
-                subtitle="Complete each week to earn milestone badges"
+                title="Production Milestones"
+                subtitle="Hit each weekly target to unlock your next level"
               />
             </CardHeader>
             <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
@@ -608,8 +503,8 @@ export default function OnboardingDays8to30() {
                     <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
                       <SectionHeader
                         icon={Target}
-                        title={`Week ${week} Objectives`}
-                        subtitle="Goals for this week"
+                        title={`Week ${week} Targets`}
+                        subtitle="Hit every number this week"
                       />
                     </CardHeader>
                     <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0, gap: GRID.spacing.sm }} className="flex flex-col">
@@ -848,8 +743,8 @@ export default function OnboardingDays8to30() {
             <CardHeader style={{ padding: GRID.spacing.md, paddingBottom: GRID.spacing.sm }}>
               <SectionHeader
                 icon={TrendingUp}
-                title="What You'll Achieve"
-                subtitle="Key milestones for your first month"
+                title="Month 1 Production Goals"
+                subtitle="Real numbers, real results -- track these weekly"
               />
             </CardHeader>
             <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
@@ -861,10 +756,10 @@ export default function OnboardingDays8to30() {
                 animate="visible"
               >
                 {[
-                  { icon: Phone, value: "10+", label: "Practice Calls", color: COLORS.primary.violet[500], bgColor: COLORS.primary.violet[50] },
-                  { icon: Briefcase, value: "3", label: "Shadow Sessions", color: COLORS.primary.purple[500], bgColor: COLORS.primary.purple[50] },
-                  { icon: Users, value: "First", label: "Client Contacts", color: COLORS.primary.violet[500], bgColor: COLORS.primary.violet[50] },
-                  { icon: Award, value: "Month 1", label: "Certification", color: COLORS.accent.amber[500], bgColor: COLORS.accent.amber[50] },
+                  { icon: Phone, value: "50+", label: "Outbound Calls", color: COLORS.primary.violet[500], bgColor: COLORS.primary.violet[50] },
+                  { icon: Briefcase, value: "5+", label: "Apps Submitted", color: COLORS.primary.purple[500], bgColor: COLORS.primary.purple[50] },
+                  { icon: Users, value: "10+", label: "Client Meetings", color: COLORS.primary.violet[500], bgColor: COLORS.primary.violet[50] },
+                  { icon: Award, value: "Month 1", label: "Certified Producer", color: COLORS.accent.amber[500], bgColor: COLORS.accent.amber[50] },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
@@ -976,12 +871,12 @@ export default function OnboardingDays8to30() {
                 style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs }}
                 className="font-bold tracking-tight text-white"
               >
-                First Month Complete!
+                Month 1: Mission Accomplished
               </h3>
               <p style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.md }} className="text-white/90 max-w-md mx-auto">
-                You've built a strong foundation. Ready to build momentum in months 2-3!
+                You have clients, AP on the books, and a growing pipeline. This is just the beginning.
               </p>
-              <Link href="/agents/onboarding/days-31-90">
+              <Link href="/agents/onboarding/lounge">
                 <motion.div
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
@@ -990,7 +885,7 @@ export default function OnboardingDays8to30() {
                     className="bg-white text-violet-600 hover:bg-violet-50 font-semibold shadow-lg"
                     style={{ borderRadius: RADIUS.button, height: 48, padding: '0 24px' }}
                   >
-                    Continue to Days 31-90
+                    Back to Dashboard
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </motion.div>

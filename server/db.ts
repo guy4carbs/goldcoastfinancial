@@ -1010,6 +1010,25 @@ export async function initializeDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_deals_submitted ON deals (submitted_at);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_deals_status ON deals (status);`);
 
+    // Lead Purchases — tracks lead marketplace orders
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS lead_purchases (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        lead_type VARCHAR(100) NOT NULL,
+        price_cents INTEGER NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        stripe_payment_intent_id VARCHAR(255),
+        stripe_status VARCHAR(50) DEFAULT 'pending',
+        status VARCHAR(20) DEFAULT 'pending',
+        purchased_at TIMESTAMP DEFAULT NOW(),
+        delivered_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_agent ON lead_purchases (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_status ON lead_purchases (status);`);
+
     console.log("Database tables initialized successfully.");
   } catch (error) {
     console.error("Error initializing database:", error);

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import AdminNav from "@/components/AdminNav";
+import { motion } from "framer-motion";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
+import { AdminPageHero, AdminGlassCard, AdminStaggerContainer } from "@/components/admin/AdminHeritagePrimitives";
+import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
 import {
   Building2,
   Phone,
@@ -13,7 +16,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  ExternalLink
+  ExternalLink,
+  Settings
 } from "lucide-react";
 
 interface SiteSetting {
@@ -188,7 +192,7 @@ export default function AdminSettings() {
           <button
             onClick={() => handleValueChange(setting.key, value === "true" ? "false" : "true")}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              value === "true" ? "bg-primary" : "bg-gray-300"
+              value === "true" ? "bg-slate-600" : "bg-gray-300"
             }`}
           >
             <span
@@ -214,7 +218,8 @@ export default function AdminSettings() {
             value={value}
             onChange={(e) => handleValueChange(setting.key, e.target.value)}
             rows={3}
-            className={`w-full bg-white border rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary resize-none ${
+            style={{ borderRadius: RADIUS.input }}
+            className={`w-full bg-white border px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500 resize-none ${
               isModified ? "border-amber-500" : "border-gray-300"
             }`}
           />
@@ -233,13 +238,15 @@ export default function AdminSettings() {
             value={value || "#1e3a5f"}
             onChange={(e) => handleValueChange(setting.key, e.target.value)}
             className="w-12 h-10 rounded cursor-pointer border border-gray-300"
+            style={{ borderRadius: RADIUS.input }}
           />
           <input
             type="text"
             value={value}
             onChange={(e) => handleValueChange(setting.key, e.target.value)}
             placeholder="#000000"
-            className={`flex-1 bg-white border rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary font-mono ${
+            style={{ borderRadius: RADIUS.input }}
+            className={`flex-1 bg-white border px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500 font-mono ${
               isModified ? "border-amber-500" : "border-gray-300"
             }`}
           />
@@ -258,7 +265,8 @@ export default function AdminSettings() {
             value={value}
             onChange={(e) => handleValueChange(setting.key, e.target.value)}
             placeholder="https://"
-            className={`flex-1 bg-white border rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary ${
+            style={{ borderRadius: RADIUS.input }}
+            className={`flex-1 bg-white border px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500 ${
               isModified ? "border-amber-500" : "border-gray-300"
             }`}
           />
@@ -267,7 +275,8 @@ export default function AdminSettings() {
               href={value}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+              style={{ borderRadius: RADIUS.input }}
             >
               <ExternalLink className="w-4 h-4 text-gray-500" />
             </a>
@@ -285,7 +294,8 @@ export default function AdminSettings() {
           type="text"
           value={value}
           onChange={(e) => handleValueChange(setting.key, e.target.value)}
-          className={`w-full bg-white border rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary ${
+          style={{ borderRadius: RADIUS.input }}
+          className={`w-full bg-white border px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-slate-500 ${
             isModified ? "border-amber-500" : "border-gray-300"
           }`}
         />
@@ -298,131 +308,170 @@ export default function AdminSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-        <AdminNav />
-        <div className="flex-1 flex items-center justify-center pt-[72px] lg:pt-0">
-          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+      <AdminLoungeLayout breadcrumbs={[{ label: 'Settings' }]}>
+        <div className="flex-1 flex items-center justify-center">
+          <AdminGlassCard className="flex items-center justify-center" style={{ padding: GRID.spacing.xl, minWidth: 200 }}>
+            <RefreshCw className="w-8 h-8 animate-spin text-slate-500" />
+          </AdminGlassCard>
         </div>
-      </div>
+      </AdminLoungeLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-        <AdminNav />
-        <div className="flex-1 p-8 pt-[72px] lg:pt-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <AdminLoungeLayout breadcrumbs={[{ label: 'Settings' }]}>
+        <div className="flex-1 p-8 flex items-center justify-center">
+          <AdminGlassCard className="text-center max-w-md w-full" style={{ padding: GRID.spacing.xl }}>
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Settings</h3>
-            <p className="text-gray-600">Please try refreshing the page</p>
-          </div>
+            <h3 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900], marginBottom: 8 }}>Failed to Load Settings</h3>
+            <p style={{ fontSize: TYPE.body, color: COLORS.gray[600] }}>Please try refreshing the page</p>
+          </AdminGlassCard>
         </div>
-      </div>
+      </AdminLoungeLayout>
     );
   }
 
   const activeGroup = settingsGroups.find(g => g.category === activeTab);
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Settings' }]}>
+      <div className="flex-1">
+        <AdminStaggerContainer className="p-4 md:p-6">
+          {/* Hero Header */}
+          <AdminPageHero
+            icon={Settings}
+            title="Site Settings"
+            subtitle="Manage your website configuration and preferences"
+            actions={
+              <>
+                {saveSuccess && (
+                  <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2" style={{ borderRadius: RADIUS.button }}>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Settings saved</span>
+                  </div>
+                )}
+                {hasChanges && (
+                  <>
+                    <button
+                      onClick={handleReset}
+                      className="px-4 py-2 text-white/80 hover:text-white transition-colors"
+                    >
+                      Discard Changes
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saveMutation.isPending}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white transition-colors disabled:opacity-50"
+                      style={{ borderRadius: RADIUS.button, backdropFilter: 'blur(12px)' }}
+                    >
+                      {saveMutation.isPending ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                      Save Changes
+                    </button>
+                  </>
+                )}
+              </>
+            }
+          />
 
-      <div className="flex-1 pt-[72px] lg:pt-0">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Site Settings</h1>
-              <p className="text-gray-600">Manage your website configuration and preferences</p>
-            </div>
-            <div className="flex items-center gap-3">
-              {saveSuccess && (
-                <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Settings saved</span>
-                </div>
-              )}
-              {hasChanges && (
-                <>
-                  <button
-                    onClick={handleReset}
-                    className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    Discard Changes
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={saveMutation.isPending}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                  >
-                    {saveMutation.isPending ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    Save Changes
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 md:p-6">
           {/* Unsaved Changes Warning */}
           {hasChanges && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-3 mb-6">
+            <motion.div
+              variants={fadeInUp}
+              className="flex items-center gap-3 px-4 py-3"
+              style={{
+                borderRadius: RADIUS.card,
+                background: 'rgba(251, 191, 36, 0.08)',
+                border: `1px solid ${COLORS.lounges.admin.main}`,
+              }}
+            >
               <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
               <p className="text-amber-800 text-sm">
                 You have unsaved changes. Click "Save Changes" to apply them.
               </p>
-            </div>
+            </motion.div>
           )}
 
           {/* Main Content */}
-          <div className="flex gap-6">
+          <motion.div variants={fadeInUp} className="flex gap-6">
             {/* Sidebar Tabs */}
             <div className="w-64 flex-shrink-0">
-              <nav className="space-y-1">
-                {settingsGroups.map((group) => (
-                  <button
-                    key={group.category}
-                    onClick={() => setActiveTab(group.category)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                      activeTab === group.category
-                        ? "bg-primary text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {group.icon}
-                    <div>
-                      <div className="font-medium">{group.label}</div>
-                      <div className="text-xs opacity-70">
-                        {group.settings.length} setting{group.settings.length !== 1 ? "s" : ""}
+              <AdminGlassCard style={{ padding: GRID.spacing.sm }}>
+                <nav className="space-y-1">
+                  {settingsGroups.map((group) => (
+                    <button
+                      key={group.category}
+                      onClick={() => setActiveTab(group.category)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all"
+                      style={{
+                        borderRadius: RADIUS.input,
+                        ...(activeTab === group.category
+                          ? {
+                              background: 'linear-gradient(135deg, #475569 0%, #334155 50%, #64748b 100%)',
+                              color: 'white',
+                            }
+                          : {
+                              color: COLORS.gray[700],
+                            }
+                        ),
+                      }}
+                      onMouseEnter={(e) => {
+                        if (activeTab !== group.category) {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(100, 116, 139, 0.08)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeTab !== group.category) {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                        }
+                      }}
+                    >
+                      {group.icon}
+                      <div>
+                        <div className="font-medium">{group.label}</div>
+                        <div className="text-xs opacity-70">
+                          {group.settings.length} setting{group.settings.length !== 1 ? "s" : ""}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </nav>
+                    </button>
+                  ))}
+                </nav>
+              </AdminGlassCard>
             </div>
 
             {/* Settings Panel */}
-            <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div
+              className="flex-1"
+              style={{
+                ...GLASS.css.standard,
+                borderRadius: RADIUS.card,
+                boxShadow: SHADOW.card,
+                overflow: 'hidden',
+              }}
+            >
               {activeGroup && (
                 <>
                   {/* Panel Header */}
-                  <div className="px-6 py-4 border-b border-gray-200">
+                  <div className="px-6 py-4" style={{ borderBottom: `1px solid ${GLASS.border}` }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      <div
+                        className="w-10 h-10 flex items-center justify-center text-slate-600"
+                        style={{
+                          borderRadius: RADIUS.input,
+                          background: COLORS.lounges.admin.light,
+                        }}
+                      >
                         {activeGroup.icon}
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">
+                        <h2 style={{ fontSize: TYPE.title, fontWeight: 600, color: COLORS.gray[900] }}>
                           {activeGroup.label} Settings
                         </h2>
-                        <p className="text-sm text-gray-600">{activeGroup.description}</p>
+                        <p style={{ fontSize: TYPE.meta, color: COLORS.gray[600] }}>{activeGroup.description}</p>
                       </div>
                     </div>
                   </div>
@@ -432,17 +481,17 @@ export default function AdminSettings() {
                     {activeGroup.settings.length === 0 ? (
                       <div className="text-center py-8">
                         <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">No settings in this category</p>
+                        <p style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>No settings in this category</p>
                       </div>
                     ) : (
                       activeGroup.settings.map((setting) => (
                         <div key={setting.key} className="space-y-2">
                           <label className="block">
-                            <span className="text-gray-900 font-medium">
+                            <span style={{ fontSize: TYPE.body, fontWeight: 500, color: COLORS.gray[900] }}>
                               {setting.label || setting.key}
                             </span>
                             {setting.description && (
-                              <span className="block text-sm text-gray-500 mt-0.5">
+                              <span className="block mt-0.5" style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>
                                 {setting.description}
                               </span>
                             )}
@@ -455,31 +504,31 @@ export default function AdminSettings() {
                 </>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick Info */}
-          <div className="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-gray-900 font-semibold mb-3 flex items-center gap-2">
-              <Info className="w-5 h-5 text-primary" />
+          <AdminGlassCard>
+            <h3 className="flex items-center gap-2 mb-3" style={{ fontSize: TYPE.body, fontWeight: 600, color: COLORS.gray[900] }}>
+              <Info className="w-5 h-5 text-slate-500" />
               How Settings Work
             </h3>
-            <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+            <div className="grid md:grid-cols-3 gap-4" style={{ fontSize: TYPE.meta, color: COLORS.gray[600] }}>
               <div>
-                <strong className="text-gray-900 block mb-1">General & Contact</strong>
+                <strong className="block mb-1" style={{ color: COLORS.gray[900] }}>General & Contact</strong>
                 Updates your company information displayed in the header, footer, and contact pages.
               </div>
               <div>
-                <strong className="text-gray-900 block mb-1">Social & SEO</strong>
+                <strong className="block mb-1" style={{ color: COLORS.gray[900] }}>Social & SEO</strong>
                 Links to your social profiles and default meta tags for search engine optimization.
               </div>
               <div>
-                <strong className="text-gray-900 block mb-1">Email & Branding</strong>
+                <strong className="block mb-1" style={{ color: COLORS.gray[900] }}>Email & Branding</strong>
                 Configure notification recipients and customize brand colors across the site.
               </div>
             </div>
-          </div>
-        </div>
+          </AdminGlassCard>
+        </AdminStaggerContainer>
       </div>
-    </div>
+    </AdminLoungeLayout>
   );
 }

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, X, Package } from "lucide-react";
-import AdminNav from "@/components/AdminNav";
+import { motion } from "framer-motion";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
+import { AdminPageHero, AdminGlassCard, AdminStaggerContainer, AdminEmptyState, ADMIN_GRADIENT } from "@/components/admin/AdminHeritagePrimitives";
+import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
 
 interface Product {
   id: number;
@@ -168,53 +171,78 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <div className="flex-1 p-4 md:p-6 lg:p-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
-            <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Products</h1>
-              <p className="text-sm md:text-base text-gray-600">Manage life insurance products and personas</p>
-            </div>
-            <button
-              onClick={() => {
-                resetForm();
-                setShowModal(true);
-              }}
-              className="flex items-center justify-center gap-2 bg-primary text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"
-            >
-              <Plus className="w-5 h-5" />
-              Add Product
-            </button>
-          </div>
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Products' }]}>
+      <AdminStaggerContainer className="max-w-7xl mx-auto">
+          {/* Hero */}
+          <AdminPageHero
+            icon={Package}
+            title="Products"
+            subtitle="Manage life insurance products and personas"
+            actions={
+              <button
+                onClick={() => {
+                  resetForm();
+                  setShowModal(true);
+                }}
+                className="flex items-center justify-center gap-2 text-white font-medium transition-all w-full sm:w-auto"
+                style={{
+                  background: 'rgba(255,255,255,0.18)',
+                  backdropFilter: 'blur(12px)',
+                  padding: '10px 20px',
+                  borderRadius: RADIUS.button,
+                  border: '1px solid rgba(255,255,255,0.25)',
+                }}
+              >
+                <Plus className="w-5 h-5" />
+                Add Product
+              </button>
+            }
+          />
 
           {/* Products Grid */}
           <div className="grid gap-4 md:gap-6">
             {products.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
+              <motion.div
+                key={product.id}
+                variants={fadeInUp}
+                whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                style={{
+                  ...GLASS.css.standard,
+                  borderRadius: RADIUS.card,
+                  padding: GRID.spacing.md,
+                  boxShadow: SHADOW.card,
+                }}
+              >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                      <h3 className="text-xl md:text-2xl font-bold text-gray-900">{product.productType}</h3>
-                      <span className="px-3 py-1 bg-violet-200 text-primary text-sm font-semibold rounded-full">
+                      <h3 className="font-bold" style={{ fontSize: TYPE.section, color: COLORS.gray[900] }}>{product.productType}</h3>
+                      <span
+                        className="px-3 py-1 text-sm font-semibold"
+                        style={{
+                          borderRadius: RADIUS.pill,
+                          background: COLORS.primary.violet[100],
+                          color: COLORS.primary.violet[700],
+                        }}
+                      >
                         {product.personaEthnicity}
                       </span>
                     </div>
-                    <h4 className="text-lg md:text-xl text-gray-700 mb-3">{product.personaName}</h4>
+                    <h4 className="mb-3" style={{ fontSize: TYPE.title, color: COLORS.gray[700] }}>{product.personaName}</h4>
                   </div>
                   <div className="flex gap-2 self-end sm:self-start">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                      className="p-2 transition-colors"
+                      style={{ color: COLORS.gray[600], borderRadius: RADIUS.input }}
                     >
                       <Edit className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(product.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      className="p-2 text-red-600 hover:bg-red-50 transition-colors"
+                      style={{ borderRadius: RADIUS.input }}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -223,53 +251,91 @@ export default function AdminProducts() {
 
                 <div className="grid grid-cols-2 gap-4 md:gap-6 mb-4">
                   <div>
-                    <p className="text-xs md:text-sm font-semibold text-gray-500 mb-1">Age Range</p>
-                    <p className="text-sm md:text-base text-gray-900">{product.ageRangeMin}–{product.ageRangeMax} years</p>
+                    <p className="font-semibold mb-1" style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>Age Range</p>
+                    <p style={{ fontSize: TYPE.body, color: COLORS.gray[900] }}>{product.ageRangeMin}–{product.ageRangeMax} years</p>
                   </div>
                   <div>
-                    <p className="text-xs md:text-sm font-semibold text-gray-500 mb-1">Income Range</p>
-                    <p className="text-sm md:text-base text-gray-900">{formatCurrency(product.incomeMin)}–{formatCurrency(product.incomeMax)}</p>
+                    <p className="font-semibold mb-1" style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>Income Range</p>
+                    <p style={{ fontSize: TYPE.body, color: COLORS.gray[900] }}>{formatCurrency(product.incomeMin)}–{formatCurrency(product.incomeMax)}</p>
                   </div>
                   <div>
-                    <p className="text-xs md:text-sm font-semibold text-gray-500 mb-1">Family Status</p>
-                    <p className="text-sm md:text-base text-gray-900">{product.familyStatus}</p>
+                    <p className="font-semibold mb-1" style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>Family Status</p>
+                    <p style={{ fontSize: TYPE.body, color: COLORS.gray[900] }}>{product.familyStatus}</p>
                   </div>
                   <div>
-                    <p className="text-xs md:text-sm font-semibold text-gray-500 mb-1">Core Pain</p>
-                    <p className="text-sm md:text-base text-gray-900">{product.corePain}</p>
+                    <p className="font-semibold mb-1" style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>Core Pain</p>
+                    <p style={{ fontSize: TYPE.body, color: COLORS.gray[900] }}>{product.corePain}</p>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <p className="text-xs md:text-sm font-semibold text-gray-500 mb-1">Primary Trigger</p>
-                  <p className="text-sm md:text-base text-gray-900">{product.primaryTrigger}</p>
+                  <p className="font-semibold mb-1" style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>Primary Trigger</p>
+                  <p style={{ fontSize: TYPE.body, color: COLORS.gray[900] }}>{product.primaryTrigger}</p>
                 </div>
 
                 {product.description && (
                   <div className="mb-4">
-                    <p className="text-xs md:text-sm font-semibold text-gray-500 mb-1">Description</p>
-                    <p className="text-sm md:text-base text-gray-700">{product.description}</p>
+                    <p className="font-semibold mb-1" style={{ fontSize: TYPE.caption, color: COLORS.gray[500] }}>Description</p>
+                    <p style={{ fontSize: TYPE.body, color: COLORS.gray[700] }}>{product.description}</p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
 
             {products.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No products yet. Click "Add Product" to get started.</p>
-              </div>
+              <AdminGlassCard>
+                <AdminEmptyState
+                  icon={Package}
+                  title="No products yet"
+                  description='Click "Add Product" to get started.'
+                  action={
+                    <button
+                      onClick={() => {
+                        resetForm();
+                        setShowModal(true);
+                      }}
+                      className="flex items-center gap-2 mx-auto text-white font-medium"
+                      style={{
+                        background: ADMIN_GRADIENT,
+                        padding: '10px 20px',
+                        borderRadius: RADIUS.button,
+                        boxShadow: SHADOW.level2,
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Product
+                    </button>
+                  }
+                />
+              </AdminGlassCard>
             )}
           </div>
-        </div>
-      </div>
+        </AdminStaggerContainer>
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 md:p-4 z-50">
-          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+        <div className="fixed inset-0 flex items-center justify-center p-2 md:p-4 z-50" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: MOTION.duration.modal, ease: MOTION.easing }}
+            className="max-w-3xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto"
+            style={{
+              background: 'rgba(255,255,255,0.98)',
+              borderRadius: RADIUS.hero,
+              boxShadow: SHADOW.hero,
+            }}
+          >
+            <div
+              className="sticky top-0 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between"
+              style={{
+                background: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(20px)',
+                borderBottom: `1px solid ${GLASS.border}`,
+                borderRadius: `${RADIUS.hero}px ${RADIUS.hero}px 0 0`,
+              }}
+            >
+              <h2 className="font-bold" style={{ fontSize: TYPE.section, color: COLORS.gray[900] }}>
                 {editingProduct ? "Edit Product" : "Add Product"}
               </h2>
               <button
@@ -277,7 +343,8 @@ export default function AdminProducts() {
                   setShowModal(false);
                   resetForm();
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 transition-colors"
+                style={{ borderRadius: RADIUS.input }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -286,13 +353,14 @@ export default function AdminProducts() {
             <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4 md:space-y-6">
               {/* Product Type */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Product Type
                 </label>
                 <select
                   value={formData.productType}
                   onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   required
                 >
                   {productTypes.map((type) => (
@@ -303,7 +371,7 @@ export default function AdminProducts() {
 
               {/* Persona Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Persona Name
                 </label>
                 <input
@@ -311,20 +379,22 @@ export default function AdminProducts() {
                   value={formData.personaName}
                   onChange={(e) => setFormData({ ...formData, personaName: e.target.value })}
                   placeholder="e.g., New Father Protector"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   required
                 />
               </div>
 
               {/* Ethnicity */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Persona Ethnicity
                 </label>
                 <select
                   value={formData.personaEthnicity}
                   onChange={(e) => setFormData({ ...formData, personaEthnicity: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   required
                 >
                   <option value="">Select ethnicity</option>
@@ -337,26 +407,28 @@ export default function AdminProducts() {
               {/* Age Range */}
               <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                     Min Age
                   </label>
                   <input
                     type="number"
                     value={formData.ageRangeMin}
                     onChange={(e) => setFormData({ ...formData, ageRangeMin: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                     Max Age
                   </label>
                   <input
                     type="number"
                     value={formData.ageRangeMax}
                     onChange={(e) => setFormData({ ...formData, ageRangeMax: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                     required
                   />
                 </div>
@@ -365,26 +437,28 @@ export default function AdminProducts() {
               {/* Income Range */}
               <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                     Min Income
                   </label>
                   <input
                     type="number"
                     value={formData.incomeMin}
                     onChange={(e) => setFormData({ ...formData, incomeMin: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                     Max Income
                   </label>
                   <input
                     type="number"
                     value={formData.incomeMax}
                     onChange={(e) => setFormData({ ...formData, incomeMax: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                    style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                     required
                   />
                 </div>
@@ -392,7 +466,7 @@ export default function AdminProducts() {
 
               {/* Family Status */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Family Status
                 </label>
                 <input
@@ -400,14 +474,15 @@ export default function AdminProducts() {
                   value={formData.familyStatus}
                   onChange={(e) => setFormData({ ...formData, familyStatus: e.target.value })}
                   placeholder="e.g., Married, 1 child"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   required
                 />
               </div>
 
               {/* Core Pain */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Core Pain
                 </label>
                 <input
@@ -415,14 +490,15 @@ export default function AdminProducts() {
                   value={formData.corePain}
                   onChange={(e) => setFormData({ ...formData, corePain: e.target.value })}
                   placeholder="e.g., Fear of leaving family unprotected"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   required
                 />
               </div>
 
               {/* Primary Trigger */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Primary Trigger
                 </label>
                 <input
@@ -430,42 +506,45 @@ export default function AdminProducts() {
                   value={formData.primaryTrigger}
                   onChange={(e) => setFormData({ ...formData, primaryTrigger: e.target.value })}
                   placeholder="e.g., Birth of first child"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Description (Optional)
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   placeholder="Detailed description of this product/persona..."
                 />
               </div>
 
               {/* Features */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Key Features (one per line)
                 </label>
                 <textarea
                   value={formData.features}
                   onChange={(e) => setFormData({ ...formData, features: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                   placeholder="Income replacement&#10;Affordable premiums&#10;Flexible terms"
                 />
               </div>
 
               {/* Coverage Amounts */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Coverage Amounts (comma-separated)
                 </label>
                 <input
@@ -473,13 +552,14 @@ export default function AdminProducts() {
                   value={formData.coverageAmounts}
                   onChange={(e) => setFormData({ ...formData, coverageAmounts: e.target.value })}
                   placeholder="100000, 250000, 500000, 1000000"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                 />
               </div>
 
               {/* Term Lengths */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block font-semibold mb-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
                   Term Lengths (comma-separated)
                 </label>
                 <input
@@ -487,7 +567,8 @@ export default function AdminProducts() {
                   value={formData.termLengths}
                   onChange={(e) => setFormData({ ...formData, termLengths: e.target.value })}
                   placeholder="10 years, 20 years, 30 years"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border focus:ring-2 focus:ring-primary focus:border-transparent"
+                  style={{ borderRadius: RADIUS.input, borderColor: COLORS.gray[300] }}
                 />
               </div>
 
@@ -495,7 +576,13 @@ export default function AdminProducts() {
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-primary text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold order-1 sm:order-none"
+                  className="flex-1 text-white font-semibold transition-all order-1 sm:order-none"
+                  style={{
+                    background: ADMIN_GRADIENT,
+                    padding: '12px 24px',
+                    borderRadius: RADIUS.button,
+                    boxShadow: SHADOW.level2,
+                  }}
                 >
                   {editingProduct ? "Update Product" : "Add Product"}
                 </button>
@@ -505,15 +592,21 @@ export default function AdminProducts() {
                     setShowModal(false);
                     resetForm();
                   }}
-                  className="px-4 md:px-6 py-2.5 md:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold order-2 sm:order-none"
+                  className="font-semibold transition-colors order-2 sm:order-none"
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: RADIUS.button,
+                    border: `1px solid ${COLORS.gray[300]}`,
+                    color: COLORS.gray[700],
+                  }}
                 >
                   Cancel
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </AdminLoungeLayout>
   );
 }

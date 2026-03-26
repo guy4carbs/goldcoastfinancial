@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Upload, Trash2, Copy, Check, FolderOpen } from "lucide-react";
+import { Upload, Trash2, Copy, Check, FolderOpen, Image } from "lucide-react";
+import { motion } from "framer-motion";
 import { uploadImage, listImages, deleteImage, UploadedImage } from "@/lib/storageUtils";
 import { toast } from "sonner";
-import AdminNav from "@/components/AdminNav";
+import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
+import { AdminPageHero, AdminGlassCard, AdminStaggerContainer, AdminEmptyState, ADMIN_GRADIENT } from "@/components/admin/AdminHeritagePrimitives";
+import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
 
 export default function AdminImages() {
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -88,20 +91,18 @@ export default function AdminImages() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <div className="flex-1 py-4 md:py-6 lg:py-8 pt-[72px] lg:pt-4 md:lg:pt-6 lg:!pt-8">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          {/* Header */}
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Image CDN Manager</h1>
-            <p className="text-sm md:text-base text-gray-600">Upload and manage images for Heritage website</p>
-          </div>
+    <AdminLoungeLayout breadcrumbs={[{ label: 'Images' }]}>
+      <AdminStaggerContainer className="max-w-7xl mx-auto px-4 md:px-6">
+          {/* Hero */}
+          <AdminPageHero
+            icon={Image}
+            title="Image CDN Manager"
+            subtitle="Upload and manage images for Heritage website"
+          />
 
         {/* Folder Selector */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <AdminGlassCard>
+          <label className="block font-medium mb-3" style={{ fontSize: TYPE.meta, color: COLORS.gray[700] }}>
             Select Folder
           </label>
           <div className="flex gap-2 flex-wrap">
@@ -109,72 +110,100 @@ export default function AdminImages() {
               <button
                 key={folder.value}
                 onClick={() => setSelectedFolder(folder.value)}
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  selectedFolder === folder.value
-                    ? "bg-[#292966] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className="px-4 py-2 font-medium transition-all"
+                style={{
+                  borderRadius: RADIUS.button,
+                  ...(selectedFolder === folder.value
+                    ? { background: ADMIN_GRADIENT, color: 'white', boxShadow: SHADOW.glow.slate }
+                    : { ...GLASS.css.light, color: COLORS.gray[700] }),
+                }}
               >
                 <FolderOpen className="w-4 h-4 inline mr-2" />
                 {folder.label}
               </button>
             ))}
           </div>
-        </div>
+        </AdminGlassCard>
 
         {/* Upload Area */}
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          className="bg-white rounded-lg shadow-sm p-6 md:p-12 mb-4 md:mb-6 border-2 border-dashed border-gray-300 hover:border-[#292966] transition-colors"
-        >
-          <div className="text-center">
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {uploading ? "Uploading..." : "Upload Images"}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Drag and drop images here, or click to select
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => handleFileSelect(e.target.files)}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="bg-[#292966] hover:bg-[#1E1E4D] text-white px-6 py-3 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploading ? "Uploading..." : "Select Files"}
-            </button>
+        <AdminGlassCard style={{ padding: '48px 24px' }}>
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            className="transition-colors"
+            style={{
+              border: `2px dashed ${GLASS.border}`,
+              borderRadius: RADIUS.card,
+              padding: '48px 24px',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = COLORS.lounges.admin.dark)}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = GLASS.border)}
+          >
+            <div className="text-center">
+              <Upload className="w-12 h-12 mx-auto mb-4" style={{ color: COLORS.gray[400] }} />
+              <h3 className="font-semibold mb-2" style={{ fontSize: TYPE.title, color: COLORS.gray[900] }}>
+                {uploading ? "Uploading..." : "Upload Images"}
+              </h3>
+              <p className="mb-4" style={{ fontSize: TYPE.body, color: COLORS.gray[600] }}>
+                Drag and drop images here, or click to select
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleFileSelect(e.target.files)}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: ADMIN_GRADIENT,
+                  padding: '12px 24px',
+                  borderRadius: RADIUS.button,
+                  boxShadow: SHADOW.level2,
+                }}
+              >
+                {uploading ? "Uploading..." : "Select Files"}
+              </button>
+            </div>
           </div>
-        </div>
+        </AdminGlassCard>
 
         {/* Image Grid */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+        <AdminGlassCard>
+          <h2 className="font-semibold mb-4" style={{ fontSize: TYPE.title, color: COLORS.gray[900] }}>
             Images in {folders.find((f) => f.value === selectedFolder)?.label}
-            <span className="text-gray-500 text-sm ml-2">({images.length})</span>
+            <span className="ml-2" style={{ fontSize: TYPE.meta, color: COLORS.gray[500] }}>({images.length})</span>
           </h2>
 
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">Loading images...</p>
+              <p style={{ color: COLORS.gray[500] }}>Loading images...</p>
             </div>
           ) : images.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No images in this folder yet</p>
-            </div>
+            <AdminEmptyState
+              icon={Image}
+              title="No images in this folder yet"
+              description="Upload images using the drop zone above"
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {images.map((image) => (
-                <div
+                <motion.div
                   key={image.path}
-                  className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  variants={fadeInUp}
+                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                  className="overflow-hidden"
+                  style={{
+                    ...GLASS.css.light,
+                    borderRadius: RADIUS.card,
+                    border: `1px solid ${GLASS.border}`,
+                    boxShadow: SHADOW.card,
+                  }}
                 >
                   {/* Image Preview */}
                   <div className="aspect-video bg-gray-100 relative">
@@ -186,8 +215,8 @@ export default function AdminImages() {
                   </div>
 
                   {/* Image Info */}
-                  <div className="p-4">
-                    <p className="text-sm font-medium text-gray-900 mb-2 truncate" title={image.name}>
+                  <div style={{ padding: GRID.spacing.md }}>
+                    <p className="font-medium mb-2 truncate" style={{ fontSize: TYPE.meta, color: COLORS.gray[900] }} title={image.name}>
                       {image.name}
                     </p>
 
@@ -195,7 +224,13 @@ export default function AdminImages() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => copyToClipboard(image.url)}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: RADIUS.input,
+                          ...GLASS.css.light,
+                          color: COLORS.gray[700],
+                        }}
                       >
                         {copiedUrl === image.url ? (
                           <>
@@ -211,24 +246,24 @@ export default function AdminImages() {
                       </button>
                       <button
                         onClick={() => handleDelete(image)}
-                        className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-colors"
+                        className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                        style={{ borderRadius: RADIUS.input }}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
                     {/* URL Preview */}
-                    <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600 truncate" title={image.url}>
+                    <div className="mt-2 p-2 truncate" style={{ background: COLORS.gray[50], borderRadius: RADIUS.input, fontSize: TYPE.caption, color: COLORS.gray[600] }} title={image.url}>
                       {image.url}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
-        </div>
-        </div>
-      </div>
-    </div>
+        </AdminGlassCard>
+      </AdminStaggerContainer>
+    </AdminLoungeLayout>
   );
 }

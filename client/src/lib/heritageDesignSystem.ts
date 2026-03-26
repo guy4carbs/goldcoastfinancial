@@ -99,6 +99,7 @@ export const SHADOW = {
     cyan: '0 4px 14px rgba(6, 182, 212, 0.25)',
     rose: '0 4px 14px rgba(244, 63, 94, 0.25)',
     teal: '0 4px 14px rgba(20, 184, 166, 0.25)',
+    slate: '0 4px 14px rgba(100, 116, 139, 0.25)',
   },
 } as const;
 
@@ -286,6 +287,7 @@ export const COLORS = {
     executive: { light: '#fffbeb', main: '#f59e0b', dark: '#b45309' },
     client: { light: '#f5f3ff', main: '#7c3aed', dark: '#5b21b6' },
     marketing: { light: '#fff1f2', main: '#f43f5e', dark: '#be123c' },
+    admin: { light: '#f8fafc', main: '#64748b', dark: '#334155' },
   },
   // Semantic colors
   semantic: {

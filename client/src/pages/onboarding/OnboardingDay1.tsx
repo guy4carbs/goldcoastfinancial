@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingLoungeLayout } from "@/components/agent/OnboardingLoungeLayout";
+import { AgentPageHero } from "@/components/agent/primitives/AgentPageHero";
+import { AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives/AgentStatCard";
 import {
   Rocket,
   CheckCircle2,
@@ -16,10 +18,8 @@ import {
   Clock,
   Zap,
   ListChecks,
-  TrendingUp,
   Award,
   Trophy,
-  Sparkles,
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,11 +30,10 @@ import {
   SHADOW,
   MOTION,
   COLORS,
-  GLASS,
   fadeInUp,
   staggerContainer,
   scaleIn,
-} from "@/lib/onboardingDesignSystem";
+} from "@/lib/heritageDesignSystem";
 import { TaskContentModal } from "@/components/onboarding/TaskContentModal";
 import { getTaskContent } from "@/data/onboardingTaskContent";
 import { useDayProgress } from "@/hooks/useOnboardingProgress";
@@ -55,32 +54,32 @@ interface Task {
 const SECTIONS = {
   welcome: {
     id: "welcome",
-    title: "Welcome & Account Setup",
-    subtitle: "Get started with your Heritage Life account",
+    title: "Set Up Your Account",
+    subtitle: "Get your profile, security, and notifications ready to go",
     icon: Rocket,
   },
   admin: {
     id: "admin",
-    title: "Administrative Requirements",
-    subtitle: "Complete required paperwork and tool setup",
+    title: "Lock In Your Contracts",
+    subtitle: "Verify paperwork and activate your carrier credentials",
     icon: FileText,
   },
   crm: {
     id: "crm",
-    title: "CRM Training",
-    subtitle: "Learn to manage your client relationships",
+    title: "Activate Your CRM",
+    subtitle: "Your command center for leads, calls, and pipeline tracking",
     icon: Settings,
   },
   products: {
     id: "products",
-    title: "Product Knowledge Basics",
-    subtitle: "Introduction to Heritage Life insurance products",
+    title: "Know Your Products",
+    subtitle: "Learn the four core product lines you will sell",
     icon: Award,
   },
   script: {
     id: "script",
-    title: "Script Introduction",
-    subtitle: "Get familiar with the Heritage sales methodology",
+    title: "Preview the Sales Script",
+    subtitle: "See the proven structure you will master on Day 2",
     icon: FileText,
   },
 };
@@ -89,8 +88,8 @@ const day1Tasks: Task[] = [
   // Section 1: Welcome & Account Setup
   {
     id: "welcome-video",
-    title: "Watch Welcome Video",
-    description: "Meet our leadership team and learn about Heritage Life's mission",
+    title: "Watch Your Welcome Video",
+    description: "Meet the leadership team and see what top Heritage agents achieve",
     type: "video",
     duration: "5 min",
     xp: 50,
@@ -100,8 +99,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "complete-profile",
-    title: "Complete Your Profile",
-    description: "Add your photo, contact information, and bio",
+    title: "Set Up Your Agent Profile",
+    description: "Add your photo, bio, and contact info so clients can find you",
     type: "form",
     duration: "10 min",
     xp: 75,
@@ -111,8 +110,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "setup-2fa",
-    title: "Set Up Two-Factor Authentication",
-    description: "Secure your account with 2FA for compliance",
+    title: "Verify Your Phone Number",
+    description: "Confirm your mobile number with a verification code to secure your account",
     type: "action",
     duration: "5 min",
     xp: 100,
@@ -122,8 +121,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "tour-portal",
-    title: "Tour the Agent Portal",
-    description: "Interactive walkthrough of all portal features",
+    title: "Explore the Agent Portal",
+    description: "Walk through every tool you will use daily to manage your book of business",
     type: "video",
     duration: "10 min",
     xp: 50,
@@ -133,8 +132,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "meet-team",
-    title: "Meet Your Team",
-    description: "Learn about your manager, mentor, and support team",
+    title: "Meet Your Support Team",
+    description: "Know your manager, mentor, and who to call when you need help",
     type: "read",
     duration: "5 min",
     xp: 50,
@@ -144,8 +143,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "setup-notifications",
-    title: "Configure Notifications",
-    description: "Set up email and push notification preferences",
+    title: "Turn On Notifications",
+    description: "Set up alerts so you never miss a lead or important update",
     type: "action",
     duration: "5 min",
     xp: 25,
@@ -156,20 +155,9 @@ const day1Tasks: Task[] = [
 
   // Section 2: Administrative Requirements
   {
-    id: "sign-nda",
-    title: "Sign NDA Agreement",
-    description: "Review and digitally sign the Non-Disclosure Agreement",
-    type: "form",
-    duration: "5 min",
-    xp: 50,
-    completed: false,
-    required: true,
-    section: "admin",
-  },
-  {
     id: "contracts-verification",
-    title: "Contracts Sent Verification",
-    description: "Confirm your agent contract has been received and is processing",
+    title: "Verify Your Contracts",
+    description: "Confirm your agent contract is received and processing with carriers",
     type: "action",
     duration: "5 min",
     xp: 50,
@@ -179,8 +167,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "toolkit-setup",
-    title: "Insurance Toolkits Credentials Setup",
-    description: "Set up your email and password for carrier toolkits access",
+    title: "Set Up Carrier Toolkits",
+    description: "Create your login credentials to access carrier quoting and e-apps",
     type: "action",
     duration: "15 min",
     xp: 100,
@@ -190,8 +178,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "contract-status",
-    title: "Track Contract Status",
-    description: "Learn how to check the status of your contracts and appointments",
+    title: "Check Appointment Status",
+    description: "Learn to track your carrier appointments so you know when you can sell",
     type: "action",
     duration: "5 min",
     xp: 25,
@@ -203,8 +191,8 @@ const day1Tasks: Task[] = [
   // Section 3: CRM Training
   {
     id: "crm-activation",
-    title: "CRM Account Activation",
-    description: "Activate your CRM account and set up your login credentials",
+    title: "Activate Your CRM",
+    description: "Set up your login and get your pipeline dashboard ready",
     type: "action",
     duration: "5 min",
     xp: 50,
@@ -214,8 +202,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "crm-tour",
-    title: "CRM Navigation Tour",
-    description: "Video walkthrough of the CRM interface and key features",
+    title: "Navigate the CRM",
+    description: "Watch a walkthrough of the interface you will use to track every lead and deal",
     type: "video",
     duration: "15 min",
     xp: 100,
@@ -225,8 +213,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "crm-functions",
-    title: "CRM Basic Functions Training",
-    description: "Learn to add contacts, log calls, and manage your pipeline",
+    title: "Master CRM Basics",
+    description: "Add contacts, log calls, and move leads through your sales pipeline",
     type: "module",
     duration: "15 min",
     xp: 100,
@@ -238,8 +226,8 @@ const day1Tasks: Task[] = [
   // Section 4: Product Knowledge Basics
   {
     id: "whole-life-basics",
-    title: "Whole Life Insurance Basics",
-    description: "Introduction to permanent life insurance with cash value accumulation",
+    title: "Whole Life Overview",
+    description: "Understand permanent coverage with cash value — a cornerstone product for families",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -249,8 +237,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "term-life-basics",
-    title: "Term Life Insurance Basics",
-    description: "Introduction to affordable temporary coverage options",
+    title: "Term Life Overview",
+    description: "Learn affordable temporary coverage — the easiest product to sell and close",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -260,8 +248,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "iul-basics",
-    title: "Indexed Universal Life (IUL) Basics",
-    description: "Introduction to flexible permanent coverage with market-linked growth",
+    title: "IUL Overview",
+    description: "Explore flexible permanent coverage with market-linked growth potential",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -271,8 +259,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "annuities-basics",
-    title: "Annuities Basics",
-    description: "Introduction to guaranteed income products for retirement",
+    title: "Annuities Overview",
+    description: "Learn guaranteed income products that protect your clients' retirement",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -282,8 +270,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "products-quiz",
-    title: "Day 1 Products Quiz",
-    description: "Test your understanding of the four core product types",
+    title: "Product Knowledge Check",
+    description: "Prove you understand all four product lines before moving forward",
     type: "quiz",
     duration: "5 min",
     xp: 50,
@@ -295,8 +283,8 @@ const day1Tasks: Task[] = [
   // Section 5: Script Introduction
   {
     id: "script-philosophy",
-    title: "Heritage Script Philosophy",
-    description: "Understand the consultative approach behind Heritage's proven scripts",
+    title: "Why This Script Works",
+    description: "See the consultative approach that drives Heritage's top producers",
     type: "video",
     duration: "10 min",
     xp: 75,
@@ -306,8 +294,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "script-library",
-    title: "Script Library Overview",
-    description: "Tour the script library and learn how to access different scenarios",
+    title: "Browse the Script Library",
+    description: "Find scripts for every scenario — cold calls, referrals, and follow-ups",
     type: "read",
     duration: "10 min",
     xp: 50,
@@ -317,8 +305,8 @@ const day1Tasks: Task[] = [
   },
   {
     id: "script-structure",
-    title: "Script Structure Breakdown Preview",
-    description: "Preview the 6-part script structure you'll master on Day 2",
+    title: "Preview the 6-Part Script",
+    description: "Get a first look at the complete script structure you will master tomorrow",
     type: "module",
     duration: "10 min",
     xp: 75,
@@ -482,161 +470,30 @@ export default function OnboardingDay1() {
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        style={{ gap: GRID.spacing.md }}
-        className="flex flex-col"
+        className="space-y-6"
       >
-        {/* Header - Hero Card with Enhanced Visuals */}
-        <motion.div
-          variants={fadeInUp}
-          transition={{ duration: MOTION.duration.normal, ease: MOTION.easing }}
-        >
-          <Card
-            className="bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white border-0 overflow-hidden relative"
-            style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
-          >
-            {/* Decorative pattern overlay */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-                backgroundSize: '24px 24px',
-              }}
-            />
-            {/* Floating decorative circles */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-sm" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-md" />
-            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-purple-300/15 rounded-full blur-sm" />
+        {/* Hero */}
+        <AgentPageHero
+          icon={Rocket}
+          title="Day 1: Welcome to Heritage"
+          subtitle="Set up your account, learn the tools, and take your first steps toward production"
+        />
 
-            <CardContent style={{ padding: GRID.spacing.lg }} className="relative">
-              <div className="flex items-start" style={{ gap: GRID.spacing.md }}>
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    type: "spring",
-                    damping: 15,
-                    stiffness: 200,
-                    delay: 0.2
-                  }}
-                  className="bg-white/20 backdrop-blur-md flex items-center justify-center"
-                  style={{
-                    width: GRID.spacing.xxxxl,
-                    height: GRID.spacing.xxxxl,
-                    borderRadius: RADIUS.card,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  <Rocket style={{ width: GRID.spacing.xl, height: GRID.spacing.xl }} className="text-amber-200" />
-                </motion.div>
-                <div className="flex-1">
-                  <Badge
-                    className="bg-white/25 text-white border-0 backdrop-blur-sm font-medium"
-                    style={{ marginBottom: GRID.spacing.xs, padding: '4px 12px' }}
-                  >
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Day 1 of 30
-                  </Badge>
-                  <h1
-                    className="font-bold tracking-tight text-white"
-                    style={{ fontSize: TYPE.display, marginBottom: GRID.spacing.xs, lineHeight: 1.1 }}
-                  >
-                    Welcome & Setup
-                  </h1>
-                  <p style={{ fontSize: TYPE.body, lineHeight: 1.5 }} className="text-white/90 max-w-xl">
-                    Get started with Heritage Life! Complete your profile, learn the basics, and set up your account for success.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Progress Stats Grid - Enhanced with Glass Morphism */}
-        <motion.div
-          variants={fadeInUp}
-          className="grid grid-cols-3"
-          style={{ gap: GRID.spacing.sm }}
-        >
-          {[
-            {
-              value: `${completedCount}/${totalTasks}`,
-              label: "Tasks Complete",
-              gradient: `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.violet[600]} 100%)`,
-              icon: ListChecks,
-              bgGlow: COLORS.primary.violet[100],
-            },
-            {
-              value: `${progress}%`,
-              label: "Progress",
-              gradient: `linear-gradient(135deg, ${COLORS.primary.purple[500]} 0%, ${COLORS.primary.purple[600]} 100%)`,
-              icon: TrendingUp,
-              bgGlow: COLORS.primary.purple[100],
-            },
-            {
-              value: totalXP,
-              label: "XP Earned",
-              gradient: `linear-gradient(135deg, ${COLORS.accent.amber[500]} 0%, ${COLORS.accent.amber[600]} 100%)`,
-              icon: Zap,
-              bgGlow: COLORS.accent.amber[100],
-            },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-              transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-            >
-              <Card
-                className="relative overflow-hidden border-0"
-                style={{
-                  borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card,
-                  background: GLASS.background,
-                  backdropFilter: `blur(${GLASS.blur}px)`,
-                  WebkitBackdropFilter: `blur(${GLASS.blur}px)`,
-                }}
-              >
-                {/* Subtle gradient glow in background */}
-                <div
-                  className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-40 blur-2xl"
-                  style={{ background: stat.bgGlow }}
-                />
-                <CardContent style={{ padding: GRID.spacing.md }} className="text-center relative">
-                  <div
-                    className="mx-auto flex items-center justify-center text-white mb-3"
-                    style={{
-                      width: GRID.spacing.xl,
-                      height: GRID.spacing.xl,
-                      borderRadius: RADIUS.button,
-                      background: stat.gradient,
-                      boxShadow: `0 4px 12px ${stat.bgGlow}`,
-                    }}
-                  >
-                    <stat.icon style={{ width: GRID.spacing.md, height: GRID.spacing.md }} />
-                  </div>
-                  <div
-                    className="font-bold mb-1"
-                    style={{ fontSize: TYPE.section }}
-                  >
-                    {stat.value}
-                  </div>
-                  <p style={{ fontSize: TYPE.caption }} className="text-gray-500 font-medium">{stat.label}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* Stats */}
+        <motion.section variants={fadeInUp}>
+          <AgentStatCardGrid>
+            <AgentStatCard icon={CheckCircle2} value={`${completedCount}/${totalTasks}`} label="Tasks Done" />
+            <AgentStatCard icon={Zap} value={totalXP} label="XP Earned" />
+            <AgentStatCard icon={Clock} value="~2hrs" label="Time Left" />
+            <AgentStatCard icon={Trophy} value={`${progress}%`} label="Complete" />
+          </AgentStatCardGrid>
+        </motion.section>
 
         {/* Overall Progress Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.section variants={fadeInUp}>
           <Card
-            className="relative overflow-hidden border-0"
-            style={{
-              borderRadius: RADIUS.card,
-              boxShadow: SHADOW.card,
-              background: 'white',
-            }}
+            className="border-0 overflow-hidden"
+            style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
           >
             <CardContent style={{ padding: GRID.spacing.md }}>
               <div className="flex items-center justify-between mb-3">
@@ -670,7 +527,7 @@ export default function OnboardingDay1() {
               <GradientProgress value={progress} />
             </CardContent>
           </Card>
-        </motion.div>
+        </motion.section>
 
         {/* Task Sections - Organized by Category */}
         {(Object.keys(SECTIONS) as Array<keyof typeof SECTIONS>).map((sectionKey) => {
@@ -681,14 +538,10 @@ export default function OnboardingDay1() {
           const SectionIcon = section.icon;
 
           return (
-            <motion.div key={sectionKey} variants={fadeInUp}>
+            <motion.section key={sectionKey} variants={fadeInUp}>
               <Card
-                className="relative overflow-hidden border-0"
-                style={{
-                  borderRadius: RADIUS.card,
-                  boxShadow: SHADOW.card,
-                  background: 'white',
-                }}
+                className="border-0 overflow-hidden"
+                style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
               >
                 {/* Decorative corner accent */}
                 <div
@@ -891,7 +744,7 @@ export default function OnboardingDay1() {
                   })}
                 </CardContent>
               </Card>
-            </motion.div>
+            </motion.section>
           );
         })}
 
@@ -962,10 +815,10 @@ export default function OnboardingDay1() {
                   style={{ fontSize: TYPE.section, marginBottom: GRID.spacing.xs }}
                   className="font-bold tracking-tight text-white"
                 >
-                  Day 1 Complete!
+                  Day 1 — Done.
                 </h3>
                 <p style={{ fontSize: TYPE.body, marginBottom: GRID.spacing.md }} className="text-white/90 max-w-md mx-auto">
-                  Congratulations! You have completed all Day 1 tasks and earned {totalXP} XP. You are ready to continue your journey.
+                  You earned {totalXP} XP and your foundation is locked in. Tomorrow you learn the script that closes deals.
                 </p>
                 <div className="flex items-center justify-center" style={{ gap: GRID.spacing.sm }}>
                   <Link href="/agents/onboarding/day-2">
@@ -977,7 +830,7 @@ export default function OnboardingDay1() {
                         className="bg-white text-violet-600 hover:bg-violet-50 font-semibold shadow-lg"
                         style={{ borderRadius: RADIUS.button, height: 48, padding: '0 24px' }}
                       >
-                        Continue to Day 2
+                        Start Day 2: Script Mastery
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </motion.div>
