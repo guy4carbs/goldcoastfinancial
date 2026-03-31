@@ -245,6 +245,11 @@ const ScrollExpandMedia = ({
                         loop
                         playsInline
                         preload="auto"
+                        crossOrigin="anonymous"
+                        onCanPlay={(e) => {
+                          const v = e.currentTarget;
+                          v.play().catch(() => {});
+                        }}
                         className="w-full h-full object-cover rounded-xl"
                         style={{
                           willChange: "transform",

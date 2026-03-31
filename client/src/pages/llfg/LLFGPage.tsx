@@ -88,6 +88,7 @@ export default function LLFGPage() {
       <ScrollExpandMedia
         mediaType="video"
         mediaSrc={VIDEO_SRC}
+        posterSrc={BG_IMAGE}
         bgImageSrc={BG_IMAGE}
         title="Legacy Life"
         date="Est. 2024 · Naperville, IL"
