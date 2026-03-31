@@ -245,7 +245,6 @@ const ScrollExpandMedia = ({
                         loop
                         playsInline
                         preload="auto"
-                        crossOrigin="anonymous"
                         onCanPlay={(e) => {
                           const v = e.currentTarget;
                           v.play().catch(() => {});
