@@ -3,10 +3,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { LindyChat } from "@/components/LindyChat";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+const LLFGPage = lazy(() => import("@/pages/llfg"));
 import SecureForm from "@/pages/SecureForm";
 import QuoteView from "@/pages/QuoteView";
 import ProductGuide from "@/pages/ProductGuide";
@@ -279,6 +280,11 @@ function Router() {
         <Route path="/card/:agentId" component={PublicBusinessCard} />
         <Route path="/refer/:clientId" component={ReferralLandingPage} />
         <Route path="/refer" component={ReferralLandingPage} />
+        <Route path="/llfg">
+          <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A]" />}>
+            <LLFGPage />
+          </Suspense>
+        </Route>
         <Route path="/quote" component={Quote} />
         <Route path="/about" component={AboutUs} />
         <Route path="/about/founders" component={MeetFounders} />

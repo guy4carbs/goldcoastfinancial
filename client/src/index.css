@@ -75,6 +75,23 @@
       transform: translateZ(0) rotate(360deg);
     }
   }
+
+  /* LLFG Brand Colors */
+  --color-llfg-black: #0A0A0A;
+  --color-llfg-black-mid: #111111;
+  --color-llfg-black-card: #1A1A1A;
+  --color-llfg-gold: #B8963C;
+  --color-llfg-gold-light: #E8C96B;
+  --color-llfg-gold-muted: #8A6E28;
+  --font-llfg-heading: 'Playfair Display', serif;
+  --font-llfg-body: 'DM Sans', sans-serif;
+
+  --animate-llfg-marquee: llfg-marquee 40s linear infinite;
+
+  @keyframes llfg-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
 }
 
 /* Gold Coast Financial Partners Theme - Purple & Cream */
