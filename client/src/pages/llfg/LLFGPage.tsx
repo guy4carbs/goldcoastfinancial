@@ -18,7 +18,7 @@ const SANS = "'DM Sans', sans-serif";
 const BG_IMAGE =
   "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=80";
 const VIDEO_SRC =
-  "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2F1774986667673-hf_20260331_190329_ce592e5a-362a-47f7-a819-ab2e634a41d9.mp4?alt=media&token=6d52c2cd-3cc6-4c6d-8ffb-03c61da891aa";
+  "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2Fllfg-hero-compressed.mp4?alt=media&token=2c58edab-fa94-4a47-922c-d39662e97a95";
 
 
 export default function LLFGPage() {
