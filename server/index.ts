@@ -76,7 +76,7 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       scriptSrc: ["'self'"],
       connectSrc: ["'self'", "wss:", "https://api.openai.com", "wss://*.telnyx.com", "https://*.telnyx.com", "https://api.telnyx.com"],
-      mediaSrc: ["'self'", "https://*.telnyx.com"],
+      mediaSrc: ["'self'", "https://*.telnyx.com", "https://firebasestorage.googleapis.com"],
       frameSrc: ["'self'"],
       objectSrc: ["'none'"],
     },
