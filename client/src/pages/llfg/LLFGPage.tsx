@@ -18,7 +18,7 @@ const SANS = "'DM Sans', sans-serif";
 const BG_IMAGE =
   "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=80";
 const VIDEO_SRC =
-  "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2Fllfg-hero-compressed.mp4?alt=media&token=2c58edab-fa94-4a47-922c-d39662e97a95";
+  "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/videos%2Fgeneral%2Fllfg-hero-fast.mp4?alt=media&token=4ef46856-7d68-4af0-8a81-19e33300ce4b";
 
 
 export default function LLFGPage() {
@@ -27,9 +27,18 @@ export default function LLFGPage() {
   useEffect(() => {
     document.title = "Legacy Life Financial Group | LLFG";
     window.scrollTo(0, 0);
+
+    // Preload video so it starts downloading immediately
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "video";
+    link.href = VIDEO_SRC;
+    document.head.appendChild(link);
+
     return () => {
       document.title =
         "Heritage Life Solutions | Protecting Families Nationwide";
+      link.remove();
     };
   }, []);
 
