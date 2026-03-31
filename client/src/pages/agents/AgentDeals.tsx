@@ -299,11 +299,17 @@ export default function AgentDeals() {
                           {deal.carrier && (
                             <span className="text-gray-600">{deal.carrier}</span>
                           )}
-                          {deal.carrier && (deal.client_name || deal.clientName) && (
-                            <span className="mx-1 text-gray-300">&middot;</span>
+                          {(deal.product_type || deal.productType) && (
+                            <>
+                              <span className="mx-1 text-gray-300">&middot;</span>
+                              <span className="text-violet-500 font-medium">{deal.product_type || deal.productType}</span>
+                            </>
                           )}
                           {(deal.client_name || deal.clientName) && (
-                            <span className="text-gray-400">{deal.client_name || deal.clientName}</span>
+                            <>
+                              <span className="mx-1 text-gray-300">&middot;</span>
+                              <span className="text-gray-400">{deal.client_name || deal.clientName}</span>
+                            </>
                           )}
                         </p>
                       </div>

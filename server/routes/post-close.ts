@@ -10,6 +10,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { Roles } from "../types/permissions";
 import { sendPortalMessage, sendPostCloseWelcomeEmail } from "../gmail";
 import { sendSms, isSmsAvailable } from "../services/smsService";
+import { recordCommissions } from "../services/commissionRecordService";
 import { queueAiWelcomeCall, schedulePostCloseFollowup, addJob } from "../services/jobQueue";
 import { isAiCallAvailable, parseRetellWebhook } from "../services/aiCallService";
 import { convertLeadToClient } from "../services/leadConversionService";
@@ -313,7 +314,15 @@ router.post("/:leadId/finalize-policy", async (req: Request, res: Response) => {
       }
     }
 
-    // 5. Mark workflow step complete
+    // 5. Calculate and record waterfall commissions
+    if (policyId && monthlyPremium && parseFloat(monthlyPremium) > 0) {
+      const annualPremium = parseFloat(monthlyPremium) * 12;
+      recordCommissions(policyId, userId, annualPremium, "policy").catch((err) =>
+        console.error("[PostClose] Commission recording failed:", err)
+      );
+    }
+
+    // 6. Mark workflow step complete
     await pool.query(`
       UPDATE post_close_workflows SET book_of_business_updated_at = NOW(), updated_at = NOW()
       WHERE lead_id = $1 AND agent_user_id = $2::text

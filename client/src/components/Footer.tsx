@@ -133,6 +133,7 @@ export default function Footer() {
               <li><a href="/careers" className="hover:text-primary">Careers</a></li>
               <li><a href="/contact" className="hover:text-primary">Contact</a></li>
               <li><a href="/agents/become-an-agent" className="hover:text-primary">Become an Agent</a></li>
+              <li><a href="/covenant-risk" className="hover:text-primary">Covenant Risk</a></li>
             </ul>
           </div>
 

@@ -1,0 +1,86 @@
+/* Font family classes */
+.font-playfair  { font-family: 'Playfair Display', serif; }
+.font-cormorant { font-family: 'Cormorant Garamond', serif; }
+.font-syne      { font-family: 'Syne', sans-serif; }
+.font-dm        { font-family: 'DM Sans', sans-serif; }
+
+/* Base body typography */
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-size: var(--font-body);
+  font-weight: 300;
+  line-height: var(--lh-body);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-rendering: optimizeLegibility;
+}
+
+/* Heading defaults */
+h1, h2, h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  line-height: var(--lh-heading);
+  letter-spacing: var(--ls-heading);
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+  max-width: 72ch;
+}
+
+h1 { font-size: var(--font-h1); }
+h2 { font-size: var(--font-h2); }
+h3 { font-size: var(--font-h3); }
+
+/* Hero headline — Playfair Display ONLY */
+.hero-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: var(--font-hero);
+  font-weight: 400;
+  line-height: var(--lh-hero);
+  letter-spacing: var(--ls-hero);
+  color: var(--color-text-primary);
+}
+
+/* Label / Eyebrow — Syne */
+.text-label {
+  font-family: 'Syne', sans-serif;
+  font-size: var(--font-label);
+  font-weight: 600;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  line-height: var(--lh-label);
+}
+
+/* Body variants */
+.text-body-lg {
+  font-family: 'DM Sans', sans-serif;
+  font-size: var(--font-body-lg);
+  font-weight: 300;
+  line-height: var(--lh-body);
+}
+
+.text-body-sm {
+  font-family: 'DM Sans', sans-serif;
+  font-size: var(--font-body-sm);
+  font-weight: 300;
+  line-height: var(--lh-body);
+}
+
+.text-caption {
+  font-family: 'DM Sans', sans-serif;
+  font-size: var(--font-caption);
+  font-weight: 300;
+}
+
+/* Gold italic — for the "Covenant" concept rule */
+.covenant-word {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--color-gold);
+}

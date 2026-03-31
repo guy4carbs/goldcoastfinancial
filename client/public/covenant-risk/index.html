@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Covenant Risk — We Engineer Certainty</title>
+  <meta name="description" content="Covenant Risk is a risk engineering and advisory firm. We identify, quantify, and eliminate financial uncertainty.">
+  <base href="/covenant-risk/">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/covenant-risk/img/covenant-risk-mark_1.svg">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Covenant Risk — We Engineer Certainty">
+  <meta property="og:description" content="Risk engineering and advisory. We identify, quantify, and eliminate financial uncertainty.">
+  <meta property="og:url" content="https://heritagels.org/covenant-risk/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Covenant Risk — We Engineer Certainty">
+  <meta name="twitter:description" content="Risk engineering and advisory. We identify, quantify, and eliminate financial uncertainty.">
+
+  <!-- Step 1: Preconnect for font performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Step 2: Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Syne:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+
+  <!-- Step 3: CSS Reset -->
+  <link rel="stylesheet" href="css/modern-normalize.css">
+
+  <!-- Step 4: Site CSS in this exact order -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/typography.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/scrolly.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body class="page-loading">
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<!-- Skip to content (accessibility) -->
+<a href="#hero" class="skip-link">Skip to content</a>
+
+<!-- Background Glows -->
+<div class="bg-glow" aria-hidden="true">
+  <div class="glow glow-purple"></div>
+  <div class="glow glow-royal"></div>
+  <div class="glow glow-gold"></div>
+</div>
+<div class="bg-noise" aria-hidden="true"></div>
+
+<!-- ============================================
+     1. NAV
+     ============================================ -->
+<nav class="nav" id="nav">
+  <a href="#hero" class="nav-logo" aria-label="Covenant Risk">
+    <svg class="nav-logo-img" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="78" fill="none" stroke="#B8962E" stroke-width="1.7"/>
+      <circle cx="100" cy="100" r="69" fill="none" stroke="#B8962E" stroke-width="0.55" opacity="0.36"/>
+      <line x1="100" y1="13" x2="100" y2="4" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <line x1="100" y1="187" x2="100" y2="196" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <line x1="13" y1="100" x2="4" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <line x1="187" y1="100" x2="196" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <circle cx="100" cy="22" r="5" fill="none" stroke="#B8962E" stroke-width="1.5"/>
+      <circle cx="100" cy="22" r="2" fill="#B8962E"/>
+      <line x1="100" y1="27" x2="56" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="56" y1="157" x2="50" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="100" y1="27" x2="144" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="144" y1="157" x2="150" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="69" y1="102" x2="131" y2="102" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+      <line x1="69" y1="95" x2="69" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+      <line x1="131" y1="95" x2="131" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+      <polygon points="100,95 105,102 100,109 95,102" fill="#B8962E"/>
+      <line x1="90" y1="64" x2="79" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <line x1="77" y1="109" x2="66" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <line x1="110" y1="64" x2="121" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <line x1="123" y1="109" x2="134" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <path d="M 84,43 A 20,20 0 0 1 116,43" fill="none" stroke="#B8962E" stroke-width="0.8" opacity="0.45"/>
+      <line x1="100" y1="27" x2="100" y2="95" stroke="#B8962E" stroke-width="0.7" opacity="0.3" stroke-dasharray="3,3"/>
+      <line x1="210" y1="35" x2="210" y2="165" stroke="#B8962E" stroke-width="0.6" opacity="0.28"/>
+      <text x="228" y="107" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="300" fill="#FFFFFF" letter-spacing="3">COVENANT</text>
+      <line x1="230" y1="120" x2="595" y2="120" stroke="#B8962E" stroke-width="0.75"/>
+      <text x="230" y="155" font-family="'Syne',sans-serif" font-size="26" font-weight="600" fill="#B8962E" letter-spacing="14">RISK</text>
+    </svg>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#difference">What We Do</a></li>
+    <li><a href="#process">Our Process</a></li>
+    <li><a href="#who-we-serve">Who We Serve</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact" class="btn-nav">Start a Conversation</a></li>
+  </ul>
+
+  <button class="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</nav>
+
+<!-- Mobile nav dropdown -->
+<div class="nav-mobile" id="nav-mobile">
+  <a href="#difference">What We Do</a>
+  <a href="#process">Our Process</a>
+  <a href="#who-we-serve">Who We Serve</a>
+  <a href="#about">About</a>
+  <a href="#contact">Start a Conversation</a>
+</div>
+
+<main>
+
+<!-- ============================================
+     2. HERO
+     ============================================ -->
+<section id="hero" class="section">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-compass" aria-hidden="true">
+    <svg class="hero-compass-img" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="78" fill="none" stroke="#B8962E" stroke-width="1.7"/>
+      <circle cx="100" cy="100" r="69" fill="none" stroke="#B8962E" stroke-width="0.55" opacity="0.36"/>
+      <line x1="100" y1="13" x2="100" y2="4" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <line x1="100" y1="187" x2="100" y2="196" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <line x1="13" y1="100" x2="4" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <line x1="187" y1="100" x2="196" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+      <circle cx="100" cy="22" r="5" fill="none" stroke="#B8962E" stroke-width="1.5"/>
+      <circle cx="100" cy="22" r="2" fill="#B8962E"/>
+      <line x1="100" y1="27" x2="56" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="56" y1="157" x2="50" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="100" y1="27" x2="144" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="144" y1="157" x2="150" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+      <line x1="69" y1="102" x2="131" y2="102" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+      <line x1="69" y1="95" x2="69" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+      <line x1="131" y1="95" x2="131" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+      <polygon points="100,95 105,102 100,109 95,102" fill="#B8962E"/>
+      <line x1="90" y1="64" x2="79" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <line x1="77" y1="109" x2="66" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <line x1="110" y1="64" x2="121" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <line x1="123" y1="109" x2="134" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+      <path d="M 84,43 A 20,20 0 0 1 116,43" fill="none" stroke="#B8962E" stroke-width="0.8" opacity="0.45"/>
+      <line x1="100" y1="27" x2="100" y2="95" stroke="#B8962E" stroke-width="0.7" opacity="0.3" stroke-dasharray="3,3"/>
+    </svg>
+  </div>
+  <div class="section-inner">
+    <div class="hero-content">
+
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-text">Risk Engineering &amp; Advisory</span>
+      </div>
+
+      <h1 class="hero-headline" style="margin: 24px 0 0;">
+        We don&rsquo;t sell insurance.<br>
+        We engineer <em style="font-family:'Playfair Display',serif; font-style:italic; color:var(--color-gold);">certainty.</em>
+      </h1>
+
+      <p class="hero-sub hero-sub-text">
+        We identify, quantify, and eliminate financial uncertainty. Outcomes are structured. Policies are just one tool.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#contact" class="btn-primary">Begin Your Assessment</a>
+        <a href="#process" class="btn-ghost">See Our Process</a>
+      </div>
+    </div>
+
+    <div class="hero-scroll hero-scroll-hint">
+      <div class="scroll-line"></div>
+      <span class="hero-scroll-text">Scroll to explore</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     3. MARQUEE
+     ============================================ -->
+<section id="marquee">
+  <div class="marquee-inner">
+    <div class="marquee-track">
+      <span class="marquee-item">Income Risk</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Asset Protection</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Tax Risk</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Longevity Risk</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Liability Exposure</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Market Risk</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Business Continuity</span><span class="marquee-sep">&#10022;</span>
+      <span class="marquee-item">Legacy Planning</span><span class="marquee-sep">&#10022;</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     4. DIFFERENCE
+     ============================================ -->
+<section id="difference" class="section">
+  <div class="section-inner">
+    <div class="split-55-45">
+
+      <!-- Left column -->
+      <div>
+        <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">Our Difference</span></div>
+        <h2 class="reveal" style="margin-bottom: 24px;">Not an insurance agency. A <em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--color-gold);">risk architecture</em> firm.</h2>
+        <p class="section-body reveal">
+          Most advisors hand you a policy. We hand you a structured agreement &mdash; a <span class="covenant-word">Covenant</span> &mdash; that maps every risk in your financial life and ensures everything is already handled. A Covenant is your engineered protection plan: if anything happens, the structure is already in place.
+        </p>
+      </div>
+
+      <!-- Right column — contrast cards -->
+      <div>
+        <div class="contrast-card reveal" data-delay="0">
+          <div class="contrast-label">Traditional agents say</div>
+          <div class="contrast-item">&ldquo;Here&rsquo;s a policy for that.&rdquo;</div>
+          <div class="contrast-item">&ldquo;Get a quote in minutes.&rdquo;</div>
+          <div class="contrast-item">&ldquo;This covers you.&rdquo;</div>
+          <div class="contrast-item">&ldquo;Let me know if anything changes.&rdquo;</div>
+        </div>
+        <div class="contrast-card gold reveal" data-delay="120">
+          <div class="contrast-label">Covenant Risk says</div>
+          <div class="contrast-item">&ldquo;Here&rsquo;s what happens to your entire financial life if this occurs &mdash; and here&rsquo;s how we&rsquo;ve already handled it.&rdquo;</div>
+          <div class="contrast-item">&ldquo;Your risk is quantified. Your exposure is mapped. Your <span class="covenant-word">Covenant</span> is built.&rdquo;</div>
+          <div class="contrast-item">&ldquo;If X happens &rarr; Y is already handled.&rdquo;</div>
+          <div class="contrast-item">&ldquo;As your life grows, your <span class="covenant-word">Covenant</span> evolves with it.&rdquo;</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     5. PROCESS (Scrollytelling)
+     ============================================ -->
+<section id="process" class="section">
+  <div class="section-inner">
+
+    <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">The Covenant Process</span></div>
+    <h2 class="reveal">Six phases. One <em style="font-family:'Cormorant Garamond',serif; font-style:italic;">structured outcome.</em></h2>
+    <p class="section-body reveal">Every engagement follows the Covenant Risk Assessment&trade; framework.</p>
+
+    <div class="process-container">
+
+      <!-- LEFT: scrolling step cards -->
+      <div class="steps-column">
+
+        <div class="step" data-step="1">
+          <div class="step-num">Phase 01</div>
+          <div class="step-title">Discovery</div>
+          <div class="step-body">We map your full financial world &mdash; income, assets, debt, dependents, existing coverage. We understand your life better than most advisors ever will.</div>
+        </div>
+
+        <div class="step" data-step="2">
+          <div class="step-num">Phase 02</div>
+          <div class="step-title">Stress Test</div>
+          <div class="step-body">We walk through real-life scenarios &mdash; premature death, disability, longevity &mdash; and model the financial consequences of each. You see exactly where your plan fails.</div>
+        </div>
+
+        <div class="step" data-step="3">
+          <div class="step-num">Phase 03</div>
+          <div class="step-title">Quantification</div>
+          <div class="step-body">We assign real dollar figures to your exposure &mdash; income replacement, debt obligations, retirement gaps. Abstract fear becomes measurable reality.</div>
+        </div>
+
+        <div class="step" data-step="4">
+          <div class="step-num">Phase 04</div>
+          <div class="step-title">Covenant Design</div>
+          <div class="step-body">This is where we build your <span class="covenant-word">Covenant</span>. A structured plan: If X happens &rarr; Y is already handled. Tools are deployed. Products are secondary.</div>
+        </div>
+
+        <div class="step" data-step="5">
+          <div class="step-num">Phase 05</div>
+          <div class="step-title">Implementation</div>
+          <div class="step-body">We put the structure in place. Application, ownership, beneficiary design, funding strategy. Nothing is left to chance.</div>
+        </div>
+
+        <div class="step" data-step="6">
+          <div class="step-num">Phase 06</div>
+          <div class="step-title">Oversight</div>
+          <div class="step-body">Annual reviews, life-event adjustments, policy optimization. Your <span class="covenant-word">Covenant</span> evolves as your life evolves. This is where we separate from 99% of the industry.</div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: sticky panel -->
+      <div class="sticky-panel">
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <div class="sp-num">01</div>
+        <div class="sp-phase">Discovery</div>
+        <div class="sp-headline">Define the Exposure</div>
+        <div class="sp-desc">We map your full financial world &mdash; income, assets, debt, dependents, existing coverage. We understand your life better than most advisors ever will.</div>
+        <div class="sp-output">
+          <span class="output-label">Output</span>
+          <span class="output-value">Client Risk Snapshot</span>
+        </div>
+        <a href="#contact" class="sp-cta hidden">Begin Your Assessment</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- STATS STRIP (after Process — numbers are now earned) -->
+<section id="stats" class="section">
+  <div class="section-inner">
+    <div class="stats-grid">
+      <div class="reveal" data-delay="0">
+        <div class="stat-number" data-count="6">0</div>
+        <div class="stat-label">Phase Assessment</div>
+      </div>
+      <div class="reveal" data-delay="100">
+        <div class="stat-number" data-count="8">0</div>
+        <div class="stat-label">Risk Categories</div>
+      </div>
+      <div class="reveal" data-delay="200">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Structured Outcomes</div>
+      </div>
+      <div class="reveal" data-delay="300">
+        <div class="stat-number">&infin;</div>
+        <div class="stat-label">Ongoing Oversight</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     6. RISK TYPES (8-card grid)
+     ============================================ -->
+<section id="risk-types" class="section">
+  <div class="section-inner">
+    <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">What We Address</span></div>
+    <h2 class="reveal" style="margin-bottom: 16px;">Every exposure. Mapped and structured.</h2>
+    <p class="section-body reveal" style="margin-bottom: 48px;">We don&rsquo;t guess. We quantify. These are the eight categories of financial risk we assess in every engagement.</p>
+
+    <div class="grid-2x4">
+
+      <div class="card reveal-scale" data-delay="0">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 32V18M16 32V12M24 32V22M32 32V8"/><line x1="4" y1="36" x2="36" y2="36"/></svg>
+        <div class="card-title">Income Risk</div>
+        <div class="card-body">Your income is the engine behind everything. We model exactly what happens to your household if that engine stops &mdash; and build the structure to replace it.</div>
+        <span class="card-tag">Disability + death protection</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="80">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 4L36 12V22C36 30 28 36 20 38C12 36 4 30 4 22V12L20 4Z"/></svg>
+        <div class="card-title">Asset Protection</div>
+        <div class="card-body">Wealth isn&rsquo;t just built &mdash; it must be shielded. We identify the legal, financial, and structural vulnerabilities that leave your assets exposed.</div>
+        <span class="card-tag">Trusts + ownership structuring</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="160">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="6" width="24" height="28" rx="0"/><line x1="14" y1="14" x2="26" y2="14"/><line x1="14" y1="20" x2="26" y2="20"/><line x1="14" y1="26" x2="22" y2="26"/></svg>
+        <div class="card-title">Tax Risk</div>
+        <div class="card-body">Taxes erode wealth silently. We quantify the long-term impact and deploy strategies that legally minimize exposure across income, estate, and capital gains.</div>
+        <span class="card-tag">Tax-efficient structuring</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="240">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="20" r="16"/><path d="M20 10V20L27 27"/></svg>
+        <div class="card-title">Longevity Risk</div>
+        <div class="card-body">Living longer than your money is a real scenario. We stress-test your retirement runway and engineer guaranteed income streams that can&rsquo;t be outlived.</div>
+        <span class="card-tag">Retirement + annuity design</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="0">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 4L4 16H36L20 4Z"/><rect x="10" y="16" width="20" height="18"/><line x1="10" y1="22" x2="30" y2="22"/><line x1="10" y1="28" x2="30" y2="28"/></svg>
+        <div class="card-title">Liability Exposure</div>
+        <div class="card-body">Lawsuits, professional malpractice, personal injury claims &mdash; one event can unwind decades of wealth. We map the exposure and structure the firewall.</div>
+        <span class="card-tag">Umbrella + liability structuring</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="80">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4,28 12,20 20,24 28,12 36,16"/><circle cx="36" cy="16" r="2"/></svg>
+        <div class="card-title">Market Risk</div>
+        <div class="card-body">Markets are volatile. Your financial plan shouldn&rsquo;t be. We insulate critical protection from market exposure so your safety net never depends on timing.</div>
+        <span class="card-tag">Non-correlated protection</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="160">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="12" height="20"/><rect x="22" y="6" width="12" height="28"/><path d="M18 24H22"/></svg>
+        <div class="card-title">Business Continuity</div>
+        <div class="card-body">If a key partner exits, becomes disabled, or dies &mdash; does the business survive? We build buy-sell structures and key-person protection that keep the enterprise intact.</div>
+        <span class="card-tag">Buy-sell + key person coverage</span>
+      </div>
+
+      <div class="card reveal-scale" data-delay="240">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="12" r="6"/><circle cx="12" cy="30" r="5"/><circle cx="28" cy="30" r="5"/><line x1="16" y1="16" x2="12" y2="25"/><line x1="24" y1="16" x2="28" y2="25"/></svg>
+        <div class="card-title">Legacy Planning</div>
+        <div class="card-body">What you&rsquo;ve built should outlive you &mdash; on your terms. We engineer wealth transfer strategies that preserve assets across generations with minimal tax friction.</div>
+        <span class="card-tag">Estate + generational transfer</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     7. FLOW DIAGRAM
+     ============================================ -->
+<section id="flow" class="section">
+  <div class="section-inner">
+    <div class="section-tag reveal text-center mx-auto" style="justify-content:center;"><span class="tag-line"></span><span class="tag-text">The Journey</span></div>
+    <h2 class="reveal text-center" style="margin-bottom: 64px;">From uncertainty to structure.</h2>
+
+    <div class="flow-steps">
+
+      <div class="flow-step reveal" data-delay="0">
+        <div class="flow-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 24C10 16 14 32 18 24C22 16 26 32 30 24C34 16 38 32 42 24"/><line x1="24" y1="8" x2="24" y2="14" opacity="0.5"/><polygon points="24,6 22,10 26,10" fill="currentColor" stroke="none" opacity="0.5"/></svg>
+        </div>
+        <div class="flow-sublabel">Starting point</div>
+        <div class="flow-title">Risk</div>
+      </div>
+
+      <div class="flow-arrow reveal-fade" data-delay="100" aria-hidden="true">
+        <svg class="flow-arrow-svg" viewBox="0 0 120 24" fill="none" preserveAspectRatio="none"><line x1="0" y1="12" x2="108" y2="12" stroke="var(--color-border-gold)" stroke-width="2" class="flow-arrow-line"/><polygon points="108,6 120,12 108,18" fill="var(--color-border-gold)" class="flow-arrow-head"/></svg>
+      </div>
+
+      <div class="flow-step reveal" data-delay="150">
+        <div class="flow-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 24C4 24 12 12 24 12C36 12 44 24 44 24C44 24 36 36 24 36C12 36 4 24 4 24Z"/><circle cx="24" cy="24" r="6"/><circle cx="24" cy="24" r="2" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <div class="flow-sublabel">Revealed</div>
+        <div class="flow-title">Exposure</div>
+      </div>
+
+      <div class="flow-arrow reveal-fade" data-delay="250" aria-hidden="true">
+        <svg class="flow-arrow-svg" viewBox="0 0 120 24" fill="none" preserveAspectRatio="none"><line x1="0" y1="12" x2="108" y2="12" stroke="var(--color-border-gold)" stroke-width="2" class="flow-arrow-line"/><polygon points="108,6 120,12 108,18" fill="var(--color-border-gold)" class="flow-arrow-head"/></svg>
+      </div>
+
+      <div class="flow-step reveal" data-delay="300">
+        <div class="flow-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="24" cy="24" r="18"/><polygon points="24,8 28,24 24,40 20,24" opacity="0.8"/><line x1="6" y1="24" x2="42" y2="24" stroke-width="1" opacity="0.4"/><circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <div class="flow-sublabel">Built</div>
+        <div class="flow-title" style="font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--color-gold);">Covenant</div>
+      </div>
+
+      <div class="flow-arrow reveal-fade" data-delay="400" aria-hidden="true">
+        <svg class="flow-arrow-svg" viewBox="0 0 120 24" fill="none" preserveAspectRatio="none"><line x1="0" y1="12" x2="108" y2="12" stroke="var(--color-border-gold)" stroke-width="2" class="flow-arrow-line"/><polygon points="108,6 120,12 108,18" fill="var(--color-border-gold)" class="flow-arrow-head"/></svg>
+      </div>
+
+      <div class="flow-step reveal" data-delay="450">
+        <div class="flow-icon final">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 4L40 12V24C40 34 32 42 24 44C16 42 8 34 8 24V12L24 4Z"/><polyline points="16 24 22 30 34 18"/></svg>
+        </div>
+        <div class="flow-sublabel">Delivered</div>
+        <div class="flow-title" style="font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--color-gold);">Certainty</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     8. WHO WE SERVE
+     ============================================ -->
+<section id="who-we-serve" class="section">
+  <div class="section-inner">
+    <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">Who We Serve</span></div>
+    <h2 class="reveal" style="margin-bottom: 48px;">Built for people who think in structures, not products.</h2>
+
+    <div class="grid-2x2">
+
+      <div class="card reveal" data-delay="0">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="12" width="32" height="22"/><path d="M14 12V8H26V12"/><line x1="4" y1="22" x2="36" y2="22"/></svg>
+        <div class="card-title">Business Owners</div>
+        <div class="card-body">Your business is your largest asset &mdash; and your largest liability. We build Covenants that protect both the enterprise and the person behind it.</div>
+        <span class="card-tag">Business continuity + personal protection</span>
+      </div>
+
+      <div class="card reveal" data-delay="80">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 36L14 20L22 26L36 4"/><path d="M28 4H36V12"/></svg>
+        <div class="card-title">High-Income Earners</div>
+        <div class="card-body">You&rsquo;ve built significant income &mdash; the risk is losing it. We quantify exactly what&rsquo;s at stake and engineer a structure so nothing is left exposed.</div>
+        <span class="card-tag">Income protection + tax strategy</span>
+      </div>
+
+      <div class="card reveal" data-delay="160">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="10" r="5"/><circle cx="10" cy="22" r="4"/><circle cx="30" cy="22" r="4"/><path d="M10 28V36M20 18V36M30 28V36"/></svg>
+        <div class="card-title">Families with Assets</div>
+        <div class="card-body">You&rsquo;ve accumulated wealth across multiple vehicles. We map every exposure point across your full financial picture and structure protection accordingly.</div>
+        <span class="card-tag">Legacy planning + asset structuring</span>
+      </div>
+
+      <div class="card reveal" data-delay="240">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="20" cy="20" r="16"/><line x1="20" y1="4" x2="20" y2="12"/><line x1="20" y1="28" x2="20" y2="36"/><line x1="4" y1="20" x2="12" y2="20"/><line x1="28" y1="20" x2="36" y2="20"/><circle cx="20" cy="20" r="4"/></svg>
+        <div class="card-title">Strategic Thinkers</div>
+        <div class="card-body">You don&rsquo;t want to buy products. You want to understand your risk, see it quantified, and know it&rsquo;s handled. That&rsquo;s precisely the conversation we&rsquo;re built for.</div>
+        <span class="card-tag">Full advisory engagement</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SOCIAL PROOF
+     ============================================ -->
+<section id="social-proof" class="section">
+  <div class="section-inner">
+    <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">What Clients Experience</span></div>
+    <h2 class="reveal" style="margin-bottom: 48px;">Structured outcomes speak for themselves.</h2>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal" data-delay="0">
+        <p class="testimonial-quote">&ldquo;They found $2.4M in unstructured exposure I didn&rsquo;t know existed. For the first time, I actually understand where my risk lives &mdash; and every piece of it is handled. Not hoped for. <em>Handled.</em>&rdquo;</p>
+        <div class="testimonial-author">
+          <span class="testimonial-name">Business Owner, Private Equity</span>
+          <span class="testimonial-detail">8-figure net worth &middot; Midwest</span>
+        </div>
+      </div>
+      <div class="testimonial-card reveal" data-delay="100">
+        <p class="testimonial-quote">&ldquo;They didn&rsquo;t try to sell me anything. In 45 minutes they mapped my entire exposure, showed me three gaps I hadn&rsquo;t considered, and built a structure around all of it. That single conversation changed everything.&rdquo;</p>
+        <div class="testimonial-author">
+          <span class="testimonial-name">Physician &amp; Real Estate Investor</span>
+          <span class="testimonial-detail">Dual-income household &middot; Southeast</span>
+        </div>
+      </div>
+      <div class="testimonial-card reveal" data-delay="200">
+        <p class="testimonial-quote">&ldquo;I had six policies from three different agents and no idea if I was actually protected. They consolidated everything into one engineered <span class="covenant-word">Covenant</span> &mdash; and saved us $14K annually in redundant coverage.&rdquo;</p>
+        <div class="testimonial-author">
+          <span class="testimonial-name">Technology Executive</span>
+          <span class="testimonial-detail">Family of four &middot; West Coast</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="trust-badges reveal" data-delay="300">
+      <div class="trust-badge">
+        <span class="trust-badge-value">50</span>
+        <span class="trust-badge-label">States Licensed</span>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-badge-value">A-Rated</span>
+        <span class="trust-badge-label">Carrier Partners</span>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-badge-value">Heritage</span>
+        <span class="trust-badge-label">Backed by Heritage Life Solutions</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     9. PROMISE
+     ============================================ -->
+<section id="promise" class="section">
+  <div class="section-inner text-center">
+
+    <p class="promise-quote reveal glow-pulse">
+      &ldquo;What we&rsquo;ve done is identify where risk exists in your life, quantify it, and build a structured <span class="covenant-word">Covenant</span> &mdash; so those risks are <span class="highlight">already handled</span> before they ever happen.&rdquo;
+    </p>
+
+    <div class="promise-attribution reveal" data-delay="100">&mdash; The Covenant Risk Promise</div>
+
+
+  </div>
+</section>
+
+<!-- ============================================
+     10. ABOUT
+     ============================================ -->
+<section id="about" class="section">
+  <div class="section-inner">
+    <div class="split-45-55">
+
+      <!-- Left — label + large visual element -->
+      <div>
+        <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">The Philosophy</span></div>
+        <div class="about-logo reveal" data-delay="100">
+          <svg class="about-logo-img" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="78" fill="none" stroke="#B8962E" stroke-width="1.7"/>
+            <circle cx="100" cy="100" r="69" fill="none" stroke="#B8962E" stroke-width="0.55" opacity="0.36"/>
+            <line x1="100" y1="13" x2="100" y2="4" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <line x1="100" y1="187" x2="100" y2="196" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <line x1="13" y1="100" x2="4" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <line x1="187" y1="100" x2="196" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <circle cx="100" cy="22" r="5" fill="none" stroke="#B8962E" stroke-width="1.5"/>
+            <circle cx="100" cy="22" r="2" fill="#B8962E"/>
+            <line x1="100" y1="27" x2="56" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="56" y1="157" x2="50" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="100" y1="27" x2="144" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="144" y1="157" x2="150" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="69" y1="102" x2="131" y2="102" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+            <line x1="69" y1="95" x2="69" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+            <line x1="131" y1="95" x2="131" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+            <polygon points="100,95 105,102 100,109 95,102" fill="#B8962E"/>
+            <line x1="90" y1="64" x2="79" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <line x1="77" y1="109" x2="66" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <line x1="110" y1="64" x2="121" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <line x1="123" y1="109" x2="134" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <path d="M 84,43 A 20,20 0 0 1 116,43" fill="none" stroke="#B8962E" stroke-width="0.8" opacity="0.45"/>
+            <line x1="100" y1="27" x2="100" y2="95" stroke="#B8962E" stroke-width="0.7" opacity="0.3" stroke-dasharray="3,3"/>
+            <line x1="210" y1="35" x2="210" y2="165" stroke="#B8962E" stroke-width="0.6" opacity="0.28"/>
+            <text x="228" y="107" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="300" fill="#FFFFFF" letter-spacing="3">COVENANT</text>
+            <line x1="230" y1="120" x2="595" y2="120" stroke="#B8962E" stroke-width="0.75"/>
+            <text x="230" y="155" font-family="'Syne',sans-serif" font-size="26" font-weight="600" fill="#B8962E" letter-spacing="14">RISK</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Right — headline + body -->
+      <div>
+        <h2 class="reveal" style="margin-bottom: 24px;">Risk is not the enemy. <em style="font-family:'Cormorant Garamond',serif; font-style:italic;">Unstructured</em> risk is.</h2>
+        <p class="section-body reveal" data-delay="80" style="margin-bottom: 20px;">
+          Most people carrying financial risk have never had it mapped, quantified, or structured. They have policies. They do not have a <span class="covenant-word">Covenant</span>.
+        </p>
+        <p class="section-body reveal" data-delay="160">
+          Every engagement begins with the same commitment &mdash; to understand your financial life completely, stress-test it honestly, and build a structure that holds regardless of what the world does next.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     FAQ
+     ============================================ -->
+<section id="faq" class="section">
+  <div class="section-inner" style="max-width: 800px;">
+    <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">Frequently Asked</span></div>
+    <h2 class="reveal" style="margin-bottom: 48px;">Questions we hear from <em style="font-family:'Cormorant Garamond',serif; font-style:italic;">structured thinkers.</em></h2>
+
+    <div class="faq-list">
+      <div class="faq-item reveal" data-delay="0">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-1">
+          <span>Is Covenant Risk an insurance agency?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-1" role="region" hidden>
+          <p>Yes &mdash; and strategically so. We are licensed in all 50 states through Heritage Life Solutions, which gives us access to the full spectrum of insurance vehicles. The difference: we don&rsquo;t lead with products. We lead with your risk architecture. The <span class="covenant-word">Covenant</span> is the structure. Policies are the materials we deploy inside it.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal" data-delay="60">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-2">
+          <span>How is this different from working with a financial advisor?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-2" role="region" hidden>
+          <p>Financial advisors typically focus on asset growth &mdash; investments, retirement accounts, portfolio allocation. We focus on the other side: what happens when things go wrong. Your advisor builds the upside. We engineer the downside protection. The best outcomes happen when both work together.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal" data-delay="120">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-3">
+          <span>What does the Covenant Risk Assessment cost?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-3" role="region" hidden>
+          <p>The initial assessment is complimentary &mdash; no cost, no obligation. We believe you should understand your full risk exposure before making any decisions. If we build a <span class="covenant-word">Covenant</span> together, you pay nothing to us directly. Our focus is on the structure, not the sale.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal" data-delay="180">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-4">
+          <span>What types of insurance products do you use?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-4" role="region" hidden>
+          <p>We deploy the full spectrum &mdash; term life, whole life, universal life, disability income, long-term care, umbrella liability, and more. But we never lead with products. We lead with the risk architecture. The right tool depends on the specific exposure we&rsquo;ve identified and quantified.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal" data-delay="240">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-5">
+          <span>How long does the full process take?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-5" role="region" hidden>
+          <p>The six-phase Covenant Risk Assessment typically unfolds over two to four weeks. Discovery and Stress Test happen in the first conversation. Quantification and <span class="covenant-word">Covenant</span> Design follow within days. Implementation begins as soon as your structure is approved.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal" data-delay="300">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-6">
+          <span>What happens after my Covenant is built?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-6" role="region" hidden>
+          <p>Phase Six &mdash; Oversight &mdash; never ends. We conduct annual reviews, adjust for life events, optimize existing policies, and ensure your <span class="covenant-word">Covenant</span> evolves as your life does. This is a relationship, not a transaction.</p>
+        </div>
+      </div>
+      <div class="faq-item reveal" data-delay="360">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-7">
+          <span>Do you work with people who already have coverage?</span>
+          <span class="faq-toggle" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer" id="faq-7" role="region" hidden>
+          <p>Absolutely. Most of our clients come in with existing policies. The issue is rarely that they have no coverage &mdash; it&rsquo;s that their coverage wasn&rsquo;t designed as part of a cohesive structure. We audit what exists, identify the gaps, and rebuild the architecture around your actual exposure.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     11. CONTACT
+     ============================================ -->
+<section id="contact" class="section">
+  <div class="section-inner">
+    <div class="split-55-45">
+
+      <!-- Left — copy -->
+      <div>
+        <div class="section-tag reveal"><span class="tag-line"></span><span class="tag-text">Begin the Process</span></div>
+        <h2 class="reveal" style="margin-bottom: 24px;">The only question left is: <em style="font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--color-gold);">do you want it handled?</em></h2>
+        <p class="section-body reveal" data-delay="80">
+          Schedule a Covenant Risk Assessment. We&rsquo;ll map your exposure, quantify your risk, and show you what needs to be structured.
+        </p>
+      </div>
+
+      <!-- Right — form -->
+      <div>
+        <form id="covenant-form" class="reveal" data-delay="100">
+          <div class="form-group">
+            <label for="cr-name" class="sr-only">Full Name</label>
+            <input type="text" id="cr-name" name="name" class="form-input" placeholder="Full Name" required>
+
+            <label for="cr-email" class="sr-only">Email Address</label>
+            <input type="email" id="cr-email" name="email" class="form-input" placeholder="Email Address" required>
+
+            <label for="cr-phone" class="sr-only">Phone Number</label>
+            <input type="tel" id="cr-phone" name="phone" class="form-input" placeholder="Phone Number">
+
+            <button type="submit" class="btn-primary btn-full-width">Request Assessment</button>
+          </div>
+          <p class="form-note">No commitment. No pressure. Just a conversation.</p>
+        </form>
+
+        <!-- Success state (hidden by default) -->
+        <div id="form-success" class="form-success hidden">
+          <h3>Thank you.</h3>
+          <p>We&rsquo;ll reach out within 24 hours to schedule your initial assessment. Expect a call or email from our team. No preparation needed &mdash; we&rsquo;ll walk you through everything.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================================
+     12. FOOTER
+     ============================================ -->
+<footer id="footer">
+  <div class="section-inner">
+
+    <!-- Footer top — logo + nav columns -->
+    <div class="footer-top">
+
+      <!-- Brand column -->
+      <div class="footer-brand">
+        <a href="#hero" class="nav-logo" aria-label="Covenant Risk">
+          <svg class="footer-logo-img" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="78" fill="none" stroke="#B8962E" stroke-width="1.7"/>
+            <circle cx="100" cy="100" r="69" fill="none" stroke="#B8962E" stroke-width="0.55" opacity="0.36"/>
+            <line x1="100" y1="13" x2="100" y2="4" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <line x1="100" y1="187" x2="100" y2="196" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <line x1="13" y1="100" x2="4" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <line x1="187" y1="100" x2="196" y2="100" stroke="#B8962E" stroke-width="1.1" opacity="0.5"/>
+            <circle cx="100" cy="22" r="5" fill="none" stroke="#B8962E" stroke-width="1.5"/>
+            <circle cx="100" cy="22" r="2" fill="#B8962E"/>
+            <line x1="100" y1="27" x2="56" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="56" y1="157" x2="50" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="100" y1="27" x2="144" y2="157" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="144" y1="157" x2="150" y2="173" stroke="#B8962E" stroke-width="2.8" stroke-linecap="round"/>
+            <line x1="69" y1="102" x2="131" y2="102" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+            <line x1="69" y1="95" x2="69" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+            <line x1="131" y1="95" x2="131" y2="109" stroke="#B8962E" stroke-width="1.4" stroke-linecap="square"/>
+            <polygon points="100,95 105,102 100,109 95,102" fill="#B8962E"/>
+            <line x1="90" y1="64" x2="79" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <line x1="77" y1="109" x2="66" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <line x1="110" y1="64" x2="121" y2="76" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <line x1="123" y1="109" x2="134" y2="121" stroke="#B8962E" stroke-width="0.9" opacity="0.6"/>
+            <path d="M 84,43 A 20,20 0 0 1 116,43" fill="none" stroke="#B8962E" stroke-width="0.8" opacity="0.45"/>
+            <line x1="100" y1="27" x2="100" y2="95" stroke="#B8962E" stroke-width="0.7" opacity="0.3" stroke-dasharray="3,3"/>
+            <line x1="210" y1="35" x2="210" y2="165" stroke="#B8962E" stroke-width="0.6" opacity="0.28"/>
+            <text x="228" y="107" font-family="'Cormorant Garamond',Georgia,serif" font-size="58" font-weight="300" fill="#FFFFFF" letter-spacing="3">COVENANT</text>
+            <line x1="230" y1="120" x2="595" y2="120" stroke="#B8962E" stroke-width="0.75"/>
+            <text x="230" y="155" font-family="'Syne',sans-serif" font-size="26" font-weight="600" fill="#B8962E" letter-spacing="14">RISK</text>
+          </svg>
+        </a>
+        <p class="footer-tagline">Risk engineering &amp; advisory.<br>We identify, quantify, and eliminate financial uncertainty.</p>
+      </div>
+
+      <!-- Navigate column -->
+      <div class="footer-col">
+        <div class="footer-col-title">Navigate</div>
+        <a href="#difference">What We Do</a>
+        <a href="#process">Our Process</a>
+        <a href="#risk-types">Risk Types</a>
+        <a href="#who-we-serve">Who We Serve</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </div>
+
+      <!-- Company column -->
+      <div class="footer-col">
+        <div class="footer-col-title">Company</div>
+        <a href="/">Heritage Life Solutions</a>
+        <a href="#hero">Back to Top</a>
+      </div>
+
+      <!-- Legal column -->
+      <div class="footer-col">
+        <div class="footer-col-title">Legal</div>
+        <a href="/legal/terms">Terms of Use</a>
+        <a href="/legal/privacy">Privacy Policy</a>
+        <a href="/legal/data-security">Data Security</a>
+        <a href="/legal/accessibility">Accessibility</a>
+        <a href="/legal/licenses">Licenses</a>
+        <a href="/legal/do-not-sell">Do Not Sell My Info</a>
+      </div>
+
+    </div>
+
+    <!-- Divider -->
+    <div class="footer-divider"></div>
+
+    <!-- Legal disclosures -->
+    <div class="footer-legal">
+      <p>
+        &copy; 2026 Gold Coast Financial Partners LLC. Covenant Risk is a DBA of Gold Coast Financial Partners LLC.
+        We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
+        Policies are issued by our carrier partners and product availability may vary by state.
+      </p>
+      <p>
+        Covenant Risk is a risk engineering and advisory division specializing in comprehensive financial risk assessment,
+        quantification, and structured protection planning. Our process identifies exposure across income, assets, tax,
+        longevity, liability, market, business continuity, and legacy &mdash; then engineers solutions using insurance
+        and financial instruments as tools within a broader protection structure.
+      </p>
+      <p>
+        Life insurance premiums are based on factors including age, health, and coverage amount.
+        Locking in coverage sooner typically means lower rates. Once your policy is in place, your premium
+        remains fixed for the duration of your term. All quotes are subject to underwriting approval by the issuing carrier.
+      </p>
+      <p class="footer-fine-print">
+        Covenant Risk partners with A-rated insurance carriers through Heritage Life Solutions to provide comprehensive coverage options.
+        &ldquo;Covenant&rdquo; as used herein refers to a structured risk management plan, not a legal contract or guarantee of coverage.
+        Insurance products are not deposits, are not insured by the FDIC or any federal government agency, and may lose value.
+      </p>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <span>&copy; 2026 Covenant Risk &middot; Gold Coast Financial Partners LLC</span>
+      <a href="#hero">Back to Top &uarr;</a>
+    </div>
+
+  </div>
+</footer>
+
+<!-- ============================================
+     SCRIPTS
+     ============================================ -->
+<script src="js/scrollama.min.js"></script>
+<script src="js/nav.js" defer></script>
+<script src="js/scrolly.js" defer></script>
+<script src="js/marquee.js" defer></script>
+<script src="js/interactions.js" defer></script>
+
+<!-- IntersectionObserver for scroll reveal -->
+<script>
+(function() {
+  'use strict';
+
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var delay = parseInt(entry.target.dataset.delay || 0);
+        setTimeout(function() {
+          entry.target.classList.add('visible');
+        }, delay);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal, .reveal-fade, .reveal-scale').forEach(function(el) {
+    obs.observe(el);
+  });
+
+  // Page entrance
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      document.body.classList.remove('page-loading');
+      document.body.classList.add('page-loaded');
+    }, 300);
+  });
+
+  // Contact form — frontend only
+  var form = document.getElementById('covenant-form');
+  var success = document.getElementById('form-success');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      form.style.display = 'none';
+      success.style.display = 'block';
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

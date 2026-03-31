@@ -1,0 +1,67 @@
+:root {
+  /* Type Scale */
+  --font-hero:    clamp(56px, 8vw, 108px);
+  --font-h1:      clamp(40px, 5vw, 72px);
+  --font-h2:      clamp(28px, 3.5vw, 48px);
+  --font-h3:      clamp(20px, 2.5vw, 30px);
+  --font-label:   11px;
+  --font-nav:     11px;
+  --font-btn:     12px;
+  --font-body-lg: 18px;
+  --font-body:    16px;
+  --font-body-sm: 14px;
+  --font-caption: 12px;
+
+  /* Letter Spacing */
+  --ls-hero:    -0.02em;
+  --ls-heading: -0.01em;
+  --ls-label:    0.15em;
+  --ls-nav:      0.10em;
+  --ls-btn:      0.12em;
+
+
+  /* Line Height */
+  --lh-hero:     1.0;
+  --lh-heading:  1.1;
+  --lh-subhead:  1.2;
+  --lh-body:     1.8;
+  --lh-quote:    1.4;
+  --lh-label:    1.0;
+
+  /* Canvas */
+  --color-canvas:          #060810;
+  --color-canvas-2:        #0C1020;
+  --color-canvas-3:        #111827;
+  --color-surface:         rgba(255,255,255,0.03);
+
+  /* Brand */
+  --color-gold:            #DBCA72;
+  --color-gold-dim:        rgba(219,202,114,0.15);
+  --color-gold-mid:        rgba(219,202,114,0.35);
+  --color-gold-glow:       rgba(219,202,114,0.06);
+  --color-purple-glow:     rgba(111,24,158,0.14);
+  --color-royal-glow:      rgba(16,40,158,0.12);
+
+  /* Text */
+  --color-text-primary:    rgba(255,255,255,0.92);
+  --color-text-secondary:  rgba(255,255,255,0.60);
+  --color-text-muted:      rgba(255,255,255,0.45);
+
+  /* Borders */
+  --color-border:          rgba(255,255,255,0.08);
+  --color-border-gold:     rgba(219,202,114,0.30);
+
+  /* Surfaces (glass) */
+  --color-glass:           rgba(255,255,255,0.04);
+  --color-glass-border:    rgba(255,255,255,0.10);
+
+
+  /* Ink (for gold buttons) */
+  --color-ink:             #060810;
+
+  /* Breakpoints (reference only — used in media queries) */
+  /* --bp-mobile:  767px;  */
+  /* --bp-tablet:  1199px; */
+  /* --bp-desktop: 1200px; */
+  /* --bp-wide:    1440px; */
+}

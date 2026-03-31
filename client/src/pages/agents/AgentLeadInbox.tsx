@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, UserPlus, Inbox, ArrowUpDown,
-  Sparkles, Clock, Briefcase, CheckCircle, Send, ArrowRight
+  Sparkles, Clock, Briefcase, CheckCircle, Send, ArrowRight, FileSpreadsheet,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/ag
 import { LeadInboxCard } from "@/components/agent/LeadInboxCard";
 import { LeadDetailDrawer } from "@/components/agent/LeadDetailDrawer";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
+import { LeadImportDialog } from "@/components/agent/LeadImportDialog";
 import { EnhancedActivityModal } from "@/components/agent/EnhancedActivityModal";
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
 import { useLeadInbox } from '@/hooks/useLeadDistribution';
@@ -60,28 +62,46 @@ export default function AgentLeadInbox() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addLeadOpen, setAddLeadOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const LEADS_PER_PAGE = 25;
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [activityLead, setActivityLead] = useState<Lead | null>(null);
 
   // Fetch distributed leads from real API
   const distributedQuery = useLeadInbox({ limit: 200, enabled: !!currentUser?.id });
 
-  // Merge API-distributed leads into store on load
+  // Merge API-distributed leads into store (cleaned names, deduped)
   useEffect(() => {
     if (distributedQuery.data?.leads && distributedQuery.data.leads.length > 0) {
       for (const apiLead of distributedQuery.data.leads) {
-        const name = `${apiLead.firstName || ''} ${apiLead.lastName || ''}`.trim();
-        const email = apiLead.email || '';
-        // Only add if not already in store (match by email to avoid duplicates)
-        const exists = leads.some(l => l.email === email && l.name === name);
-        if (!exists && name) {
+        let first = (apiLead.firstName || '').trim();
+        let last = (apiLead.lastName || '').trim();
+        if (first.includes(',')) {
+          const parts = first.split(',').map((s: string) => s.trim());
+          last = parts[0];
+          first = parts[1]?.split(' ')[0] || '';
+        }
+        first = first ? first.charAt(0).toUpperCase() + first.slice(1).toLowerCase() : '';
+        last = last ? last.charAt(0).toUpperCase() + last.slice(1).toLowerCase() : '';
+        const name = `${first} ${last}`.trim();
+        const email = (apiLead.email || '').toLowerCase().trim();
+        const phone = (apiLead.phone || '').trim();
+
+        if (!name) continue;
+        const exists = leads.some(l =>
+          (email && l.email.toLowerCase() === email) ||
+          (phone && l.phone === phone) ||
+          l.name === name
+        );
+        if (!exists) {
           addLead({
             name,
             email,
-            phone: apiLead.phone || '',
+            phone,
             product: apiLead.coverageType || 'Life Insurance',
             source: 'Distributed',
-            status: 'new',
+            status: apiLead.status || 'new',
             tags: ['Distributed'],
             state: apiLead.state || '',
             nextFollowUpDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
@@ -179,6 +199,20 @@ export default function AgentLeadInbox() {
     return result;
   }, [userLeads, activeTab, searchQuery, sortBy]);
 
+  // Dedup + paginate
+  const dedupedLeads = filteredLeads.filter((lead, idx, arr) => arr.findIndex(l => l.id === lead.id) === idx);
+  const totalPages = Math.ceil(dedupedLeads.length / LEADS_PER_PAGE);
+  const safePage = Math.min(currentPage, Math.max(totalPages - 1, 0));
+  const paginatedLeads = dedupedLeads.slice(safePage * LEADS_PER_PAGE, safePage * LEADS_PER_PAGE + LEADS_PER_PAGE);
+
+  // Reset to page 0 when filters change
+  const filterKey = `${activeTab}-${searchQuery}-${sortBy}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(0);
+  }
+
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
     setDrawerOpen(true);
@@ -228,14 +262,24 @@ export default function AgentLeadInbox() {
             title="Lead Inbox"
             subtitle={`${counts.all} active leads · ${counts.new} new`}
           >
-            <Button
-              onClick={() => setAddLeadOpen(true)}
-              className="gap-2 text-white border-0 backdrop-blur-sm hover:scale-105 transition-transform"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius: RADIUS.button }}
-            >
-              <UserPlus className="w-4 h-4" />
-              Add Lead
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setImportOpen(true)}
+                className="gap-2 text-white border-0 backdrop-blur-sm hover:scale-105 transition-transform"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)', borderRadius: RADIUS.button }}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Import
+              </Button>
+              <Button
+                onClick={() => setAddLeadOpen(true)}
+                className="gap-2 text-white border-0 backdrop-blur-sm hover:scale-105 transition-transform"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius: RADIUS.button }}
+              >
+                <UserPlus className="w-4 h-4" />
+                Add Lead
+              </Button>
+            </div>
           </AgentPageHero>
         </motion.div>
 
@@ -307,7 +351,7 @@ export default function AgentLeadInbox() {
           {/* Lead rows */}
           <div className="divide-y">
             <AnimatePresence mode="popLayout">
-              {filteredLeads.map((lead) => (
+              {paginatedLeads.map((lead) => (
                 <motion.div
                   key={lead.id}
                   initial={{ opacity: 0, y: -4 }}
@@ -326,6 +370,38 @@ export default function AgentLeadInbox() {
               ))}
             </AnimatePresence>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <p className="text-xs text-gray-400">
+                {safePage * LEADS_PER_PAGE + 1}–{Math.min((safePage + 1) * LEADS_PER_PAGE, dedupedLeads.length)} of {dedupedLeads.length} leads
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={safePage === 0}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="text-xs font-medium text-gray-600">
+                  {safePage + 1} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={safePage >= totalPages - 1}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Empty state */}
           {filteredLeads.length === 0 && (
@@ -404,6 +480,9 @@ export default function AgentLeadInbox() {
           onAddLead={addLead}
           existingLeads={leads}
         />
+
+        {/* Lead Import Dialog */}
+        <LeadImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
         {/* Enhanced Activity Modal */}
         {activityLead && (

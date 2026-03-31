@@ -23,6 +23,7 @@ import {
   DollarSign,
   Handshake,
   ShoppingBag,
+  Contact,
   FileText,
   BookOpen,
   Trophy,
@@ -128,6 +129,7 @@ const clientItems: NavItem[] = [
   { icon: Users, label: "My Clients", href: "/agents/clients" },
   { icon: ClipboardList, label: "Claims", href: "/agents/claims" },
   { icon: CreditCard, label: "Member Cards", href: "/agents/member-cards" },
+  { icon: Contact, label: "Business Card", href: "/agents/business-card" },
   { icon: Globe, label: "Your Website", href: "/agents/website" },
 ];
 
@@ -425,7 +427,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
 
       {/* Navigation */}
       <nav
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto scrollbar-none"
         style={{ padding: `0 ${GRID.spacing.xs}px` }}
       >
         <NavSection title="Command Center" items={commandCenterItems} />
@@ -740,22 +742,36 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                       {currentUser?.name || 'Agent'}
                     </p>
                     <p className="text-gray-500" style={{ fontSize: TYPE.micro }}>
-                      Level {performance.level} · ${(performance.xp || 0).toLocaleString()}
+                      Level {performance.level} · ${(myDealStats?.data?.totalAP || performance.xp || 0).toLocaleString()}
                     </p>
                   </div>
-                  <div
-                    className="flex items-center justify-center text-white font-bold"
-                    style={{
-                      width: GRID.spacing.xl,
-                      height: GRID.spacing.xl,
-                      borderRadius: RADIUS.button,
-                      boxShadow: SHADOW.level2,
-                      fontSize: TYPE.meta,
-                      background: `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.purple[600]} 100%)`,
-                    }}
-                  >
-                    {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'A'}
-                  </div>
+                  {currentUser?.avatar ? (
+                    <img
+                      src={currentUser.avatar}
+                      alt=""
+                      className="object-cover"
+                      style={{
+                        width: GRID.spacing.xl,
+                        height: GRID.spacing.xl,
+                        borderRadius: RADIUS.button,
+                        boxShadow: SHADOW.level2,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="flex items-center justify-center text-white font-bold"
+                      style={{
+                        width: GRID.spacing.xl,
+                        height: GRID.spacing.xl,
+                        borderRadius: RADIUS.button,
+                        boxShadow: SHADOW.level2,
+                        fontSize: TYPE.meta,
+                        background: `linear-gradient(135deg, ${COLORS.primary.violet[500]} 0%, ${COLORS.primary.purple[600]} 100%)`,
+                      }}
+                    >
+                      {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'A'}
+                    </div>
+                  )}
                 </div>
               </Link>
 

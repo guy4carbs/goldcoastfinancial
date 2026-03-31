@@ -197,8 +197,8 @@ export default function AgentDashboard() {
 
     // Only show critical/warning for truly urgent situations
 
-    // Critical: Way behind on calls (less than 30% done late in day)
-    if (callsRemaining > performance.dailyCallsTarget * 0.7) {
+    // Critical: Way behind on calls (less than 30% done late in day) — only if they've started
+    if (performance.dailyCalls > 0 && callsRemaining > performance.dailyCallsTarget * 0.7) {
       return {
         main: `${callsRemaining} CALLS LEFT.`,
         sub: "You're behind pace. Pick up the phone.",
@@ -406,7 +406,7 @@ export default function AgentDashboard() {
                     <div>
                       <p className="text-[10px] text-white/70 uppercase tracking-wider font-medium">Monthly AP</p>
                       <p className="text-lg font-bold text-white">
-                        ${(personalAP || (pendingEarnings + paidEarnings)).toLocaleString()}
+                        ${personalAP.toLocaleString()}
                       </p>
                     </div>
                   </div>

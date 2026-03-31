@@ -357,8 +357,22 @@ router.get("/members", async (req: Request, res: Response) => {
       LIMIT $${paramIdx++} OFFSET $${paramIdx++}
     `, [...params, parseInt(limit as string), offset]);
 
+    // Normalize: add camelCase aliases while preserving snake_case for backward compatibility
+    const normalized = result.rows.map((m: any) => ({
+      ...m,
+      firstName: m.first_name || m.firstName,
+      lastName: m.last_name || m.lastName,
+      isActive: m.is_active ?? m.isActive,
+      lastLoginAt: m.last_login_at || m.lastLoginAt,
+      avatarUrl: m.avatar_url || m.avatarUrl,
+      createdAt: m.created_at || m.createdAt,
+      hierarchyTitle: m.hierarchy_title || m.hierarchyTitle,
+      hierarchyLevel: m.hierarchy_level ?? m.hierarchyLevel,
+      onboardingStatus: m.onboarding_status || m.onboardingStatus,
+    }));
+
     res.json({
-      members: result.rows,
+      members: normalized,
       total: countResult.rows[0]?.total || 0,
       page: parseInt(page as string),
       limit: parseInt(limit as string),
@@ -802,6 +816,133 @@ router.get("/member/:userId/onboarding", async (req: Request, res: Response) => 
   } catch (error: any) {
     console.error("Error fetching onboarding data:", error);
     res.status(500).json({ error: "Failed to fetch onboarding data" });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GET /member/:userId/documents — All documents for a member (uploaded + profile S3 + DocuSign)
+// ═══════════════════════════════════════════════════════════════════════════════
+router.get("/member/:userId/documents", async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    // Fetch uploaded documents and agent profile in parallel
+    const [uploadedDocs, profile] = await Promise.all([
+      storage.getDocumentsByUserId(userId),
+      storage.getAgentProfileByUserId(userId),
+    ]);
+
+    // 1. Normalize uploaded documents from the documents table
+    const normalizedUploaded = uploadedDocs.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      category: "uploaded" as const,
+      type: doc.type,
+      s3Key: doc.s3Key,
+      uploadedAt: doc.uploadedAt,
+      fileSize: doc.fileSize,
+      source: "documents" as const,
+    }));
+
+    // 2. Extract onboarding S3 key documents from agent profile
+    const profileDocs: Array<{
+      id: string;
+      name: string;
+      category: string;
+      s3Key: string;
+      source: string;
+    }> = [];
+
+    if (profile) {
+      // Helper: check both camelCase (Drizzle ORM) and snake_case (raw SQL) field names
+      const p = profile as any;
+
+      const onboardingKeys: Array<{
+        id: string;
+        name: string;
+        camel: string;
+        snake: string;
+      }> = [
+        { id: "eo-cert", name: "E&O Certificate", camel: "eoCertificateS3Key", snake: "eo_certificate_s3_key" },
+        { id: "aml-cert", name: "AML Certificate", camel: "amlCertificateS3Key", snake: "aml_certificate_s3_key" },
+        { id: "dl-front", name: "Driver's License (Front)", camel: "driversLicenseS3Key", snake: "drivers_license_s3_key" },
+        { id: "dl-back", name: "Driver's License (Back)", camel: "driversLicenseBackS3Key", snake: "drivers_license_back_s3_key" },
+        { id: "dd-form", name: "Direct Deposit Form", camel: "directDepositFormS3Key", snake: "direct_deposit_form_s3_key" },
+      ];
+
+      for (const key of onboardingKeys) {
+        const s3Key = p[key.camel] || p[key.snake];
+        if (s3Key) {
+          profileDocs.push({
+            id: key.id,
+            name: key.name,
+            category: "onboarding",
+            s3Key,
+            source: "profile",
+          });
+        }
+      }
+
+      // 3. Extract DocuSign agreement documents from agent profile
+      const docusignKeys: Array<{
+        id: string;
+        name: string;
+        camelKey: string;
+        snakeKey: string;
+        camelSigned: string;
+        snakeSigned: string;
+      }> = [
+        {
+          id: "ds-nda",
+          name: "NDA Agreement",
+          camelKey: "docusignNdaS3Key",
+          snakeKey: "docusign_nda_s3_key",
+          camelSigned: "docusignNdaSigned",
+          snakeSigned: "docusign_nda_signed",
+        },
+        {
+          id: "ds-debt",
+          name: "Debt Rollup Agreement",
+          camelKey: "docusignDebtRollupS3Key",
+          snakeKey: "docusign_debt_rollup_s3_key",
+          camelSigned: "docusignDebtRollupSigned",
+          snakeSigned: "docusign_debt_rollup_signed",
+        },
+        {
+          id: "ds-compliance",
+          name: "Compliance Agreement",
+          camelKey: "docusignComplianceS3Key",
+          snakeKey: "docusign_compliance_s3_key",
+          camelSigned: "docusignComplianceSigned",
+          snakeSigned: "docusign_compliance_signed",
+        },
+      ];
+
+      for (const ds of docusignKeys) {
+        const s3Key = p[ds.camelKey] || p[ds.snakeKey];
+        if (s3Key) {
+          profileDocs.push({
+            id: ds.id,
+            name: ds.name,
+            category: "docusign",
+            s3Key,
+            signed: p[ds.camelSigned] ?? p[ds.snakeSigned] ?? false,
+            source: "profile",
+          } as any);
+        }
+      }
+    }
+
+    const all = [...normalizedUploaded, ...profileDocs];
+    const grouped = {
+      uploaded: all.filter(d => d.category === 'uploaded'),
+      onboarding: all.filter(d => d.category === 'onboarding'),
+      docusign: all.filter(d => d.category === 'docusign'),
+    };
+    res.json({ ...grouped, totalCount: all.length });
+  } catch (error: any) {
+    console.error("Error fetching member documents:", error);
+    res.status(500).json({ error: "Failed to fetch member documents" });
   }
 });
 

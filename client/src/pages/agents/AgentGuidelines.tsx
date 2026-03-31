@@ -87,29 +87,20 @@ const DAILY_SCHEDULE = [
 ];
 
 
-// Commission structure
-const COMMISSION_TIERS = [
-  { ap: 'Starting', rate: '65%', downlines: null },
-  { ap: '$5,000', rate: '70%', downlines: null },
-  { ap: '$10,000', rate: '75%', downlines: null },
-  { ap: '$15,000', rate: '80%', downlines: null },
-  { ap: '$25,000', rate: '85%', downlines: null },
-  { ap: '$50,000', rate: '90%', downlines: null },
-  { ap: '$75,000', rate: '95%', downlines: null },
-  { ap: '$100,000', rate: '100%', downlines: null },
-  { ap: '$150,000', rate: '105%', downlines: '5 active downlines at $10K each' },
-  { ap: '$200,000', rate: '110%', downlines: '8 active downlines at $10K each' },
-  { ap: '$250,000', rate: '115%', downlines: '10 active downlines at $10K each' },
-  { ap: '$300,000', rate: '120%', downlines: '15 active downlines at $10K each' },
-  { ap: '$500,000', rate: '125%', downlines: '20 active downlines at $10K each' },
-  { ap: '$750,000', rate: '130%', downlines: '25 active downlines at $10K each' },
-];
+// Commission structure — imported from shared single source of truth
+import { COMMISSION_TIERS as SHARED_TIERS, AGENCY_TIERS as SHARED_AGENCY_TIERS } from '@/lib/commissionTiers';
 
-const AGENCY_TIERS = [
-  { ap: '$1,000,000', rate: '135%', downlines: '50 active downlines at $10K each' },
-  { ap: '$1,500,000', rate: '140%', downlines: '40 active downlines at $10K each' },
-  { ap: '$2,000,000', rate: '145%', downlines: '80 active downlines at $10K each' },
-];
+const COMMISSION_TIERS = SHARED_TIERS.map((t) => ({
+  ap: t.apLabel,
+  rate: `${t.rate}%`,
+  downlines: t.downlines,
+}));
+
+const AGENCY_TIERS = SHARED_AGENCY_TIERS.map((t) => ({
+  ap: t.apLabel,
+  rate: `${t.rate}%`,
+  downlines: t.downlines,
+}));
 
 const COMP_GUIDELINES = [
   'Before reaching 80%, only one month of hitting numbers is required. After 80%, numbers must be achieved for two consecutive months.',

@@ -2283,18 +2283,21 @@ router.post("/import/upload", upload.single('file'), async (req: Request, res: R
     // Suggest column mappings
     const suggestedMappings: Record<string, string> = {};
     const fieldPatterns: Record<string, string[]> = {
-      firstName: ['first_name', 'firstname', 'first name', 'fname', 'given name'],
-      lastName: ['last_name', 'lastname', 'last name', 'lname', 'surname', 'family name'],
-      email: ['email', 'email address', 'e-mail', 'emailaddress'],
-      phone: ['phone', 'phone number', 'telephone', 'mobile', 'cell', 'phonenumber'],
-      streetAddress: ['address', 'street', 'street address', 'address1', 'address line 1'],
+      fullName: ['full name', 'fullname', 'name', 'client name', 'client', 'insured', 'insured name', 'applicant'],
+      firstName: ['first_name', 'firstname', 'first name', 'fname', 'given name', 'first'],
+      lastName: ['last_name', 'lastname', 'last name', 'lname', 'surname', 'family name', 'last'],
+      email: ['email', 'email address', 'e-mail', 'emailaddress', 'e_mail'],
+      phone: ['phone', 'phone number', 'telephone', 'mobile', 'cell', 'phonenumber', 'phone_number', 'tel'],
+      birthDate: ['birthday', 'birth date', 'birthdate', 'dob', 'date of birth', 'birth_date', 'date_of_birth', 'born'],
+      fullAddress: ['full address', 'mailing address', 'address, city, state zip', 'complete address'],
+      streetAddress: ['address', 'street', 'street address', 'address1', 'address line 1', 'street_address'],
       city: ['city', 'town'],
-      state: ['state', 'province', 'region'],
-      zipCode: ['zip', 'zipcode', 'zip code', 'postal', 'postal code', 'postcode'],
-      source: ['source', 'lead source', 'how heard'],
-      coverageType: ['coverage', 'coverage type', 'product', 'product type', 'insurance type'],
-      estimatedValue: ['value', 'estimated value', 'deal value', 'amount'],
-      notes: ['notes', 'comments', 'description'],
+      state: ['state', 'province', 'region', 'st'],
+      zipCode: ['zip', 'zipcode', 'zip code', 'postal', 'postal code', 'postcode', 'zip_code'],
+      source: ['source', 'lead source', 'how heard', 'lead_source'],
+      coverageType: ['coverage', 'coverage type', 'product', 'product type', 'insurance type', 'coverage_type', 'type'],
+      estimatedValue: ['value', 'estimated value', 'deal value', 'amount', 'estimated_value', 'premium'],
+      notes: ['notes', 'comments', 'description', 'note'],
     };
 
     headers.forEach(header => {
@@ -2325,6 +2328,115 @@ router.post("/import/upload", upload.single('file'), async (req: Request, res: R
 });
 
 /**
+ * POST /api/crm/import/google-sheet
+ * Import from a Google Sheets URL (public or shareable link)
+ * Extracts the sheet ID, downloads as CSV, and creates an import session
+ */
+router.post("/import/google-sheet", async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "Google Sheets URL is required" });
+
+    // Extract sheet ID from various Google Sheets URL formats
+    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (!match) {
+      return res.status(400).json({ error: "Invalid Google Sheets URL. Must be a docs.google.com/spreadsheets link." });
+    }
+    const sheetId = match[1];
+
+    // Download as CSV (works for publicly shared sheets)
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+    const csvRes = await fetch(csvUrl);
+
+    if (!csvRes.ok) {
+      return res.status(400).json({
+        error: "Could not access the Google Sheet. Make sure the sheet is shared as 'Anyone with the link can view'."
+      });
+    }
+
+    const csvText = await csvRes.text();
+    const result = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (h: string) => h.trim(),
+    });
+
+    const headers = result.meta.fields || [];
+    const rows = result.data as any[];
+
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "The Google Sheet appears to be empty" });
+    }
+
+    // Detect duplicates by email
+    const emails = rows
+      .map(r => r.email || r.Email || r.EMAIL || r['Email Address'] || r.email_address || '')
+      .filter(e => e && e.includes('@'));
+
+    const duplicates: any[] = [];
+    if (emails.length > 0) {
+      const existingResult = await pool.query(
+        `SELECT id, first_name, last_name, email, phone, status FROM leads WHERE email = ANY($1)`,
+        [emails]
+      );
+      duplicates.push(...existingResult.rows.map((r: any) => ({
+        id: r.id, firstName: r.first_name, lastName: r.last_name,
+        email: r.email, phone: r.phone, status: r.status,
+      })));
+    }
+
+    // Create import session (same flow as file upload)
+    const sessionId = randomUUID();
+    importSessions.set(sessionId, { sessionId, headers, rows, duplicates, createdAt: new Date() });
+
+    // Suggest column mappings
+    const suggestedMappings: Record<string, string> = {};
+    const fieldPatterns: Record<string, string[]> = {
+      fullName: ['full name', 'fullname', 'name', 'client name', 'client', 'insured', 'insured name', 'applicant'],
+      firstName: ['first_name', 'firstname', 'first name', 'fname', 'given name', 'first'],
+      lastName: ['last_name', 'lastname', 'last name', 'lname', 'surname', 'family name', 'last'],
+      email: ['email', 'email address', 'e-mail', 'emailaddress', 'e_mail'],
+      phone: ['phone', 'phone number', 'telephone', 'mobile', 'cell', 'phonenumber', 'phone_number', 'tel'],
+      birthDate: ['birthday', 'birth date', 'birthdate', 'dob', 'date of birth', 'birth_date', 'date_of_birth', 'born'],
+      fullAddress: ['full address', 'mailing address', 'address, city, state zip', 'complete address'],
+      streetAddress: ['address', 'street', 'street address', 'address1', 'address line 1', 'street_address'],
+      city: ['city', 'town'],
+      state: ['state', 'province', 'region', 'st'],
+      zipCode: ['zip', 'zipcode', 'zip code', 'postal', 'postal code', 'postcode', 'zip_code'],
+      source: ['source', 'lead source', 'how heard', 'lead_source'],
+      coverageType: ['coverage', 'coverage type', 'product', 'product type', 'insurance type', 'coverage_type', 'type'],
+      estimatedValue: ['value', 'estimated value', 'deal value', 'amount', 'estimated_value', 'premium'],
+      notes: ['notes', 'comments', 'description', 'note'],
+    };
+
+    headers.forEach(header => {
+      const lowerHeader = header.toLowerCase().trim();
+      for (const [field, patterns] of Object.entries(fieldPatterns)) {
+        if (patterns.includes(lowerHeader)) {
+          suggestedMappings[header] = field;
+          break;
+        }
+      }
+    });
+
+    res.json({
+      sessionId,
+      fileName: `Google Sheet`,
+      fileSize: csvText.length,
+      headers,
+      rowCount: rows.length,
+      sampleRows: rows.slice(0, 5),
+      duplicateCount: duplicates.length,
+      duplicates: duplicates.slice(0, 10),
+      suggestedMappings,
+    });
+  } catch (error) {
+    console.error("[CRM Import Google Sheet] Error:", error);
+    res.status(500).json({ error: "Failed to import from Google Sheets" });
+  }
+});
+
+/**
  * POST /api/crm/import/execute
  * Execute import with column mapping
  */
@@ -2344,7 +2456,7 @@ router.post("/import/execute", async (req: Request, res: Response) => {
 
     // Validate required mappings - check if any column maps to required fields
     const mappedFields = Object.values(columnMapping);
-    if (!mappedFields.includes('firstName') && !mappedFields.includes('lastName') && !mappedFields.includes('email')) {
+    if (!mappedFields.includes('firstName') && !mappedFields.includes('lastName') && !mappedFields.includes('fullName') && !mappedFields.includes('email')) {
       return res.status(400).json({ error: "At least name or email mapping is required" });
     }
 
@@ -2398,10 +2510,43 @@ router.post("/import/execute", async (req: Request, res: Response) => {
           return sourceCol ? row[sourceCol] : null;
         };
 
-        const firstName = normalizeName(getValue('firstName') || '');
-        const lastName = normalizeName(getValue('lastName') || '');
+        // Handle fullName → split into first/last
+        let firstName = normalizeName(getValue('firstName') || '');
+        let lastName = normalizeName(getValue('lastName') || '');
+        const fullName = getValue('fullName') || '';
+
+        // If firstName itself contains a comma, it's probably "Last,First" in a single field
+        if (firstName && firstName.includes(',') && !lastName) {
+          const parts = firstName.split(',').map((s: string) => s.trim());
+          lastName = normalizeName(parts[0] || '');
+          firstName = normalizeName(parts[1]?.split(' ')[0] || '');
+        }
+
+        // Handle fullName field
+        if (fullName && (!firstName || !lastName)) {
+          if (fullName.includes(',')) {
+            // "Last,First" or "Last, First Middle" format
+            const parts = fullName.split(',').map((s: string) => s.trim());
+            if (!lastName) lastName = normalizeName(parts[0] || '');
+            if (!firstName) firstName = normalizeName(parts[1]?.split(' ')[0] || '');
+          } else {
+            // "First Last" format
+            const parts = fullName.trim().split(/\s+/);
+            if (!firstName) firstName = normalizeName(parts[0] || '');
+            if (!lastName) lastName = normalizeName(parts.slice(1).join(' ') || '');
+          }
+        }
+
+        // Final safety: if firstName still has a comma somehow, clean it
+        firstName = firstName.replace(/,/g, '').trim();
+        lastName = lastName.replace(/,/g, '').trim();
+
         const email = normalizeEmail(getValue('email') || '');
         const phone = normalizePhone(getValue('phone') || '');
+
+        // Handle birthDate
+        const birthDateRaw = getValue('birthDate') || '';
+        const birthDate = birthDateRaw ? birthDateRaw.trim() : null;
 
         // Skip if no identifying info
         if (!email && !firstName && !lastName) {
@@ -2409,10 +2554,24 @@ router.post("/import/execute", async (req: Request, res: Response) => {
           continue;
         }
 
-        // Skip duplicates if requested
+        // Skip duplicates by email
         if (skipDuplicates && email && duplicateEmails.has(email.toLowerCase())) {
           results.skipped++;
           continue;
+        }
+
+        // Also check duplicates by phone (if no email)
+        if (skipDuplicates && !email && phone) {
+          const phoneCheck = await pool.query(`SELECT id FROM leads WHERE phone = $1 LIMIT 1`, [phone]);
+          if (phoneCheck.rows.length > 0) {
+            results.skipped++;
+            continue;
+          }
+        }
+
+        // Also skip if this exact name+email already imported in this batch
+        if (email) {
+          duplicateEmails.add(email.toLowerCase());
         }
 
         // Validate email if provided
@@ -2422,24 +2581,49 @@ router.post("/import/execute", async (req: Request, res: Response) => {
           continue;
         }
 
-        // Build insert data
-        const streetAddress = getValue('streetAddress') || '';
-        const city = getValue('city') || '';
-        const state = (getValue('state') || '').toUpperCase().slice(0, 2);
-        const zipCode = getValue('zipCode') || '';
+        // Handle fullAddress → parse into components
+        let streetAddress = getValue('streetAddress') || '';
+        let city = getValue('city') || '';
+        let state = (getValue('state') || '').toUpperCase().slice(0, 2);
+        let zipCode = getValue('zipCode') || '';
+
+        const fullAddress = getValue('fullAddress') || '';
+        if (fullAddress && !streetAddress) {
+          // Try to parse "1318 Woodbriar Ave, Greensboro, 27405" or "123 Main St, City, ST 12345"
+          const addrParts = fullAddress.split(',').map((s: string) => s.trim());
+          if (addrParts.length >= 1) streetAddress = addrParts[0];
+          if (addrParts.length >= 2) city = addrParts[1];
+          // Last part might be "ST 12345" or just "12345"
+          if (addrParts.length >= 3) {
+            const lastPart = addrParts[addrParts.length - 1].trim();
+            const stateZipMatch = lastPart.match(/^([A-Za-z]{2})\s*(\d{5})/);
+            if (stateZipMatch) {
+              state = stateZipMatch[1].toUpperCase();
+              zipCode = stateZipMatch[2];
+            } else if (/^\d{5}/.test(lastPart)) {
+              zipCode = lastPart.match(/\d{5}/)?.[0] || '';
+            } else if (lastPart.length === 2) {
+              state = lastPart.toUpperCase();
+            }
+          }
+        }
+
         const coverageType = getValue('coverageType')?.toLowerCase().replace(/\s+/g, '_') || null;
         const estimatedValue = parseInt(getValue('estimatedValue')) || null;
-        const notes = getValue('notes') || null;
+        const notesVal = getValue('notes') || null;
+        const birthdayNote = birthDate ? `DOB: ${birthDate}` : null;
+        const notes = [notesVal, birthdayNote].filter(Boolean).join(' | ') || null;
         const importSource = getValue('source') || source;
 
-        // Insert lead
+        // Insert lead — assigned to the importing agent
         await pool.query(`
           INSERT INTO leads (
             first_name, last_name, email, phone,
             street_address, city, state, zip_code,
             source, coverage_type, estimated_value, notes,
-            status, pipeline_stage, priority
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'new', 'new', 'medium')
+            status, pipeline_stage, priority,
+            assigned_to, distributed_to, distributed_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'new', 'new', 'medium', $13, $13, NOW())
         `, [
           firstName || 'Unknown',
           lastName || '',
@@ -2453,6 +2637,7 @@ router.post("/import/execute", async (req: Request, res: Response) => {
           coverageType,
           estimatedValue,
           notes,
+          userId || null,
         ]);
 
         results.imported++;

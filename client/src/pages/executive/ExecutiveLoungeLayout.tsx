@@ -66,6 +66,7 @@ import {
   ShieldCheck,
   Send,
   Phone,
+  ShoppingCart,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -130,6 +131,7 @@ const overviewItems: NavItem[] = [
 const financialItems: NavItem[] = [
   { icon: DollarSign, label: 'Revenue & Forecasting', href: '/executive/revenue' },
   { icon: PieChart, label: 'Commissions', href: '/executive/commissions' },
+  { icon: ShoppingCart, label: 'Lead Revenue', href: '/executive/lead-revenue' },
 ];
 
 const salesItems: NavItem[] = [

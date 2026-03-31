@@ -40,6 +40,7 @@ import {
   ACTION_TYPE_COLORS,
   fmtCurrency,
 } from './executiveConstants';
+import MemberDirectoryCore from '@/components/members/MemberDirectoryCore';
 import { toast } from 'sonner';
 import {
   ShieldCheck,
@@ -621,119 +622,15 @@ export function ExecutiveLoungeAccess() {
 
           {/* ═══ TAB 2: MEMBER DIRECTORY ═══ */}
           <TabsContent value="directory">
-            <motion.div variants={fadeInUp} className="space-y-4 mt-4">
-              {/* Lounge Filter Pills */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setLoungeFilter(null)}
-                  className="inline-flex items-center gap-1.5 font-semibold transition-all duration-200"
-                  style={{
-                    fontSize: TYPE.caption,
-                    padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                    borderRadius: RADIUS.pill,
-                    border: `1.5px solid ${!loungeFilter ? '#ea580c' : COLORS.gray[200]}`,
-                    backgroundColor: !loungeFilter ? '#ea580c10' : 'rgba(255,255,255,0.8)',
-                    color: !loungeFilter ? '#ea580c' : COLORS.gray[600],
-                  }}
-                >
-                  <Users style={{ width: 14, height: 14 }} />
-                  All Members
-                  <span className="inline-flex items-center justify-center font-bold" style={{
-                    fontSize: 10, minWidth: 20, height: 18, borderRadius: 9999, padding: '0 5px',
-                    backgroundColor: !loungeFilter ? '#ea580c20' : COLORS.gray[100],
-                    color: !loungeFilter ? '#ea580c' : COLORS.gray[500],
-                  }}>
-                    {allMembers.length}
-                  </span>
-                </button>
-                {LOUNGES.map(lounge => (
-                  <button
-                    key={lounge.key}
-                    onClick={() => setLoungeFilter(loungeFilter === lounge.key ? null : lounge.key)}
-                    className="inline-flex items-center gap-1.5 font-semibold transition-all duration-200"
-                    style={{
-                      fontSize: TYPE.caption,
-                      padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                      borderRadius: RADIUS.pill,
-                      border: `1.5px solid ${loungeFilter === lounge.key ? '#ea580c' : COLORS.gray[200]}`,
-                      backgroundColor: loungeFilter === lounge.key ? '#ea580c10' : 'rgba(255,255,255,0.8)',
-                      color: loungeFilter === lounge.key ? '#ea580c' : COLORS.gray[600],
-                    }}
-                  >
-                    {lounge.name}
-                  </button>
-                ))}
-              </div>
-
-              <ExecutiveFilterBar
-                periods={['All', 'Owners', 'Admins', 'Managers', 'Agents', 'Marketing', 'Clients', 'Investors']}
-                activePeriod={roleFilter}
-                onPeriodChange={setRoleFilter}
-                teams={['All', 'Active', 'Inactive']}
-                activeTeam={statusFilter}
-                onTeamChange={setStatusFilter}
+            <div className="mt-4">
+              <MemberDirectoryCore
+                variant="executive"
+                gradientCSS={EXECUTIVE_GRADIENT_CSS}
+                accentColor="#ea580c"
+                accentLight="#fff7ed"
+                hideStats
               />
-
-              <Card className="border-0 overflow-hidden" style={{ ...GLASS.css.light, borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr style={{ backgroundColor: COLORS.gray[50] }}>
-                          {['Member', 'Role', 'Hierarchy', 'Status', 'Last Login', ''].map(h => (
-                            <th key={h} className="text-left font-medium text-stone-500"
-                              style={{ fontSize: TYPE.caption, padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px` }}>
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {members.map((member) => (
-                          <tr
-                            key={member.id}
-                            className="cursor-pointer transition-colors duration-150 hover:bg-orange-50"
-                            style={{ borderBottom: `1px solid ${COLORS.gray[100]}` }}
-                            onClick={() => openMemberDrawer(member)}
-                          >
-                            <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              <div>
-                                <span className="font-semibold text-stone-900" style={{ fontSize: TYPE.meta }}>
-                                  {member.first_name} {member.last_name}
-                                </span>
-                                <p style={{ fontSize: TYPE.micro, color: COLORS.gray[500] }}>{member.email}</p>
-                              </div>
-                            </td>
-                            <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              <RoleBadge role={member.role} />
-                            </td>
-                            <td style={{ fontSize: TYPE.meta, color: COLORS.gray[600], padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              {member.hierarchy_title || '—'}
-                            </td>
-                            <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              <StatusDot active={member.is_active} />
-                            </td>
-                            <td style={{ fontSize: TYPE.meta, color: COLORS.gray[500], padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              {member.last_login_at ? new Date(member.last_login_at).toLocaleDateString() : 'Never'}
-                            </td>
-                            <td style={{ padding: `${GRID.spacing.xs + 2}px ${GRID.spacing.sm}px` }}>
-                              <ChevronRight style={{ width: 16, height: 16, color: COLORS.gray[400] }} />
-                            </td>
-                          </tr>
-                        ))}
-                        {members.length === 0 && (
-                          <tr>
-                            <td colSpan={6} className="text-center text-stone-400" style={{ padding: GRID.spacing.xl, fontSize: TYPE.meta }}>
-                              No members found
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+            </div>
           </TabsContent>
 
           {/* ═══ TAB 3: ACCESS CONTROL ═══ */}

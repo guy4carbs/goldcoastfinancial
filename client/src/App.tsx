@@ -93,6 +93,8 @@ import AgentScripts from "@/pages/agents/AgentScripts";
 import AgentLeaderboard from "@/pages/agents/AgentLeaderboard";
 import AgentDeals from "@/pages/agents/AgentDeals";
 import AgentLeadMarketplace from "@/pages/agents/AgentLeadMarketplace";
+import AgentBusinessCard from "@/pages/agents/AgentBusinessCard";
+import PublicBusinessCard from "@/pages/PublicBusinessCard";
 import AgentAchievements from "@/pages/agents/AgentAchievements";
 import AgentSettings from "@/pages/agents/AgentSettings";
 import AgentCalendar from "@/pages/agents/AgentCalendar";
@@ -142,6 +144,8 @@ import ReferralLandingPage from "@/pages/ReferralLandingPage";
 import { AgentOnboardingIntake } from "@/pages/onboarding-intake";
 import AdminAvatarCouncil from "@/pages/admin/AdminAvatarCouncil";
 import AgentOps from "@/pages/admin/AgentOps";
+import AdminMemberDirectory from "@/pages/admin/AdminMemberDirectory";
+import AdminLeadRevenue from "@/pages/admin/AdminLeadRevenue";
 // 2FA Pages
 import TwoFactorSetup from "@/pages/ai/TwoFactorSetup";
 import TwoFactorVerify from "@/pages/ai/TwoFactorVerify";
@@ -199,6 +203,7 @@ import {
   ExecutiveBookOfBusiness,
   ExecutiveLeadDistribution,
   ExecutiveCallMonitoring,
+  ExecutiveLeadRevenue,
 } from "@/pages/executive";
 import { LobbyLanding, CRMDashboard, ContactDatabase, PipelineBoard, LeadProfile, ImportExport, ClientManagement, SegmentsTags, ActivityHistory } from "@/pages/crm";
 import { MarketingDashboard } from "@/pages/marketing";
@@ -271,6 +276,7 @@ function Router() {
         <Route path="/book/:agentSlug" component={BookAppointment} />
         <Route path="/recruit/:agentSlug" component={RecruitmentPage} />
         <Route path="/a/:agentSlug" component={AgentSite} />
+        <Route path="/card/:agentId" component={PublicBusinessCard} />
         <Route path="/refer/:clientId" component={ReferralLandingPage} />
         <Route path="/refer" component={ReferralLandingPage} />
         <Route path="/quote" component={Quote} />
@@ -387,6 +393,11 @@ function Router() {
         <Route path="/agents/lead-marketplace">
           <AgentProtectedRoute>
             <AgentLeadMarketplace />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/business-card">
+          <AgentProtectedRoute>
+            <AgentBusinessCard />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/achievements">
@@ -840,6 +851,11 @@ function Router() {
             <ExecutiveCallMonitoring />
           </RoleProtectedRoute>
         </Route>
+        <Route path="/executive/lead-revenue">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+            <ExecutiveLeadRevenue />
+          </RoleProtectedRoute>
+        </Route>
         <Route path="/executive/:rest*">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveDashboard />
@@ -1088,6 +1104,16 @@ function Router() {
         <Route path="/admin/agent-ops">
           <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
             <AgentOps />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/admin/members">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+            <AdminMemberDirectory />
+          </RoleProtectedRoute>
+        </Route>
+        <Route path="/admin/lead-revenue">
+          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+            <AdminLeadRevenue />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin">

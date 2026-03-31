@@ -47,27 +47,22 @@ import {
   staggerContainer,
   scaleIn,
 } from '@/lib/heritageDesignSystem';
+import { getNextTier } from '@/lib/commissionTiers';
 
 // =============================================================================
 // DEMO DATA FALLBACKS
 // =============================================================================
 
-const DEMO_CONTRACT_LEVEL = 80;
-const DEMO_NEXT_LEVEL = 85;
-const DEMO_MONTHLY_AP = 12500;
-const DEMO_NEXT_THRESHOLD = 25000;
-const DEMO_YTD_EARNINGS = 45200;
-const DEMO_POLICIES_SOLD = 28;
-const DEMO_OVERRIDE_EARNINGS = 3200;
+const DEMO_CONTRACT_LEVEL = 65;
+const DEMO_NEXT_LEVEL = 70;
+const DEMO_MONTHLY_AP = 0;
+const DEMO_NEXT_THRESHOLD = 5000;
+const DEMO_YTD_EARNINGS = 0;
+const DEMO_POLICIES_SOLD = 0;
+const DEMO_OVERRIDE_EARNINGS = 0;
+const DEMO_OVERRIDE_AP = 0;
 
-const DEMO_MONTHLY_AP_DATA = [
-  { month: 'Oct', ap: 8200 },
-  { month: 'Nov', ap: 10500 },
-  { month: 'Dec', ap: 9800 },
-  { month: 'Jan', ap: 11200 },
-  { month: 'Feb', ap: 14100 },
-  { month: 'Mar', ap: 12500 },
-];
+const DEMO_MONTHLY_AP_DATA: { month: string; ap: number }[] = [];
 
 interface HierarchyRequest {
   id: number;
@@ -117,6 +112,10 @@ export function AgentCommissions() {
     queryKey: ['/api/commissions/my-earnings'],
   });
 
+  const { data: myDealStats } = useQuery<any>({
+    queryKey: ['/api/deals/my-stats?period=month'],
+  });
+
   // =========================================================================
   // MUTATIONS
   // =========================================================================
@@ -152,12 +151,15 @@ export function AgentCommissions() {
   // =========================================================================
 
   const contractLevel = myPosition?.contractLevel ?? myTargets?.currentLevel ?? DEMO_CONTRACT_LEVEL;
-  const nextLevel = myTargets?.nextLevel ?? DEMO_NEXT_LEVEL;
+  const tierInfo = getNextTier(contractLevel);
+  const nextLevel = myTargets?.nextLevel ?? tierInfo?.rate ?? DEMO_NEXT_LEVEL;
   const monthlyAp = myCommissions?.monthlyAp ?? DEMO_MONTHLY_AP;
-  const nextThreshold = myTargets?.nextThreshold ?? DEMO_NEXT_THRESHOLD;
+  const nextThreshold = myTargets?.nextThreshold ?? tierInfo?.apThreshold ?? DEMO_NEXT_THRESHOLD;
   const ytdEarnings = myPosition?.ytdCommission ?? myCommissions?.ytdEarnings ?? DEMO_YTD_EARNINGS;
-  const policiesSold = myPosition?.policiesSold ?? myCommissions?.policiesSold ?? DEMO_POLICIES_SOLD;
+  const policiesSold = myDealStats?.data?.totalDeals ?? myPosition?.policiesSold ?? myCommissions?.policiesSold ?? DEMO_POLICIES_SOLD;
   const overrideEarnings = myCommissions?.overrideEarnings ?? DEMO_OVERRIDE_EARNINGS;
+  const overrideAp = myCommissions?.overrideAp ?? DEMO_OVERRIDE_AP;
+  const totalAp = monthlyAp + overrideAp;
   const monthlyApData = myCommissions?.monthlyApData ?? DEMO_MONTHLY_AP_DATA;
 
   const requests: HierarchyRequest[] = Array.isArray(myRequests?.requests)
@@ -166,7 +168,9 @@ export function AgentCommissions() {
       ? myRequests
       : [];
 
-  const apProgress = nextThreshold > 0 ? Math.min((monthlyAp / nextThreshold) * 100, 100) : 0;
+  const personalApProgress = nextThreshold > 0 ? Math.min((monthlyAp / nextThreshold) * 100, 100) : 0;
+  const overrideApProgress = nextThreshold > 0 ? Math.min((overrideAp / nextThreshold) * 100, 100) : 0;
+  const totalApProgress = nextThreshold > 0 ? Math.min((totalAp / nextThreshold) * 100, 100) : 0;
   const maxBarValue = Math.max(...monthlyApData.map((d: any) => d.ap), nextThreshold);
 
   // =========================================================================
@@ -257,13 +261,11 @@ export function AgentCommissions() {
               icon={DollarSign}
               label="YTD Earnings"
               value={formatCurrency(ytdEarnings)}
-              trend={{ value: '12%', positive: true, label: 'vs last year' }}
             />
             <AgentStatCard
               icon={FileText}
               label="Policies Sold"
               value={policiesSold}
-              trend={{ value: 3, positive: true, label: 'this month' }}
             />
             <AgentStatCard
               icon={TrendingUp}
@@ -347,28 +349,55 @@ export function AgentCommissions() {
                   <p className="text-xs text-gray-400 mt-1">Target Commission</p>
                 </div>
 
-                {/* AP Progress */}
+                {/* AP Progress — 3 bars */}
                 <div
-                  className="flex flex-col justify-center p-6 bg-gradient-to-br from-gray-50 to-slate-50"
+                  className="flex flex-col justify-center p-6 bg-gradient-to-br from-gray-50 to-slate-50 gap-5"
                   style={{ borderRadius: RADIUS.card }}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-700">Monthly AP Progress</span>
-                    <span className="text-xs text-gray-400">
-                      {formatCurrency(monthlyAp)} / {formatCurrency(nextThreshold)}
-                    </span>
+                  {/* Personal AP */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-semibold text-gray-700">My AP</span>
+                      <span className="text-xs text-gray-400">
+                        {formatCurrency(monthlyAp)} / {formatCurrency(nextThreshold)}
+                      </span>
+                    </div>
+                    <Progress value={personalApProgress} className="h-2.5 mb-1" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-400">{Math.round(personalApProgress)}%</span>
+                      <span className="text-[10px] font-semibold text-violet-600">
+                        {monthlyAp >= nextThreshold ? 'Threshold met' : `${formatCurrency(nextThreshold - monthlyAp)} remaining`}
+                      </span>
+                    </div>
                   </div>
-                  <Progress
-                    value={apProgress}
-                    className="h-3 mb-3"
-                  />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
-                      {Math.round(apProgress)}% of threshold
-                    </span>
-                    <span className="text-xs font-semibold text-violet-600">
-                      {formatCurrency(nextThreshold - monthlyAp)} remaining
-                    </span>
+
+                  {/* Override AP */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-semibold text-gray-700">Override AP</span>
+                      <span className="text-xs text-gray-400">
+                        {formatCurrency(overrideAp)}
+                      </span>
+                    </div>
+                    <Progress value={overrideApProgress} className="h-2.5 mb-1 [&>div]:bg-amber-500" />
+                    <span className="text-[10px] text-gray-400">{Math.round(overrideApProgress)}% of threshold</span>
+                  </div>
+
+                  {/* Total AP */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-bold text-gray-900">Total AP</span>
+                      <span className="text-xs font-semibold text-gray-700">
+                        {formatCurrency(totalAp)} / {formatCurrency(nextThreshold)}
+                      </span>
+                    </div>
+                    <Progress value={totalApProgress} className="h-3 mb-1 [&>div]:bg-gradient-to-r [&>div]:from-violet-500 [&>div]:to-emerald-500" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-gray-500">{Math.round(totalApProgress)}%</span>
+                      <span className="text-[10px] font-bold text-emerald-600">
+                        {totalAp >= nextThreshold ? 'Threshold met!' : `${formatCurrency(nextThreshold - totalAp)} remaining`}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -376,63 +405,71 @@ export function AgentCommissions() {
               {/* Monthly AP Bar Chart */}
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Monthly AP Trend</h3>
-                <div className="flex items-end gap-3 h-32">
-                  {monthlyApData.map((item: any, i: number) => {
-                    const barHeight = maxBarValue > 0 ? (item.ap / maxBarValue) * 100 : 0;
-                    const isCurrentMonth = i === monthlyApData.length - 1;
-                    return (
-                      <motion.div
-                        key={item.month}
-                        className="flex-1 flex flex-col items-center gap-1"
-                        initial={{ scaleY: 0 }}
-                        animate={{ scaleY: 1 }}
-                        transition={{
-                          delay: i * 0.08,
-                          duration: MOTION.duration.normal,
-                          ease: MOTION.easing,
-                        }}
-                        style={{ originY: 1 }}
-                      >
-                        <span className="text-xs font-semibold text-gray-600">
-                          {formatCurrency(item.ap)}
-                        </span>
-                        <div
-                          className={cn(
-                            'w-full rounded-t-lg transition-all',
-                            isCurrentMonth
-                              ? 'bg-gradient-to-t from-violet-600 to-purple-500'
-                              : 'bg-gradient-to-t from-violet-200 to-purple-200'
-                          )}
-                          style={{
-                            height: `${barHeight}%`,
-                            minHeight: 4,
-                            borderRadius: `${RADIUS.input}px ${RADIUS.input}px 0 0`,
+                {monthlyApData.length > 0 ? (
+                  <div className="flex items-end gap-3 h-32">
+                    {monthlyApData.map((item: any, i: number) => {
+                      const barHeight = maxBarValue > 0 ? (item.ap / maxBarValue) * 100 : 0;
+                      const isCurrentMonth = i === monthlyApData.length - 1;
+                      return (
+                        <motion.div
+                          key={item.month}
+                          className="flex-1 flex flex-col items-center gap-1"
+                          initial={{ scaleY: 0 }}
+                          animate={{ scaleY: 1 }}
+                          transition={{
+                            delay: i * 0.08,
+                            duration: MOTION.duration.normal,
+                            ease: MOTION.easing,
                           }}
-                        />
-                        <span className={cn(
-                          'text-xs',
-                          isCurrentMonth ? 'font-bold text-violet-700' : 'text-gray-400'
-                        )}>
-                          {item.month}
-                        </span>
-                      </motion.div>
-                    );
-                  })}
-                  {/* Threshold line reference */}
-                  <div className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs font-semibold text-amber-600">
-                      {formatCurrency(nextThreshold)}
-                    </span>
-                    <div
-                      className="w-full border-2 border-dashed border-amber-400 rounded"
-                      style={{
-                        height: `${maxBarValue > 0 ? (nextThreshold / maxBarValue) * 100 : 0}%`,
-                        minHeight: 4,
-                      }}
-                    />
-                    <span className="text-xs text-amber-500 font-medium">Goal</span>
+                          style={{ originY: 1 }}
+                        >
+                          <span className="text-xs font-semibold text-gray-600">
+                            {formatCurrency(item.ap)}
+                          </span>
+                          <div
+                            className={cn(
+                              'w-full rounded-t-lg transition-all',
+                              isCurrentMonth
+                                ? 'bg-gradient-to-t from-violet-600 to-purple-500'
+                                : 'bg-gradient-to-t from-violet-200 to-purple-200'
+                            )}
+                            style={{
+                              height: `${barHeight}%`,
+                              minHeight: 4,
+                              borderRadius: `${RADIUS.input}px ${RADIUS.input}px 0 0`,
+                            }}
+                          />
+                          <span className={cn(
+                            'text-xs',
+                            isCurrentMonth ? 'font-bold text-violet-700' : 'text-gray-400'
+                          )}>
+                            {item.month}
+                          </span>
+                        </motion.div>
+                      );
+                    })}
+                    {/* Threshold line reference */}
+                    <div className="flex-1 flex flex-col items-center gap-1">
+                      <span className="text-xs font-semibold text-amber-600">
+                        {formatCurrency(nextThreshold)}
+                      </span>
+                      <div
+                        className="w-full border-2 border-dashed border-amber-400 rounded"
+                        style={{
+                          height: `${maxBarValue > 0 ? (nextThreshold / maxBarValue) * 100 : 0}%`,
+                          minHeight: 4,
+                        }}
+                      />
+                      <span className="text-xs text-amber-500 font-medium">Goal</span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-center">
+                    <BarChart3 className="w-8 h-8 text-gray-200 mb-2" />
+                    <p className="text-sm text-gray-400">No AP data yet</p>
+                    <p className="text-xs text-gray-300">Submit deals to see your monthly trend</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -28,6 +28,7 @@ export { ExecutiveLoungeAccess } from './ExecutiveLoungeAccess';
 export { ExecutiveBookOfBusiness } from './ExecutiveBookOfBusiness';
 export { ExecutiveLeadDistribution } from './ExecutiveLeadDistribution';
 export { ExecutiveCallMonitoring } from './ExecutiveCallMonitoring';
+export { ExecutiveLeadRevenue } from './ExecutiveLeadRevenue';
 
 // Primitives
 export { ExecutivePageHero } from './primitives/ExecutivePageHero';

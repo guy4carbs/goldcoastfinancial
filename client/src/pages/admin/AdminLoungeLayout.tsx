@@ -138,6 +138,11 @@ const intelligenceItems: NavItem[] = [
   { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
   { icon: Bot, label: 'Avatar Council', href: '/admin/avatar-council' },
   { icon: Cpu, label: 'Agent Ops', href: '/admin/agent-ops' },
+  { icon: DollarSign, label: 'Lead Revenue', href: '/admin/lead-revenue' },
+];
+
+const membersItems: NavItem[] = [
+  { icon: Users, label: 'Member Directory', href: '/admin/members' },
 ];
 
 // ============================================
@@ -155,6 +160,8 @@ const ADMIN_ROUTES: Record<string, string> = {
   analytics: '/admin/analytics',
   'avatar-council': '/admin/avatar-council',
   'agent-ops': '/admin/agent-ops',
+  'lead-revenue': '/admin/lead-revenue',
+  members: '/admin/members',
   settings: '/admin/settings',
 };
 
@@ -170,6 +177,8 @@ const ADMIN_SEARCH_ITEMS = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
   { id: 'avatar-council', label: 'Avatar Council', icon: Bot, href: '/admin/avatar-council' },
   { id: 'agent-ops', label: 'Agent Ops', icon: Cpu, href: '/admin/agent-ops' },
+  { id: 'lead-revenue', label: 'Lead Revenue', icon: DollarSign, href: '/admin/lead-revenue' },
+  { id: 'members', label: 'Member Directory', icon: Users, href: '/admin/members' },
   { id: 'settings', label: 'Settings', icon: Settings, href: '/admin/settings' },
 ];
 
@@ -412,6 +421,7 @@ export function AdminLoungeLayout({ children, breadcrumbs }: AdminLoungeLayoutPr
         <NavSection title="Engagement" items={engagementItems} />
         <NavSection title="Products" items={productItems} />
         <NavSection title="Intelligence" items={intelligenceItems} />
+        <NavSection title="Members" items={membersItems} />
       </nav>
 
       {/* Bottom Actions */}

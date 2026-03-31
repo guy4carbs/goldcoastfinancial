@@ -13,6 +13,7 @@ import { requireAuth, type AuthenticatedUser } from "../middleware/auth";
 import { Roles } from "../types/permissions";
 import multer from "multer";
 import * as s3Service from "../services/s3Service";
+import { recordCommissions } from "../services/commissionRecordService";
 
 const router = Router();
 
@@ -215,6 +216,15 @@ router.post("/:clientId/policies", requireAuth, requireClientAssignment, async (
     }
 
     console.log(`[AgentClients] Policy created: ${generatedPolicyNumber} for client ${clientId} by agent ${agent.id}`);
+
+    // Calculate and record waterfall commissions
+    const annualPremium = Number(monthlyPremium) * 12;
+    if (annualPremium > 0) {
+      recordCommissions(policy.id, agent.id, annualPremium).catch((err) =>
+        console.error("[AgentClients] Commission recording failed:", err)
+      );
+    }
+
     res.status(201).json(policy);
   } catch (error: any) {
     console.error("[AgentClients] Failed to create policy:", error);
@@ -288,6 +298,18 @@ router.put("/:clientId/policies/:policyId", requireAuth, requireClientAssignment
     }
 
     console.log(`[AgentClients] Policy updated: ${policyId} for client ${clientId}`);
+
+    // Recalculate commissions if premium changed
+    if (updateData.monthlyPremium && updated) {
+      const agentId = (updated as any).agentId || (existingPolicy as any).agent_id;
+      const annualPremium = Number(updateData.monthlyPremium) * 12;
+      if (agentId && annualPremium > 0) {
+        recordCommissions(policyId, agentId, annualPremium).catch((err) =>
+          console.error("[AgentClients] Commission recalculation failed:", err)
+        );
+      }
+    }
+
     res.json(updated);
   } catch (error: any) {
     console.error("[AgentClients] Failed to update policy:", error);

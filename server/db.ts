@@ -129,6 +129,31 @@ export async function initializeDatabase() {
     await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS agent_id UUID;`);
     await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS lead_id VARCHAR;`);
     await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS carrier VARCHAR;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS annual_premium DECIMAL(12,2);`);
+
+    // Ensure agent_hierarchy has contract_level column
+    await client.query(`ALTER TABLE agent_hierarchy ADD COLUMN IF NOT EXISTS contract_level DECIMAL(5,2) DEFAULT 65;`);
+
+    // Commission records table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS commission_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        policy_id UUID REFERENCES policies(id),
+        deal_id UUID,
+        agent_id UUID NOT NULL REFERENCES users(id),
+        upline_agent_id UUID REFERENCES users(id),
+        commission_type VARCHAR(30) NOT NULL DEFAULT 'personal',
+        premium_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+        contract_level DECIMAL(5,2) NOT NULL DEFAULT 0,
+        override_spread DECIMAL(5,2) DEFAULT 0,
+        commission_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+        period_month INTEGER,
+        period_year INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`ALTER TABLE commission_records ADD COLUMN IF NOT EXISTS deal_id UUID;`);
+    await client.query(`ALTER TABLE deals ADD COLUMN IF NOT EXISTS product_type VARCHAR;`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS documents (
@@ -834,6 +859,14 @@ export async function initializeDatabase() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_onboarding_token ON agent_profiles (onboarding_token);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_onboarding_type ON agent_profiles (onboarding_type);`);
+    // Business card social links + title
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS title VARCHAR(100);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS company_name VARCHAR(255);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS website_url VARCHAR(255);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(255);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS instagram_url VARCHAR(255);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS facebook_url VARCHAR(255);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS twitter_url VARCHAR(255);`);
 
     // ── User Lounge Access table ──
     await client.query(`

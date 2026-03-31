@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { AgentPageHero } from "@/components/agent/primitives";
@@ -88,12 +89,7 @@ function escapeCSVField(value: string | number): string {
 }
 
 // Demo data
-const DEMO_PRODUCT_BREAKDOWN = [
-  { product: 'Term Life', amount: 18200, percent: 43, color: 'bg-blue-500', policies: 12, avgPremium: 1517, avgCommission: 287 },
-  { product: 'Whole Life', amount: 12400, percent: 29, color: 'bg-green-500', policies: 6, avgPremium: 3200, avgCommission: 620 },
-  { product: 'IUL', amount: 7600, percent: 18, color: 'bg-purple-500', policies: 3, avgPremium: 4800, avgCommission: 760 },
-  { product: 'Final Expense', amount: 4400, percent: 10, color: 'bg-orange-500', policies: 8, avgPremium: 850, avgCommission: 165 },
-];
+const DEMO_PRODUCT_BREAKDOWN: any[] = [];
 
 const DEMO_LEAD_SOURCE_ROI = [
   { source: 'Company Leads', leads: 45, conversions: 12, conversionRate: 26.7, totalSpent: 450, revenue: 18500, roi: 4011, avgDealSize: 1542, color: 'bg-blue-500' },
@@ -126,6 +122,11 @@ export default function AgentPerformance() {
 
   const [activeTab, setActiveTab] = useState('earnings');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
+
+  // Real performance data from API — re-fetches when time period changes
+  const { data: perfData } = useQuery<any>({
+    queryKey: [`/api/commissions/performance?period=${timePeriod}`],
+  });
   const [showAddLead, setShowAddLead] = useState(false);
   const [initialStage, setInitialStage] = useState<string>('new');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -177,8 +178,19 @@ export default function AgentPerformance() {
     return { stages: stageData, totalLeads, closedDeals, overallConversion, totalPipelineValue, avgDealValue: AVG_DEAL_VALUE, avgCycleTime: 12 };
   }, [periodLeads]);
 
-  // Earnings metrics
+  // Earnings metrics — use real API data if available, fallback to store
   const earningsMetrics = useMemo(() => {
+    if (perfData?.pending) {
+      return {
+        pending: perfData.pending,
+        paid: perfData.paid,
+        clawback: perfData.clawback || { count: 0, total: 0 },
+        netTotal: perfData.netTotal || 0,
+        ytd: perfData.ytd || 0,
+      };
+    }
+
+    // Fallback to Zustand store data
     const pending = filteredEarnings.filter(e => e.status === 'pending');
     const paid = filteredEarnings.filter(e => e.status === 'paid');
     const clawback = filteredEarnings.filter(e => e.status === 'clawback');
@@ -198,12 +210,16 @@ export default function AgentPerformance() {
       paid: { count: paid.length, total: paidTotal },
       clawback: { count: clawback.length, total: clawbackTotal },
       netTotal,
-      ytd: ytdTotal || 42600,
+      ytd: ytdTotal || 0,
     };
-  }, [filteredEarnings, earnings]);
+  }, [filteredEarnings, earnings, perfData]);
 
-  // Monthly earnings trend
+  // Monthly earnings trend — use API data if available
   const monthlyTrend = useMemo(() => {
+    if (perfData?.monthlyTrend) {
+      return perfData.monthlyTrend;
+    }
+    // Fallback to store-based calculation
     const months: { month: string; amount: number }[] = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -215,10 +231,10 @@ export default function AgentPerformance() {
         return eDate >= date && eDate <= monthEnd && e.status !== 'clawback';
       });
       const amount = monthEarnings.reduce((s, e) => s + e.amount, 0);
-      months.push({ month: monthLabel, amount: Math.max(0, amount) || (3200 + i * 400) });
+      months.push({ month: monthLabel, amount: Math.max(0, amount) });
     }
     return months;
-  }, [earnings]);
+  }, [earnings, perfData]);
 
   // At-risk deals
   const atRiskDeals = useMemo(() => {
@@ -233,7 +249,7 @@ export default function AgentPerformance() {
 
   const statements = useMemo(() => generateStatements(), []);
   const maxCount = Math.max(...pipelineMetrics.stages.map(s => s.count), 1);
-  const maxMonthly = Math.max(...monthlyTrend.map(m => m.amount), 1);
+  const maxMonthly = Math.max(...monthlyTrend.map((m: any) => m.amount), 1);
 
   const handleAddLead = (leadData: Omit<Lead, 'id' | 'createdDate' | 'notes' | 'assignedTo'>) => {
     addLead({ ...leadData, status: initialStage as Lead['status'] });
@@ -697,7 +713,7 @@ export default function AgentPerformance() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-end gap-3 h-40">
-                        {monthlyTrend.map((month, idx) => (
+                        {monthlyTrend.map((month: any, idx: number) => (
                           <div key={month.month} className="flex-1 h-full flex items-end">
                             <motion.div
                               initial={{ height: 0 }}
@@ -715,7 +731,7 @@ export default function AgentPerformance() {
                         ))}
                       </div>
                       <div className="flex gap-3 mt-3">
-                        {monthlyTrend.map((month, idx) => (
+                        {monthlyTrend.map((month: any, idx: number) => (
                           <div key={month.month} className="flex-1 text-center">
                             <p className={cn("text-xs font-semibold", idx === monthlyTrend.length - 1 ? "text-violet-600" : "text-gray-600")}>
                               ${(month.amount / 1000).toFixed(1)}K
@@ -764,14 +780,14 @@ export default function AgentPerformance() {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredEarnings.slice(0, 10).map((entry) => (
+                              {(perfData?.recentCommissions || filteredEarnings.slice(0, 10)).map((entry: any) => (
                                 <tr key={entry.id} className="border-b border-gray-100 hover:bg-violet-50/50 transition-colors">
-                                  <td className="p-3"><span className="text-sm font-mono text-gray-600">{entry.policyNumber}</span></td>
+                                  <td className="p-3"><span className="text-sm font-mono text-gray-600">{entry.policyNumber || entry.source || '—'}</span></td>
                                   <td className="p-3"><span className="text-sm font-medium text-gray-800">{entry.clientName}</span></td>
                                   <td className="p-3"><span className="text-sm text-gray-600">{entry.product}</span></td>
                                   <td className="p-3 text-right">
                                     <span className={cn("text-sm font-bold", entry.status === 'clawback' ? "text-red-600" : "text-violet-600")}>
-                                      {entry.status === 'clawback' ? '-' : ''}${entry.amount.toLocaleString()}
+                                      {entry.status === 'clawback' ? '-' : ''}${(entry.amount || 0).toLocaleString()}
                                     </span>
                                   </td>
                                   <td className="p-3 text-center">
@@ -783,7 +799,7 @@ export default function AgentPerformance() {
                                       )}
                                       style={{ borderRadius: RADIUS.pill }}
                                     >
-                                      {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                                      {(entry.status || 'pending').charAt(0).toUpperCase() + (entry.status || 'pending').slice(1)}
                                     </Badge>
                                   </td>
                                   <td className="p-3 text-right"><span className="text-sm text-gray-500">{formatDate(entry.date)}</span></td>
@@ -816,7 +832,7 @@ export default function AgentPerformance() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {DEMO_PRODUCT_BREAKDOWN.map((item, idx) => (
+                        {(perfData?.productBreakdown || DEMO_PRODUCT_BREAKDOWN).map((item: any, idx: number) => (
                           <div key={item.product}>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-gray-700">{item.product}</span>
@@ -1053,7 +1069,7 @@ export default function AgentPerformance() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-4">Revenue Distribution</h4>
                       <div className="space-y-4">
-                        {DEMO_PRODUCT_BREAKDOWN.map((product, idx) => (
+                        {(perfData?.productBreakdown || DEMO_PRODUCT_BREAKDOWN).map((product: any, idx: number) => (
                           <div key={product.product}>
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
@@ -1094,7 +1110,7 @@ export default function AgentPerformance() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-4">Performance Metrics</h4>
                       <div className="space-y-3">
-                        {DEMO_PRODUCT_BREAKDOWN.map((product) => (
+                        {(perfData?.productBreakdown || DEMO_PRODUCT_BREAKDOWN).map((product: any) => (
                           <div
                             key={product.product}
                             className="p-3 bg-gray-50 hover:bg-violet-50/50 transition-colors"

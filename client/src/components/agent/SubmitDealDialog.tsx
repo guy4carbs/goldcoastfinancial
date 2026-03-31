@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { DollarSign, Loader2, Trophy, Building2 } from "lucide-react";
+import { DollarSign, Loader2, Trophy, Building2, FileText } from "lucide-react";
+
+const PRODUCT_TYPES = ['IUL', 'Whole Life', 'Term Life', 'Final Expense', 'Annuity'];
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -49,6 +51,7 @@ interface SubmitDealDialogProps {
 export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) {
   const [premium, setPremium] = useState('');
   const [carrier, setCarrier] = useState('');
+  const [productType, setProductType] = useState('');
   const [clientName, setClientName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const queryClient = useQueryClient();
@@ -58,24 +61,27 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
 
   const handleSubmit = async () => {
     if (!carrier) { toast.error('Select a carrier'); return; }
+    if (!productType) { toast.error('Select a product type'); return; }
     if (monthlyVal <= 0) { toast.error('Enter the monthly premium'); return; }
 
     setSubmitting(true);
     try {
       await apiRequest("POST", "/api/deals", {
         carrier,
+        productType,
         monthlyPremium: monthlyVal,
         clientName: clientName.trim() || undefined,
       });
 
       toast.success(`Deal submitted! $${annualPremium.toLocaleString()} AP on ${carrier}`);
-      queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deals/leaderboard'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deals/stats'] });
+      // Refresh all data across the app
+      queryClient.invalidateQueries();
+      queryClient.refetchQueries();
 
       // Reset form
       setPremium('');
       setCarrier('');
+      setProductType('');
       setClientName('');
       onOpenChange(false);
     } catch (err: any) {
@@ -139,6 +145,23 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
             </Select>
           </div>
 
+          {/* Product Type */}
+          <div>
+            <Label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+              <FileText className="w-3 h-3" /> Product Type *
+            </Label>
+            <Select value={productType} onValueChange={setProductType}>
+              <SelectTrigger style={{ borderRadius: RADIUS.input }}>
+                <SelectValue placeholder="Select product type..." />
+              </SelectTrigger>
+              <SelectContent>
+                {PRODUCT_TYPES.map(p => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Client Name (optional) */}
           <div>
             <Label className="text-xs text-gray-500 mb-1">Client Name (optional)</Label>
@@ -158,7 +181,7 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting || monthlyVal <= 0 || !carrier}
+            disabled={submitting || monthlyVal <= 0 || !carrier || !productType}
             className="bg-gradient-to-r from-violet-600 to-purple-600 text-white gap-2"
             style={{ borderRadius: RADIUS.button }}
           >

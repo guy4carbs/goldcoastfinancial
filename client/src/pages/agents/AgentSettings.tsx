@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ import {
   ShieldCheck,
   GraduationCap,
   Car,
+  Loader2,
+  Smile,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
@@ -106,6 +109,53 @@ export default function AgentSettings() {
   const logout = useAgentStore((state) => state.logout);
   const currentUser = useAgentStore((state) => state.currentUser);
   const createOrUpdateProfile = useAgentStore((state) => state.createOrUpdateProfile);
+  const queryClient = useQueryClient();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Avatar upload mutation
+  const avatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/business-card/my-card/avatar", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Upload failed");
+      }
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/business-card/my-card"] });
+      // Update the agent store so the header avatar updates immediately
+      if (data?.avatarUrl) {
+        createOrUpdateProfile({
+          name: `${profile.firstName} ${profile.lastName}`.trim(),
+          email: profile.email,
+          phone: profile.phone,
+          avatar: data.avatarUrl,
+        } as any);
+      }
+      toast.success("Profile photo updated!");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to upload photo");
+    },
+  });
+
+  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    avatarMutation.mutate(file);
+    e.target.value = "";
+  };
 
   const [notifications, setNotifications] = useState<NotificationSettings>({
     email: true,
@@ -126,7 +176,7 @@ export default function AgentSettings() {
         email: currentUser.email || '',
         phone: currentUser.phone || '',
         npn: currentUser.npn || '',
-        location: 'Los Angeles, CA',
+        location: 'Chicago, IL',
         bio: 'Experienced insurance agent specializing in life and health coverage.',
       };
     }
@@ -136,7 +186,7 @@ export default function AgentSettings() {
       email: '',
       phone: '',
       npn: '',
-      location: 'Los Angeles, CA',
+      location: 'Chicago, IL',
       bio: 'Experienced insurance agent specializing in life and health coverage.',
     };
   };
@@ -191,6 +241,10 @@ export default function AgentSettings() {
     file: null as File | null,
     fileName: '',
   });
+  const [driversLicenseBack, setDriversLicenseBack] = useState({
+    file: null as File | null,
+    fileName: '',
+  });
   const [directDepositDoc, setDirectDepositDoc] = useState({
     file: null as File | null,
     fileName: '',
@@ -235,9 +289,7 @@ export default function AgentSettings() {
     });
   }, [profile, createOrUpdateProfile]);
 
-  const handleChangePhoto = useCallback(() => {
-    toast.info('Photo upload coming soon');
-  }, []);
+  // handleChangePhoto replaced by avatarInputRef + avatarMutation above
 
   const handleChangePassword = useCallback(() => {
     toast.info('Password change coming soon');
@@ -308,6 +360,15 @@ export default function AgentSettings() {
 
   const handleDLRemove = useCallback(() => {
     setDriversLicense({ file: null, fileName: '' });
+  }, []);
+
+  const handleDLBackFile = useCallback((file: File) => {
+    setDriversLicenseBack({ file, fileName: file.name });
+    toast.success("Driver's license back uploaded successfully");
+  }, []);
+
+  const handleDLBackRemove = useCallback(() => {
+    setDriversLicenseBack({ file: null, fileName: '' });
   }, []);
 
   const handleTwoFactorToggle = useCallback((checked: boolean) => {
@@ -383,24 +444,132 @@ export default function AgentSettings() {
             <CardContent className="space-y-6">
               {/* Avatar */}
               <div className="flex items-center gap-4">
-                <div
-                  className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl"
-                  style={{ borderRadius: RADIUS.card }}
-                >
-                  {(profile.firstName[0] || '?')}{(profile.lastName[0] || '?')}
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleAvatarFileSelect}
+                  className="hidden"
+                  aria-hidden="true"
+                />
+                <div className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="relative block overflow-hidden focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 transition-all"
+                    style={{ borderRadius: RADIUS.card }}
+                    disabled={avatarMutation.isPending}
+                  >
+                    {currentUser?.avatar ? (
+                      <img
+                        src={currentUser.avatar}
+                        alt=""
+                        className="w-20 h-20 object-cover border-2 border-violet-100 shadow-sm"
+                        style={{ borderRadius: RADIUS.card }}
+                      />
+                    ) : (
+                      <div
+                        className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl"
+                        style={{ borderRadius: RADIUS.card }}
+                      >
+                        {(profile.firstName[0] || '?')}{(profile.lastName[0] || '?')}
+                      </div>
+                    )}
+                    <div
+                      className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center"
+                      style={{ borderRadius: RADIUS.card }}
+                    >
+                      {avatarMutation.isPending ? (
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      ) : (
+                        <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </div>
+                  </button>
                 </div>
                 <div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleChangePhoto}
-                    className="text-violet-700 border-violet-200 hover:bg-violet-50"
-                    style={{ borderRadius: RADIUS.button }}
-                  >
-                    <Camera className="w-4 h-4 mr-2" aria-hidden="true" />
-                    Change Photo
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-1">JPG, PNG up to 5MB</p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-violet-700 border-violet-200 hover:bg-violet-50"
+                      style={{ borderRadius: RADIUS.button }}
+                      disabled={avatarMutation.isPending}
+                    >
+                      <Camera className="w-4 h-4 mr-2" aria-hidden="true" />
+                      {avatarMutation.isPending ? "Uploading..." : "Upload Photo"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const width = 500;
+                        const height = 700;
+                        const left = window.screenX + (window.innerWidth - width) / 2;
+                        const top = window.screenY + (window.innerHeight - height) / 2;
+                        const popup = window.open(
+                          "/api/auth/snapchat",
+                          "SnapchatLogin",
+                          `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+                        );
+                        const handler = (event: MessageEvent) => {
+                          if (event.origin !== window.location.origin) return;
+                          if (event.data?.type !== "bitmoji-auth") return;
+                          window.removeEventListener("message", handler);
+                          if (event.data.status === "success") {
+                            toast.success("Bitmoji avatar connected!");
+                            queryClient.invalidateQueries({ queryKey: ["/api/business-card/my-card"] });
+                          } else if (event.data.status === "no-avatar") {
+                            toast.error("No Bitmoji found. Make sure Bitmoji is linked to your Snapchat.");
+                          } else {
+                            toast.error("Failed to connect Bitmoji.");
+                          }
+                        };
+                        window.addEventListener("message", handler);
+                        const pollTimer = setInterval(() => {
+                          if (popup?.closed) { clearInterval(pollTimer); window.removeEventListener("message", handler); }
+                        }, 1000);
+                      }}
+                      className="text-amber-700 border-amber-200 hover:bg-amber-50 gap-1.5"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Smile className="w-4 h-4" aria-hidden="true" />
+                      Connect Bitmoji
+                    </Button>
+                  </div>
+                  {currentUser?.avatar && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await fetch("/api/business-card/my-card", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ avatarUrl: "" }),
+                            credentials: "include",
+                          });
+                          createOrUpdateProfile({
+                            name: `${profile.firstName} ${profile.lastName}`.trim(),
+                            email: profile.email,
+                            phone: profile.phone,
+                            avatar: "",
+                          } as any);
+                          queryClient.invalidateQueries({ queryKey: ["/api/business-card/my-card"] });
+                          toast.success("Profile photo removed");
+                        } catch {
+                          toast.error("Failed to remove photo");
+                        }
+                      }}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 gap-1.5 mt-1"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      Remove Photo
+                    </Button>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF, WebP up to 5MB — or connect your Bitmoji</p>
                 </div>
               </div>
 
@@ -898,26 +1067,39 @@ export default function AgentSettings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm text-gray-900">ID Status</p>
-                  <p className="text-xs text-gray-500">Government-issued photo ID required</p>
+                  <p className="text-xs text-gray-500">Government-issued photo ID required (front & back)</p>
                 </div>
                 <Badge
-                  className={driversLicense.fileName ? "bg-emerald-100 text-emerald-700 border-0" : "bg-amber-100 text-amber-700 border-0"}
+                  className={driversLicense.fileName && driversLicenseBack.fileName ? "bg-emerald-100 text-emerald-700 border-0" : driversLicense.fileName || driversLicenseBack.fileName ? "bg-blue-100 text-blue-700 border-0" : "bg-amber-100 text-amber-700 border-0"}
                   style={{ borderRadius: RADIUS.pill }}
                 >
-                  {driversLicense.fileName ? 'On File' : 'Required'}
+                  {driversLicense.fileName && driversLicenseBack.fileName ? 'On File' : driversLicense.fileName || driversLicenseBack.fileName ? 'Partial' : 'Required'}
                 </Badge>
               </div>
 
-              <div className="border-t border-gray-100 pt-4">
-                <Label className="text-gray-900 mb-2 block">Driver's License Upload</Label>
-                <p className="text-xs text-gray-500 mb-3">Upload a clear photo of the front of your driver's license</p>
-                <FileUploadZone
-                  onFileSelect={handleDLFile}
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  maxSizeMB={10}
-                  fileName={driversLicense.fileName}
-                  onRemove={handleDLRemove}
-                />
+              <div className="grid sm:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                <div>
+                  <Label className="text-gray-900 mb-2 block">Front</Label>
+                  <p className="text-xs text-gray-500 mb-3">Photo of the front of your ID</p>
+                  <FileUploadZone
+                    onFileSelect={handleDLFile}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    maxSizeMB={10}
+                    fileName={driversLicense.fileName}
+                    onRemove={handleDLRemove}
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-900 mb-2 block">Back</Label>
+                  <p className="text-xs text-gray-500 mb-3">Photo of the back of your ID</p>
+                  <FileUploadZone
+                    onFileSelect={handleDLBackFile}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    maxSizeMB={10}
+                    fileName={driversLicenseBack.fileName}
+                    onRemove={handleDLBackRemove}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

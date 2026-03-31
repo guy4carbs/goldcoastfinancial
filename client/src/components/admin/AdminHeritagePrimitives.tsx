@@ -32,9 +32,10 @@ interface AdminPageHeroProps {
   title: string;
   subtitle: string;
   actions?: ReactNode;
+  children?: ReactNode;
 }
 
-export function AdminPageHero({ icon: Icon, title, subtitle, actions }: AdminPageHeroProps) {
+export function AdminPageHero({ icon: Icon, title, subtitle, actions, children }: AdminPageHeroProps) {
   return (
     <motion.div
       variants={fadeInUp}
@@ -99,6 +100,7 @@ export function AdminPageHero({ icon: Icon, title, subtitle, actions }: AdminPag
         </div>
         {actions && <div className="flex items-center gap-3">{actions}</div>}
       </div>
+      {children && <div className="relative z-10 mt-4">{children}</div>}
     </motion.div>
   );
 }

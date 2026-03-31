@@ -860,50 +860,52 @@ export default function AgentDialer() {
   const [activeTab, setActiveTab] = useState('dialer');
   const ITEMS_PER_PAGE = 5;
 
-  const distributedQuery = useLeadInbox({ limit: 200, enabled: !!currentUser?.id });
+  const distributedQuery = useLeadInbox({ limit: 500, enabled: !!currentUser?.id });
 
-  // Merge distributed leads into store
-  useEffect(() => {
-    if (distributedQuery.data?.leads && distributedQuery.data.leads.length > 0) {
-      for (const apiLead of distributedQuery.data.leads) {
-        const name = `${apiLead.firstName || ''} ${apiLead.lastName || ''}`.trim();
-        const email = apiLead.email || '';
-        const exists = leads.some(l => l.email === email && l.name === name);
-        if (!exists && name) {
-          addLead({
-            name,
-            email,
-            phone: apiLead.phone || '',
-            product: apiLead.coverageType || 'Life Insurance',
-            source: 'Distributed',
-            status: 'new',
-            tags: ['Distributed'],
-            state: apiLead.state || '',
-            nextFollowUpDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-            nextFollowUpType: 'call',
-          });
+  // Build leads directly from API data — no store dependency
+  const apiLeads: Lead[] = useMemo(() => {
+    if (!distributedQuery.data?.leads) return [];
+    return distributedQuery.data.leads
+      .filter((l: any) => l.phone && l.phone.trim() !== '')
+      .map((apiLead: any) => {
+        let first = (apiLead.firstName || '').trim();
+        let last = (apiLead.lastName || '').trim();
+        if (first.includes(',')) {
+          const parts = first.split(',').map((s: string) => s.trim());
+          last = parts[0];
+          first = parts[1]?.split(' ')[0] || '';
         }
-      }
-    }
-  }, [distributedQuery.data]);
+        first = first ? first.charAt(0).toUpperCase() + first.slice(1).toLowerCase() : '';
+        last = last ? last.charAt(0).toUpperCase() + last.slice(1).toLowerCase() : '';
+        return {
+          id: apiLead.id || `api-${apiLead.email || Math.random()}`,
+          name: `${first} ${last}`.trim() || 'Unknown',
+          email: (apiLead.email || '').toLowerCase().trim(),
+          phone: apiLead.phone || '',
+          product: apiLead.coverageType || 'Life Insurance',
+          source: 'Distributed',
+          status: apiLead.status || 'new' as any,
+          tags: ['Distributed'],
+          state: apiLead.state || '',
+          createdDate: apiLead.createdAt || new Date().toISOString(),
+          notes: '',
+          assignedTo: currentUser?.id,
+          nextFollowUpDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          nextFollowUpType: 'call' as any,
+        } as unknown as Lead;
+      });
+  }, [distributedQuery.data, currentUser?.id]);
 
-  // Fetch website + referral leads
-  useEffect(() => {
-    if (currentUser?.name) {
-      const slug = generateAgentSlug(currentUser.name);
-      fetchWebsiteLeads(slug);
-    }
-    fetchReferralLeads();
-  }, [currentUser?.name]);
-
-  const userLeads = leads.filter(l => l.assignedTo === currentUser?.id && l.phone);
-  const filteredLeads = userLeads.filter(l => {
+  const allDialerLeads = apiLeads;
+  const filteredLeads = allDialerLeads.filter(l => {
     if (!leadSearchQuery) return true;
     const q = leadSearchQuery.toLowerCase();
     return l.name.toLowerCase().includes(q) || l.phone.includes(q) || l.email.toLowerCase().includes(q);
   });
-  const leadTotalPages = Math.ceil(filteredLeads.length / ITEMS_PER_PAGE);
-  const paginatedLeads = filteredLeads.slice(leadPage * ITEMS_PER_PAGE, (leadPage + 1) * ITEMS_PER_PAGE);
+  const dedupedLeads = filteredLeads.filter((lead, idx, arr) => arr.findIndex(l => l.id === lead.id) === idx);
+  const leadTotalPages = Math.ceil(dedupedLeads.length / ITEMS_PER_PAGE);
+  const safePage = Math.min(leadPage, Math.max(leadTotalPages - 1, 0));
+  const paginatedLeads = dedupedLeads.slice(safePage * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE + ITEMS_PER_PAGE);
 
   const handleLeadClick = (lead: Lead) => {
     // Auto-populate phone number and show profile
@@ -1875,9 +1877,9 @@ export default function AgentDialer() {
                           <Contact className="w-5 h-5 text-violet-500" />
                           My Leads
                         </CardTitle>
-                        {userLeads.length > 0 && (
+                        {dedupedLeads.length > 0 && (
                           <Badge variant="outline" className="text-violet-600 border-violet-200">
-                            {userLeads.length} leads
+                            {dedupedLeads.length} leads
                           </Badge>
                         )}
                       </div>
@@ -1952,18 +1954,18 @@ export default function AgentDialer() {
                             size="sm"
                             variant="ghost"
                             className="h-7 px-2 text-xs text-gray-500"
-                            disabled={leadPage === 0}
+                            disabled={safePage === 0}
                             onClick={() => setLeadPage(p => p - 1)}
                           >
                             <ChevronLeft className="w-3.5 h-3.5 mr-1" />
                             Prev
                           </Button>
-                          <span className="text-xs text-gray-400">{leadPage + 1} / {leadTotalPages}</span>
+                          <span className="text-xs text-gray-400">{safePage + 1} / {leadTotalPages}</span>
                           <Button
                             size="sm"
                             variant="ghost"
                             className="h-7 px-2 text-xs text-gray-500"
-                            disabled={leadPage >= leadTotalPages - 1}
+                            disabled={safePage >= leadTotalPages - 1}
                             onClick={() => setLeadPage(p => p + 1)}
                           >
                             Next

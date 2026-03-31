@@ -47,6 +47,9 @@ import executiveRouter from "./routes/executive";
 import postCloseRouter, { postCloseWebhookRouter } from "./routes/post-close";
 import dealsRouter from "./routes/deals";
 import leadPurchasesRouter, { leadPurchasesWebhookRouter } from "./routes/lead-purchases";
+import businessCardRouter, { publicBusinessCardRouter } from "./routes/business-card";
+import snapchatAuthRouter from "./routes/snapchat-auth";
+import commissionsRouter from "./routes/commissions";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -2845,6 +2848,10 @@ export async function registerRoutes(
   app.use("/api/deals", dealsRouter);
   app.use("/api/lead-purchases", leadPurchasesRouter);
   app.use("/api/webhooks/lead-purchases", leadPurchasesWebhookRouter);
+  app.use("/api/business-card", businessCardRouter);
+  app.use("/api/card", publicBusinessCardRouter);
+  app.use("/api/auth/snapchat", snapchatAuthRouter);
+  app.use("/api/commissions", commissionsRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

@@ -29,6 +29,19 @@ export async function setupVite(server: Server, app: Express) {
     appType: "custom",
   });
 
+  // Serve Covenant Risk static site BEFORE Vite middleware (prevents Vite HTML transform)
+  app.get(["/covenant-risk", "/covenant-risk/"], (_req, res) => {
+    const filePath = path.resolve(
+      import.meta.dirname,
+      "..",
+      "client",
+      "public",
+      "covenant-risk",
+      "index.html",
+    );
+    res.status(200).set({ "Content-Type": "text/html" }).sendFile(filePath);
+  });
+
   app.use(vite.middlewares);
 
   app.use("*", async (req, res, next) => {
@@ -41,6 +54,11 @@ export async function setupVite(server: Server, app: Express) {
 
     // Skip WebSocket routes
     if (url.startsWith("/ws/")) {
+      return next();
+    }
+
+    // Skip Covenant Risk routes — served as static vanilla site
+    if (url.startsWith("/covenant-risk")) {
       return next();
     }
 

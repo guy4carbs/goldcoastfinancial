@@ -6,6 +6,7 @@ import { Router, Request, Response } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { Roles } from "../types/permissions";
+import { recordCommissions } from "../services/commissionRecordService";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ router.post("/", async (req: Request, res: Response) => {
     const user = (req as any).user;
     if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
 
-    const { clientName, carrier, monthlyPremium, notes } = req.body;
+    const { clientName, carrier, monthlyPremium, notes, productType } = req.body;
 
     if (!carrier) return res.status(400).json({ success: false, message: "Carrier is required" });
     if (!monthlyPremium || parseFloat(monthlyPremium) <= 0) {
@@ -31,10 +32,10 @@ router.post("/", async (req: Request, res: Response) => {
     const annual = Math.round(monthly * 12 * 100) / 100;
 
     const result = await pool.query(`
-      INSERT INTO deals (agent_user_id, client_name, carrier, monthly_premium, annual_premium, notes)
-      VALUES ($1::uuid, $2, $3, $4, $5, $6)
+      INSERT INTO deals (agent_user_id, client_name, carrier, monthly_premium, annual_premium, notes, product_type)
+      VALUES ($1::uuid, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [userId, clientName || null, carrier, monthly, annual, notes || null]);
+    `, [userId, clientName || null, carrier, monthly, annual, notes || null, productType || null]);
 
     const deal = result.rows[0];
 
@@ -56,6 +57,13 @@ router.post("/", async (req: Request, res: Response) => {
       }
     } catch (wsErr) {
       console.error("[Deals] WebSocket broadcast failed:", wsErr);
+    }
+
+    // Calculate and record waterfall commissions for this deal
+    if (annual > 0 && deal.id) {
+      recordCommissions(deal.id, userId, annual, "deal").catch((err) =>
+        console.error("[Deals] Commission recording failed:", err)
+      );
     }
 
     res.status(201).json({ success: true, data: deal });

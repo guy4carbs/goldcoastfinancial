@@ -1099,42 +1099,32 @@ const DEMO_SOPS: SOP[] = [
 ];
 
 const DEMO_PERFORMANCE: PerformanceMetrics = {
-  dailyCalls: 47,
+  dailyCalls: 0,
   dailyCallsTarget: 100,
-  dailyCloses: 1,
+  dailyCloses: 0,
   dailyClosesTarget: 3,
-  behaviorScore: 78,
-  conversionRate: 12,
-  currentStreak: 5,
-  longestStreak: 12,
-  xp: 2450,
-  level: 4,
+  behaviorScore: 0,
+  conversionRate: 0,
+  currentStreak: 0,
+  longestStreak: 0,
+  xp: 0,
+  level: 1,
   weeklyHistory: [
-    { day: 'Mon', calls: 18, deals: 1 },
-    { day: 'Tue', calls: 24, deals: 2 },
-    { day: 'Wed', calls: 20, deals: 1 },
-    { day: 'Thu', calls: 28, deals: 3 },
-    { day: 'Fri', calls: 22, deals: 2 },
-    { day: 'Sat', calls: 8, deals: 0 },
-    { day: 'Sun', calls: 4, deals: 0 }
+    { day: 'Mon', calls: 0, deals: 0 },
+    { day: 'Tue', calls: 0, deals: 0 },
+    { day: 'Wed', calls: 0, deals: 0 },
+    { day: 'Thu', calls: 0, deals: 0 },
+    { day: 'Fri', calls: 0, deals: 0 },
+    { day: 'Sat', calls: 0, deals: 0 },
+    { day: 'Sun', calls: 0, deals: 0 }
   ],
-  rank: 3,
-  totalAgents: 12
+  rank: 0,
+  totalAgents: 0
 };
 
-const DEMO_EARNINGS: EarningEntry[] = [
-  { id: 'earn-1', policyNumber: 'POL-2025-1234', clientName: 'Robert Smith', product: 'Term 20', amount: 850, status: 'paid', date: '2025-12-15' },
-  { id: 'earn-2', policyNumber: 'POL-2025-1456', clientName: 'Jennifer Lee', product: 'Whole Life', amount: 1200, status: 'pending', date: '2025-12-28' },
-  { id: 'earn-3', policyNumber: 'POL-2025-1567', clientName: 'David Brown', product: 'Term 30', amount: 650, status: 'pending', date: '2026-01-01' },
-];
+const DEMO_EARNINGS: EarningEntry[] = [];
 
-const DEMO_LEADERBOARD: LeaderboardEntry[] = [
-  { id: 'agent-top-1', name: 'Sarah Mitchell', xp: 4850, level: 7, closedDeals: 8, streak: 15, rank: 1, trend: 'same', ap: { daily: 4500, weekly: 28500, monthly: 112000, yearly: 1250000 } },
-  { id: 'agent-top-2', name: 'Marcus Chen', xp: 4200, level: 6, closedDeals: 6, streak: 12, rank: 2, trend: 'up', ap: { daily: 3200, weekly: 22400, monthly: 89600, yearly: 980000 } },
-  { id: 'agent-1', name: 'Alex Johnson', xp: 2450, level: 4, closedDeals: 2, streak: 5, rank: 3, trend: 'up', ap: { daily: 1800, weekly: 12600, monthly: 50400, yearly: 580000 } },
-  { id: 'agent-top-4', name: 'Emily Davis', xp: 2100, level: 4, closedDeals: 2, streak: 3, rank: 4, trend: 'down', ap: { daily: 1200, weekly: 8400, monthly: 33600, yearly: 420000 } },
-  { id: 'agent-top-5', name: 'Jordan Taylor', xp: 1800, level: 3, closedDeals: 1, streak: 7, rank: 5, trend: 'same', ap: { daily: 900, weekly: 6300, monthly: 25200, yearly: 310000 } },
-];
+const DEMO_LEADERBOARD: LeaderboardEntry[] = [];
 
 const DEMO_ACHIEVEMENTS: Achievement[] = [
   { id: 'ach-1', name: 'First Steps', description: 'Complete your first training module', icon: 'graduation-cap', unlocked: true, unlockedDate: '2024-06-20', xpReward: 50, category: 'training' },
@@ -2156,7 +2146,7 @@ export const useAgentStore = create<AgentStore>()(
             email: updates.email ?? currentUser.email,
             phone: updates.phone ?? currentUser.phone,
             role: currentUser.role,
-            avatar: currentUser.avatar,
+            avatar: (updates as any).avatar ?? currentUser.avatar,
             territories: [...currentUser.territories],
             startDate: currentUser.startDate,
             certifications: [...currentUser.certifications],
@@ -2177,6 +2167,7 @@ export const useAgentStore = create<AgentStore>()(
             email: profile.email,
             phone: profile.phone,
             npn: profile.npn || currentUser.npn,
+            avatar: (profile as any).avatar ?? currentUser.avatar,
           };
           set({ currentUser: updatedUser });
         } else {

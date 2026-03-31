@@ -69,6 +69,46 @@ const LEAD_PRODUCTS = [
 ];
 
 // =============================================================================
+// LEAD COST & DISPLAY NAME CONSTANTS
+// =============================================================================
+const LEAD_COSTS_CENTS: Record<string, number> = {
+  consolidation: 50,
+  survey: 35,
+  live_iul: 5000,
+  high_intent_iul: 10000,
+  ai_qualified: 2000,
+};
+
+const LEAD_TYPE_NAMES: Record<string, string> = {
+  consolidation: 'Consolidation',
+  survey: 'Survey',
+  live_iul: 'Live IUL',
+  high_intent_iul: 'High Intent IUL',
+  ai_qualified: 'AI Qualified',
+};
+
+function getLeadPeriodStart(period: string): Date {
+  const now = new Date();
+  switch (period) {
+    case 'daily':
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    case 'weekly': {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      return weekStart;
+    }
+    case 'monthly':
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    case 'yearly':
+      return new Date(now.getFullYear(), 0, 1);
+    case 'all':
+    default:
+      return new Date(2020, 0, 1);
+  }
+}
+
+// =============================================================================
 // GET /products — List available lead products
 // =============================================================================
 router.get("/products", (_req: Request, res: Response) => {
@@ -153,6 +193,166 @@ router.get("/my-purchases", requireAuth, async (req: Request, res: Response) => 
   } catch (error: any) {
     console.error("[LeadPurchases] History error:", error?.message);
     res.status(500).json({ success: false, message: "Failed to fetch purchase history" });
+  }
+});
+
+// =============================================================================
+// GET /analytics — Lead Revenue analytics (summary, trends, purchase history)
+// =============================================================================
+router.get('/analytics', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { lead_type, status: filterStatus, search, page = '1', limit = '50', period = 'all' } = req.query;
+    const periodStart = getLeadPeriodStart(period as string);
+
+    // --- SUMMARY: Revenue/Cost/Profit by lead type ---
+    const summaryResult = await pool.query(`
+      SELECT lead_type, COUNT(*) AS purchase_count,
+             SUM(quantity) AS total_quantity,
+             SUM(price_cents) AS total_revenue_cents
+      FROM lead_purchases WHERE status = 'paid' AND purchased_at >= $1
+      GROUP BY lead_type
+    `, [periodStart]);
+
+    let totalRevenueCents = 0;
+    let totalCostCents = 0;
+    let totalLeadsSold = 0;
+
+    const byType = summaryResult.rows.map(row => {
+      const qty = parseInt(row.total_quantity) || 0;
+      const revCents = parseInt(row.total_revenue_cents) || 0;
+      const costCents = qty * (LEAD_COSTS_CENTS[row.lead_type] || 0);
+      const profitCents = revCents - costCents;
+      const marginPercent = revCents > 0 ? (profitCents / revCents) * 100 : 0;
+
+      totalRevenueCents += revCents;
+      totalCostCents += costCents;
+      totalLeadsSold += qty;
+
+      return {
+        leadType: row.lead_type,
+        displayName: LEAD_TYPE_NAMES[row.lead_type] || row.lead_type,
+        purchaseCount: parseInt(row.purchase_count) || 0,
+        quantitySold: qty,
+        revenueCents: revCents,
+        costCents,
+        profitCents,
+        marginPercent: Math.round(marginPercent * 10) / 10,
+      };
+    });
+
+    const totalProfitCents = totalRevenueCents - totalCostCents;
+    const profitMarginPercent = totalRevenueCents > 0 ? Math.round((totalProfitCents / totalRevenueCents) * 1000) / 10 : 0;
+
+    // --- TRENDS: Monthly aggregation ---
+    const trendsResult = await pool.query(`
+      SELECT TO_CHAR(purchased_at, 'YYYY-MM') AS month,
+             lead_type,
+             SUM(quantity) AS total_quantity,
+             SUM(price_cents) AS total_revenue_cents
+      FROM lead_purchases WHERE status = 'paid' AND purchased_at >= $1
+      GROUP BY month, lead_type ORDER BY month ASC
+    `, [periodStart]);
+
+    // Aggregate by month
+    const monthMap: Record<string, { revenueCents: number; costCents: number; profitCents: number }> = {};
+    for (const row of trendsResult.rows) {
+      const m = row.month;
+      if (!monthMap[m]) monthMap[m] = { revenueCents: 0, costCents: 0, profitCents: 0 };
+      const qty = parseInt(row.total_quantity) || 0;
+      const rev = parseInt(row.total_revenue_cents) || 0;
+      const cost = qty * (LEAD_COSTS_CENTS[row.lead_type] || 0);
+      monthMap[m].revenueCents += rev;
+      monthMap[m].costCents += cost;
+      monthMap[m].profitCents += (rev - cost);
+    }
+
+    const trends = Object.entries(monthMap).map(([month, data]) => {
+      const [y, m] = month.split('-');
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return {
+        month,
+        monthDisplay: `${monthNames[parseInt(m) - 1]} ${y}`,
+        ...data,
+      };
+    });
+
+    // --- PURCHASES: Paginated history with agent names ---
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 50));
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereConditions = ['1=1'];
+    let params: any[] = [];
+    let paramIdx = 1;
+
+    whereConditions.push(`lp.purchased_at >= $${paramIdx++}`);
+    params.push(periodStart);
+
+    if (lead_type && lead_type !== 'all') {
+      whereConditions.push(`lp.lead_type = $${paramIdx++}`);
+      params.push(lead_type);
+    }
+    if (filterStatus && filterStatus !== 'all') {
+      whereConditions.push(`lp.status = $${paramIdx++}`);
+      params.push(filterStatus);
+    }
+    if (search) {
+      whereConditions.push(`(u.first_name ILIKE $${paramIdx} OR u.last_name ILIKE $${paramIdx} OR u.email ILIKE $${paramIdx})`);
+      params.push(`%${search}%`);
+      paramIdx++;
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM lead_purchases lp JOIN users u ON lp.agent_user_id = u.id WHERE ${whereClause}`,
+      params
+    );
+
+    const purchasesResult = await pool.query(
+      `SELECT lp.id, lp.lead_type, lp.quantity, lp.price_cents, lp.status, lp.stripe_status, lp.purchased_at, lp.created_at,
+              u.first_name, u.last_name, u.email
+       FROM lead_purchases lp
+       JOIN users u ON lp.agent_user_id = u.id
+       WHERE ${whereClause}
+       ORDER BY lp.purchased_at DESC NULLS LAST, lp.created_at DESC
+       LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
+      [...params, limitNum, offset]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        summary: {
+          totalRevenueCents,
+          totalCostCents,
+          totalProfitCents,
+          profitMarginPercent,
+          totalLeadsSold,
+          byType,
+        },
+        trends,
+        purchases: {
+          data: purchasesResult.rows.map(r => ({
+            id: r.id,
+            agentName: `${r.first_name} ${r.last_name}`,
+            agentEmail: r.email,
+            leadType: r.lead_type,
+            displayName: LEAD_TYPE_NAMES[r.lead_type] || r.lead_type,
+            quantity: r.quantity,
+            priceCents: r.price_cents,
+            status: r.status || r.stripe_status || 'pending',
+            purchasedAt: r.purchased_at || r.created_at,
+          })),
+          total: parseInt(countResult.rows[0]?.count) || 0,
+          page: pageNum,
+          limit: limitNum,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Lead purchases analytics error:', error);
+    res.status(500).json({ success: false, error: 'Failed to load analytics' });
   }
 });
 
