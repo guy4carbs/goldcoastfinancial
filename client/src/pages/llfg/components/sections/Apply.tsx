@@ -18,7 +18,7 @@ function FloatingInput({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-6">
       <input
         type={type}
         required={required}
@@ -50,7 +50,7 @@ function FloatingSelect({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-6">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -88,7 +88,7 @@ function FloatingTextarea({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="relative mb-8">
+    <div className="relative mb-6">
       <textarea
         rows={3}
         value={value}
@@ -159,22 +159,22 @@ export default function Apply() {
   });
 
   return (
-    <section id="apply" ref={ref} className="py-20 md:py-32 bg-[#111111]" style={{ fontFamily: SANS }}>
-      <div className="max-w-2xl mx-auto px-6">
+    <section id="apply" ref={ref} className="py-20 md:py-28 bg-[#111111]" style={{ fontFamily: SANS }}>
+      <div className="max-w-xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <h2
-            className="text-4xl md:text-5xl text-white font-bold text-center mb-12"
+            className="text-3xl md:text-4xl text-white font-bold text-center mb-10"
             style={{ fontFamily: SERIF }}
           >
             Start Your <em className="italic text-[#E8C96B]">Journey</em>
           </h2>
 
           {/* Tab bar */}
-          <div className="flex gap-8 border-b border-white/10 mb-10">
+          <div className="flex gap-8 border-b border-white/10 mb-8">
             {(["agent", "agency"] as const).map((tab) => (
               <button
                 key={tab}

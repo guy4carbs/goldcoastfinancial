@@ -53,28 +53,25 @@ export default function Carriers() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="carriers" ref={ref} className="py-20 md:py-32 bg-[#0A0A0A]" style={{ fontFamily: SANS }}>
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="carriers" ref={ref} className="py-20 md:py-28 bg-[#0A0A0A]" style={{ fontFamily: SANS }}>
+      <div className="max-w-6xl mx-auto px-6">
         <motion.h2
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="text-4xl md:text-5xl text-white font-bold text-center mb-6"
+          transition={{ duration: 0.5 }}
+          className="text-3xl md:text-4xl text-white font-bold text-center mb-4"
           style={{ fontFamily: SERIF }}
         >
-          Partnered with the{" "}
-          <em className="italic text-[#E8C96B]">Nation&rsquo;s Top Carriers</em>
+          Our <em className="italic text-[#E8C96B]">Carrier Partners</em>
         </motion.h2>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-white/50 text-center max-w-2xl mx-auto mb-16 leading-relaxed"
+          className="text-white/40 text-center max-w-lg mx-auto mb-12 text-sm"
         >
-          As an FMO, we give you direct access to over 30 of the most
-          competitive, highly-rated carriers in the industry — giving you the
-          products and commissions you need to build a thriving business.
+          Direct access to 30+ of the most competitive, highly-rated carriers in the industry.
         </motion.p>
 
         {/* Carrier grid */}
@@ -82,7 +79,7 @@ export default function Carriers() {
           initial={{ opacity: 0, y: 32 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2"
         >
           {CARRIERS.map((c, i) => (
             <div
