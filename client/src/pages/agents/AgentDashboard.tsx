@@ -59,18 +59,7 @@ import { cn, formatProductLabel } from "@/lib/utils";
 
 // Generate upcoming events relative to today so they never go stale
 function getUpcomingEvents() {
-  const today = new Date();
-  const addDays = (d: Date, n: number) => {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    return r;
-  };
-  const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  return [
-    { date: fmt(addDays(today, 3)), title: "IUL Product Training Webinar", time: "2:00 PM CST" },
-    { date: fmt(addDays(today, 6)), title: "Monthly Sales Meeting", time: "10:00 AM CST" },
-    { date: fmt(addDays(today, 12)), title: "New Agent Orientation", time: "9:00 AM CST" }
-  ];
+  return [] as { date: string; title: string; time: string }[];
 }
 const UPCOMING_EVENTS = getUpcomingEvents();
 

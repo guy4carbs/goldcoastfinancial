@@ -48,51 +48,13 @@ async function fetchHierarchy(): Promise<HierarchyData | null> {
 
 const DEMO_HIERARCHY: HierarchyData = {
   agent: {
-    id: 'you-001', name: 'John Smith', email: 'john.smith@heritagels.org',
-    phone: '(555) 123-4567', role: 'sales_agent', level: 4, title: 'Senior Agent',
-    contractLevel: 90, ytdCommission: 85000, policiesSold: 47, teamSize: 3,
-    conversionRate: 24, avatarUrl: null,
+    id: '', name: '', email: '',
+    phone: '', role: '', level: 0, title: '',
+    contractLevel: 0, ytdCommission: 0, policiesSold: 0, teamSize: 0,
+    conversionRate: 0, avatarUrl: null,
   },
-  upline: [
-    {
-      id: 'upline-1', name: 'Marcus Johnson', email: 'marcus.johnson@heritagels.org',
-      phone: '(555) 234-5678', role: 'manager', level: 3, title: 'Team Lead',
-      contractLevel: 100, ytdCommission: 180000, policiesSold: 89, teamSize: 12,
-      conversionRate: 28, avatarUrl: null,
-    },
-    {
-      id: 'upline-2', name: 'Sarah Williams', email: 'sarah.williams@heritagels.org',
-      phone: '(555) 345-6789', role: 'manager', level: 2, title: 'Regional Director',
-      contractLevel: 110, ytdCommission: 450000, policiesSold: 234, teamSize: 48,
-      conversionRate: 26, avatarUrl: null,
-    },
-    {
-      id: 'upline-3', name: 'Jack Thompson', email: 'jack.thompson@heritagels.org',
-      phone: '(555) 456-7890', role: 'owner', level: 0, title: 'Agency Owner',
-      contractLevel: 120, ytdCommission: 1200000, policiesSold: 567, teamSize: 150,
-      conversionRate: 25, avatarUrl: null,
-    },
-  ],
-  downline: [
-    {
-      id: 'downline-1', name: 'Emily Chen', email: 'emily.chen@heritagels.org',
-      phone: '(555) 567-8901', role: 'sales_agent', level: 5, title: 'Agent',
-      contractLevel: 80, ytdCommission: 42000, policiesSold: 23, teamSize: 0,
-      conversionRate: 22, avatarUrl: null,
-    },
-    {
-      id: 'downline-2', name: 'Michael Brown', email: 'michael.brown@heritagels.org',
-      phone: '(555) 678-9012', role: 'sales_agent', level: 5, title: 'Agent',
-      contractLevel: 80, ytdCommission: 38000, policiesSold: 19, teamSize: 0,
-      conversionRate: 20, avatarUrl: null,
-    },
-    {
-      id: 'downline-3', name: 'Jessica Davis', email: 'jessica.davis@heritagels.org',
-      phone: '(555) 789-0123', role: 'sales_agent', level: 6, title: 'New Agent',
-      contractLevel: 70, ytdCommission: 12000, policiesSold: 8, teamSize: 0,
-      conversionRate: 18, avatarUrl: null,
-    },
-  ],
+  upline: [],
+  downline: [],
 };
 
 // =============================================================================

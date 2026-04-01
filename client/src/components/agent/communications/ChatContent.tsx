@@ -155,243 +155,24 @@ interface Conversation {
   isGroup?: boolean;
 }
 
-const INITIAL_CONVERSATIONS: Conversation[] = [
-  { id: 'conv-1', name: 'Sarah Mitchell', initials: 'SM', lastMessage: 'Did you see the new IUL rates?', timestamp: '2:30 PM', unread: 2, online: true },
-  { id: 'conv-2', name: 'Jack Cook', initials: 'JC', lastMessage: 'Great job this week!', timestamp: '1:15 PM', unread: 0, online: true },
-  { id: 'conv-3', name: 'Sales Team', initials: 'ST', lastMessage: 'Marcus: Thanks everyone!', timestamp: '12:45 PM', unread: 0, online: false, isGroup: true },
-  { id: 'conv-4', name: 'Marcus Chen', initials: 'MC', lastMessage: 'Thanks for the tip!', timestamp: '11:30 AM', unread: 0, online: false },
-  { id: 'conv-5', name: 'Training Group', initials: 'TG', lastMessage: 'New module available', timestamp: 'Yesterday', unread: 1, online: false, isGroup: true },
-  { id: 'conv-6', name: 'Emily Davis', initials: 'ED', lastMessage: 'Can we sync tomorrow?', timestamp: 'Yesterday', unread: 0, online: true },
-];
+const INITIAL_CONVERSATIONS: Conversation[] = [];
 
-const AVAILABLE_USERS: readonly string[] = ['Jack Cook', 'Sarah Mitchell', 'Marcus Chen', 'Emily Davis', 'James Wilson', 'Lisa Anderson'] as const;
+const AVAILABLE_USERS: readonly string[] = [] as const;
 
 // Messages for each conversation
-const CONVERSATION_MESSAGES: Record<string, Message[]> = {
-  'conv-1': [ // Sarah Mitchell
-    {
-      id: '1',
-      sender: 'Sarah Mitchell',
-      senderInitials: 'SM',
-      content: 'Hey! Have you had a chance to look at those new IUL rates from Prudential?',
-      timestamp: '2:15 PM',
-      isOwn: false,
-    },
-    {
-      id: '2',
-      sender: 'You',
-      senderInitials: 'AJ',
-      content: 'Not yet! Are they competitive?',
-      timestamp: '2:20 PM',
-      isOwn: true,
-    },
-    {
-      id: '3',
-      sender: 'Sarah Mitchell',
-      senderInitials: 'SM',
-      content: 'Very competitive! The cap rates went up 0.5% across the board. Great for clients looking for growth potential.',
-      timestamp: '2:22 PM',
-      isOwn: false,
-      reactions: [{ emoji: '👍', count: 1 }]
-    },
-    {
-      id: '4',
-      sender: 'Sarah Mitchell',
-      senderInitials: 'SM',
-      content: 'Did you see the new IUL rates?',
-      timestamp: '2:30 PM',
-      isOwn: false,
-    },
-  ],
-  'conv-2': [ // Jack Cook
-    {
-      id: '1',
-      sender: 'Jack Cook',
-      senderInitials: 'JC',
-      content: 'Just wanted to say great job on the Henderson case!',
-      timestamp: '12:45 PM',
-      isOwn: false,
-      reactions: [{ emoji: '🎉', count: 2 }]
-    },
-    {
-      id: '2',
-      sender: 'You',
-      senderInitials: 'AJ',
-      content: 'Thanks Jack! It was a team effort - Sarah helped with the underwriting questions.',
-      timestamp: '12:50 PM',
-      isOwn: true,
-    },
-    {
-      id: '3',
-      sender: 'Jack Cook',
-      senderInitials: 'JC',
-      content: 'That\'s what I like to see! Collaboration is key. Keep up the momentum!',
-      timestamp: '1:00 PM',
-      isOwn: false,
-    },
-    {
-      id: '4',
-      sender: 'Jack Cook',
-      senderInitials: 'JC',
-      content: 'Great job this week!',
-      timestamp: '1:15 PM',
-      isOwn: false,
-      reactions: [{ emoji: '💪', count: 1 }]
-    },
-  ],
-  'conv-3': [ // Sales Team (Group)
-    {
-      id: '1',
-      sender: 'Jack Cook',
-      senderInitials: 'JC',
-      content: 'Team update: We hit 115% of our Q4 target! 🎉',
-      timestamp: '12:00 PM',
-      isOwn: false,
-      reactions: [{ emoji: '🎉', count: 8 }, { emoji: '💪', count: 5 }]
-    },
-    {
-      id: '2',
-      sender: 'Sarah Mitchell',
-      senderInitials: 'SM',
-      content: 'Amazing work everyone! Special shoutout to the new agents who really stepped up.',
-      timestamp: '12:10 PM',
-      isOwn: false,
-      reactions: [{ emoji: '👏', count: 4 }]
-    },
-    {
-      id: '3',
-      sender: 'Emily Davis',
-      senderInitials: 'ED',
-      content: 'Couldn\'t have done it without the training sessions. Those objection handling workshops were 🔥',
-      timestamp: '12:20 PM',
-      isOwn: false,
-    },
-    {
-      id: '4',
-      sender: 'You',
-      senderInitials: 'AJ',
-      content: 'Proud to be part of this team! What\'s the focus for Q1?',
-      timestamp: '12:30 PM',
-      isOwn: true,
-    },
-    {
-      id: '5',
-      sender: 'Marcus Chen',
-      senderInitials: 'MC',
-      content: 'Thanks everyone!',
-      timestamp: '12:45 PM',
-      isOwn: false,
-    },
-  ],
-  'conv-4': [ // Marcus Chen
-    {
-      id: '1',
-      sender: 'You',
-      senderInitials: 'AJ',
-      content: 'Hey Marcus, quick tip on the Thompson lead - they mentioned they\'re looking to retire in 5 years.',
-      timestamp: '11:00 AM',
-      isOwn: true,
-    },
-    {
-      id: '2',
-      sender: 'Marcus Chen',
-      senderInitials: 'MC',
-      content: 'Oh that\'s great intel! I\'ll pivot my pitch to focus on retirement income strategies.',
-      timestamp: '11:15 AM',
-      isOwn: false,
-    },
-    {
-      id: '3',
-      sender: 'Marcus Chen',
-      senderInitials: 'MC',
-      content: 'Thanks for the tip!',
-      timestamp: '11:30 AM',
-      isOwn: false,
-      reactions: [{ emoji: '🙏', count: 1 }]
-    },
-  ],
-  'conv-5': [ // Training Group
-    {
-      id: '1',
-      sender: 'System',
-      senderInitials: 'SY',
-      content: '📚 New training module available: "Advanced Objection Handling"',
-      timestamp: 'Yesterday',
-      isOwn: false,
-    },
-    {
-      id: '2',
-      sender: 'Jack Cook',
-      senderInitials: 'JC',
-      content: 'Everyone please complete this by Friday. The techniques in this module are game-changers.',
-      timestamp: 'Yesterday',
-      isOwn: false,
-    },
-    {
-      id: '3',
-      sender: 'Emily Davis',
-      senderInitials: 'ED',
-      content: 'Just finished it - the "feel, felt, found" technique is gold!',
-      timestamp: 'Yesterday',
-      isOwn: false,
-      reactions: [{ emoji: '💯', count: 3 }]
-    },
-    {
-      id: '4',
-      sender: 'System',
-      senderInitials: 'SY',
-      content: 'New module available',
-      timestamp: 'Yesterday',
-      isOwn: false,
-    },
-  ],
-  'conv-6': [ // Emily Davis
-    {
-      id: '1',
-      sender: 'Emily Davis',
-      senderInitials: 'ED',
-      content: 'Hey! Do you have time for a quick sync tomorrow? I want to pick your brain about handling medical underwriting questions.',
-      timestamp: 'Yesterday',
-      isOwn: false,
-    },
-    {
-      id: '2',
-      sender: 'You',
-      senderInitials: 'AJ',
-      content: 'Sure! How about 2pm? I\'ve got some good resources to share.',
-      timestamp: 'Yesterday',
-      isOwn: true,
-    },
-    {
-      id: '3',
-      sender: 'Emily Davis',
-      senderInitials: 'ED',
-      content: 'Perfect! I\'ll send a calendar invite. Thanks!',
-      timestamp: 'Yesterday',
-      isOwn: false,
-    },
-    {
-      id: '4',
-      sender: 'Emily Davis',
-      senderInitials: 'ED',
-      content: 'Can we sync tomorrow?',
-      timestamp: 'Yesterday',
-      isOwn: false,
-    },
-  ],
-};
+const CONVERSATION_MESSAGES: Record<string, Message[]> = {};
 
 export default function AgentChatContent({ colorScheme = 'violet' as CommColorScheme }: { colorScheme?: CommColorScheme } = {}) {
   const theme = getCommTheme(colorScheme);
   const { currentUser } = useAgentStore();
 
   const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation>(INITIAL_CONVERSATIONS[0]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(INITIAL_CONVERSATIONS[0] ?? null);
   const [conversationMessages, setConversationMessages] = useState<Record<string, Message[]>>(CONVERSATION_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
 
   // Get messages for current conversation
-  const messages = conversationMessages[selectedConversation.id] || [];
+  const messages = selectedConversation ? (conversationMessages[selectedConversation.id] || []) : [];
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -414,7 +195,15 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
   const [selectedSkinTone, setSelectedSkinTone] = useState<number>(0);
 
   // Check if current conversation is muted
-  const isMuted = mutedConversations.has(selectedConversation.id);
+  const isMuted = selectedConversation ? mutedConversations.has(selectedConversation.id) : false;
+
+  if (!selectedConversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+        No conversations yet
+      </div>
+    );
+  }
 
   const filteredMessages = useMemo(() =>
     messageSearchQuery

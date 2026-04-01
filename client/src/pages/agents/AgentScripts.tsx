@@ -44,48 +44,7 @@ const categoryConfig: Record<ScriptCategory, { label: string; icon: typeof Phone
 };
 
 // Demo scripts data - replace with API data when available
-const DEMO_SCRIPTS: Script[] = [
-  {
-    id: '1',
-    title: 'Consolidation Leads Script',
-    category: 'phone',
-    description: 'Script for leads with multiple existing policies',
-    pdfUrl: undefined, // PDF will be added later
-    isFavorite: true,
-    usageCount: 156,
-    lastUsed: new Date(Date.now() - 2 * 3600000).toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Mortgage Protection Leads Script',
-    category: 'phone',
-    description: 'Script for homeowners interested in mortgage protection coverage',
-    pdfUrl: undefined, // PDF will be added later
-    isFavorite: true,
-    usageCount: 203,
-    lastUsed: new Date(Date.now() - 4 * 3600000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'IUL Leads Script',
-    category: 'phone',
-    description: 'Script for Indexed Universal Life insurance prospects',
-    pdfUrl: undefined, // PDF will be added later
-    isFavorite: true,
-    usageCount: 89,
-    lastUsed: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '4',
-    title: 'Inbound Leads Script',
-    category: 'phone',
-    description: 'Script for warm inbound leads who requested a callback',
-    pdfUrl: undefined, // PDF will be added later
-    isFavorite: false,
-    usageCount: 124,
-    lastUsed: new Date(Date.now() - 1 * 3600000).toISOString(),
-  },
-];
+const DEMO_SCRIPTS: Script[] = [];
 
 function formatRelativeLastUsed(dateStr: string): string {
   const now = Date.now();

@@ -228,12 +228,7 @@ function isExpired(expiresDate: string): boolean {
   return new Date(expiresDate) < new Date();
 }
 
-const DEMO_QUOTES: Quote[] = [
-  { id: 'demo-q1', clientName: 'John Smith', clientEmail: 'john@example.com', clientPhone: '555-0101', product: 'term', coverageAmount: 500000, monthlyPremium: 45, term: 20, status: 'draft', createdDate: new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0], expiresDate: new Date(Date.now() + 23 * 86400000).toISOString().split('T')[0], agentId: 'agent-1' },
-  { id: 'demo-q2', clientName: 'Sarah Johnson', clientEmail: 'sarah@example.com', clientPhone: '555-0102', product: 'whole', coverageAmount: 250000, monthlyPremium: 125, status: 'sent', createdDate: new Date(Date.now() - 9 * 86400000).toISOString().split('T')[0], expiresDate: new Date(Date.now() + 21 * 86400000).toISOString().split('T')[0], agentId: 'agent-1' },
-  { id: 'demo-q3', clientName: 'Michael Brown', clientEmail: 'michael@example.com', clientPhone: '555-0103', product: 'iul', coverageAmount: 300000, monthlyPremium: 200, status: 'accepted', createdDate: new Date(Date.now() - 12 * 86400000).toISOString().split('T')[0], expiresDate: new Date(Date.now() + 18 * 86400000).toISOString().split('T')[0], agentId: 'agent-1' },
-  { id: 'demo-q4', clientName: 'Emily Davis', clientEmail: 'emily@example.com', clientPhone: '555-0104', product: 'final_expense', coverageAmount: 25000, monthlyPremium: 35, status: 'expired', createdDate: new Date(Date.now() - 38 * 86400000).toISOString().split('T')[0], expiresDate: new Date(Date.now() - 8 * 86400000).toISOString().split('T')[0], agentId: 'agent-1' },
-];
+const DEMO_QUOTES: Quote[] = [];
 
 // ─── Currency Formatting ─────────────────────────────────────────────────────
 

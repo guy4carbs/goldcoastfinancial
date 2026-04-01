@@ -62,18 +62,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   zap: Zap,
 };
 
-const DEMO_ACHIEVEMENTS: DisplayAchievement[] = [
-  { id: '1', title: 'First Sale', description: 'Close your first insurance policy', category: 'sales', icon: Trophy, unlocked: true, unlockedDate: 'Jan 5, 2026' },
-  { id: '2', title: 'Quick Start', description: 'Complete onboarding within 24 hours', category: 'onboarding', icon: Zap, unlocked: true, unlockedDate: 'Jan 3, 2026' },
-  { id: '3', title: 'Hot Streak', description: 'Maintain a 7-day activity streak', category: 'consistency', icon: Flame, unlocked: true, unlockedDate: 'Jan 12, 2026' },
-  { id: '4', title: 'Team Player', description: 'Refer 3 new agents to the platform', category: 'referral', icon: Users, unlocked: true, unlockedDate: 'Jan 18, 2026' },
-  { id: '5', title: 'Sales Champion', description: 'Close 25 policies in a single month', category: 'sales', icon: Star, unlocked: false, progress: 18, target: 25 },
-  { id: '6', title: 'Revenue King', description: 'Generate $50,000 in premium revenue', category: 'revenue', icon: DollarSign, unlocked: false, progress: 35800, target: 50000 },
-  { id: '7', title: 'Call Master', description: 'Log 500 calls with positive outcomes', category: 'calls', icon: Phone, unlocked: false, progress: 234, target: 500 },
-  { id: '8', title: 'Diamond Agent', description: 'Reach Diamond level status', category: 'level', icon: Award, unlocked: false, locked: true },
-  { id: '9', title: 'Client Champion', description: 'Receive 50 five-star client reviews', category: 'satisfaction', icon: Heart, unlocked: false, locked: true },
-  { id: '10', title: 'Iron Will', description: 'Maintain a 30-day activity streak', category: 'consistency', icon: Shield, unlocked: false, progress: 7, target: 30 },
-];
+const DEMO_ACHIEVEMENTS: DisplayAchievement[] = [];
 
 export default function AgentAchievements() {
   const [filter, setFilter] = useState<FilterKey>('all');

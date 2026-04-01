@@ -78,196 +78,29 @@ interface Message {
   mentions?: string[];
 }
 
-const CHANNELS: Channel[] = [
-  { id: 'general', name: 'general', type: 'channel', unread: 0, online: 12 },
-  { id: 'sales-tips', name: 'sales-tips', type: 'channel', unread: 3, online: 8 },
-  { id: 'training', name: 'training', type: 'channel', unread: 0, online: 5 },
-  { id: 'announcements', name: 'announcements', type: 'channel', unread: 1, online: 15 },
-];
+const CHANNELS: Channel[] = [];
 
-const DIRECT_MESSAGES: Channel[] = [
-  { id: 'dm-1', name: 'Jack Cook', type: 'direct', unread: 0, lastMessage: 'Great job this week!' },
-  { id: 'dm-2', name: 'Sarah Mitchell', type: 'direct', unread: 2, lastMessage: 'Did you see the new IUL rates?' },
-  { id: 'dm-3', name: 'Marcus Chen', type: 'direct', unread: 0, lastMessage: 'Thanks for the tip!' },
-];
+const DIRECT_MESSAGES: Channel[] = [];
 
-const AVAILABLE_USERS: readonly string[] = ['Jack Cook', 'Sarah Mitchell', 'Marcus Chen', 'Emily Davis', 'James Wilson', 'Lisa Anderson'] as const;
+const AVAILABLE_USERS: readonly string[] = [] as const;
 
 // Study Groups data
-const STUDY_GROUPS_DATA = [
-  {
-    id: 'sg1',
-    name: 'January 2026 Cohort',
-    description: 'Study group for new agents starting in January',
-    members: [
-      { id: '1', name: 'Sarah Johnson' },
-      { id: '2', name: 'Mike Chen' },
-      { id: '3', name: 'Emily Davis' }
-    ],
-    maxMembers: 10,
-    topic: 'Pre-Access Certification',
-    nextSession: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    isJoined: true
-  },
-  {
-    id: 'sg2',
-    name: 'IUL Masters',
-    description: 'Deep dive into Indexed Universal Life products',
-    members: [
-      { id: '4', name: 'James Wilson' },
-      { id: '5', name: 'Lisa Anderson' }
-    ],
-    maxMembers: 8,
-    topic: 'Product Knowledge',
-    nextSession: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    isJoined: false
-  },
-  {
-    id: 'sg3',
-    name: 'Compliance Champions',
-    description: 'Master compliance requirements together',
-    members: [
-      { id: '6', name: 'Robert Brown' },
-      { id: '7', name: 'Maria Garcia' },
-      { id: '8', name: 'David Lee' },
-      { id: '9', name: 'Jennifer Martinez' }
-    ],
-    maxMembers: 6,
-    topic: 'Advanced Compliance',
-    isJoined: false
-  }
-];
+const STUDY_GROUPS_DATA: { id: string; name: string; description: string; members: { id: string; name: string }[]; maxMembers: number; topic: string; nextSession?: Date; isJoined: boolean }[] = [];
 
 // Training Discussion data (for #training channel)
-const TRAINING_DISCUSSIONS = [
-  {
-    id: 'c1',
-    author: { name: 'Sarah Johnson', role: 'Senior Agent' },
-    content: 'The section on suitability analysis was really helpful. Make sure to take notes on the documentation requirements!',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    likes: 5,
-    isLiked: false,
-    replies: [
-      {
-        id: 'c1r1',
-        author: { name: 'Mike Chen' },
-        content: 'Agreed! I also found the checklist at the end very useful.',
-        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        likes: 2,
-        isLiked: true
-      }
-    ]
-  },
-  {
-    id: 'c2',
-    author: { name: 'Emily Davis' },
-    content: 'Can someone explain the difference between the different annuity crediting methods? I got a bit confused.',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    likes: 3,
-    isLiked: false
-  },
-  {
-    id: 'c3',
-    author: { name: 'James Wilson', role: 'Product Specialist' },
-    content: 'Great question Emily! There are 3 main types: Fixed, Point-to-Point, and Monthly Average. Fixed gives a set rate, Point-to-Point measures index growth between two dates, and Monthly Average uses... well, the monthly average. Each has pros/cons depending on market conditions.',
-    timestamp: new Date(Date.now() - 20 * 60 * 60 * 1000),
-    likes: 8,
-    isLiked: true
-  }
-];
+const TRAINING_DISCUSSIONS: { id: string; author: { name: string; role?: string }; content: string; timestamp: Date; likes: number; isLiked: boolean; replies?: { id: string; author: { name: string }; content: string; timestamp: Date; likes: number; isLiked: boolean }[] }[] = [];
 
 // Peer Recognition data
-const RECENT_RECOGNITIONS = [
-  {
-    id: 'r1',
-    from: { name: 'Jack Cook', role: 'Team Lead' },
-    to: { name: 'Sarah Mitchell' },
-    badge: 'Top Closer',
-    message: 'Incredible Q4 performance! 3 policies in one week!',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    likes: 12
-  },
-  {
-    id: 'r2',
-    from: { name: 'Marcus Chen' },
-    to: { name: 'Emily Davis' },
-    badge: 'Helpful Hero',
-    message: 'Thanks for helping me understand the annuity products!',
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    likes: 8
-  },
-  {
-    id: 'r3',
-    from: { name: 'Sarah Mitchell' },
-    to: { name: 'James Wilson' },
-    badge: 'Rising Star',
-    message: 'Amazing progress on your certifications this month!',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    likes: 15
-  }
-];
+const RECENT_RECOGNITIONS: { id: string; from: { name: string; role?: string }; to: { name: string }; badge: string; message: string; timestamp: Date; likes: number }[] = [];
 
-const DEMO_MESSAGES: Message[] = [
-  {
-    id: '1',
-    sender: 'Jack Cook',
-    senderInitials: 'JC',
-    content: 'Great job everyone on hitting our Q4 goals! Let\'s keep the momentum going into Q1! ',
-    timestamp: '10:30 AM',
-    isOwn: false,
-    reactions: [{ emoji: '🎉', count: 5 }, { emoji: '💪', count: 3 }]
-  },
-  {
-    id: '2',
-    sender: 'Sarah Mitchell',
-    senderInitials: 'SM',
-    content: 'Just closed a $750K whole life! 🏆 Client was initially hesitant but the comparison approach really worked.',
-    timestamp: '10:45 AM',
-    isOwn: false,
-    reactions: [{ emoji: '👏', count: 8 }, { emoji: '🎉', count: 4 }]
-  },
-  {
-    id: '3',
-    sender: 'Marcus Chen',
-    senderInitials: 'MC',
-    content: '@Sarah congrats! What was the main objection you had to overcome?',
-    timestamp: '11:00 AM',
-    isOwn: false,
-  },
-  {
-    id: '4',
-    sender: 'Sarah Mitchell',
-    senderInitials: 'SM',
-    content: '"I need to think about it" - used the takeaway close from the training. Works every time! ',
-    timestamp: '11:02 AM',
-    isOwn: false,
-    reactions: [{ emoji: '🔥', count: 3 }]
-  },
-  {
-    id: '5',
-    sender: 'You',
-    senderInitials: 'AJ',
-    content: 'That\'s awesome Sarah! I\'ve been practicing that technique too. Any tips for handling the "I already have coverage" objection?',
-    timestamp: '11:15 AM',
-    isOwn: true,
-  },
-  {
-    id: '6',
-    sender: 'Sarah Mitchell',
-    senderInitials: 'SM',
-    content: 'Great question! I always ask them to pull up their policy and do a quick coverage gap analysis. Usually they\'re underinsured by 50% or more. The training module on that is really helpful.',
-    timestamp: '11:18 AM',
-    isOwn: false,
-    reactions: [{ emoji: '👍', count: 2 }]
-  },
-];
+const DEMO_MESSAGES: Message[] = [];
 
 export default function AgentChat() {
   const { currentUser } = useAgentStore();
   const agentName = currentUser?.name || 'Agent';
   const agentInitials = currentUser?.name?.split(' ').map(n => n[0]).join('') || 'AG';
 
-  const [selectedChannel, setSelectedChannel] = useState<Channel>(CHANNELS[0]);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(CHANNELS[0] ?? null);
   const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -329,8 +162,9 @@ export default function AgentChat() {
 
   // Handle phone call
   const handlePhoneCall = useCallback(() => {
-    if (selectedChannel.type === 'direct') {
-      toast.success(`Starting voice call with ${selectedChannel.name}...`);
+    if (!selectedChannel) return;
+    if (selectedChannel?.type === 'direct') {
+      toast.success(`Starting voice call with ${selectedChannel?.name}...`);
     } else {
       toast.info('Voice calls are only available for direct messages');
     }
@@ -338,8 +172,9 @@ export default function AgentChat() {
 
   // Handle video call
   const handleVideoCall = useCallback(() => {
-    if (selectedChannel.type === 'direct') {
-      toast.success(`Starting video call with ${selectedChannel.name}...`);
+    if (!selectedChannel) return;
+    if (selectedChannel?.type === 'direct') {
+      toast.success(`Starting video call with ${selectedChannel?.name}...`);
     } else {
       toast.info('Video calls are only available for direct messages');
     }
@@ -527,12 +362,12 @@ export default function AgentChat() {
               }
             }}
             role="option"
-            aria-selected={selectedChannel.id === item.id}
+            aria-selected={selectedChannel?.id === item.id}
             aria-label={`${item.type === 'channel' ? 'Channel' : 'Direct message with'} ${item.name}${item.unread > 0 ? `, ${item.unread} unread messages` : ''}${item.online ? `, ${item.online} members online` : ''}`}
             className={cn(
               "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors",
               "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset",
-              selectedChannel.id === item.id
+              selectedChannel?.id === item.id
                 ? "bg-primary/10 text-primary"
                 : "text-gray-600 hover:bg-gray-100"
             )}
@@ -841,7 +676,7 @@ export default function AgentChat() {
               >
                 <Menu className="w-5 h-5" aria-hidden="true" />
               </Button>
-              {selectedChannel.type === 'channel' ? (
+              {selectedChannel?.type === 'channel' ? (
                 <div
                   className="w-10 h-10 flex items-center justify-center"
                   style={{
@@ -855,15 +690,15 @@ export default function AgentChat() {
               ) : (
                 <Avatar className="w-10 h-10">
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {selectedChannel.name.split(' ').map(n => n[0]).join('')}
+                    {selectedChannel?.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
               )}
               <div>
                 <h2 className="font-semibold text-primary">
-                  {selectedChannel.type === 'channel' ? `#${selectedChannel.name}` : selectedChannel.name}
+                  {selectedChannel?.type === 'channel' ? `#${selectedChannel?.name}` : selectedChannel?.name}
                 </h2>
-                {selectedChannel.type === 'channel' && selectedChannel.online && (
+                {selectedChannel?.type === 'channel' && selectedChannel.online && (
                   <p className="text-xs text-gray-500">
                     {/* #103: Online indicator accessible */}
                     <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full mr-1" aria-hidden="true" />
@@ -927,7 +762,7 @@ export default function AgentChat() {
           {/* Messages or Discussion Thread */}
           <ScrollArea className="flex-1 p-4">
             {/* Show Discussion Thread for #training channel */}
-            {selectedChannel.id === 'training' ? (
+            {selectedChannel?.id === 'training' ? (
               <DiscussionThread
                 moduleId="training-channel"
                 moduleTitle="Training Discussion"
@@ -1165,7 +1000,7 @@ export default function AgentChat() {
               </Button>
               <div className="flex-1 relative">
                 <Input
-                  placeholder={`Message ${selectedChannel.type === 'channel' ? '#' + selectedChannel.name : selectedChannel.name}`}
+                  placeholder={`Message ${selectedChannel?.type === 'channel' ? '#' + selectedChannel?.name : selectedChannel?.name}`}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => {
