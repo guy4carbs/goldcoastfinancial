@@ -967,7 +967,7 @@ SUPPORT CONTACTS:
 
 Contracting Questions:
 • Email: contracts@heritagels.org
-• Phone: (800) 555-1234, Option 2
+• Phone: (630) 478-1835, Option 2
 
 Background Check Issues:
 • Email: hr@heritagels.org

@@ -117,7 +117,7 @@ export default function HeritageContact() {
                   </div>
                   <div>
                     <h3 className="font-bold" style={{ color: c.primary }}>Phone</h3>
-                    <p style={{ color: c.textSecondary }}>(630) 555-0123</p>
+                    <p style={{ color: c.textSecondary }}>(630) 478-1835</p>
                   </div>
                 </div>
 
@@ -211,7 +211,7 @@ export default function HeritageContact() {
                           <FormItem>
                             <FormLabel style={{ color: c.textPrimary }}>Phone</FormLabel>
                             <FormControl>
-                              <Input type="tel" placeholder="(630) 555-1234" {...field} />
+                              <Input type="tel" placeholder="(630) 478-1835" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

@@ -57,6 +57,7 @@ import {
   UserCheck,
   Target,
   DollarSign,
+  Voicemail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -71,6 +72,7 @@ import { useLeadInbox } from "@/hooks/useLeadDistribution";
 import { generateAgentSlug } from "@/lib/agentSlugUtils";
 import { ClosingTab } from "@/components/agent/closing";
 import { RecordingsTab } from "@/components/agent/recordings";
+import { VoicemailRecorder } from "@/components/agent/VoicemailRecorder";
 
 // =============================================================================
 // CONSTANTS
@@ -1315,6 +1317,14 @@ export default function AgentDialer() {
                 <Mic className="w-4 h-4 mr-2" />
                 Recordings
               </TabsTrigger>
+              <TabsTrigger
+                value="voicemail"
+                className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm"
+                style={{ borderRadius: RADIUS.button - 2 }}
+              >
+                <Voicemail className="w-4 h-4 mr-2" />
+                Voicemail
+              </TabsTrigger>
             </TabsList>
           </motion.div>
 
@@ -2178,6 +2188,11 @@ export default function AgentDialer() {
           {/* ── RECORDINGS TAB ── */}
           <TabsContent value="recordings" className="mt-4">
             <RecordingsTab />
+          </TabsContent>
+
+          {/* ── VOICEMAIL TAB ── */}
+          <TabsContent value="voicemail" className="mt-4">
+            <VoicemailRecorder />
           </TabsContent>
         </Tabs>
       </motion.div>

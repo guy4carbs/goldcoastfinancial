@@ -867,6 +867,41 @@ export async function initializeDatabase() {
     await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS instagram_url VARCHAR(255);`);
     await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS facebook_url VARCHAR(255);`);
     await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS twitter_url VARCHAR(255);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS voicemail_audio_url VARCHAR(500);`);
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS voicemail_audio_s3_key TEXT;`);
+
+    // ── Training Sessions table (1:1 coaching/training with upline) ──
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS training_sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        requestor_id UUID NOT NULL REFERENCES users(id),
+        trainer_id UUID NOT NULL REFERENCES users(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        scheduled_at TIMESTAMP NOT NULL,
+        duration INTEGER NOT NULL DEFAULT 30,
+        timezone VARCHAR(50) DEFAULT 'America/Chicago',
+        meeting_type VARCHAR(30) NOT NULL DEFAULT 'phone',
+        topic VARCHAR(255),
+        notes TEXT,
+        meeting_link VARCHAR(500),
+        location VARCHAR(255),
+        decline_reason TEXT,
+        accepted_at TIMESTAMP,
+        declined_at TIMESTAMP,
+        completed_at TIMESTAMP,
+        cancelled_at TIMESTAMP,
+        cancellation_reason TEXT,
+        outcome TEXT,
+        next_steps TEXT,
+        reminder_sent BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_sessions_requestor ON training_sessions(requestor_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_sessions_trainer ON training_sessions(trainer_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_sessions_status ON training_sessions(status);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_sessions_scheduled ON training_sessions(scheduled_at);`);
 
     // ── User Lounge Access table ──
     await client.query(`

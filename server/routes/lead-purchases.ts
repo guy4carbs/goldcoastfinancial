@@ -64,7 +64,7 @@ const LEAD_PRODUCTS = [
     comingSoon: true,
     icon: 'bot',
     gradient: 'from-pink-500 to-rose-600',
-    image: '',
+    image: 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/products%2F1774989345640-hf_20260331_191554_3e0932c8-ea0c-4843-99dd-982fa95c14ff.png?alt=media&token=2f3a8930-8f24-4b05-8f2c-f6a958426cd7',
   },
 ];
 

@@ -102,6 +102,7 @@ import AgentCalendar from "@/pages/agents/AgentCalendar";
 import AgentHelp from "@/pages/agents/AgentHelp";
 import AgentGettingStarted from "@/pages/agents/AgentGettingStarted";
 import AgentGuidelines from "@/pages/agents/AgentGuidelines";
+import AgentTrainingSessions from "@/pages/agents/AgentTrainingSessions";
 import AgentEmail from "@/pages/agents/AgentEmail";
 import AgentCommunications from "@/pages/agents/AgentCommunications";
 import AgentDialer from "@/pages/agents/AgentDialer";
@@ -439,6 +440,11 @@ function Router() {
         <Route path="/agents/guidelines">
           <AgentProtectedRoute>
             <AgentGuidelines />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/training-sessions">
+          <AgentProtectedRoute>
+            <AgentTrainingSessions />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/email">

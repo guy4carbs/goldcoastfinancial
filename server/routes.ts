@@ -50,6 +50,7 @@ import leadPurchasesRouter, { leadPurchasesWebhookRouter } from "./routes/lead-p
 import businessCardRouter, { publicBusinessCardRouter } from "./routes/business-card";
 import snapchatAuthRouter from "./routes/snapchat-auth";
 import commissionsRouter from "./routes/commissions";
+import trainingSessionsRouter from "./routes/training-sessions";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -2852,6 +2853,7 @@ export async function registerRoutes(
   app.use("/api/card", publicBusinessCardRouter);
   app.use("/api/auth/snapchat", snapchatAuthRouter);
   app.use("/api/commissions", commissionsRouter);
+  app.use("/api/training-sessions", trainingSessionsRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

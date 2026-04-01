@@ -653,6 +653,42 @@ export default function AgentSettings() {
           </Card>
         </motion.div>
 
+        {/* Voicemail Section */}
+        <motion.div variants={fadeInUp}>
+          <Card className="border-0" style={glassCard}>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-3">
+                <div
+                  className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  <Phone className="w-5 h-5 text-amber-200" aria-hidden="true" />
+                </div>
+                <div>
+                  <span className="text-gray-900">Voicemail Drop</span>
+                  <p className="text-sm font-normal text-gray-500 mt-0.5">Message that plays when your outbound calls reach a lead's voicemail</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Record a personal message that automatically plays when you call a lead and they don't pick up.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = '/agents/dialer?tab=voicemail'}
+                  className="shrink-0 ml-4 text-violet-700 border-violet-200 hover:bg-violet-50"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  Manage in Dialer
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Notifications Section */}
         <motion.div variants={fadeInUp}>
           <Card className="border-0" style={glassCard}>

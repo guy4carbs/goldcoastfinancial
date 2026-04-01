@@ -29,7 +29,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="bg-primary text-primary-foreground py-2 text-xs md:text-sm">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex gap-4">
-            <span className="flex items-center gap-1"><Phone className="w-3 h-3 text-secondary" /> (630) 555-0123</span>
+            <span className="flex items-center gap-1"><Phone className="w-3 h-3 text-secondary" /> (630) 478-1835</span>
             <span className="flex items-center gap-1 hidden sm:flex"><MapPin className="w-3 h-3 text-secondary" /> Naperville, IL</span>
           </div>
           <div className="flex gap-4">
@@ -206,7 +206,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-secondary shrink-0" />
-                  <span>(630) 555-0123</span>
+                  <span>(630) 478-1835</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-secondary shrink-0" />

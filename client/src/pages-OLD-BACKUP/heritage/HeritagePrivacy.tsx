@@ -195,7 +195,7 @@ export default function HeritagePrivacy() {
                   <p style={{ color: c.textSecondary }}>1240 Iroquois Ave Suite 506</p>
                   <p style={{ color: c.textSecondary }}>Naperville, Illinois 60563</p>
                   <p className="mt-2" style={{ color: c.textSecondary }}>Email: <a href="mailto:contact@heritagels.com" style={{ color: c.secondary }}>contact@heritagels.com</a></p>
-                  <p style={{ color: c.textSecondary }}>Phone: (630) 555-0123</p>
+                  <p style={{ color: c.textSecondary }}>Phone: (630) 478-1835</p>
                 </div>
               </div>
             </div>

@@ -59,7 +59,7 @@ Best regards,
 Jack Cook
 Principal Agent
 Gold Coast Financial Partners
-(630) 555-0123`
+(630) 478-1835`
       : message.from === "Nick Gallagher"
       ? `This confirms that your beneficiary update has been processed successfully.
 

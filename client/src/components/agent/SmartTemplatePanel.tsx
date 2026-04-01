@@ -44,7 +44,7 @@ export function SmartTemplatePanel({ lead, agentName = 'Your Agent', onSend, com
     fullName: lead.name,
     product: formatProductLabel(lead.product) || 'life insurance',
     agentName,
-    agentPhone: '(800) 555-0123',
+    agentPhone: '(630) 478-1835',
     agentEmail: 'agent@goldcoastfnl.com',
     companyName: 'Gold Coast Financial Partners',
     // Add more variables as needed

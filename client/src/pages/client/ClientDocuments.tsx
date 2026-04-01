@@ -281,7 +281,7 @@ function generateCorrespondenceHTML(doc: PortalDocument, policies: PortalPolicy[
     body = `
 <p>Dear Marcus,</p>
 <p>Welcome to Heritage Life Solutions! We are delighted to have you as a client and look forward to helping you protect what matters most.</p>
-<p>Your agent, <strong>Sarah Thompson</strong>, has been assigned to your account and is available to assist you with any questions regarding your coverage. You can reach Sarah directly at <strong>sarah@heritagels.org</strong> or <strong>(954) 555-0147</strong>.</p>
+<p>Your agent, <strong>Sarah Thompson</strong>, has been assigned to your account and is available to assist you with any questions regarding your coverage. You can reach Sarah directly at <strong>sarah@heritagels.org</strong> or <strong>(630) 478-1835</strong>.</p>
 <p>Here is a summary of your new policy:</p>
 <table style="width:100%;border-collapse:collapse;margin:16px 0">
   <tr><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-size:13px">Policy</td><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;font-weight:600">${policy?.type ?? 'Term Life'} -${policy?.carrier ?? 'Protective Life'}</td></tr>

@@ -85,7 +85,7 @@ export function LicensedStep1Personal() {
             inputMode="tel"
             value={formatPhone(licensed.emergencyContactPhone)}
             onChange={handlePhoneChange}
-            placeholder="(555) 555-1234"
+            placeholder="(630) 478-1835"
             maxLength={14}
             style={{ borderRadius: RADIUS.input, fontSize: TYPE.meta }}
           />

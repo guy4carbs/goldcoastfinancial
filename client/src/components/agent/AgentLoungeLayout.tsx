@@ -61,6 +61,7 @@ import {
   Lightbulb,
   UserPlus,
   Globe,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -156,6 +157,7 @@ const growthItems: NavItem[] = [
   { icon: Network, label: "My Hierarchy", href: "/agents/hierarchy" },
   { icon: DollarSign, label: "My Commissions", href: "/agents/commissions" },
   { icon: ShoppingBag, label: "Buy Leads", href: "/agents/lead-marketplace" },
+  { icon: GraduationCap, label: "Training Sessions", href: "/agents/training-sessions" },
   { icon: ClipboardCheck, label: "Guidelines", href: "/agents/guidelines" },
   { icon: Lightbulb, label: "Ideas & Feedback", href: "/agents/ideas" },
 ];
@@ -209,10 +211,11 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
     markAllNotificationsRead,
     clearNotification,
     getOverdueLeads,
+    leads,
   } = useAgentStore();
 
-  // Get overdue leads count for badge
-  const overdueCount = getOverdueLeads().length;
+  // Lead inbox badge — disabled to avoid count mismatch. Shows 0 (no badge).
+  const overdueCount = 0;
 
   // Fetch agent's personal deal stats from real API
   const { data: myDealStats } = useQuery<{ success: boolean; data: { totalAP: number; totalDeals: number; rank: number } }>({

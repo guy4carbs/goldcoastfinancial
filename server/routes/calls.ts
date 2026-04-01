@@ -20,8 +20,20 @@ import {
 import type { GCFWebSocketServer } from "../websocket/GCFWebSocketServer";
 import { Channels } from "../websocket/GCFWebSocketServer";
 import { eventBus, EventType } from "../agents/core/event-bus";
+import multer from "multer";
 import * as s3Service from "../services/s3Service";
 import { hasPermission, Permission, type Role } from "../types/permissions";
+import { pool } from "../db";
+
+const voicemailUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["audio/webm", "audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a"];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("Only audio files are allowed"));
+  },
+});
 
 const router = Router();
 
@@ -520,8 +532,19 @@ router.post("/webhook", validateTelnyxWebhook, async (req: Request, res: Respons
         console.log(`[Calls] Greeting ended: ${result} for ${callControlId}`);
 
         if (result === "beep_detected") {
-          // Drop voicemail
-          const voicemailUrl = process.env.TELNYX_VOICEMAIL_AUDIO_URL;
+          // Drop per-agent voicemail (falls back to global env var)
+          let voicemailUrl: string | null = null;
+          const vmClientState = decodeClientState(payload.client_state);
+          if (vmClientState?.agentUserId) {
+            try {
+              const vmResult = await pool.query(
+                `SELECT voicemail_audio_url FROM agent_profiles WHERE user_id = $1::text`,
+                [vmClientState.agentUserId]
+              );
+              voicemailUrl = vmResult.rows[0]?.voicemail_audio_url || null;
+            } catch (e) { /* fall through to env var */ }
+          }
+          if (!voicemailUrl) voicemailUrl = process.env.TELNYX_VOICEMAIL_AUDIO_URL || null;
           if (voicemailUrl) {
             try {
               await playbackStart(callControlId, voicemailUrl);
@@ -1085,6 +1108,109 @@ router.post("/numbers/purchase", requireAuth, async (req: Request, res: Response
   } catch (error: any) {
     console.error("[Calls] Number purchase error:", error.message);
     res.status(500).json({ error: "Failed to purchase number" });
+  }
+});
+
+// =============================================================================
+// VOICEMAIL RECORDING ENDPOINTS
+// =============================================================================
+
+// GET /voicemail — Get current agent's voicemail info
+router.get("/voicemail", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const result = await pool.query(
+      `SELECT voicemail_audio_url, voicemail_audio_s3_key FROM agent_profiles WHERE user_id = $1::text`,
+      [userId]
+    );
+    const row = result.rows[0];
+    res.json({
+      hasVoicemail: !!(row?.voicemail_audio_url),
+      voicemailUrl: row?.voicemail_audio_url || null,
+    });
+  } catch (error: any) {
+    console.error("[Calls] Voicemail fetch error:", error.message);
+    res.status(500).json({ error: "Failed to fetch voicemail" });
+  }
+});
+
+// POST /voicemail/upload — Upload voicemail recording
+router.post("/voicemail/upload", requireAuth, voicemailUpload.single("file"), async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: "No audio file uploaded" });
+
+    // Ensure agent_profiles row exists
+    await pool.query(
+      `INSERT INTO agent_profiles (user_id) VALUES ($1::text) ON CONFLICT (user_id) DO NOTHING`,
+      [userId]
+    );
+
+    // Delete old voicemail if exists
+    const existing = await pool.query(
+      `SELECT voicemail_audio_s3_key FROM agent_profiles WHERE user_id = $1::text`,
+      [userId]
+    );
+    if (existing.rows[0]?.voicemail_audio_s3_key) {
+      try { await s3Service.deleteFile(existing.rows[0].voicemail_audio_s3_key); } catch {}
+    }
+
+    // Upload new voicemail
+    const ext = file.mimetype.includes('mp4') ? 'mp4' : file.mimetype.includes('wav') ? 'wav' : 'webm';
+    const uploadResult = await s3Service.uploadFile(
+      userId, `voicemail.${ext}`, file.buffer,
+      { contentType: file.mimetype, metadata: { purpose: "voicemail" } },
+      "voicemails"
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({ error: uploadResult.error || "Upload failed" });
+    }
+
+    // Save URL to agent profile
+    await pool.query(
+      `UPDATE agent_profiles SET voicemail_audio_url = $1, voicemail_audio_s3_key = $2 WHERE user_id = $3::text`,
+      [uploadResult.url || uploadResult.key, uploadResult.key, userId]
+    );
+
+    console.log(`[Calls] Voicemail uploaded for agent ${userId}`);
+    res.json({ success: true, voicemailUrl: uploadResult.url || uploadResult.key });
+  } catch (error: any) {
+    console.error("[Calls] Voicemail upload error:", error.message);
+    res.status(500).json({ error: "Failed to upload voicemail" });
+  }
+});
+
+// DELETE /voicemail — Delete voicemail recording
+router.delete("/voicemail", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const existing = await pool.query(
+      `SELECT voicemail_audio_s3_key FROM agent_profiles WHERE user_id = $1::text`,
+      [userId]
+    );
+
+    if (existing.rows[0]?.voicemail_audio_s3_key) {
+      try { await s3Service.deleteFile(existing.rows[0].voicemail_audio_s3_key); } catch {}
+    }
+
+    await pool.query(
+      `UPDATE agent_profiles SET voicemail_audio_url = NULL, voicemail_audio_s3_key = NULL WHERE user_id = $1::text`,
+      [userId]
+    );
+
+    console.log(`[Calls] Voicemail deleted for agent ${userId}`);
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("[Calls] Voicemail delete error:", error.message);
+    res.status(500).json({ error: "Failed to delete voicemail" });
   }
 });
 

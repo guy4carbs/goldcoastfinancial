@@ -53,6 +53,7 @@ import {
   User,
   Sparkles,
   Shield,
+  GraduationCap,
 } from "lucide-react";
 import { cn, formatProductLabel } from "@/lib/utils";
 
@@ -73,20 +74,7 @@ function getUpcomingEvents() {
 }
 const UPCOMING_EVENTS = getUpcomingEvents();
 
-const STATIC_ANNOUNCEMENTS = [
-  {
-    date: "Jan 15, 2026",
-    title: "New IUL Product Launch",
-    description: "Introducing our enhanced IUL product with improved cap rates. Training webinar scheduled for next week.",
-    priority: "high"
-  },
-  {
-    date: "Jan 12, 2026",
-    title: "Q4 Bonus Payouts",
-    description: "Q4 2025 bonuses will be paid by January 20th. Check your earnings dashboard for details.",
-    priority: "medium"
-  }
-];
+const STATIC_ANNOUNCEMENTS: any[] = [];
 
 // Get greeting based on time of day
 function getGreeting(): string {
@@ -476,7 +464,7 @@ export default function AgentDashboard() {
                 {[
                   { icon: Phone, label: 'Dialer', description: 'Call leads & prospects', href: '/agents/dialer' },
                   { icon: BarChart3, label: 'Performance', description: 'Track your metrics & goals', href: '/agents/performance' },
-                  { icon: Shield, label: 'Data Security', description: 'Encrypt client data', href: '/agents/data-encryption' },
+                  { icon: GraduationCap, label: 'Schedule 1:1', description: 'Book training with upline', href: '/agents/training-sessions' },
                   { icon: FileText, label: 'Create Quote', description: 'Generate insurance quotes', href: '/agents/quotes' },
                 ].map((action) => (
                   <Link key={action.label} href={action.href}>
@@ -505,9 +493,9 @@ export default function AgentDashboard() {
             style={{ gap: GRID.spacing.sm }}
           >
           {([
-            { icon: Phone, value: performance.dailyCalls.toString(), label: "Calls Today", delta: 5, deltaFormat: 'number' as const, periodLabel: "vs yesterday" },
-            { icon: Target, value: performance.dailyCloses.toString(), label: "Closes This Week", delta: 1, deltaFormat: 'number' as const, periodLabel: "vs last week" },
-            { icon: BarChart3, value: `${performance.conversionRate}%`, label: "Conversion Rate", delta: 2.1, deltaFormat: 'percent' as const, periodLabel: "vs last month" },
+            { icon: Phone, value: `${myDealStats?.data?.totalDeals || 0}`, label: "Deals This Month", periodLabel: "submitted" },
+            { icon: Target, value: `$${(myDealStats?.data?.totalAP || 0).toLocaleString()}`, label: "Monthly AP", periodLabel: "annual premium" },
+            { icon: BarChart3, value: `${myDealStats?.data?.rank || 0}`, label: "Leaderboard Rank", periodLabel: "this month" },
             { icon: Flame, value: `${performance.currentStreak}`, label: "Day Streak", periodLabel: "consecutive days" },
           ] as Array<{ icon: typeof Phone; value: string; label: string; delta?: number; deltaFormat?: 'percent' | 'number'; periodLabel?: string }>).map((stat) => (
             <motion.div

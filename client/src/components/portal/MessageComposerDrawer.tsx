@@ -391,7 +391,7 @@ export function MessageComposerDrawer({ open, onOpenChange, initialSubject, init
                 <div>
                   <p className="text-sm font-medium text-blue-800">Response Time</p>
                   <p className="text-xs text-blue-700">
-                    Your advisor typically responds within 1-2 business days. For urgent matters, please call (630) 555-0123.
+                    Your advisor typically responds within 1-2 business days. For urgent matters, please call (630) 478-1835.
                   </p>
                 </div>
               </CardContent>

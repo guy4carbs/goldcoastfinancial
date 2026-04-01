@@ -180,7 +180,7 @@ export default function Privacy() {
                   <p className="text-muted-foreground">1240 Iroquois Ave Suite 506</p>
                   <p className="text-muted-foreground">Naperville, Illinois 60563</p>
                   <p className="text-muted-foreground mt-2">Email: <a href="mailto:contact@goldcoastfnl.com" className="text-secondary hover:underline">contact@goldcoastfnl.com</a></p>
-                  <p className="text-muted-foreground">Phone: (630) 555-0123</p>
+                  <p className="text-muted-foreground">Phone: (630) 478-1835</p>
                 </div>
               </div>
             </div>

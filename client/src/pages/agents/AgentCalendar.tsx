@@ -82,7 +82,8 @@ const calendarProviders = [
 ];
 
 // Demo events data
-const initialEvents: EventData[] = [
+const initialEvents: EventData[] = [];
+const _unusedDemoEvents: EventData[] = [
   {
     id: '1',
     title: 'Client Call - John Smith',

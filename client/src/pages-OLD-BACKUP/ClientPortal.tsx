@@ -197,7 +197,7 @@ This document is a placeholder representing your ${docName.toLowerCase()}.
 
 For the official document, please contact your advisor:
   Jack Cook, Principal Agent
-  Phone: (630) 555-0123
+  Phone: (630) 478-1835
   Email: jack.cook@goldcoastfnl.com
 
 Gold Coast Financial Partners
@@ -270,7 +270,7 @@ This section represents your ${doc.name.toLowerCase()}.
 For official copies of these documents, please contact:
   Gold Coast Financial Partners
   Jack Cook, Principal Agent
-  Phone: (630) 555-0123
+  Phone: (630) 478-1835
   Email: jack.cook@goldcoastfnl.com
 
 ================================================================================

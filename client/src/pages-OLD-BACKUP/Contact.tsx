@@ -102,7 +102,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-bold text-primary">Phone</h3>
-                    <p className="text-muted-foreground">(630) 555-0123</p>
+                    <p className="text-muted-foreground">(630) 478-1835</p>
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ export default function Contact() {
                           <FormItem>
                             <FormLabel>Phone</FormLabel>
                             <FormControl>
-                              <Input type="tel" placeholder="(630) 555-1234" {...field} />
+                              <Input type="tel" placeholder="(630) 478-1835" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
