@@ -1,30 +1,13 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { Redirect } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAgentStore } from "@/lib/agentStore";
 
 interface AgentProtectedRouteProps {
   children: ReactNode;
 }
 
-// DEV MODE: Must always be false in production
-const DEV_BYPASS_AUTH = false;
-
 export function AgentProtectedRoute({ children }: AgentProtectedRouteProps) {
   const { user, loading } = useAuth();
-  const { currentUser, login } = useAgentStore();
-
-  // Dev bypass - auto-login with demo user on first render
-  useEffect(() => {
-    if (DEV_BYPASS_AUTH && !currentUser) {
-      // Login with demo agent credentials
-      login('sarah@goldcoastfnl.com', 'agent123');
-    }
-  }, [currentUser, login]);
-
-  if (DEV_BYPASS_AUTH) {
-    return <>{children}</>;
-  }
 
   if (loading) {
     return (

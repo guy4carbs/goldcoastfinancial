@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Role, isValidRole, Roles } from "@/types/permissions";
+import { useAgentStore } from "@/lib/agentStore";
 
 /**
  * Extended user interface with RBAC fields
@@ -132,6 +133,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               avatarUrl: data.user.avatarUrl,
               timezone: data.user.timezone || 'America/Chicago',
             });
+            // Sync Zustand store with session user
+            useAgentStore.getState().hydrateFromUser({
+              id: data.user.id,
+              firstName: data.user.firstName,
+              lastName: data.user.lastName,
+              email: data.user.email,
+              phone: data.user.phone,
+              role: data.user.role,
+              avatarUrl: data.user.avatarUrl,
+            });
             setLoading(false);
             return; // Session found, don't check Firebase
           }
@@ -183,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         if (data.user) {
           // Session-based login successful - set user directly
-          setUser({
+          const appUser = {
             uid: data.user.id,
             email: data.user.email,
             displayName: `${data.user.firstName} ${data.user.lastName}`,
@@ -197,6 +208,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             phone: data.user.phone,
             avatarUrl: data.user.avatarUrl,
             timezone: data.user.timezone || 'America/Chicago',
+          };
+          setUser(appUser);
+          // Sync Zustand store with the authenticated user
+          useAgentStore.getState().hydrateFromUser({
+            id: data.user.id,
+            firstName: data.user.firstName,
+            lastName: data.user.lastName,
+            email: data.user.email,
+            phone: data.user.phone,
+            role: data.user.role,
+            avatarUrl: data.user.avatarUrl,
           });
           setLoading(false);
           return;
@@ -211,6 +233,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear Zustand store first (while we still have user ID)
+    useAgentStore.getState().logout();
+
     // Clear session-based auth
     try {
       await fetch('/api/auth/logout', {

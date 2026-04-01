@@ -597,6 +597,7 @@ interface AgentStore {
   deleteRecruitProspect: (prospectId: string) => void;
   login: (email: string, password: string) => boolean;
   logout: () => void;
+  hydrateFromUser: (authUser: { id: string; firstName?: string; lastName?: string; email: string; phone?: string; role?: string; avatarUrl?: string }) => void;
   updateProfile: (updates: Partial<Pick<AgentUser, 'name' | 'email' | 'phone' | 'npn'>>) => void;
   createOrUpdateProfile: (profile: { name: string; email: string; phone: string; npn?: string }) => void;
   toggleTheme: () => void;
@@ -1038,22 +1039,53 @@ export const useAgentStore = create<AgentStore>()(
         };
       },
 
-      login: (email: string, password: string) => {
-        const user = DEMO_AGENTS.find(a => a.email.toLowerCase() === email.toLowerCase());
-        if (user && password === 'agent123') {
-          set({ currentUser: user });
-          return true;
-        }
-        if (email.toLowerCase() === 'jack@goldcoastfnl.com' && password === 'exec123') {
-          set({ currentUser: DEMO_AGENTS.find(a => a.role === 'executive') || null });
-          return true;
-        }
+      login: (_email: string, _password: string) => {
+        // Real login is handled by AuthContext (POST /api/auth/login)
+        // This method is kept for interface compatibility but should not be called directly
         return false;
       },
 
       logout: () => {
-        set({ currentUser: null });
+        const { currentUser } = get();
+        // Clear the user-scoped storage key
+        if (currentUser?.id) {
+          localStorage.removeItem(`agent-lounge-${currentUser.id}-v1`);
+        }
+        // Also clear legacy keys
         localStorage.removeItem('agent-lounge-storage-v6');
+        localStorage.removeItem('agent-lounge-storage-v7');
+        // Reset all state
+        set({
+          currentUser: null,
+          leads: [],
+          tasks: [],
+          earnings: [],
+          ideas: [],
+          bookOfBusiness: [],
+          recruitProspects: [],
+          performance: DEMO_PERFORMANCE,
+          announcements: [],
+          activities: [],
+          notifications: [],
+        });
+      },
+
+      // Hydrate store from real auth user (called by AuthContext on login)
+      hydrateFromUser: (authUser: { id: string; firstName?: string; lastName?: string; email: string; phone?: string; role?: string; avatarUrl?: string }) => {
+        set({
+          currentUser: {
+            id: authUser.id,
+            name: `${authUser.firstName || ''} ${authUser.lastName || ''}`.trim() || authUser.email,
+            email: authUser.email,
+            phone: authUser.phone || '',
+            role: (authUser.role === 'owner' || authUser.role === 'system_admin') ? 'executive' : 'agent',
+            avatar: authUser.avatarUrl,
+            territories: [],
+            startDate: new Date().toISOString().split('T')[0],
+            certifications: [],
+            badges: [],
+          },
+        });
       },
 
       updateProfile: (updates) => {
@@ -2256,8 +2288,8 @@ ${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider futur
       }
     }),
     {
-      name: 'agent-lounge-storage-v7',
-      version: 2,
+      name: 'agent-lounge-storage-v8',
+      version: 1,
       partialize: (state) => ({
         currentUser: state.currentUser,
         theme: state.theme,
