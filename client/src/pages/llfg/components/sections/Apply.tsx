@@ -167,7 +167,7 @@ export default function Apply() {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <h2
-            className="text-3xl md:text-4xl text-white font-bold text-center mb-10"
+            className="text-4xl md:text-5xl text-white font-bold text-center mb-10"
             style={{ fontFamily: SERIF }}
           >
             Start Your <em className="italic text-[#E8C96B]">Journey</em>

@@ -32,7 +32,7 @@ export default function WhyJoin() {
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-3xl md:text-4xl text-white font-bold text-center mb-14 whitespace-nowrap"
+          className="text-4xl md:text-5xl text-white font-bold text-center mb-14 whitespace-nowrap"
           style={{ fontFamily: SERIF }}
         >
           Everything to <em className="italic text-[#E8C96B]">Earn Big</em> Day One
@@ -47,14 +47,14 @@ export default function WhyJoin() {
               transition={{ duration: 0.4, delay: i * 0.07 }}
               className="bg-[#1A1A1A] rounded-xl p-6 border border-[#B8963C]/10 hover:border-[#B8963C]/40 transition-colors"
             >
-              <card.icon size={22} className="text-[#B8963C]" strokeWidth={1.5} />
+              <card.icon size={24} className="text-[#B8963C]" strokeWidth={1.5} />
               <h3
-                className="text-sm text-[#E8C96B] font-bold mt-4 mb-2 whitespace-nowrap"
+                className="text-base text-[#E8C96B] font-bold mt-4 mb-2 whitespace-nowrap"
                 style={{ fontFamily: SERIF }}
               >
                 {card.title}
               </h3>
-              <p className="text-white/45 text-xs leading-relaxed">{card.desc}</p>
+              <p className="text-white/50 text-sm leading-relaxed">{card.desc}</p>
             </motion.div>
           ))}
         </div>

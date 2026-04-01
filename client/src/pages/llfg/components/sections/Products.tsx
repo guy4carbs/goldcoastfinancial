@@ -22,7 +22,7 @@ export default function Products() {
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-3xl md:text-4xl text-white font-bold text-center mb-14"
+          className="text-4xl md:text-5xl text-white font-bold text-center mb-14"
           style={{ fontFamily: SERIF }}
         >
           What You&rsquo;ll <em className="italic text-[#E8C96B]">Sell</em>
@@ -38,15 +38,15 @@ export default function Products() {
               className="bg-[#1A1A1A] rounded-xl p-6 border-t-2 border-transparent hover:border-t-[#B8963C] transition-colors"
             >
               <h3
-                className="text-lg text-white font-bold whitespace-nowrap"
+                className="text-xl text-white font-bold whitespace-nowrap"
                 style={{ fontFamily: SERIF }}
               >
                 {p.name}
               </h3>
-              <p className="text-white/35 text-[10px] tracking-wider uppercase mt-4 whitespace-nowrap">Ideal for</p>
-              <p className="text-white/70 text-xs mt-1">{p.clients}</p>
-              <p className="text-[#B8963C]/60 text-[10px] tracking-wider uppercase mt-4 whitespace-nowrap">Commission</p>
-              <p className="text-white/50 text-xs mt-1">{p.commission}</p>
+              <p className="text-white/35 text-xs tracking-wider uppercase mt-4 whitespace-nowrap">Ideal for</p>
+              <p className="text-white/70 text-sm mt-1">{p.clients}</p>
+              <p className="text-[#B8963C]/60 text-xs tracking-wider uppercase mt-4 whitespace-nowrap">Commission</p>
+              <p className="text-white/50 text-sm mt-1">{p.commission}</p>
             </motion.div>
           ))}
         </div>

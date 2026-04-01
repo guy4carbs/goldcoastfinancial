@@ -59,7 +59,7 @@ export default function Carriers() {
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-3xl md:text-4xl text-white font-bold text-center mb-4"
+          className="text-4xl md:text-5xl text-white font-bold text-center mb-4"
           style={{ fontFamily: SERIF }}
         >
           Our <em className="italic text-[#E8C96B]">Carrier Partners</em>

@@ -42,7 +42,7 @@ export default function SocialProof() {
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-3xl md:text-4xl text-white font-bold text-center mb-14"
+          className="text-4xl md:text-5xl text-white font-bold text-center mb-14"
           style={{ fontFamily: SERIF }}
         >
           Agents Building <em className="italic text-[#E8C96B]">Real Businesses</em>
@@ -59,25 +59,25 @@ export default function SocialProof() {
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-[#B8963C]/15 border border-[#B8963C]/40 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[#E8C96B] text-xs font-bold" style={{ fontFamily: SERIF }}>
+                  <span className="text-[#E8C96B] text-sm font-bold" style={{ fontFamily: SERIF }}>
                     {t.initials}
                   </span>
                 </div>
                 <div>
                   <p className="text-white text-sm font-medium whitespace-nowrap">{t.name}</p>
-                  <p className="text-white/40 text-xs">{t.role}</p>
+                  <p className="text-white/40 text-sm">{t.role}</p>
                 </div>
               </div>
 
-              <p className="text-white/60 text-xs leading-relaxed italic flex-1" style={{ fontFamily: SERIF }}>
+              <p className="text-white/60 text-sm leading-relaxed italic flex-1" style={{ fontFamily: SERIF }}>
                 &ldquo;{t.quote}&rdquo;
               </p>
 
               <div className="mt-4 pt-3 border-t border-white/5">
-                <span className="text-[#E8C96B] text-xl font-bold" style={{ fontFamily: SERIF }}>
+                <span className="text-[#E8C96B] text-2xl font-bold" style={{ fontFamily: SERIF }}>
                   {t.stat}
                 </span>
-                <span className="text-white/30 text-xs ml-2">{t.statLabel}</span>
+                <span className="text-white/30 text-sm ml-2">{t.statLabel}</span>
               </div>
             </motion.div>
           ))}

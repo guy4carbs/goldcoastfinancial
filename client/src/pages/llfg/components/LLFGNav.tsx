@@ -71,7 +71,7 @@ export default function LLFGNav() {
               <button
                 key={link.href}
                 onClick={() => scrollTo(link.href)}
-                className="text-white/70 hover:text-[#E8C96B] transition-colors text-sm font-medium"
+                className="text-white/70 hover:text-[#E8C96B] transition-colors text-base font-medium"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
                 {link.label}
@@ -83,7 +83,7 @@ export default function LLFGNav() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => scrollTo("#apply")}
-              className="hidden md:block border border-[#B8963C] text-[#E8C96B] bg-transparent hover:bg-[#B8963C] hover:text-white transition-all duration-200 px-5 py-2 rounded text-sm font-medium"
+              className="hidden md:block border border-[#B8963C] text-[#E8C96B] bg-transparent hover:bg-[#B8963C] hover:text-white transition-all duration-200 px-6 py-2.5 rounded text-base font-medium"
               style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
               Apply Now
