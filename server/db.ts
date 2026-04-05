@@ -1097,6 +1097,86 @@ export async function initializeDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_agent ON lead_purchases (agent_user_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_status ON lead_purchases (status);`);
 
+    // Agent email connections — per-agent OAuth/IMAP credentials
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_email_connections (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        provider VARCHAR(20) NOT NULL, -- gmail, outlook, imap
+        email_address VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255),
+        -- OAuth tokens (Gmail, Outlook)
+        access_token TEXT,
+        refresh_token TEXT,
+        token_expires_at TIMESTAMP,
+        -- IMAP credentials (encrypted app passwords)
+        imap_host VARCHAR(255),
+        imap_port INTEGER DEFAULT 993,
+        imap_password TEXT,
+        smtp_host VARCHAR(255),
+        smtp_port INTEGER DEFAULT 587,
+        -- Status
+        status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, expired, disconnected
+        last_sync_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(agent_user_id, provider)
+      );
+    `);
+
+    // Agent calendar connections — per-agent CalDAV credentials
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_calendar_connections (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        provider VARCHAR(20) NOT NULL, -- google, apple, outlook
+        caldav_url VARCHAR(500) NOT NULL,
+        username VARCHAR(255) NOT NULL,
+        password TEXT NOT NULL,
+        display_name VARCHAR(255),
+        status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, disconnected
+        last_sync_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(agent_user_id)
+      );
+    `);
+
+    // Add OAuth columns for Google Calendar per-agent OAuth
+    await client.query(`ALTER TABLE agent_calendar_connections ADD COLUMN IF NOT EXISTS access_token TEXT`);
+    await client.query(`ALTER TABLE agent_calendar_connections ADD COLUMN IF NOT EXISTS refresh_token TEXT`);
+    await client.query(`ALTER TABLE agent_calendar_connections ADD COLUMN IF NOT EXISTS token_expires_at TIMESTAMP`);
+    // Allow multiple calendar providers per agent (drop old single-agent constraint)
+    await client.query(`ALTER TABLE agent_calendar_connections DROP CONSTRAINT IF EXISTS agent_calendar_connections_agent_user_id_key`);
+    await client.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'agent_calendar_connections_agent_provider_key') THEN
+          ALTER TABLE agent_calendar_connections ADD CONSTRAINT agent_calendar_connections_agent_provider_key UNIQUE (agent_user_id, provider);
+        END IF;
+      END $$;
+    `);
+
+    // Secure forms table (migrated from in-memory secureFormStore)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS secure_forms (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        link_id VARCHAR(255) NOT NULL UNIQUE,
+        form_type VARCHAR(50) NOT NULL,
+        carrier_id VARCHAR(255),
+        carrier_name VARCHAR(255),
+        client_name VARCHAR(255),
+        client_email VARCHAR(255),
+        agent_name VARCHAR(255),
+        agent_email VARCHAR(255),
+        agent_phone VARCHAR(255),
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        expires_at TIMESTAMP,
+        submitted_data JSONB,
+        submitted_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     console.log("Database tables initialized successfully.");
   } catch (error) {
     console.error("Error initializing database:", error);

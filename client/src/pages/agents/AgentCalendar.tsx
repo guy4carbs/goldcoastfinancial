@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, addDays, subDays, format, isSameDay } from 'date-fns';
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,10 +33,15 @@ import {
   Smartphone,
   Monitor,
   Shield,
+  X,
+  Loader2,
+  KeyRound,
+  Unlink,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -52,7 +59,7 @@ import { AddEventModal, EventData, type EventPrefillData } from "@/components/ag
 import { useLocation } from "wouter";
 import { useConfirm } from "@/components/agent/primitives/ConfirmDialog";
 import { toast } from "sonner";
-import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { useAgentStore } from "@/lib/agentStore";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
@@ -81,60 +88,50 @@ const calendarProviders = [
   },
 ];
 
-// Demo events data
-const initialEvents: EventData[] = [];
-const _unusedDemoEvents: EventData[] = [
-  {
-    id: '1',
-    title: 'Client Call - John Smith',
-    date: '2026-01-26',
-    time: '10:00 AM',
-    duration: '30 min',
-    type: 'call',
-    status: 'upcoming',
+// App password instructions per provider (same credentials as email connections)
+const calendarProviderInstructions: Record<string, { hint: string; steps: string[] }> = {
+  google: {
+    hint: 'Use the same Google App Password as your Gmail connection',
+    steps: [
+      'Go to myaccount.google.com/apppasswords',
+      'Sign in with your Google account',
+      'Select "Mail" as the app, then "Other" for device name',
+      'Copy the 16-character app password (remove spaces)',
+      'If you already connected your Gmail, use that same app password',
+    ],
   },
-  {
-    id: '2',
-    title: 'Policy Review - Sarah Johnson',
-    date: '2026-01-26',
-    time: '2:00 PM',
-    duration: '1 hour',
-    type: 'meeting',
-    status: 'upcoming',
+  apple: {
+    hint: 'Use your Apple ID app-specific password',
+    steps: [
+      'Go to appleid.apple.com and sign in',
+      'Under Security, click "Generate Password"',
+      'Enter a label like "Heritage Calendar"',
+      'Copy the generated app-specific password',
+      'Use your Apple ID email as the username',
+    ],
   },
-  {
-    id: '3',
-    title: 'Team Training Webinar',
-    date: '2026-01-27',
-    time: '11:00 AM',
-    duration: '2 hours',
-    type: 'video',
-    status: 'upcoming',
+  outlook: {
+    hint: 'Use your Microsoft account app password',
+    steps: [
+      'Go to account.microsoft.com/security',
+      'Turn on Two-Step Verification if not already enabled',
+      'Under "App passwords", create a new app password',
+      'Copy the generated password',
+      'Note: CalDAV may not work with all Microsoft 365 accounts',
+    ],
   },
-  {
-    id: '4',
-    title: 'Follow-up: Michael Brown',
-    date: '2026-01-28',
-    time: '9:00 AM',
-    duration: '15 min',
-    type: 'call',
-    status: 'upcoming',
-  },
-  {
-    id: '5',
-    title: 'New Lead Consultation',
-    date: '2026-01-28',
-    time: '3:30 PM',
-    duration: '45 min',
-    type: 'video',
-    status: 'upcoming',
-  },
-];
+};
 
-const eventTypeConfig = {
-  call: { icon: Phone, color: 'bg-amber-100 text-amber-700' },
-  meeting: { icon: User, color: 'bg-purple-100 text-purple-700' },
-  video: { icon: Video, color: 'bg-violet-100 text-violet-700' },
+// Demo events data removed — now fetched from /api/calendar/events
+
+const eventTypeConfig: Record<string, { icon: any; color: string; dot: string; gradient: string }> = {
+  call: { icon: Phone, color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500', gradient: 'from-amber-500 to-orange-500' },
+  meeting: { icon: User, color: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', gradient: 'from-purple-500 to-violet-600' },
+  video: { icon: Video, color: 'bg-violet-100 text-violet-700', dot: 'bg-violet-500', gradient: 'from-violet-500 to-indigo-600' },
+  event: { icon: CalendarIcon, color: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', gradient: 'from-blue-500 to-cyan-500' },
+  training: { icon: Monitor, color: 'bg-green-100 text-green-700', dot: 'bg-green-500', gradient: 'from-green-500 to-emerald-600' },
+  deadline: { icon: CalendarIcon, color: 'bg-red-100 text-red-700', dot: 'bg-red-500', gradient: 'from-red-500 to-rose-600' },
+  review: { icon: CalendarIcon, color: 'bg-teal-100 text-teal-700', dot: 'bg-teal-500', gradient: 'from-teal-500 to-cyan-600' },
 };
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -147,14 +144,149 @@ type DevicePreview = "phone" | "desktop";
 export default function AgentCalendar() {
   const confirm = useConfirm();
   const currentUser = useAgentStore((state) => state.currentUser);
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 26)); // Jan 26, 2026
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 0, 26));
-  const [connectedProviders, setConnectedProviders] = useState<string[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  // Google Calendar connection status from real API
+  const { data: calendarStatus } = useQuery<{ connected: boolean; email: string | null }>({
+    queryKey: ['/api/calendar/status'],
+  });
+
+  // Per-agent calendar connections (multiple providers)
+  const { data: calConnectionData } = useQuery<{ connections: any[]; connection: any }>({
+    queryKey: ['/api/calendar/connection'],
+  });
+  const calConnections: any[] = calConnectionData?.connections || [];
+  const getConnectionForProvider = (provider: string) => calConnections.find((c: any) => c.provider === provider);
+  // Only show as connected if agent has a personal connection — not the company fallback
+  const connectedProviders = calConnections.map((c: any) => c.provider);
+
+  // Calendar connect form state
+  const [showCalendarConnect, setShowCalendarConnect] = useState(false);
+  const [selectedCalProvider, setSelectedCalProvider] = useState<string | null>(null);
+  const [calConnectForm, setCalConnectForm] = useState({ email: '', password: '' });
+  const [showInstructions, setShowInstructions] = useState(false);
+
+  // Connect calendar mutation
+  const connectCalendar = useMutation({
+    mutationFn: async (data: { provider: string; username: string; password: string }) => {
+      const res = await fetch('/api/calendar/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Connection failed');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/connection'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
+      toast.success('Calendar connected successfully!');
+      setShowCalendarConnect(false);
+      setCalConnectForm({ email: '', password: '' });
+      setSelectedCalProvider(null);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  // Disconnect calendar mutation
+  const disconnectCalendar = useMutation({
+    mutationFn: async (provider?: string) => {
+      const url = provider ? `/api/calendar/connection/${provider}` : '/api/calendar/connection';
+      const res = await fetch(url, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to disconnect');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/connection'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
+      toast.success('Calendar disconnected');
+    },
+    onError: () => {
+      toast.error('Failed to disconnect calendar');
+    },
+  });
   const [view, setView] = useState<'month' | 'week' | 'day'>('month');
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [prefillData, setPrefillData] = useState<EventPrefillData | null>(null);
-  const [events, setEvents] = useState<EventData[]>(initialEvents);
   const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+
+  // Fetch events from the consolidated calendar API
+  const { data: calendarData } = useQuery<{ events: EventData[] }>({
+    queryKey: ['/api/calendar/events'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+  const events: EventData[] = calendarData?.events || [];
+
+  // Create event mutation
+  const createEvent = useMutation({
+    mutationFn: async (data: Omit<EventData, 'id' | 'status'>) => {
+      const res = await fetch('/api/calendar/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Failed to create event');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
+      toast.success('Event created');
+    },
+    onError: () => {
+      toast.error('Failed to create event');
+    },
+  });
+
+  // Update event mutation
+  const updateEvent = useMutation({
+    mutationFn: async ({ id, ...data }: Partial<EventData> & { id: string }) => {
+      const res = await fetch(`/api/calendar/events/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Failed to update event');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
+    },
+    onError: () => {
+      toast.error('Failed to update event');
+    },
+  });
+
+  // Delete event mutation
+  const deleteEvent = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/calendar/events/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to delete event');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
+    },
+    onError: () => {
+      toast.error('Failed to delete event');
+    },
+  });
 
   // Auto-open modal with pre-filled data from URL params (e.g., from Lead Drawer Schedule button)
   useEffect(() => {
@@ -198,65 +330,6 @@ export default function AgentCalendar() {
   // Generate a unique booking link for the agent based on their name
   const agentSlug = agentName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
   const agentBookingLink = `${window.location.origin}/book/agent-${agentSlug}`;
-
-  // Fetch booked appointments
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const response = await fetch(`/api/appointments?agentSlug=${agentSlug}`);
-        if (response.ok) {
-          const data = await response.json();
-          // Convert booked appointments to event format
-          const bookedEvents: EventData[] = data.appointments.map((apt: any) => {
-            // Format time from 24h to 12h AM/PM
-            const [hour, minute] = apt.time.split(':');
-            const h = parseInt(hour);
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            const displayHour = h > 12 ? h - 12 : h === 0 ? 12 : h;
-            const formattedTime = `${displayHour}:${minute} ${ampm}`;
-
-            // Format duration
-            const durationMap: Record<string, string> = {
-              '15': '15 min',
-              '30': '30 min',
-              '45': '45 min',
-              '60': '1 hour'
-            };
-
-            return {
-              id: apt.id,
-              title: `Booking: ${apt.customerName}`,
-              date: apt.date,
-              time: formattedTime,
-              duration: durationMap[apt.duration] || `${apt.duration} min`,
-              type: apt.meetingType as 'call' | 'video' | 'meeting',
-              status: 'upcoming' as const,
-              clientName: apt.customerName,
-              clientEmail: apt.customerEmail,
-              clientPhone: apt.customerPhone || undefined,
-              meetingNotes: apt.notes || undefined,
-            };
-          });
-
-          // Merge with existing events, avoiding duplicates
-          setEvents(prev => {
-            const existingIds = new Set(prev.map(e => e.id));
-            const newEvents = bookedEvents.filter(e => !existingIds.has(e.id));
-            return [...prev, ...newEvents].sort((a, b) => {
-              if (a.date !== b.date) return a.date.localeCompare(b.date);
-              return a.time.localeCompare(b.time);
-            });
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch appointments:', error);
-      }
-    };
-
-    if (agentSlug) {
-      fetchAppointments();
-    }
-  }, [agentSlug]);
 
   // Heritage brand colors - Purple and Gold
   const gradientFrom = "#7c3aed"; // violet-600
@@ -373,38 +446,101 @@ export default function AgentCalendar() {
   const startingDay = firstDayOfMonth.getDay();
   const totalDays = lastDayOfMonth.getDate();
 
-  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+  const navigatePrev = () => {
+    if (view === 'month') setCurrentDate(new Date(year, month - 1, 1));
+    else if (view === 'week') setCurrentDate(subWeeks(currentDate, 1));
+    else setCurrentDate(subDays(currentDate, 1));
+  };
+  const navigateNext = () => {
+    if (view === 'month') setCurrentDate(new Date(year, month + 1, 1));
+    else if (view === 'week') setCurrentDate(addWeeks(currentDate, 1));
+    else setCurrentDate(addDays(currentDate, 1));
+  };
+
+  // Detect OAuth return params (?cal_connected=google or ?cal_error=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('cal_connected')) {
+      toast.success('Google Calendar connected!');
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/connection'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (params.get('cal_error')) {
+      const errorCode = params.get('cal_error');
+      const errorMessages: Record<string, string> = {
+        missing_params: 'Missing OAuth parameters',
+        no_email: 'Could not get email from Google',
+        oauth_failed: 'Google OAuth failed — please try again',
+      };
+      toast.error(errorMessages[errorCode || ''] || 'Failed to connect calendar');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const handleConnectProvider = async (providerId: string) => {
-    const provider = calendarProviders.find(p => p.id === providerId);
-    if (connectedProviders.includes(providerId)) {
-      const confirmed = await confirm({
-        title: 'Disconnect Calendar',
-        description: `Are you sure you want to disconnect ${provider?.name}? Your synced events will remain, but new events won't sync.`,
-        confirmLabel: 'Disconnect',
-        cancelLabel: 'Cancel',
-        variant: 'warning',
+    const isConnected = connectedProviders.includes(providerId);
+    const existingConn = getConnectionForProvider(providerId);
+
+    if (isConnected && existingConn) {
+      // Already connected — show info
+      toast.info(`${calendarProviders.find(p => p.id === providerId)?.name} is connected`, {
+        description: `Syncing with ${existingConn.username}`,
       });
-      if (confirmed) {
-        setConnectedProviders(connectedProviders.filter(p => p !== providerId));
-        toast.success(`${provider?.name} disconnected`);
-      }
-    } else {
-      // In production, this would trigger OAuth flow
-      toast.info(`Connecting to ${provider?.name}...`, {
-        description: 'OAuth authentication would open here in production'
-      });
-      setTimeout(() => {
-        setConnectedProviders([...connectedProviders, providerId]);
-        toast.success(`${provider?.name} connected successfully!`);
-      }, 1000);
+      return;
+    }
+
+    // Google uses OAuth, not CalDAV
+    if (providerId === 'google') {
+      window.location.href = '/api/calendar/connect/google';
+      return;
+    }
+
+    // Other providers: show CalDAV form
+    setSelectedCalProvider(providerId);
+    setCalConnectForm({ email: '', password: '' });
+    setShowInstructions(false);
+    setShowCalendarConnect(true);
+  };
+
+  const handleCalConnectSubmit = () => {
+    if (!selectedCalProvider || !calConnectForm.email || !calConnectForm.password) {
+      toast.error('Please fill in both email and app password');
+      return;
+    }
+    connectCalendar.mutate({
+      provider: selectedCalProvider,
+      username: calConnectForm.email,
+      password: calConnectForm.password,
+    });
+  };
+
+  const handleDisconnectCalendar = async (provider?: string) => {
+    const providerName = provider === 'google' ? 'Google Calendar' : provider === 'apple' ? 'iCloud Calendar' : provider === 'outlook' ? 'Outlook Calendar' : 'calendar';
+    const confirmed = await confirm({
+      title: `Disconnect ${providerName}`,
+      description: `Are you sure you want to disconnect ${providerName}? Events from this calendar will no longer appear here.`,
+      confirmLabel: 'Disconnect',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (confirmed) {
+      disconnectCalendar.mutate(provider);
     }
   };
 
   const handleEditEvent = (event: EventData) => {
+    // Open the add event modal pre-filled with this event's data for editing
+    setPrefillData({
+      clientName: event.clientName,
+      clientPhone: event.clientPhone,
+      clientEmail: event.clientEmail,
+    });
+    setSelectedDate(new Date(event.date + 'T12:00:00'));
+    setShowAddEvent(true);
     toast.info('Edit Event', {
-      description: `Editing "${event.title}" - Event editing coming soon!`
+      description: `Editing "${event.title}" — save to update`
     });
   };
 
@@ -412,16 +548,20 @@ export default function AgentCalendar() {
     const event = events.find(e => e.id === eventId);
     if (!event) return;
 
+    const isGoogle = (event as any).source === 'google';
+
     const confirmed = await confirm({
       title: 'Delete Event',
-      description: `Are you sure you want to delete "${event.title}"? This action cannot be undone.`,
+      description: isGoogle
+        ? `Delete "${event.title}" from your Google Calendar? This will remove it from Google too.`
+        : `Are you sure you want to delete "${event.title}"? This action cannot be undone.`,
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       variant: 'danger',
     });
 
     if (confirmed) {
-      setEvents(prev => prev.filter(e => e.id !== eventId));
+      deleteEvent.mutate(eventId);
       toast.success('Event deleted', {
         description: `"${event.title}" has been removed from your calendar`
       });
@@ -430,15 +570,6 @@ export default function AgentCalendar() {
 
   const handleViewChange = (newView: 'month' | 'week' | 'day') => {
     setView(newView);
-    if (newView === 'week') {
-      toast.info('Week View', {
-        description: 'Week view layout coming soon - showing month view for now'
-      });
-    } else if (newView === 'day') {
-      toast.info('Day View', {
-        description: 'Day view layout coming soon - showing month view for now'
-      });
-    }
   };
 
   const getEventsForDate = (date: Date) => {
@@ -448,24 +579,32 @@ export default function AgentCalendar() {
 
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
 
+  // Upcoming events — sorted by date, paginated
+  const UPCOMING_PER_PAGE = 10;
+  const [upcomingPage, setUpcomingPage] = useState(0);
+  const upcomingEvents = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return [...events]
+      .filter(e => e.date >= today && e.status !== 'cancelled')
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  }, [events]);
+  const upcomingTotalPages = Math.ceil(upcomingEvents.length / UPCOMING_PER_PAGE);
+  const paginatedUpcoming = upcomingEvents.slice(
+    upcomingPage * UPCOMING_PER_PAGE,
+    (upcomingPage + 1) * UPCOMING_PER_PAGE
+  );
+
   const handleAddEvent = (newEvent: EventData) => {
-    setEvents(prev => [...prev, newEvent].sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      return a.time.localeCompare(b.time);
-    }));
+    createEvent.mutate(newEvent);
   };
 
   const handleUpdateEventNotes = (eventId: string, notes: string) => {
-    setEvents(prev => prev.map(e =>
-      e.id === eventId ? { ...e, meetingNotes: notes } : e
-    ));
+    updateEvent.mutate({ id: eventId, meetingNotes: notes });
     toast.success('Meeting notes saved');
   };
 
   const handleCompleteEvent = (eventId: string) => {
-    setEvents(prev => prev.map(e =>
-      e.id === eventId ? { ...e, status: 'completed' as const } : e
-    ));
+    updateEvent.mutate({ id: eventId, status: 'completed' });
     toast.success('Event marked as completed');
   };
 
@@ -505,7 +644,6 @@ export default function AgentCalendar() {
             icon={CalendarIcon}
             title="Calendar"
             subtitle="Manage your schedule and sync with your email calendar"
-            badge={<DemoBadge />}
           >
             <Button
               className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
@@ -521,7 +659,6 @@ export default function AgentCalendar() {
         {/* Calendar Integrations */}
         <motion.div
           variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
           transition={MOTION.spring}
         >
           <Card
@@ -546,6 +683,8 @@ export default function AgentCalendar() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {calendarProviders.map((provider) => {
                   const isConnected = connectedProviders.includes(provider.id);
+                  const personalConn = getConnectionForProvider(provider.id);
+                  const isPersonalConnection = !!personalConn;
                   return (
                     <motion.div
                       key={provider.id}
@@ -558,7 +697,7 @@ export default function AgentCalendar() {
                           : "bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
                       )}
                       style={{ borderRadius: RADIUS.card }}
-                      onClick={() => handleConnectProvider(provider.id)}
+                      onClick={() => !isConnected && handleConnectProvider(provider.id)}
                     >
                       {!isConnected && (
                         <>
@@ -576,7 +715,7 @@ export default function AgentCalendar() {
                           )}
                           style={{ borderRadius: RADIUS.button }}
                         >
-                          <Mail className={cn("w-5 h-5", isConnected ? "text-emerald-600" : "text-amber-200")} />
+                          <CalendarIcon className={cn("w-5 h-5", isConnected ? "text-emerald-600" : "text-amber-200")} />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
@@ -591,10 +730,25 @@ export default function AgentCalendar() {
                               </Badge>
                             )}
                           </div>
-                          <p className={cn("text-xs", isConnected ? "text-gray-500" : "text-white/70")}>{provider.description}</p>
+                          {isPersonalConnection ? (
+                            <p className="text-xs text-gray-500 truncate">{personalConn.username}</p>
+                          ) : (
+                            <p className={cn("text-xs", isConnected ? "text-gray-500" : "text-white/70")}>{provider.description}</p>
+                          )}
                         </div>
                       </div>
-                      {!isConnected && (
+                      {isPersonalConnection ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full mt-3 h-8 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          style={{ borderRadius: RADIUS.button }}
+                          onClick={(e) => { e.stopPropagation(); handleDisconnectCalendar(provider.id); }}
+                        >
+                          <Unlink className="w-3.5 h-3.5 mr-1.5" />
+                          Disconnect
+                        </Button>
+                      ) : !isConnected ? (
                         <Button
                           size="sm"
                           variant="outline"
@@ -603,7 +757,7 @@ export default function AgentCalendar() {
                         >
                           Connect
                         </Button>
-                      )}
+                      ) : null}
                     </motion.div>
                   );
                 })}
@@ -616,7 +770,6 @@ export default function AgentCalendar() {
           {/* Calendar */}
           <motion.div
             variants={fadeInUp}
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
             transition={MOTION.spring}
             className="lg:col-span-2"
           >
@@ -624,13 +777,19 @@ export default function AgentCalendar() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={prevMonth} className="hover:bg-violet-50">
+                    <Button variant="ghost" size="icon" onClick={navigatePrev} className="hover:bg-violet-50">
                       <ChevronLeft className="w-4 h-4 text-violet-600" />
                     </Button>
-                    <h2 className="text-lg font-serif font-semibold text-gray-900 min-w-[140px] text-center">
-                      {months[month]} {year}
+                    <h2 className="text-lg font-serif font-semibold text-gray-900 min-w-[200px] text-center">
+                      {view === 'month' && `${months[month]} ${year}`}
+                      {view === 'week' && (() => {
+                        const ws = startOfWeek(currentDate);
+                        const we = endOfWeek(currentDate);
+                        return `${format(ws, 'MMM d')} – ${format(we, 'MMM d, yyyy')}`;
+                      })()}
+                      {view === 'day' && format(currentDate, 'EEEE, MMMM d')}
                     </h2>
-                    <Button variant="ghost" size="icon" onClick={nextMonth} className="hover:bg-violet-50">
+                    <Button variant="ghost" size="icon" onClick={navigateNext} className="hover:bg-violet-50">
                       <ChevronRight className="w-4 h-4 text-violet-600" />
                     </Button>
                   </div>
@@ -654,58 +813,378 @@ export default function AgentCalendar() {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Days of week header */}
-                <div className="grid grid-cols-7 mb-4">
-                  {daysOfWeek.map((day, idx) => (
-                    <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
-                      <span className="hidden sm:inline">{day}</span>
-                      <span className="sm:hidden">{daysOfWeekMobile[idx]}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                  {calendarDays.map((day, idx) => {
-                    if (day === null) {
-                      return <div key={`empty-${idx}`} className="aspect-square" />;
-                    }
-
-                    const date = new Date(year, month, day);
-                    const events = getEventsForDate(date);
-                    const isToday = date.toDateString() === new Date(2026, 0, 26).toDateString();
-                    const isSelected = selectedDate?.toDateString() === date.toDateString();
-
-                    return (
-                      <div
-                        key={day}
-                        onClick={() => setSelectedDate(date)}
-                        className={cn(
-                          "aspect-square p-1 sm:p-2 cursor-pointer transition-all",
-                          "hover:bg-violet-50 active:scale-95 touch-manipulation",
-                          "min-h-[40px] sm:min-h-0",
-                          isToday && "bg-violet-100",
-                          isSelected && "ring-2 ring-violet-500 bg-violet-50"
-                        )}
-                        style={{ borderRadius: RADIUS.input }}
-                      >
-                        <div className={cn(
-                          "text-xs sm:text-sm font-medium text-center",
-                          isToday ? "text-violet-600 font-semibold" : "text-gray-700"
-                        )}>
-                          {day}
+                {view === 'month' && (
+                  <>
+                    {/* Days of week header */}
+                    <div className="grid grid-cols-7 mb-4">
+                      {daysOfWeek.map((day, idx) => (
+                        <div key={day} className="text-center text-xs font-medium text-gray-400 py-2">
+                          <span className="hidden sm:inline">{day}</span>
+                          <span className="sm:hidden">{daysOfWeekMobile[idx]}</span>
                         </div>
-                        {events.length > 0 && (
-                          <div className="flex justify-center gap-1 mt-1 sm:mt-2">
-                            {events.slice(0, 3).map((_, i) => (
-                              <div key={i} className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-violet-500" />
+                      ))}
+                    </div>
+
+                    {/* Calendar grid */}
+                    <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                      {calendarDays.map((day, idx) => {
+                        if (day === null) {
+                          return <div key={`empty-${idx}`} className="aspect-square" />;
+                        }
+
+                        const date = new Date(year, month, day);
+                        const events = getEventsForDate(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const isSelected = selectedDate?.toDateString() === date.toDateString();
+
+                        return (
+                          <div
+                            key={day}
+                            onClick={() => setSelectedDate(date)}
+                            className={cn(
+                              "aspect-square p-1 sm:p-2 cursor-pointer transition-all",
+                              "hover:bg-violet-50 active:scale-95 touch-manipulation",
+                              "min-h-[40px] sm:min-h-0",
+                              isToday && "bg-violet-100",
+                              isSelected && "ring-2 ring-violet-500 bg-violet-50"
+                            )}
+                            style={{ borderRadius: RADIUS.input }}
+                          >
+                            <div className={cn(
+                              "text-xs sm:text-sm font-medium text-center",
+                              isToday ? "text-violet-600 font-semibold" : "text-gray-700"
+                            )}>
+                              {day}
+                            </div>
+                            {events.length > 0 && (
+                              <div className="flex justify-center gap-1 mt-1 sm:mt-2">
+                                {events.slice(0, 3).map((evt, i) => {
+                                  const cfg = eventTypeConfig[evt.type] || eventTypeConfig.event;
+                                  return (
+                                    <div key={i} className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", cfg.dot)} />
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* Week View */}
+                {view === 'week' && (() => {
+                  const weekStart = startOfWeek(currentDate);
+                  const weekEnd = endOfWeek(currentDate);
+                  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+                  const HOUR_HEIGHT = 60;
+                  const START_HOUR = 0;
+                  const END_HOUR = 24;
+                  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
+                  const totalHeight = hours.length * HOUR_HEIGHT;
+
+                  const dotToColor: Record<string, string> = {
+                    'bg-amber-500': '#f59e0b',
+                    'bg-purple-500': '#a855f7',
+                    'bg-violet-500': '#8b5cf6',
+                    'bg-blue-500': '#3b82f6',
+                    'bg-green-500': '#22c55e',
+                    'bg-red-500': '#ef4444',
+                    'bg-teal-500': '#14b8a6',
+                  };
+
+                  // Pre-compute timed events per day
+                  const eventsPerDay = weekDays.map(day =>
+                    getEventsForDate(day).filter(e => e.time !== 'All Day').map(evt => {
+                      const cfg = eventTypeConfig[evt.type] || eventTypeConfig.event;
+                      const timeParts = evt.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                      if (!timeParts) return null;
+                      let h = parseInt(timeParts[1]);
+                      const m = parseInt(timeParts[2]);
+                      const ampm = timeParts[3].toUpperCase();
+                      if (ampm === 'PM' && h !== 12) h += 12;
+                      if (ampm === 'AM' && h === 12) h = 0;
+
+                      const durMatch = evt.duration.match(/(\d+\.?\d*)\s*(min|hour|hours)/i);
+                      let durMin = 30;
+                      if (durMatch) {
+                        durMin = durMatch[2].startsWith('hour') ? parseFloat(durMatch[1]) * 60 : parseFloat(durMatch[1]);
+                      }
+
+                      const top = (h - START_HOUR) * HOUR_HEIGHT + (m / 60) * HOUR_HEIGHT;
+                      const height = Math.max((durMin / 60) * HOUR_HEIGHT, 20);
+                      if (top < 0) return null;
+
+                      const borderColor = dotToColor[cfg.dot] || '#8b5cf6';
+                      return { evt, cfg, top, height, borderColor };
+                    }).filter(Boolean) as { evt: any; cfg: any; top: number; height: number; borderColor: string }[]
+                  );
+
+                  return (
+                    <div className="overflow-auto" style={{ maxHeight: '600px' }}>
+                      {/* Day headers */}
+                      <div className="grid grid-cols-[60px_repeat(7,1fr)] sticky top-0 bg-white z-20 border-b">
+                        <div />
+                        {weekDays.map((day, i) => (
+                          <div
+                            key={day.toISOString()}
+                            className={cn(
+                              "text-center py-2 text-xs font-medium cursor-pointer border-l border-gray-100",
+                              isSameDay(day, new Date()) && "text-violet-600 font-bold",
+                              selectedDate && isSameDay(day, selectedDate) && "bg-violet-50"
+                            )}
+                            onClick={() => { setSelectedDate(day); setView('day'); setCurrentDate(day); }}
+                          >
+                            <div className="text-gray-400">{format(day, 'EEE')}</div>
+                            <div className={cn(
+                              "w-8 h-8 mx-auto flex items-center justify-center rounded-full text-sm",
+                              isSameDay(day, new Date()) && "bg-violet-600 text-white"
+                            )}>
+                              {format(day, 'd')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* All-day events row */}
+                      {(() => {
+                        const allDayByDay = weekDays.map(day => ({
+                          day,
+                          events: getEventsForDate(day).filter(e => e.time === 'All Day')
+                        }));
+                        const hasAllDay = allDayByDay.some(d => d.events.length > 0);
+                        if (!hasAllDay) return null;
+                        return (
+                          <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b bg-gray-50/50">
+                            <div className="text-[10px] text-gray-400 p-1 text-right pr-2">all day</div>
+                            {allDayByDay.map(({ day, events: adEvents }) => (
+                              <div key={day.toISOString()} className="p-1 min-h-[28px] border-l border-gray-100">
+                                {adEvents.map(evt => {
+                                  const cfg = eventTypeConfig[evt.type] || eventTypeConfig.event;
+                                  return (
+                                    <div
+                                      key={evt.id}
+                                      className={cn("text-[10px] px-1.5 py-0.5 rounded truncate cursor-pointer mb-0.5", cfg.color)}
+                                      onClick={() => setSelectedDate(day)}
+                                    >
+                                      {evt.title}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             ))}
                           </div>
-                        )}
+                        );
+                      })()}
+
+                      {/* Time grid — each day column is a relative container holding its own events */}
+                      <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+                        {/* Time labels column */}
+                        <div className="relative" style={{ height: totalHeight }}>
+                          {hours.map((hour, i) => (
+                            <div
+                              key={hour}
+                              className="absolute right-0 pr-2 text-[10px] text-gray-400 text-right w-full"
+                              style={{ top: i * HOUR_HEIGHT - 6 }}
+                            >
+                              {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Day columns */}
+                        {weekDays.map((day, dayIdx) => (
+                          <div
+                            key={day.toISOString()}
+                            className="relative border-l border-gray-100 overflow-hidden"
+                            style={{ height: totalHeight }}
+                          >
+                            {/* Hour row lines and click targets */}
+                            {hours.map((hour, i) => (
+                              <div
+                                key={hour}
+                                className="absolute w-full border-t border-gray-100 cursor-pointer hover:bg-violet-50/30"
+                                style={{ top: i * HOUR_HEIGHT, height: HOUR_HEIGHT }}
+                                onClick={() => setSelectedDate(day)}
+                              />
+                            ))}
+
+                            {/* Events positioned inside this day column */}
+                            {eventsPerDay[dayIdx].map(({ evt, cfg, top, height, borderColor }) => (
+                              <div
+                                key={evt.id}
+                                className={cn("absolute left-0.5 right-0.5 overflow-hidden cursor-pointer z-10", cfg.color)}
+                                style={{
+                                  top: `${top}px`,
+                                  height: `${height}px`,
+                                  borderLeft: `3px solid ${borderColor}`,
+                                  borderRadius: 4,
+                                }}
+                                onClick={() => setSelectedDate(day)}
+                              >
+                                <div className="px-1.5 py-0.5 flex items-center gap-1 h-full">
+                                  <p className="text-[10px] font-medium truncate">{evt.title}</p>
+                                  <span className="text-[9px] opacity-60 shrink-0">{evt.time}</span>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Current time indicator for this column */}
+                            {isSameDay(day, new Date()) && (() => {
+                              const now = new Date();
+                              const ch = now.getHours();
+                              const cm = now.getMinutes();
+                              if (ch < START_HOUR || ch >= END_HOUR) return null;
+                              const lineTop = (ch - START_HOUR) * HOUR_HEIGHT + (cm / 60) * HOUR_HEIGHT;
+                              return (
+                                <div
+                                  className="absolute left-0 right-0 h-0.5 bg-red-500 z-20"
+                                  style={{ top: `${lineTop}px` }}
+                                >
+                                  <div className="w-2 h-2 rounded-full bg-red-500 -mt-[3px] -ml-1" />
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Day View */}
+                {view === 'day' && (() => {
+                  const dayDate = currentDate;
+                  const HOUR_HEIGHT = 64;
+                  const START_HOUR = 0;
+                  const END_HOUR = 24;
+                  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
+                  const totalHeight = hours.length * HOUR_HEIGHT;
+                  const dayEventsAll = getEventsForDate(dayDate);
+                  const allDayEvents = dayEventsAll.filter(e => e.time === 'All Day');
+                  const timedEvents = dayEventsAll.filter(e => e.time !== 'All Day');
+
+                  const dotToColor: Record<string, string> = {
+                    'bg-amber-500': '#f59e0b',
+                    'bg-purple-500': '#a855f7',
+                    'bg-violet-500': '#8b5cf6',
+                    'bg-blue-500': '#3b82f6',
+                    'bg-green-500': '#22c55e',
+                    'bg-red-500': '#ef4444',
+                    'bg-teal-500': '#14b8a6',
+                  };
+
+                  // Pre-compute timed event positions
+                  const computedEvents = timedEvents.map(evt => {
+                    const cfg = eventTypeConfig[evt.type] || eventTypeConfig.event;
+                    const timeParts = evt.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (!timeParts) return null;
+                    let h = parseInt(timeParts[1]);
+                    const m = parseInt(timeParts[2]);
+                    const ampm = timeParts[3].toUpperCase();
+                    if (ampm === 'PM' && h !== 12) h += 12;
+                    if (ampm === 'AM' && h === 12) h = 0;
+
+                    const durMatch = evt.duration.match(/(\d+\.?\d*)\s*(min|hour|hours)/i);
+                    let durMin = 30;
+                    if (durMatch) {
+                      durMin = durMatch[2].startsWith('hour') ? parseFloat(durMatch[1]) * 60 : parseFloat(durMatch[1]);
+                    }
+
+                    const top = (h - START_HOUR) * HOUR_HEIGHT + (m / 60) * HOUR_HEIGHT;
+                    const height = Math.max((durMin / 60) * HOUR_HEIGHT, 24);
+                    if (top < 0) return null;
+
+                    const borderColor = dotToColor[cfg.dot] || '#8b5cf6';
+                    return { evt, cfg, top, height, borderColor };
+                  }).filter(Boolean) as { evt: any; cfg: any; top: number; height: number; borderColor: string }[];
+
+                  return (
+                    <div className="overflow-auto" style={{ maxHeight: '600px' }}>
+                      {/* All-day events */}
+                      {allDayEvents.length > 0 && (
+                        <div className="p-2 bg-gray-50/50 border-b space-y-1">
+                          <span className="text-[10px] text-gray-400 font-medium">ALL DAY</span>
+                          {allDayEvents.map(evt => {
+                            const cfg = eventTypeConfig[evt.type] || eventTypeConfig.event;
+                            return (
+                              <div key={evt.id} className={cn("text-xs px-2 py-1 rounded", cfg.color)}>
+                                {evt.title}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Time grid — label column + content column as relative container */}
+                      <div className="flex">
+                        {/* Time labels column */}
+                        <div className="shrink-0 w-16 relative" style={{ height: totalHeight }}>
+                          {hours.map((hour, i) => (
+                            <div
+                              key={hour}
+                              className="absolute right-0 pr-3 text-[11px] text-gray-400 text-right w-full"
+                              style={{ top: i * HOUR_HEIGHT - 6 }}
+                            >
+                              {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Events column — single relative container */}
+                        <div className="flex-1 relative" style={{ height: totalHeight }}>
+                          {/* Hour grid lines and click targets */}
+                          {hours.map((hour, i) => (
+                            <div
+                              key={hour}
+                              className="absolute w-full border-t border-gray-100 cursor-pointer hover:bg-violet-50/30"
+                              style={{ top: i * HOUR_HEIGHT, height: HOUR_HEIGHT }}
+                              onClick={() => setSelectedDate(dayDate)}
+                            />
+                          ))}
+
+                          {/* Timed event blocks */}
+                          {computedEvents.map(({ evt, cfg, top, height, borderColor }) => (
+                            <div
+                              key={evt.id}
+                              className={cn("absolute left-0 right-2 cursor-pointer overflow-hidden z-10", cfg.color)}
+                              style={{
+                                top: `${top}px`,
+                                height: `${height}px`,
+                                borderLeft: `4px solid ${borderColor}`,
+                                borderRadius: 6,
+                              }}
+                              onClick={() => setSelectedDate(dayDate)}
+                            >
+                              <div className="px-3 py-1.5 flex items-center gap-2 h-full">
+                                <p className="text-sm font-medium truncate">{evt.title}</p>
+                                <span className="text-xs opacity-60 shrink-0">{evt.time} · {evt.duration}</span>
+                                {evt.clientName && (
+                                  <span className="text-xs opacity-50 shrink-0 hidden sm:inline">· {evt.clientName}</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Current time indicator */}
+                          {isSameDay(dayDate, new Date()) && (() => {
+                            const now = new Date();
+                            const ch = now.getHours();
+                            const cm = now.getMinutes();
+                            if (ch < START_HOUR || ch >= END_HOUR) return null;
+                            const lineTop = (ch - START_HOUR) * HOUR_HEIGHT + (cm / 60) * HOUR_HEIGHT;
+                            return (
+                              <div className="absolute left-0 right-0 h-0.5 bg-red-500 z-20" style={{ top: `${lineTop}px` }}>
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 -mt-1 -ml-1.5" />
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </motion.div>
@@ -713,7 +1192,6 @@ export default function AgentCalendar() {
           {/* Selected Day Events */}
           <motion.div
             variants={fadeInUp}
-            whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
             transition={MOTION.spring}
           >
             <Card className="h-full" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
@@ -735,11 +1213,19 @@ export default function AgentCalendar() {
               </CardHeader>
               <CardContent>
                 {selectedDateEvents.length === 0 ? (
-                  <div className="text-center py-8">
-                    <CalendarIcon className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p className="text-sm text-gray-500">No events scheduled</p>
-                    <Button variant="outline" size="sm" className="mt-3" onClick={() => setShowAddEvent(true)}>
-                      <Plus className="w-3 h-3 mr-1" />
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-violet-50 flex items-center justify-center">
+                      <CalendarIcon className="w-7 h-7 text-violet-400" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600">No events scheduled</p>
+                    <p className="text-xs text-gray-400 mt-1">Add an event to get started</p>
+                    <Button
+                      size="sm"
+                      className="mt-4 gap-1.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:opacity-90"
+                      style={{ borderRadius: RADIUS.button }}
+                      onClick={() => setShowAddEvent(true)}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
                       Add Event
                     </Button>
                   </div>
@@ -751,12 +1237,12 @@ export default function AgentCalendar() {
                       return (
                         <div
                           key={event.id}
-                          className="p-4 border border-gray-100 hover:border-violet-200 transition-colors group"
+                          className="p-4 border border-gray-100 group"
                           style={{ borderRadius: RADIUS.input }}
                         >
                           <div className="flex items-start gap-4">
                             <div
-                              className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-md"
+                              className={cn("w-10 h-10 flex items-center justify-center bg-gradient-to-br shadow-md", typeConfig.gradient)}
                               style={{ borderRadius: RADIUS.input }}
                             >
                               <TypeIcon className="w-5 h-5 text-white" />
@@ -796,23 +1282,23 @@ export default function AgentCalendar() {
                                   <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openNotesModal(event)}>
-                                  <FileText className="w-4 h-4 mr-2" />
+                              <DropdownMenuContent align="end" className="w-48 p-1" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                                <DropdownMenuItem onClick={() => openNotesModal(event)} className="gap-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 rounded-lg cursor-pointer">
+                                  <FileText className="w-4 h-4 text-violet-500" />
                                   Meeting Notes
                                 </DropdownMenuItem>
                                 {event.status !== 'completed' && (
-                                  <DropdownMenuItem onClick={() => handleCompleteEvent(event.id)}>
-                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                  <DropdownMenuItem onClick={() => handleCompleteEvent(event.id)} className="gap-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 rounded-lg cursor-pointer">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                                     Mark Complete
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem onClick={() => handleEditEvent(event)}>
-                                  <Pencil className="w-4 h-4 mr-2" />
+                                <DropdownMenuItem onClick={() => handleEditEvent(event)} className="gap-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 rounded-lg cursor-pointer">
+                                  <Pencil className="w-4 h-4 text-violet-500" />
                                   Edit Event
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteEvent(event.id)} className="text-red-600">
-                                  <Trash2 className="w-4 h-4 mr-2" />
+                                <DropdownMenuItem onClick={() => handleDeleteEvent(event.id)} className="gap-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg cursor-pointer">
+                                  <Trash2 className="w-4 h-4" />
                                   Delete Event
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -832,6 +1318,17 @@ export default function AgentCalendar() {
                                 Has notes
                               </Badge>
                             )}
+                            {(event as any).source === 'google' && (
+                              <Badge variant="outline" className="text-[10px] gap-1 text-gray-600 border-gray-200">
+                                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none">
+                                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                                </svg>
+                                Google
+                              </Badge>
+                            )}
                             {event.status === 'completed' && (
                               <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">Completed</Badge>
                             )}
@@ -849,7 +1346,6 @@ export default function AgentCalendar() {
         {/* Send Booking Link Section */}
         <motion.div
           variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
           transition={MOTION.spring}
         >
           <Card
@@ -906,79 +1402,113 @@ export default function AgentCalendar() {
           </Card>
         </motion.div>
 
-        {/* Upcoming Events List */}
+        {/* Upcoming Events List — paginated, 10 per page */}
         <motion.div
           variants={fadeInUp}
-          whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
           transition={MOTION.spring}
         >
           <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Clock className="w-4 h-4 text-violet-500" />
-                Upcoming Events
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-violet-500" />
+                  Upcoming Events
+                  {upcomingEvents.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px]">{upcomingEvents.length}</Badge>
+                  )}
+                </CardTitle>
+                {upcomingTotalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline" size="icon"
+                      className="h-7 w-7"
+                      disabled={upcomingPage === 0}
+                      onClick={() => setUpcomingPage(p => p - 1)}
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </Button>
+                    <span className="text-xs text-gray-500 tabular-nums">{upcomingPage + 1}/{upcomingTotalPages}</span>
+                    <Button
+                      variant="outline" size="icon"
+                      className="h-7 w-7"
+                      disabled={upcomingPage >= upcomingTotalPages - 1}
+                      onClick={() => setUpcomingPage(p => p + 1)}
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {events.map((event) => {
-                  const typeConfig = eventTypeConfig[event.type as keyof typeof eventTypeConfig];
+              <div className="space-y-1">
+                {paginatedUpcoming.map((event: EventData) => {
+                  const typeConfig = eventTypeConfig[event.type as keyof typeof eventTypeConfig] || eventTypeConfig.event;
                   const TypeIcon = typeConfig.icon;
                   const eventDate = new Date(event.date);
+                  const isGoogle = (event as any).source === 'google';
                   return (
-                    <motion.div
+                    <div
                       key={event.id}
-                      whileHover={{ x: 4, backgroundColor: COLORS.gray[50] }}
-                      transition={MOTION.spring}
-                      className="flex items-center gap-4 p-3 transition-colors group"
+                      className="flex items-center gap-3 p-3 border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-colors group"
                       style={{ borderRadius: RADIUS.input }}
                     >
-                      <div className="text-center min-w-[50px]">
-                        <p className="text-[10px] text-gray-500 uppercase">
+                      <div className="text-center min-w-[44px]">
+                        <p className="text-[10px] text-gray-400 uppercase font-medium tracking-wide">
                           {eventDate.toLocaleDateString('en-US', { weekday: 'short' })}
                         </p>
-                        <p className="font-bold text-primary text-lg">
+                        <p className="font-bold text-gray-800 text-lg leading-tight">
                           {eventDate.getDate()}
                         </p>
                       </div>
-                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", typeConfig.color)}>
-                        <TypeIcon className="w-4 h-4" />
+                      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br shadow-sm", typeConfig.gradient)}>
+                        <TypeIcon className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-primary">{event.title}</p>
-                        <p className="text-xs text-gray-500">{event.time} - {event.duration}</p>
+                        <p className="font-semibold text-sm text-gray-900 truncate">{event.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{event.time} · {event.duration}</p>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        {event.type}
-                      </Badge>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge className={cn("text-[10px] border-0", typeConfig.color)} style={{ borderRadius: RADIUS.pill }}>
+                          {event.type}
+                        </Badge>
+                        {isGoogle && (
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                          </svg>
+                        )}
+                      </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openNotesModal(event)}>
-                            <FileText className="w-4 h-4 mr-2" />
+                        <DropdownMenuContent align="end" className="w-48 p-1" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                          <DropdownMenuItem onClick={() => openNotesModal(event)} className="gap-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 rounded-lg cursor-pointer">
+                            <FileText className="w-4 h-4 text-violet-500" />
                             Meeting Notes
                           </DropdownMenuItem>
                           {event.status !== 'completed' && (
-                            <DropdownMenuItem onClick={() => handleCompleteEvent(event.id)}>
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                            <DropdownMenuItem onClick={() => handleCompleteEvent(event.id)} className="gap-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 rounded-lg cursor-pointer">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                               Mark Complete
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => handleEditEvent(event)}>
-                            <Pencil className="w-4 h-4 mr-2" />
+                          <DropdownMenuItem onClick={() => handleEditEvent(event)} className="gap-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 rounded-lg cursor-pointer">
+                            <Pencil className="w-4 h-4 text-violet-500" />
                             Edit Event
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteEvent(event.id)} className="text-red-600">
-                            <Trash2 className="w-4 h-4 mr-2" />
+                          <DropdownMenuItem onClick={() => handleDeleteEvent(event.id)} className="gap-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg cursor-pointer">
+                            <Trash2 className="w-4 h-4" />
                             Delete Event
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
@@ -995,6 +1525,121 @@ export default function AgentCalendar() {
         existingEvents={events}
         prefillData={prefillData}
       />
+
+      {/* Calendar Connect Modal */}
+      <Dialog open={showCalendarConnect} onOpenChange={(open) => { setShowCalendarConnect(open); if (!open) { setSelectedCalProvider(null); setCalConnectForm({ email: '', password: '' }); } }}>
+        <DialogContent className="sm:max-w-md" style={{ borderRadius: RADIUS.card }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <CalendarIcon className="w-5 h-5 text-white" />
+              </div>
+              Connect {calendarProviders.find(p => p.id === selectedCalProvider)?.name}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 ml-[52px]">
+              Enter your email and app password to sync your calendar via CalDAV.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedCalProvider && (
+            <div className="space-y-4 pt-2">
+              {/* Hint banner */}
+              <div className="bg-violet-50 border border-violet-200 p-3 flex items-start gap-2.5" style={{ borderRadius: RADIUS.input }}>
+                <KeyRound className="w-4 h-4 text-violet-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-violet-700">
+                  {calendarProviderInstructions[selectedCalProvider]?.hint}
+                </p>
+              </div>
+
+              {/* Email field */}
+              <div>
+                <Label htmlFor="cal-email" className="text-xs font-medium flex items-center gap-1 mb-1.5">
+                  Email Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="cal-email"
+                  type="email"
+                  placeholder={selectedCalProvider === 'apple' ? 'yourname@icloud.com' : selectedCalProvider === 'outlook' ? 'yourname@outlook.com' : 'yourname@gmail.com'}
+                  value={calConnectForm.email}
+                  onChange={(e) => setCalConnectForm(prev => ({ ...prev, email: e.target.value }))}
+                  className="h-10"
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+
+              {/* App Password field */}
+              <div>
+                <Label htmlFor="cal-password" className="text-xs font-medium flex items-center gap-1 mb-1.5">
+                  App Password <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="cal-password"
+                  type="password"
+                  placeholder="Enter your app password"
+                  value={calConnectForm.password}
+                  onChange={(e) => setCalConnectForm(prev => ({ ...prev, password: e.target.value }))}
+                  className="h-10"
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+
+              {/* Instructions toggle */}
+              <button
+                type="button"
+                onClick={() => setShowInstructions(!showInstructions)}
+                className="text-xs text-violet-600 hover:text-violet-700 font-medium flex items-center gap-1"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                {showInstructions ? 'Hide' : 'How to get'} an app password
+              </button>
+
+              {showInstructions && (
+                <div className="bg-gray-50 border p-3 space-y-2" style={{ borderRadius: RADIUS.input }}>
+                  <ol className="list-decimal list-inside space-y-1.5">
+                    {calendarProviderInstructions[selectedCalProvider]?.steps.map((step, i) => (
+                      <li key={i} className="text-xs text-gray-600">{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCalendarConnect(false)}
+                  className="flex-1 h-10"
+                  disabled={connectCalendar.isPending}
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCalConnectSubmit}
+                  disabled={!calConnectForm.email || !calConnectForm.password || connectCalendar.isPending}
+                  className="flex-1 h-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 gap-2"
+                  style={{ borderRadius: RADIUS.button }}
+                >
+                  {connectCalendar.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Test & Connect
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Meeting Notes Modal */}
       <Dialog open={showNotesModal} onOpenChange={setShowNotesModal}>

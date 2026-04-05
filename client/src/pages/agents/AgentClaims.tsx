@@ -125,9 +125,6 @@ interface AgentClaim {
   notes: ClaimNote[];
 }
 
-// ─── DEMO DATA ────────────────────────────────────────
-
-const DEMO_AGENT_CLAIMS: AgentClaim[] = [];
 
 // ─── HELPERS ──────────────────────────────────────────
 

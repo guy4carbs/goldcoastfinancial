@@ -44,7 +44,6 @@ import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 const STALE_DAYS = 7;
-const AVG_DEAL_VALUE = 1850;
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
   new: { label: "New", color: COLORS.semantic.info, bgColor: COLORS.semantic.info },
@@ -56,15 +55,6 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
 };
 
 type TimePeriod = 'week' | 'month' | 'quarter' | 'year';
-
-function getTimePeriodDays(period: TimePeriod): number {
-  switch (period) {
-    case 'week': return 7;
-    case 'month': return 30;
-    case 'quarter': return 90;
-    case 'year': return 365;
-  }
-}
 
 function getTimePeriodLabel(period: TimePeriod): string {
   switch (period) {
@@ -88,36 +78,9 @@ function escapeCSVField(value: string | number): string {
   return str;
 }
 
-// Demo data
-const DEMO_PRODUCT_BREAKDOWN: any[] = [];
-
-const DEMO_LEAD_SOURCE_ROI = [
-  { source: 'Company Leads', leads: 45, conversions: 12, conversionRate: 26.7, totalSpent: 450, revenue: 18500, roi: 4011, avgDealSize: 1542, color: 'bg-blue-500' },
-  { source: 'Self-Generated', leads: 28, conversions: 9, conversionRate: 32.1, totalSpent: 200, revenue: 14200, roi: 7000, avgDealSize: 1578, color: 'bg-green-500' },
-  { source: 'Referrals', leads: 15, conversions: 6, conversionRate: 40.0, totalSpent: 0, revenue: 8600, roi: Infinity, avgDealSize: 1433, color: 'bg-violet-500' },
-  { source: 'Website/Digital', leads: 35, conversions: 4, conversionRate: 11.4, totalSpent: 350, revenue: 5200, roi: 1386, avgDealSize: 1300, color: 'bg-amber-500' },
-];
-
-function generateStatements() {
-  const now = new Date();
-  const statements = [];
-  for (let i = 0; i < 4; i++) {
-    const qDate = new Date(now);
-    qDate.setMonth(qDate.getMonth() - (i * 3));
-    const q = Math.ceil((qDate.getMonth() + 1) / 3);
-    const year = qDate.getFullYear();
-    const issueDate = new Date(year, q * 3, 10);
-    statements.push({
-      period: `Q${q} ${year}`,
-      date: issueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      amount: 9600 + Math.floor(Math.random() * 3000),
-    });
-  }
-  return statements;
-}
 
 export default function AgentPerformance() {
-  const { leads, earnings, addLead, updateLeadStatus, addActivityToLead } = useAgentStore();
+  const { leads, addLead, updateLeadStatus, addActivityToLead } = useAgentStore();
   const { trackAgentPipelineUpdated, trackAgentLeadStatusChanged } = useAnalytics();
 
   const [activeTab, setActiveTab] = useState('earnings');
@@ -127,117 +90,78 @@ export default function AgentPerformance() {
   const { data: perfData } = useQuery<any>({
     queryKey: [`/api/commissions/performance?period=${timePeriod}`],
   });
+  const { data: pipelineStats } = useQuery<any>({
+    queryKey: [`/api/commissions/pipeline-stats?period=${timePeriod}`],
+  });
+  const { data: leadSourceROI } = useQuery<any>({
+    queryKey: [`/api/commissions/lead-source-roi?period=${timePeriod}`],
+  });
+  const { data: statementsData } = useQuery<any>({
+    queryKey: ['/api/commissions/statements?limit=4'],
+  });
   const [showAddLead, setShowAddLead] = useState(false);
   const [initialStage, setInitialStage] = useState<string>('new');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const periodDays = getTimePeriodDays(timePeriod);
   const periodLabel = getTimePeriodLabel(timePeriod);
 
-  // Filter leads by time period
-  const periodLeads = useMemo(() => {
-    return leads.filter(l => {
-      if (!l.createdDate) return true;
-      return daysSinceDate(l.createdDate) <= periodDays;
-    });
-  }, [leads, periodDays]);
+  // Recent commissions from API
+  const recentCommissions = perfData?.recentCommissions || [];
 
-  // Filter earnings by time period
-  const filteredEarnings = useMemo(() => {
-    return earnings.filter(e => {
-      if (!e.date) return true;
-      return daysSinceDate(e.date) <= periodDays;
-    });
-  }, [earnings, periodDays]);
-
-  // Pipeline metrics
+  // Pipeline metrics — 100% from API, no store data
   const pipelineMetrics = useMemo(() => {
-    const stages = {
-      new: periodLeads.filter(l => l.status === 'new'),
-      contacted: periodLeads.filter(l => l.status === 'contacted'),
-      qualified: periodLeads.filter(l => l.status === 'qualified'),
-      proposal: periodLeads.filter(l => l.status === 'proposal'),
-      closed: periodLeads.filter(l => l.status === 'closed'),
-      lost: periodLeads.filter(l => l.status === 'lost'),
-    };
+    const avgDealValue = pipelineStats?.avgDealValue || 0;
+
+    // Build lookup from API pipeline stats
+    const apiStageMap: Record<string, { count: number; conversionRate: number; avgAge: number }> = {};
+    if (pipelineStats?.stages) {
+      for (const s of pipelineStats.stages) {
+        apiStageMap[s.stage] = { count: s.count, conversionRate: s.conversionRate, avgAge: s.avgAge };
+      }
+    }
 
     const stageData = [
-      { name: 'New', key: 'new', count: stages.new.length, value: stages.new.length * AVG_DEAL_VALUE, color: 'bg-blue-500', conversionRate: 80, avgAge: 2 },
-      { name: 'Contacted', key: 'contacted', count: stages.contacted.length, value: stages.contacted.length * AVG_DEAL_VALUE, color: 'bg-yellow-500', conversionRate: 67, avgAge: 5 },
-      { name: 'Qualified', key: 'qualified', count: stages.qualified.length, value: stages.qualified.length * AVG_DEAL_VALUE, color: 'bg-purple-500', conversionRate: 63, avgAge: 10 },
-      { name: 'Proposal', key: 'proposal', count: stages.proposal.length, value: stages.proposal.length * AVG_DEAL_VALUE, color: 'bg-green-500', conversionRate: 60, avgAge: 15 },
-      { name: 'Closed', key: 'closed', count: stages.closed.length, value: stages.closed.length * AVG_DEAL_VALUE, color: 'bg-emerald-500', conversionRate: null, avgAge: 18 },
+      { name: 'New', key: 'new', count: apiStageMap['new']?.count ?? 0, value: (apiStageMap['new']?.count ?? 0) * avgDealValue, color: 'bg-blue-500', conversionRate: apiStageMap['new']?.conversionRate ?? 0, avgAge: apiStageMap['new']?.avgAge ?? 0 },
+      { name: 'Contacted', key: 'contacted', count: apiStageMap['contacted']?.count ?? 0, value: (apiStageMap['contacted']?.count ?? 0) * avgDealValue, color: 'bg-yellow-500', conversionRate: apiStageMap['contacted']?.conversionRate ?? 0, avgAge: apiStageMap['contacted']?.avgAge ?? 0 },
+      { name: 'Qualified', key: 'qualified', count: apiStageMap['qualified']?.count ?? 0, value: (apiStageMap['qualified']?.count ?? 0) * avgDealValue, color: 'bg-purple-500', conversionRate: apiStageMap['qualified']?.conversionRate ?? 0, avgAge: apiStageMap['qualified']?.avgAge ?? 0 },
+      { name: 'Quoted', key: 'quoted', count: apiStageMap['quoted']?.count ?? 0, value: (apiStageMap['quoted']?.count ?? 0) * avgDealValue, color: 'bg-green-500', conversionRate: apiStageMap['quoted']?.conversionRate ?? 0, avgAge: apiStageMap['quoted']?.avgAge ?? 0 },
+      { name: 'Placed', key: 'placed', count: apiStageMap['placed']?.count ?? 0, value: (apiStageMap['placed']?.count ?? 0) * avgDealValue, color: 'bg-emerald-500', conversionRate: null, avgAge: apiStageMap['placed']?.avgAge ?? 0 },
     ];
 
-    const totalLeads = periodLeads.filter(l => l.status !== 'lost').length;
-    const closedDeals = stages.closed.length;
+    const totalLeads = stageData.reduce((sum, s) => sum + s.count, 0) - (apiStageMap['lost']?.count ?? 0);
+    const closedDeals = apiStageMap['placed']?.count ?? 0;
     const overallConversion = totalLeads > 0 ? Math.round((closedDeals / totalLeads) * 100) : 0;
-    const totalPipelineValue = stageData.slice(0, 4).reduce((sum, s) => sum + s.value, 0);
+    const totalPipelineValue = pipelineStats?.totalPipelineValue ?? 0;
 
-    return { stages: stageData, totalLeads, closedDeals, overallConversion, totalPipelineValue, avgDealValue: AVG_DEAL_VALUE, avgCycleTime: 12 };
-  }, [periodLeads]);
+    // Avg cycle time from placed stage or average across stages
+    const placedAge = apiStageMap['placed']?.avgAge ?? apiStageMap['issued']?.avgAge ?? 0;
+    const allAges = Object.values(apiStageMap).map(s => s.avgAge).filter(a => a > 0);
+    const avgCycleTime = placedAge || (allAges.length > 0 ? Math.round(allAges.reduce((s, a) => s + a, 0) / allAges.length) : 0);
 
-  // Earnings metrics — use real API data if available, fallback to store
+    return { stages: stageData, totalLeads, closedDeals, overallConversion, totalPipelineValue, avgDealValue, avgCycleTime };
+  }, [pipelineStats]);
+
+  // Earnings metrics — from real API data only
   const earningsMetrics = useMemo(() => {
-    if (perfData?.pending) {
-      return {
-        pending: perfData.pending,
-        paid: perfData.paid,
-        clawback: perfData.clawback || { count: 0, total: 0 },
-        netTotal: perfData.netTotal || 0,
-        ytd: perfData.ytd || 0,
-      };
-    }
-
-    // Fallback to Zustand store data
-    const pending = filteredEarnings.filter(e => e.status === 'pending');
-    const paid = filteredEarnings.filter(e => e.status === 'paid');
-    const clawback = filteredEarnings.filter(e => e.status === 'clawback');
-
-    const pendingTotal = pending.reduce((sum, e) => sum + e.amount, 0);
-    const paidTotal = paid.reduce((sum, e) => sum + e.amount, 0);
-    const clawbackTotal = clawback.reduce((sum, e) => sum + e.amount, 0);
-    const netTotal = pendingTotal + paidTotal - clawbackTotal;
-
-    const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
-    const ytdEarnings = earnings.filter(e => e.date >= yearStart && e.status !== 'clawback');
-    const ytdClawbacks = earnings.filter(e => e.date >= yearStart && e.status === 'clawback');
-    const ytdTotal = ytdEarnings.reduce((sum, e) => sum + e.amount, 0) - ytdClawbacks.reduce((sum, e) => sum + e.amount, 0);
-
     return {
-      pending: { count: pending.length, total: pendingTotal },
-      paid: { count: paid.length, total: paidTotal },
-      clawback: { count: clawback.length, total: clawbackTotal },
-      netTotal,
-      ytd: ytdTotal || 0,
+      pending: perfData?.pending || { count: 0, total: 0 },
+      paid: perfData?.paid || { count: 0, total: 0 },
+      clawback: perfData?.clawback || { count: 0, total: 0 },
+      netTotal: perfData?.netTotal || 0,
+      ytd: perfData?.ytd || 0,
     };
-  }, [filteredEarnings, earnings, perfData]);
+  }, [perfData]);
 
-  // Monthly earnings trend — use API data if available
+  // Monthly earnings trend — from real API data only
   const monthlyTrend = useMemo(() => {
-    if (perfData?.monthlyTrend) {
-      return perfData.monthlyTrend;
-    }
-    // Fallback to store-based calculation
-    const months: { month: string; amount: number }[] = [];
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
-      const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
-      const monthEarnings = earnings.filter(e => {
-        const eDate = new Date(e.date);
-        return eDate >= date && eDate <= monthEnd && e.status !== 'clawback';
-      });
-      const amount = monthEarnings.reduce((s, e) => s + e.amount, 0);
-      months.push({ month: monthLabel, amount: Math.max(0, amount) });
-    }
-    return months;
-  }, [earnings, perfData]);
+    return perfData?.monthlyTrend || [];
+  }, [perfData]);
 
   // At-risk deals
+  // At-risk deals from store leads (populated by useLeadInbox API hook)
   const atRiskDeals = useMemo(() => {
+    if (!leads || leads.length === 0) return [];
     return leads
       .filter(l => {
         if (l.status === 'closed' || l.status === 'lost' || l.status === 'new') return false;
@@ -247,7 +171,7 @@ export default function AgentPerformance() {
       .slice(0, 5);
   }, [leads]);
 
-  const statements = useMemo(() => generateStatements(), []);
+  const statements = statementsData?.statements ?? [];
   const maxCount = Math.max(...pipelineMetrics.stages.map(s => s.count), 1);
   const maxMonthly = Math.max(...monthlyTrend.map((m: any) => m.amount), 1);
 
@@ -260,15 +184,15 @@ export default function AgentPerformance() {
   const handleExport = () => {
     try {
       const headers = ['Policy Number', 'Client', 'Product', 'Amount', 'Status', 'Date'];
-      const rows = filteredEarnings.map(e => [
-        escapeCSVField(e.policyNumber),
-        escapeCSVField(e.clientName),
-        escapeCSVField(e.product),
-        escapeCSVField(e.amount),
-        escapeCSVField(e.status),
-        escapeCSVField(e.date)
+      const rows = recentCommissions.map((e: any) => [
+        escapeCSVField(e.policyNumber || e.source || ''),
+        escapeCSVField(e.clientName || ''),
+        escapeCSVField(e.product || ''),
+        escapeCSVField(e.amount || 0),
+        escapeCSVField(e.status || ''),
+        escapeCSVField(e.date || '')
       ]);
-      const csv = [headers.map(escapeCSVField).join(','), ...rows.map(r => r.join(','))].join('\n');
+      const csv = [headers.map(escapeCSVField).join(','), ...rows.map((r: string[]) => r.join(','))].join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -686,7 +610,7 @@ export default function AgentPerformance() {
                       <p className="text-2xl font-bold text-white">${earningsMetrics.ytd.toLocaleString()}</p>
                       <div className="flex items-center gap-1 mt-1">
                         <TrendingUp className="w-3 h-3 text-white/80" />
-                        <span className="text-xs text-white/80 font-medium">+18% YoY</span>
+                        <span className="text-xs text-white/80 font-medium">Year to Date</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -760,7 +684,7 @@ export default function AgentPerformance() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {filteredEarnings.length === 0 ? (
+                      {recentCommissions.length === 0 ? (
                         <div className="text-center py-12">
                           <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
                           <p className="text-gray-600 font-medium">No earnings recorded</p>
@@ -780,7 +704,7 @@ export default function AgentPerformance() {
                               </tr>
                             </thead>
                             <tbody>
-                              {(perfData?.recentCommissions || filteredEarnings.slice(0, 10)).map((entry: any) => (
+                              {recentCommissions.map((entry: any) => (
                                 <tr key={entry.id} className="border-b border-gray-100 hover:bg-violet-50/50 transition-colors">
                                   <td className="p-3"><span className="text-sm font-mono text-gray-600">{entry.policyNumber || entry.source || '—'}</span></td>
                                   <td className="p-3"><span className="text-sm font-medium text-gray-800">{entry.clientName}</span></td>
@@ -832,7 +756,7 @@ export default function AgentPerformance() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {(perfData?.productBreakdown || DEMO_PRODUCT_BREAKDOWN).map((item: any, idx: number) => (
+                        {(perfData?.productBreakdown || []).map((item: any, idx: number) => (
                           <div key={item.product}>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-gray-700">{item.product}</span>
@@ -880,7 +804,11 @@ export default function AgentPerformance() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {statements.map((statement) => (
+                        {statements.length === 0 ? (
+                          <div className="py-6 text-center">
+                            <p className="text-sm text-gray-500">No commission statements yet.</p>
+                          </div>
+                        ) : statements.map((statement: any) => (
                           <button
                             key={statement.period}
                             className="flex items-center justify-between p-3 bg-gray-50 hover:bg-violet-50 transition-colors cursor-pointer w-full text-left group"
@@ -968,7 +896,12 @@ export default function AgentPerformance() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {DEMO_LEAD_SOURCE_ROI.map((source, idx) => (
+                    {(leadSourceROI?.sources ?? []).length === 0 ? (
+                      <div className="py-8 text-center">
+                        <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                        <p className="text-sm text-gray-500">No lead source data yet for this period.</p>
+                      </div>
+                    ) : (leadSourceROI?.sources ?? []).map((source: any, idx: number) => (
                       <div
                         key={source.source}
                         className="p-4 bg-gray-50 hover:bg-violet-50/50 transition-colors"
@@ -986,21 +919,16 @@ export default function AgentPerformance() {
                             <span className="font-semibold text-gray-800">{source.source}</span>
                           </div>
                           <Badge
-                            className={cn("font-medium",
-                              source.roi === Infinity ? "bg-violet-100 text-violet-700" :
-                              source.roi >= 1000 ? "bg-violet-100 text-violet-700" :
-                              "bg-amber-100 text-amber-700"
-                            )}
+                            className="font-medium bg-violet-100 text-violet-700"
                             style={{ borderRadius: RADIUS.pill }}
                           >
-                            {source.roi === Infinity ? '∞' : `${source.roi}%`} ROI
+                            {source.conversionRate}% Conv.
                           </Badge>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                           <div><p className="text-gray-500 text-xs font-medium">Leads</p><p className="font-bold text-gray-800">{source.leads}</p></div>
                           <div><p className="text-gray-500 text-xs font-medium">Conversions</p><p className="font-bold text-gray-800">{source.conversions}</p></div>
                           <div><p className="text-gray-500 text-xs font-medium">Conv. Rate</p><p className={cn("font-bold", source.conversionRate >= 30 ? "text-violet-600" : "text-gray-800")}>{source.conversionRate}%</p></div>
-                          <div><p className="text-gray-500 text-xs font-medium">Cost</p><p className="font-bold text-gray-800">${source.totalSpent.toLocaleString()}</p></div>
                           <div><p className="text-gray-500 text-xs font-medium">Revenue</p><p className="font-bold text-violet-600">${source.revenue.toLocaleString()}</p></div>
                         </div>
                         <div className="mt-3">
@@ -1010,7 +938,7 @@ export default function AgentPerformance() {
                           >
                             <motion.div
                               initial={{ width: 0 }}
-                              animate={{ width: `${(source.conversions / source.leads) * 100}%` }}
+                              animate={{ width: `${source.leads > 0 ? (source.conversions / source.leads) * 100 : 0}%` }}
                               transition={{ duration: 0.5, delay: idx * 0.1 }}
                               className="h-full"
                               style={{
@@ -1069,7 +997,7 @@ export default function AgentPerformance() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-4">Revenue Distribution</h4>
                       <div className="space-y-4">
-                        {(perfData?.productBreakdown || DEMO_PRODUCT_BREAKDOWN).map((product: any, idx: number) => (
+                        {(perfData?.productBreakdown || []).map((product: any, idx: number) => (
                           <div key={product.product}>
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
@@ -1110,7 +1038,7 @@ export default function AgentPerformance() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-4">Performance Metrics</h4>
                       <div className="space-y-3">
-                        {(perfData?.productBreakdown || DEMO_PRODUCT_BREAKDOWN).map((product: any) => (
+                        {(perfData?.productBreakdown || []).map((product: any) => (
                           <div
                             key={product.product}
                             className="p-3 bg-gray-50 hover:bg-violet-50/50 transition-colors"

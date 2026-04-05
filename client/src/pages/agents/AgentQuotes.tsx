@@ -228,7 +228,7 @@ function isExpired(expiresDate: string): boolean {
   return new Date(expiresDate) < new Date();
 }
 
-const DEMO_QUOTES: Quote[] = [];
+const EMPTY_QUOTES: Quote[] = [];
 
 // ─── Currency Formatting ─────────────────────────────────────────────────────
 
@@ -497,7 +497,7 @@ export default function AgentQuotes() {
 
   // ─── Manage Quotes Helpers ──────────────────────────────────────────────
 
-  const quotes = storeQuotes.length > 0 ? storeQuotes : DEMO_QUOTES;
+  const quotes = storeQuotes.length > 0 ? storeQuotes : EMPTY_QUOTES;
 
   const filteredQuotes = useMemo(() => quotes.filter(quote => {
     const matchesSearch = quote.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||

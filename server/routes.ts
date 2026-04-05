@@ -6,7 +6,7 @@ import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicat
 import { fromZodError } from "zod-validation-error";
 import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail, sendRecruitInviteEmail, sendPolicyQuoteEmail, sendAgentLeadNotification, sendWebsiteLinkEmail, sendPasswordResetEmail, sendProductGuideEmail } from "./gmail";
 import { sendSecureFormLink, sendBookingLink, sendSms, isSmsAvailable } from "./services/smsService";
-import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
+// Google Calendar routes now handled by server/routes/calendar.ts
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
 import session from "express-session";
@@ -50,7 +50,9 @@ import leadPurchasesRouter, { leadPurchasesWebhookRouter } from "./routes/lead-p
 import businessCardRouter, { publicBusinessCardRouter } from "./routes/business-card";
 import snapchatAuthRouter from "./routes/snapchat-auth";
 import commissionsRouter from "./routes/commissions";
+import emailRouter from "./routes/email";
 import trainingSessionsRouter from "./routes/training-sessions";
+import calendarRouter from "./routes/calendar";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -1060,25 +1062,6 @@ export async function registerRoutes(
     }
   });
 
-  // In-memory store for secure form metadata (in production, use database)
-  const secureFormStore = new Map<string, {
-    linkId: string;
-    formType: string;
-    carrierId: string;
-    carrierName: string;
-    clientName: string;
-    clientEmail: string;
-    agent?: { name: string; email: string; phone: string };
-    agentName: string;
-    agentEmail: string;
-    agentPhone: string;
-    expiresAt: Date;
-    createdAt: Date;
-    status: 'pending' | 'opened' | 'completed' | 'expired';
-    submittedData?: any;
-    submittedAt?: Date;
-  }>();
-
   // Secure data collection - Send encrypted form link via email
   app.post("/api/secure-forms/send", async (req, res) => {
     try {
@@ -1117,21 +1100,13 @@ export async function registerRoutes(
       // Set expiration to 24 hours from now
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      // Store form metadata
-      secureFormStore.set(linkId, {
-        linkId,
-        formType,
-        carrierId,
-        carrierName: carrier,
-        clientName,
-        clientEmail,
-        agentName: agent.name,
-        agentEmail: agent.email,
-        agentPhone: agent.phone || '',
-        expiresAt,
-        createdAt: new Date(),
-        status: 'pending'
-      });
+      // Store form metadata in database
+      await pool.query(
+        `INSERT INTO secure_forms (link_id, form_type, carrier_id, carrier_name, client_name, client_email, agent_name, agent_email, agent_phone, status, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (link_id) DO UPDATE SET status = $10, expires_at = $11`,
+        [linkId, formType, carrierId, carrier, clientName, clientEmail, agent.name, agent.email, agent.phone || '', 'pending', expiresAt]
+      );
 
       console.log(`[SecureForm] Form created: ${linkId} for ${carrierId} - ${formType}`);
 
@@ -1206,26 +1181,26 @@ export async function registerRoutes(
   // List all secure forms (for agent dashboard) - MUST be before :linkId routes
   app.get("/api/secure-forms", async (req, res) => {
     try {
-      const forms: any[] = [];
-      secureFormStore.forEach((formData, linkId) => {
-        forms.push({
-          linkId,
-          formType: formData.formType,
-          carrierId: formData.carrierId,
-          carrierName: formData.carrierName,
-          clientName: formData.clientName,
-          clientEmail: formData.clientEmail,
-          agentName: formData.agentName,
-          agentEmail: formData.agent?.email,
-          status: formData.status,
-          createdAt: formData.createdAt || formData.expiresAt,
-          expiresAt: formData.expiresAt,
-          hasSubmittedData: !!formData.submittedData
-        });
-      });
+      const result = await pool.query(
+        `SELECT link_id, form_type, carrier_id, carrier_name, client_name, client_email,
+                agent_name, agent_email, status, created_at, expires_at, submitted_data
+         FROM secure_forms ORDER BY created_at DESC`
+      );
 
-      // Sort by creation date, newest first
-      forms.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const forms = result.rows.map((row: any) => ({
+        linkId: row.link_id,
+        formType: row.form_type,
+        carrierId: row.carrier_id,
+        carrierName: row.carrier_name,
+        clientName: row.client_name,
+        clientEmail: row.client_email,
+        agentName: row.agent_name,
+        agentEmail: row.agent_email,
+        status: row.status,
+        createdAt: row.created_at || row.expires_at,
+        expiresAt: row.expires_at,
+        hasSubmittedData: !!row.submitted_data
+      }));
 
       res.json({ forms });
     } catch (error: any) {
@@ -1238,30 +1213,32 @@ export async function registerRoutes(
   app.get("/api/secure-forms/:linkId", async (req, res) => {
     try {
       const { linkId } = req.params;
-      const formData = secureFormStore.get(linkId);
+      const result = await pool.query(`SELECT * FROM secure_forms WHERE link_id = $1`, [linkId]);
+      const formData = result.rows[0];
 
       if (!formData) {
         return res.status(404).json({ error: "Form not found or has expired" });
       }
 
       // Check if expired
-      if (new Date() > formData.expiresAt) {
-        formData.status = 'expired';
+      if (new Date() > new Date(formData.expires_at)) {
+        await pool.query(`UPDATE secure_forms SET status = $1 WHERE link_id = $2`, ['expired', linkId]);
         return res.status(410).json({ error: "This form link has expired", expired: true });
       }
 
       // Mark as opened if first access
       if (formData.status === 'pending') {
+        await pool.query(`UPDATE secure_forms SET status = $1 WHERE link_id = $2`, ['opened', linkId]);
         formData.status = 'opened';
       }
 
       res.json({
-        formType: formData.formType,
-        carrierId: formData.carrierId,
-        carrierName: formData.carrierName,
-        clientName: formData.clientName,
-        agentName: formData.agentName,
-        expiresAt: formData.expiresAt.toISOString(),
+        formType: formData.form_type,
+        carrierId: formData.carrier_id,
+        carrierName: formData.carrier_name,
+        clientName: formData.client_name,
+        agentName: formData.agent_name,
+        expiresAt: new Date(formData.expires_at).toISOString(),
         status: formData.status
       });
     } catch (error: any) {
@@ -1274,7 +1251,8 @@ export async function registerRoutes(
   app.get("/api/secure-forms/:linkId/data", async (req, res) => {
     try {
       const { linkId } = req.params;
-      const formData = secureFormStore.get(linkId);
+      const result = await pool.query(`SELECT * FROM secure_forms WHERE link_id = $1`, [linkId]);
+      const formData = result.rows[0];
 
       if (!formData) {
         return res.status(404).json({ error: "Form not found" });
@@ -1286,14 +1264,14 @@ export async function registerRoutes(
 
       res.json({
         linkId,
-        formType: formData.formType,
-        carrierId: formData.carrierId,
-        carrierName: formData.carrierName,
-        clientName: formData.clientName,
-        agentName: formData.agentName,
+        formType: formData.form_type,
+        carrierId: formData.carrier_id,
+        carrierName: formData.carrier_name,
+        clientName: formData.client_name,
+        agentName: formData.agent_name,
         status: formData.status,
-        submittedData: formData.submittedData,
-        submittedAt: formData.submittedAt || new Date().toISOString()
+        submittedData: formData.submitted_data,
+        submittedAt: formData.submitted_at || new Date().toISOString()
       });
     } catch (error: any) {
       console.error("[SecureForm] Error getting form data:", error);
@@ -1305,13 +1283,14 @@ export async function registerRoutes(
   app.post("/api/secure-forms/:linkId/submit", async (req, res) => {
     try {
       const { linkId } = req.params;
-      const formData = secureFormStore.get(linkId);
+      const result = await pool.query(`SELECT * FROM secure_forms WHERE link_id = $1`, [linkId]);
+      const formData = result.rows[0];
 
       if (!formData) {
         return res.status(404).json({ error: "Form not found" });
       }
 
-      if (new Date() > formData.expiresAt) {
+      if (new Date() > new Date(formData.expires_at)) {
         return res.status(410).json({ error: "This form link has expired" });
       }
 
@@ -1319,11 +1298,12 @@ export async function registerRoutes(
         return res.status(400).json({ error: "This form has already been submitted" });
       }
 
-      // Store the submitted data (encrypted in production)
-      // Extract formData from nested structure if present
-      formData.submittedData = req.body.formData || req.body;
-      formData.status = 'completed';
-      formData.submittedAt = new Date();
+      // Store the submitted data
+      const submittedData = req.body.formData || req.body;
+      await pool.query(
+        `UPDATE secure_forms SET status = $1, submitted_data = $2, submitted_at = $3 WHERE link_id = $4`,
+        ['completed', JSON.stringify(submittedData), new Date(), linkId]
+      );
 
       console.log(`[SecureForm] Form submitted: ${linkId}`);
 
@@ -2020,22 +2000,7 @@ export async function registerRoutes(
     }
   });
 
-  // In-memory storage for booked appointments (in production, use database)
-  const bookedAppointments: Array<{
-    id: string;
-    agentSlug: string;
-    customerName: string;
-    customerEmail: string;
-    customerPhone: string;
-    date: string;
-    time: string;
-    duration: string;
-    meetingType: string;
-    notes: string;
-    createdAt: string;
-  }> = [];
-
-  // Book an appointment from the public booking page
+  // Book an appointment from the public booking page (persisted to DB)
   app.post("/api/appointments/book", async (req, res) => {
     try {
       const {
@@ -2055,29 +2020,55 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      const appointment = {
-        id: crypto.randomUUID(),
-        agentSlug,
-        customerName,
-        customerEmail,
-        customerPhone: customerPhone || '',
-        date,
-        time,
-        duration: duration || '30',
-        meetingType: meetingType || 'video',
-        notes: notes || '',
-        createdAt: new Date().toISOString()
-      };
+      // Resolve agent slug to user ID
+      // Slug format: "agent-johndoe" → strip "agent-" prefix, then match against
+      // lower(concat(first_name, last_name)) or lower(replace(concat(first_name, ' ', last_name), ' ', ''))
+      const cleanSlug = agentSlug.replace(/^agent-/, "");
+      const agentResult = await pool.query(
+        `SELECT id FROM users WHERE LOWER(REPLACE(CONCAT(first_name, last_name), ' ', '')) = $1
+         AND role IN ('sales_agent', 'manager', 'owner', 'system_admin')
+         LIMIT 1`,
+        [cleanSlug]
+      );
 
-      bookedAppointments.push(appointment);
-      console.log(`[Appointment] Booked: ${customerName} with agent-${agentSlug} on ${date} at ${time}`);
+      const agentUserId = agentResult.rows.length > 0 ? agentResult.rows[0].id : null;
 
-      // TODO: Send confirmation email to customer
-      // TODO: Send notification email to agent
+      // Parse time (e.g., "14:30") to build scheduledAt
+      const [hourStr, minuteStr] = time.split(":");
+      const scheduledAt = new Date(`${date}T00:00:00`);
+      scheduledAt.setHours(parseInt(hourStr) || 0, parseInt(minuteStr) || 0, 0, 0);
 
+      const durationMinutes = parseInt(duration) || 30;
+
+      // Create appointment in DB
+      const appointment = await storage.createAppointment({
+        agentUserId,
+        title: `${meetingType || "Booking"} with ${customerName}`,
+        scheduledAt,
+        duration: durationMinutes,
+        meetingType: meetingType || "discovery",
+        description: notes || null,
+        status: "scheduled",
+      });
+
+      console.log(`[Appointment] Booked in DB: ${customerName} with ${agentSlug} on ${date} at ${time} (id: ${appointment.id})`);
+
+      // Return in the same shape the frontend expects
       res.status(201).json({
         success: true,
-        appointment,
+        appointment: {
+          id: appointment.id,
+          agentSlug,
+          customerName,
+          customerEmail,
+          customerPhone: customerPhone || "",
+          date,
+          time,
+          duration: String(durationMinutes),
+          meetingType: meetingType || "video",
+          notes: notes || "",
+          createdAt: appointment.createdAt?.toISOString?.() || new Date().toISOString(),
+        },
         message: "Appointment booked successfully"
       });
     } catch (error: any) {
@@ -2086,15 +2077,51 @@ export async function registerRoutes(
     }
   });
 
-  // Get appointments for an agent
+  // Get appointments for an agent (DB-backed)
   app.get("/api/appointments", requireAuth, async (req, res) => {
     try {
       const { agentSlug } = req.query;
+      const userId = req.session.userId;
 
-      let appointments = bookedAppointments;
+      // If agentSlug is provided, look up by slug; otherwise use session user
+      let agentUserId = userId;
       if (agentSlug) {
-        appointments = bookedAppointments.filter(a => a.agentSlug === agentSlug);
+        const cleanSlug = (agentSlug as string).replace(/^agent-/, "");
+        const agentResult = await pool.query(
+          `SELECT id FROM users WHERE LOWER(REPLACE(CONCAT(first_name, last_name), ' ', '')) = $1 LIMIT 1`,
+          [cleanSlug]
+        );
+        if (agentResult.rows.length > 0) {
+          agentUserId = agentResult.rows[0].id;
+        }
       }
+
+      const dbAppointments = agentUserId
+        ? await storage.getAppointmentsByAgentId(agentUserId)
+        : [];
+
+      // Map to the format the frontend expects
+      const appointments = dbAppointments.map((apt: any) => {
+        const scheduledAt = new Date(apt.scheduledAt);
+        const dateStr = scheduledAt.toISOString().split("T")[0];
+        const hours = scheduledAt.getHours();
+        const mins = scheduledAt.getMinutes();
+        const timeStr = `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+
+        return {
+          id: apt.id,
+          agentSlug: agentSlug || "",
+          customerName: apt.title?.replace(/^(Booking|discovery|presentation|follow_up|close|video|call|meeting) with /i, "") || "Client",
+          customerEmail: "",
+          customerPhone: "",
+          date: dateStr,
+          time: timeStr,
+          duration: String(apt.duration || 30),
+          meetingType: apt.meetingType || "video",
+          notes: apt.description || "",
+          createdAt: apt.createdAt?.toISOString?.() || "",
+        };
+      });
 
       res.json({ appointments });
     } catch (error: any) {
@@ -2614,56 +2641,7 @@ export async function registerRoutes(
     }
   });
 
-  // Google Calendar: Check connection status
-  app.get("/api/calendar/status", requireAuth, async (req, res) => {
-    try {
-      const connected = await checkCalendarConnection();
-      const email = connected ? await getConnectedEmail() : null;
-      res.json({ connected, email });
-    } catch (error) {
-      res.json({ connected: false, email: null });
-    }
-  });
-
-  // Google Calendar: Get events
-  app.get("/api/calendar/events", requireAuth, async (req, res) => {
-    try {
-      const { start, end, days } = req.query;
-      
-      let events;
-      if (start && end) {
-        events = await getCalendarEvents(new Date(start as string), new Date(end as string));
-      } else if (days) {
-        events = await getUpcomingEvents(parseInt(days as string));
-      } else {
-        events = await getCalendarEvents();
-      }
-      
-      res.json({ events });
-    } catch (error: any) {
-      console.error("Error fetching calendar events:", error);
-      if (error.message?.includes('not connected')) {
-        res.status(401).json({ error: "Calendar not connected", needsConnection: true });
-      } else {
-        res.status(500).json({ error: "Failed to fetch calendar events" });
-      }
-    }
-  });
-
-  // Google Calendar: Get today's events
-  app.get("/api/calendar/today", requireAuth, async (req, res) => {
-    try {
-      const events = await getTodaysEvents();
-      res.json({ events });
-    } catch (error: any) {
-      if (error.message?.includes('not connected')) {
-        res.status(401).json({ error: "Calendar not connected", needsConnection: true });
-      } else {
-        console.error("Error fetching today's events:", error);
-        res.status(500).json({ error: "Failed to fetch today's events" });
-      }
-    }
-  });
+  // Google Calendar routes moved to server/routes/calendar.ts (mounted as /api/calendar)
 
   // Portal: Dashboard summary
   app.get("/api/portal/dashboard", requireAuth, async (req, res) => {
@@ -2853,7 +2831,9 @@ export async function registerRoutes(
   app.use("/api/card", publicBusinessCardRouter);
   app.use("/api/auth/snapchat", snapchatAuthRouter);
   app.use("/api/commissions", commissionsRouter);
+  app.use("/api/email", emailRouter);
   app.use("/api/training-sessions", trainingSessionsRouter);
+  app.use("/api/calendar", calendarRouter);
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

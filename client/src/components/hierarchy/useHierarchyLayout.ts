@@ -16,37 +16,53 @@ export function getLayoutedElements(
   edges: Edge[],
   selectedId: string | null = null,
 ): { nodes: Node<HierarchyNodeData>[]; edges: Edge[] } {
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({
-    rankdir: 'TB',
-    nodesep: 40,
-    ranksep: 100,
-    marginx: 40,
-    marginy: 40,
-  });
-
-  for (const node of nodes) {
-    const h = node.id === selectedId ? NODE_HEIGHT_EXPANDED : NODE_HEIGHT_COLLAPSED;
-    g.setNode(node.id, { width: NODE_WIDTH, height: h });
+  if (!nodes || nodes.length === 0) {
+    return { nodes: [], edges: [] };
   }
 
-  for (const edge of edges) {
-    g.setEdge(edge.source, edge.target);
-  }
+  try {
+    const g = new dagre.graphlib.Graph();
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setGraph({
+      rankdir: 'TB',
+      nodesep: 40,
+      ranksep: 100,
+      marginx: 40,
+      marginy: 40,
+    });
 
-  dagre.layout(g);
+    for (const node of nodes) {
+      const h = node.id === selectedId ? NODE_HEIGHT_EXPANDED : NODE_HEIGHT_COLLAPSED;
+      g.setNode(node.id, { width: NODE_WIDTH, height: h });
+    }
 
-  const layoutedNodes = nodes.map((node) => {
-    const pos = g.node(node.id);
-    const h = node.id === selectedId ? NODE_HEIGHT_EXPANDED : NODE_HEIGHT_COLLAPSED;
+    for (const edge of edges) {
+      g.setEdge(edge.source, edge.target);
+    }
+
+    dagre.layout(g);
+
+    const layoutedNodes = nodes.map((node) => {
+      const pos = g.node(node.id);
+      if (!pos) return { ...node, position: { x: 0, y: 0 } };
+      const h = node.id === selectedId ? NODE_HEIGHT_EXPANDED : NODE_HEIGHT_COLLAPSED;
+      return {
+        ...node,
+        position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - h / 2 },
+      };
+    });
+
+    return { nodes: layoutedNodes, edges };
+  } catch {
+    // Dagre can crash on malformed graphs — return nodes without layout
     return {
-      ...node,
-      position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - h / 2 },
+      nodes: nodes.map((node, i) => ({
+        ...node,
+        position: { x: 0, y: i * (NODE_HEIGHT_COLLAPSED + 40) },
+      })),
+      edges,
     };
-  });
-
-  return { nodes: layoutedNodes, edges };
+  }
 }
 
 /**

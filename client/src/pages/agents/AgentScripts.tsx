@@ -23,7 +23,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EmptyState, AgentPageHero, DemoBadge } from "@/components/agent/primitives";
+import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 interface Script {
@@ -43,8 +43,99 @@ const categoryConfig: Record<ScriptCategory, { label: string; icon: typeof Phone
   phone: { label: 'Phone Script', icon: Phone, color: 'bg-violet-500/10 text-violet-600', gradient: 'from-violet-400 to-violet-500' },
 };
 
-// Demo scripts data - replace with API data when available
-const DEMO_SCRIPTS: Script[] = [];
+// Company-wide sales scripts — provided by Heritage Life Solutions
+const COMPANY_SCRIPTS: Script[] = [
+  {
+    id: 'cold-call-intro',
+    title: 'Cold Call — Initial Contact',
+    category: 'phone',
+    description: 'Opening script for first-time cold calls to new leads. Establishes rapport and qualifies interest.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'warm-follow-up',
+    title: 'Warm Follow-Up Call',
+    category: 'phone',
+    description: 'Script for following up with leads who previously showed interest or requested information.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'appointment-setting',
+    title: 'Appointment Setting',
+    category: 'phone',
+    description: 'Script to convert an interested lead into a scheduled appointment for a needs analysis.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'needs-analysis',
+    title: 'Needs Analysis & Fact-Finding',
+    category: 'phone',
+    description: 'Guided questions to uncover the prospect\'s financial situation, family needs, and coverage gaps.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'product-presentation',
+    title: 'Product Presentation — Life Insurance',
+    category: 'phone',
+    description: 'Structured presentation for term life, whole life, IUL, and final expense products.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'objection-handling',
+    title: 'Objection Handling',
+    category: 'phone',
+    description: 'Responses to common objections: "I need to think about it," "I can\'t afford it," "I already have coverage."',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'closing-script',
+    title: 'Closing & Application',
+    category: 'phone',
+    description: 'Trial closes, assumptive closes, and transition into the application process.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'referral-request',
+    title: 'Referral Request',
+    category: 'phone',
+    description: 'Post-sale script to ask for warm referrals from satisfied clients.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'annual-review',
+    title: 'Annual Policy Review Call',
+    category: 'phone',
+    description: 'Script for reaching out to existing clients for their annual policy review and cross-sell opportunities.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+  {
+    id: 'recruiting-call',
+    title: 'Recruiting — Agent Opportunity Call',
+    category: 'phone',
+    description: 'Script for recruiting potential agents into your downline. Covers the Heritage opportunity and compensation.',
+    isFavorite: false,
+    usageCount: 0,
+    lastUsed: '',
+  },
+];
 
 function formatRelativeLastUsed(dateStr: string): string {
   const now = Date.now();
@@ -64,7 +155,7 @@ function formatRelativeLastUsed(dateStr: string): string {
 export default function AgentScripts() {
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<Set<string>>(
-    () => new Set(DEMO_SCRIPTS.filter(s => s.isFavorite).map(s => s.id))
+    () => new Set(COMPANY_SCRIPTS.filter(s => s.isFavorite).map(s => s.id))
   );
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
 
@@ -80,7 +171,7 @@ export default function AgentScripts() {
     });
   }, []);
 
-  const filteredScripts = useMemo(() => DEMO_SCRIPTS.filter(script => {
+  const filteredScripts = useMemo(() => COMPANY_SCRIPTS.filter(script => {
     const matchesSearch = script.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          script.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
@@ -105,7 +196,6 @@ export default function AgentScripts() {
             icon={FileText}
             title="Sales Scripts"
             subtitle="Proven scripts to help you close more deals"
-            badge={<DemoBadge className="bg-white/20 text-white border-white/30" />}
           />
         </motion.div>
 

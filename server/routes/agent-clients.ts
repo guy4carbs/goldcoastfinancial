@@ -73,11 +73,13 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
     const bypassRoles = [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER];
 
     if (bypassRoles.includes(user.role as any)) {
-      // Managers/Owners can see all clients
-      const result = await pool.query(
-        `SELECT * FROM users WHERE role = 'client' ORDER BY created_at DESC`
-      );
-      clients = result.rows;
+      // Managers/Owners see clients assigned to them, or all if none assigned
+      const assigned = await storage.getClientsByAgentId(user.id);
+      if (assigned.length > 0) {
+        clients = assigned;
+      } else {
+        clients = [];
+      }
     } else {
       // Agents see only their assigned clients
       clients = await storage.getClientsByAgentId(user.id);

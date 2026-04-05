@@ -73,26 +73,6 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-const DemoModeIndicator = React.memo(() => (
-  <div className="fixed bottom-24 lg:bottom-4 right-4 z-50">
-    <div
-      className="px-3 py-1.5 rounded-full text-xs font-medium shadow-lg flex items-center gap-2"
-      style={{
-        backgroundColor: COLORS.accent.amber[100],
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: COLORS.accent.amber[300],
-        color: COLORS.accent.amber[800],
-      }}
-    >
-      <span
-        className="w-2 h-2 rounded-full animate-pulse"
-        style={{ backgroundColor: COLORS.accent.amber[500] }}
-      />
-      Demo Mode
-    </div>
-  </div>
-));
 
 export default function AgentDashboard() {
   const {
@@ -100,11 +80,9 @@ export default function AgentDashboard() {
     performance,
     tasks,
     leads,
-    announcements,
     activities,
     dailyChallenges,
     leaderboard,
-    earnings,
     completeTask,
     addLead,
     addTask,
@@ -128,6 +106,24 @@ export default function AgentDashboard() {
     staleTime: 60000,
   });
   const personalAP = myDealStats?.data?.totalAP || 0;
+
+  // Pipeline stats from real API
+  const { data: apiPipelineStats } = useQuery<any>({
+    queryKey: ['/api/commissions/pipeline-stats?period=month'],
+    staleTime: 60000,
+  });
+
+  // Call stats from real API
+  const { data: apiCallStats } = useQuery<{ today: number; week: number; month: number; avgDuration: number }>({
+    queryKey: ['/api/calls/stats'],
+    staleTime: 60000,
+  });
+
+  // Earnings from real API
+  const { data: apiEarnings } = useQuery<any>({
+    queryKey: ['/api/commissions/my-earnings'],
+    staleTime: 60000,
+  });
 
   const realLeaderboard = apiLeaderboardData?.data?.length ? apiLeaderboardData.data.map((e) => ({
     id: e.agentUserId,
@@ -168,9 +164,10 @@ export default function AgentDashboard() {
 
   // Get aggressive command center directive
   const getCommandDirective = () => {
-    const callsRemaining = performance.dailyCallsTarget - performance.dailyCalls;
-    const closesRemaining = performance.dailyClosesTarget - performance.dailyCloses;
-    const rank = performance.rank;
+    const dailyCalls = apiCallStats?.today ?? performance.dailyCalls;
+    const callsRemaining = performance.dailyCallsTarget - dailyCalls;
+    const closesRemaining = performance.dailyClosesTarget - (myDealStats?.data?.totalDeals ?? performance.dailyCloses);
+    const rank = myDealStats?.data?.rank ?? performance.rank;
 
     // Only show critical/warning for truly urgent situations
 
@@ -220,14 +217,23 @@ export default function AgentDashboard() {
 
   const directive = getCommandDirective();
 
-  const pipelineStats = useMemo(() => ({
-    new: leads.filter(l => l.status === 'new').length,
-    contacted: leads.filter(l => l.status === 'contacted').length,
-    qualified: leads.filter(l => l.status === 'qualified').length,
-    proposal: leads.filter(l => l.status === 'proposal').length,
-  }), [leads]);
+  // Pipeline stats from API
+  const pipelineStats = useMemo(() => {
+    const stageMap: Record<string, number> = {};
+    if (apiPipelineStats?.stages) {
+      for (const s of apiPipelineStats.stages) {
+        stageMap[s.stage] = s.count;
+      }
+    }
+    return {
+      new: stageMap['new'] || 0,
+      contacted: stageMap['contacted'] || 0,
+      qualified: stageMap['qualified'] || (stageMap['appointment_set'] || 0),
+      proposal: stageMap['quoted'] || 0,
+    };
+  }, [apiPipelineStats]);
 
-  // Get hot leads (qualified or proposal stage)
+  // Hot leads from store (populated by useLeadInbox API hook on other pages)
   const hotLeads = useMemo(() => leads
     .filter(l => l.status === 'qualified' || l.status === 'proposal')
     .slice(0, 3), [leads]);
@@ -237,15 +243,9 @@ export default function AgentDashboard() {
     .filter(t => t.dueDate === 'Today' && !t.completed)
     .slice(0, 5), [tasks]);
 
-  // Calculate pending earnings
-  const { pendingEarnings, paidEarnings } = useMemo(() => ({
-    pendingEarnings: earnings
-      .filter(e => e.status === 'pending')
-      .reduce((sum, e) => sum + e.amount, 0),
-    paidEarnings: earnings
-      .filter(e => e.status === 'paid')
-      .reduce((sum, e) => sum + e.amount, 0)
-  }), [earnings]);
+  // Earnings from API
+  const pendingEarnings = apiEarnings?.monthlyAp ?? 0;
+  const paidEarnings = apiEarnings?.ytdEarnings ?? 0;
 
   const upcomingEvents = UPCOMING_EVENTS;
   const staticAnnouncements = STATIC_ANNOUNCEMENTS;
@@ -253,7 +253,6 @@ export default function AgentDashboard() {
   return (
     <AgentLoungeLayout>
       <LoadingScreen />
-      <DemoModeIndicator />
 
       {/* Modals */}
       <LogCallModal open={showLogCall} onOpenChange={setShowLogCall} leads={leads} onLogCall={logCall} />

@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Import Social Learning Components
@@ -93,7 +93,7 @@ const TRAINING_DISCUSSIONS: { id: string; author: { name: string; role?: string 
 // Peer Recognition data
 const RECENT_RECOGNITIONS: { id: string; from: { name: string; role?: string }; to: { name: string }; badge: string; message: string; timestamp: Date; likes: number }[] = [];
 
-const DEMO_MESSAGES: Message[] = [];
+const INITIAL_MESSAGES: Message[] = [];
 
 export default function AgentChat() {
   const { currentUser } = useAgentStore();
@@ -101,7 +101,7 @@ export default function AgentChat() {
   const agentInitials = currentUser?.name?.split(' ').map(n => n[0]).join('') || 'AG';
 
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(CHANNELS[0] ?? null);
-  const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarTab, setSidebarTab] = useState<'chat' | 'groups' | 'recognition'>('chat');
@@ -626,7 +626,6 @@ export default function AgentChat() {
                       <MessageSquare className="w-4 h-4 text-white" aria-hidden="true" />
                     </div>
                     <span className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">Chat</span>
-                    <DemoBadge />
                   </div>
                   <Button
                     variant="ghost"

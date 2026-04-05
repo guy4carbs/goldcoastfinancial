@@ -461,19 +461,17 @@ export interface Quote {
   templateId?: string;
 }
 
-const DEMO_AGENTS: AgentUser[] = [];
+const INITIAL_ANNOUNCEMENTS: Announcement[] = [];
 
-const DEMO_ANNOUNCEMENTS: Announcement[] = [];
+const INITIAL_TASKS: Task[] = [];
 
-const DEMO_TASKS: Task[] = [];
+const INITIAL_LEADS: Lead[] = [];
 
-const DEMO_LEADS: Lead[] = [];
+const INITIAL_COURSES: TrainingCourse[] = [];
 
-const DEMO_COURSES: TrainingCourse[] = [];
+const INITIAL_SOPS: SOP[] = [];
 
-const DEMO_SOPS: SOP[] = [];
-
-const DEMO_PERFORMANCE: PerformanceMetrics = {
+const INITIAL_PERFORMANCE: PerformanceMetrics = {
   dailyCalls: 0,
   dailyCallsTarget: 100,
   dailyCloses: 0,
@@ -497,43 +495,43 @@ const DEMO_PERFORMANCE: PerformanceMetrics = {
   totalAgents: 0
 };
 
-const DEMO_EARNINGS: EarningEntry[] = [];
+const INITIAL_EARNINGS: EarningEntry[] = [];
 
-const DEMO_LEADERBOARD: LeaderboardEntry[] = [];
+const INITIAL_LEADERBOARD: LeaderboardEntry[] = [];
 
-const DEMO_ACHIEVEMENTS: Achievement[] = [];
+const INITIAL_ACHIEVEMENTS: Achievement[] = [];
 
-const DEMO_QUICK_ACTIONS: QuickAction[] = [];
+const INITIAL_QUICK_ACTIONS: QuickAction[] = [];
 
-const DEMO_NOTIFICATIONS: AgentNotification[] = [];
+const INITIAL_NOTIFICATIONS: AgentNotification[] = [];
 
-const DEMO_ACTIVITIES: ActivityItem[] = [];
+const INITIAL_ACTIVITIES: ActivityItem[] = [];
 
-const DEMO_DAILY_CHALLENGES: DailyChallenge[] = [];
+const INITIAL_DAILY_CHALLENGES: DailyChallenge[] = [];
 
-const DEMO_SCRIPTS: Script[] = [];
+const INITIAL_SCRIPTS: Script[] = [];
 
-// ===== IDEAS DEMO DATA =====
-const DEMO_IDEAS: AgentIdea[] = [];
+// ===== IDEAS INITIAL DATA =====
+const INITIAL_IDEAS: AgentIdea[] = [];
 
-// ===== BOOK OF BUSINESS DEMO DATA =====
-const DEMO_BOOK_OF_BUSINESS: BookOfBusinessClient[] = [];
+// ===== BOOK OF BUSINESS INITIAL DATA =====
+const INITIAL_BOOK_OF_BUSINESS: BookOfBusinessClient[] = [];
 
-// ===== RECRUITING DEMO DATA =====
-const DEMO_RECRUIT_PROSPECTS: RecruitProspect[] = [];
+// ===== RECRUITING INITIAL DATA =====
+const INITIAL_RECRUIT_PROSPECTS: RecruitProspect[] = [];
 
-const DEMO_REFERRAL_LINK: ReferralLink = {
+const INITIAL_REFERRAL_LINK: ReferralLink = {
   code: '',
   url: '',
   clicks: 0,
   conversions: 0,
 };
 
-const DEMO_DOWNLINE_AGENTS: DownlineAgent[] = [];
+const INITIAL_DOWNLINE_AGENTS: DownlineAgent[] = [];
 
-const DEMO_FUNNEL_DATA: FunnelStageData[] = [];
+const INITIAL_FUNNEL_DATA: FunnelStageData[] = [];
 
-const DEMO_AUTOMATION_STEPS: RecruitingAutomationStep[] = [];
+const INITIAL_AUTOMATION_STEPS: RecruitingAutomationStep[] = [];
 
 interface AgentStore {
   currentUser: AgentUser | null;
@@ -671,28 +669,28 @@ export const useAgentStore = create<AgentStore>()(
     (set, get) => ({
       currentUser: null,
       theme: 'light',
-      announcements: DEMO_ANNOUNCEMENTS,
-      tasks: DEMO_TASKS,
-      leads: DEMO_LEADS,
-      courses: DEMO_COURSES,
-      sops: DEMO_SOPS,
-      performance: DEMO_PERFORMANCE,
-      earnings: DEMO_EARNINGS,
-      scripts: DEMO_SCRIPTS,
-      leaderboard: DEMO_LEADERBOARD,
-      achievements: DEMO_ACHIEVEMENTS,
-      quickActions: DEMO_QUICK_ACTIONS,
-      notifications: DEMO_NOTIFICATIONS,
-      activities: DEMO_ACTIVITIES,
-      dailyChallenges: DEMO_DAILY_CHALLENGES,
+      announcements: INITIAL_ANNOUNCEMENTS,
+      tasks: INITIAL_TASKS,
+      leads: INITIAL_LEADS,
+      courses: INITIAL_COURSES,
+      sops: INITIAL_SOPS,
+      performance: INITIAL_PERFORMANCE,
+      earnings: INITIAL_EARNINGS,
+      scripts: INITIAL_SCRIPTS,
+      leaderboard: INITIAL_LEADERBOARD,
+      achievements: INITIAL_ACHIEVEMENTS,
+      quickActions: INITIAL_QUICK_ACTIONS,
+      notifications: INITIAL_NOTIFICATIONS,
+      activities: INITIAL_ACTIVITIES,
+      dailyChallenges: INITIAL_DAILY_CHALLENGES,
       quotes: [],
-      ideas: DEMO_IDEAS,
-      bookOfBusiness: DEMO_BOOK_OF_BUSINESS,
-      recruitProspects: DEMO_RECRUIT_PROSPECTS,
-      referralLink: DEMO_REFERRAL_LINK,
-      downlineAgents: DEMO_DOWNLINE_AGENTS,
-      funnelData: DEMO_FUNNEL_DATA,
-      automationSteps: DEMO_AUTOMATION_STEPS,
+      ideas: INITIAL_IDEAS,
+      bookOfBusiness: INITIAL_BOOK_OF_BUSINESS,
+      recruitProspects: INITIAL_RECRUIT_PROSPECTS,
+      referralLink: INITIAL_REFERRAL_LINK,
+      downlineAgents: INITIAL_DOWNLINE_AGENTS,
+      funnelData: INITIAL_FUNNEL_DATA,
+      automationSteps: INITIAL_AUTOMATION_STEPS,
       xpGain: null,
       levelUp: null,
       websiteSettings: {
@@ -1047,13 +1045,14 @@ export const useAgentStore = create<AgentStore>()(
 
       logout: () => {
         const { currentUser } = get();
-        // Clear the user-scoped storage key
+        // Clear all storage keys (current + legacy)
         if (currentUser?.id) {
           localStorage.removeItem(`agent-lounge-${currentUser.id}-v1`);
         }
-        // Also clear legacy keys
         localStorage.removeItem('agent-lounge-storage-v6');
         localStorage.removeItem('agent-lounge-storage-v7');
+        localStorage.removeItem('agent-lounge-storage-v8');
+        localStorage.removeItem('agent-lounge-storage-v9');
         // Reset all state
         set({
           currentUser: null,
@@ -1063,7 +1062,7 @@ export const useAgentStore = create<AgentStore>()(
           ideas: [],
           bookOfBusiness: [],
           recruitProspects: [],
-          performance: DEMO_PERFORMANCE,
+          performance: INITIAL_PERFORMANCE,
           announcements: [],
           activities: [],
           notifications: [],
@@ -1071,21 +1070,46 @@ export const useAgentStore = create<AgentStore>()(
       },
 
       // Hydrate store from real auth user (called by AuthContext on login)
+      // Clears all data if a different user logs in to prevent stale data
       hydrateFromUser: (authUser: { id: string; firstName?: string; lastName?: string; email: string; phone?: string; role?: string; avatarUrl?: string }) => {
-        set({
-          currentUser: {
-            id: authUser.id,
-            name: `${authUser.firstName || ''} ${authUser.lastName || ''}`.trim() || authUser.email,
-            email: authUser.email,
-            phone: authUser.phone || '',
-            role: (authUser.role === 'owner' || authUser.role === 'system_admin') ? 'executive' : 'agent',
-            avatar: authUser.avatarUrl,
-            territories: [],
-            startDate: new Date().toISOString().split('T')[0],
-            certifications: [],
-            badges: [],
-          },
-        });
+        const { currentUser } = get();
+        const isDifferentUser = currentUser?.id !== authUser.id;
+
+        const newUser: AgentUser = {
+          id: authUser.id,
+          name: `${authUser.firstName || ''} ${authUser.lastName || ''}`.trim() || authUser.email,
+          email: authUser.email,
+          phone: authUser.phone || '',
+          role: (authUser.role === 'owner' || authUser.role === 'system_admin') ? 'executive' : 'agent',
+          avatar: authUser.avatarUrl,
+          territories: [],
+          startDate: new Date().toISOString().split('T')[0],
+          certifications: [],
+          badges: [],
+        };
+
+        if (isDifferentUser) {
+          // Fresh start — clear all data for the new user
+          set({
+            currentUser: newUser,
+            leads: [],
+            tasks: [],
+            earnings: [],
+            ideas: [],
+            bookOfBusiness: [],
+            recruitProspects: [],
+            performance: INITIAL_PERFORMANCE,
+            announcements: [],
+            activities: [],
+            notifications: [],
+            leaderboard: [],
+            achievements: [],
+            scripts: [],
+            dailyChallenges: [],
+          });
+        } else {
+          set({ currentUser: newUser });
+        }
       },
 
       updateProfile: (updates) => {
@@ -2288,40 +2312,25 @@ ${disposition === 'not_interested' ? '• Note reason in CRM\n• Consider futur
       }
     }),
     {
-      name: 'agent-lounge-storage-v8',
+      name: 'agent-lounge-storage-v9',
       version: 1,
+      // Only persist user identity and theme — all data comes fresh from APIs
       partialize: (state) => ({
         currentUser: state.currentUser,
         theme: state.theme,
-        tasks: state.tasks,
-        leads: state.leads,
-        courses: state.courses,
-        performance: state.performance,
-        earnings: state.earnings,
-        ideas: state.ideas,
-        bookOfBusiness: state.bookOfBusiness,
-        recruitProspects: state.recruitProspects,
-        referralLink: state.referralLink,
+        websiteSettings: state.websiteSettings,
+        recruitingSettings: state.recruitingSettings,
       }),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<AgentStore>;
         return {
           ...currentState,
-          ...persisted,
-          // Reset demo data for courses and performance on each load
-          performance: DEMO_PERFORMANCE,
-          courses: DEMO_COURSES
+          // Only restore user identity and preferences — NOT data
+          currentUser: persisted.currentUser ?? currentState.currentUser,
+          theme: persisted.theme ?? currentState.theme,
+          websiteSettings: persisted.websiteSettings ?? currentState.websiteSettings,
+          recruitingSettings: persisted.recruitingSettings ?? currentState.recruitingSettings,
         };
-      },
-      // Ensure storage is correctly initialized
-      onRehydrateStorage: () => (state) => {
-        // Called when state is rehydrated from storage
-        if (state?.currentUser) {
-          // Ensure phone field exists for older stored users
-          if (!state.currentUser.phone) {
-            state.currentUser.phone = '';
-          }
-        }
       }
     }
   )

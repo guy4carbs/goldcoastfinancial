@@ -43,21 +43,6 @@ async function fetchHierarchy(): Promise<HierarchyData | null> {
 }
 
 // =============================================================================
-// DEMO DATA
-// =============================================================================
-
-const DEMO_HIERARCHY: HierarchyData = {
-  agent: {
-    id: '', name: '', email: '',
-    phone: '', role: '', level: 0, title: '',
-    contractLevel: 0, ytdCommission: 0, policiesSold: 0, teamSize: 0,
-    conversionRate: 0, avatarUrl: null,
-  },
-  upline: [],
-  downline: [],
-};
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
@@ -67,10 +52,10 @@ export default function AgentHierarchy() {
     queryFn: fetchHierarchy,
   });
 
-  const hierarchy = apiData || DEMO_HIERARCHY;
+  const hierarchy = apiData;
 
   const { nodes, edges } = useMemo(() => {
-    if (!hierarchy) return { nodes: [], edges: [] };
+    if (!hierarchy || !hierarchy.agent || !hierarchy.agent.id) return { nodes: [], edges: [] };
     return buildFlowFromAgentData(
       hierarchy.agent,
       hierarchy.upline,

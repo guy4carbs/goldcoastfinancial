@@ -402,4 +402,252 @@ router.get("/performance", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// =============================================================================
+// GET /pipeline-stats — Real pipeline stage counts, conversion rates, avg age
+// =============================================================================
+router.get("/pipeline-stats", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const period = (req.query.period as string) || "month";
+    const now = new Date();
+    let periodStart: Date;
+    switch (period) {
+      case "week":
+        periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case "month":
+        periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "quarter": {
+        const qMonth = Math.floor(now.getMonth() / 3) * 3;
+        periodStart = new Date(now.getFullYear(), qMonth, 1);
+        break;
+      }
+      default:
+        periodStart = new Date(now.getFullYear(), 0, 1);
+    }
+    const periodStartISO = periodStart.toISOString();
+
+    // Count leads by pipeline_stage with avg age in days
+    const stageResult = await pool.query(`
+      SELECT pipeline_stage,
+             COUNT(*)::int as count,
+             COALESCE(AVG(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400), 0)::int as avg_age
+      FROM leads
+      WHERE (assigned_to = $1 OR distributed_to = $1)
+        AND created_at >= $2
+        AND pipeline_stage IS NOT NULL
+      GROUP BY pipeline_stage
+      ORDER BY CASE pipeline_stage
+        WHEN 'new' THEN 1 WHEN 'contacted' THEN 2 WHEN 'qualified' THEN 3
+        WHEN 'appointment_set' THEN 4 WHEN 'quoted' THEN 5 WHEN 'application' THEN 6
+        WHEN 'underwriting' THEN 7 WHEN 'issued' THEN 8 WHEN 'placed' THEN 9
+        WHEN 'lost' THEN 10 ELSE 11
+      END
+    `, [userId, periodStartISO]);
+
+    // Conversion rates: for each stage, what % moved to a later stage
+    const conversionResult = await pool.query(`
+      SELECT pipeline_stage,
+             COUNT(*)::int as total,
+             COUNT(*) FILTER (WHERE status = 'won' OR pipeline_stage IN ('placed', 'issued'))::int as advanced
+      FROM leads
+      WHERE (assigned_to = $1 OR distributed_to = $1)
+        AND created_at >= $2
+        AND pipeline_stage IS NOT NULL
+      GROUP BY pipeline_stage
+    `, [userId, periodStartISO]);
+
+    const conversionMap: Record<string, number> = {};
+    for (const row of conversionResult.rows) {
+      conversionMap[row.pipeline_stage] = row.total > 0
+        ? Math.round((row.advanced / row.total) * 100)
+        : 0;
+    }
+
+    // Avg deal value from deals table
+    const avgDealResult = await pool.query(`
+      SELECT COALESCE(AVG(annual_premium::numeric), 0)::float as avg_deal_value
+      FROM deals
+      WHERE agent_user_id = $1 AND status != 'rejected' AND submitted_at >= $2
+    `, [userId, periodStartISO]);
+    const avgDealValue = Math.round(avgDealResult.rows[0]?.avg_deal_value || 0);
+
+    const stages = stageResult.rows.map((r: any) => ({
+      stage: r.pipeline_stage,
+      count: r.count,
+      avgAge: r.avg_age,
+      conversionRate: conversionMap[r.pipeline_stage] ?? 0,
+    }));
+
+    const totalPipelineValue = stages
+      .filter((s: any) => !['placed', 'lost'].includes(s.stage))
+      .reduce((sum: number, s: any) => sum + s.count * avgDealValue, 0);
+
+    res.json({ stages, avgDealValue, totalPipelineValue });
+  } catch (error: any) {
+    console.error("[Commissions] Pipeline stats error:", error?.message);
+    res.status(500).json({ error: "Failed to fetch pipeline stats" });
+  }
+});
+
+// =============================================================================
+// GET /lead-source-roi — Lead source breakdown with conversion + revenue
+// =============================================================================
+router.get("/lead-source-roi", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const period = (req.query.period as string) || "month";
+    const now = new Date();
+    let periodStart: Date;
+    switch (period) {
+      case "week":
+        periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case "month":
+        periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "quarter": {
+        const qMonth = Math.floor(now.getMonth() / 3) * 3;
+        periodStart = new Date(now.getFullYear(), qMonth, 1);
+        break;
+      }
+      default:
+        periodStart = new Date(now.getFullYear(), 0, 1);
+    }
+    const periodStartISO = periodStart.toISOString();
+
+    const SOURCE_COLORS: Record<string, string> = {
+      'referral': 'bg-violet-500',
+      'quote_form': 'bg-blue-500',
+      'contact_form': 'bg-cyan-500',
+      'phone': 'bg-green-500',
+      'website': 'bg-amber-500',
+      'social_media': 'bg-rose-500',
+      'other': 'bg-gray-500',
+    };
+
+    const result = await pool.query(`
+      SELECT source,
+             COUNT(*)::int as leads,
+             COUNT(*) FILTER (WHERE status = 'won')::int as conversions,
+             COALESCE(SUM(won_amount) FILTER (WHERE status = 'won'), 0)::float as revenue
+      FROM leads
+      WHERE (assigned_to = $1 OR distributed_to = $1)
+        AND created_at >= $2
+      GROUP BY source
+      ORDER BY conversions DESC, leads DESC
+    `, [userId, periodStartISO]);
+
+    const sources = result.rows.map((r: any) => ({
+      source: r.source || 'Unknown',
+      leads: r.leads,
+      conversions: r.conversions,
+      conversionRate: r.leads > 0 ? Math.round((r.conversions / r.leads) * 1000) / 10 : 0,
+      revenue: Math.round(r.revenue),
+      avgDealSize: r.conversions > 0 ? Math.round(r.revenue / r.conversions) : 0,
+      color: SOURCE_COLORS[r.source] || 'bg-gray-500',
+    }));
+
+    res.json({ sources });
+  } catch (error: any) {
+    console.error("[Commissions] Lead source ROI error:", error?.message);
+    res.status(500).json({ error: "Failed to fetch lead source ROI" });
+  }
+});
+
+// =============================================================================
+// GET /statements — Quarterly commission statements
+// =============================================================================
+router.get("/statements", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+    const limit = Math.min(parseInt(req.query.limit as string) || 4, 12);
+
+    // Try commission_records first
+    const recordCheck = await pool.query(
+      `SELECT COUNT(*)::int as count FROM commission_records WHERE agent_id = $1`,
+      [userId]
+    );
+    const hasRecords = (recordCheck.rows[0]?.count || 0) > 0;
+
+    let statements: any[] = [];
+
+    if (hasRecords) {
+      const result = await pool.query(`
+        SELECT period_year,
+               CEIL(period_month / 3.0)::int as quarter,
+               SUM(commission_amount)::float as total_amount,
+               COUNT(DISTINCT COALESCE(policy_id, deal_id, id))::int as policy_count,
+               MIN(created_at) as period_start
+        FROM commission_records
+        WHERE agent_id = $1
+        GROUP BY period_year, CEIL(period_month / 3.0)
+        ORDER BY period_year DESC, quarter DESC
+        LIMIT $2
+      `, [userId, limit]);
+
+      statements = result.rows.map((r: any) => {
+        const issueDate = new Date(r.period_year, r.quarter * 3, 10);
+        return {
+          period: `Q${r.quarter} ${r.period_year}`,
+          date: issueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          amount: Math.round(r.total_amount),
+          policyCount: r.policy_count,
+        };
+      });
+    } else {
+      // Fallback: compute from deals + policies grouped by quarter
+      // Uses row-level UNION ALL with positional GROUP BY to avoid alias issues
+      const result = await pool.query(`
+        SELECT
+          EXTRACT(YEAR FROM combined.dt)::int as yr,
+          CEIL(EXTRACT(MONTH FROM combined.dt) / 3.0)::int as quarter,
+          COALESCE(SUM(combined.ap), 0)::float as total_amount,
+          COUNT(*)::int as policy_count
+        FROM (
+          SELECT submitted_at as dt, annual_premium::numeric as ap
+          FROM deals
+          WHERE agent_user_id = $1 AND status != 'rejected'
+          UNION ALL
+          SELECT start_date as dt, (monthly_premium * 12)::numeric as ap
+          FROM policies
+          WHERE agent_id = $1
+        ) combined
+        GROUP BY 1, 2
+        ORDER BY 1 DESC, 2 DESC
+        LIMIT $2
+      `, [userId, limit]);
+
+      // Get contract level for commission estimate
+      const hierarchyResult = await pool.query(`
+        SELECT contract_level FROM agent_hierarchy
+        WHERE agent_user_id = $1 AND effective_to IS NULL LIMIT 1
+      `, [userId]);
+      const contractLevel = parseFloat(hierarchyResult.rows[0]?.contract_level || '80') / 100;
+
+      statements = result.rows.map((r: any) => {
+        const issueDate = new Date(r.yr, r.quarter * 3, 10);
+        return {
+          period: `Q${r.quarter} ${r.yr}`,
+          date: issueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          amount: Math.round(r.total_amount * contractLevel),
+          policyCount: r.policy_count,
+        };
+      });
+    }
+
+    res.json({ statements });
+  } catch (error: any) {
+    console.error("[Commissions] Statements error:", error?.message);
+    res.status(500).json({ error: "Failed to fetch commission statements" });
+  }
+});
+
 export default router;

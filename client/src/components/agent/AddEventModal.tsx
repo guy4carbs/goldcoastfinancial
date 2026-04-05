@@ -48,14 +48,18 @@ export interface EventData {
   date: string;
   time: string;
   duration: string;
-  type: 'call' | 'meeting' | 'video';
+  type: 'call' | 'meeting' | 'video' | 'event' | 'training';
   description?: string;
-  status: 'upcoming' | 'completed';
+  status: 'upcoming' | 'completed' | 'cancelled';
   reminders?: EventReminder[];
   meetingNotes?: string;
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;
+  location?: string;
+  meetingLink?: string;
+  googleEventId?: string;
+  source?: 'local' | 'google';
 }
 
 const eventTypes = [

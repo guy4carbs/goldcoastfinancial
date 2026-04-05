@@ -229,9 +229,8 @@ export default function ClientChatContent() {
     retry: 1,
   });
 
-  // Use mock data if no API data
-  // Always use mock data for now to test UI
-  const conversations = MOCK_CONVERSATIONS;
+  // Use real API conversation data
+  const conversations = apiConversations;
 
   const selectedConversation = useMemo(
     () => conversations.find(c => c.id === selectedConversationId) || null,

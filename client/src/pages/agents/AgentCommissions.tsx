@@ -49,21 +49,6 @@ import {
 } from '@/lib/heritageDesignSystem';
 import { getNextTier } from '@/lib/commissionTiers';
 
-// =============================================================================
-// DEMO DATA FALLBACKS
-// =============================================================================
-
-const DEMO_CONTRACT_LEVEL = 65;
-const DEMO_NEXT_LEVEL = 70;
-const DEMO_MONTHLY_AP = 0;
-const DEMO_NEXT_THRESHOLD = 5000;
-const DEMO_YTD_EARNINGS = 0;
-const DEMO_POLICIES_SOLD = 0;
-const DEMO_OVERRIDE_EARNINGS = 0;
-const DEMO_OVERRIDE_AP = 0;
-
-const DEMO_MONTHLY_AP_DATA: { month: string; ap: number }[] = [];
-
 interface HierarchyRequest {
   id: number;
   requestType: string;
@@ -123,8 +108,8 @@ export function AgentCommissions() {
   const submitRequest = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', '/api/hierarchy-requests/commission-change', {
-        requestedLevel,
-        monthlyAp: monthlyApAmount,
+        requestedContractLevel: requestedLevel,
+        monthlyApAmount,
         proofDescription,
       });
       return res.json();
@@ -150,17 +135,18 @@ export function AgentCommissions() {
   // DERIVED DATA
   // =========================================================================
 
-  const contractLevel = myPosition?.contractLevel ?? myTargets?.currentLevel ?? DEMO_CONTRACT_LEVEL;
+  const positionData = myPosition?.data ?? myPosition;
+  const contractLevel = positionData?.contractLevel ?? myTargets?.currentLevel ?? 0;
   const tierInfo = getNextTier(contractLevel);
-  const nextLevel = myTargets?.nextLevel ?? tierInfo?.rate ?? DEMO_NEXT_LEVEL;
-  const monthlyAp = myCommissions?.monthlyAp ?? DEMO_MONTHLY_AP;
-  const nextThreshold = myTargets?.nextThreshold ?? tierInfo?.apThreshold ?? DEMO_NEXT_THRESHOLD;
-  const ytdEarnings = myPosition?.ytdCommission ?? myCommissions?.ytdEarnings ?? DEMO_YTD_EARNINGS;
-  const policiesSold = myDealStats?.data?.totalDeals ?? myPosition?.policiesSold ?? myCommissions?.policiesSold ?? DEMO_POLICIES_SOLD;
-  const overrideEarnings = myCommissions?.overrideEarnings ?? DEMO_OVERRIDE_EARNINGS;
-  const overrideAp = myCommissions?.overrideAp ?? DEMO_OVERRIDE_AP;
+  const nextLevel = myTargets?.nextLevel || tierInfo?.rate || 0;
+  const monthlyAp = myCommissions?.monthlyAp ?? 0;
+  const nextThreshold = myTargets?.nextThreshold || tierInfo?.apThreshold || 0;
+  const ytdEarnings = positionData?.ytdCommission ?? myCommissions?.ytdEarnings ?? 0;
+  const policiesSold = myDealStats?.data?.totalDeals ?? positionData?.policiesSold ?? myCommissions?.policiesSold ?? 0;
+  const overrideEarnings = myCommissions?.overrideEarnings ?? 0;
+  const overrideAp = myCommissions?.overrideAp ?? 0;
   const totalAp = monthlyAp + overrideAp;
-  const monthlyApData = myCommissions?.monthlyApData ?? DEMO_MONTHLY_AP_DATA;
+  const monthlyApData = myCommissions?.monthlyApData ?? [];
 
   const requests: HierarchyRequest[] = Array.isArray(myRequests?.requests)
     ? myRequests.requests

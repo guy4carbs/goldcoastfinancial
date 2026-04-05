@@ -318,12 +318,25 @@ export default function AgentBusinessCard() {
                 </Button>
               </div>
             </>
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
+              <p className="text-gray-500 text-sm">Loading your business card...</p>
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <CreditCard className="w-12 h-12 text-gray-300" />
-              <p className="text-gray-500 text-sm">
-                No business card found. Contact support to set up your card.
+              <CreditCard className="w-12 h-12 text-violet-300" />
+              <p className="text-gray-700 font-medium">Your business card is ready</p>
+              <p className="text-gray-500 text-sm text-center max-w-xs">
+                Tap Edit Card to add your phone, license info, and social links to personalize it.
               </p>
+              <Button
+                onClick={() => setShowEditDialog(true)}
+                className="gap-2 bg-violet-600 hover:bg-violet-700 text-white mt-2"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                <Edit3 className="w-4 h-4" /> Edit Card
+              </Button>
             </div>
           )}
         </motion.div>

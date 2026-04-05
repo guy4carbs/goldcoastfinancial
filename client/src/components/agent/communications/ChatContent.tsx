@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAgentStore } from "@/lib/agentStore";
@@ -155,24 +156,127 @@ interface Conversation {
   isGroup?: boolean;
 }
 
-const INITIAL_CONVERSATIONS: Conversation[] = [];
+// API functions
+const chatApi = "/api/chat";
 
-const AVAILABLE_USERS: readonly string[] = [] as const;
+async function fetchConversations(): Promise<any[]> {
+  const res = await fetch(`${chatApi}/conversations`, { credentials: "include" });
+  if (!res.ok) return [];
+  return res.json();
+}
 
-// Messages for each conversation
-const CONVERSATION_MESSAGES: Record<string, Message[]> = {};
+async function fetchMainChat(): Promise<any> {
+  const res = await fetch(`${chatApi}/main`, { credentials: "include" });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function fetchMessages(conversationId: string): Promise<any[]> {
+  const res = await fetch(`${chatApi}/conversations/${conversationId}/messages`, { credentials: "include" });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+async function sendChatMessage(conversationId: string, content: string): Promise<any> {
+  const res = await fetch(`${chatApi}/conversations/${conversationId}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error("Failed to send message");
+  return res.json();
+}
+
+async function createConversation(participantIds: string[], name?: string): Promise<any> {
+  const res = await fetch(`${chatApi}/conversations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ participantIds, name, type: participantIds.length > 1 ? "group" : "direct" }),
+  });
+  if (!res.ok) throw new Error("Failed to create conversation");
+  return res.json();
+}
+
+async function fetchChatUsers(): Promise<any[]> {
+  const res = await fetch(`${chatApi}/users`, { credentials: "include" });
+  if (!res.ok) return [];
+  return res.json();
+}
 
 export default function AgentChatContent({ colorScheme = 'violet' as CommColorScheme }: { colorScheme?: CommColorScheme } = {}) {
   const theme = getCommTheme(colorScheme);
   const { currentUser } = useAgentStore();
 
-  const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(INITIAL_CONVERSATIONS[0] ?? null);
-  const [conversationMessages, setConversationMessages] = useState<Record<string, Message[]>>(CONVERSATION_MESSAGES);
+  const queryClient = useQueryClient();
+
+  // Fetch conversations from API
+  const { data: apiConversations = [], isLoading: loadingConversations } = useQuery({
+    queryKey: ["team-conversations"],
+    queryFn: fetchConversations,
+    refetchInterval: 15000,
+  });
+
+  // Auto-join main team chat
+  const { data: mainChat } = useQuery({
+    queryKey: ["team-main-chat"],
+    queryFn: fetchMainChat,
+  });
+
+  // Map API conversations to the UI Conversation type
+  const conversations: Conversation[] = useMemo(() => {
+    return apiConversations.map((c: any) => ({
+      id: c.id,
+      name: c.name || 'Direct Message',
+      initials: (c.name || 'DM').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+      lastMessage: c.lastMessage || '',
+      timestamp: c.updatedAt ? new Date(c.updatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
+      unread: c.unreadCount || 0,
+      online: true,
+      isGroup: c.type === 'group' || c.type === 'channel',
+    }));
+  }, [apiConversations]);
+
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const selectedConversation = conversations.find(c => c.id === selectedConversationId) || null;
+
+  // Auto-select first conversation or main chat
+  useEffect(() => {
+    if (!selectedConversationId && conversations.length > 0) {
+      setSelectedConversationId(conversations[0].id);
+    }
+  }, [conversations, selectedConversationId]);
+
   const [newMessage, setNewMessage] = useState('');
 
-  // Get messages for current conversation
-  const messages = selectedConversation ? (conversationMessages[selectedConversation.id] || []) : [];
+  // Fetch messages for current conversation from API
+  const { data: apiMessages = [], isLoading: loadingMessages } = useQuery({
+    queryKey: ["team-messages", selectedConversationId],
+    queryFn: () => selectedConversationId ? fetchMessages(selectedConversationId) : Promise.resolve([]),
+    enabled: !!selectedConversationId,
+    refetchInterval: 5000,
+  });
+
+  const messages: Message[] = useMemo(() => {
+    return apiMessages.map((m: any) => ({
+      id: m.id,
+      sender: m.senderName || 'Unknown',
+      senderInitials: (m.senderName || '??').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+      content: m.content,
+      timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+      isOwn: m.senderId === currentUser?.id,
+      reactions: [],
+      attachments: [],
+    }));
+  }, [apiMessages, currentUser?.id]);
+
+  // Fetch available users for new conversation dialog
+  const { data: availableUsers = [] } = useQuery({
+    queryKey: ["chat-users"],
+    queryFn: fetchChatUsers,
+    staleTime: 60000, // cache for 1 minute
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -196,14 +300,6 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
 
   // Check if current conversation is muted
   const isMuted = selectedConversation ? mutedConversations.has(selectedConversation.id) : false;
-
-  if (!selectedConversation) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-        No conversations yet
-      </div>
-    );
-  }
 
   const filteredMessages = useMemo(() =>
     messageSearchQuery
@@ -240,50 +336,47 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
   }, [newMessage]);
 
   const handlePhoneCall = useCallback(() => {
+    if (!selectedConversation) return;
     toast.success(`Starting voice call with ${selectedConversation.name}...`);
   }, [selectedConversation]);
 
   const handleVideoCall = useCallback(() => {
+    if (!selectedConversation) return;
     toast.success(`Starting video call with ${selectedConversation.name}...`);
   }, [selectedConversation]);
 
   const handleNewMessage = useCallback(() => {
     setShowNewMessageDialog(true);
-  }, []);
+    queryClient.invalidateQueries({ queryKey: ["chat-users"] });
+    queryClient.refetchQueries({ queryKey: ["chat-users"] });
+  }, [queryClient]);
 
-  const handleStartConversation = useCallback((user: string) => {
+  const handleStartConversation = useCallback(async (user: any) => {
+    // user can be an object from API with id and name, or a string name
+    const userName = typeof user === 'string' ? user : (user.name || user.fullName || 'Unknown');
+    const userId = typeof user === 'string' ? null : user.id;
+
     // Check if conversation already exists in current conversations
-    const existing = conversations.find(c => c.name === user);
+    const existing = conversations.find(c => c.name === userName);
     if (existing) {
-      setSelectedConversation(existing);
-      toast.info(`Opening conversation with ${user}`);
-    } else {
-      // Create a new conversation
-      const newConvId = `conv-new-${Date.now()}`;
-      const newConv: Conversation = {
-        id: newConvId,
-        name: user,
-        initials: user.split(' ').map(n => n[0]).join(''),
-        lastMessage: '',
-        timestamp: 'Now',
-        unread: 0,
-        online: Math.random() > 0.5,
-      };
-      // Add to conversations list at the top
-      setConversations(prev => [newConv, ...prev]);
-      // Initialize empty messages for new conversation
-      setConversationMessages(prev => ({
-        ...prev,
-        [newConvId]: []
-      }));
-      setSelectedConversation(newConv);
-      toast.success(`Started new conversation with ${user}`);
+      setSelectedConversationId(existing.id);
+      toast.info(`Opening conversation with ${userName}`);
+    } else if (userId) {
+      try {
+        const newConv = await createConversation([userId]);
+        queryClient.invalidateQueries({ queryKey: ["team-conversations"] });
+        setSelectedConversationId(newConv.id);
+        toast.success(`Started new conversation with ${userName}`);
+      } catch {
+        toast.error("Failed to create conversation");
+      }
     }
     setShowNewMessageDialog(false);
     setNewConversationSearch('');
-  }, [conversations]);
+  }, [conversations, queryClient]);
 
   const handleToggleMute = useCallback(() => {
+    if (!selectedConversation) return;
     setMutedConversations(prev => {
       const newSet = new Set(prev);
       if (newSet.has(selectedConversation.id)) {
@@ -298,31 +391,20 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
   }, [selectedConversation]);
 
   const handleDeleteConversation = useCallback(() => {
-    const convId = selectedConversation.id;
+    if (!selectedConversation) return;
     toast.success(`Conversation with ${selectedConversation.name} deleted`);
-    // Remove from conversations list
-    setConversations(prev => {
-      const filtered = prev.filter(c => c.id !== convId);
-      // Select the first remaining conversation
-      if (filtered.length > 0) {
-        setSelectedConversation(filtered[0]);
-      }
-      return filtered;
-    });
-    // Remove messages for this conversation
-    setConversationMessages(prev => {
-      const newMessages = { ...prev };
-      delete newMessages[convId];
-      return newMessages;
-    });
     // Remove from muted if it was muted
     setMutedConversations(prev => {
       const newSet = new Set(prev);
-      newSet.delete(convId);
+      newSet.delete(selectedConversation.id);
       return newSet;
     });
+    // Select next conversation
+    const remaining = conversations.filter(c => c.id !== selectedConversation.id);
+    setSelectedConversationId(remaining.length > 0 ? remaining[0].id : null);
+    queryClient.invalidateQueries({ queryKey: ["team-conversations"] });
     setShowInfoPanel(false);
-  }, [selectedConversation]);
+  }, [selectedConversation, conversations, queryClient]);
 
   const handleAttachment = useCallback(() => {
     fileInputRef.current?.click();
@@ -356,30 +438,11 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
   }, []);
 
   const handleAddReaction = useCallback((messageId: string, emoji: string) => {
-    setConversationMessages(prev => ({
-      ...prev,
-      [selectedConversation.id]: (prev[selectedConversation.id] || []).map(msg => {
-        if (msg.id !== messageId) return msg;
-        const existingReactions = msg.reactions || [];
-        const existingReaction = existingReactions.find(r => r.emoji === emoji);
-
-        // If same emoji exists, remove it (toggle off)
-        if (existingReaction) {
-          return {
-            ...msg,
-            reactions: existingReactions.filter(r => r.emoji !== emoji)
-          };
-        }
-
-        // Otherwise, replace any existing reaction with the new one (single reaction)
-        return {
-          ...msg,
-          reactions: [{ emoji, count: 1 }]
-        };
-      })
-    }));
+    // Reactions are UI-only for now (no backend persistence)
+    // Could be extended to POST /api/chat/conversations/:id/messages/:mid/reactions
     setShowTapback(null);
-  }, [selectedConversation.id]);
+    toast.success(`Reacted with ${emoji}`);
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -391,6 +454,7 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
 
   // Reset state when conversation changes
   useEffect(() => {
+    if (!selectedConversationId) return;
     setReplyingTo(null);
     setNewMessage('');
     setShowMessageSearch(false);
@@ -401,7 +465,7 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
     setShowTapback(null);
     // Scroll to bottom after a brief delay to ensure messages render
     setTimeout(scrollToBottom, 100);
-  }, [selectedConversation.id]);
+  }, [selectedConversationId]);
 
   // Close tapback menu when clicking outside
   useEffect(() => {
@@ -414,67 +478,21 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
     }
   }, [showTapback]);
 
-  const handleSendMessage = useCallback(() => {
-    if (!newMessage.trim() && pendingAttachments.length === 0) return;
-
-    const mentions: string[] = [];
-    let match;
-    const regex = new RegExp(MENTION_REGEX.source, 'g');
-    while ((match = regex.exec(newMessage)) !== null) {
-      mentions.push(match[1]);
-    }
-
-    const message: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      senderInitials: currentUser?.name?.split(' ').map(n => n[0]).join('') || 'AJ',
-      content: newMessage,
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      isOwn: true,
-      replyTo: replyingTo ? { id: replyingTo.id, sender: replyingTo.sender, content: replyingTo.content } : undefined,
-      attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined,
-    };
-
-    // Add message to the current conversation
-    setConversationMessages(prev => ({
-      ...prev,
-      [selectedConversation.id]: [...(prev[selectedConversation.id] || []), message]
-    }));
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || !selectedConversationId) return;
+    const content = newMessage.trim();
     setNewMessage('');
     setReplyingTo(null);
     setPendingAttachments([]);
 
-    if (mentions.length > 0) {
-      toast.info(`Mentioned: ${mentions.join(', ')}`);
+    try {
+      await sendChatMessage(selectedConversationId, content);
+      queryClient.invalidateQueries({ queryKey: ["team-messages", selectedConversationId] });
+      queryClient.invalidateQueries({ queryKey: ["team-conversations"] });
+    } catch {
+      toast.error("Failed to send message");
     }
-
-    // Simulate typing indicator and response (demo only)
-    if (!selectedConversation.isGroup && selectedConversation.online) {
-      setTimeout(() => setIsTyping(true), 1000);
-      setTimeout(() => {
-        setIsTyping(false);
-        const responses = [
-          "Got it, thanks!",
-          "Sounds good 👍",
-          "I'll look into that.",
-          "Perfect, let me know if you need anything else.",
-          "Thanks for letting me know!"
-        ];
-        const responseMsg: Message = {
-          id: `resp-${Date.now()}`,
-          sender: selectedConversation.name,
-          senderInitials: selectedConversation.initials,
-          content: responses[Math.floor(Math.random() * responses.length)],
-          timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-          isOwn: false,
-        };
-        setConversationMessages(prev => ({
-          ...prev,
-          [selectedConversation.id]: [...(prev[selectedConversation.id] || []), responseMsg]
-        }));
-      }, 2500);
-    }
-  }, [newMessage, pendingAttachments, currentUser, replyingTo, selectedConversation]);
+  }, [newMessage, selectedConversationId, queryClient]);
 
   const handleReply = useCallback((message: Message) => {
     setReplyingTo(message);
@@ -488,12 +506,12 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
   const ConversationList = () => (
     <div className="px-2">
       {conversations.map((conv) => {
-        const isSelected = selectedConversation.id === conv.id;
+        const isSelected = selectedConversation?.id === conv.id;
         return (
           <button
             key={conv.id}
             onClick={() => {
-              setSelectedConversation(conv);
+              setSelectedConversationId(conv.id);
               setMobileSidebarOpen(false);
             }}
             className={cn(
@@ -671,25 +689,30 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
                 </div>
                 <p className="text-xs text-gray-500 mb-2 px-1">Suggested</p>
                 <div className="space-y-1 max-h-64 overflow-y-auto">
-                  {AVAILABLE_USERS.filter(user =>
-                    user.toLowerCase().includes(newConversationSearch.toLowerCase())
-                  ).map(user => (
-                    <button
-                      key={user}
-                      onClick={() => handleStartConversation(user)}
-                      className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left", theme.hoverBg50)}
-                    >
-                      <Avatar className="w-10 h-10">
-                        <AvatarFallback className={cn(theme.avatarOffline, "font-semibold")}>
-                          {user.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-gray-900">{user}</p>
-                        <p className="text-xs text-gray-500">Team Member</p>
-                      </div>
-                    </button>
-                  ))}
+                  {availableUsers.filter((user: any) => {
+                    const name = user.name || user.fullName || '';
+                    return name.toLowerCase().includes(newConversationSearch.toLowerCase());
+                  }).map((user: any) => {
+                    const name = user.name || user.fullName || 'Unknown';
+                    const initials = name.split(' ').map((n: string) => n[0]).join('');
+                    return (
+                      <button
+                        key={user.id}
+                        onClick={() => handleStartConversation(user)}
+                        className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left", theme.hoverBg50)}
+                      >
+                        <Avatar className="w-10 h-10">
+                          <AvatarFallback className={cn(theme.avatarOffline, "font-semibold")}>
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-gray-900">{name}</p>
+                          <p className="text-xs text-gray-500">{user.role || 'Team Member'}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
@@ -729,6 +752,7 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
       </div>
 
       {/* Chat Area */}
+      {selectedConversation ? (
       <div
         className={cn("flex-1 flex flex-col transition-all", showInfoPanel && "lg:mr-80")}
         style={{ borderTopRightRadius: showInfoPanel ? 0 : RADIUS.card, borderBottomRightRadius: showInfoPanel ? 0 : RADIUS.card }}
@@ -1267,22 +1291,26 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
                 style={{ borderRadius: 16, boxShadow: SHADOW.level3 }}
               >
                 <p className="text-xs text-gray-500 px-2 mb-1">Mention someone</p>
-                {AVAILABLE_USERS.filter(u =>
-                  u.toLowerCase().includes((newMessage.split(' ').pop() || '').slice(1).toLowerCase())
-                ).map(user => (
-                  <button
-                    key={user}
-                    onClick={() => handleSelectMention(user)}
-                    className={cn("flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm", theme.hoverBg50)}
-                  >
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback className={cn("text-[10px]", theme.bg100, theme.activeIcon)}>
-                        {user.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    {user}
-                  </button>
-                ))}
+                {availableUsers.filter((u: any) => {
+                  const name = u.name || u.fullName || '';
+                  return name.toLowerCase().includes((newMessage.split(' ').pop() || '').slice(1).toLowerCase());
+                }).map((user: any) => {
+                  const name = user.name || user.fullName || 'Unknown';
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => handleSelectMention(name)}
+                      className={cn("flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm", theme.hoverBg50)}
+                    >
+                      <Avatar className="w-6 h-6">
+                        <AvatarFallback className={cn("text-[10px]", theme.bg100, theme.activeIcon)}>
+                          {name.split(' ').map((n: string) => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      {name}
+                    </button>
+                  );
+                })}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1339,10 +1367,17 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
           </div>
         </div>
       </div>
+      ) : (
+      <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+        <MessageSquare className="w-12 h-12 text-gray-300 mb-3" />
+        <h3 className="text-lg font-semibold text-gray-400">Select a conversation</h3>
+        <p className="text-sm text-gray-400 mt-1">Choose a conversation or start a new one</p>
+      </div>
+      )}
 
       {/* Info Panel - slides in from right */}
       <AnimatePresence>
-        {showInfoPanel && (
+        {showInfoPanel && selectedConversation && (
           <motion.div
             initial={{ x: 320, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

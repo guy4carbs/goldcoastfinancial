@@ -62,7 +62,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   zap: Zap,
 };
 
-const DEMO_ACHIEVEMENTS: DisplayAchievement[] = [];
+const EMPTY_ACHIEVEMENTS: DisplayAchievement[] = [];
 
 export default function AgentAchievements() {
   const [filter, setFilter] = useState<FilterKey>('all');
@@ -70,7 +70,7 @@ export default function AgentAchievements() {
 
   const displayAchievements = useMemo<DisplayAchievement[]>(() => {
     if (!storeAchievements || storeAchievements.length === 0) {
-      return DEMO_ACHIEVEMENTS;
+      return EMPTY_ACHIEVEMENTS;
     }
     return storeAchievements.map((a) => ({
       id: a.id,

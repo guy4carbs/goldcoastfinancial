@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
-import { AgentPageHero, AgentStatCard, AgentStatCardGrid, DemoBadge } from "@/components/agent/primitives";
+import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -232,7 +232,7 @@ export default function AgentAutomations() {
             icon={Zap}
             title="Automations"
             subtitle="Automate your workflow and save time"
-            badge={<DemoBadge className="bg-white/20 text-white border-white/30" />}
+
           >
             <div className="flex gap-2">
               <Button

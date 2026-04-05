@@ -187,35 +187,56 @@ router.get("/agent/:agentUserId", async (req: Request, res: Response) => {
       [agentUserId],
     );
 
-    if (agentSpecificResult.rows.length > 0) {
-      return res.json({
-        ...agentSpecificResult.rows[0],
-        source: "agent_specific",
-      });
-    }
-
-    // Fall back to agency default for their hierarchy level
-    const agencyDefaultResult = await pool.query(
-      `SELECT * FROM commission_targets
-       WHERE scope = 'agency_default'
-         AND hierarchy_level = $1
-         AND effective_to IS NULL
-       LIMIT 1`,
-      [agentHierarchyLevel],
+    // Get agent's current contract level
+    const contractResult = await pool.query(
+      `SELECT contract_level FROM agent_hierarchy
+       WHERE agent_user_id = $1 AND effective_to IS NULL`,
+      [agentUserId],
     );
+    const currentContractLevel = parseFloat(contractResult.rows[0]?.contract_level || '0');
 
-    if (agencyDefaultResult.rows.length > 0) {
+    // Find the applicable target (agent-specific or agency default)
+    let targetRow = agentSpecificResult.rows[0] || null;
+    let source = "agent_specific";
+
+    if (!targetRow) {
+      const agencyDefaultResult = await pool.query(
+        `SELECT * FROM commission_targets
+         WHERE scope = 'agency_default'
+           AND hierarchy_level = $1
+           AND effective_to IS NULL
+         LIMIT 1`,
+        [agentHierarchyLevel],
+      );
+      targetRow = agencyDefaultResult.rows[0] || null;
+      source = "agency_default";
+    }
+
+    if (targetRow) {
+      // Compute currentLevel, nextLevel, nextThreshold from levelProgression
+      const progression: Array<{ monthlyAp: number; contractLevel: number }> = targetRow.level_progression || targetRow.levelProgression || [];
+      const sortedProgression = [...progression].sort((a, b) => a.contractLevel - b.contractLevel);
+
+      // Find the next tier above the agent's current contract level
+      const nextTier = sortedProgression.find(t => t.contractLevel > currentContractLevel);
+
+      const maxLevel = parseFloat(targetRow.max_contract_level || targetRow.maxContractLevel || '0');
       return res.json({
-        ...agencyDefaultResult.rows[0],
-        source: "agency_default",
+        ...targetRow,
+        source,
+        // Fields the frontend expects — null means "use hardcoded tier fallback"
+        currentLevel: currentContractLevel,
+        nextLevel: nextTier?.contractLevel ?? (maxLevel > currentContractLevel ? maxLevel : null),
+        nextThreshold: nextTier?.monthlyAp ?? null,
       });
     }
 
-    // No target found at all
-    res.status(404).json({
-      error: "Not Found",
-      message:
-        "No commission target found for this agent or their hierarchy level",
+    // No target found — return current level, null for next (let frontend use hardcoded tiers)
+    res.json({
+      source: "none",
+      currentLevel: currentContractLevel,
+      nextLevel: null,
+      nextThreshold: null,
     });
   } catch (error) {
     console.error("Error fetching agent commission target:", error);

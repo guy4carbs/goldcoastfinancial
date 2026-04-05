@@ -58,30 +58,33 @@ async function getAgentStats(agentUserId: string): Promise<{
   };
 
   try {
-    // Single combined query for better performance
+    // Single combined query using correct column names
+    // Cast $1 to text for leads columns (text type) and to uuid for other tables
     const result = await pool.query(`
       SELECT
-        (SELECT COALESCE(SUM(CAST(amount AS DECIMAL)), 0)
-         FROM commissions
-         WHERE agent_user_id = $1
-           AND status = 'paid'
-           AND EXTRACT(YEAR FROM earned_at) = EXTRACT(YEAR FROM CURRENT_DATE)) as ytd_commission,
+        (SELECT COALESCE(SUM(commission_amount), 0)::float
+         FROM commission_records
+         WHERE agent_id = $1::uuid
+           AND period_year = EXTRACT(YEAR FROM CURRENT_DATE)::int) as ytd_commission,
         (SELECT COUNT(*)
-         FROM policies p
-         JOIN leads l ON p.lead_id = l.id
-         WHERE l.assigned_agent_id = $1
-           AND EXTRACT(YEAR FROM p.created_at) = EXTRACT(YEAR FROM CURRENT_DATE)) as policies_sold,
+         FROM policies
+         WHERE agent_id = $1::uuid
+           AND EXTRACT(YEAR FROM start_date) = EXTRACT(YEAR FROM CURRENT_DATE)) +
+        (SELECT COUNT(*)
+         FROM deals
+         WHERE agent_user_id = $1::uuid AND status != 'rejected'
+           AND EXTRACT(YEAR FROM submitted_at) = EXTRACT(YEAR FROM CURRENT_DATE)) as policies_sold,
         (SELECT COUNT(*)
          FROM agent_hierarchy
-         WHERE direct_upline_id = $1
+         WHERE direct_upline_id = $1::uuid
            AND effective_to IS NULL) as team_size,
         (SELECT COUNT(DISTINCT CASE WHEN l.status = 'won' THEN l.id END)
          FROM leads l
-         WHERE l.assigned_agent_id = $1
+         WHERE (l.assigned_to = $1::text OR l.distributed_to = $1::text)
            AND l.created_at >= NOW() - INTERVAL '90 days') as won_leads,
         (SELECT COUNT(DISTINCT l.id)
          FROM leads l
-         WHERE l.assigned_agent_id = $1
+         WHERE (l.assigned_to = $1::text OR l.distributed_to = $1::text)
            AND l.created_at >= NOW() - INTERVAL '90 days') as total_leads
     `, [agentUserId]);
 

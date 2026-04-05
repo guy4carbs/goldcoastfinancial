@@ -19,7 +19,7 @@ import {
   PenSquare,
   Users,
 } from "lucide-react";
-import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
+import { AgentPageHero } from "@/components/agent/primitives";
 import {
   RADIUS,
   SHADOW,
@@ -39,10 +39,10 @@ import ClientChatContent from "@/components/agent/communications/ClientChatConte
 export default function AgentCommunications() {
   const [activeTab, setActiveTab] = useState<'email' | 'chat' | 'client'>('email');
 
-  // Mock unread counts - these would come from state/API
-  const unreadEmails = 3;
-  const unreadMessages = 4;
-  const unreadClientMessages = 3;
+  // Unread counts — will be populated from API when available
+  const unreadEmails = 0;
+  const unreadMessages = 0;
+  const unreadClientMessages = 0;
 
   return (
     <AgentLoungeLayout>
@@ -59,7 +59,6 @@ export default function AgentCommunications() {
             icon={MessageSquare}
             title="Communications"
             subtitle="Email, chat, and connect with your team and clients"
-            badge={<DemoBadge className="bg-white/20 text-white border-white/30" />}
           >
             <Button
               className="gap-2 bg-white/20 backdrop-blur hover:bg-white/30 text-white border-0"

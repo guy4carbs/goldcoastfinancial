@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { useAgentStore } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,17 +30,6 @@ interface SalesLeaderboardEntry {
   change: { week: number; month: number; allTime: number };
   isCurrentUser: boolean;
 }
-
-const DEMO_LEADERBOARD: SalesLeaderboardEntry[] = [
-  { rank: 1, name: 'Marcus Johnson', avatar: null, level: 'Diamond', sales: { week: 12, month: 47, allTime: 312 }, revenue: { week: 22800, month: 89500, allTime: 594000 }, streak: 28, trend: { week: 'up', month: 'up', allTime: 'up' }, change: { week: 1, month: 2, allTime: 0 }, isCurrentUser: false },
-  { rank: 2, name: 'Sarah Williams', avatar: null, level: 'Diamond', sales: { week: 9, month: 43, allTime: 298 }, revenue: { week: 17100, month: 82300, allTime: 567000 }, streak: 21, trend: { week: 'down', month: 'same', allTime: 'up' }, change: { week: -1, month: 0, allTime: 1 }, isCurrentUser: false },
-  { rank: 3, name: 'David Chen', avatar: null, level: 'Platinum', sales: { week: 11, month: 38, allTime: 245 }, revenue: { week: 20900, month: 71200, allTime: 459000 }, streak: 14, trend: { week: 'up', month: 'up', allTime: 'up' }, change: { week: 2, month: 1, allTime: 1 }, isCurrentUser: false },
-  { rank: 4, name: 'Emily Rodriguez', avatar: null, level: 'Platinum', sales: { week: 8, month: 35, allTime: 267 }, revenue: { week: 15200, month: 65800, allTime: 501000 }, streak: 12, trend: { week: 'same', month: 'down', allTime: 'same' }, change: { week: 0, month: -2, allTime: 0 }, isCurrentUser: false },
-  { rank: 5, name: 'You', avatar: null, level: 'Gold', sales: { week: 10, month: 32, allTime: 189 }, revenue: { week: 19500, month: 58900, allTime: 348000 }, streak: 7, trend: { week: 'up', month: 'up', allTime: 'up' }, change: { week: 3, month: 3, allTime: 2 }, isCurrentUser: true },
-  { rank: 6, name: 'Michael Thompson', avatar: null, level: 'Gold', sales: { week: 6, month: 29, allTime: 201 }, revenue: { week: 11400, month: 52400, allTime: 372000 }, streak: 5, trend: { week: 'down', month: 'down', allTime: 'down' }, change: { week: -2, month: -1, allTime: -1 }, isCurrentUser: false },
-  { rank: 7, name: 'Lisa Anderson', avatar: null, level: 'Gold', sales: { week: 7, month: 26, allTime: 178 }, revenue: { week: 13300, month: 48200, allTime: 329000 }, streak: 3, trend: { week: 'up', month: 'up', allTime: 'same' }, change: { week: 1, month: 2, allTime: 0 }, isCurrentUser: false },
-  { rank: 8, name: 'James Wilson', avatar: null, level: 'Silver', sales: { week: 5, month: 23, allTime: 142 }, revenue: { week: 9500, month: 41500, allTime: 256000 }, streak: 0, trend: { week: 'same', month: 'same', allTime: 'down' }, change: { week: 0, month: 0, allTime: -1 }, isCurrentUser: false },
-];
 
 type TimeKey = 'week' | 'month' | 'allTime';
 const TIME_RANGE_KEY: Record<string, TimeKey> = {
@@ -75,40 +65,45 @@ function getInitials(name: string): string {
 export default function AgentLeaderboard() {
   const [timeRange, setTimeRange] = useState<typeof TIME_RANGES[number]>('This Month');
   const [sortBy, setSortBy] = useState<SortKey>('revenue');
+  const currentUserData = useAgentStore((state) => state.currentUser);
 
   const timeKey = TIME_RANGE_KEY[timeRange];
   const periodParam = timeKey === 'week' ? 'week' : timeKey === 'month' ? 'month' : 'all';
 
   // Fetch real leaderboard from deals API
   const { data: apiLeaderboard } = useQuery<{ success: boolean; data: Array<{
-    rank: number; agentUserId: string; firstName: string; lastName: string; name: string; totalAP: number; dealCount: number;
-  }> }>({
+    rank: number; agentUserId: string; firstName: string; lastName: string; name: string;
+    totalAP: number; dealCount: number; contractLevel: number; isCurrentUser: boolean;
+  }>; currentUserRank: number | null }>({
     queryKey: [`/api/deals/leaderboard?period=${periodParam}`],
     staleTime: 30000,
   });
 
-  // Map API data to the SalesLeaderboardEntry format, falling back to demo data if empty
+  // Map API data to the SalesLeaderboardEntry format — no demo fallback
   const sortedLeaderboard = useMemo(() => {
     const apiData = apiLeaderboard?.data;
-    if (apiData && apiData.length > 0) {
-      return apiData.map((entry, index): SalesLeaderboardEntry => ({
-        rank: index + 1,
-        name: entry.name || `${entry.firstName} ${entry.lastName}`.trim(),
-        avatar: null,
-        level: entry.totalAP >= 50000 ? 'Diamond' : entry.totalAP >= 30000 ? 'Platinum' : entry.totalAP >= 15000 ? 'Gold' : entry.totalAP >= 5000 ? 'Silver' : 'Bronze',
-        sales: { week: entry.dealCount, month: entry.dealCount, allTime: entry.dealCount },
-        revenue: { week: entry.totalAP, month: entry.totalAP, allTime: entry.totalAP },
-        streak: 0,
-        trend: { week: 'same' as const, month: 'same' as const, allTime: 'same' as const },
-        change: { week: 0, month: 0, allTime: 0 },
-        isCurrentUser: false,
-      }));
+    if (!apiData || apiData.length === 0) return [];
+
+    const mapped = apiData.map((entry, index): SalesLeaderboardEntry => ({
+      rank: index + 1,
+      name: entry.name || `${entry.firstName} ${entry.lastName}`.trim(),
+      avatar: null,
+      level: entry.contractLevel >= 100 ? 'Diamond' : entry.contractLevel >= 85 ? 'Platinum' : entry.contractLevel >= 70 ? 'Gold' : entry.contractLevel >= 50 ? 'Silver' : 'Bronze',
+      sales: { week: entry.dealCount, month: entry.dealCount, allTime: entry.dealCount },
+      revenue: { week: entry.totalAP, month: entry.totalAP, allTime: entry.totalAP },
+      streak: 0,
+      trend: { week: 'same' as const, month: 'same' as const, allTime: 'same' as const },
+      change: { week: 0, month: 0, allTime: 0 },
+      isCurrentUser: entry.isCurrentUser || entry.agentUserId === currentUserData?.id,
+    }));
+
+    if (sortBy === 'sales') {
+      mapped.sort((a, b) => b.sales[timeKey] - a.sales[timeKey]);
+      mapped.forEach((e, i) => e.rank = i + 1);
     }
-    // Fallback to demo data if no real deals
-    return [...DEMO_LEADERBOARD]
-      .sort((a, b) => b[sortBy][timeKey] - a[sortBy][timeKey])
-      .map((entry, index) => ({ ...entry, rank: index + 1 }));
-  }, [apiLeaderboard, sortBy, timeKey]);
+
+    return mapped;
+  }, [apiLeaderboard, sortBy, timeKey, currentUserData?.id]);
 
   const currentUser = sortedLeaderboard.find(e => e.isCurrentUser);
 

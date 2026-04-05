@@ -44,7 +44,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
-import { DemoBadge, AgentPageHero } from "@/components/agent/primitives";
+import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
 // Email folder types
@@ -313,7 +313,7 @@ export default function AgentEmail() {
             icon={Mail}
             title="Agent Email"
             subtitle="Manage your communications"
-            badge={<DemoBadge className="bg-white/20 text-white border-white/30" />}
+
           >
             <Button
               onClick={() => setShowCompose(true)}

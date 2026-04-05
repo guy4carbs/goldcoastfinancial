@@ -124,31 +124,42 @@ router.get("/leaderboard", async (req: Request, res: Response) => {
     const period = (req.query.period as string) || 'month';
     const periodStart = getPeriodStart(period);
 
+    const userId = (req as any).user?.id;
+
     const result = await pool.query(`
       SELECT d.agent_user_id,
              u.first_name, u.last_name,
              SUM(d.annual_premium::numeric) as total_ap,
-             COUNT(*)::int as deal_count
+             COUNT(*)::int as deal_count,
+             h.contract_level
       FROM deals d
       JOIN users u ON d.agent_user_id = u.id
+      LEFT JOIN agent_hierarchy h ON d.agent_user_id = h.agent_user_id AND h.effective_to IS NULL
       WHERE d.status != 'rejected'
         AND d.submitted_at >= $1
-      GROUP BY d.agent_user_id, u.first_name, u.last_name
+      GROUP BY d.agent_user_id, u.first_name, u.last_name, h.contract_level
       ORDER BY total_ap DESC
       LIMIT 20
     `, [periodStart]);
 
-    const leaderboard = result.rows.map((r: any, idx: number) => ({
-      rank: idx + 1,
-      agentUserId: r.agent_user_id,
-      firstName: r.first_name || '',
-      lastName: r.last_name || '',
-      name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
-      totalAP: parseFloat(r.total_ap) || 0,
-      dealCount: r.deal_count || 0,
-    }));
+    let currentUserRank: number | null = null;
+    const leaderboard = result.rows.map((r: any, idx: number) => {
+      const isCurrentUser = userId ? r.agent_user_id === userId : false;
+      if (isCurrentUser) currentUserRank = idx + 1;
+      return {
+        rank: idx + 1,
+        agentUserId: r.agent_user_id,
+        firstName: r.first_name || '',
+        lastName: r.last_name || '',
+        name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+        totalAP: parseFloat(r.total_ap) || 0,
+        dealCount: r.deal_count || 0,
+        contractLevel: parseFloat(r.contract_level) || 0,
+        isCurrentUser,
+      };
+    });
 
-    res.json({ success: true, data: leaderboard });
+    res.json({ success: true, data: leaderboard, currentUserRank });
   } catch (error: any) {
     console.error("[Deals] Error fetching leaderboard:", error?.message);
     res.status(500).json({ success: false, message: "Failed to fetch leaderboard" });
