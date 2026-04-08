@@ -63,6 +63,10 @@ export interface PortalBillingRecord {
   date: string;
   status: 'paid' | 'pending' | 'failed';
   paymentMethod: string;
+  bankName?: string;
+  billingType?: string;
+  description?: string;
+  dueDate?: string;
 }
 
 export interface PortalClaim {

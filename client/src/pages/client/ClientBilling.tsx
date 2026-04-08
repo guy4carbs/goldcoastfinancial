@@ -482,14 +482,22 @@ export default function ClientBilling() {
                       <div className="md:text-center">
                         <Badge className={cn(statusColor.bg, statusColor.text, 'hover:opacity-90 border-0 gap-1')}>
                           <div className={cn('w-1.5 h-1.5 rounded-full', statusColor.dot)} />
-                          {bill.status.charAt(0).toUpperCase() + bill.status.slice(1)}
+                          {(bill.status || 'pending').charAt(0).toUpperCase() + (bill.status || 'pending').slice(1)}
                         </Badge>
                       </div>
 
-                      {/* Method */}
-                      <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>
-                        {bill.paymentMethod}
-                      </p>
+                      {/* Method / Bank */}
+                      <div className="truncate">
+                        {bill.bankName && (
+                          <p className="text-gray-900 font-medium" style={{ fontSize: TYPE.caption }}>{bill.bankName}</p>
+                        )}
+                        <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
+                          {bill.billingType || bill.paymentMethod || '—'}
+                        </p>
+                        {bill.description && (
+                          <p className="text-gray-400" style={{ fontSize: TYPE.micro }}>{bill.description}</p>
+                        )}
+                      </div>
                     </motion.div>
                   );
                 })}
