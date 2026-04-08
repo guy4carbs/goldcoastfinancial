@@ -285,7 +285,7 @@ export default function ClientPolicies() {
                                 <span
                                   className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1.5', statusColors.dot)}
                                 />
-                                {policy.status.charAt(0).toUpperCase() + policy.status.slice(1)}
+                                {(policy.status || 'active').charAt(0).toUpperCase() + (policy.status || 'active').slice(1)}
                               </Badge>
                             </div>
 

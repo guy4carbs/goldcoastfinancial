@@ -435,7 +435,7 @@ export default function ClientDashboard() {
                             style={{ borderRadius: RADIUS.pill, fontSize: TYPE.micro }}
                           >
                             <span className={cn('w-1.5 h-1.5 rounded-full', statusColors.dot)} />
-                            {policy.status.charAt(0).toUpperCase() + policy.status.slice(1)}
+                            {(policy.status || 'active').charAt(0).toUpperCase() + (policy.status || 'active').slice(1)}
                           </span>
                         </div>
                         <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>
@@ -705,7 +705,7 @@ export default function ClientDashboard() {
                         <p className="font-bold text-white" style={{ fontSize: TYPE.meta }}>
                           ${payment.amount}
                         </p>
-                        {payment.paymentMethod.includes('Auto-pay') && (
+                        {(payment.paymentMethod || '').includes('Auto-pay') && (
                           <span
                             className="font-medium px-2 py-0.5"
                             style={{

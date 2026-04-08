@@ -203,7 +203,7 @@ export default function ClientPolicyDetail() {
                     style={{ borderRadius: RADIUS.pill, fontSize: TYPE.micro }}
                   >
                     <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1.5', statusColors.dot)} />
-                    {policy.status.charAt(0).toUpperCase() + policy.status.slice(1)}
+                    {(policy.status || 'active').charAt(0).toUpperCase() + (policy.status || 'active').slice(1)}
                   </Badge>
                 </div>
                 <p className="text-white/90" style={{ fontSize: TYPE.body, lineHeight: 1.5 }}>
@@ -474,7 +474,7 @@ export default function ClientPolicyDetail() {
                           style={{ borderRadius: RADIUS.pill, fontSize: TYPE.micro }}
                         >
                           <span className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1.5', paymentStatusColors.dot)} />
-                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                          {(payment.status || 'pending').charAt(0).toUpperCase() + (payment.status || 'pending').slice(1)}
                         </Badge>
 
                         {/* Amount */}

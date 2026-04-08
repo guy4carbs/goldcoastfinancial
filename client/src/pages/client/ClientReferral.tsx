@@ -421,7 +421,7 @@ export default function ClientReferral() {
                       </div>
                       <span className={cn('inline-flex items-center gap-1 px-2.5 py-0.5 font-medium flex-shrink-0', statusColors.bg, statusColors.text)} style={{ borderRadius: RADIUS.pill, fontSize: TYPE.micro }}>
                         <span className={cn('w-1.5 h-1.5 rounded-full', statusColors.dot)} />
-                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
+                        {(referral.status || 'pending').charAt(0).toUpperCase() + (referral.status || 'pending').slice(1)}
                       </span>
                     </div>
                   );
