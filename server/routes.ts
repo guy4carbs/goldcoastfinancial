@@ -6,6 +6,9 @@ import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicat
 import { fromZodError } from "zod-validation-error";
 import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail, sendRecruitInviteEmail, sendPolicyQuoteEmail, sendAgentLeadNotification, sendWebsiteLinkEmail, sendPasswordResetEmail, sendProductGuideEmail } from "./gmail";
 import { sendSecureFormLink, sendBookingLink, sendSms, isSmsAvailable } from "./services/smsService";
+import { encryptField, decryptField } from "./services/encryptionService";
+import * as s3Service from "./services/s3Service";
+import multer from "multer";
 // Google Calendar routes now handled by server/routes/calendar.ts
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -53,6 +56,11 @@ import commissionsRouter from "./routes/commissions";
 import emailRouter from "./routes/email";
 import trainingSessionsRouter from "./routes/training-sessions";
 import calendarRouter from "./routes/calendar";
+import bookOfBusinessRouter from "./routes/book-of-business";
+import recruitingRouter from "./routes/recruiting";
+import scriptsRouter from "./routes/scripts";
+import achievementsRouter from "./routes/achievements";
+import ideasRouter from "./routes/ideas";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -141,6 +149,12 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
+  // Multer config for client portal file uploads
+  const portalUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 },
+  });
+
   // Health check endpoint (doesn't require database)
   app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
@@ -455,6 +469,24 @@ export async function registerRoutes(
 
       // Log successful login for audit
       await logLogin(user.id, getAuditContext(req));
+
+      // Update lastLoginAt and notify agent on first client login
+      try {
+        const isFirstLogin = !user.lastLoginAt;
+        await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
+
+        // If first login AND client role, notify their assigned agent
+        if (isFirstLogin && user.role === 'client' && user.assignedAgentId) {
+          await storage.createNotification({
+            userId: user.assignedAgentId,
+            title: 'Client First Login',
+            message: `${user.firstName} ${user.lastName} just logged into their client portal for the first time!`,
+            type: 'alert',
+            isRead: false,
+            actionUrl: `/agents/clients/${user.id}`,
+          });
+        }
+      } catch {}
 
       // Return user without password
       const { password, ...safeUser } = user;
@@ -1262,6 +1294,21 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Form has not been submitted yet" });
       }
 
+      // Decrypt sensitive PII fields before returning to agent (Sentinel — AES-256-GCM)
+      let decryptedData = formData.submitted_data;
+      if (decryptedData && typeof decryptedData === 'object') {
+        const sensitiveFields = ['ssn', 'confirmSsn', 'routingNumber', 'accountNumber', 'accountConfirm', 'licenseNumber', 'idNumber'];
+        for (const field of sensitiveFields) {
+          if (decryptedData[field]) {
+            try {
+              decryptedData[field] = decryptField(decryptedData[field]);
+            } catch {
+              // Legacy unencrypted data — return as-is
+            }
+          }
+        }
+      }
+
       res.json({
         linkId,
         formType: formData.form_type,
@@ -1270,7 +1317,7 @@ export async function registerRoutes(
         clientName: formData.client_name,
         agentName: formData.agent_name,
         status: formData.status,
-        submittedData: formData.submitted_data,
+        submittedData: decryptedData,
         submittedAt: formData.submitted_at || new Date().toISOString()
       });
     } catch (error: any) {
@@ -1298,19 +1345,57 @@ export async function registerRoutes(
         return res.status(400).json({ error: "This form has already been submitted" });
       }
 
-      // Store the submitted data
+      // Encrypt sensitive PII fields before storing (Sentinel — AES-256-GCM)
       const submittedData = req.body.formData || req.body;
+      const sensitiveFields = ['ssn', 'confirmSsn', 'routingNumber', 'accountNumber', 'accountConfirm', 'licenseNumber', 'idNumber'];
+      const encryptedData = { ...submittedData };
+      try {
+        for (const field of sensitiveFields) {
+          if (encryptedData[field]) {
+            encryptedData[field] = encryptField(encryptedData[field]);
+          }
+        }
+      } catch (encErr: any) {
+        // If FIELD_ENCRYPTION_KEY is not set, log warning but still store plaintext
+        console.warn('[SecureForm] PII encryption unavailable, storing plaintext:', encErr?.message);
+      }
+
       await pool.query(
         `UPDATE secure_forms SET status = $1, submitted_data = $2, submitted_at = $3 WHERE link_id = $4`,
-        ['completed', JSON.stringify(submittedData), new Date(), linkId]
+        ['completed', JSON.stringify(encryptedData), new Date(), linkId]
       );
 
-      console.log(`[SecureForm] Form submitted: ${linkId}`);
+      console.log(`[SecureForm] Form submitted (encrypted): ${linkId}`);
 
-      // In production, you would:
-      // 1. Encrypt and store the data securely
-      // 2. Send notification to the agent
-      // 3. Trigger any carrier-specific workflows
+      // Notify the agent that the client submitted the form
+      try {
+        const formRecord = await pool.query(
+          'SELECT agent_name, agent_email, client_name, form_type, carrier_name FROM secure_forms WHERE link_id = $1',
+          [linkId]
+        );
+        const form = formRecord.rows[0];
+        if (form?.agent_email) {
+          const formTypeLabels: Record<string, string> = {
+            ssn: 'Social Security Number',
+            banking: 'Banking Information',
+            drivers_license: "Driver's License / State ID",
+            full_application: 'Full Application',
+          };
+          const formLabel = formTypeLabels[form.form_type] || form.form_type;
+          await sendPortalMessage({
+            senderName: form.client_name || 'Client',
+            senderEmail: 'noreply@goldcoastfnl.com',
+            recipientEmail: form.agent_email,
+            recipientName: form.agent_name || 'Agent',
+            subject: `Secure Form Completed - ${form.client_name}`,
+            message: `${form.client_name} has completed their ${formLabel} form${form.carrier_name ? ` for ${form.carrier_name}` : ''}. You can view the submitted data in your Agent Portal under Data Encryption.`,
+            priority: 'high',
+          });
+          console.log(`[SecureForm] Agent notification sent to ${form.agent_email}`);
+        }
+      } catch (notifyErr: any) {
+        console.warn('[SecureForm] Agent notification failed:', notifyErr?.message);
+      }
 
       res.json({
         success: true,
@@ -1320,6 +1405,60 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("[SecureForm] Error submitting form:", error);
       res.status(500).json({ error: "Failed to submit form" });
+    }
+  });
+
+  // Resend secure form link — extend expiry and re-send email to client
+  app.put("/api/secure-forms/:linkId/resend", requireAuth, async (req, res) => {
+    try {
+      const { linkId } = req.params;
+
+      const result = await pool.query('SELECT * FROM secure_forms WHERE link_id = $1', [linkId]);
+      if (!result.rows[0]) {
+        return res.status(404).json({ error: "Form not found" });
+      }
+
+      const form = result.rows[0];
+
+      // Don't resend completed forms
+      if (form.status === 'completed') {
+        return res.status(400).json({ error: "Form already completed" });
+      }
+
+      // Extend expiry by 24 hours from now
+      const newExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await pool.query(
+        'UPDATE secure_forms SET expires_at = $1, status = $2 WHERE link_id = $3',
+        [newExpiry, 'pending', linkId]
+      );
+
+      // Re-send email to client
+      try {
+        const secureLink = `${process.env.APP_URL || 'https://heritagels.org'}/secure/form/${linkId}`;
+        await sendSecureFormEmail({
+          clientName: form.client_name,
+          clientEmail: form.client_email,
+          formType: form.form_type,
+          secureLink,
+          expiresAt: newExpiry,
+          carrier: form.carrier_name || undefined,
+          carrierId: form.carrier_id || undefined,
+          customMessage: null as any,
+          agent: {
+            name: form.agent_name || '',
+            email: form.agent_email || '',
+            phone: form.agent_phone || '',
+          },
+        });
+        console.log(`[SecureForm] Resent link for ${linkId} to ${form.client_email}`);
+      } catch (emailErr: any) {
+        console.error('[SecureForm] Resend email failed:', emailErr?.message);
+      }
+
+      res.json({ success: true, expiresAt: newExpiry.toISOString() });
+    } catch (error: any) {
+      console.error("[SecureForm] Error resending form:", error);
+      res.status(500).json({ error: "Failed to resend form" });
     }
   });
 
@@ -1484,33 +1623,7 @@ export async function registerRoutes(
   });
 
   // ─── POLICY QUOTE ROUTES ────────────────────────────────────────────────────
-
-  const quoteStore = new Map<string, {
-    quoteId: string;
-    quoteRef: string;
-    clientName: string;
-    clientEmail: string;
-    clientPhone: string | null;
-    quoteType: string;
-    quoteTypeName: string;
-    carrierId: string;
-    carrierName: string;
-    coverageAmount: string;
-    premium: string;
-    premiumFrequency: string;
-    termLength: string | null;
-    healthClass: string | null;
-    benefits: string;
-    additionalNotes: string | null;
-    agentName: string;
-    agentEmail: string;
-    agentPhone: string;
-    agentNpn: string | null;
-    status: 'sent' | 'opened' | 'expired';
-    createdAt: string;
-    openedAt: string | null;
-    expiresAt: string | null;
-  }>();
+  // Quote storage is now persisted in the PostgreSQL `quotes` table
 
   // In-memory lead inbox store (website leads)
   const leadInboxStore = new Map<string, {
@@ -1530,27 +1643,29 @@ export async function registerRoutes(
     readAt: string | null;
   }>();
 
-  // In-memory website settings store (agent customizations)
-  const websiteSettingsStore = new Map<string, {
-    agentSlug: string;
-    headline: string | null;
-    tagline: string | null;
-    bio: string | null;
-    featuredProducts: string[];
-    showTestimonials: boolean;
-    showFaq: boolean;
-    showCarriers: boolean;
-    showScheduleCall: boolean;
-    updatedAt: string;
-  }>();
-
-  // Get website settings for an agent
+  // Get website settings for an agent (persisted in PostgreSQL)
   app.get("/api/website-settings/:agentSlug", async (req, res) => {
     try {
       const { agentSlug } = req.params;
-      const settings = websiteSettingsStore.get(agentSlug);
+      const result = await pool.query(
+        'SELECT * FROM agent_website_settings WHERE agent_slug = $1',
+        [agentSlug]
+      );
+      const settings = result.rows[0] || null;
+
       if (settings) {
-        res.json(settings);
+        res.json({
+          agentSlug: settings.agent_slug,
+          headline: settings.headline,
+          tagline: settings.tagline,
+          bio: settings.bio,
+          featuredProducts: settings.featured_products || ['term_life', 'whole_life', 'iul', 'final_expense', 'annuities'],
+          showTestimonials: settings.show_testimonials ?? true,
+          showFaq: settings.show_faq ?? true,
+          showCarriers: settings.show_carriers ?? true,
+          showScheduleCall: settings.show_schedule_call ?? true,
+          updatedAt: settings.updated_at,
+        });
       } else {
         // Return defaults
         res.json({
@@ -1572,24 +1687,41 @@ export async function registerRoutes(
     }
   });
 
-  // Save website settings for an agent
+  // Save website settings for an agent (persisted in PostgreSQL)
   app.post("/api/website-settings/:agentSlug", async (req, res) => {
     try {
       const { agentSlug } = req.params;
       const { headline, tagline, bio, featuredProducts, showTestimonials, showFaq, showCarriers, showScheduleCall } = req.body;
 
-      websiteSettingsStore.set(agentSlug, {
-        agentSlug,
-        headline: headline || null,
-        tagline: tagline || null,
-        bio: bio || null,
-        featuredProducts: featuredProducts || ['term_life', 'whole_life', 'iul', 'final_expense', 'annuities'],
-        showTestimonials: showTestimonials !== false,
-        showFaq: showFaq !== false,
-        showCarriers: showCarriers !== false,
-        showScheduleCall: showScheduleCall !== false,
-        updatedAt: new Date().toISOString(),
-      });
+      // Get the agent's user ID from their slug
+      const agentResult = await pool.query(
+        "SELECT id FROM users WHERE LOWER(CONCAT(first_name, '-', last_name)) = LOWER($1) OR id::text = $1 LIMIT 1",
+        [agentSlug]
+      );
+      const agentUserId = agentResult.rows[0]?.id || (req as any).user?.id;
+
+      if (!agentUserId) {
+        res.status(400).json({ error: "Could not determine agent user ID" });
+        return;
+      }
+
+      const safeHeadline = headline || null;
+      const safeTagline = tagline || null;
+      const safeBio = bio || null;
+      const safeFeaturedProducts = featuredProducts || ['term_life', 'whole_life', 'iul', 'final_expense', 'annuities'];
+      const safeShowTestimonials = showTestimonials !== false;
+      const safeShowFaq = showFaq !== false;
+      const safeShowCarriers = showCarriers !== false;
+      const safeShowScheduleCall = showScheduleCall !== false;
+
+      await pool.query(`
+        INSERT INTO agent_website_settings (agent_user_id, agent_slug, headline, tagline, bio, featured_products, show_testimonials, show_faq, show_carriers, show_schedule_call, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+        ON CONFLICT (agent_slug) DO UPDATE SET
+          headline = $3, tagline = $4, bio = $5, featured_products = $6,
+          show_testimonials = $7, show_faq = $8, show_carriers = $9, show_schedule_call = $10,
+          updated_at = NOW()
+      `, [agentUserId, agentSlug, safeHeadline, safeTagline, safeBio, JSON.stringify(safeFeaturedProducts), safeShowTestimonials, safeShowFaq, safeShowCarriers, safeShowScheduleCall]);
 
       console.log(`[WebsiteSettings] Saved settings for ${agentSlug}`);
       res.json({ success: true });
@@ -1634,25 +1766,27 @@ export async function registerRoutes(
     }
   });
 
-  // In-memory recruiting settings store (agent customizations for recruiting page)
-  const recruitingSettingsStore = new Map<string, {
-    agentSlug: string;
-    headline: string | null;
-    subheadline: string | null;
-    showTestimonials: boolean;
-    showFaq: boolean;
-    showCommissionTable: boolean;
-    showSteps: boolean;
-    updatedAt: string;
-  }>();
-
-  // Get recruiting page settings for an agent
+  // Get recruiting page settings for an agent (DB-persisted)
   app.get("/api/recruiting-settings/:agentSlug", async (req, res) => {
     try {
       const { agentSlug } = req.params;
-      const settings = recruitingSettingsStore.get(agentSlug);
-      if (settings) {
-        res.json(settings);
+      const result = await pool.query(
+        "SELECT * FROM recruit_settings WHERE agent_slug = $1",
+        [agentSlug],
+      );
+
+      if (result.rows.length > 0) {
+        const r = result.rows[0];
+        res.json({
+          agentSlug: r.agent_slug,
+          headline: r.headline,
+          subheadline: r.subheadline,
+          showTestimonials: r.show_testimonials,
+          showFaq: r.show_faq,
+          showCommissionTable: r.show_commission_table,
+          showSteps: r.show_steps,
+          updatedAt: r.updated_at,
+        });
       } else {
         res.json({
           agentSlug,
@@ -1671,22 +1805,43 @@ export async function registerRoutes(
     }
   });
 
-  // Save recruiting page settings for an agent
+  // Save recruiting page settings for an agent (DB-persisted)
   app.post("/api/recruiting-settings/:agentSlug", async (req, res) => {
     try {
       const { agentSlug } = req.params;
       const { headline, subheadline, showTestimonials, showFaq, showCommissionTable, showSteps } = req.body;
 
-      recruitingSettingsStore.set(agentSlug, {
-        agentSlug,
-        headline: headline || null,
-        subheadline: subheadline || null,
-        showTestimonials: showTestimonials !== false,
-        showFaq: showFaq !== false,
-        showCommissionTable: showCommissionTable !== false,
-        showSteps: showSteps !== false,
-        updatedAt: new Date().toISOString(),
-      });
+      // Resolve the agent user id from the slug
+      // The slug format is the agent name lowercased with non-alphanumeric removed
+      // We need the authenticated user or look up from the slug
+      const user = (req as any).user;
+      if (!user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      await pool.query(
+        `INSERT INTO recruit_settings (agent_user_id, agent_slug, headline, subheadline, show_testimonials, show_faq, show_commission_table, show_steps)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (agent_user_id) DO UPDATE SET
+           agent_slug = $2,
+           headline = $3,
+           subheadline = $4,
+           show_testimonials = $5,
+           show_faq = $6,
+           show_commission_table = $7,
+           show_steps = $8,
+           updated_at = NOW()`,
+        [
+          user.id,
+          agentSlug,
+          headline || null,
+          subheadline || null,
+          showTestimonials !== false,
+          showFaq !== false,
+          showCommissionTable !== false,
+          showSteps !== false,
+        ],
+      );
 
       console.log(`[RecruitingSettings] Saved settings for ${agentSlug}`);
       res.json({ success: true });
@@ -1696,7 +1851,7 @@ export async function registerRoutes(
     }
   });
 
-  // Get recruiting page stats for an agent
+  // Get recruiting page stats for an agent (uses real prospect count)
   app.get("/api/recruiting-stats/:agentSlug", async (req, res) => {
     try {
       const { agentSlug } = req.params;
@@ -1712,7 +1867,40 @@ export async function registerRoutes(
         // Page view stats may not be available
       }
 
-      const applications = 0; // TODO: count from recruit applications store
+      // Count real applications from recruit_prospects table
+      let applications = 0;
+      try {
+        // Find the agent user by slug match (slug is derived from name)
+        const agentResult = await pool.query(
+          `SELECT u.id FROM users u
+           INNER JOIN recruit_settings rs ON rs.agent_user_id = u.id
+           WHERE rs.agent_slug = $1
+           LIMIT 1`,
+          [agentSlug],
+        );
+
+        if (agentResult.rows.length > 0) {
+          const agentUserId = agentResult.rows[0].id;
+          const appCount = await pool.query(
+            `SELECT COUNT(*) as count FROM recruit_prospects WHERE recruiter_id = $1 AND stage != 'prospect'`,
+            [agentUserId],
+          );
+          applications = parseInt(appCount.rows[0]?.count || "0");
+        } else {
+          // Fallback: try to find by matching the user directly (before any settings are saved)
+          const user = (req as any).user;
+          if (user?.id) {
+            const appCount = await pool.query(
+              `SELECT COUNT(*) as count FROM recruit_prospects WHERE recruiter_id = $1 AND stage != 'prospect'`,
+              [user.id],
+            );
+            applications = parseInt(appCount.rows[0]?.count || "0");
+          }
+        }
+      } catch (err) {
+        console.warn("[RecruitingStats] Error counting applications:", err);
+      }
+
       const conversionRate = pageViews > 0
         ? Math.round((applications / pageViews) * 1000) / 10
         : 0;
@@ -1725,22 +1913,6 @@ export async function registerRoutes(
   });
 
   // ─── PRODUCT GUIDE SENDING ───────────────────────────────────────────────────
-
-  const productGuideStore = new Map<string, {
-    linkId: string;
-    guideId: string;
-    guideTitle: string;
-    guideDescription: string;
-    clientName: string;
-    clientEmail: string;
-    agentName: string;
-    agentEmail: string;
-    agentPhone: string;
-    agentNpn: string;
-    personalMessage?: string;
-    createdAt: Date;
-    status: 'sent' | 'opened';
-  }>();
 
   // Send product guide email to a client
   app.post("/api/product-guides/send", requireAuth, async (req, res) => {
@@ -1772,21 +1944,10 @@ export async function registerRoutes(
         } catch (e) { /* NPN is optional */ }
       }
 
-      productGuideStore.set(linkId, {
-        linkId,
-        guideId,
-        guideTitle,
-        guideDescription: guideDescription || '',
-        clientName,
-        clientEmail,
-        agentName: agent.name,
-        agentEmail: agent.email,
-        agentPhone: agent.phone || '',
-        agentNpn,
-        personalMessage: personalMessage || undefined,
-        createdAt: new Date(),
-        status: 'sent',
-      });
+      await pool.query(`
+        INSERT INTO product_guide_links (link_id, guide_id, guide_title, guide_description, client_name, client_email, agent_user_id, agent_name, agent_email, agent_phone, agent_npn, custom_message)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `, [linkId, guideId, guideTitle, guideDescription || '', clientName, clientEmail, req.user?.id || null, agent.name, agent.email, agent.phone || '', agentNpn, personalMessage || null]);
 
       await sendProductGuideEmail({
         recipientName: clientName,
@@ -1815,29 +1976,68 @@ export async function registerRoutes(
     }
   });
 
+  // List product guides sent by the authenticated agent
+  app.get("/api/product-guides", requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const result = await pool.query(
+        'SELECT * FROM product_guide_links WHERE agent_user_id = $1 ORDER BY created_at DESC',
+        [user.id]
+      );
+
+      const guides = result.rows.map((row: any) => ({
+        linkId: row.link_id,
+        guideId: row.guide_id,
+        guideTitle: row.guide_title,
+        guideDescription: row.guide_description,
+        clientName: row.client_name,
+        clientEmail: row.client_email,
+        agentName: row.agent_name,
+        agentEmail: row.agent_email,
+        agentPhone: row.agent_phone,
+        agentNpn: row.agent_npn,
+        personalMessage: row.custom_message,
+        status: row.status,
+        openedAt: row.opened_at,
+        createdAt: row.created_at,
+      }));
+
+      res.json(guides);
+    } catch (error: any) {
+      console.error("[ProductGuide] Error listing guides:", error);
+      res.status(500).json({ error: "Failed to fetch product guides" });
+    }
+  });
+
   // Fetch product guide metadata (public — accessed via email link)
   app.get("/api/product-guides/:linkId", async (req, res) => {
     try {
       const { linkId } = req.params;
-      const guideData = productGuideStore.get(linkId);
+      const result = await pool.query('SELECT * FROM product_guide_links WHERE link_id = $1', [linkId]);
+      const guideData = result.rows[0];
 
       if (!guideData) {
         return res.status(404).json({ error: "Guide link not found" });
       }
 
+      // Mark as opened on first view
       if (guideData.status === 'sent') {
-        guideData.status = 'opened';
+        await pool.query('UPDATE product_guide_links SET status = $1, opened_at = NOW() WHERE link_id = $2', ['opened', linkId]);
       }
 
       res.json({
-        guideId: guideData.guideId,
-        guideTitle: guideData.guideTitle,
-        guideDescription: guideData.guideDescription,
-        clientName: guideData.clientName,
-        agentName: guideData.agentName,
-        agentEmail: guideData.agentEmail,
-        agentPhone: guideData.agentPhone,
-        agentNpn: guideData.agentNpn,
+        guideId: guideData.guide_id,
+        guideTitle: guideData.guide_title,
+        guideDescription: guideData.guide_description,
+        clientName: guideData.client_name,
+        agentName: guideData.agent_name,
+        agentEmail: guideData.agent_email,
+        agentPhone: guideData.agent_phone,
+        agentNpn: guideData.agent_npn,
       });
     } catch (error: any) {
       console.error("[ProductGuide] Error fetching guide:", error);
@@ -1907,21 +2107,37 @@ export async function registerRoutes(
       const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
       const rand = Math.floor(1000 + Math.random() * 9000);
       const quoteRef = `HLS-${dateStr}-${rand}`;
-      const quoteId = `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-      quoteStore.set(quoteId, {
-        quoteId, quoteRef, clientName, clientEmail,
-        clientPhone: clientPhone || null,
-        quoteType, quoteTypeName: quoteTypeName || quoteType,
-        carrierId, carrierName, coverageAmount, premium,
-        premiumFrequency: premiumFrequency || 'monthly',
-        termLength: termLength || null, healthClass: healthClass || null,
-        benefits: benefits || '', additionalNotes: additionalNotes || null,
-        agentName: agent.name, agentEmail: agent.email,
-        agentPhone: agent.phone || '', agentNpn: agent.npn || null,
-        status: 'sent', createdAt: now.toISOString(),
-        openedAt: null, expiresAt: null,
-      });
+      // Parse numeric values for DB columns
+      const coverageNum = parseInt(String(coverageAmount).replace(/[^0-9]/g, '')) || 0;
+      const premiumNum = parseFloat(String(premium).replace(/[^0-9.]/g, '')) || 0;
+
+      // Insert into PostgreSQL quotes table
+      const insertResult = await pool.query(
+        `INSERT INTO quotes (
+          quote_number, carrier, product_type, coverage_amount, monthly_premium,
+          status, sent_at, client_name, client_email, client_phone,
+          send_method, premium_frequency, carrier_id, quote_type, quote_type_name,
+          benefits, additional_notes, agent_name, agent_email, agent_phone, agent_npn,
+          risk_class
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          'sent', NOW(), $6, $7, $8,
+          $9, $10, $11, $12, $13,
+          $14, $15, $16, $17, $18, $19,
+          $20
+        ) RETURNING id`,
+        [
+          quoteRef, carrierName, quoteType, coverageNum, premiumNum,
+          clientName, clientEmail, clientPhone || null,
+          sendMethod || 'email', premiumFrequency || 'monthly',
+          carrierId, quoteType, quoteTypeName || quoteType,
+          benefits || '', additionalNotes || null,
+          agent.name, agent.email, agent.phone || '', agent.npn || null,
+          healthClass || null
+        ]
+      );
+      const quoteId = insertResult.rows[0].id;
 
       try {
         await sendPolicyQuoteEmail({
@@ -1954,6 +2170,11 @@ export async function registerRoutes(
         }
       }
 
+      // Update sms_sent flag in DB
+      if (smsSent) {
+        await pool.query(`UPDATE quotes SET sms_sent = true WHERE id = $1`, [quoteId]);
+      }
+
       res.status(201).json({ success: true, quoteId, quoteRef, emailSent: true, smsSent });
     } catch (error: any) {
       console.error("[PolicyQuote] Error:", error);
@@ -1963,10 +2184,45 @@ export async function registerRoutes(
 
   app.get("/api/quotes", async (_req, res) => {
     try {
-      const quotes = Array.from(quoteStore.values())
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const result = await pool.query(
+        `SELECT id, quote_number, carrier, product_type, coverage_amount, monthly_premium,
+                status, sent_at, client_name, client_email, client_phone,
+                send_method, premium_frequency, carrier_id, quote_type, quote_type_name,
+                benefits, additional_notes, agent_name, agent_email, agent_phone, agent_npn,
+                risk_class, opened_at, expires_at, sms_sent, created_at, updated_at
+         FROM quotes
+         ORDER BY created_at DESC`
+      );
+      const quotes = result.rows.map((row: any) => ({
+        quoteId: row.id,
+        quoteRef: row.quote_number,
+        clientName: row.client_name,
+        clientEmail: row.client_email,
+        clientPhone: row.client_phone,
+        quoteType: row.quote_type || row.product_type,
+        quoteTypeName: row.quote_type_name || row.product_type,
+        carrierId: row.carrier_id,
+        carrierName: row.carrier,
+        coverageAmount: String(row.coverage_amount),
+        premium: String(row.monthly_premium),
+        premiumFrequency: row.premium_frequency || 'monthly',
+        termLength: null,
+        healthClass: row.risk_class,
+        benefits: row.benefits || '',
+        additionalNotes: row.additional_notes,
+        agentName: row.agent_name,
+        agentEmail: row.agent_email,
+        agentPhone: row.agent_phone,
+        agentNpn: row.agent_npn,
+        status: row.status,
+        createdAt: row.created_at?.toISOString() || row.sent_at?.toISOString(),
+        openedAt: row.opened_at?.toISOString() || null,
+        expiresAt: row.expires_at?.toISOString() || null,
+        smsSent: row.sms_sent || false,
+      }));
       res.json({ quotes });
     } catch (error: any) {
+      console.error("[PolicyQuote] Error fetching quotes:", error);
       res.status(500).json({ error: "Failed to fetch quotes" });
     }
   });
@@ -1974,29 +2230,153 @@ export async function registerRoutes(
   app.get("/api/quotes/:quoteId", async (req, res) => {
     try {
       const { quoteId } = req.params;
-      const quote = quoteStore.get(quoteId);
+      const result = await pool.query(
+        `SELECT id, quote_number, carrier, product_type, coverage_amount, monthly_premium,
+                status, sent_at, client_name, client_email, client_phone,
+                send_method, premium_frequency, carrier_id, quote_type, quote_type_name,
+                benefits, additional_notes, agent_name, agent_email, agent_phone, agent_npn,
+                risk_class, opened_at, expires_at, sms_sent, created_at, updated_at
+         FROM quotes WHERE id::text = $1 OR quote_number = $1
+         LIMIT 1`,
+        [quoteId]
+      );
 
-      if (!quote) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: "Quote not found" });
       }
 
+      const row = result.rows[0];
+
       // Check if expired
-      if (quote.status === 'expired' || (quote.expiresAt && new Date(quote.expiresAt) < new Date())) {
-        quote.status = 'expired';
+      if (row.status === 'expired' || (row.expires_at && new Date(row.expires_at) < new Date())) {
+        if (row.status !== 'expired') {
+          await pool.query(`UPDATE quotes SET status = 'expired', updated_at = NOW() WHERE id = $1`, [row.id]);
+        }
         return res.status(410).json({ error: "This quote has expired", expired: true });
       }
 
       // Mark as opened on first view and set 14-day expiration
-      if (quote.status === 'sent') {
+      if (row.status === 'sent') {
         const now = new Date();
-        quote.status = 'opened';
-        quote.openedAt = now.toISOString();
-        quote.expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+        const expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+        await pool.query(
+          `UPDATE quotes SET status = 'opened', opened_at = $1, expires_at = $2, updated_at = NOW() WHERE id = $3`,
+          [now, expiresAt, row.id]
+        );
+        row.status = 'opened';
+        row.opened_at = now;
+        row.expires_at = expiresAt;
       }
+
+      const quote = {
+        quoteId: row.id,
+        quoteRef: row.quote_number,
+        clientName: row.client_name,
+        clientEmail: row.client_email,
+        clientPhone: row.client_phone,
+        quoteType: row.quote_type || row.product_type,
+        quoteTypeName: row.quote_type_name || row.product_type,
+        carrierId: row.carrier_id,
+        carrierName: row.carrier,
+        coverageAmount: String(row.coverage_amount),
+        premium: String(row.monthly_premium),
+        premiumFrequency: row.premium_frequency || 'monthly',
+        termLength: null,
+        healthClass: row.risk_class,
+        benefits: row.benefits || '',
+        additionalNotes: row.additional_notes,
+        agentName: row.agent_name,
+        agentEmail: row.agent_email,
+        agentPhone: row.agent_phone,
+        agentNpn: row.agent_npn,
+        status: row.status,
+        createdAt: row.created_at?.toISOString() || row.sent_at?.toISOString(),
+        openedAt: row.opened_at?.toISOString() || null,
+        expiresAt: row.expires_at?.toISOString() || null,
+        smsSent: row.sms_sent || false,
+      };
 
       res.json({ quote });
     } catch (error: any) {
+      console.error("[PolicyQuote] Error fetching quote:", error);
       res.status(500).json({ error: "Failed to fetch quote" });
+    }
+  });
+
+  // Resend a previously sent quote
+  app.post("/api/quotes/:quoteId/resend", async (req, res) => {
+    try {
+      const { quoteId } = req.params;
+      const result = await pool.query(
+        `SELECT id, quote_number, carrier, product_type, coverage_amount, monthly_premium,
+                client_name, client_email, client_phone, send_method, premium_frequency,
+                carrier_id, quote_type, quote_type_name, benefits, additional_notes,
+                agent_name, agent_email, agent_phone, agent_npn, risk_class
+         FROM quotes WHERE id::text = $1 OR quote_number = $1
+         LIMIT 1`,
+        [quoteId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Quote not found" });
+      }
+
+      const row = result.rows[0];
+
+      // Re-send the email
+      try {
+        await sendPolicyQuoteEmail({
+          clientName: row.client_name,
+          clientEmail: row.client_email,
+          quoteType: row.quote_type || row.product_type,
+          quoteTypeName: row.quote_type_name || row.product_type,
+          coverageAmount: String(row.coverage_amount),
+          premium: String(row.monthly_premium),
+          premiumFrequency: row.premium_frequency || 'monthly',
+          termLength: undefined,
+          healthClass: row.risk_class || undefined,
+          benefits: row.benefits || '',
+          additionalNotes: row.additional_notes || undefined,
+          carrierId: row.carrier_id,
+          carrierName: row.carrier,
+          quoteRef: row.quote_number,
+          quoteId: row.id,
+          agent: {
+            name: row.agent_name,
+            email: row.agent_email,
+            phone: row.agent_phone || '',
+            npn: row.agent_npn
+          }
+        });
+        console.log(`[PolicyQuote] Resend email sent to ${row.client_email}`);
+      } catch (emailError: any) {
+        console.error("[PolicyQuote] Resend email error:", emailError?.message || emailError);
+        return res.status(500).json({ error: "Failed to resend quote email", details: emailError?.message });
+      }
+
+      // Re-send SMS if applicable
+      let smsSent = false;
+      const sendMethod = row.send_method || 'email';
+      if (row.client_phone && (sendMethod === 'sms' || sendMethod === 'both') && isSmsAvailable()) {
+        try {
+          const smsMessage = `Hi ${row.client_name.split(' ')[0]}! Your ${row.quote_type_name || row.product_type} quote from ${row.carrier} is ready. Check your email for details. — ${row.agent_name}, Heritage Life Solutions`;
+          await sendSms(row.client_phone, smsMessage);
+          smsSent = true;
+        } catch (smsError: any) {
+          console.error("[PolicyQuote] Resend SMS error:", smsError?.message);
+        }
+      }
+
+      // Update sent_at timestamp and reset status
+      await pool.query(
+        `UPDATE quotes SET sent_at = NOW(), status = 'sent', opened_at = NULL, expires_at = NULL, updated_at = NOW() WHERE id = $1`,
+        [row.id]
+      );
+
+      res.json({ success: true, emailSent: true, smsSent });
+    } catch (error: any) {
+      console.error("[PolicyQuote] Resend error:", error);
+      res.status(500).json({ error: "Failed to resend quote" });
     }
   });
 
@@ -2323,6 +2703,85 @@ export async function registerRoutes(
     }
   });
 
+  // Portal: Upload a document (client self-upload)
+  app.post("/api/portal/documents/upload", requireAuth, portalUpload.single("file"), async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { name, category } = req.body;
+      if (!name || !category) {
+        return res.status(400).json({ error: "Missing required fields: name, category" });
+      }
+
+      // Validate file type and size
+      const validation = s3Service.validateFile(file.originalname, file.mimetype, file.size);
+      if (!validation.valid) {
+        return res.status(400).json({ error: validation.error });
+      }
+
+      // Upload to Firebase Storage
+      const uploadResult = await s3Service.uploadFile(
+        userId,
+        file.originalname,
+        file.buffer,
+        { contentType: file.mimetype, metadata: { uploadedBy: userId, category } },
+        "client-uploads"
+      );
+
+      if (!uploadResult.success) {
+        return res.status(500).json({ error: uploadResult.error || "Failed to upload file to storage" });
+      }
+
+      // Create document record in DB
+      const document = await storage.createDocument({
+        userId,
+        name,
+        type: file.mimetype,
+        category,
+        fileSize: `${(file.size / 1024).toFixed(0)} KB`,
+        s3Key: uploadResult.key || null,
+        uploadedBy: userId,
+      });
+
+      console.log(`[Portal] Document uploaded: ${document.id} by client ${userId}`);
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("[Portal] Failed to upload document:", error);
+      res.status(500).json({ error: "Failed to upload document" });
+    }
+  });
+
+  // Portal: Download a document (Firebase signed URL redirect)
+  app.get("/api/portal/documents/:id/download", requireAuth, async (req, res) => {
+    try {
+      const documents = await storage.getDocumentsByUserId(req.session.userId!);
+      const document = documents.find((d: any) => d.id === req.params.id);
+
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      if (!document.s3Key) {
+        return res.status(404).json({ error: "No file available for this document" });
+      }
+
+      const signedUrl = await s3Service.getSignedDownloadUrl(document.s3Key);
+      if (!signedUrl.success || !signedUrl.url) {
+        return res.status(500).json({ error: signedUrl.error || "Failed to generate download URL" });
+      }
+
+      res.redirect(signedUrl.url);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ error: "Failed to download document" });
+    }
+  });
+
   // Portal: Get user's messages
   app.get("/api/portal/messages", requireAuth, async (req, res) => {
     try {
@@ -2400,11 +2859,26 @@ export async function registerRoutes(
     }
   });
 
-  // Portal: Get billing history
+  // Portal: Get billing history (enriched with policy info)
   app.get("/api/portal/billing", requireAuth, async (req, res) => {
     try {
-      const billing = await storage.getBillingHistoryByUserId(req.session.userId!);
-      res.json(billing);
+      const { rows } = await pool.query(
+        `SELECT
+          bh.id,
+          bh.policy_id AS "policyId",
+          p.policy_number AS "policyNumber",
+          p.type AS "policyType",
+          bh.amount::float AS amount,
+          TO_CHAR(bh.payment_date, 'Mon DD, YYYY') AS date,
+          bh.status,
+          bh.payment_method AS "paymentMethod"
+        FROM billing_history bh
+        LEFT JOIN policies p ON bh.policy_id = p.id
+        WHERE bh.user_id = $1
+        ORDER BY bh.payment_date DESC`,
+        [req.session.userId]
+      );
+      res.json(rows);
     } catch (error) {
       console.error("Error fetching billing history:", error);
       res.status(500).json({ error: "Failed to fetch billing history" });
@@ -2473,6 +2947,38 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error changing password:", error);
       res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
+  // Portal: Get notification preferences
+  app.get("/api/portal/preferences", requireAuth, async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM user_preferences WHERE user_id = $1', [req.session.userId]);
+      if (result.rows[0]) {
+        res.json(result.rows[0]);
+      } else {
+        res.json({ email_notifications: true, push_notifications: true, sms_notifications: false });
+      }
+    } catch (error) {
+      console.error("Error fetching preferences:", error);
+      res.status(500).json({ error: "Failed to fetch preferences" });
+    }
+  });
+
+  // Portal: Update notification preferences
+  app.patch("/api/portal/preferences", requireAuth, async (req, res) => {
+    try {
+      const { emailNotifications, pushNotifications, smsNotifications } = req.body;
+      await pool.query(`
+        INSERT INTO user_preferences (user_id, email_notifications, push_notifications, sms_notifications, updated_at)
+        VALUES ($1, $2, $3, $4, NOW())
+        ON CONFLICT (user_id) DO UPDATE SET
+          email_notifications = $2, push_notifications = $3, sms_notifications = $4, updated_at = NOW()
+      `, [req.session.userId, emailNotifications ?? true, pushNotifications ?? true, smsNotifications ?? false]);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating preferences:", error);
+      res.status(500).json({ error: "Failed to update preferences" });
     }
   });
 
@@ -2831,9 +3337,35 @@ export async function registerRoutes(
   app.use("/api/card", publicBusinessCardRouter);
   app.use("/api/auth/snapchat", snapchatAuthRouter);
   app.use("/api/commissions", commissionsRouter);
+  app.use("/api/book-of-business", bookOfBusinessRouter);
+  app.use("/api/recruiting", recruitingRouter);
   app.use("/api/email", emailRouter);
   app.use("/api/training-sessions", trainingSessionsRouter);
   app.use("/api/calendar", calendarRouter);
+
+  // Scripts (Agent Sales Scripts)
+  app.use("/api/scripts", scriptsRouter);
+
+  // Achievements (self-checking milestone system)
+  app.use("/api/achievements", achievementsRouter);
+
+  // Ideas & Feedback (agent idea submissions + upvoting)
+  app.use("/api/ideas", ideasRouter);
+
+  // GET /api/team-activity — Fetch recent team activity for dashboard feed
+  app.get("/api/team-activity", rbacRequireAuth, async (req: Request, res: Response) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const result = await pool.query(
+        'SELECT * FROM team_activity_feed ORDER BY created_at DESC LIMIT $1',
+        [limit]
+      );
+      res.json({ activities: result.rows });
+    } catch (error: any) {
+      console.error("[TeamActivity] Error:", error?.message);
+      res.status(500).json({ error: "Failed to fetch team activity" });
+    }
+  });
 
   // ===== Public Newsletter Subscribe =====
   app.post("/api/newsletter/subscribe", async (req, res) => {

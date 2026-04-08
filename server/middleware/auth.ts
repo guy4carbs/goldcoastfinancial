@@ -38,6 +38,7 @@ export interface AuthenticatedUser {
   isActive: boolean;
   twoFactorEnabled: boolean;
   twoFactorVerified?: boolean; // Set during session if 2FA passed
+  assignedAgentId?: string | null; // FK to assigned agent (set during lead conversion)
 }
 
 // =============================================================================
@@ -76,6 +77,7 @@ export async function attachUser(req: Request, res: Response, next: NextFunction
         isActive: user.isActive,
         twoFactorEnabled: user.twoFactorEnabled ?? false,
         twoFactorVerified: req.session.twoFactorVerified ?? false,
+        assignedAgentId: user.assignedAgentId ?? null,
       };
     }
   } catch (error) {

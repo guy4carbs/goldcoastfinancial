@@ -6,7 +6,7 @@
  * Flow: Hero → Quick Actions → Stats → Golden Ratio Content Grid → Activity Timeline
  */
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
@@ -32,8 +32,10 @@ import {
   POLICY_STATUS_COLORS,
   fmtCurrency,
 } from './clientConstants';
-import { usePortalPolicies, usePortalBilling, usePortalNotifications } from '@/hooks/usePortalData';
+import { usePortalPolicies, usePortalBilling, usePortalNotifications, useMyAgent, useUnreadMessageCount } from '@/hooks/usePortalData';
 import { useAuth } from '@/hooks/use-auth';
+import { useWebSocket } from '@/providers/WebSocketProvider';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Shield,
   FileText,
@@ -101,6 +103,36 @@ export default function ClientDashboard() {
   const { data: policies = [] } = usePortalPolicies();
   const { data: billing = [] } = usePortalBilling();
   const { data: notifications = [] } = usePortalNotifications();
+  const { data: agent } = useMyAgent();
+  const { data: unreadData } = useUnreadMessageCount();
+  const unreadMessages = unreadData?.count ?? 0;
+
+  // WebSocket: subscribe to client channels for real-time updates
+  const { subscribe, addMessageHandler } = useWebSocket();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    subscribe('my-policies');
+    subscribe('my-claims');
+    subscribe('notifications');
+  }, [subscribe]);
+
+  useEffect(() => {
+    const cleanup = addMessageHandler((data: any, channel: string | undefined) => {
+      if (channel === 'my-policies') {
+        queryClient.invalidateQueries({ queryKey: ['/api/portal/policies'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/portal/dashboard'] });
+      }
+      if (channel === 'my-claims') {
+        queryClient.invalidateQueries({ queryKey: ['/api/client-portal/claims'] });
+      }
+      if (channel === 'notifications') {
+        queryClient.invalidateQueries({ queryKey: ['/api/portal/notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/portal/messages/unread-count'] });
+      }
+    });
+    return cleanup;
+  }, [addMessageHandler, queryClient]);
 
   // Upcoming payments: filter for pending status
   const upcomingPayments = billing.filter((b) => b.status === 'pending').slice(0, 3);
@@ -367,7 +399,7 @@ export default function ClientDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.xs }}>
                 {summaryPolicies.map((policy) => {
                   const PolicyIcon = POLICY_TYPE_ICONS[policy.type] || Shield;
-                  const statusColors = POLICY_STATUS_COLORS[policy.status];
+                  const statusColors = POLICY_STATUS_COLORS[policy.status] || POLICY_STATUS_COLORS.active;
                   return (
                     <div
                       key={policy.id}
@@ -481,16 +513,16 @@ export default function ClientDashboard() {
                     color: '#fde68a',
                   }}
                 >
-                  YA
+                  {agent ? `${agent.firstName[0]}${agent.lastName[0]}` : '—'}
                 </div>
 
                 {/* Agent info */}
                 <div>
                   <p className="font-bold text-white" style={{ fontSize: TYPE.body }}>
-                    Your Advisor
+                    {agent ? `${agent.firstName} ${agent.lastName}` : 'No Advisor Assigned'}
                   </p>
                   <p className="text-white/60" style={{ fontSize: TYPE.caption }}>
-                    Contact your agent for assistance
+                    {agent?.email || 'Contact support for assistance'}
                   </p>
                 </div>
 
@@ -508,29 +540,31 @@ export default function ClientDashboard() {
                     }}
                   >
                     <MessageSquare size={14} className="text-amber-300 flex-shrink-0" />
-                    <span className="truncate">Send a message</span>
+                    <span className="truncate">{agent ? 'Send a message' : 'No messages available'}</span>
                   </div>
-                  <div
-                    className="flex items-center gap-2 text-white/85"
-                    style={{
-                      padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
-                      backgroundColor: 'rgba(255,255,255,0.12)',
-                      backdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: RADIUS.input,
-                      fontSize: TYPE.caption,
-                    }}
-                  >
-                    <Phone size={14} className="text-amber-300 flex-shrink-0" />
-                    <span>Schedule a call</span>
-                  </div>
+                  {agent?.phone && (
+                    <div
+                      className="flex items-center gap-2 text-white/85"
+                      style={{
+                        padding: `${GRID.spacing.xs}px ${GRID.spacing.sm}px`,
+                        backgroundColor: 'rgba(255,255,255,0.12)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        borderRadius: RADIUS.input,
+                        fontSize: TYPE.caption,
+                      }}
+                    >
+                      <Phone size={14} className="text-amber-300 flex-shrink-0" />
+                      <span>{agent.phone}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Action buttons */}
                 <div className="flex w-full" style={{ gap: GRID.spacing.xs }}>
                   <Button
                     variant="outline"
-                    className="flex-1 font-semibold hover:opacity-90"
+                    className="flex-1 font-semibold hover:opacity-90 relative"
                     style={{
                       borderRadius: RADIUS.button,
                       background: 'rgba(255,255,255,0.15)',
@@ -543,6 +577,23 @@ export default function ClientDashboard() {
                     <Link href="/client/messages">
                       <MessageSquare size={LAYOUT.icon.sm} className="mr-1.5" />
                       Message
+                      {unreadMessages > 0 && (
+                        <span
+                          className="absolute flex items-center justify-center font-bold text-white bg-red-500"
+                          style={{
+                            top: -4,
+                            right: -4,
+                            minWidth: 18,
+                            height: 18,
+                            borderRadius: RADIUS.pill,
+                            fontSize: 10,
+                            padding: '0 4px',
+                            border: '2px solid rgba(255,255,255,0.3)',
+                          }}
+                        >
+                          {unreadMessages > 9 ? '9+' : unreadMessages}
+                        </span>
+                      )}
                     </Link>
                   </Button>
                   <Button

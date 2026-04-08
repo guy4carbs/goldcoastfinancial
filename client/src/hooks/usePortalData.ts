@@ -51,6 +51,7 @@ export interface PortalDocument {
   fileSize: string;
   isNew: boolean;
   policyId?: string;
+  s3Key?: string | null;
 }
 
 export interface PortalBillingRecord {
@@ -207,14 +208,41 @@ export function usePortalDashboard() {
 }
 
 /**
+ * Fetch the client's assigned agent info for display.
+ * Endpoint: GET /api/client-portal/my-agent
+ * Returns null if no agent is assigned or agent is inactive.
+ */
+export interface PortalAgent {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  avatarUrl: string | null;
+}
+
+export function useMyAgent() {
+  return useQuery<PortalAgent | null>({
+    queryKey: ['/api/client-portal/my-agent'],
+  });
+}
+
+/**
+ * Fetch unread message count for the client.
+ * Endpoint: GET /api/portal/messages/unread-count
+ */
+export function useUnreadMessageCount() {
+  return useQuery<{ count: number }>({
+    queryKey: ['/api/portal/messages/unread-count'],
+  });
+}
+
+/**
  * Fetch onboarding status for newly converted clients.
- * Endpoint: GET /api/portal/onboarding-status (not yet implemented on backend)
+ * Endpoint: GET /api/portal/onboarding-status
  */
 export function useOnboardingStatus() {
   return useQuery<OnboardingStatus>({
     queryKey: ['/api/portal/onboarding-status'],
-    // Backend endpoint not yet created — disable to avoid 404 errors.
-    // Remove this line once the endpoint is live.
-    enabled: false,
   });
 }

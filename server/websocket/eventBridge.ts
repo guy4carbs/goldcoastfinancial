@@ -216,8 +216,29 @@ const BRIDGE_RULES: BridgeRule[] = [
     channels: [Channels.MY_TICKETS],
   },
   {
+    eventType: EventType.CLAIM_FILED,
+    channels: [Channels.MY_CLAIMS, Channels.NOTIFICATIONS],
+    transform: (event) => ({
+      type: 'claim_filed',
+      claimNumber: event.payload.claimNumber,
+      clientName: event.payload.clientName,
+      claimType: event.payload.claimType,
+      timestamp: event.timestamp,
+    }),
+  },
+  {
     eventType: EventType.CLAIM_STATUS_UPDATED,
     channels: [Channels.MY_CLAIMS, Channels.MY_POLICIES],
+  },
+  {
+    eventType: EventType.BENEFICIARY_REQUESTED,
+    channels: [Channels.NOTIFICATIONS],
+    transform: (event) => ({
+      type: 'beneficiary_requested',
+      requestType: event.payload.requestType,
+      clientName: event.payload.clientName,
+      timestamp: event.timestamp,
+    }),
   },
   {
     eventType: EventType.CLIENT_RETAINED,

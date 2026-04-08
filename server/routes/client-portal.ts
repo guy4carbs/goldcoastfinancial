@@ -17,6 +17,9 @@ import { storage } from "../storage";
 import { requireAuth, type AuthenticatedUser } from "../middleware/auth";
 import { broadcastToClientChat } from "../websocket";
 import { sendPortalMessage } from "../gmail";
+import { eventBus, EventType } from "../agents/core/event-bus";
+import { notifyUser } from "../websocket/eventBridge";
+import type { GCFWebSocketServer } from "../websocket/GCFWebSocketServer";
 
 const router = Router();
 
@@ -28,27 +31,43 @@ const OWNER_EMAIL = "admin@heritagels.org";
 
 /**
  * Resolves the agent and conversation for a client.
- * If no conversation exists, falls back to the owner account
- * and auto-creates a conversation.
+ * Priority: assignedAgentId → existing conversation → owner fallback.
+ * Verifies agent is active at every step (prevents routing to deactivated agents).
  */
 async function resolveAgentForClient(client: AuthenticatedUser) {
-  // 1. Check for existing conversation (single DB query)
-  const conversations = await storage.getClientConversationsByClientId(client.id);
+  // 1. Check assignedAgentId first (set during lead conversion)
+  if (client.assignedAgentId) {
+    const assignedAgent = await storage.getUserById(client.assignedAgentId);
+    if (assignedAgent && assignedAgent.isActive) {
+      const conversation = await storage.getOrCreateClientConversation(
+        client.id,
+        assignedAgent.id,
+        `${client.firstName} ${client.lastName}`,
+        `${assignedAgent.firstName} ${assignedAgent.lastName}`
+      );
+      return { conversation, agent: assignedAgent };
+    }
+    console.warn(`[ClientPortal] Assigned agent ${client.assignedAgentId} is inactive or not found for client ${client.id} — falling back`);
+  }
 
+  // 2. Check existing conversations (agent may differ from assignedAgentId)
+  const conversations = await storage.getClientConversationsByClientId(client.id);
   if (conversations.length > 0) {
     const conversation = conversations[0];
     const agent = await storage.getUserById(conversation.agentId);
-    if (agent) {
+    if (agent && agent.isActive) {
       return { conversation, agent };
     }
+    console.warn(`[ClientPortal] Conversation agent ${conversation.agentId} is inactive — falling back to owner`);
   }
 
-  // 2. Fallback: find owner account and create conversation
+  // 3. Fallback: route to owner account
   const owner = await storage.getUserByEmail(OWNER_EMAIL);
   if (!owner) {
-    console.error("[ClientPortal] Owner account not found - cannot route beneficiary request");
+    console.error("[ClientPortal] Owner account not found — cannot route client request");
     return null;
   }
+  console.warn(`[ClientPortal] No active agent found for client ${client.id} — routing to owner`);
 
   const conversation = await storage.getOrCreateClientConversation(
     client.id,
@@ -59,6 +78,64 @@ async function resolveAgentForClient(client: AuthenticatedUser) {
 
   return { conversation, agent: owner };
 }
+
+// ============================================
+// WEBSOCKET NOTIFICATION HELPER
+// ============================================
+
+/**
+ * Broadcast a notification via WebSocket after persisting to DB.
+ * Non-blocking — failures are logged but don't affect the response.
+ */
+function broadcastNotification(
+  req: Request,
+  userId: string,
+  notification: { type: string; title: string; message: string; data?: any }
+) {
+  try {
+    const wsServer: GCFWebSocketServer | undefined = req.app.get('wsServer');
+    if (wsServer) {
+      notifyUser(wsServer, userId, notification);
+    }
+  } catch (err) {
+    console.error('[ClientPortal] WebSocket notification broadcast failed:', err);
+  }
+}
+
+// ============================================
+// GET ASSIGNED AGENT
+// ============================================
+
+/**
+ * GET /api/client-portal/my-agent
+ * Fetch the client's assigned agent info (sanitized for display)
+ */
+router.get("/my-agent", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const client = req.user! as AuthenticatedUser;
+
+    if (!client.assignedAgentId) {
+      return res.json(null);
+    }
+
+    const agent = await storage.getUserById(client.assignedAgentId);
+    if (!agent || !agent.isActive) {
+      return res.json(null);
+    }
+
+    res.json({
+      id: agent.id,
+      firstName: agent.firstName,
+      lastName: agent.lastName,
+      email: agent.email,
+      phone: agent.phone ?? null,
+      avatarUrl: agent.avatarUrl ?? null,
+    });
+  } catch (error: any) {
+    console.error("[ClientPortal] Failed to fetch agent info:", error);
+    res.status(500).json({ error: "Failed to fetch agent info" });
+  }
+});
 
 // ============================================
 // GET CLIENT CLAIMS
@@ -167,6 +244,13 @@ router.post("/beneficiary-request", requireAuth, async (req: Request, res: Respo
 
       channels.notification = true;
       console.log(`[ClientPortal] Notification sent to agent ${agent.id}`);
+
+      // Push via WebSocket so agent sees it in real-time
+      broadcastNotification(req, agent.id, {
+        type: 'beneficiary_request',
+        title: subjectLine,
+        message: `${client.firstName} ${client.lastName} has submitted a beneficiary ${body.requestType} request.`,
+      });
     } catch (notifErr) {
       console.error("[ClientPortal] Notification delivery failed:", notifErr);
     }
@@ -189,11 +273,39 @@ router.post("/beneficiary-request", requireAuth, async (req: Request, res: Respo
       console.error("[ClientPortal] Email delivery failed:", emailErr);
     }
 
-    res.status(201).json({
-      success: true,
+    // ── Emit EventBus event for real-time channel broadcast ──
+    try {
+      eventBus.emit({
+        type: EventType.BENEFICIARY_REQUESTED,
+        source: 'client-portal',
+        payload: {
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+          agentId: agent.id,
+          requestType: body.requestType,
+          policyNumber: body.policyNumber,
+        },
+        metadata: { tier: 7, priority: body.requestType === 'delete' ? 'high' : 'normal' },
+      } as any);
+    } catch (eventErr) {
+      console.error('[ClientPortal] EventBus emit failed (non-blocking):', eventErr);
+    }
+
+    // Determine success: at least one primary channel must work
+    const success = channels.chat || channels.notification;
+    const warnings: string[] = [];
+    if (!channels.chat) warnings.push('Chat delivery failed');
+    if (!channels.notification) warnings.push('In-app notification failed');
+    if (!channels.email) warnings.push('Email notification failed');
+
+    res.status(success ? 201 : 502).json({
+      success,
       requestType: body.requestType,
       channels,
-      message: `Beneficiary ${body.requestType} request submitted successfully`,
+      ...(warnings.length > 0 ? { warnings } : {}),
+      message: success
+        ? `Beneficiary ${body.requestType} request submitted successfully`
+        : 'Request saved but delivery to agent failed. Please contact support.',
     });
   } catch (error: any) {
     console.error("[ClientPortal] Beneficiary request failed:", error);
@@ -305,6 +417,14 @@ router.post("/claim-request", requireAuth, async (req: Request, res: Response) =
 
       channels.notification = true;
       console.log(`[ClientPortal] Notification sent to agent ${agent.id}`);
+
+      // Push via WebSocket so agent sees it in real-time
+      broadcastNotification(req, agent.id, {
+        type: 'claim_request',
+        title: subjectLine,
+        message: `${client.firstName} ${client.lastName} has filed a ${body.claimType} claim.`,
+        data: { claimNumber },
+      });
     } catch (notifErr) {
       console.error("[ClientPortal] Notification delivery failed:", notifErr);
     }
@@ -327,11 +447,40 @@ router.post("/claim-request", requireAuth, async (req: Request, res: Response) =
       console.error("[ClientPortal] Email delivery failed:", emailErr);
     }
 
-    res.status(201).json({
-      success: true,
+    // ── Emit EventBus event for real-time channel broadcast ──
+    try {
+      eventBus.emit({
+        type: EventType.CLAIM_FILED,
+        source: 'client-portal',
+        payload: {
+          claimNumber,
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+          agentId: agent.id,
+          claimType: body.claimType,
+          policyId: body.policyId,
+        },
+        metadata: { tier: 7, priority: body.claimType.includes('Death') ? 'critical' : 'high' },
+      } as any);
+    } catch (eventErr) {
+      console.error('[ClientPortal] EventBus emit failed (non-blocking):', eventErr);
+    }
+
+    // Determine success: at least one primary channel must work
+    const success = channels.chat || channels.notification;
+    const warnings: string[] = [];
+    if (!channels.chat) warnings.push('Chat delivery failed');
+    if (!channels.notification) warnings.push('In-app notification failed');
+    if (!channels.email) warnings.push('Email notification failed');
+
+    res.status(success ? 201 : 502).json({
+      success,
       channels,
       claimNumber,
-      message: "Claim submitted successfully",
+      ...(warnings.length > 0 ? { warnings } : {}),
+      message: success
+        ? 'Claim submitted successfully'
+        : 'Claim saved but delivery to agent failed. Please contact support.',
     });
   } catch (error: any) {
     console.error("[ClientPortal] Claim request failed:", error);
@@ -460,6 +609,14 @@ router.post("/appointment-request", requireAuth, async (req: Request, res: Respo
         actionUrl: "/client-chat",
       });
       channels.notification = true;
+
+      // Push via WebSocket so agent sees it in real-time
+      broadcastNotification(req, agent.id, {
+        type: 'appointment_request',
+        title: subjectLine,
+        message: `${client.firstName} ${client.lastName} has requested a ${meetingTypeLabel.toLowerCase()} appointment.`,
+        data: { appointmentId: appointment?.id },
+      });
     } catch (notifErr) {
       console.error("[ClientPortal] Notification delivery failed:", notifErr);
     }
@@ -480,11 +637,41 @@ router.post("/appointment-request", requireAuth, async (req: Request, res: Respo
       console.error("[ClientPortal] Email delivery failed:", emailErr);
     }
 
-    res.status(201).json({
-      success: true,
+    // ── Emit EventBus event for real-time channel broadcast ──
+    try {
+      eventBus.emit({
+        type: EventType.APPOINTMENT_BOOKED,
+        source: 'client-portal',
+        payload: {
+          appointmentId: appointment?.id,
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+          agentId: agent.id,
+          scheduledAt,
+          topic: body.topic,
+          meetingType: body.meetingType,
+        },
+        metadata: { tier: 3, priority: 'normal' },
+      } as any);
+    } catch (eventErr) {
+      console.error('[ClientPortal] EventBus emit failed (non-blocking):', eventErr);
+    }
+
+    // Determine success: at least one primary channel must work
+    const success = channels.chat || channels.notification;
+    const warnings: string[] = [];
+    if (!channels.chat) warnings.push('Chat delivery failed');
+    if (!channels.notification) warnings.push('In-app notification failed');
+    if (!channels.email) warnings.push('Email notification failed');
+
+    res.status(success ? 201 : 502).json({
+      success,
       channels,
       appointmentId: appointment?.id,
-      message: "Appointment request submitted successfully",
+      ...(warnings.length > 0 ? { warnings } : {}),
+      message: success
+        ? 'Appointment request submitted successfully'
+        : 'Appointment saved but delivery to agent failed. Please contact support.',
     });
   } catch (error: any) {
     console.error("[ClientPortal] Appointment request failed:", error);

@@ -6,7 +6,7 @@
  * Governance: Nova (UI) + Forge (API) + Lumen (flow)
  */
 
-import { useState, useRef, useCallback, useEffect, Fragment } from 'react';
+import { useState, useRef, useCallback, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,9 @@ import { Badge } from '@/components/ui/badge';
 import { ClientLoungeLayout } from './ClientLoungeLayout';
 import { ClientPageHero } from './primitives/ClientPageHero';
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer, GRID } from '@/lib/heritageDesignSystem';
-import { glassCard, DEMO_CLIENT_CLAIMS, CLAIM_STATUS_COLORS, DEMO_CLIENT_POLICIES } from './clientConstants';
+import { glassCard, CLAIM_STATUS_COLORS } from './clientConstants';
+import { usePortalClaims, usePortalPolicies } from '@/hooks/usePortalData';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ClipboardList, FileText, Upload, Clock, CheckCircle, XCircle,
   AlertCircle, ChevronRight, ChevronDown, Plus, X, File, Trash2,
@@ -152,39 +154,23 @@ export default function ClientClaims() {
   const additionalFileInputRef = useRef<HTMLInputElement>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // ─── CLAIMS STATE (fetched from API, fallback to demo) ────
-  const [allClaims, setAllClaims] = useState<ClientClaim[]>(
-    DEMO_CLIENT_CLAIMS.map((c) => ({
-      id: c.id,
-      claimNumber: c.claimNumber,
-      policyId: c.policyId,
-      policyNumber: c.policyNumber,
-      type: c.type,
-      status: c.status as string,
-      description: c.description,
-      amount: c.amount,
-      filedDate: c.filedDate,
-      resolvedDate: c.resolvedDate,
-      lastUpdate: c.lastUpdate,
-    }))
-  );
+  // ─── CLAIMS DATA (live from API via TanStack Query) ────
+  const { data: apiClaims = [], isLoading: claimsLoading } = usePortalClaims();
+  const { data: policies = [] } = usePortalPolicies();
+  const queryClient = useQueryClient();
 
-  const fetchClaims = useCallback(async () => {
-    try {
-      const res = await fetch('/api/client-portal/claims', { credentials: 'include' });
-      if (!res.ok) return; // Silently fall back to demo data
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setAllClaims(data.map(mapApiClaimToClient));
+  // Map API claims to component shape, enrich policyNumber from policies
+  const allClaims: ClientClaim[] = apiClaims.map((c: any) => {
+    const mapped = mapApiClaimToClient(c);
+    // Enrich policyNumber from live policies if available
+    if (mapped.policyId && (!mapped.policyNumber || mapped.policyNumber === mapped.policyId)) {
+      const policy = policies.find((p) => p.id === mapped.policyId);
+      if (policy) {
+        mapped.policyNumber = policy.policyNumber;
       }
-    } catch {
-      // Keep demo data on error
     }
-  }, []);
-
-  useEffect(() => {
-    fetchClaims();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return mapped;
+  });
 
   // Split claims into active vs resolved
   const activeClaims = allClaims.filter(
@@ -264,7 +250,7 @@ export default function ClientClaims() {
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const selectedPolicy = DEMO_CLIENT_POLICIES.find((p) => p.id === formPolicy);
+    const selectedPolicy = policies.find((p) => p.id === formPolicy);
 
     try {
       const res = await fetch('/api/client-portal/claim-request', {
@@ -289,14 +275,30 @@ export default function ClientClaims() {
 
       const data = await res.json();
 
-      if (data.channels && !data.channels.chat && !data.channels.notification && !data.channels.email) {
-        setFormSubmitted(true);
-      } else {
-        setFormSubmitted(true);
+      setFormSubmitted(true);
+
+      // Upload attached files to S3 via portal documents endpoint
+      if (uploadedFiles.length > 0) {
+        const claimId = data.claimNumber || 'unknown';
+        for (const uf of uploadedFiles) {
+          try {
+            const formData = new FormData();
+            formData.append('file', uf.file);
+            formData.append('name', `Claim ${claimId} - ${uf.file.name}`);
+            formData.append('category', 'claim');
+            await fetch('/api/portal/documents/upload', {
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+            });
+          } catch (uploadErr) {
+            console.error('Failed to upload claim document:', uploadErr);
+          }
+        }
       }
 
-      // Refetch claims from API to include the new one
-      await fetchClaims();
+      // Refresh claims list
+      queryClient.invalidateQueries({ queryKey: ['/api/client-portal/claims'] });
 
       // Reset after showing success
       setTimeout(() => {
@@ -315,9 +317,25 @@ export default function ClientClaims() {
   };
 
   // ─── ADDITIONAL DOC UPLOAD ──────────────────────────
-  const handleUploadDocuments = () => {
-    if (additionalFiles.length === 0) return;
-    // In production this would upload to S3 and link to the claim
+  const handleUploadDocuments = async () => {
+    if (additionalFiles.length === 0 || !uploadForClaim) return;
+
+    for (const uf of additionalFiles) {
+      try {
+        const formData = new FormData();
+        formData.append('file', uf.file);
+        formData.append('name', `Claim ${uploadForClaim.claimNumber} - ${uf.file.name}`);
+        formData.append('category', 'claim');
+        await fetch('/api/portal/documents/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+      } catch {
+        console.error('Failed to upload additional claim document');
+      }
+    }
+
     setUploadSuccess(true);
     setTimeout(() => {
       setUploadForClaim(null);
@@ -560,7 +578,7 @@ export default function ClientClaims() {
                             style={{ borderRadius: RADIUS.input, fontSize: TYPE.meta }}
                           >
                             <option value="">Choose a policy...</option>
-                            {DEMO_CLIENT_POLICIES.filter((p) => p.status === 'active').map((p) => (
+                            {policies.filter((p) => p.status === 'active').map((p) => (
                               <option key={p.id} value={p.id}>
                                 {p.type} — {p.carrier} ({p.policyNumber})
                               </option>
@@ -690,7 +708,7 @@ export default function ClientClaims() {
           ) : (
             <div className="space-y-4">
               {activeClaims.map((claim) => {
-                const statusColor = CLAIM_STATUS_COLORS[claim.status as keyof typeof CLAIM_STATUS_COLORS];
+                const statusColor = CLAIM_STATUS_COLORS[claim.status as keyof typeof CLAIM_STATUS_COLORS] || CLAIM_STATUS_COLORS.filed;
                 return (
                   <motion.div
                     key={claim.id}
@@ -838,7 +856,7 @@ export default function ClientClaims() {
               <CardContent className="p-2">
                 <div className="space-y-1">
                   {resolvedClaims.map((claim) => {
-                    const statusColor = CLAIM_STATUS_COLORS[claim.status as keyof typeof CLAIM_STATUS_COLORS];
+                    const statusColor = CLAIM_STATUS_COLORS[claim.status as keyof typeof CLAIM_STATUS_COLORS] || CLAIM_STATUS_COLORS.filed;
                     return (
                       <motion.div
                         key={claim.id}
@@ -946,7 +964,7 @@ export default function ClientClaims() {
               <div className="px-6 py-5 space-y-5">
                 {/* Status badge */}
                 {(() => {
-                  const sc = CLAIM_STATUS_COLORS[viewClaim.status as keyof typeof CLAIM_STATUS_COLORS];
+                  const sc = CLAIM_STATUS_COLORS[viewClaim.status as keyof typeof CLAIM_STATUS_COLORS] || CLAIM_STATUS_COLORS.filed;
                   return (
                     <div className="flex items-center justify-between">
                       <Badge className={cn(sc.bg, sc.text, 'hover:opacity-90 border-0 gap-1 text-sm px-3 py-1')}>

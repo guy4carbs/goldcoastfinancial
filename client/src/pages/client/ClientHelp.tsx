@@ -138,14 +138,30 @@ export default function ClientHelp() {
       return;
     }
     setContactSending(true);
-    // Simulate sending — in production this would hit an API
-    await new Promise((r) => setTimeout(r, 1000));
-    setContactSending(false);
-    setContactSent(true);
-    setContactSubject('');
-    setContactMessage('');
-    toast.success('Support request submitted. Your advisor will respond shortly.');
-    setTimeout(() => setContactSent(false), 5000);
+    try {
+      const res = await fetch('/api/client-portal/beneficiary-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          requestType: 'add',
+          message: `[Support Request] ${contactSubject.trim()}\n\n${contactMessage.trim()}`,
+        }),
+      });
+      if (res.ok) {
+        setContactSent(true);
+        setContactSubject('');
+        setContactMessage('');
+        toast.success('Support request sent to your advisor.');
+        setTimeout(() => setContactSent(false), 5000);
+      } else {
+        toast.error('Failed to send request. Please email support@heritagels.org directly.');
+      }
+    } catch {
+      toast.error('Failed to send request. Please email support@heritagels.org directly.');
+    } finally {
+      setContactSending(false);
+    }
   };
 
   return (

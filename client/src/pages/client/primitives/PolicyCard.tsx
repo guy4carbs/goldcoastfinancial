@@ -53,7 +53,7 @@ interface PolicyCardProps {
 export function PolicyCard({ policy, onClick }: PolicyCardProps) {
   const Icon = POLICY_ICONS[policy.type] ?? Shield;
   const iconGradient = POLICY_ICON_COLORS[policy.type] ?? 'from-gray-500 to-gray-700';
-  const statusColor = POLICY_STATUS_COLORS[policy.status];
+  const statusColor = POLICY_STATUS_COLORS[policy.status] || POLICY_STATUS_COLORS.active;
 
   return (
     <motion.div

@@ -7,13 +7,15 @@
  * Falls back to demo data when not authenticated.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ClientLoungeLayout } from './ClientLoungeLayout';
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer, GRID } from '@/lib/heritageDesignSystem';
-import { glassCard, DEMO_CLIENT_APPOINTMENTS, DEMO_CLIENT } from './clientConstants';
+import { glassCard } from './clientConstants';
+import { usePortalAppointments, useMyAgent } from '@/hooks/usePortalData';
+import { useQueryClient } from '@tanstack/react-query';
 import { Calendar, Clock, Phone, Video, MapPin, Plus, User, ChevronDown, CheckCircle, XCircle, Loader2, ExternalLink, FileText, X, type LucideIcon } from 'lucide-react';
 import { ClientPageHero } from './primitives';
 import { toast } from 'sonner';
@@ -80,8 +82,8 @@ function mapApiAppointment(raw: any): Appointment {
 
   return {
     id: raw.id,
-    agentName: DEMO_CLIENT.agentName,
-    agentAvatar: DEMO_CLIENT.agentAvatar,
+    agentName: raw.agentName || 'Your Advisor',
+    agentAvatar: raw.agentAvatar || 'YA',
     type,
     topic: raw.title || 'Appointment',
     date,
@@ -105,7 +107,10 @@ const inputStyle = {
 const inputFocusClass = 'focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100';
 
 export default function ClientAppointments() {
-  const [appointments, setAppointments] = useState<Appointment[]>([...DEMO_CLIENT_APPOINTMENTS]);
+  const { data: apiAppointments = [] } = usePortalAppointments();
+  const { data: agent } = useMyAgent();
+  const queryClient = useQueryClient();
+
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedApptId, setExpandedApptId] = useState<string | null>(null);
@@ -117,23 +122,18 @@ export default function ClientAppointments() {
   const [formTime, setFormTime] = useState('');
   const [formNotes, setFormNotes] = useState('');
 
-  // ─── Fetch appointments from API ───
-  const fetchAppointments = useCallback(async () => {
-    try {
-      const res = await fetch('/api/client-portal/appointments', { credentials: 'include' });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setAppointments(data.map(mapApiAppointment));
-      }
-    } catch {
-      // Keep demo data on error
-    }
-  }, []);
+  // Map API appointments to component shape, enrich with live agent info
+  const agentName = agent ? `${agent.firstName} ${agent.lastName}` : 'Your Advisor';
+  const agentInitials = agent ? `${agent.firstName[0]}${agent.lastName[0]}` : 'YA';
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+  const appointments: Appointment[] = useMemo(() =>
+    apiAppointments.map((a: any) => ({
+      ...mapApiAppointment(a),
+      agentName: a.agentName || agentName,
+      agentAvatar: a.agentAvatar || agentInitials,
+    })),
+    [apiAppointments, agentName, agentInitials]
+  );
 
   // Partition appointments
   const upcomingAppointments = appointments.filter(a => a.status === 'scheduled');
@@ -170,53 +170,22 @@ export default function ClientAppointments() {
 
       if (res.ok) {
         toast.success('Appointment request submitted! Your advisor will confirm shortly.');
-        // Reset form
         setFormTopic('');
         setFormType('video');
         setFormDate('');
         setFormTime('');
         setFormNotes('');
         setShowScheduleForm(false);
-        // Refetch
-        await fetchAppointments();
+        queryClient.invalidateQueries({ queryKey: ['/api/client-portal/appointments'] });
       } else {
-        // Fallback to local add on API failure
-        addLocalAppointment();
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message || 'Failed to submit appointment request');
       }
     } catch {
-      // Fallback to local add
-      addLocalAppointment();
+      toast.error('Failed to submit appointment request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const addLocalAppointment = () => {
-    const dateObj = new Date(formDate + 'T00:00:00');
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
-
-    const newAppt: Appointment = {
-      id: `appt-${Date.now()}`,
-      agentName: DEMO_CLIENT.agentName,
-      agentAvatar: DEMO_CLIENT.agentAvatar,
-      type: formType,
-      topic: formTopic,
-      date: formattedDate,
-      time: formTime,
-      duration: 30,
-      status: 'scheduled',
-      meetingLink: formType === 'video' ? `https://meet.heritagels.org/session/${Date.now()}` : undefined,
-    };
-
-    setAppointments(prev => [newAppt, ...prev]);
-    setFormTopic('');
-    setFormType('video');
-    setFormDate('');
-    setFormTime('');
-    setFormNotes('');
-    setShowScheduleForm(false);
-    toast.success('Appointment request submitted! Your advisor will confirm shortly.');
   };
 
   const isFormValid = formTopic && formDate && formTime;

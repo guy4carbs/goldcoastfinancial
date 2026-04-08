@@ -140,25 +140,6 @@ function BankLogo({ bankKey, size = 36 }: { bankKey: string; size?: number }) {
   );
 }
 
-// Demo bank accounts on file
-const DEMO_BANK_ACCOUNTS = [
-  {
-    id: 'bank-1',
-    bankKey: 'bank_of_america',
-    accountType: 'Checking',
-    routingLast4: '0322',
-    accountLast4: '7890',
-    isPrimary: true,
-  },
-  {
-    id: 'bank-2',
-    bankKey: 'chase',
-    accountType: 'Checking',
-    routingLast4: '0021',
-    accountLast4: '3456',
-    isPrimary: false,
-  },
-];
 
 // ─── FILTER OPTIONS ────────────────────────────────────
 const FILTER_OPTIONS = [
@@ -378,11 +359,14 @@ export default function ClientBilling() {
                           </div>
                           <Button
                             size="sm"
+                            disabled
                             className="text-white border-0"
                             style={{
-                              background: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)',
+                              background: '#d1d5db',
                               borderRadius: RADIUS.button,
+                              cursor: 'not-allowed',
                             }}
+                            title="Online payments coming soon"
                           >
                             Pay Now
                           </Button>
@@ -465,7 +449,7 @@ export default function ClientBilling() {
               {/* Table rows */}
               <div className="space-y-1">
                 {filteredHistory.map((bill) => {
-                  const statusColor = PAYMENT_STATUS_COLORS[bill.status];
+                  const statusColor = PAYMENT_STATUS_COLORS[bill.status] || PAYMENT_STATUS_COLORS.pending;
                   return (
                     <motion.div
                       key={bill.id}
@@ -538,50 +522,14 @@ export default function ClientBilling() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {DEMO_BANK_ACCOUNTS.map((acct) => {
-                  const brand = BANK_BRANDS[acct.bankKey];
-                  return (
-                    <motion.div
-                      key={acct.id}
-                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.04)' }}
-                      transition={{ duration: MOTION.duration.hover }}
-                      className="flex items-center justify-between p-4 border border-gray-100"
-                      style={{ borderRadius: RADIUS.button }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <BankLogo bankKey={acct.bankKey} />
-                        <div>
-                          <p className="font-semibold text-gray-900" style={{ fontSize: TYPE.meta }}>
-                            {brand?.name || acct.bankKey} - {acct.accountType}
-                          </p>
-                          <p className="text-gray-500 font-mono" style={{ fontSize: TYPE.caption }}>
-                            Routing: ****{acct.routingLast4} &middot; Account: ****{acct.accountLast4}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge className={cn(
-                        'border-0',
-                        acct.isPrimary
-                          ? 'bg-violet-100 text-violet-700 hover:bg-violet-100'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-100'
-                      )}>
-                        {acct.isPrimary ? 'Primary' : 'Backup'}
-                      </Badge>
-                    </motion.div>
-                  );
-                })}
-
-                {/* Add bank account button */}
-                <Button
-                  variant="outline"
-                  disabled
-                  className="w-full mt-2 gap-2 text-gray-400 border-dashed border-gray-300"
-                  style={{ borderRadius: RADIUS.button, height: 48 }}
-                >
-                  <Plus style={{ width: 16, height: 16 }} />
-                  Add Bank Account
-                </Button>
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <Landmark style={{ width: 36, height: 36 }} className="text-gray-300 mb-3" />
+                <p className="font-semibold text-gray-500" style={{ fontSize: TYPE.body }}>
+                  No payment methods configured
+                </p>
+                <p className="text-gray-400 mt-1" style={{ fontSize: TYPE.caption }}>
+                  ACH bank draft setup will be available soon
+                </p>
               </div>
             </CardContent>
           </Card>

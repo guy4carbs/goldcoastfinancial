@@ -101,6 +101,22 @@ export default function ClientProfile() {
     marketingCommunications: false,
   });
 
+  // Fetch saved preferences on mount
+  useEffect(() => {
+    fetch('/api/portal/preferences', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          setNotifications({
+            emailNotifications: data.email_notifications ?? true,
+            smsAlerts: data.sms_notifications ?? true,
+            marketingCommunications: data.push_notifications ?? false,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // ─── 2FA STATE ───
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(user?.twoFactorEnabled ?? false);
 
@@ -412,7 +428,25 @@ export default function ClientProfile() {
                     </div>
                     <Switch
                       checked={notifications[item.key]}
-                      onCheckedChange={(checked) => setNotifications({ ...notifications, [item.key]: checked })}
+                      onCheckedChange={async (checked) => {
+                        const updated = { ...notifications, [item.key]: checked };
+                        setNotifications(updated);
+                        try {
+                          await fetch('/api/portal/preferences', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                              emailNotifications: updated.emailNotifications,
+                              smsNotifications: updated.smsAlerts,
+                              pushNotifications: updated.marketingCommunications,
+                            }),
+                          });
+                        } catch {
+                          toast.error('Failed to save preference');
+                          setNotifications({ ...updated, [item.key]: !checked });
+                        }
+                      }}
                       aria-label={`Toggle ${item.label}`}
                     />
                   </div>
@@ -534,11 +568,9 @@ export default function ClientProfile() {
                   <div className="flex items-center gap-3">
                     <Switch
                       checked={twoFactorEnabled}
-                      onCheckedChange={(checked) => {
-                        setTwoFactorEnabled(checked);
-                        toast.success(checked ? '2FA enabled' : '2FA disabled');
-                      }}
+                      disabled
                       aria-label="Toggle two-factor authentication"
+                      title="2FA setup coming soon"
                     />
                     <Badge
                       className={cn(
@@ -548,7 +580,7 @@ export default function ClientProfile() {
                       style={{ borderRadius: RADIUS.pill }}
                     >
                       {twoFactorEnabled && <CheckCircle2 className="w-3 h-3 mr-1" aria-hidden="true" />}
-                      {twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                      {twoFactorEnabled ? 'Enabled' : 'Coming Soon'}
                     </Badge>
                   </div>
                 </div>

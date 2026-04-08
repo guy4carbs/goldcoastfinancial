@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ClientLoungeLayout } from './ClientLoungeLayout';
 import { RADIUS, SHADOW, MOTION, fadeInUp, GRID } from '@/lib/heritageDesignSystem';
-import { DEMO_CLIENT, DEMO_CLIENT_MESSAGES } from './clientConstants';
+import { useMyAgent } from '@/hooks/usePortalData';
 import {
   MessageSquare, Send, Phone, Video, Search, Smile, Plus, X, Reply,
 } from 'lucide-react';
@@ -169,20 +169,6 @@ function formatMessageDate(dateStr: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-/** Convert legacy demo messages to ChatMessage format */
-function mapDemoMessages(): ChatMessage[] {
-  return DEMO_CLIENT_MESSAGES.map((msg) => ({
-    id: msg.id,
-    conversationId: 'demo',
-    senderId: msg.from === 'client' ? 'client-1' : 'agent-1',
-    senderType: msg.from,
-    senderName: msg.fromName,
-    content: msg.message,
-    messageType: 'text' as const,
-    isRead: msg.isRead,
-    createdAt: new Date(msg.timestamp).toISOString(),
-  }));
-}
 
 // ═══════════════════════════════════════════════
 // MAIN COMPONENT
@@ -191,7 +177,7 @@ function mapDemoMessages(): ChatMessage[] {
 export default function ClientMessages() {
   // ─── State ───
   const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>(mapDemoMessages());
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isAgentTyping, setIsAgentTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -204,15 +190,17 @@ export default function ClientMessages() {
   const [selectedSkinTone, setSelectedSkinTone] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [isUsingApi, setIsUsingApi] = useState(false);
 
   // ─── Refs ───
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Agent info — from conversation or fallback to demo
-  const agentName = conversation?.agentName || DEMO_CLIENT.agentName;
+  // Live agent data
+  const { data: myAgent } = useMyAgent();
+
+  // Agent info — from conversation, then live agent, then fallback
+  const agentName = conversation?.agentName || (myAgent ? `${myAgent.firstName} ${myAgent.lastName}` : 'Your Advisor');
   const agentInitials = getInitials(agentName);
 
   // ─── Fetch Conversation + Messages ───
@@ -226,7 +214,6 @@ export default function ClientMessages() {
 
         if (conv) {
           setConversation(conv);
-          setIsUsingApi(true);
 
           const msgs = await fetchMessages();
           if (cancelled) return;
@@ -234,11 +221,10 @@ export default function ClientMessages() {
           if (msgs.length > 0) {
             setMessages(msgs);
           }
-          // Mark as read
           await markAsRead();
         }
-      } catch {
-        // Keep demo data on error
+      } catch (err) {
+        console.error('[ClientMessages] Failed to load conversation:', err);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -331,7 +317,7 @@ export default function ClientMessages() {
 
   // ─── Periodic refetch ───
   useEffect(() => {
-    if (!isUsingApi) return;
+    if (!conversation) return;
     const interval = setInterval(async () => {
       try {
         const msgs = await fetchMessages();
@@ -339,77 +325,34 @@ export default function ClientMessages() {
       } catch { /* ignore */ }
     }, 15000);
     return () => clearInterval(interval);
-  }, [isUsingApi]);
+  }, [conversation]);
 
   // ─── Handlers ───
 
   const handleSendMessage = useCallback(async () => {
-    if (!newMessage.trim() || isSending) return;
+    if (!newMessage.trim() || isSending || !conversation) return;
 
     const content = newMessage.trim();
     setNewMessage('');
     setReplyingTo(null);
+    setIsSending(true);
 
-    if (isUsingApi) {
-      setIsSending(true);
-      try {
-        const sent = await sendMessageApi(content);
-        if (sent) {
-          setMessages(prev => {
-            if (prev.some(m => m.id === sent.id)) return prev;
-            return [...prev, sent];
-          });
-        } else {
-          toast.error('Failed to send message');
-        }
-      } catch {
+    try {
+      const sent = await sendMessageApi(content);
+      if (sent) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === sent.id)) return prev;
+          return [...prev, sent];
+        });
+      } else {
         toast.error('Failed to send message');
-      } finally {
-        setIsSending(false);
       }
-    } else {
-      // Demo mode — add locally
-      const newMsg: ChatMessage = {
-        id: `msg-${Date.now()}`,
-        conversationId: 'demo',
-        senderId: 'client-1',
-        senderType: 'client',
-        senderName: `${DEMO_CLIENT.firstName} ${DEMO_CLIENT.lastName}`,
-        content,
-        messageType: 'text',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        replyTo: replyingTo ? { id: replyingTo.id, sender: replyingTo.senderName, content: replyingTo.content } : undefined,
-      };
-      setMessages(prev => [...prev, newMsg]);
-
-      // Simulate agent response
-      setTimeout(() => {
-        setIsAgentTyping(true);
-        setTimeout(() => {
-          setIsAgentTyping(false);
-          const responses = [
-            "Thanks for reaching out! I'll look into that for you.",
-            "Great question! Let me check on that.",
-            "I appreciate you letting me know. I'll follow up shortly.",
-            "Absolutely, I can help with that!",
-            "Got it! I'll have an update for you soon.",
-          ];
-          setMessages(prev => [...prev, {
-            id: `msg-${Date.now() + 1}`,
-            conversationId: 'demo',
-            senderId: 'agent-1',
-            senderType: 'agent',
-            senderName: agentName,
-            content: responses[Math.floor(Math.random() * responses.length)],
-            messageType: 'text',
-            isRead: true,
-            createdAt: new Date().toISOString(),
-          }]);
-        }, 2000);
-      }, 500);
+    } catch {
+      toast.error('Failed to send message');
+    } finally {
+      setIsSending(false);
     }
-  }, [newMessage, isSending, isUsingApi, replyingTo, agentName]);
+  }, [newMessage, isSending, conversation, replyingTo]);
 
   const handleAddReaction = useCallback((messageId: string, emoji: string) => {
     setMessageReactions(prev => {
@@ -741,7 +684,30 @@ export default function ClientMessages() {
               type="file"
               className="hidden"
               accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-              onChange={() => toast.info('File attachment coming soon')}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('name', file.name);
+                  formData.append('category', 'correspondence');
+                  const res = await fetch('/api/portal/documents/upload', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData,
+                  });
+                  if (res.ok) {
+                    toast.success(`"${file.name}" uploaded to your documents`);
+                  } else {
+                    const err = await res.json().catch(() => ({}));
+                    toast.error(err.error || 'Upload failed');
+                  }
+                } catch {
+                  toast.error('Failed to upload file');
+                }
+                e.target.value = '';
+              }}
             />
 
             {/* Reply indicator */}

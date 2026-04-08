@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { ClientLoungeLayout } from './ClientLoungeLayout';
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer, GRID } from '@/lib/heritageDesignSystem';
-import { CLIENT_GRADIENT_CSS, glassCard, DEMO_CLIENT } from './clientConstants';
+import { CLIENT_GRADIENT_CSS, glassCard } from './clientConstants';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Gift, Copy, Share2, Users, CheckCircle, Heart, Shield, Star, Trophy, Award,
@@ -91,7 +91,7 @@ export default function ClientReferral() {
   const [myReferrals, setMyReferrals] = useState<MyReferral[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const referralUrl = `https://heritagels.org/refer/${user?.id || DEMO_CLIENT.id}`;
+  const referralUrl = `https://heritagels.org/refer/${user?.id || ''}`;
 
   // Fetch all data on mount
   useEffect(() => {

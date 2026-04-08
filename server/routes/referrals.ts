@@ -14,6 +14,8 @@ import { Router, type Request, type Response } from "express";
 import { storage } from "../storage";
 import { referralFormLimiter } from "../middleware/rateLimiter";
 import { requireAuth } from "../middleware/auth";
+import { notifyUser } from "../websocket/eventBridge";
+import type { GCFWebSocketServer } from "../websocket/GCFWebSocketServer";
 
 const router = Router();
 
@@ -342,17 +344,25 @@ router.get("/referrer/:clientId", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Referral link not found" });
     }
 
-    // Resolve the referrer's agent via their conversation
+    // Resolve the referrer's agent: assignedAgentId first, then conversation fallback
     let agentName = "a Heritage advisor";
     let agentAvatarUrl: string | null = null;
     try {
-      const conversations = await storage.getClientConversationsByClientId(clientId);
-      if (conversations.length > 0) {
-        const agent = await storage.getUserById(conversations[0].agentId);
-        if (agent) {
-          agentName = `${agent.firstName} ${agent.lastName}`;
-          agentAvatarUrl = agent.avatarUrl || null;
+      let agent = null;
+      if (referrer.assignedAgentId) {
+        agent = await storage.getUserById(referrer.assignedAgentId);
+        if (agent && !agent.isActive) agent = null;
+      }
+      if (!agent) {
+        const conversations = await storage.getClientConversationsByClientId(clientId);
+        if (conversations.length > 0) {
+          agent = await storage.getUserById(conversations[0].agentId);
+          if (agent && !agent.isActive) agent = null;
         }
+      }
+      if (agent) {
+        agentName = `${agent.firstName} ${agent.lastName}`;
+        agentAvatarUrl = agent.avatarUrl || null;
       }
     } catch (err) {
       console.error("[Referrals] Failed to resolve agent:", err);
@@ -410,18 +420,31 @@ router.post("/submit", referralFormLimiter, async (req: Request, res: Response) 
       return res.status(404).json({ error: "Referral link not found" });
     }
 
-    // ── Resolve agent ──
+    // ── Resolve agent: assignedAgentId first, then conversation fallback ──
     let agentId: string | null = null;
     let agentName = "Heritage Advisor";
 
     try {
-      const conversations = await storage.getClientConversationsByClientId(clientId);
-      if (conversations.length > 0) {
-        const agent = await storage.getUserById(conversations[0].agentId);
-        if (agent) {
-          agentId = agent.id;
-          agentName = `${agent.firstName} ${agent.lastName}`;
+      let agent = null;
+      if (referrer.assignedAgentId) {
+        agent = await storage.getUserById(referrer.assignedAgentId);
+        if (agent && !agent.isActive) {
+          console.warn(`[Referrals] Assigned agent ${referrer.assignedAgentId} is inactive — falling back`);
+          agent = null;
         }
+      }
+      if (!agent) {
+        const conversations = await storage.getClientConversationsByClientId(clientId);
+        if (conversations.length > 0) {
+          agent = await storage.getUserById(conversations[0].agentId);
+          if (agent && !agent.isActive) agent = null;
+        }
+      }
+      if (agent) {
+        agentId = agent.id;
+        agentName = `${agent.firstName} ${agent.lastName}`;
+      } else {
+        console.warn(`[Referrals] No active agent found for referrer ${clientId} — lead will be unassigned`);
       }
     } catch (err) {
       console.error("[Referrals] Failed to resolve agent:", err);
@@ -503,6 +526,20 @@ router.post("/submit", referralFormLimiter, async (req: Request, res: Response) 
           actionUrl: "/agents/inbox",
         });
         console.log(`[Referrals] Notification sent to agent ${agentId}`);
+
+        // Push via WebSocket so agent sees it in real-time
+        try {
+          const wsServer: GCFWebSocketServer | undefined = req.app.get('wsServer');
+          if (wsServer) {
+            notifyUser(wsServer, agentId, {
+              type: 'referral_received',
+              title: subjectLine,
+              message: `${referrerName} referred ${firstName.trim()} ${lastName.trim()}. Check your lead inbox.`,
+            });
+          }
+        } catch (wsErr) {
+          console.error('[Referrals] WebSocket broadcast failed:', wsErr);
+        }
       } catch (notifErr) {
         console.error("[Referrals] Notification delivery failed:", notifErr);
       }

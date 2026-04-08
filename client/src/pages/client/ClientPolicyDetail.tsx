@@ -95,19 +95,30 @@ export default function ClientPolicyDetail() {
   const payments = allBilling.filter((b) => b.policyId === policy.id);
   const documents = allDocuments.filter((d) => d.policyId === policy.id);
 
-  // Build beneficiary list from policy fields (single beneficiary from DB)
-  const beneficiaries = policy.beneficiaryName
-    ? [
-        {
-          id: `ben-${policy.id}`,
-          type: 'primary' as const,
-          firstName: policy.beneficiaryName.split(' ')[0] || '',
-          lastName: policy.beneficiaryName.split(' ').slice(1).join(' ') || '',
-          relationship: policy.beneficiaryRelationship || 'N/A',
-          allocationPercent: 100,
-        },
-      ]
-    : [];
+  // Build beneficiary list: prefer JSONB array, fallback to legacy single fields
+  const beneficiaries = (() => {
+    if (Array.isArray(policy.beneficiaries) && policy.beneficiaries.length > 0) {
+      return policy.beneficiaries.map((b, idx) => ({
+        id: `ben-${policy.id}-${idx}`,
+        type: 'primary' as const,
+        firstName: (b.name || '').split(' ')[0] || '',
+        lastName: (b.name || '').split(' ').slice(1).join(' ') || '',
+        relationship: b.relationship || 'N/A',
+        allocationPercent: b.percentage || 0,
+      }));
+    }
+    if (policy.beneficiaryName) {
+      return [{
+        id: `ben-${policy.id}`,
+        type: 'primary' as const,
+        firstName: policy.beneficiaryName.split(' ')[0] || '',
+        lastName: policy.beneficiaryName.split(' ').slice(1).join(' ') || '',
+        relationship: policy.beneficiaryRelationship || 'N/A',
+        allocationPercent: 100,
+      }];
+    }
+    return [];
+  })();
 
   return (
     <ClientLoungeLayout>
@@ -558,6 +569,7 @@ export default function ClientPolicyDetail() {
                         size="sm"
                         className="text-gray-600 hover:text-violet-700 hover:border-violet-300 gap-1.5 flex-shrink-0"
                         style={{ borderRadius: RADIUS.button, fontSize: TYPE.caption }}
+                        onClick={() => window.open(`/api/portal/documents/${doc.id}/download`, '_blank')}
                       >
                         <Download size={14} />
                         Download

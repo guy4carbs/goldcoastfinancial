@@ -6,12 +6,15 @@
  * Heritage Design System — Violet theme with amber accents
  */
 
-import React, { useState, useEffect, type ReactNode } from 'react';
+import React, { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { fmtCurrency } from './clientConstants';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePortalDashboard, usePortalNotifications } from '@/hooks/usePortalData';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -131,39 +134,17 @@ export const clientTheme = {
   typography: TYPE,
 };
 
-// Demo policy data for sidebar card
-const TOTAL_COVERAGE = 1_275_000;
-const ACTIVE_POLICIES = 3;
-const NEXT_PAYMENT = 'Apr 1, 2026';
-const MONTHLY_PREMIUM = 729;
-
-// Demo notifications for client
-const CLIENT_NOTIFICATIONS = [
-  {
-    id: 'cn1',
-    type: 'reminder' as const,
-    title: 'Payment Due Soon',
-    description: 'Your monthly premium of $729 is due on Apr 1, 2026.',
-    time: '2 days ago',
-    read: false,
-  },
-  {
-    id: 'cn2',
-    type: 'message' as const,
-    title: 'New Message from Agent',
-    description: 'Your agent sent you a policy review summary.',
-    time: '1 week ago',
-    read: false,
-  },
-  {
-    id: 'cn3',
-    type: 'achievement' as const,
-    title: 'Policy Anniversary',
-    description: 'Congratulations on 1 year with your Whole Life policy!',
-    time: '2 weeks ago',
-    read: true,
-  },
-];
+// Notification type mapping: portal types → dropdown display types
+const NOTIF_TYPE_MAP: Record<string, 'reminder' | 'message' | 'alert' | 'achievement'> = {
+  payment: 'reminder',
+  document: 'message',
+  appointment: 'alert',
+  policy: 'achievement',
+  general: 'message',
+  beneficiary_request: 'alert',
+  claim_request: 'alert',
+  appointment_request: 'alert',
+};
 
 // ─── LAYOUT COMPONENT ───
 interface ClientLoungeLayoutProps {
@@ -180,9 +161,36 @@ export function ClientLoungeLayout({ children }: ClientLoungeLayoutProps) {
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
-  const [notifications, setNotifications] = useState(CLIENT_NOTIFICATIONS);
+  const [clearedIds, setClearedIds] = useState<Set<string>>(new Set());
 
   const { user, signOut } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Live data hooks
+  const { data: dashboard } = usePortalDashboard();
+  const { data: liveNotifications = [] } = usePortalNotifications();
+
+  // Derive sidebar card values from live dashboard data
+  const TOTAL_COVERAGE = dashboard?.totalCoverage ?? 0;
+  const ACTIVE_POLICIES = dashboard?.activePolicies ?? 0;
+  const MONTHLY_PREMIUM = typeof dashboard?.monthlyPremium === 'string'
+    ? parseFloat(dashboard.monthlyPremium)
+    : (dashboard?.monthlyPremium ?? 0);
+  const NEXT_PAYMENT = dashboard?.nextPayment?.date
+    ? new Date(dashboard.nextPayment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'N/A';
+
+  // Map live notifications to dropdown format, excluding cleared ones
+  const notifications = liveNotifications
+    .filter((n) => !clearedIds.has(String(n.id)))
+    .map((n) => ({
+      id: String(n.id),
+      type: NOTIF_TYPE_MAP[n.type] || ('message' as const),
+      title: n.title,
+      description: n.message,
+      time: n.date,
+      read: n.isRead,
+    }));
 
   // Derive user display info
   const userFirstName = user?.firstName || 'Client';
@@ -194,18 +202,28 @@ export function ClientLoungeLayout({ children }: ClientLoungeLayoutProps) {
     .join('')
     .toUpperCase() || 'C';
 
-  // Notification handlers
-  const markNotificationRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
-  const markAllNotificationsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-  const clearNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+  // Notification handlers — API-backed with cache invalidation
+  const markNotificationRead = useCallback(async (id: string) => {
+    try {
+      await apiRequest('PUT', `/api/portal/notifications/${id}/read`);
+      queryClient.invalidateQueries({ queryKey: ['/api/portal/notifications'] });
+    } catch (err) {
+      console.error('[ClientLounge] Failed to mark notification read:', err);
+    }
+  }, [queryClient]);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    try {
+      await apiRequest('PUT', '/api/portal/notifications/read-all');
+      queryClient.invalidateQueries({ queryKey: ['/api/portal/notifications'] });
+    } catch (err) {
+      console.error('[ClientLounge] Failed to mark all notifications read:', err);
+    }
+  }, [queryClient]);
+
+  const clearNotification = useCallback((id: string) => {
+    setClearedIds((prev) => new Set(prev).add(id));
+  }, []);
 
   // All nav items flat for lookups
   const ALL_NAV_ITEMS = [
