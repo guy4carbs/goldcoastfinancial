@@ -357,7 +357,7 @@ export function BusinessCard3D({ data, className }: BusinessCard3DProps) {
                     {socialLinks.map(({ url, icon: Icon, label, color }) => (
                       <a
                         key={label}
-                        href={url!}
+                        href={url!.startsWith('http') ? url! : `https://${url!}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}

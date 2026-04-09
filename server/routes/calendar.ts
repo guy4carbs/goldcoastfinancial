@@ -15,12 +15,18 @@
  * Governance: Forge (backend) + Conduit (integrations)
  */
 
+import crypto from "crypto";
 import { Router, type Request, type Response } from "express";
 import { google } from "googleapis";
 import { storage } from "../storage";
 import { pool } from "../db";
 import * as googleCalendar from "../googleCalendar";
 import { requireAuth, type AuthenticatedUser } from "../middleware/auth";
+import {
+  createDAVClient,
+  fetchAllCalDAVEvents,
+  caldavEventToUnified,
+} from "../caldavHelpers";
 
 const router = Router();
 
@@ -44,8 +50,9 @@ interface UnifiedEvent {
   location?: string;
   meetingLink?: string;
   googleEventId?: string;
+  outlookEventId?: string;
   meetingNotes?: string;
-  source: "local" | "google" | "caldav";
+  source: "local" | "google" | "caldav" | "outlook";
 }
 
 /**
@@ -435,6 +442,84 @@ router.get("/callback/google", async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /connect/outlook — Redirect agent to Microsoft OAuth consent for calendar scopes
+ */
+router.get("/connect/outlook", async (req: Request, res: Response) => {
+  try {
+    const user = req.user as AuthenticatedUser;
+    const appUrl = process.env.APP_URL || "http://localhost:4500";
+
+    if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {
+      return res.redirect(`${appUrl}/agents/calendar?cal_error=outlook_not_configured`);
+    }
+
+    const { getOutlookAuthUrl } = await import('../outlookCalendar');
+    const authUrl = await getOutlookAuthUrl(user.id);
+    res.redirect(authUrl);
+  } catch (error: any) {
+    console.error("[Calendar] Error initiating Outlook OAuth:", error?.message);
+    const appUrl = process.env.APP_URL || "http://localhost:4500";
+    res.redirect(`${appUrl}/agents/calendar?cal_error=outlook_oauth_failed`);
+  }
+});
+
+/**
+ * GET /callback/outlook — Handle Microsoft OAuth callback
+ * Exchanges code for tokens, gets user email, stores calendar connection.
+ */
+router.get("/callback/outlook", async (req: Request, res: Response) => {
+  try {
+    const { code, state } = req.query;
+    const appUrl = process.env.APP_URL || "http://localhost:4500";
+    // Use authenticated session user — state param is for verification only
+    const sessionUser = (req as any).user;
+    const agentUserId = sessionUser?.id || (state as string);
+
+    if (!code || !agentUserId) {
+      return res.redirect(`${appUrl}/agents/calendar?cal_error=missing_params`);
+    }
+
+    // Validate state matches session user to prevent CSRF
+    if (state && sessionUser?.id && state !== sessionUser.id) {
+      console.warn(`[Calendar] Outlook OAuth state mismatch: state=${state}, session=${sessionUser.id}`);
+      return res.redirect(`${appUrl}/agents/calendar?cal_error=invalid_state`);
+    }
+
+    const { exchangeOutlookCode } = await import('../outlookCalendar');
+    const { accessToken, refreshToken, expiresAt, email } = await exchangeOutlookCode(code as string);
+
+    if (!email) {
+      return res.redirect(`${appUrl}/agents/calendar?cal_error=no_email`);
+    }
+
+    // Upsert calendar connection (one per provider per agent)
+    await pool.query(`
+      INSERT INTO agent_calendar_connections
+        (agent_user_id, provider, caldav_url, username, password, display_name, access_token, refresh_token, token_expires_at, status)
+      VALUES ($1, 'outlook', '', $2, '', $3, $4, $5, $6, 'active')
+      ON CONFLICT (agent_user_id, provider) DO UPDATE SET
+        username = $2, display_name = $3,
+        access_token = $4, refresh_token = COALESCE($5, agent_calendar_connections.refresh_token),
+        token_expires_at = $6, status = 'active', updated_at = NOW()
+    `, [
+      agentUserId,
+      email,
+      email,
+      accessToken,
+      refreshToken,
+      expiresAt,
+    ]);
+
+    console.log(`[Calendar] Outlook Calendar connected for agent ${agentUserId}: ${email}`);
+    res.redirect(`${appUrl}/agents/calendar?cal_connected=outlook`);
+  } catch (error: any) {
+    console.error("[Calendar] Outlook OAuth callback error:", error?.message);
+    const appUrl = process.env.APP_URL || "http://localhost:4500";
+    res.redirect(`${appUrl}/agents/calendar?cal_error=outlook_oauth_failed`);
+  }
+});
+
+/**
  * DELETE /connection/:provider — Disconnect a specific calendar provider
  * DELETE /connection — Disconnect all calendars
  */
@@ -470,6 +555,8 @@ router.get("/events", async (req: Request, res: Response) => {
   try {
     const user = req.user as AuthenticatedUser;
     const { start, end } = req.query;
+
+    const warnings: string[] = [];
 
     // 1. Fetch DB appointments for this agent
     const dbAppointments = await storage.getAppointmentsByAgentId(user.id);
@@ -605,22 +692,46 @@ router.get("/events", async (req: Request, res: Response) => {
         } catch (err: any) {
           console.error('[Calendar] Google Calendar fetch error:', err?.message);
         }
-      } else {
-        // Apple/Outlook: use CalDAV with app password
+      } else if (conn.provider === 'outlook' && conn.access_token) {
+        // Microsoft Graph API — per-agent Outlook OAuth
         try {
-          const { DAVClient } = await import('tsdav');
-          const client = new DAVClient({
-            serverUrl: conn.caldav_url,
-            credentials: { username: conn.username, password: conn.password },
-            authMethod: 'Basic',
-            defaultAccountType: 'caldav',
-          });
-          await client.login();
-          const calendars = await client.fetchCalendars();
-          const primaryCalendar = calendars[0];
+          const { getOutlookCalendarEvents, refreshOutlookToken, outlookEventToUnified } = await import('../outlookCalendar');
 
-        if (primaryCalendar) {
-          // Build time range — default to +-90 days from now
+          let accessToken = conn.access_token;
+          // Check if token is expired and refresh
+          if (conn.token_expires_at && new Date(conn.token_expires_at) < new Date()) {
+            const refreshed = await refreshOutlookToken(conn.refresh_token);
+            accessToken = refreshed.accessToken;
+            // Persist new tokens
+            await pool.query(
+              `UPDATE agent_calendar_connections SET access_token = $1, refresh_token = COALESCE($2, refresh_token), token_expires_at = $3, updated_at = NOW() WHERE id = $4`,
+              [refreshed.accessToken, refreshed.refreshToken || null, refreshed.expiresAt, conn.id]
+            );
+          }
+
+          const startDate = start ? new Date(start as string) : new Date(Date.now() - 90 * 86400000);
+          const endDate = end ? new Date(end as string) : new Date(Date.now() + 90 * 86400000);
+          const outlookEvents = await getOutlookCalendarEvents(accessToken, startDate, endDate);
+
+          for (const evt of outlookEvents) {
+            calendarEvents.push(outlookEventToUnified(evt));
+          }
+
+          console.log(`[Calendar] Outlook Calendar: fetched ${outlookEvents.length} events for ${conn.username}`);
+          await pool.query(`UPDATE agent_calendar_connections SET last_sync_at = NOW() WHERE id = $1`, [conn.id]);
+        } catch (err: any) {
+          console.error(`[Calendar] Outlook fetch error:`, err?.message);
+          warnings.push(`Outlook calendar sync issue: ${err?.message}`);
+        }
+      } else {
+        // Apple / other CalDAV: use CalDAV with app password — fetch from ALL calendars
+        try {
+          const client = await createDAVClient({
+            caldav_url: conn.caldav_url,
+            username: conn.username,
+            password: conn.password,
+          });
+
           const startISO = start
             ? new Date(start as string).toISOString()
             : new Date(Date.now() - 90 * 86400000).toISOString();
@@ -628,65 +739,31 @@ router.get("/events", async (req: Request, res: Response) => {
             ? new Date(end as string).toISOString()
             : new Date(Date.now() + 90 * 86400000).toISOString();
 
-          const calendarObjects = await client.fetchCalendarObjects({
-            calendar: primaryCalendar,
-            timeRange: { start: startISO, end: endISO },
-          });
+          const logPrefix = `[Calendar] CalDAV (${conn.provider}/${conn.username}): `;
+          const { events: parsedEvents, calendarCount } = await fetchAllCalDAVEvents(
+            client,
+            { start: startISO, end: endISO },
+            logPrefix
+          );
 
-          for (const obj of calendarObjects) {
-            if (!obj.data) continue;
-            const lines = obj.data.split('\n');
-            let title = '', dtstart = '', dtend = '', description = '', location = '', uid = '';
-            for (const line of lines) {
-              if (line.startsWith('SUMMARY:')) title = line.slice(8).trim();
-              if (line.startsWith('DTSTART')) dtstart = line.split(':').pop()?.trim() || '';
-              if (line.startsWith('DTEND')) dtend = line.split(':').pop()?.trim() || '';
-              if (line.startsWith('DESCRIPTION:')) description = line.slice(12).trim();
-              if (line.startsWith('LOCATION:')) location = line.slice(9).trim();
-              if (line.startsWith('UID:')) uid = line.slice(4).trim();
-            }
-
-            if (title && dtstart) {
-              const startDate = parseICalDate(dtstart);
-              const endDate = dtend ? parseICalDate(dtend) : new Date(startDate.getTime() + 30 * 60000);
-              const diffMin = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
-              let durationStr: string;
-              if (diffMin >= 120) durationStr = `${diffMin / 60} hours`;
-              else if (diffMin >= 60) durationStr = `${diffMin / 60} hour`;
-              else durationStr = `${diffMin} min`;
-
-              const hours = startDate.getHours();
-              const minutes = startDate.getMinutes();
-              const ampm = hours >= 12 ? 'PM' : 'AM';
-              const hour12 = hours % 12 || 12;
-              const timeStr = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-
-              calendarEvents.push({
-                id: uid || `caldav-${obj.url}`,
-                title,
-                date: startDate.toISOString().split('T')[0],
-                time: timeStr,
-                duration: durationStr,
-                type: categorizeEventType(title),
-                description: description || undefined,
-                location: location || undefined,
-                status: 'upcoming',
-                source: 'caldav',
-              });
-            }
+          for (const parsed of parsedEvents) {
+            calendarEvents.push(caldavEventToUnified(parsed));
           }
-        }
 
-        // Update last sync timestamp
-        await pool.query(
-          `UPDATE agent_calendar_connections SET last_sync_at = NOW() WHERE id = $1`,
-          [conn.id]
-        );
-      } catch (err: any) {
-        console.error('[Calendar] CalDAV fetch error:', err?.message);
-        // Don't fail — still return DB events
-      }
-      } // end else (non-google CalDAV)
+          console.log(`[Calendar] CalDAV (${conn.provider}/${conn.username}): found ${calendarCount} calendars, ${parsedEvents.length} events`);
+
+          // Update last sync timestamp
+          await pool.query(
+            `UPDATE agent_calendar_connections SET last_sync_at = NOW() WHERE id = $1`,
+            [conn.id]
+          );
+        } catch (err: any) {
+          const errMsg = err?.message || String(err);
+          console.error(`[Calendar] CalDAV fetch error (${conn.provider}/${conn.username}):`, errMsg);
+          warnings.push(`CalDAV (${conn.provider}/${conn.username}): ${errMsg}`);
+          // Don't fail — still return DB events
+        }
+      } // end else (non-google, non-outlook CalDAV)
     }
     } // end for loop over connections
 
@@ -705,27 +782,85 @@ router.get("/events", async (req: Request, res: Response) => {
       }
     }
 
-    // 3. Get hidden/cancelled Google event IDs (events user deleted but can't remove from read-only calendars)
+    // 3. Get hidden/cancelled event IDs (events user deleted but can't remove from read-only calendars)
     const hiddenResult = await pool.query(
-      `SELECT google_event_id FROM appointments WHERE agent_user_id = $1 AND status = 'cancelled' AND google_event_id IS NOT NULL`,
+      `SELECT google_event_id, outlook_event_id FROM appointments WHERE agent_user_id = $1 AND status = 'cancelled' AND (google_event_id IS NOT NULL OR outlook_event_id IS NOT NULL)`,
       [user.id]
     );
-    const hiddenGoogleIds = new Set(hiddenResult.rows.map((r: any) => r.google_event_id));
+    const hiddenGoogleIds = new Set(hiddenResult.rows.map((r: any) => r.google_event_id).filter(Boolean));
+    const hiddenOutlookIds = new Set(hiddenResult.rows.map((r: any) => r.outlook_event_id).filter(Boolean));
 
     // Merge and dedupe — filter out hidden + already-in-DB events
     const dbGoogleIds = new Set(
       dbEvents.filter((e) => e.googleEventId).map((e) => e.googleEventId)
     );
-    const uniqueCalEvents = calendarEvents.filter(
-      (ce) => !dbGoogleIds.has(ce.googleEventId) && !hiddenGoogleIds.has(ce.googleEventId)
+    const dbCaldavUids = new Set(
+      dbEvents.filter((e) => (e as any).caldavEventUid).map((e) => (e as any).caldavEventUid)
     );
+    const dbOutlookIds = new Set(
+      dbEvents.filter((e) => (e as any).outlookEventId).map((e) => (e as any).outlookEventId)
+    );
+    const uniqueCalEvents = calendarEvents.filter((ce) => {
+      // Filter out Google events that are already in DB or hidden
+      if (ce.googleEventId && (dbGoogleIds.has(ce.googleEventId) || hiddenGoogleIds.has(ce.googleEventId))) {
+        return false;
+      }
+      // Filter out Outlook events that are already in DB or hidden
+      if (ce.outlookEventId && (dbOutlookIds.has(ce.outlookEventId) || hiddenOutlookIds.has(ce.outlookEventId))) {
+        return false;
+      }
+      // Filter out CalDAV events that are already in DB (created from Heritage)
+      if (ce.source === 'caldav' && ce.id) {
+        // CalDAV event IDs are the UID or "caldav-{url}" — check against DB caldav UIDs
+        const uid = ce.id.startsWith('caldav-') ? ce.id : ce.id;
+        if (dbCaldavUids.has(uid)) {
+          return false;
+        }
+      }
+      return true;
+    });
 
-    const allEvents = [...dbEvents, ...uniqueCalEvents].sort((a, b) => {
+    // Fetch US holidays from Google's public iCal feed
+    const holidayEvents: typeof calendarEvents = [];
+    try {
+      const holidayUrl = 'https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics';
+      const resp = await fetch(holidayUrl);
+      if (resp.ok) {
+        const icalText = await resp.text();
+        const { parseICalData, parseICalDate: parseDate, categorizeEventType: catType } = await import('../caldavHelpers');
+        const parsed = parseICalData(icalText);
+        for (const ev of parsed) {
+          try {
+            const evDate = parseDate(ev.dtstart, ev.tzid);
+            const dateStr = evDate.toISOString().split('T')[0];
+            holidayEvents.push({
+              id: `holiday-${ev.uid || dateStr}-${ev.summary}`,
+              title: ev.summary,
+              date: dateStr,
+              time: ev.isAllDay ? 'All Day' : (() => {
+                const h = evDate.getHours(), m = evDate.getMinutes();
+                return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+              })(),
+              duration: 'All day',
+              type: 'event' as const,
+              description: ev.description || undefined,
+              status: 'upcoming' as const,
+              source: 'caldav' as any,
+            });
+          } catch {}
+        }
+        console.log(`[Calendar] US Holidays: ${holidayEvents.length} events loaded`);
+      }
+    } catch (err: any) {
+      console.warn('[Calendar] Failed to fetch US holidays:', err?.message);
+    }
+
+    const allEvents = [...dbEvents, ...uniqueCalEvents, ...holidayEvents].sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return a.time.localeCompare(b.time);
     });
 
-    res.json({ events: allEvents });
+    res.json({ events: allEvents, ...(warnings.length > 0 ? { warnings } : {}) });
   } catch (error: any) {
     console.error("[Calendar] Error fetching events:", error);
     res.status(500).json({ error: "Failed to fetch calendar events" });
@@ -846,10 +981,99 @@ router.post("/events", async (req: Request, res: Response) => {
       console.log("[Calendar] Failed to create Google Calendar event, DB event saved");
     }
 
+    // Try to create in CalDAV if agent has Apple calendar connected
+    let caldavEventUid: string | null = null;
+    let caldavEventUrl: string | null = null;
+    let caldavProvider: string | null = null;
+    try {
+      const caldavConn = await pool.query(
+        `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider IN ('apple') AND status = 'active' AND password IS NOT NULL AND access_token IS NULL`,
+        [user.id]
+      );
+      if (caldavConn.rows[0]) {
+        const conn = caldavConn.rows[0];
+        const { createDAVClient: createClient, buildICalString, getWritableCalendar } = await import('../caldavHelpers');
+        const client = await createClient(conn);
+        const writableCalendar = await getWritableCalendar(client);
+        console.log(`[Calendar] CalDAV writable calendar: ${writableCalendar?.displayName || 'none found'}`);
+        if (writableCalendar) {
+          const uid = crypto.randomUUID();
+          const endTime = new Date(scheduledAt.getTime() + durationMinutes * 60000);
+          const icalString = buildICalString({
+            uid,
+            summary: title,
+            dtstart: scheduledAt,
+            dtend: endTime,
+            description: description || undefined,
+            location: location || undefined,
+          });
+          const result = await client.createCalendarObject({
+            calendar: writableCalendar,
+            filename: `${uid}.ics`,
+            iCalString: icalString,
+          });
+          caldavEventUid = uid;
+          caldavEventUrl = result?.url || `${writableCalendar.url}${uid}.ics`;
+          caldavProvider = conn.provider;
+        }
+      }
+    } catch (err: any) {
+      console.log(`[Calendar] Failed to create CalDAV event (non-blocking):`, err?.message);
+    }
+
+    // Save CalDAV event tracking back to appointment
+    if (caldavEventUid) {
+      await storage.updateAppointment(appointment.id, {
+        caldavEventUid,
+        caldavEventUrl,
+        caldavProvider,
+      } as any);
+    }
+
+    // Try to create in Outlook Calendar if agent has Microsoft connection
+    let outlookEventId: string | null = null;
+    try {
+      const outlookConn = await pool.query(
+        `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider = 'outlook' AND status = 'active' AND access_token IS NOT NULL`,
+        [user.id]
+      );
+      if (outlookConn.rows[0]) {
+        const { createOutlookCalendarEvent, refreshOutlookToken } = await import('../outlookCalendar');
+        let accessToken = outlookConn.rows[0].access_token;
+        // Refresh if needed
+        if (outlookConn.rows[0].token_expires_at && new Date(outlookConn.rows[0].token_expires_at) < new Date()) {
+          const refreshed = await refreshOutlookToken(outlookConn.rows[0].refresh_token);
+          accessToken = refreshed.accessToken;
+          await pool.query(
+            `UPDATE agent_calendar_connections SET access_token = $1, refresh_token = COALESCE($2, refresh_token), token_expires_at = $3, updated_at = NOW() WHERE id = $4`,
+            [refreshed.accessToken, refreshed.refreshToken || null, refreshed.expiresAt, outlookConn.rows[0].id]
+          );
+        }
+        const endTime = new Date(scheduledAt.getTime() + durationMinutes * 60000);
+        outlookEventId = await createOutlookCalendarEvent(accessToken, {
+          title,
+          description: description || undefined,
+          location: location || undefined,
+          startTime: scheduledAt,
+          endTime,
+          attendeeEmail: clientEmail || undefined,
+        });
+      }
+    } catch (err: any) {
+      console.log(`[Calendar] Failed to create Outlook event (non-blocking):`, err?.message);
+    }
+
+    // Save Outlook event ID back to appointment
+    if (outlookEventId) {
+      await storage.updateAppointment(appointment.id, { outlookEventId } as any);
+    }
+
     // Return the unified event
     const event = appointmentToEvent({
       ...appointment,
       googleEventId: googleEventId || appointment.googleEventId,
+      outlookEventId: outlookEventId || (appointment as any).outlookEventId,
+      caldavEventUid: caldavEventUid || (appointment as any).caldavEventUid,
     });
     // Attach client info from the request (not stored in appointment table)
     event.clientName = clientName || undefined;
@@ -939,6 +1163,74 @@ router.patch("/events/:id", async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to update event" });
     }
 
+    // Sync update to CalDAV if event has CalDAV tracking
+    if (updated.caldavEventUrl && updated.caldavProvider) {
+      try {
+        const caldavConn = await pool.query(
+          `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider = $2 AND status = 'active'`,
+          [user.id, updated.caldavProvider]
+        );
+        if (caldavConn.rows[0]) {
+          const { createDAVClient: createClient, buildICalString } = await import('../caldavHelpers');
+          const client = await createClient(caldavConn.rows[0]);
+
+          const endTime = new Date(new Date(updated.scheduledAt).getTime() + (updated.duration || 30) * 60000);
+          const icalString = buildICalString({
+            uid: updated.caldavEventUid!,
+            summary: updated.title,
+            dtstart: new Date(updated.scheduledAt),
+            dtend: endTime,
+            description: updated.description || undefined,
+            location: updated.location || undefined,
+          });
+
+          await client.updateCalendarObject({
+            calendarObject: {
+              url: updated.caldavEventUrl,
+              data: icalString,
+            },
+          });
+          console.log(`[Calendar] CalDAV event updated: ${updated.caldavEventUid}`);
+        }
+      } catch (err: any) {
+        console.log(`[Calendar] Failed to update CalDAV event (non-blocking):`, err?.message);
+      }
+    }
+
+    // Sync update to Outlook if event has Outlook tracking
+    if ((updated as any).outlookEventId) {
+      try {
+        const outlookConn = await pool.query(
+          `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider = 'outlook' AND status = 'active' AND access_token IS NOT NULL`,
+          [user.id]
+        );
+        if (outlookConn.rows[0]) {
+          const { updateOutlookCalendarEvent, refreshOutlookToken } = await import('../outlookCalendar');
+          let accessToken = outlookConn.rows[0].access_token;
+          // Refresh if needed
+          if (outlookConn.rows[0].token_expires_at && new Date(outlookConn.rows[0].token_expires_at) < new Date()) {
+            const refreshed = await refreshOutlookToken(outlookConn.rows[0].refresh_token);
+            accessToken = refreshed.accessToken;
+            await pool.query(
+              `UPDATE agent_calendar_connections SET access_token = $1, refresh_token = COALESCE($2, refresh_token), token_expires_at = $3, updated_at = NOW() WHERE id = $4`,
+              [refreshed.accessToken, refreshed.refreshToken || null, refreshed.expiresAt, outlookConn.rows[0].id]
+            );
+          }
+          const endTime = new Date(new Date(updated.scheduledAt).getTime() + (updated.duration || 30) * 60000);
+          await updateOutlookCalendarEvent(accessToken, (updated as any).outlookEventId, {
+            title: updated.title,
+            description: updated.description || undefined,
+            location: updated.location || undefined,
+            startTime: new Date(updated.scheduledAt),
+            endTime,
+          });
+          console.log(`[Calendar] Outlook event updated: ${(updated as any).outlookEventId}`);
+        }
+      } catch (err: any) {
+        console.log(`[Calendar] Failed to update Outlook event (non-blocking):`, err?.message);
+      }
+    }
+
     res.json({ event: appointmentToEvent(updated) });
   } catch (error: any) {
     console.error("[Calendar] Error updating event:", error);
@@ -1013,6 +1305,101 @@ router.delete("/events/:id", async (req: Request, res: Response) => {
       return res.json({ success: true, message: deleted ? "Event deleted from Google Calendar" : "Event hidden from your calendar" });
     }
 
+    // Handle CalDAV event deletion (id starts with "caldav-")
+    if (id.startsWith('caldav-')) {
+      const caldavUid = id.replace('caldav-', '');
+      // Find which CalDAV connection has this event
+      const calConns = await pool.query(
+        `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider IN ('apple') AND status = 'active' AND password IS NOT NULL`,
+        [user.id]
+      );
+
+      let caldavDeleted = false;
+      for (const conn of calConns.rows) {
+        try {
+          const { createDAVClient: createClient } = await import('../caldavHelpers');
+          const client = await createClient(conn);
+          const calendars = await client.fetchCalendars();
+
+          for (const calendar of calendars) {
+            try {
+              // Try to find the object by UID and delete it
+              const objects = await client.fetchCalendarObjects({ calendar });
+              const target = objects.find((obj: any) => {
+                if (!obj.data) return false;
+                return obj.data.includes(`UID:${caldavUid}`);
+              });
+              if (target?.url) {
+                await client.deleteCalendarObject({
+                  calendarObject: { url: target.url, etag: target.etag },
+                });
+                caldavDeleted = true;
+                break;
+              }
+            } catch { /* try next calendar */ }
+          }
+          if (caldavDeleted) break;
+        } catch (err: any) {
+          console.error(`[Calendar] CalDAV delete error:`, err?.message);
+        }
+      }
+
+      if (!caldavDeleted) {
+        // Can't delete (read-only) — hide it locally
+        await pool.query(
+          `INSERT INTO appointments (agent_user_id, title, scheduled_at, duration, status, caldav_event_uid, cancelled_at)
+           VALUES ($1, 'hidden', NOW(), 0, 'cancelled', $2, NOW())
+           ON CONFLICT DO NOTHING`,
+          [user.id, caldavUid]
+        );
+      }
+
+      return res.json({ success: true, message: caldavDeleted ? "Event deleted from calendar" : "Event hidden from your calendar" });
+    }
+
+    // Handle Outlook Calendar event deletion (id starts with "outlook-")
+    if (id.startsWith('outlook-')) {
+      const outlookEventId = id.replace('outlook-', '');
+      const outlookConn = await pool.query(
+        `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider = 'outlook' AND status = 'active' AND access_token IS NOT NULL`,
+        [user.id]
+      );
+      if (!outlookConn.rows[0]) {
+        return res.status(400).json({ error: "No Outlook Calendar connected" });
+      }
+
+      let outlookDeleted = false;
+      try {
+        const { deleteOutlookCalendarEvent, refreshOutlookToken } = await import('../outlookCalendar');
+        let accessToken = outlookConn.rows[0].access_token;
+        // Refresh if needed
+        if (outlookConn.rows[0].token_expires_at && new Date(outlookConn.rows[0].token_expires_at) < new Date()) {
+          const refreshed = await refreshOutlookToken(outlookConn.rows[0].refresh_token);
+          accessToken = refreshed.accessToken;
+          await pool.query(
+            `UPDATE agent_calendar_connections SET access_token = $1, refresh_token = COALESCE($2, refresh_token), token_expires_at = $3, updated_at = NOW() WHERE id = $4`,
+            [refreshed.accessToken, refreshed.refreshToken || null, refreshed.expiresAt, outlookConn.rows[0].id]
+          );
+        }
+        await deleteOutlookCalendarEvent(accessToken, outlookEventId);
+        outlookDeleted = true;
+      } catch (err: any) {
+        console.error(`[Calendar] Outlook delete error:`, err?.message);
+      }
+
+      if (!outlookDeleted) {
+        // Can't delete — hide it locally
+        await pool.query(
+          `INSERT INTO appointments (agent_user_id, title, scheduled_at, duration, status, outlook_event_id, cancelled_at)
+           VALUES ($1, 'hidden', NOW(), 0, 'cancelled', $2, NOW())
+           ON CONFLICT DO NOTHING`,
+          [user.id, outlookEventId]
+        );
+      }
+
+      return res.json({ success: true, message: outlookDeleted ? "Event deleted from Outlook Calendar" : "Event hidden from your calendar" });
+    }
+
     // Handle local DB event deletion
     const existing = await storage.getAppointmentById(id);
     if (!existing) {
@@ -1026,6 +1413,26 @@ router.delete("/events/:id", async (req: Request, res: Response) => {
       status: "cancelled",
       cancelledAt: new Date(),
     } as any);
+
+    // If local event has CalDAV sync, delete from CalDAV too
+    if (existing.caldavEventUrl && existing.caldavProvider) {
+      try {
+        const caldavConn = await pool.query(
+          `SELECT * FROM agent_calendar_connections WHERE agent_user_id = $1 AND provider = $2 AND status = 'active'`,
+          [user.id, existing.caldavProvider]
+        );
+        if (caldavConn.rows[0]) {
+          const { createDAVClient: createClient } = await import('../caldavHelpers');
+          const client = await createClient(caldavConn.rows[0]);
+          await client.deleteCalendarObject({
+            calendarObject: { url: existing.caldavEventUrl },
+          });
+          console.log(`[Calendar] CalDAV event deleted for local appointment ${id}: ${existing.caldavEventUid}`);
+        }
+      } catch (err: any) {
+        console.log(`[Calendar] Failed to delete CalDAV event (non-blocking):`, err?.message);
+      }
+    }
 
     res.json({ success: true, message: "Event cancelled" });
   } catch (error: any) {
@@ -1181,67 +1588,52 @@ router.get("/today", async (req: Request, res: Response) => {
         } catch (err: any) {
           console.error('[Calendar] Google Calendar today fetch error:', err?.message);
         }
-      } else {
-        // Apple/Outlook: use CalDAV with app password
+      } else if (conn.provider === 'outlook' && conn.access_token) {
+        // Microsoft Graph API — per-agent Outlook OAuth (today's events)
         try {
-          const { DAVClient } = await import('tsdav');
-          const client = new DAVClient({
-            serverUrl: conn.caldav_url,
-            credentials: { username: conn.username, password: conn.password },
-            authMethod: 'Basic',
-            defaultAccountType: 'caldav',
-          });
-          await client.login();
-          const calendars = await client.fetchCalendars();
-          const primaryCalendar = calendars[0];
+          const { getOutlookCalendarEvents, refreshOutlookToken, outlookEventToUnified } = await import('../outlookCalendar');
 
-          if (primaryCalendar) {
-            const calendarObjects = await client.fetchCalendarObjects({
-              calendar: primaryCalendar,
-              timeRange: { start: startOfDay.toISOString(), end: endOfDay.toISOString() },
-            });
-
-            for (const obj of calendarObjects) {
-              if (!obj.data) continue;
-              const lines = obj.data.split('\n');
-              let title = '', dtstart = '', dtend = '', description = '', location = '', uid = '';
-              for (const line of lines) {
-                if (line.startsWith('SUMMARY:')) title = line.slice(8).trim();
-                if (line.startsWith('DTSTART')) dtstart = line.split(':').pop()?.trim() || '';
-                if (line.startsWith('DTEND')) dtend = line.split(':').pop()?.trim() || '';
-                if (line.startsWith('DESCRIPTION:')) description = line.slice(12).trim();
-                if (line.startsWith('LOCATION:')) location = line.slice(9).trim();
-                if (line.startsWith('UID:')) uid = line.slice(4).trim();
-              }
-              if (title && dtstart) {
-                const sd = parseICalDate(dtstart);
-                const ed = dtend ? parseICalDate(dtend) : new Date(sd.getTime() + 30 * 60000);
-                const diffMin = Math.round((ed.getTime() - sd.getTime()) / 60000);
-                let durationStr: string;
-                if (diffMin >= 120) durationStr = `${diffMin / 60} hours`;
-                else if (diffMin >= 60) durationStr = `${diffMin / 60} hour`;
-                else durationStr = `${diffMin} min`;
-                const hours = sd.getHours();
-                const minutes = sd.getMinutes();
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                const hour12 = hours % 12 || 12;
-                calEvents.push({
-                  id: uid || `caldav-${obj.url}`,
-                  title,
-                  date: sd.toISOString().split('T')[0],
-                  time: `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`,
-                  duration: durationStr,
-                  type: categorizeEventType(title),
-                  description: description || undefined,
-                  location: location || undefined,
-                  status: 'upcoming',
-                  source: 'caldav',
-                });
-              }
-            }
+          let accessToken = conn.access_token;
+          if (conn.token_expires_at && new Date(conn.token_expires_at) < new Date()) {
+            const refreshed = await refreshOutlookToken(conn.refresh_token);
+            accessToken = refreshed.accessToken;
+            await pool.query(
+              `UPDATE agent_calendar_connections SET access_token = $1, refresh_token = COALESCE($2, refresh_token), token_expires_at = $3, updated_at = NOW() WHERE id = $4`,
+              [refreshed.accessToken, refreshed.refreshToken || null, refreshed.expiresAt, conn.id]
+            );
           }
+
+          const outlookEvents = await getOutlookCalendarEvents(accessToken, startOfDay, endOfDay);
+          for (const evt of outlookEvents) {
+            calEvents.push(outlookEventToUnified(evt));
+          }
+          console.log(`[Calendar/today] Outlook: fetched ${outlookEvents.length} events for ${conn.username}`);
         } catch (err: any) {
-          console.error('[Calendar] CalDAV today fetch error:', err?.message);
+          console.error(`[Calendar/today] Outlook fetch error:`, err?.message);
+        }
+      } else {
+        // Apple / other CalDAV: use CalDAV with app password — fetch from ALL calendars
+        try {
+          const client = await createDAVClient({
+            caldav_url: conn.caldav_url,
+            username: conn.username,
+            password: conn.password,
+          });
+
+          const logPrefix = `[Calendar/today] CalDAV (${conn.provider}/${conn.username}): `;
+          const { events: parsedEvents, calendarCount } = await fetchAllCalDAVEvents(
+            client,
+            { start: startOfDay.toISOString(), end: endOfDay.toISOString() },
+            logPrefix
+          );
+
+          for (const parsed of parsedEvents) {
+            calEvents.push(caldavEventToUnified(parsed));
+          }
+
+          console.log(`[Calendar/today] CalDAV (${conn.provider}/${conn.username}): found ${calendarCount} calendars, ${parsedEvents.length} events`);
+        } catch (err: any) {
+          console.error(`[Calendar/today] CalDAV fetch error (${conn.provider}/${conn.username}):`, err?.message || String(err));
         }
       }
     } else {
@@ -1256,13 +1648,31 @@ router.get("/today", async (req: Request, res: Response) => {
       }
     }
 
-    // Dedupe
+    // Dedupe — filter out calendar events already represented in DB
     const dbGoogleIds = new Set(
       todayDb.filter((e) => e.googleEventId).map((e) => e.googleEventId)
     );
-    const uniqueCalEvents = calEvents.filter(
-      (ce) => !dbGoogleIds.has(ce.googleEventId)
+    const dbOutlookIds = new Set(
+      todayDb.filter((e) => (e as any).outlookEventId).map((e) => (e as any).outlookEventId)
     );
+    const dbCaldavUids = new Set(
+      todayDb.filter((e) => (e as any).caldavEventUid).map((e) => (e as any).caldavEventUid)
+    );
+    const uniqueCalEvents = calEvents.filter((ce) => {
+      if (ce.googleEventId && dbGoogleIds.has(ce.googleEventId)) {
+        return false;
+      }
+      if (ce.outlookEventId && dbOutlookIds.has(ce.outlookEventId)) {
+        return false;
+      }
+      if (ce.source === 'caldav' && ce.id) {
+        const uid = ce.id.startsWith('caldav-') ? ce.id : ce.id;
+        if (dbCaldavUids.has(uid)) {
+          return false;
+        }
+      }
+      return true;
+    });
 
     const allEvents = [...todayDb, ...uniqueCalEvents].sort((a, b) =>
       a.time.localeCompare(b.time)

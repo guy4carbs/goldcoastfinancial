@@ -38,6 +38,7 @@ import {
   Activity,
   Inbox,
   Layers,
+  Loader2,
 } from "lucide-react";
 import { cn, daysSinceDate, formatRelativeDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -87,10 +88,10 @@ export default function AgentPerformance() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
 
   // Real performance data from API — re-fetches when time period changes
-  const { data: perfData } = useQuery<any>({
+  const { data: perfData, isLoading: perfLoading, error: perfError } = useQuery<any>({
     queryKey: [`/api/commissions/performance?period=${timePeriod}`],
   });
-  const { data: pipelineStats } = useQuery<any>({
+  const { data: pipelineStats, isLoading: pipelineLoading, error: pipelineError } = useQuery<any>({
     queryKey: [`/api/commissions/pipeline-stats?period=${timePeriod}`],
   });
   const { data: leadSourceROI } = useQuery<any>({
@@ -99,6 +100,8 @@ export default function AgentPerformance() {
   const { data: statementsData } = useQuery<any>({
     queryKey: ['/api/commissions/statements?limit=4'],
   });
+
+  const isPageLoading = perfLoading || pipelineLoading;
   const [showAddLead, setShowAddLead] = useState(false);
   const [initialStage, setInitialStage] = useState<string>('new');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -272,6 +275,31 @@ export default function AgentPerformance() {
           </AgentPageHero>
         </motion.div>
 
+        {/* Subtle loading indicator */}
+        {isPageLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-violet-100"
+          >
+            <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
+            <span className="text-xs font-medium text-gray-600">Loading performance data...</span>
+          </motion.div>
+        )}
+
+        {/* Error warning */}
+        {(perfError || pipelineError) && (
+          <motion.div
+            variants={fadeInUp}
+            className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm"
+            style={{ borderRadius: RADIUS.card }}
+          >
+            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <span>Some performance data could not be loaded. Showing available information.</span>
+          </motion.div>
+        )}
+
         {/* Tab Navigation */}
         <motion.div variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -281,6 +309,7 @@ export default function AgentPerformance() {
             >
               {[
                 { value: 'earnings', label: 'Earnings', icon: DollarSign },
+                { value: 'pipeline', label: 'Pipeline', icon: Layers },
               ].map((tab) => (
                 <button
                   key={tab.value}
@@ -299,8 +328,8 @@ export default function AgentPerformance() {
               ))}
             </div>
 
-            {/* Pipeline Tab - Removed */}
-            <TabsContent value="pipeline_removed" className="hidden">
+            {/* Pipeline Tab */}
+            <TabsContent value="pipeline" className="space-y-6 mt-6">
               {/* Summary Stats */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[

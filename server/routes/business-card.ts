@@ -84,6 +84,28 @@ router.patch("/my-card", requireAuth, async (req: Request, res: Response) => {
 
     const { title, companyName, websiteUrl, linkedinUrl, instagramUrl, facebookUrl, twitterUrl, phone, email, avatarUrl, licenseNumber, npn, licensedStates } = req.body;
 
+    // Validate email format
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    // Validate NPN (numeric only, max 10 digits)
+    if (npn && !/^\d{1,10}$/.test(npn)) {
+      return res.status(400).json({ error: "NPN must be numeric, max 10 digits" });
+    }
+
+    // Validate licensedStates is array of valid state codes
+    if (licensedStates && !Array.isArray(licensedStates)) {
+      return res.status(400).json({ error: "Licensed states must be an array" });
+    }
+
+    // Auto-prefix social URLs with https:// if missing
+    const sanitizeUrl = (url: string | undefined) => {
+      if (!url || url.trim() === '') return url;
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return `https://${url}`;
+    };
+
     // Update users table fields (phone, email, avatarUrl)
     const userClauses: string[] = [];
     const userParams: any[] = [];
@@ -114,11 +136,11 @@ router.patch("/my-card", requireAuth, async (req: Request, res: Response) => {
 
     if (title !== undefined) { setClauses.push(`title = $${idx}`); params.push(title); idx++; }
     if (companyName !== undefined) { setClauses.push(`company_name = $${idx}`); params.push(companyName); idx++; }
-    if (websiteUrl !== undefined) { setClauses.push(`website_url = $${idx}`); params.push(websiteUrl); idx++; }
-    if (linkedinUrl !== undefined) { setClauses.push(`linkedin_url = $${idx}`); params.push(linkedinUrl); idx++; }
-    if (instagramUrl !== undefined) { setClauses.push(`instagram_url = $${idx}`); params.push(instagramUrl); idx++; }
-    if (facebookUrl !== undefined) { setClauses.push(`facebook_url = $${idx}`); params.push(facebookUrl); idx++; }
-    if (twitterUrl !== undefined) { setClauses.push(`twitter_url = $${idx}`); params.push(twitterUrl); idx++; }
+    if (websiteUrl !== undefined) { setClauses.push(`website_url = $${idx}`); params.push(sanitizeUrl(websiteUrl)); idx++; }
+    if (linkedinUrl !== undefined) { setClauses.push(`linkedin_url = $${idx}`); params.push(sanitizeUrl(linkedinUrl)); idx++; }
+    if (instagramUrl !== undefined) { setClauses.push(`instagram_url = $${idx}`); params.push(sanitizeUrl(instagramUrl)); idx++; }
+    if (facebookUrl !== undefined) { setClauses.push(`facebook_url = $${idx}`); params.push(sanitizeUrl(facebookUrl)); idx++; }
+    if (twitterUrl !== undefined) { setClauses.push(`twitter_url = $${idx}`); params.push(sanitizeUrl(twitterUrl)); idx++; }
     if (licenseNumber !== undefined) { setClauses.push(`license_number = $${idx}`); params.push(licenseNumber); idx++; }
     if (npn !== undefined) { setClauses.push(`npn = $${idx}`); params.push(npn); idx++; }
     if (licensedStates !== undefined) { setClauses.push(`licensed_states = $${idx}`); params.push(licensedStates); idx++; }

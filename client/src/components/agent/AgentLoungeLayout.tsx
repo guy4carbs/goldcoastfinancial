@@ -12,7 +12,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useAgentStore } from "@/lib/agentStore";
 import { cn } from "@/lib/utils";
 import { useLoungeAccess } from "@/hooks/useLoungeAccess";
@@ -204,12 +205,8 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   const {
     currentUser,
     performance,
-    notifications,
     theme,
     logout,
-    markNotificationRead,
-    markAllNotificationsRead,
-    clearNotification,
     getOverdueLeads,
     leads,
   } = useAgentStore();
@@ -217,11 +214,43 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   // Lead inbox badge — disabled to avoid count mismatch. Shows 0 (no badge).
   const overdueCount = 0;
 
+  const queryClient = useQueryClient();
+
   // Fetch agent's personal deal stats from real API
   const { data: myDealStats } = useQuery<{ success: boolean; data: { totalAP: number; totalDeals: number; rank: number } }>({
     queryKey: ['/api/deals/my-stats?period=month'],
     staleTime: 60000,
   });
+
+  // Fetch real notifications from API
+  const { data: notificationsData } = useQuery({
+    queryKey: ['/api/portal/notifications'],
+    refetchInterval: 30000,
+  });
+  const notifications = (Array.isArray(notificationsData) ? notificationsData : []) as any[];
+
+  const markNotificationRead = async (notificationId: string) => {
+    try {
+      await apiRequest('PATCH', `/api/portal/notifications/${notificationId}/read`);
+      queryClient.invalidateQueries({ queryKey: ['/api/portal/notifications'] });
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await apiRequest('PATCH', '/api/portal/notifications/read-all');
+      queryClient.invalidateQueries({ queryKey: ['/api/portal/notifications'] });
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const clearNotification = (id: string) => {
+    // Remove from local view by marking as read (API doesn't have a delete endpoint)
+    markNotificationRead(id);
+  };
 
   // Navigation handler for command palette - uses wouter for SPA navigation (no page reload)
   const handleNavigate = (tab: string) => {
@@ -247,15 +276,52 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       'book-of-business': '/agents/book-of-business',
       clients: '/agents/clients',
       recruiting: '/agents/recruiting',
+      crm: '/agents/clients',
+      email: '/agents/communications',
+      chat: '/agents/communications',
+      training: '/agents/training-sessions',
+      videos: '/agents/resources',
+      carriers: '/agents/resources',
+      sops: '/agents/guidelines',
+      earnings: '/agents/commissions',
     };
     if (routes[tab]) {
       setLocation(routes[tab]);
     }
   };
 
-  // Action handler for command palette
+  // Action handler for command palette - routes to real pages
   const handleAction = (action: string) => {
-    console.log('Action:', action);
+    switch (action) {
+      case 'log-call':
+        setLocation('/agents/dialer');
+        break;
+      case 'add-lead':
+        setLocation('/agents/inbox');
+        break;
+      case 'schedule':
+        setLocation('/agents/calendar');
+        break;
+      case 'leaderboard':
+        setLocation('/agents/leaderboard');
+        break;
+      case 'achievements':
+        setLocation('/agents/achievements');
+        break;
+      case 'notifications':
+        // Just open the notification dropdown by scrolling to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        break;
+      case 'toggle-theme':
+        useAgentStore.getState().toggleTheme();
+        break;
+      case 'logout':
+        logout();
+        setLocation('/agents/login');
+        break;
+      default:
+        break;
+    }
   };
 
   const NavSection = ({ title, items }: { title: string; items: NavItem[] }) => (

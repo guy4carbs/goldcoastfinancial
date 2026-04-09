@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,14 +18,16 @@ import {
   Heart,
   Shield,
   Zap,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAgentStore } from "@/lib/agentStore";
 import type { LucideIcon } from "lucide-react";
 import { AgentPageHero } from "@/components/agent/primitives";
+import { AchievementUnlock } from "@/components/agent/celebrations/AchievementUnlock";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
-type AchievementCategory = 'sales' | 'onboarding' | 'consistency' | 'referral' | 'revenue' | 'calls' | 'level' | 'satisfaction';
+type AchievementCategory = 'sales' | 'onboarding' | 'consistency' | 'referral' | 'revenue' | 'calls' | 'level' | 'satisfaction' | 'activity' | 'training';
 type FilterKey = 'all' | 'unlocked' | 'in_progress' | 'locked';
 
 interface DisplayAchievement {
@@ -62,30 +65,79 @@ const ICON_MAP: Record<string, LucideIcon> = {
   zap: Zap,
 };
 
-const EMPTY_ACHIEVEMENTS: DisplayAchievement[] = [];
+// Map tier to rarity for the celebration modal
+const TIER_TO_RARITY: Record<string, 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'> = {
+  bronze: 'common',
+  silver: 'uncommon',
+  gold: 'rare',
+  platinum: 'epic',
+};
+
+interface ApiAchievement {
+  id: string;
+  name: string;
+  description: string;
+  tier: string;
+  icon: string;
+  category: string;
+  points: number;
+  requirement: number;
+  progress: number;
+  type: string;
+  status: 'unlocked' | 'in_progress' | 'locked';
+  earnedAt: string | null;
+  progressPercent: number;
+}
+
+interface AchievementsResponse {
+  achievements: ApiAchievement[];
+  stats: {
+    totalUnlocked: number;
+    totalInProgress: number;
+    totalLocked: number;
+    totalPoints: number;
+    currentStreak: number;
+    longestStreak: number;
+  };
+  newlyUnlocked: ApiAchievement[];
+}
 
 export default function AgentAchievements() {
   const [filter, setFilter] = useState<FilterKey>('all');
-  const { achievements: storeAchievements } = useAgentStore();
+  const [celebrationDismissed, setCelebrationDismissed] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: achievementsData, isLoading, error } = useQuery<AchievementsResponse>({
+    queryKey: ['/api/achievements'],
+    refetchInterval: 60000, // Check for new unlocks every minute
+  });
+
+  const achievements = achievementsData?.achievements || [];
+  const stats = achievementsData?.stats || { totalUnlocked: 0, totalInProgress: 0, totalLocked: 0, totalPoints: 0, currentStreak: 0, longestStreak: 0 };
+  const newlyUnlocked = achievementsData?.newlyUnlocked || [];
+
+  // Show celebration for the first newly unlocked achievement (only once per page load)
+  const celebrationTarget = !celebrationDismissed && newlyUnlocked.length > 0 ? newlyUnlocked[0] : null;
 
   const displayAchievements = useMemo<DisplayAchievement[]>(() => {
-    if (!storeAchievements || storeAchievements.length === 0) {
-      return EMPTY_ACHIEVEMENTS;
-    }
-    return storeAchievements.map((a) => ({
+    if (!achievements || achievements.length === 0) return [];
+    return achievements.map((a) => ({
       id: a.id,
       title: a.name,
       description: a.description,
       category: (a.category || 'sales') as AchievementCategory,
       icon: ICON_MAP[a.icon] || Trophy,
-      unlocked: a.unlocked,
-      unlockedDate: a.unlockedDate,
+      unlocked: a.status === 'unlocked',
+      unlockedDate: a.earnedAt ? new Date(a.earnedAt).toLocaleDateString() : undefined,
+      progress: a.progress,
+      target: a.requirement,
+      locked: a.status === 'locked',
     }));
-  }, [storeAchievements]);
+  }, [achievements]);
 
   const { unlockedCount, inProgressCount, lockedCount } = useMemo(() => ({
     unlockedCount: displayAchievements.filter(a => a.unlocked).length,
-    inProgressCount: displayAchievements.filter(a => !a.unlocked && !a.locked && a.progress !== undefined).length,
+    inProgressCount: displayAchievements.filter(a => !a.unlocked && !a.locked && a.progress !== undefined && a.progress > 0).length,
     lockedCount: displayAchievements.filter(a => a.locked).length,
   }), [displayAchievements]);
 
@@ -93,11 +145,33 @@ export default function AgentAchievements() {
     return displayAchievements.filter(a => {
       if (filter === 'all') return true;
       if (filter === 'unlocked') return a.unlocked;
-      if (filter === 'in_progress') return !a.unlocked && !a.locked && a.progress !== undefined;
+      if (filter === 'in_progress') return !a.unlocked && !a.locked && a.progress !== undefined && a.progress > 0;
       if (filter === 'locked') return a.locked;
       return true;
     });
   }, [displayAchievements, filter]);
+
+  if (isLoading) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="w-12 h-12 text-red-400" />
+          <p className="text-gray-600">Failed to load achievements.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/achievements'] })}>Retry</Button>
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
 
   return (
     <AgentLoungeLayout>
@@ -262,6 +336,21 @@ export default function AgentAchievements() {
           </motion.div>
         )}
       </motion.div>
+
+      {/* Achievement Unlock Celebration Modal */}
+      {celebrationTarget && (
+        <AchievementUnlock
+          isVisible={true}
+          achievement={{
+            title: celebrationTarget.name,
+            description: celebrationTarget.description,
+            icon: ICON_MAP[celebrationTarget.icon] || Trophy,
+            xpReward: celebrationTarget.points,
+            rarity: TIER_TO_RARITY[celebrationTarget.tier] || 'common',
+          }}
+          onClose={() => setCelebrationDismissed(true)}
+        />
+      )}
     </AgentLoungeLayout>
   );
 }

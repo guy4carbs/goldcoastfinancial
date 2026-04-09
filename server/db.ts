@@ -131,6 +131,16 @@ export async function initializeDatabase() {
     await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS carrier VARCHAR;`);
     await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS annual_premium DECIMAL(12,2);`);
 
+    // Book of Business tracking columns
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS client_status VARCHAR(20) DEFAULT 'pending';`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS chargeback_at TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS chargeback_reason TEXT;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS last_contact_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS next_follow_up_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS draft_date VARCHAR(10);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS notes TEXT;`);
+
     // Ensure agent_hierarchy has contract_level column
     await client.query(`ALTER TABLE agent_hierarchy ADD COLUMN IF NOT EXISTS contract_level DECIMAL(5,2) DEFAULT 65;`);
 
@@ -154,6 +164,52 @@ export async function initializeDatabase() {
     `);
     await client.query(`ALTER TABLE commission_records ADD COLUMN IF NOT EXISTS deal_id UUID;`);
     await client.query(`ALTER TABLE deals ADD COLUMN IF NOT EXISTS product_type VARCHAR;`);
+    await client.query(`ALTER TABLE deals ADD COLUMN IF NOT EXISTS state_code VARCHAR(2);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS state_code VARCHAR(2);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS client_details JSONB DEFAULT '{}';`);
+
+    // Agent policies — state-level policy tracking for the map widget
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_policies (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT NOT NULL,
+        state_code VARCHAR(2),
+        policy_number TEXT,
+        carrier TEXT,
+        coverage_type TEXT DEFAULT 'term_life',
+        status TEXT DEFAULT 'pending',
+        client_name TEXT,
+        premium_amount INTEGER DEFAULT 0,
+        coverage_amount INTEGER DEFAULT 0,
+        effective_date DATE,
+        expiration_date DATE,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_policies_user ON agent_policies (user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_policies_state ON agent_policies (state_code);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_policies_status ON agent_policies (status);`);
+
+    // Pending deal profiles — deals submitted without BoB client
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pending_deal_profiles (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        deal_id UUID NOT NULL,
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        client_name VARCHAR(255),
+        carrier VARCHAR(100),
+        product_type VARCHAR(100),
+        state_code VARCHAR(2),
+        monthly_premium DECIMAL(10,2),
+        annual_premium DECIMAL(10,2),
+        status VARCHAR(20) DEFAULT 'pending',
+        completed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_pending_profiles_agent ON pending_deal_profiles (agent_user_id, status);`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS documents (
@@ -1091,9 +1147,11 @@ export async function initializeDatabase() {
         status VARCHAR(20) DEFAULT 'pending',
         purchased_at TIMESTAMP DEFAULT NOW(),
         delivered_at TIMESTAMP,
+        states JSONB,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
+    await client.query(`ALTER TABLE lead_purchases ADD COLUMN IF NOT EXISTS states JSONB;`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_agent ON lead_purchases (agent_user_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_status ON lead_purchases (status);`);
 
@@ -1156,6 +1214,14 @@ export async function initializeDatabase() {
       END $$;
     `);
 
+    // CalDAV tracking columns for appointments (Apple Calendar / iCloud sync)
+    await client.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS caldav_event_uid VARCHAR(255)`);
+    await client.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS caldav_event_url TEXT`);
+    await client.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS caldav_provider VARCHAR(20)`);
+
+    // Outlook Graph API tracking column for appointments (Phase 4)
+    await client.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS outlook_event_id VARCHAR(255)`);
+
     // Secure forms table (migrated from in-memory secureFormStore)
     await client.query(`
       CREATE TABLE IF NOT EXISTS secure_forms (
@@ -1175,6 +1241,390 @@ export async function initializeDatabase() {
         submitted_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
+
+    // ============================================
+    // AGENT WEBSITE SETTINGS TABLE
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_website_settings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        agent_slug VARCHAR(255) NOT NULL,
+        headline TEXT,
+        tagline TEXT,
+        bio TEXT,
+        featured_products JSONB DEFAULT '["term_life","whole_life","iul","final_expense","annuities"]',
+        show_testimonials BOOLEAN DEFAULT true,
+        show_faq BOOLEAN DEFAULT true,
+        show_carriers BOOLEAN DEFAULT true,
+        show_schedule_call BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(agent_user_id),
+        UNIQUE(agent_slug)
+      );
+    `);
+
+    // ============================================
+    // SCRIPTS TABLES
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS scripts (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(100),
+        product_type VARCHAR(100),
+        content TEXT NOT NULL,
+        branches JSONB,
+        is_active BOOLEAN DEFAULT true,
+        usage_count INTEGER DEFAULT 0,
+        success_rate DECIMAL(5,2),
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS script_favorites (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        script_id UUID NOT NULL REFERENCES scripts(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(agent_user_id, script_id)
+      );
+    `);
+
+    // ============================================
+    // RECRUITING TABLES
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS recruit_prospects (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        recruiter_id UUID NOT NULL REFERENCES users(id),
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        source VARCHAR(50),
+        approach VARCHAR(50),
+        stage VARCHAR(50) NOT NULL DEFAULT 'prospect',
+        notes TEXT,
+        next_step_date TIMESTAMP,
+        invite_sent_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // ============================================
+    // QUOTES TABLE (agent-sent policy quotes)
+    // ============================================
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS quotes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lead_id VARCHAR,
+        agent_user_id UUID REFERENCES users(id),
+        quote_number VARCHAR(50) UNIQUE,
+        carrier VARCHAR(100) NOT NULL,
+        product_type VARCHAR(100) NOT NULL,
+        coverage_amount INTEGER NOT NULL,
+        monthly_premium DECIMAL(10, 2) NOT NULL,
+        annual_premium DECIMAL(10, 2),
+        term INTEGER,
+        risk_class VARCHAR(50),
+        health_category VARCHAR(50),
+        status VARCHAR(50) NOT NULL DEFAULT 'draft',
+        sent_at TIMESTAMP,
+        viewed_at TIMESTAMP,
+        expires_at TIMESTAMP,
+        presentation_notes TEXT,
+        competitor_quotes JSONB,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_quotes_lead_id ON quotes (lead_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_quotes_agent_user_id ON quotes (agent_user_id);`);
+
+    // Additional columns for sent quote documents
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS client_name VARCHAR(255);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS client_email VARCHAR(255);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS client_phone VARCHAR(50);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS send_method VARCHAR(20);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS premium_frequency VARCHAR(20) DEFAULT 'monthly';`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS opened_at TIMESTAMP;`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS carrier_id VARCHAR(100);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS quote_type VARCHAR(100);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS quote_type_name VARCHAR(255);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS benefits TEXT;`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS additional_notes TEXT;`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS agent_name VARCHAR(255);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS agent_email VARCHAR(255);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS agent_phone VARCHAR(50);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS agent_npn VARCHAR(50);`);
+    await client.query(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS sms_sent BOOLEAN DEFAULT false;`);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS recruit_settings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id) UNIQUE,
+        agent_slug VARCHAR(255) NOT NULL,
+        headline TEXT,
+        subheadline TEXT,
+        show_testimonials BOOLEAN DEFAULT true,
+        show_faq BOOLEAN DEFAULT true,
+        show_commission_table BOOLEAN DEFAULT true,
+        show_steps BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS product_guide_links (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        link_id VARCHAR(255) UNIQUE NOT NULL,
+        guide_id VARCHAR(50) NOT NULL,
+        guide_title VARCHAR(255) NOT NULL,
+        guide_description TEXT DEFAULT '',
+        client_name VARCHAR(255) NOT NULL,
+        client_email VARCHAR(255) NOT NULL,
+        agent_user_id UUID REFERENCES users(id),
+        agent_name VARCHAR(255),
+        agent_email VARCHAR(255),
+        agent_phone VARCHAR(50) DEFAULT '',
+        agent_npn VARCHAR(50) DEFAULT '',
+        custom_message TEXT,
+        status VARCHAR(20) DEFAULT 'sent',
+        opened_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Deduplicate scripts: keep only one per name (cleans up any existing dupes)
+    await client.query(`
+      DELETE FROM scripts WHERE id NOT IN (
+        SELECT MIN(id::text)::uuid FROM scripts GROUP BY name
+      );
+    `);
+
+    // Add unique constraint on scripts.name (idempotent)
+    await client.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'scripts_name_unique') THEN
+          ALTER TABLE scripts ADD CONSTRAINT scripts_name_unique UNIQUE (name);
+        END IF;
+      END $$;
+    `);
+
+    // Seed default scripts (ON CONFLICT on name prevents duplicates)
+    await client.query(`
+      INSERT INTO scripts (name, category, content, product_type, is_active) VALUES
+        ('Cold Call — Initial Contact', 'phone', 'Opening script for first-time cold calls to new leads. Establishes rapport and qualifies interest.', 'general', true),
+        ('Warm Follow-Up Call', 'phone', 'Script for following up with leads who previously showed interest or requested information.', 'general', true),
+        ('Appointment Setting', 'phone', 'Script to convert an interested lead into a scheduled appointment for a needs analysis.', 'general', true),
+        ('Needs Analysis & Fact-Finding', 'phone', 'Guided questions to uncover the prospect''s financial situation, family needs, and coverage gaps.', 'general', true),
+        ('Product Presentation — Life Insurance', 'phone', 'Structured presentation for term life, whole life, IUL, and final expense products.', 'general', true),
+        ('Objection Handling', 'phone', 'Responses to common objections: "I need to think about it," "I can''t afford it," "I already have coverage."', 'general', true),
+        ('Closing & Application', 'phone', 'Trial closes, assumptive closes, and transition into the application process.', 'general', true),
+        ('Referral Request', 'phone', 'Post-sale script to ask for warm referrals from satisfied clients.', 'general', true),
+        ('Annual Policy Review Call', 'phone', 'Script for reaching out to existing clients for their annual policy review and cross-sell opportunities.', 'general', true),
+        ('Recruiting — Agent Opportunity Call', 'phone', 'Script for recruiting potential agents into your downline. Covers the Heritage opportunity and compensation.', 'general', true)
+      ON CONFLICT (name) DO NOTHING;
+    `);
+
+    // Agent XP Transactions — tracks all XP awards
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_xp_transactions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id),
+        amount INTEGER NOT NULL,
+        reason VARCHAR(255),
+        source_type VARCHAR(50),
+        source_id VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_xp_user ON agent_xp_transactions (user_id);`);
+
+    // Agent Milestones — tracks earned achievements
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_milestones (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id),
+        milestone_id VARCHAR(100) NOT NULL,
+        milestone_name VARCHAR(255) NOT NULL,
+        milestone_tier VARCHAR(20) DEFAULT 'bronze',
+        points_awarded INTEGER DEFAULT 0,
+        earned_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, milestone_id)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_milestones_user ON agent_milestones (user_id);`);
+
+    // Agent Streaks — tracks activity streaks per agent
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_streaks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) UNIQUE,
+        current_streak INTEGER DEFAULT 0,
+        longest_streak INTEGER DEFAULT 0,
+        last_activity_date DATE,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // ============================================
+    // IDEAS & FEEDBACK TABLES
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS agent_ideas (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        priority VARCHAR(20) DEFAULT 'medium',
+        status VARCHAR(20) DEFAULT 'submitted',
+        submitted_by UUID NOT NULL REFERENCES users(id),
+        submitted_by_name VARCHAR(255),
+        admin_response TEXT,
+        admin_responded_by UUID REFERENCES users(id),
+        admin_responded_at TIMESTAMP,
+        upvote_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_ideas_submitted_by ON agent_ideas (submitted_by);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_ideas_status ON agent_ideas (status);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_ideas_category ON agent_ideas (category);`);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS idea_upvotes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        idea_id UUID NOT NULL REFERENCES agent_ideas(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(idea_id, user_id)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_idea_upvotes_idea ON idea_upvotes (idea_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_idea_upvotes_user ON idea_upvotes (user_id);`);
+
+    // User preferences (notification settings, theme, language)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) UNIQUE,
+        email_notifications BOOLEAN DEFAULT true,
+        push_notifications BOOLEAN DEFAULT true,
+        sms_notifications BOOLEAN DEFAULT false,
+        digest_frequency VARCHAR(20) DEFAULT 'daily',
+        theme VARCHAR(20) DEFAULT 'light',
+        language VARCHAR(10) DEFAULT 'en',
+        custom_settings JSONB,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Team activity feed (real-time dashboard feed)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS team_activity_feed (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID REFERENCES users(id),
+        agent_name VARCHAR(255),
+        activity_type VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_team_activity_created ON team_activity_feed (created_at DESC);`);
+
+    // Billing history — bank info and metadata columns
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS bank_name VARCHAR(100);`);
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS routing_number TEXT;`);
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS account_number TEXT;`);
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS description TEXT;`);
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS billing_type VARCHAR(50);`);
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE billing_history ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();`);
+
+    // Document Templates — template definitions for automated document generation
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS document_templates (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        template_key VARCHAR(100) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        category VARCHAR(50) NOT NULL,
+        lifecycle_phase VARCHAR(50) NOT NULL,
+        is_automated BOOLEAN DEFAULT false,
+        requires_approval BOOLEAN DEFAULT false,
+        allows_personal_note BOOLEAN DEFAULT false,
+        trigger_event VARCHAR(100),
+        document_type_for_portal VARCHAR(50) NOT NULL,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Document Queue — tracks generated documents through lifecycle
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS document_queue (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        template_key VARCHAR(100) NOT NULL,
+        client_user_id UUID NOT NULL REFERENCES users(id),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        policy_id UUID REFERENCES policies(id),
+        claim_id VARCHAR(255),
+        status VARCHAR(50) NOT NULL DEFAULT 'generating',
+        personal_note TEXT,
+        generated_pdf_key VARCHAR(500),
+        generated_pdf_url VARCHAR(1000),
+        document_id UUID,
+        delivery_results JSONB,
+        error_message TEXT,
+        scheduled_for TIMESTAMP,
+        approved_at TIMESTAMP,
+        approved_by UUID,
+        sent_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_doc_queue_client ON document_queue(client_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_doc_queue_agent ON document_queue(agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_doc_queue_status ON document_queue(status);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_doc_queue_scheduled ON document_queue(scheduled_for);`);
+
+    // Seed document templates (17 templates)
+    await client.query(`
+      INSERT INTO document_templates (template_key, name, description, category, lifecycle_phase, is_automated, requires_approval, allows_personal_note, trigger_event, document_type_for_portal) VALUES
+        ('welcome_letter', 'Welcome Letter', 'Congratulations letter with agent intro, portal access, and what to expect', 'onboarding', 'onboarding', true, false, false, 'POLICY_SOLD', 'correspondence'),
+        ('policy_summary', 'Policy Summary', 'Coverage amount, premium, beneficiaries, policy number, carrier, key dates', 'onboarding', 'onboarding', true, false, false, 'POLICY_SOLD', 'policy'),
+        ('claims_guide', 'Claims Guide', 'How to file a claim, required documents, timeline expectations', 'onboarding', 'onboarding', true, false, false, 'POLICY_SOLD', 'claims'),
+        ('beneficiary_designation_confirmation', 'Beneficiary Designation Confirmation', 'Current beneficiaries on record for the policy', 'onboarding', 'onboarding', true, false, false, 'POLICY_SOLD', 'beneficiary'),
+        ('portal_access_instructions', 'Portal Access Instructions', 'Login URL, password setup, features overview', 'onboarding', 'onboarding', true, false, false, 'POLICY_SOLD', 'correspondence'),
+        ('annual_policy_statement', 'Annual Policy Statement', 'Current status, premium paid YTD, cash value, beneficiaries', 'annual', 'annual_ongoing', true, false, false, NULL, 'statements'),
+        ('premium_payment_reminder', 'Premium Payment Reminder', 'Upcoming due date, amount, payment method on file', 'billing', 'annual_ongoing', true, false, false, NULL, 'billing'),
+        ('policy_anniversary_letter', 'Policy Anniversary Letter', 'Personal letter from agent on policy anniversary with review invitation', 'annual', 'annual_ongoing', false, false, true, NULL, 'correspondence'),
+        ('annual_review_invitation', 'Annual Review Invitation', 'Invitation to schedule an annual coverage review meeting', 'annual', 'annual_ongoing', false, false, true, NULL, 'correspondence'),
+        ('claims_packet', 'Claims Filing Packet', 'Required documents checklist, filing process, timeline', 'claims', 'claims', true, false, false, 'CLAIM_FILED', 'claims'),
+        ('claim_acknowledgment', 'Claim Acknowledgment Letter', 'Confirms receipt of claim with claim number and next steps', 'claims', 'claims', true, false, false, 'CLAIM_FILED', 'claims'),
+        ('claim_status_update', 'Claim Status Update', 'Progress notification with current status and next steps', 'claims', 'claims', false, false, true, 'CLAIM_STATUS_UPDATED', 'claims'),
+        ('claim_approval_letter', 'Claim Approval Letter', 'Approved amount, payout method, timeline', 'claims', 'claims', false, true, true, 'CLAIM_STATUS_UPDATED', 'claims'),
+        ('claim_denial_letter', 'Claim Denial Letter', 'Denial reason and appeal process', 'claims', 'claims', false, true, true, 'CLAIM_STATUS_UPDATED', 'claims'),
+        ('beneficiary_change_confirmation', 'Beneficiary Change Confirmation', 'Updated beneficiaries on record after agent processes change', 'beneficiary', 'beneficiary_service', true, false, false, 'BENEFICIARY_REQUESTED', 'beneficiary'),
+        ('contact_update_confirmation', 'Contact Update Confirmation', 'Confirms address, phone, or email change', 'correspondence', 'beneficiary_service', true, false, false, NULL, 'correspondence'),
+        ('payment_method_update_confirmation', 'Payment Method Update Confirmation', 'Confirms new payment method on file', 'billing', 'beneficiary_service', true, false, false, NULL, 'billing')
+      ON CONFLICT (template_key) DO NOTHING;
     `);
 
     console.log("Database tables initialized successfully.");

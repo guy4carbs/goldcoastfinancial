@@ -61,6 +61,7 @@ import recruitingRouter from "./routes/recruiting";
 import scriptsRouter from "./routes/scripts";
 import achievementsRouter from "./routes/achievements";
 import ideasRouter from "./routes/ideas";
+import documentTemplatesRouter from "./routes/document-templates";
 import { bootstrapAgentSystem } from "./agents";
 import { createAgentRoutes } from "./agents/api-routes";
 
@@ -2871,7 +2872,11 @@ export async function registerRoutes(
           bh.amount::float AS amount,
           TO_CHAR(bh.payment_date, 'Mon DD, YYYY') AS date,
           bh.status,
-          bh.payment_method AS "paymentMethod"
+          bh.payment_method AS "paymentMethod",
+          bh.bank_name AS "bankName",
+          bh.billing_type AS "billingType",
+          bh.description,
+          bh.due_date AS "dueDate"
         FROM billing_history bh
         LEFT JOIN policies p ON bh.policy_id = p.id
         WHERE bh.user_id = $1
@@ -3351,6 +3356,9 @@ export async function registerRoutes(
 
   // Ideas & Feedback (agent idea submissions + upvoting)
   app.use("/api/ideas", ideasRouter);
+
+  // Document Templates (PDF generation, delivery, approval queue)
+  app.use("/api/document-templates", documentTemplatesRouter);
 
   // GET /api/team-activity — Fetch recent team activity for dashboard feed
   app.get("/api/team-activity", rbacRequireAuth, async (req: Request, res: Response) => {

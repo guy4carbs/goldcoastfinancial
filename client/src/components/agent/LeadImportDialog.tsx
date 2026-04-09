@@ -37,11 +37,12 @@ const LEAD_FIELDS = [
 interface LeadImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onImportSuccess?: () => void;
 }
 
 type Step = "upload" | "mapping" | "result";
 
-export function LeadImportDialog({ open, onOpenChange }: LeadImportDialogProps) {
+export function LeadImportDialog({ open, onOpenChange, onImportSuccess }: LeadImportDialogProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -145,6 +146,7 @@ export function LeadImportDialog({ open, onOpenChange }: LeadImportDialogProps) 
       setStep("result");
       queryClient.invalidateQueries();
       toast.success(`${data.results?.imported || 0} leads imported!`);
+      onImportSuccess?.();
     },
     onError: (err: Error) => {
       toast.error(err.message || "Import failed");

@@ -17,6 +17,15 @@ export const agentProfiles = pgTable("agent_profiles", {
   state: varchar("state", { length: 2 }),
   zipCode: varchar("zip_code", { length: 10 }),
 
+  // Business Card / Public Profile
+  title: varchar("title", { length: 255 }),
+  companyName: varchar("company_name", { length: 255 }),
+  websiteUrl: varchar("website_url", { length: 255 }),
+  linkedinUrl: varchar("linkedin_url", { length: 255 }),
+  instagramUrl: varchar("instagram_url", { length: 255 }),
+  facebookUrl: varchar("facebook_url", { length: 255 }),
+  twitterUrl: varchar("twitter_url", { length: 255 }),
+
   // Professional Background
   isLicensed: varchar("is_licensed", { length: 20 }),
   licenseNumber: text("license_number"),

@@ -1,200 +1,366 @@
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
-import { Sparkles, Clock, Users, MessageSquare, Brain, Zap } from "lucide-react";
-import { RADIUS, SHADOW, MOTION, fadeInUp, staggerContainer, scaleIn, spacing } from "@/lib/heritageDesignSystem";
+import { ClaudeChatInput, type AvatarOption } from "@/components/ui/claude-style-chat-input";
+import { useAgentStore } from "@/lib/agentStore";
+import ReactMarkdown from "react-markdown";
+// Simple fade-in-up animation props for motion elements
+const fadeUp = {
+  initial: { opacity: 0, y: 20 } as const,
+  animate: { opacity: 1, y: 0 } as const,
+  transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
+};
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface Message {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  avatarName?: string;
+  timestamp: Date;
+}
+
+// =============================================================================
+// Main Page Component
+// =============================================================================
 
 export default function AgentAvatarCouncil() {
-  const featureCards = [
+  const { currentUser } = useAgentStore();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string>("");
+  const [isWaiting, setIsWaiting] = useState(false);
+
+  // --- Fetch avatars from API ---
+  const { data: avatarsData } = useQuery<any>({
+    queryKey: ["/api/avatar-council/avatars?active=true"],
+  });
+
+  // Map to AvatarOption format for the chat input
+  const avatarOptions: AvatarOption[] = useMemo(() => {
+    const list = avatarsData?.avatars || avatarsData || [];
+    if (!Array.isArray(list)) return [];
+    return list.map((a: any) => ({
+      id: a.id,
+      name: a.name,
+      description:
+        (a.expertiseDomains || a.expertise_domains || []).slice(0, 3).join(", ") ||
+        a.description ||
+        "",
+    }));
+  }, [avatarsData]);
+
+  // Auto-select first avatar
+  useEffect(() => {
+    if (avatarOptions.length > 0 && !selectedAvatarId) {
+      setSelectedAvatarId(avatarOptions[0].id);
+    }
+  }, [avatarOptions, selectedAvatarId]);
+
+  // Auto-scroll on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // --- Create session ---
+  const createSession = async (): Promise<string | null> => {
+    if (sessionId) return sessionId;
+    try {
+      const res = await fetch("/api/avatar-council/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ mode: "single", avatarIds: [selectedAvatarId] }),
+      });
+      const data = await res.json();
+      const id = data.session?.id || data.id;
+      setSessionId(id);
+      return id;
+    } catch {
+      return null;
+    }
+  };
+
+  // --- Send message ---
+  const handleSendMessage = async ({ message, avatar }: any) => {
+    if (!message?.trim()) return;
+
+    const userMsg: Message = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: message,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setIsWaiting(true);
+
+    try {
+      const sid = await createSession();
+      const res = await fetch("/api/avatar-council/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          sessionId: sid,
+          message,
+          avatarId: avatar || selectedAvatarId,
+        }),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `err-${Date.now()}`,
+            role: "system",
+            content:
+              data.error ||
+              "AI responses require configuration. Contact your administrator.",
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        const content =
+          data.response?.content ||
+          data.content ||
+          data.message ||
+          "No response received.";
+        const avatarName =
+          data.response?.avatarName || data.avatarName || "AI Advisor";
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            role: "assistant",
+            content,
+            avatarName,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          role: "system",
+          content: "Failed to get response. Please try again.",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setIsWaiting(false);
+    }
+  };
+
+  // --- Quick prompts ---
+  const quickPrompts = [
     {
-      icon: MessageSquare,
-      title: "AI Debates",
-      description: "Watch legendary minds debate sales strategies in real-time",
+      label: "Objection handling",
+      prompt:
+        "How should I handle the objection 'I need to think about it' when closing a life insurance sale?",
     },
     {
-      icon: Brain,
-      title: "Expert Councils",
-      description: "Consult with multiple advisors for comprehensive insights",
+      label: "Underwriting help",
+      prompt:
+        "What are the underwriting guidelines for a client with Type 2 diabetes applying for term life?",
     },
     {
-      icon: Zap,
-      title: "Strategy Sessions",
-      description: "Get personalized guidance for your unique challenges",
+      label: "Sales strategy",
+      prompt:
+        "Give me a proven sales strategy for selling IUL policies to high-income professionals.",
+    },
+    {
+      label: "Compliance check",
+      prompt:
+        "What compliance requirements should I be aware of when replacing an existing life insurance policy?",
     },
   ];
 
+  // --- Greeting ---
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const firstName = currentUser?.name?.split(" ")[0] || "Agent";
+
+  const hasMessages = messages.length > 0;
+
+  // =============================================================================
+  // Render
+  // =============================================================================
+
   return (
     <AgentLoungeLayout>
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-6"
-        style={{ gap: spacing(4) }}
-      >
-        {/* Hero Card */}
-        <motion.div
-          variants={fadeInUp}
-          className="w-full max-w-3xl text-center relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #7c3aed 0%, #9333ea 40%, #f59e0b 100%)",
-            borderRadius: RADIUS.hero,
-            padding: spacing(5),
-            boxShadow: SHADOW.hero,
-          }}
-        >
-          {/* Decorative blobs */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-amber-400/15 rounded-full blur-xl" />
-
-          {/* Icon */}
-          <motion.div
-            variants={scaleIn}
-            className="w-24 h-24 mx-auto mb-6 flex items-center justify-center relative z-10"
-            style={{
-              background: "rgba(255, 255, 255, 0.2)",
-              backdropFilter: "blur(10px)",
-              borderRadius: RADIUS.card,
-            }}
-          >
-            <Users className="w-12 h-12 text-amber-200" />
-          </motion.div>
-
-          {/* Title with Gradient Text Effect */}
-          <motion.h1
-            variants={fadeInUp}
-            className="text-4xl font-bold mb-4"
-            style={{
-              background: "linear-gradient(135deg, #ffffff 0%, #e9d5ff 50%, #ffffff 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            Avatar Council
-          </motion.h1>
-
-          {/* Coming Soon Badge */}
-          <motion.div
-            variants={scaleIn}
-            whileHover={{
-              scale: 1.05,
-              transition: { duration: MOTION.duration.hover }
-            }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 mb-6"
-            style={{
-              background: "rgba(255, 255, 255, 0.95)",
-              borderRadius: RADIUS.pill,
-              boxShadow: SHADOW.level2,
-            }}
-          >
-            <motion.div
-              animate={{
-                rotate: [0, 360],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            >
-              <Clock className="w-4 h-4 text-violet-600" />
+      <div className="flex flex-col min-h-[calc(100vh-120px)]">
+        {!hasMessages ? (
+          /* ============ EMPTY STATE — Claude-style centered layout ============ */
+          <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
+            {/* Logo */}
+            <motion.div {...fadeUp} className="mb-8">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center shadow-lg">
+                <svg
+                  className="w-10 h-10 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z" />
+                  <path d="M9 18h6" />
+                  <path d="M10 22h4" />
+                </svg>
+              </div>
             </motion.div>
-            <span
-              className="font-semibold text-sm"
-              style={{
-                background: "linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
+
+            {/* Greeting */}
+            <motion.h1
+              {...fadeUp}
+              className="text-3xl sm:text-4xl font-light text-gray-800 mb-3 tracking-tight text-center"
+              style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}
             >
-              Coming Soon
-            </span>
-          </motion.div>
+              {greeting},{" "}
+              <span className="relative inline-block">{firstName}</span>
+            </motion.h1>
+            <motion.p {...fadeUp} className="text-gray-500 mb-10 text-center">
+              Your AI insurance advisors are ready to help
+            </motion.p>
 
-          {/* Description */}
-          <motion.p
-            variants={fadeInUp}
-            className="text-white/90 text-lg leading-relaxed max-w-xl mx-auto"
-          >
-            Summon legendary sales minds for live debates and strategic advice.
-            Warren Buffett, Patrick Bet-David, Ben Feldman, and more will be ready
-            to guide your insurance career.
-          </motion.p>
-        </motion.div>
+            {/* Chat Input */}
+            <ClaudeChatInput
+              onSendMessage={handleSendMessage}
+              avatars={avatarOptions}
+              selectedAvatar={selectedAvatarId}
+              onAvatarChange={setSelectedAvatarId}
+              placeholder="Ask your AI advisors anything..."
+              isLoading={isWaiting}
+            />
 
-        {/* Feature Cards */}
-        <motion.div
-          variants={staggerContainer}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl"
-        >
-          {featureCards.map((feature, index) => (
+            {/* Quick Prompts */}
             <motion.div
-              key={feature.title}
-              variants={fadeInUp}
-              whileHover={{
-                y: MOTION.hover.y,
-                scale: MOTION.hover.scale,
-                transition: { duration: MOTION.duration.hover }
-              }}
-              className="text-center p-6 cursor-pointer"
-              style={{
-                background: "white",
-                borderRadius: RADIUS.card,
-                boxShadow: SHADOW.card,
-              }}
+              {...fadeUp}
+              className="flex flex-wrap justify-center gap-2 mt-6 max-w-2xl mx-auto px-4"
             >
-              <motion.div
-                whileHover={{ rotate: 5 }}
-                transition={{ duration: MOTION.duration.hover }}
-                className="w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600"
-                style={{
-                  borderRadius: RADIUS.button,
-                }}
-              >
-                <feature.icon className="w-6 h-6 text-amber-200" />
-              </motion.div>
-              <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-sm text-gray-600">{feature.description}</p>
+              {quickPrompts.map((qp) => (
+                <button
+                  key={qp.label}
+                  onClick={() =>
+                    handleSendMessage({
+                      message: qp.prompt,
+                      avatar: selectedAvatarId,
+                      files: [],
+                      pastedContent: [],
+                      isThinkingEnabled: false,
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 bg-transparent border border-gray-200 rounded-full hover:bg-gray-50 hover:text-gray-700 transition-colors duration-150"
+                >
+                  {qp.label}
+                </button>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
+          </div>
+        ) : (
+          /* ============ CHAT VIEW — messages + input at bottom ============ */
+          <>
+            <div className="flex-1 overflow-y-auto px-4 py-6 max-w-3xl mx-auto w-full">
+              <AnimatePresence>
+                {messages.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`mb-4 ${
+                      msg.role === "user"
+                        ? "flex justify-end"
+                        : msg.role === "system"
+                          ? "flex justify-center"
+                          : "flex justify-start"
+                    }`}
+                  >
+                    {msg.role === "user" ? (
+                      <div className="max-w-[80%] px-4 py-3 rounded-2xl bg-violet-50 text-gray-800 text-[15px] leading-relaxed">
+                        {msg.content}
+                      </div>
+                    ) : msg.role === "system" ? (
+                      <div className="max-w-[80%] px-4 py-2 rounded-xl bg-amber-50 text-amber-700 text-sm text-center">
+                        {msg.content}
+                      </div>
+                    ) : (
+                      <div className="max-w-[80%]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-amber-500 flex items-center justify-center">
+                            <span className="text-white text-[10px] font-bold">
+                              {msg.avatarName?.[0] || "A"}
+                            </span>
+                          </div>
+                          <span className="text-xs font-medium text-gray-500">
+                            {msg.avatarName || "AI Advisor"}
+                          </span>
+                        </div>
+                        <div className="px-4 py-3 rounded-2xl bg-white border border-gray-100 shadow-sm text-[15px] leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
 
-        {/* Animated Sparkles Indicator */}
-        <motion.div
-          variants={fadeInUp}
-          className="flex items-center gap-3 text-gray-500"
-        >
-          <motion.div
-            animate={{
-              opacity: [0.5, 1, 0.5],
-              scale: [0.95, 1.05, 0.95],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <Sparkles className="w-5 h-5 text-amber-500" />
-          </motion.div>
-          <span className="text-sm font-medium text-gray-500">Powered by Heritage AI</span>
-          <motion.div
-            animate={{
-              opacity: [0.5, 1, 0.5],
-              scale: [0.95, 1.05, 0.95],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1,
-            }}
-          >
-            <Sparkles className="w-5 h-5 text-amber-500" />
-          </motion.div>
-        </motion.div>
-      </motion.div>
+              {/* Thinking indicator */}
+              {isWaiting && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start mb-4"
+                >
+                  <div className="px-4 py-3 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <span
+                          className="w-2 h-2 bg-violet-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        />
+                        <span
+                          className="w-2 h-2 bg-violet-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        />
+                        <span
+                          className="w-2 h-2 bg-violet-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-400">Thinking...</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input pinned to bottom */}
+            <div className="sticky bottom-0 pb-4 pt-2 bg-gradient-to-t from-[#f8fafc] via-[#f8fafc] to-transparent">
+              <ClaudeChatInput
+                onSendMessage={handleSendMessage}
+                avatars={avatarOptions}
+                selectedAvatar={selectedAvatarId}
+                onAvatarChange={setSelectedAvatarId}
+                placeholder="Ask a follow-up..."
+                isLoading={isWaiting}
+              />
+            </div>
+          </>
+        )}
+      </div>
     </AgentLoungeLayout>
   );
 }

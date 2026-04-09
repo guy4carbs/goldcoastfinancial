@@ -8,6 +8,8 @@ import { RecruitingFunnel } from "@/components/agent/recruiting/RecruitingFunnel
 import { DownlineTable } from "@/components/agent/recruiting/DownlineTable";
 import { AutomationFlow } from "@/components/agent/recruiting/AutomationFlow";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   RADIUS, SHADOW, TYPE, COLORS,
   fadeInUp, staggerContainer,
@@ -61,8 +63,6 @@ export default function AgentRecruiting() {
     downlineAgents,
     funnelData,
     automationSteps,
-    recruitProspects,
-    addRecruitProspect,
     getRecruitingOverviewStats,
     getRecruitingFunnelStats,
     getAutomationStats,
@@ -73,6 +73,25 @@ export default function AgentRecruiting() {
     recruitingStats,
     fetchRecruitingStats,
   } = useAgentStore();
+
+  const qc = useQueryClient();
+
+  // Fetch prospects from DB instead of Zustand
+  const { data: prospectsData, isLoading: prospectsLoading } = useQuery<{ prospects: any[] }>({
+    queryKey: ['/api/recruiting/prospects'],
+  });
+  const prospects: any[] = prospectsData?.prospects || [];
+
+  // Add prospect mutation
+  const addProspectMutation = useMutation({
+    mutationFn: async (prospect: { name: string; email: string; phone: string; notes?: string; source: string; approach: string }) => {
+      const res = await apiRequest('POST', '/api/recruiting/prospects', prospect);
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['/api/recruiting/prospects'] });
+    },
+  });
 
   const agentName = currentUser?.name || 'Agent';
   const agentSlug = useMemo(() =>
@@ -228,7 +247,7 @@ export default function AgentRecruiting() {
     showCommissionTable: setShowCommissionTable, showSteps: setShowSteps,
   };
 
-  const recentActivity = [...recruitProspects]
+  const recentActivity = [...prospects]
     .sort((a, b) => new Date(b.addedDate).getTime() - new Date(a.addedDate).getTime())
     .slice(0, 10);
 
@@ -346,11 +365,11 @@ export default function AgentRecruiting() {
                 </div>
                 <div className="divide-y divide-gray-50">
                   {recentActivity.length > 0 ? recentActivity.map(p => {
-                    const cfg = stageConfig[p.stage];
+                    const cfg = stageConfig[p.stage as RecruitingStage] || stageConfig.prospect;
                     return (
                       <div key={p.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 transition-colors">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
-                          {p.name.split(' ').map(n => n[0]).join('')}
+                          {p.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm">{p.name}</p>
@@ -372,9 +391,18 @@ export default function AgentRecruiting() {
                     );
                   }) : (
                     <div className="text-center py-12 text-gray-400">
-                      <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No prospects yet</p>
-                      <p className="text-xs">Click "Add Prospect" to get started!</p>
+                      {prospectsLoading ? (
+                        <>
+                          <Loader2 className="w-10 h-10 mx-auto mb-2 opacity-50 animate-spin" />
+                          <p className="text-sm">Loading prospects...</p>
+                        </>
+                      ) : (
+                        <>
+                          <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No prospects yet</p>
+                          <p className="text-xs">Click "Add Prospect" to get started!</p>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -737,8 +765,14 @@ export default function AgentRecruiting() {
           phone: currentUser?.phone || '',
         }}
         onComplete={(prospect) => {
-          addRecruitProspect(prospect);
-          toast.success(`${prospect.name} added to pipeline!`);
+          addProspectMutation.mutate(prospect, {
+            onSuccess: () => {
+              toast.success(`${prospect.name} added to pipeline!`);
+            },
+            onError: () => {
+              toast.error(`Failed to add ${prospect.name}. Please try again.`);
+            },
+          });
         }}
       />
     </AgentLoungeLayout>

@@ -122,6 +122,15 @@ export function LeadDetailDrawer({
     updateLeadNotes(lead.id, leadNotes);
     setIsEditingNotes(false);
     toast.success('Notes saved');
+    // Persist to backend (fire-and-forget)
+    if (lead.dbId) {
+      fetch(`/api/crm/leads/${lead.dbId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ notes: leadNotes }),
+      }).catch((err) => console.warn('[LeadDetailDrawer] Failed to persist lead notes:', err));
+    }
   };
 
   const handleAddTag = (tag: string) => {

@@ -50,6 +50,14 @@ export const appointments = pgTable("appointments", {
   // Google Calendar sync
   googleEventId: varchar("google_event_id", { length: 255 }),
 
+  // CalDAV sync (Apple Calendar, iCloud, etc.)
+  caldavEventUid: varchar("caldav_event_uid", { length: 255 }),
+  caldavEventUrl: text("caldav_event_url"),
+  caldavProvider: varchar("caldav_provider", { length: 20 }),
+
+  // Outlook Graph API sync (Phase 4)
+  outlookEventId: varchar("outlook_event_id", { length: 255 }),
+
   // Outcome
   outcome: text("outcome"),
   nextSteps: text("next_steps"),
@@ -99,6 +107,28 @@ export const quotes = pgTable("quotes", {
   sentAt: timestamp("sent_at"),
   viewedAt: timestamp("viewed_at"),
   expiresAt: timestamp("expires_at"),
+
+  // Client / Delivery Info
+  clientName: varchar("client_name", { length: 255 }),
+  clientEmail: varchar("client_email", { length: 255 }),
+  clientPhone: varchar("client_phone", { length: 50 }),
+  sendMethod: varchar("send_method", { length: 20 }),
+  premiumFrequency: varchar("premium_frequency", { length: 20 }).default("monthly"),
+  openedAt: timestamp("opened_at"),
+
+  // Quote document fields
+  carrierId: varchar("carrier_id", { length: 100 }),
+  quoteType: varchar("quote_type", { length: 100 }),
+  quoteTypeName: varchar("quote_type_name", { length: 255 }),
+  benefits: text("benefits"),
+  additionalNotes: text("additional_notes"),
+
+  // Agent info snapshot
+  agentName: varchar("agent_name", { length: 255 }),
+  agentEmail: varchar("agent_email", { length: 255 }),
+  agentPhone: varchar("agent_phone", { length: 50 }),
+  agentNpn: varchar("agent_npn", { length: 50 }),
+  smsSent: boolean("sms_sent").default(false),
 
   // Presentation
   presentationNotes: text("presentation_notes"),

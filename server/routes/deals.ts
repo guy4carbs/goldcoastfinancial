@@ -21,7 +21,7 @@ router.post("/", async (req: Request, res: Response) => {
     const user = (req as any).user;
     if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
 
-    const { clientName, carrier, monthlyPremium, notes, productType } = req.body;
+    const { clientName, carrier, monthlyPremium, notes, productType, stateCode } = req.body;
 
     if (!carrier) return res.status(400).json({ success: false, message: "Carrier is required" });
     if (!monthlyPremium || parseFloat(monthlyPremium) <= 0) {
@@ -32,10 +32,10 @@ router.post("/", async (req: Request, res: Response) => {
     const annual = Math.round(monthly * 12 * 100) / 100;
 
     const result = await pool.query(`
-      INSERT INTO deals (agent_user_id, client_name, carrier, monthly_premium, annual_premium, notes, product_type)
-      VALUES ($1::uuid, $2, $3, $4, $5, $6, $7)
+      INSERT INTO deals (agent_user_id, client_name, carrier, monthly_premium, annual_premium, notes, product_type, state_code)
+      VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [userId, clientName || null, carrier, monthly, annual, notes || null, productType || null]);
+    `, [userId, clientName || null, carrier, monthly, annual, notes || null, productType || null, stateCode || null]);
 
     const deal = result.rows[0];
 
@@ -66,7 +66,58 @@ router.post("/", async (req: Request, res: Response) => {
       );
     }
 
-    res.status(201).json({ success: true, data: deal });
+    // Auto-populate policy map
+    if (deal.id && stateCode) {
+      try {
+        await pool.query(`
+          INSERT INTO agent_policies (user_id, state_code, client_name, carrier, coverage_type, status, premium_amount, coverage_amount, policy_number)
+          VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8)
+        `, [userId, stateCode, clientName || null, carrier, productType || 'term_life', Math.round(monthly * 100), Math.round(annual), null]);
+      } catch (err: any) {
+        console.warn('[Deals] Auto-populate agent_policies failed:', err?.message);
+      }
+    }
+
+    // Log to team activity feed
+    try {
+      const agentName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Agent';
+      await pool.query(`
+        INSERT INTO team_activity_feed (agent_user_id, agent_name, activity_type, title, message, metadata)
+        VALUES ($1, $2, 'deal', 'Deal Submitted', $3, $4)
+      `, [userId, agentName, `submitted a ${carrier} deal — $${annual.toLocaleString()} AP`, JSON.stringify({ carrier, annualPremium: annual, dealId: deal.id })]);
+    } catch {}
+
+    // Check if client already exists in Book of Business (match by name, case-insensitive)
+    let bobMatch = false;
+    let pendingProfileId = null;
+    if (clientName && clientName.trim()) {
+      try {
+        const bobCheck = await pool.query(`
+          SELECT p.id FROM policies p
+          JOIN users u ON p.user_id = u.id
+          WHERE p.agent_id = $1
+          AND LOWER(CONCAT(COALESCE(u.first_name,''), ' ', COALESCE(u.last_name,''))) = LOWER($2)
+          LIMIT 1
+        `, [userId, clientName.trim()]);
+        bobMatch = bobCheck.rows.length > 0;
+      } catch {}
+
+      // If no BoB match, create a pending profile
+      if (!bobMatch) {
+        try {
+          const ppResult = await pool.query(`
+            INSERT INTO pending_deal_profiles (deal_id, agent_user_id, client_name, carrier, product_type, state_code, monthly_premium, annual_premium)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id
+          `, [deal.id, userId, clientName.trim(), carrier, productType || null, stateCode || null, monthly, annual]);
+          pendingProfileId = ppResult.rows[0]?.id;
+        } catch (err: any) {
+          console.warn('[Deals] Pending profile creation failed:', err?.message);
+        }
+      }
+    }
+
+    res.status(201).json({ success: true, data: deal, bobMatch, pendingProfileId });
   } catch (error: any) {
     console.error("[Deals] Error submitting deal:", error?.message);
     res.status(500).json({ success: false, message: "Failed to submit deal", detail: error?.message });

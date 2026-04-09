@@ -59,7 +59,9 @@ export interface EventData {
   location?: string;
   meetingLink?: string;
   googleEventId?: string;
-  source?: 'local' | 'google';
+  caldavEventUid?: string;
+  outlookEventId?: string;
+  source?: 'local' | 'google' | 'caldav' | 'outlook';
 }
 
 const eventTypes = [

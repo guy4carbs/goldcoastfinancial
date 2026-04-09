@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { DollarSign, Loader2, Trophy, Building2, FileText } from "lucide-react";
+import { DollarSign, Loader2, Trophy, Building2, FileText, MapPin } from "lucide-react";
+import { US_STATES } from "@/data/usStates";
 
 const PRODUCT_TYPES = ['IUL', 'Whole Life', 'Term Life', 'Final Expense', 'Annuity'];
 import {
@@ -52,6 +53,7 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
   const [premium, setPremium] = useState('');
   const [carrier, setCarrier] = useState('');
   const [productType, setProductType] = useState('');
+  const [stateCode, setStateCode] = useState('');
   const [clientName, setClientName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const queryClient = useQueryClient();
@@ -62,18 +64,37 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
   const handleSubmit = async () => {
     if (!carrier) { toast.error('Select a carrier'); return; }
     if (!productType) { toast.error('Select a product type'); return; }
+    if (!stateCode) { toast.error('Select a state'); return; }
     if (monthlyVal <= 0) { toast.error('Enter the monthly premium'); return; }
 
     setSubmitting(true);
+    const savedClientName = clientName.trim();
     try {
-      await apiRequest("POST", "/api/deals", {
+      const res = await apiRequest("POST", "/api/deals", {
         carrier,
         productType,
+        stateCode,
         monthlyPremium: monthlyVal,
-        clientName: clientName.trim() || undefined,
+        clientName: savedClientName || undefined,
       });
+      const data = await res.json();
 
       toast.success(`Deal submitted! $${annualPremium.toLocaleString()} AP on ${carrier}`);
+
+      // If client not in Book of Business, prompt to complete profile
+      if (data.bobMatch === false && savedClientName) {
+        setTimeout(() => {
+          toast('New client — complete their profile', {
+            description: `${savedClientName} needs a full profile in your Book of Business`,
+            action: {
+              label: 'Go to Book',
+              onClick: () => { window.location.href = '/agents/book-of-business'; },
+            },
+            duration: 10000,
+          });
+        }, 1200);
+      }
+
       // Refresh all data across the app
       queryClient.invalidateQueries();
       queryClient.refetchQueries();
@@ -82,6 +103,7 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
       setPremium('');
       setCarrier('');
       setProductType('');
+      setStateCode('');
       setClientName('');
       onOpenChange(false);
     } catch (err: any) {
@@ -162,6 +184,23 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
             </Select>
           </div>
 
+          {/* State */}
+          <div>
+            <Label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+              <MapPin className="w-3 h-3" /> State *
+            </Label>
+            <Select value={stateCode} onValueChange={setStateCode}>
+              <SelectTrigger style={{ borderRadius: RADIUS.input }}>
+                <SelectValue placeholder="Select state..." />
+              </SelectTrigger>
+              <SelectContent>
+                {US_STATES.map(s => (
+                  <SelectItem key={s.code} value={s.code}>{s.code} — {s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Client Name (optional) */}
           <div>
             <Label className="text-xs text-gray-500 mb-1">Client Name (optional)</Label>
@@ -181,7 +220,7 @@ export function SubmitDealDialog({ open, onOpenChange }: SubmitDealDialogProps) 
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting || monthlyVal <= 0 || !carrier || !productType}
+            disabled={submitting || monthlyVal <= 0 || !carrier || !productType || !stateCode}
             className="bg-gradient-to-r from-violet-600 to-purple-600 text-white gap-2"
             style={{ borderRadius: RADIUS.button }}
           >

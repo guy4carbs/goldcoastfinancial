@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, UserPlus, Inbox, ArrowUpDown,
   Sparkles, Clock, Briefcase, CheckCircle, Send, ArrowRight, FileSpreadsheet,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, AlertCircle, RefreshCw, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,87 @@ import { LeadImportDialog } from "@/components/agent/LeadImportDialog";
 import { EnhancedActivityModal } from "@/components/agent/EnhancedActivityModal";
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
 import { useLeadInbox } from '@/hooks/useLeadDistribution';
+import { useQueryClient } from '@tanstack/react-query';
+
+// ---------------------------------------------------------------------------
+// Backend persistence helpers — fire-and-forget with console warnings on failure
+// ---------------------------------------------------------------------------
+
+/** Persist a lead status change to the CRM backend (non-blocking). */
+async function persistLeadStatus(dbId: string, status: string): Promise<void> {
+  try {
+    const res = await fetch(`/api/crm/leads/${dbId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      console.warn('[LeadInbox] Failed to persist status change:', res.status, await res.text().catch(() => ''));
+    }
+  } catch (err) {
+    console.warn('[LeadInbox] Failed to persist status change:', err);
+  }
+}
+
+/** Persist a lead activity to the CRM backend (non-blocking). */
+async function persistLeadActivity(
+  dbId: string,
+  activity: { type: string; disposition?: string; notes: string },
+): Promise<void> {
+  try {
+    const res = await fetch(`/api/crm/leads/${dbId}/activity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        type: activity.type,
+        title: `${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)} logged`,
+        description: activity.notes,
+        metadata: activity.disposition ? { disposition: activity.disposition } : undefined,
+      }),
+    });
+    if (!res.ok) {
+      console.warn('[LeadInbox] Failed to persist activity:', res.status, await res.text().catch(() => ''));
+    }
+  } catch (err) {
+    console.warn('[LeadInbox] Failed to persist activity:', err);
+  }
+}
+
+/** Persist lead notes to the CRM backend (non-blocking). */
+async function persistLeadNotes(dbId: string, notes: string): Promise<void> {
+  try {
+    const res = await fetch(`/api/crm/leads/${dbId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ notes }),
+    });
+    if (!res.ok) {
+      console.warn('[LeadInbox] Failed to persist lead notes:', res.status, await res.text().catch(() => ''));
+    }
+  } catch (err) {
+    console.warn('[LeadInbox] Failed to persist lead notes:', err);
+  }
+}
+
+/** Persist a lead follow-up update to the CRM backend (non-blocking). */
+async function persistLeadFollowUp(dbId: string, nextFollowUp: string): Promise<void> {
+  try {
+    const res = await fetch(`/api/crm/leads/${dbId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ nextFollowUp }),
+    });
+    if (!res.ok) {
+      console.warn('[LeadInbox] Failed to persist follow-up:', res.status, await res.text().catch(() => ''));
+    }
+  } catch (err) {
+    console.warn('[LeadInbox] Failed to persist follow-up:', err);
+  }
+}
 
 type TabId = 'all' | 'new' | 'distributed' | 'referrals' | 'website' | 'in_progress' | 'closed';
 type SortBy = 'newest' | 'oldest' | 'name' | 'urgency';
@@ -43,6 +124,7 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 export default function AgentLeadInbox() {
+  const queryClient = useQueryClient();
   const {
     leads,
     currentUser,
@@ -67,11 +149,13 @@ export default function AgentLeadInbox() {
   const LEADS_PER_PAGE = 25;
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [activityLead, setActivityLead] = useState<Lead | null>(null);
+  const [websiteLeadError, setWebsiteLeadError] = useState(false);
+  const [referralLeadError, setReferralLeadError] = useState(false);
 
   // Fetch distributed leads from real API
   const distributedQuery = useLeadInbox({ limit: 200, enabled: !!currentUser?.id });
 
-  // Merge API-distributed leads into store (cleaned names, deduped)
+  // Merge API-distributed leads into store (cleaned names, deduped, preserving dbId)
   useEffect(() => {
     if (distributedQuery.data?.leads && distributedQuery.data.leads.length > 0) {
       for (const apiLead of distributedQuery.data.leads) {
@@ -104,6 +188,7 @@ export default function AgentLeadInbox() {
             status: apiLead.status || 'new',
             tags: ['Distributed'],
             state: apiLead.state || '',
+            dbId: apiLead.id ? String(apiLead.id) : undefined,
             nextFollowUpDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
             nextFollowUpType: 'call',
           });
@@ -116,9 +201,9 @@ export default function AgentLeadInbox() {
   useEffect(() => {
     if (currentUser?.name) {
       const slug = generateAgentSlug(currentUser.name);
-      fetchWebsiteLeads(slug);
+      fetchWebsiteLeads(slug).catch(() => setWebsiteLeadError(true));
     }
-    fetchReferralLeads();
+    fetchReferralLeads().catch(() => setReferralLeadError(true));
   }, [currentUser?.name]);
 
   // Get user's leads
@@ -227,6 +312,85 @@ export default function AgentLeadInbox() {
     setActivityModalOpen(true);
   };
 
+  // -----------------------------------------------------------------------
+  // Persisted wrappers: update Zustand immediately, then fire API calls
+  // -----------------------------------------------------------------------
+
+  /** Update status in store + persist to CRM backend. */
+  const handleUpdateStatus = useCallback(
+    (leadId: string, status: Lead['status']) => {
+      // Immediate UI update
+      updateLeadStatus(leadId, status);
+      // Find the lead's backend ID and persist (non-blocking)
+      const lead = leads.find(l => l.id === leadId);
+      if (lead?.dbId) {
+        persistLeadStatus(lead.dbId, status);
+      }
+    },
+    [leads, updateLeadStatus],
+  );
+
+  /** Add activity to store + persist to CRM backend. */
+  const handleAddActivity = useCallback(
+    (leadId: string, activity: Parameters<typeof addActivityToLead>[1]) => {
+      // Immediate UI update
+      addActivityToLead(leadId, activity);
+      // Persist (non-blocking)
+      const lead = leads.find(l => l.id === leadId);
+      if (lead?.dbId) {
+        persistLeadActivity(lead.dbId, {
+          type: activity.type,
+          disposition: activity.disposition,
+          notes: activity.notes,
+        });
+      }
+    },
+    [leads, addActivityToLead],
+  );
+
+  /** Add lead to store + persist to CRM backend via POST. */
+  const handleAddLead = useCallback(
+    async (lead: Parameters<typeof addLead>[0]) => {
+      try {
+        // Split combined name into first/last for the backend
+        const nameParts = (lead.name || '').trim().split(/\s+/);
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const res = await fetch('/api/crm/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email: lead.email,
+            phone: lead.phone,
+            coverageType: lead.product,
+            source: lead.source || 'manual',
+            notes: lead.leadNotes,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Add to Zustand with backend ID for future persistence
+          addLead({ ...lead, dbId: data.lead?.id ? String(data.lead.id) : undefined });
+          toast.success('Lead added successfully');
+        } else {
+          // Fallback: still add to local store
+          addLead(lead);
+          toast.success('Lead added locally');
+        }
+      } catch {
+        // Fallback: still add to local store
+        addLead(lead);
+        toast.success('Lead added locally');
+      }
+    },
+    [addLead],
+  );
+
   const handleLogActivity = (data: {
     type: any;
     disposition?: any;
@@ -235,6 +399,8 @@ export default function AgentLeadInbox() {
     nextFollowUpType?: Lead['nextFollowUpType'];
   }) => {
     if (!activityLead) return;
+
+    // Immediate Zustand update
     addActivityToLead(activityLead.id, {
       type: data.type,
       disposition: data.disposition,
@@ -243,6 +409,19 @@ export default function AgentLeadInbox() {
     if (data.nextFollowUpDate && data.nextFollowUpType) {
       updateLeadFollowUp(activityLead.id, data.nextFollowUpDate, data.nextFollowUpType);
     }
+
+    // Persist to backend (non-blocking)
+    if (activityLead.dbId) {
+      persistLeadActivity(activityLead.dbId, {
+        type: data.type,
+        disposition: data.disposition,
+        notes: data.notes,
+      });
+      if (data.nextFollowUpDate) {
+        persistLeadFollowUp(activityLead.dbId, data.nextFollowUpDate);
+      }
+    }
+
     setActivityModalOpen(false);
     setActivityLead(null);
   };
@@ -348,6 +527,47 @@ export default function AgentLeadInbox() {
             ))}
           </div>
 
+          {/* Distributed leads error banner */}
+          {distributedQuery.isError && (
+            <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border-b border-red-100 text-red-700">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <p className="text-sm flex-1">Failed to load distributed leads.</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => distributedQuery.refetch()}
+                className="gap-1.5 text-red-700 hover:text-red-800 hover:bg-red-100 h-7 px-2"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {/* Website leads warning */}
+          {websiteLeadError && (
+            <div className="mx-4 mb-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-sm text-amber-700">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Website leads may not be up to date.</span>
+            </div>
+          )}
+
+          {/* Referral leads warning */}
+          {referralLeadError && (
+            <div className="mx-4 mb-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-sm text-amber-700">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Referral leads may not be up to date.</span>
+            </div>
+          )}
+
+          {/* Loading state */}
+          {distributedQuery.isLoading && leads.length === 0 && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+              <span className="ml-3 text-gray-500">Loading your leads...</span>
+            </div>
+          )}
+
           {/* Lead rows */}
           <div className="divide-y">
             <AnimatePresence mode="popLayout">
@@ -449,6 +669,7 @@ export default function AgentLeadInbox() {
                     size="sm"
                     onClick={() => {
                       graduateLeadToBook(lead.id);
+                      queryClient.invalidateQueries({ queryKey: ['/api/book-of-business'] });
                       toast.success(`${lead.name} graduated to Book of Business!`);
                     }}
                     className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white"
@@ -468,8 +689,8 @@ export default function AgentLeadInbox() {
             lead={selectedLead}
             open={drawerOpen}
             onOpenChange={setDrawerOpen}
-            onAddActivity={addActivityToLead}
-            onUpdateStatus={updateLeadStatus}
+            onAddActivity={handleAddActivity}
+            onUpdateStatus={handleUpdateStatus}
           />
         )}
 
@@ -477,12 +698,23 @@ export default function AgentLeadInbox() {
         <AddLeadModal
           open={addLeadOpen}
           onOpenChange={setAddLeadOpen}
-          onAddLead={addLead}
+          onAddLead={handleAddLead}
           existingLeads={leads}
         />
 
         {/* Lead Import Dialog */}
-        <LeadImportDialog open={importOpen} onOpenChange={setImportOpen} />
+        <LeadImportDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          onImportSuccess={() => {
+            distributedQuery.refetch();
+            if (currentUser?.name) {
+              const slug = generateAgentSlug(currentUser.name);
+              fetchWebsiteLeads(slug).catch(() => {});
+            }
+            fetchReferralLeads().catch(() => {});
+          }}
+        />
 
         {/* Enhanced Activity Modal */}
         {activityLead && (

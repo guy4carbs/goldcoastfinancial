@@ -1,7 +1,9 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { useAgentStore, type ClientStatus, type BookOfBusinessClient, type ActivityLog, type Beneficiary, type MedicalInfo } from "@/lib/agentStore";
+import { apiRequest } from "@/lib/queryClient";
 import { toast } from "sonner";
 import {
   RADIUS, SHADOW, TYPE, COLORS,
@@ -93,13 +95,127 @@ const maskSSN = (ssn: string) => ssn.replace(/^(\d{3})-(\d{2})/, '***-**');
 const maskAccount = (num: string) => num.length > 4 ? '****' + num.slice(-4) : '****';
 
 export default function AgentBookOfBusiness() {
-  const { bookOfBusiness, getBookOfBusinessStats, updateClientStatus, addClientActivity, addClientToBook } = useAgentStore();
+  const queryClient = useQueryClient();
+
+  // ---------- API: Fetch book of business ----------
+  const { data: bookData, isLoading, error } = useQuery<{ clients: any[]; stats: any }>({
+    queryKey: ['/api/book-of-business'],
+    refetchInterval: 30000,
+  });
+
+  const bookOfBusiness: BookOfBusinessClient[] = useMemo(() => {
+    if (!bookData?.clients) return [];
+    return bookData.clients.map((c: any) => ({
+      ...c,
+      // Ensure numbers aren't strings from API
+      coverageAmount: Number(c.coverageAmount) || 0,
+      monthlyPremium: Number(c.monthlyPremium) || 0,
+      commissionRate: c.commissionRate != null ? Number(c.commissionRate) : undefined,
+      // Provide defaults for fields the API may not return
+      policyType: c.policyType || c.type || 'Life',
+      carrier: c.carrier || '',
+      policyNumber: c.policyNumber || '',
+      policyEffectiveDate: c.policyEffectiveDate || c.startDate || c.createdAt || '',
+      addedDate: c.addedDate || c.createdAt || '',
+      clientStatus: c.clientStatus || 'pending',
+      activityHistory: c.activityHistory || [],
+      agentId: c.agentId || '',
+      beneficiaries: c.beneficiaries || [],
+    }));
+  }, [bookData]);
+
+  const stats = bookData?.stats || { totalClients: 0, activePolicies: 0, totalMonthlyPremium: 0, chargebackCount: 0 };
+
+  // ---------- API: Add client mutation ----------
+  const addClientMutation = useMutation({
+    mutationFn: async (clientData: Record<string, any>) => {
+      const res = await apiRequest('POST', '/api/book-of-business', clientData);
+      return res.json();
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/book-of-business'] });
+      toast.success('Client added to Book of Business!');
+      // Mark pending deal profile as completed if this was from a deal
+      if (pendingDealId) {
+        try {
+          await fetch(`/api/book-of-business/pending-deals/${pendingDealId}/complete`, { method: 'PATCH', credentials: 'include' });
+          queryClient.invalidateQueries({ queryKey: ['/api/book-of-business/pending-deals'] });
+        } catch {}
+        setPendingDealId(null);
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to add client');
+    },
+  });
+
+  // ---------- API: Update status mutation ----------
+  const statusMutation = useMutation({
+    mutationFn: async ({ policyId, status, chargebackReason: reason }: { policyId: string; status: string; chargebackReason?: string }) => {
+      const res = await apiRequest('PUT', `/api/book-of-business/${policyId}/status`, { status, chargebackReason: reason });
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/book-of-business'] });
+      if (variables.status === 'active') {
+        useAgentStore.getState().addXP(100, 'Client activated in Book of Business');
+        toast.success('Client activated! Leaderboard updated.');
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to update status');
+    },
+  });
+
+  // ---------- API: Log activity mutation ----------
+  const activityMutation = useMutation({
+    mutationFn: async ({ policyId, activity }: { policyId: string; activity: { type: string; notes?: string; disposition?: string } }) => {
+      const res = await apiRequest('POST', `/api/book-of-business/${policyId}/activity`, activity);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/book-of-business'] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to log activity');
+    },
+  });
+
+  // ---------- Local UI state ----------
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<ClientStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'premium' | 'date'>('date');
   const [selectedClient, setSelectedClient] = useState<BookOfBusinessClient | null>(null);
+  const [clientDocs, setClientDocs] = useState<any[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // Fetch documents for the selected client's SPECIFIC policy (not all docs for the user)
+  useEffect(() => {
+    const uid = (selectedClient as any)?.userId;
+    const policyId = selectedClient?.id;
+    if (!uid) { setClientDocs([]); return; }
+    fetch(`/api/agent-clients/${uid}/documents`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        const allDocs = Array.isArray(data) ? data : data?.documents || [];
+        // Filter to only show documents for THIS specific policy
+        const filtered = policyId
+          ? allDocs.filter((d: any) => !d.policyId || d.policyId === policyId || d.policy_id === policyId)
+          : allDocs;
+        setClientDocs(filtered);
+      })
+      .catch(() => setClientDocs([]));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClient?.id]);
   const [showChargebackDialog, setShowChargebackDialog] = useState<string | null>(null);
+  const [pendingDealId, setPendingDealId] = useState<string | null>(null);
+
+  // Fetch pending deal profiles (deals submitted without BoB client)
+  const { data: pendingData } = useQuery({
+    queryKey: ['/api/book-of-business/pending-deals'],
+    refetchInterval: 30000,
+  });
+  const pendingDeals = (pendingData as any)?.pendingDeals || [];
   const [chargebackReason, setChargebackReason] = useState('');
   const [reminderType, setReminderType] = useState<'text' | 'email' | null>(null);
   const [reminderMessage, setReminderMessage] = useState('');
@@ -130,11 +246,9 @@ export default function AgentBookOfBusiness() {
   const isVisible = (key: string) => showSensitive || visibleFields[key];
   const toggleField = (key: string) => setVisibleFields(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const stats = getBookOfBusinessStats();
-
   const filteredClients = useMemo(() => {
     let result = [...bookOfBusiness];
-    if (searchQuery) result = result.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.policyNumber.toLowerCase().includes(searchQuery.toLowerCase()) || c.carrier.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (searchQuery) result = result.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || (c.policyNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) || (c.carrier || '').toLowerCase().includes(searchQuery.toLowerCase()));
     if (filterStatus !== 'all') result = result.filter(c => c.clientStatus === filterStatus);
     if (sortBy === 'name') result.sort((a, b) => a.name.localeCompare(b.name));
     else if (sortBy === 'premium') result.sort((a, b) => b.monthlyPremium - a.monthlyPremium);
@@ -147,16 +261,21 @@ export default function AgentBookOfBusiness() {
       setShowChargebackDialog(clientId);
       return;
     }
-    updateClientStatus(clientId, newStatus);
-    if (newStatus === 'active') toast.success('Client activated! Leaderboard updated.');
+    statusMutation.mutate({ policyId: clientId, status: newStatus });
   };
 
   const handleChargeback = () => {
     if (showChargebackDialog) {
-      updateClientStatus(showChargebackDialog, 'chargeback', chargebackReason);
-      toast.error('Chargeback recorded. Leaderboard updated.');
-      setShowChargebackDialog(null);
-      setChargebackReason('');
+      statusMutation.mutate(
+        { policyId: showChargebackDialog, status: 'chargeback', chargebackReason },
+        {
+          onSuccess: () => {
+            toast.error('Chargeback recorded. Leaderboard updated.');
+            setShowChargebackDialog(null);
+            setChargebackReason('');
+          },
+        },
+      );
     }
   };
 
@@ -172,25 +291,79 @@ export default function AgentBookOfBusiness() {
 
   const confirmReminder = () => {
     if (reminderClientId && reminderType) {
-      addClientActivity(reminderClientId, { type: reminderType === 'text' ? 'text' : 'email', notes: `Sent ${reminderType} reminder: ${reminderMessage}` });
-      toast.success(`${reminderType === 'text' ? 'Text' : 'Email'} reminder sent!`);
-      setReminderType(null);
-      setReminderMessage('');
-      setReminderClientId(null);
+      // Fire the actual SMS or email send (non-blocking)
+      const client = bookOfBusiness.find(c => c.id === reminderClientId);
+      if (reminderType === 'text' && client?.phone) {
+        fetch('/api/sms/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ to: client.phone, message: reminderMessage, contactName: client.name }),
+        }).catch((e) => console.warn('SMS send failed:', e));
+      }
+      if (reminderType === 'email' && client?.email) {
+        fetch('/api/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ to: client.email, subject: 'Heritage Life Solutions - Policy Reminder', body: reminderMessage }),
+        }).catch((e) => console.warn('Email send failed:', e));
+      }
+      // Log the activity and close the dialog
+      activityMutation.mutate(
+        { policyId: reminderClientId, activity: { type: reminderType === 'text' ? 'text' : 'email', notes: `Sent ${reminderType} reminder: ${reminderMessage}` } },
+        {
+          onSuccess: () => {
+            toast.success(`${reminderType === 'text' ? 'Text' : 'Email'} reminder sent!`);
+            setReminderType(null);
+            setReminderMessage('');
+            setReminderClientId(null);
+          },
+        },
+      );
     }
   };
 
   const handleAddClient = () => {
-    if (!newClient.name || !newClient.policyNumber) { toast.error('Name and policy number are required'); return; }
+    if (!newClient.name) { toast.error('Client name is required'); return; }
     const computedDob = bobDobMonth && bobDobDay && bobDobYear
       ? `${bobDobYear}-${bobDobMonth.padStart(2, '0')}-${bobDobDay.padStart(2, '0')}`
       : '';
-    addClientToBook({ ...newClient, dateOfBirth: computedDob });
-    setNewClient({ name: '', email: '', phone: '', dateOfBirth: '', ssn: '', streetAddress: '', city: '', state: '', zipCode: '', idType: 'drivers_license', idNumber: '', idState: '', idExpiration: '', bankName: '', bankRoutingNumber: '', bankAccountNumber: '', beneficiaries: [], medicalInfo: { tobaccoUse: false, healthConditions: '', medications: '', height: '', weight: '' }, policyNumber: '', policyType: 'Term Life', carrier: '', coverageAmount: 0, monthlyPremium: 0, draftDate: '', commissionRate: 0, policyEffectiveDate: '', notes: '', clientStatus: 'pending' });
-    setBobDobMonth(''); setBobDobDay(''); setBobDobYear('');
-    setBobSelectedFiles([]);
-    setShowAddDialog(false);
-    toast.success('Client added to Book of Business!');
+    const filesToUpload = [...bobSelectedFiles];
+    addClientMutation.mutate(
+      { ...newClient, dateOfBirth: computedDob },
+      {
+        onSuccess: async (createdPolicy) => {
+          // Upload documents after successful client/policy creation
+          if (filesToUpload.length > 0 && createdPolicy?.userId) {
+            let uploaded = 0;
+            for (const file of filesToUpload) {
+              try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('name', file.name);
+                formData.append('category', 'policy');
+                if (createdPolicy.id) formData.append('policyId', createdPolicy.id);
+                const res = await fetch(`/api/agent-clients/${createdPolicy.userId}/documents`, {
+                  method: 'POST',
+                  credentials: 'include',
+                  body: formData,
+                });
+                if (res.ok) uploaded++;
+                else toast.error(`Failed to upload ${file.name}`);
+              } catch {
+                toast.error(`Failed to upload ${file.name}`);
+              }
+            }
+            if (uploaded > 0) toast.success(`${uploaded} document${uploaded > 1 ? 's' : ''} uploaded`);
+          }
+          setNewClient({ name: '', email: '', phone: '', dateOfBirth: '', ssn: '', streetAddress: '', city: '', state: '', zipCode: '', idType: 'drivers_license', idNumber: '', idState: '', idExpiration: '', bankName: '', bankRoutingNumber: '', bankAccountNumber: '', beneficiaries: [], medicalInfo: { tobaccoUse: false, healthConditions: '', medications: '', height: '', weight: '' }, policyNumber: '', policyType: 'Term Life', carrier: '', coverageAmount: 0, monthlyPremium: 0, draftDate: '', commissionRate: 0, policyEffectiveDate: '', notes: '', clientStatus: 'pending' });
+          setBobDobMonth(''); setBobDobDay(''); setBobDobYear('');
+          setBobSelectedFiles([]);
+          setShowAddDialog(false);
+        },
+      },
+    );
   };
 
   const statCards = [
@@ -219,6 +392,54 @@ export default function AgentBookOfBusiness() {
             </Button>
           </AgentPageHero>
         </motion.div>
+
+        {/* Pending Deal Profiles Banner */}
+        {pendingDeals.length > 0 && (
+          <motion.div variants={fadeInUp} className="mb-4">
+            <div className="bg-amber-50 border border-amber-200 p-4" style={{ borderRadius: RADIUS.card }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-900 text-sm">Deals waiting for client profiles</h3>
+                  <p className="text-xs text-amber-600">{pendingDeals.length} deal{pendingDeals.length !== 1 ? 's' : ''} submitted without a full client profile</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {pendingDeals.map((deal: any) => (
+                  <div key={deal.id} className="flex items-center justify-between bg-white p-3 border border-amber-100" style={{ borderRadius: RADIUS.button }}>
+                    <div>
+                      <p className="font-medium text-sm text-gray-900">{deal.client_name || 'Unknown Client'}</p>
+                      <p className="text-xs text-gray-500">
+                        {deal.carrier} {deal.product_type ? `· ${deal.product_type}` : ''} {deal.state_code ? `· ${deal.state_code}` : ''} · ${parseFloat(deal.annual_premium || 0).toLocaleString()} AP
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setNewClient((prev: any) => ({
+                          ...prev,
+                          name: deal.client_name || '',
+                          carrier: deal.carrier || '',
+                          policyType: deal.product_type || '',
+                          monthlyPremium: parseFloat(deal.monthly_premium || 0),
+                          state: deal.state_code || '',
+                        }));
+                        setPendingDealId(deal.id);
+                        setShowAddDialog(true);
+                      }}
+                      className="bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs"
+                      style={{ borderRadius: RADIUS.button }}
+                    >
+                      Complete Profile
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Stats */}
         <motion.div variants={fadeInUp}>
@@ -251,8 +472,25 @@ export default function AgentBookOfBusiness() {
 
         {/* Client List */}
         <motion.div variants={fadeInUp} className="space-y-3">
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+              <Loader2 className="w-8 h-8 animate-spin mb-3 text-violet-500" />
+              <p className="font-medium">Loading your Book of Business...</p>
+            </div>
+          )}
+          {error && !isLoading && (
+            <div className="text-center py-12 text-red-500 bg-red-50 rounded-2xl border border-red-100 p-6" style={{ borderRadius: RADIUS.card }}>
+              <AlertTriangle className="w-10 h-10 mx-auto mb-3 opacity-70" />
+              <p className="font-semibold mb-1">Failed to load Book of Business</p>
+              <p className="text-sm text-red-400">{(error as Error).message || 'Please try again later.'}</p>
+              <Button variant="outline" size="sm" className="mt-4 text-red-600 border-red-200" style={{ borderRadius: RADIUS.button }}
+                onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/book-of-business'] })}>
+                Retry
+              </Button>
+            </div>
+          )}
           <AnimatePresence mode="popLayout">
-            {filteredClients.map((client) => {
+            {!isLoading && !error && filteredClients.map((client) => {
               const cfg = statusConfig[client.clientStatus];
               const StatusIcon = cfg.icon;
               return (
@@ -295,7 +533,7 @@ export default function AgentBookOfBusiness() {
               );
             })}
           </AnimatePresence>
-          {filteredClients.length === 0 && (
+          {!isLoading && !error && filteredClients.length === 0 && (
             <div className="text-center py-16 text-gray-400">
               <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p className="font-medium">No clients found</p>
@@ -478,15 +716,69 @@ export default function AgentBookOfBusiness() {
                       </div>
                     </div>
                   )}
-                  {/* Policy Document */}
+                  {/* Documents */}
                   <div className="bg-gray-50 rounded-xl p-4" style={{ borderRadius: RADIUS.button }}>
-                    <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide mb-2">Policy Document</h4>
-                    {selectedClient.policyDocumentUrl ? (
-                      <a href={selectedClient.policyDocumentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium">
-                        <FileText className="w-4 h-4" /> View Policy PDF
-                      </a>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Documents</h4>
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          multiple
+                          onChange={async (e) => {
+                            const files = e.target.files;
+                            if (!files || !files.length || !(selectedClient as any).userId) return;
+                            let uploaded = 0;
+                            for (const file of Array.from(files)) {
+                              try {
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                formData.append('name', file.name);
+                                formData.append('category', 'policy');
+                                if (selectedClient?.id) formData.append('policyId', selectedClient.id);
+                                const res = await fetch(`/api/agent-clients/${(selectedClient as any).userId}/documents`, {
+                                  method: 'POST', credentials: 'include', body: formData,
+                                });
+                                if (res.ok) uploaded++;
+                                else toast.error(`Failed to upload ${file.name}`);
+                              } catch { toast.error(`Failed to upload ${file.name}`); }
+                            }
+                            if (uploaded > 0) {
+                              toast.success(`${uploaded} document${uploaded > 1 ? 's' : ''} uploaded`);
+                              // Refresh documents list
+                              const uid = (selectedClient as any).userId;
+                              fetch(`/api/agent-clients/${uid}/documents`, { credentials: 'include' })
+                                .then(r => r.ok ? r.json() : [])
+                                .then(data => setClientDocs(Array.isArray(data) ? data : []))
+                                .catch(() => {});
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                        <span className="text-xs text-violet-600 hover:text-violet-700 font-medium cursor-pointer flex items-center gap-1">
+                          <Upload className="w-3 h-3" /> Add Files
+                        </span>
+                      </label>
+                    </div>
+                    {clientDocs.length > 0 ? (
+                      <div className="space-y-2">
+                        {clientDocs.map((doc: any) => (
+                          <a
+                            key={doc.id}
+                            href={`/api/agent-clients/${(selectedClient as any).userId}/documents/${doc.id}/download`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium p-2 bg-white rounded-lg border border-gray-100 hover:border-violet-200 transition-colors"
+                          >
+                            <FileText className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{doc.name || doc.fileName || 'Document'}</span>
+                            <span className="text-xs text-gray-400 ml-auto shrink-0">{doc.category || 'policy'}</span>
+                          </a>
+                        ))}
+                      </div>
                     ) : (
-                      <p className="text-sm text-gray-400">No document attached</p>
+                      <p className="text-sm text-gray-400">No documents yet — click "Add Files" above</p>
                     )}
                   </div>
                   {/* Notes */}
@@ -501,12 +793,12 @@ export default function AgentBookOfBusiness() {
                     <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Status</h4>
                     <div className="flex gap-2">
                       {selectedClient.clientStatus === 'pending' && (
-                        <Button onClick={() => { handleStatusChange(selectedClient.id, 'active'); setSelectedClient({ ...selectedClient, clientStatus: 'active' }); }} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 flex-1" style={{ borderRadius: RADIUS.button }}>
-                          <CheckCircle className="w-4 h-4" /> Activate Client
+                        <Button disabled={statusMutation.isPending} onClick={() => { handleStatusChange(selectedClient.id, 'active'); setSelectedClient({ ...selectedClient, clientStatus: 'active' }); }} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 flex-1" style={{ borderRadius: RADIUS.button }}>
+                          {statusMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />} Activate Client
                         </Button>
                       )}
                       {selectedClient.clientStatus !== 'chargeback' && (
-                        <Button variant="outline" onClick={() => handleStatusChange(selectedClient.id, 'chargeback')} className="text-red-600 border-red-200 hover:bg-red-50 gap-2 flex-1" style={{ borderRadius: RADIUS.button }}>
+                        <Button variant="outline" disabled={statusMutation.isPending} onClick={() => handleStatusChange(selectedClient.id, 'chargeback')} className="text-red-600 border-red-200 hover:bg-red-50 gap-2 flex-1" style={{ borderRadius: RADIUS.button }}>
                           <AlertTriangle className="w-4 h-4" /> Mark Chargeback
                         </Button>
                       )}
@@ -557,8 +849,10 @@ export default function AgentBookOfBusiness() {
             <Textarea value={chargebackReason} onChange={(e) => setChargebackReason(e.target.value)} placeholder="Enter the reason for this chargeback..." rows={3} style={{ borderRadius: RADIUS.input }} />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowChargebackDialog(null)} style={{ borderRadius: RADIUS.button }}>Cancel</Button>
-            <Button onClick={handleChargeback} className="bg-red-600 hover:bg-red-700 text-white" style={{ borderRadius: RADIUS.button }}>Confirm Chargeback</Button>
+            <Button variant="outline" onClick={() => setShowChargebackDialog(null)} disabled={statusMutation.isPending} style={{ borderRadius: RADIUS.button }}>Cancel</Button>
+            <Button onClick={handleChargeback} disabled={statusMutation.isPending} className="bg-red-600 hover:bg-red-700 text-white gap-2" style={{ borderRadius: RADIUS.button }}>
+              {statusMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />} Confirm Chargeback
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -572,9 +866,9 @@ export default function AgentBookOfBusiness() {
             <Textarea value={reminderMessage} onChange={(e) => setReminderMessage(e.target.value)} rows={5} style={{ borderRadius: RADIUS.input }} />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReminderType(null)} style={{ borderRadius: RADIUS.button }}>Cancel</Button>
-            <Button onClick={confirmReminder} className={`text-white gap-2 ${reminderType === 'text' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'}`} style={{ borderRadius: RADIUS.button }}>
-              {reminderType === 'text' ? <MessageSquare className="w-4 h-4" /> : <Mail className="w-4 h-4" />} Send
+            <Button variant="outline" onClick={() => setReminderType(null)} disabled={activityMutation.isPending} style={{ borderRadius: RADIUS.button }}>Cancel</Button>
+            <Button onClick={confirmReminder} disabled={activityMutation.isPending} className={`text-white gap-2 ${reminderType === 'text' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'}`} style={{ borderRadius: RADIUS.button }}>
+              {activityMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (reminderType === 'text' ? <MessageSquare className="w-4 h-4" /> : <Mail className="w-4 h-4" />)} Send
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -727,7 +1021,7 @@ export default function AgentBookOfBusiness() {
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Policy Details</p>
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4">
-                    <div><Label>Policy Number *</Label><Input placeholder="POL-2026-XXX" value={newClient.policyNumber} onChange={(e) => setNewClient({ ...newClient, policyNumber: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
+                    <div><Label>Policy Number</Label><Input placeholder="Auto-generates HLS-2026-XXXXX" value={newClient.policyNumber} onChange={(e) => setNewClient({ ...newClient, policyNumber: e.target.value })} style={{ borderRadius: RADIUS.input }} /></div>
                     <div>
                       <Label>Carrier *</Label>
                       <Select value={newClient.carrier} onValueChange={(v) => setNewClient({ ...newClient, carrier: v })}>
@@ -819,8 +1113,10 @@ export default function AgentBookOfBusiness() {
             </div>
           </ScrollArea>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)} style={{ borderRadius: RADIUS.button }}>Cancel</Button>
-            <Button onClick={handleAddClient} className="bg-gradient-to-r from-violet-600 to-purple-600 text-white gap-2" style={{ borderRadius: RADIUS.button }}><Plus className="w-4 h-4" /> Add to Book</Button>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)} disabled={addClientMutation.isPending} style={{ borderRadius: RADIUS.button }}>Cancel</Button>
+            <Button onClick={handleAddClient} disabled={addClientMutation.isPending} className="bg-gradient-to-r from-violet-600 to-purple-600 text-white gap-2" style={{ borderRadius: RADIUS.button }}>
+              {addClientMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {addClientMutation.isPending ? 'Adding...' : 'Add to Book'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

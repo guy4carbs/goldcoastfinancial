@@ -262,6 +262,15 @@ app.use(sentryUserMiddleware);
   // Other ports are firewalled. Default to 4500 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
+  // Start document scheduler (hourly timezone-aware checks)
+  try {
+    import("./services/documentScheduler").then(({ startDocumentScheduler }) => {
+      startDocumentScheduler();
+    }).catch(err => console.error("[SERVER] Document scheduler failed to start:", err));
+  } catch (err) {
+    console.error("[SERVER] Document scheduler init failed:", err);
+  }
+
   const port = parseInt(process.env.PORT || "4500", 10);
   httpServer.listen(port, () => {
     log(`serving on port ${port}`);

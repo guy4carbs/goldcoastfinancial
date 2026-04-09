@@ -10,6 +10,7 @@
 
 import { Router, type Request, type Response } from "express";
 import { storage } from "../storage";
+import { pool } from "../db";
 import { requireAuth, type AuthenticatedUser } from "../middleware/auth";
 import { broadcastToClientChat } from "../websocket";
 import { sendPortalMessage } from "../gmail";
@@ -239,6 +240,14 @@ router.put("/:id/status", requireAuth, async (req: Request, res: Response) => {
 
       console.log(`[Claims] Status update channels for claim ${id}:`, channels);
     }
+
+    // Log to team activity feed
+    try {
+      await pool.query(`
+        INSERT INTO team_activity_feed (agent_user_id, agent_name, activity_type, title, message, metadata)
+        VALUES ($1, $2, 'achievement', 'Claim Updated', $3, $4)
+      `, [agent.id, authorName, `moved claim to ${STATUS_LABELS[newStatus] || newStatus}`, JSON.stringify({ claimId: id, status: newStatus })]);
+    } catch {}
 
     res.json({
       success: true,

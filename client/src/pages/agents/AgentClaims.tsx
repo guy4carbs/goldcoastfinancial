@@ -9,7 +9,8 @@
  * Governance: Nova (UI) + Forge (API) + Lumen (flow) + Ledger (financial)
  */
 
-import { useState, useMemo, useEffect, useCallback, Fragment } from 'react';
+import { useState, useMemo, Fragment } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -150,7 +151,7 @@ function formatAmount(amount: number): string {
 }
 
 function getDaysPending(filedDate: string): number {
-  const today = new Date(2026, 2, 13); // Mar 13, 2026
+  const today = new Date();
   const months: Record<string, number> = {
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
     Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
@@ -278,14 +279,91 @@ function mapApiClaim(raw: any): AgentClaim {
 }
 
 export default function AgentClaims() {
+  // ─── TanStack Query ─────────────────────────────────
+  const queryClient = useQueryClient();
+  const { data: claimsRaw, isLoading, error } = useQuery({
+    queryKey: ['/api/claims'],
+    refetchInterval: 30000,
+  });
+  const claims: AgentClaim[] = useMemo(() => {
+    const raw = (claimsRaw as any)?.data || claimsRaw || [];
+    return Array.isArray(raw) ? raw.map(mapApiClaim) : [];
+  }, [claimsRaw]);
+
+  // ─── Mutations ─────────────────────────────────────
+  const statusMutation = useMutation({
+    mutationFn: async ({ claimId, status, denialReason: reason }: { claimId: string; status: string; denialReason?: string }) => {
+      const res = await fetch(`/api/claims/${claimId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status, denialReason: reason }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update status');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
+    },
+  });
+
+  const noteMutation = useMutation({
+    mutationFn: async ({ claimId, content }: { claimId: string; content: string }) => {
+      const res = await fetch(`/api/claims/${claimId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content, isInternal: true }),
+      });
+      if (!res.ok) throw new Error('Failed to add note');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
+    },
+  });
+
+  const carrierUpdateMutation = useMutation({
+    mutationFn: async ({ claimId, carrierClaimNumber, estimatedResolutionDate }: { claimId: string; carrierClaimNumber?: string; estimatedResolutionDate?: string }) => {
+      const res = await fetch(`/api/claims/${claimId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ carrierClaimNumber, estimatedResolutionDate }),
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
+    },
+  });
+
+  const markDocMutation = useMutation({
+    mutationFn: async ({ claimId, documentsReceived }: { claimId: string; documentsReceived: string[] }) => {
+      const res = await fetch(`/api/claims/${claimId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ documentsReceived }),
+      });
+      if (!res.ok) throw new Error('Failed to update document status');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
+    },
+  });
+
   // State
-  const [claims, setClaims] = useState<AgentClaim[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [selectedClaim, setSelectedClaim] = useState<AgentClaim | null>(null);
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -295,35 +373,15 @@ export default function AgentClaims() {
   const [estimatedResInput, setEstimatedResInput] = useState('');
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [updateAction, setUpdateAction] = useState<string | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   // Notes state
   const [newNote, setNewNote] = useState('');
 
-  // ─── FETCH CLAIMS FROM API ─────────────────────────
-  const fetchClaims = useCallback(async () => {
-    try {
-      const res = await fetch('/api/claims', { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch claims');
-      const data = await res.json();
-      const mapped = Array.isArray(data) ? data.map(mapApiClaim) : [];
-      setClaims(mapped);
-
-      // Keep selected claim in sync if sheet is open
-      if (selectedClaim) {
-        const updated = mapped.find((c) => c.id === selectedClaim.id);
-        if (updated) setSelectedClaim(updated);
-      }
-    } catch (err) {
-      console.error('[AgentClaims] Fetch failed:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedClaim]);
-
-  useEffect(() => {
-    fetchClaims();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Derive selectedClaim from query data so it stays in sync
+  const selectedClaim = useMemo(() => {
+    if (!selectedClaimId) return null;
+    return claims.find((c) => c.id === selectedClaimId) || null;
+  }, [claims, selectedClaimId]);
 
   // Computed stats
   const totalClaims = claims.length;
@@ -352,7 +410,7 @@ export default function AgentClaims() {
 
   // Open detail sheet
   const openClaimSheet = (claim: AgentClaim) => {
-    setSelectedClaim(claim);
+    setSelectedClaimId(claim.id);
     setSheetOpen(true);
     setActiveTab('overview');
     setUpdateSuccess(false);
@@ -363,38 +421,24 @@ export default function AgentClaims() {
     setNewNote('');
   };
 
-  // ─── STATUS UPDATE → API ──────────────────────────
+  // ─── STATUS UPDATE → MUTATION ──────────────────────
   const handleStatusUpdate = async (newStatus: string) => {
-    if (!selectedClaim || isUpdating) return;
-    setIsUpdating(true);
+    if (!selectedClaim || statusMutation.isPending) return;
 
     try {
-      const res = await fetch(`/api/claims/${selectedClaim.id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          status: newStatus,
-          denialReason: newStatus === 'denied' ? denialReason.trim() : undefined,
-        }),
+      await statusMutation.mutateAsync({
+        claimId: selectedClaim.id,
+        status: newStatus,
+        denialReason: newStatus === 'denied' ? denialReason.trim() : undefined,
       });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to update status');
-      }
 
       // Save carrier info if changed
       if (carrierClaimInput !== (selectedClaim.carrierClaimNumber || '') ||
           estimatedResInput !== (selectedClaim.estimatedResolution || '')) {
-        await fetch(`/api/claims/${selectedClaim.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            carrierClaimNumber: carrierClaimInput || undefined,
-            estimatedResolutionDate: estimatedResInput || undefined,
-          }),
+        await carrierUpdateMutation.mutateAsync({
+          claimId: selectedClaim.id,
+          carrierClaimNumber: carrierClaimInput || undefined,
+          estimatedResolutionDate: estimatedResInput || undefined,
         });
       }
 
@@ -403,33 +447,22 @@ export default function AgentClaims() {
       setUpdateAction(null);
       setDenialReason('');
       setTimeout(() => setUpdateSuccess(false), 3000);
-
-      // Refetch to get updated data + new notes
-      await fetchClaims();
     } catch (err: any) {
       toast.error(err.message || 'Failed to update claim status');
-    } finally {
-      setIsUpdating(false);
     }
   };
 
-  // ─── ADD NOTE → API ──────────────────────────────
+  // ─── ADD NOTE → MUTATION ──────────────────────────
   const handleAddNote = async () => {
-    if (!selectedClaim || !newNote.trim()) return;
+    if (!selectedClaim || !newNote.trim() || noteMutation.isPending) return;
 
     try {
-      const res = await fetch(`/api/claims/${selectedClaim.id}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ content: newNote.trim(), isInternal: true }),
+      await noteMutation.mutateAsync({
+        claimId: selectedClaim.id,
+        content: newNote.trim(),
       });
-
-      if (!res.ok) throw new Error('Failed to add note');
-
       toast.success('Note added');
       setNewNote('');
-      await fetchClaims();
     } catch (err: any) {
       toast.error(err.message || 'Failed to add note');
     }
@@ -438,6 +471,19 @@ export default function AgentClaims() {
   // Determine if a claim is death/accidental death
   const isDeathClaim = (claim: AgentClaim) =>
     claim.claimType === 'Accidental Death' || claim.claimType === 'Death Benefit';
+
+  // ─── ERROR STATE ─────────────────────────────────────
+  if (error) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="w-12 h-12 text-red-400" />
+          <p className="text-gray-600">Failed to load claims.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/claims'] })}>Retry</Button>
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
 
   return (
     <AgentLoungeLayout>
@@ -904,78 +950,101 @@ export default function AgentClaims() {
                     </p>
 
                     <div className="space-y-2">
-                      {selectedClaim.documentsRequired.map((doc, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-3 p-3"
-                          style={{
-                            borderRadius: RADIUS.input,
-                            background: doc.submitted ? 'rgba(16, 185, 129, 0.04)' : 'rgba(245, 158, 11, 0.04)',
-                            border: doc.submitted
-                              ? '1px solid rgba(16, 185, 129, 0.15)'
-                              : '1px solid rgba(245, 158, 11, 0.15)',
-                          }}
-                        >
-                          {/* Status icon */}
-                          {doc.submitted ? (
-                            <div
-                              className="flex items-center justify-center flex-shrink-0"
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: RADIUS.pill,
-                                background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
-                              }}
-                            >
-                              <CheckCircle style={{ width: 16, height: 16 }} className="text-emerald-600" />
-                            </div>
-                          ) : (
-                            <div
-                              className="flex items-center justify-center flex-shrink-0"
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: RADIUS.pill,
-                                background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
-                              }}
-                            >
-                              <Clock style={{ width: 16, height: 16 }} className="text-amber-600" />
-                            </div>
-                          )}
+                      {selectedClaim.documentsRequired.map((doc, idx) => {
+                        const handleDocToggle = () => {
+                          if (markDocMutation.isPending) return;
+                          const currentReceived = selectedClaim.documentsRequired
+                            .filter((d) => d.submitted)
+                            .map((d) => d.name);
+                          const updated = doc.submitted
+                            ? currentReceived.filter((n) => n !== doc.name)
+                            : [...currentReceived, doc.name];
+                          markDocMutation.mutate({
+                            claimId: selectedClaim.id,
+                            documentsReceived: updated,
+                          });
+                        };
 
-                          {/* Doc info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-gray-800 font-medium truncate" style={{ fontSize: TYPE.meta }}>
-                                {doc.name}
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-3 p-3 cursor-pointer hover:opacity-90 transition-opacity"
+                            style={{
+                              borderRadius: RADIUS.input,
+                              background: doc.submitted ? 'rgba(16, 185, 129, 0.04)' : 'rgba(245, 158, 11, 0.04)',
+                              border: doc.submitted
+                                ? '1px solid rgba(16, 185, 129, 0.15)'
+                                : '1px solid rgba(245, 158, 11, 0.15)',
+                            }}
+                            onClick={handleDocToggle}
+                          >
+                            {/* Clickable checkbox */}
+                            <button
+                              type="button"
+                              disabled={markDocMutation.isPending}
+                              className={cn(
+                                'flex items-center justify-center flex-shrink-0 transition-all',
+                                markDocMutation.isPending && 'opacity-50'
+                              )}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: RADIUS.pill,
+                                background: doc.submitted
+                                  ? 'linear-gradient(135deg, #ecfdf5, #d1fae5)'
+                                  : 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDocToggle();
+                              }}
+                            >
+                              {markDocMutation.isPending ? (
+                                <Loader2 style={{ width: 14, height: 14 }} className="text-gray-400 animate-spin" />
+                              ) : doc.submitted ? (
+                                <CheckCircle style={{ width: 16, height: 16 }} className="text-emerald-600" />
+                              ) : (
+                                <div
+                                  className="border-2 border-amber-300 bg-white"
+                                  style={{ width: 16, height: 16, borderRadius: 4 }}
+                                />
+                              )}
+                            </button>
+
+                            {/* Doc info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="text-gray-800 font-medium truncate" style={{ fontSize: TYPE.meta }}>
+                                  {doc.name}
+                                </p>
+                                <Badge
+                                  className={cn(
+                                    'text-xs border-0',
+                                    doc.required
+                                      ? 'bg-violet-100 text-violet-700'
+                                      : 'bg-gray-100 text-gray-500'
+                                  )}
+                                >
+                                  {doc.required ? 'Required' : 'Optional'}
+                                </Badge>
+                              </div>
+                              <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>
+                                {doc.description}
                               </p>
-                              <Badge
-                                className={cn(
-                                  'text-xs border-0',
-                                  doc.required
-                                    ? 'bg-violet-100 text-violet-700'
-                                    : 'bg-gray-100 text-gray-500'
-                                )}
-                              >
-                                {doc.required ? 'Required' : 'Optional'}
-                              </Badge>
                             </div>
-                            <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>
-                              {doc.description}
+
+                            {/* Submitted status */}
+                            <p
+                              className={cn(
+                                'text-xs font-medium flex-shrink-0',
+                                doc.submitted ? 'text-emerald-600' : 'text-amber-600'
+                              )}
+                            >
+                              {doc.submitted ? 'Received' : 'Pending'}
                             </p>
                           </div>
-
-                          {/* Submitted status */}
-                          <p
-                            className={cn(
-                              'text-xs font-medium flex-shrink-0',
-                              doc.submitted ? 'text-emerald-600' : 'text-amber-600'
-                            )}
-                          >
-                            {doc.submitted ? 'Received' : 'Pending'}
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Summary */}
@@ -1082,10 +1151,11 @@ export default function AgentClaims() {
                     {selectedClaim.status === 'filed' && (
                       <div className="space-y-3">
                         <motion.button
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
+                          whileHover={{ scale: statusMutation.isPending ? 1 : 1.01 }}
+                          whileTap={{ scale: statusMutation.isPending ? 1 : 0.99 }}
                           onClick={() => handleStatusUpdate('under_review')}
-                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-violet-50"
+                          disabled={statusMutation.isPending}
+                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-violet-50 disabled:opacity-60 disabled:cursor-not-allowed"
                           style={{
                             borderRadius: RADIUS.input,
                             border: '1px solid rgba(139, 92, 246, 0.2)',
@@ -1101,10 +1171,16 @@ export default function AgentClaims() {
                               background: COLORS.gradients.heroWithAccent,
                             }}
                           >
-                            <ClipboardList style={{ width: 20, height: 20 }} className="text-white" />
+                            {statusMutation.isPending ? (
+                              <Loader2 style={{ width: 20, height: 20 }} className="text-white animate-spin" />
+                            ) : (
+                              <ClipboardList style={{ width: 20, height: 20 }} className="text-white" />
+                            )}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>Begin Review</p>
+                            <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                              {statusMutation.isPending ? 'Updating...' : 'Begin Review'}
+                            </p>
                             <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
                               Move this claim to Under Review status
                             </p>
@@ -1118,8 +1194,8 @@ export default function AgentClaims() {
                       <div className="space-y-3">
                         {/* Approve */}
                         <motion.button
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
+                          whileHover={{ scale: statusMutation.isPending ? 1 : 1.01 }}
+                          whileTap={{ scale: statusMutation.isPending ? 1 : 0.99 }}
                           onClick={() => {
                             if (updateAction === 'approve') {
                               handleStatusUpdate('approved');
@@ -1127,7 +1203,8 @@ export default function AgentClaims() {
                               setUpdateAction('approve');
                             }
                           }}
-                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-emerald-50"
+                          disabled={statusMutation.isPending}
+                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-emerald-50 disabled:opacity-60 disabled:cursor-not-allowed"
                           style={{
                             borderRadius: RADIUS.input,
                             border: '1px solid rgba(16, 185, 129, 0.2)',
@@ -1143,11 +1220,15 @@ export default function AgentClaims() {
                               background: 'linear-gradient(135deg, #10b981, #059669)',
                             }}
                           >
-                            <CheckCircle style={{ width: 20, height: 20 }} className="text-white" />
+                            {statusMutation.isPending ? (
+                              <Loader2 style={{ width: 20, height: 20 }} className="text-white animate-spin" />
+                            ) : (
+                              <CheckCircle style={{ width: 20, height: 20 }} className="text-white" />
+                            )}
                           </div>
                           <div>
                             <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
-                              {updateAction === 'approve' ? 'Click again to confirm Approve' : 'Approve Claim'}
+                              {statusMutation.isPending ? 'Approving...' : updateAction === 'approve' ? 'Click again to confirm Approve' : 'Approve Claim'}
                             </p>
                             <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
                               Approve and begin payout processing
@@ -1158,10 +1239,11 @@ export default function AgentClaims() {
 
                         {/* Deny */}
                         <motion.button
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
+                          whileHover={{ scale: statusMutation.isPending ? 1 : 1.01 }}
+                          whileTap={{ scale: statusMutation.isPending ? 1 : 0.99 }}
                           onClick={() => setUpdateAction(updateAction === 'deny' ? null : 'deny')}
-                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-red-50"
+                          disabled={statusMutation.isPending}
+                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
                           style={{
                             borderRadius: RADIUS.input,
                             border: '1px solid rgba(239, 68, 68, 0.2)',
@@ -1214,10 +1296,10 @@ export default function AgentClaims() {
                                 </div>
                                 <Button
                                   onClick={() => handleStatusUpdate('denied')}
-                                  disabled={!denialReason.trim()}
+                                  disabled={!denialReason.trim() || statusMutation.isPending}
                                   className="gap-2 text-white font-semibold border-0"
                                   style={{
-                                    background: !denialReason.trim()
+                                    background: (!denialReason.trim() || statusMutation.isPending)
                                       ? '#d1d5db'
                                       : 'linear-gradient(135deg, #ef4444, #dc2626)',
                                     borderRadius: RADIUS.button,
@@ -1225,8 +1307,12 @@ export default function AgentClaims() {
                                     padding: '0 20px',
                                   }}
                                 >
-                                  <XCircle style={{ width: 16, height: 16 }} />
-                                  Confirm Denial
+                                  {statusMutation.isPending ? (
+                                    <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                                  ) : (
+                                    <XCircle style={{ width: 16, height: 16 }} />
+                                  )}
+                                  {statusMutation.isPending ? 'Denying...' : 'Confirm Denial'}
                                 </Button>
                               </div>
                             </motion.div>
@@ -1238,10 +1324,11 @@ export default function AgentClaims() {
                     {selectedClaim.status === 'approved' && (
                       <div className="space-y-3">
                         <motion.button
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
+                          whileHover={{ scale: statusMutation.isPending ? 1 : 1.01 }}
+                          whileTap={{ scale: statusMutation.isPending ? 1 : 0.99 }}
                           onClick={() => handleStatusUpdate('paid')}
-                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-emerald-50"
+                          disabled={statusMutation.isPending}
+                          className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-emerald-50 disabled:opacity-60 disabled:cursor-not-allowed"
                           style={{
                             borderRadius: RADIUS.input,
                             border: '1px solid rgba(16, 185, 129, 0.2)',
@@ -1257,10 +1344,16 @@ export default function AgentClaims() {
                               background: 'linear-gradient(135deg, #10b981, #047857)',
                             }}
                           >
-                            <DollarSign style={{ width: 20, height: 20 }} className="text-white" />
+                            {statusMutation.isPending ? (
+                              <Loader2 style={{ width: 20, height: 20 }} className="text-white animate-spin" />
+                            ) : (
+                              <DollarSign style={{ width: 20, height: 20 }} className="text-white" />
+                            )}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>Mark as Paid</p>
+                            <p className="font-bold text-gray-900" style={{ fontSize: TYPE.body }}>
+                              {statusMutation.isPending ? 'Processing...' : 'Mark as Paid'}
+                            </p>
                             <p className="text-gray-500" style={{ fontSize: TYPE.caption }}>
                               Confirm payout has been issued to beneficiary
                             </p>
@@ -1318,34 +1411,33 @@ export default function AgentClaims() {
                     onClick={async () => {
                       if (!selectedClaim) return;
                       try {
-                        const res = await fetch(`/api/claims/${selectedClaim.id}`, {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          credentials: 'include',
-                          body: JSON.stringify({
-                            carrierClaimNumber: carrierClaimInput || undefined,
-                            estimatedResolutionDate: estimatedResInput || undefined,
-                          }),
+                        await carrierUpdateMutation.mutateAsync({
+                          claimId: selectedClaim.id,
+                          carrierClaimNumber: carrierClaimInput || undefined,
+                          estimatedResolutionDate: estimatedResInput || undefined,
                         });
-                        if (!res.ok) throw new Error('Failed to update');
                         toast.success('Claim details updated');
                         setUpdateSuccess(true);
                         setTimeout(() => setUpdateSuccess(false), 3000);
-                        await fetchClaims();
                       } catch (err: any) {
                         toast.error(err.message || 'Failed to update claim');
                       }
                     }}
+                    disabled={carrierUpdateMutation.isPending}
                     className="gap-2 text-white font-semibold border-0 w-full"
                     style={{
-                      background: COLORS.gradients.heroWithAccent,
+                      background: carrierUpdateMutation.isPending ? '#d1d5db' : COLORS.gradients.heroWithAccent,
                       borderRadius: RADIUS.button,
                       height: 44,
                       padding: '0 24px',
                     }}
                   >
-                    <CheckCircle style={{ width: 16, height: 16 }} />
-                    Confirm Update
+                    {carrierUpdateMutation.isPending ? (
+                      <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                    ) : (
+                      <CheckCircle style={{ width: 16, height: 16 }} />
+                    )}
+                    {carrierUpdateMutation.isPending ? 'Updating...' : 'Confirm Update'}
                   </Button>
                 </TabsContent>
 
@@ -1366,10 +1458,10 @@ export default function AgentClaims() {
                     />
                     <Button
                       onClick={handleAddNote}
-                      disabled={!newNote.trim()}
+                      disabled={!newNote.trim() || noteMutation.isPending}
                       className="gap-2 text-white font-semibold border-0"
                       style={{
-                        background: !newNote.trim()
+                        background: (!newNote.trim() || noteMutation.isPending)
                           ? '#d1d5db'
                           : 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)',
                         borderRadius: RADIUS.button,
@@ -1377,8 +1469,12 @@ export default function AgentClaims() {
                         padding: '0 20px',
                       }}
                     >
-                      <MessageSquare style={{ width: 16, height: 16 }} />
-                      Add Note
+                      {noteMutation.isPending ? (
+                        <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                      ) : (
+                        <MessageSquare style={{ width: 16, height: 16 }} />
+                      )}
+                      {noteMutation.isPending ? 'Adding...' : 'Add Note'}
                     </Button>
                   </div>
 

@@ -14,7 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import {
   CreditCard, Edit3, Share2, Mail, MessageSquare, Copy, Check, Loader2,
   Linkedin, Instagram, Facebook, Twitter, Globe, Building2, Award, Save,
-  Phone, User, MapPin, AtSign, ExternalLink, Link2, Camera, Shield, X, Plus, Smile, Share
+  Phone, User, MapPin, AtSign, ExternalLink, Link2, Camera, Shield, X, Plus, Smile, Share,
+  AlertTriangle
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
@@ -44,10 +45,25 @@ export default function AgentBusinessCard() {
   const queryClient = useQueryClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: cardResponse, isLoading } = useQuery<{ success: boolean; data: any }>({
+  const { data: cardResponse, isLoading, error } = useQuery<{ success: boolean; data: any }>({
     queryKey: ["/api/business-card/my-card"],
   });
   const cardData = cardResponse?.data;
+
+  // Error state — show retry UI if card data fails to load
+  if (error && !isLoading) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="w-12 h-12 text-red-400" />
+          <p className="text-gray-600">Failed to load your business card.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/business-card/my-card'] })}>
+            Retry
+          </Button>
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
 
   // Handle Bitmoji OAuth callback result
   useEffect(() => {
@@ -600,7 +616,7 @@ export default function AgentBusinessCard() {
                       {socialLinks.map(({ url, icon: Icon, label, color }) => (
                         <a
                           key={label}
-                          href={url!}
+                          href={url!.startsWith('http') ? url! : `https://${url!}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 p-3 bg-gray-50/80 hover:bg-gray-100 transition-colors"
@@ -650,6 +666,15 @@ export default function AgentBusinessCard() {
                     Send your digital business card to prospects and clients via email, text, or copy the
                     link to share anywhere.
                   </p>
+
+                  {/* QR Code */}
+                  <div className="flex justify-center my-4">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareUrl)}`}
+                      alt="Business Card QR Code"
+                      className="w-32 h-32 rounded-lg border"
+                    />
+                  </div>
 
                   {/* Share link display */}
                   <div
@@ -747,6 +772,7 @@ export default function AgentBusinessCard() {
                       value={editData.title}
                       onChange={(e) => setEditData({ ...editData, title: e.target.value })}
                       placeholder="Licensed Insurance Agent"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -760,6 +786,7 @@ export default function AgentBusinessCard() {
                       value={editData.companyName}
                       onChange={(e) => setEditData({ ...editData, companyName: e.target.value })}
                       placeholder="Heritage Life Solutions"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -787,6 +814,7 @@ export default function AgentBusinessCard() {
                       onChange={(e) => setEditData({ ...editData, phone: stripPhone(e.target.value) })}
                       placeholder="(555) 123-4567"
                       maxLength={14}
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -801,6 +829,7 @@ export default function AgentBusinessCard() {
                       value={editData.email}
                       onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                       placeholder="agent@heritagels.org"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -814,6 +843,7 @@ export default function AgentBusinessCard() {
                       value={editData.websiteUrl}
                       onChange={(e) => setEditData({ ...editData, websiteUrl: e.target.value })}
                       placeholder="https://heritagels.org/agent/your-name"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -839,6 +869,7 @@ export default function AgentBusinessCard() {
                         value={editData.licenseNumber}
                         onChange={(e) => setEditData({ ...editData, licenseNumber: e.target.value })}
                         placeholder="e.g. 0H12345"
+                        disabled={saving}
                         style={{ borderRadius: RADIUS.input }}
                       />
                     </div>
@@ -852,6 +883,7 @@ export default function AgentBusinessCard() {
                         onChange={(e) => setEditData({ ...editData, npn: e.target.value.replace(/[^0-9]/g, "") })}
                         placeholder="e.g. 12345678"
                         maxLength={10}
+                        disabled={saving}
                         style={{ borderRadius: RADIUS.input }}
                       />
                     </div>
@@ -874,6 +906,7 @@ export default function AgentBusinessCard() {
                           <button
                             key={st}
                             type="button"
+                            disabled={saving}
                             onClick={() => {
                               setEditData({
                                 ...editData,
@@ -917,6 +950,7 @@ export default function AgentBusinessCard() {
                       value={editData.linkedinUrl}
                       onChange={(e) => setEditData({ ...editData, linkedinUrl: e.target.value })}
                       placeholder="https://linkedin.com/in/your-profile"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -930,6 +964,7 @@ export default function AgentBusinessCard() {
                       value={editData.instagramUrl}
                       onChange={(e) => setEditData({ ...editData, instagramUrl: e.target.value })}
                       placeholder="https://instagram.com/your-handle"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -943,6 +978,7 @@ export default function AgentBusinessCard() {
                       value={editData.facebookUrl}
                       onChange={(e) => setEditData({ ...editData, facebookUrl: e.target.value })}
                       placeholder="https://facebook.com/your-page"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -956,6 +992,7 @@ export default function AgentBusinessCard() {
                       value={editData.twitterUrl}
                       onChange={(e) => setEditData({ ...editData, twitterUrl: e.target.value })}
                       placeholder="https://x.com/your-handle"
+                      disabled={saving}
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -968,6 +1005,7 @@ export default function AgentBusinessCard() {
               <Button
                 variant="outline"
                 onClick={() => setShowEditDialog(false)}
+                disabled={saving}
                 style={{ borderRadius: RADIUS.button }}
               >
                 Cancel

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import React from "react";
@@ -13,6 +13,7 @@ import {
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { DailyChallenge } from "@/components/agent/DailyChallenge";
 import { ActivityFeed } from "@/components/agent/ActivityFeed";
+import { useWebSocket } from "@/providers/WebSocketProvider";
 import { DeltaBadge } from "@/pages/manager/primitives/DeltaBadge";
 import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LogCallModal } from "@/components/agent/LogCallModal";
@@ -54,16 +55,27 @@ import {
   Sparkles,
   Shield,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 import { cn, formatProductLabel } from "@/lib/utils";
 
-// Generate upcoming events relative to today so they never go stale
-function getUpcomingEvents() {
-  return [] as { date: string; title: string; time: string }[];
-}
-const UPCOMING_EVENTS = getUpcomingEvents();
+// Static announcements and events removed — now wired to real API data
 
-const STATIC_ANNOUNCEMENTS: any[] = [];
+// Format a date string into a human-readable relative time
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMs / 3600000);
+  const diffDay = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return date.toLocaleDateString();
+}
 
 // Get greeting based on time of day
 function getGreeting(): string {
@@ -80,7 +92,6 @@ export default function AgentDashboard() {
     performance,
     tasks,
     leads,
-    activities,
     dailyChallenges,
     leaderboard,
     completeTask,
@@ -124,6 +135,22 @@ export default function AgentDashboard() {
     queryKey: ['/api/commissions/my-earnings'],
     staleTime: 60000,
   });
+
+  // Streak from achievements API
+  const { data: streakData } = useQuery<any>({
+    queryKey: ['/api/achievements'],
+    staleTime: 60000,
+  });
+  const currentStreak = (streakData as any)?.stats?.currentStreak || 0;
+
+  // Calendar events for upcoming events widget
+  const { data: calendarEvents } = useQuery<any>({
+    queryKey: ['/api/calendar/events'],
+    staleTime: 60000,
+  });
+
+  // Loading states for main data
+  const isDashboardLoading = !apiLeaderboardData && !myDealStats && !apiEarnings;
 
   const realLeaderboard = apiLeaderboardData?.data?.length ? apiLeaderboardData.data.map((e) => ({
     id: e.agentUserId,
@@ -190,9 +217,9 @@ export default function AgentDashboard() {
     }
 
     // Good momentum - streak protection
-    if (performance.currentStreak >= 5) {
+    if (currentStreak >= 5) {
       return {
-        main: `${performance.currentStreak}-DAY STREAK.`,
+        main: `${currentStreak}-DAY STREAK.`,
         sub: `${callsRemaining} calls to keep it alive. Don't break it.`,
         urgency: 'standard'
       };
@@ -247,12 +274,97 @@ export default function AgentDashboard() {
   const pendingEarnings = apiEarnings?.monthlyAp ?? 0;
   const paidEarnings = apiEarnings?.ytdEarnings ?? 0;
 
-  const upcomingEvents = UPCOMING_EVENTS;
-  const staticAnnouncements = STATIC_ANNOUNCEMENTS;
+  // Fetch real team activity from API
+  const { data: activityData } = useQuery<any>({
+    queryKey: ['/api/team-activity?limit=20'],
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
+
+  // WebSocket subscription for real-time team activity updates
+  const { addMessageHandler, subscribe } = useWebSocket();
+  const [liveActivities, setLiveActivities] = useState<any[]>([]);
+
+  // Subscribe to team channel
+  useEffect(() => {
+    subscribe('team');
+  }, [subscribe]);
+
+  // Listen for new activities via WebSocket
+  useEffect(() => {
+    const cleanup = addMessageHandler((data: any, channel: string | undefined) => {
+      if (data?.type === 'team_activity' && data.activity) {
+        setLiveActivities(prev => [data.activity, ...prev].slice(0, 10));
+      }
+    });
+    return cleanup;
+  }, [addMessageHandler]);
+
+  // Combine live WebSocket activities with API-fetched activities
+  const teamActivities = useMemo(() => {
+    const apiActivities = (activityData?.activities || []).map((a: any) => ({
+      id: a.id,
+      type: a.activity_type || 'deal',
+      agentName: a.agent_name || 'Agent',
+      message: a.message || '',
+      timestamp: formatRelativeTime(a.created_at),
+      highlight: false,
+      xp: a.metadata?.xp,
+    }));
+
+    const wsActivities = liveActivities.map((a: any) => ({
+      id: a.id || `ws-${Date.now()}-${Math.random()}`,
+      type: a.activity_type || 'deal',
+      agentName: a.agent_name || 'Agent',
+      message: a.message || '',
+      timestamp: 'Just now',
+      highlight: true,
+      xp: a.metadata?.xp,
+    }));
+
+    // Dedupe by ID, live activities take priority
+    const seen = new Set<string>();
+    const merged = [...wsActivities, ...apiActivities].filter(a => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+
+    return merged.slice(0, 10);
+  }, [activityData, liveActivities]);
+
+  // Upcoming events from calendar API
+  const upcomingEvents = useMemo(() => {
+    if (!calendarEvents?.events) return [];
+    const now = new Date();
+    return (calendarEvents.events as any[])
+      .filter((e: any) => new Date(e.date || e.start) >= now)
+      .slice(0, 3)
+      .map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        date: e.date || (e.start ? new Date(e.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''),
+        time: e.time || (e.start ? new Date(e.start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''),
+        type: e.type || 'event',
+      }));
+  }, [calendarEvents]);
 
   return (
     <AgentLoungeLayout>
       <LoadingScreen />
+
+      {/* Subtle loading indicator while API data loads */}
+      {isDashboardLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-violet-100"
+        >
+          <Loader2 className="w-4 h-4 text-violet-600 animate-spin" />
+          <span className="text-xs font-medium text-gray-600">Loading data...</span>
+        </motion.div>
+      )}
 
       {/* Modals */}
       <LogCallModal open={showLogCall} onOpenChange={setShowLogCall} leads={leads} onLogCall={logCall} />
@@ -484,7 +596,7 @@ export default function AgentDashboard() {
             { icon: Phone, value: `${myDealStats?.data?.totalDeals || 0}`, label: "Deals This Month", periodLabel: "submitted" },
             { icon: Target, value: `$${(myDealStats?.data?.totalAP || 0).toLocaleString()}`, label: "Monthly AP", periodLabel: "annual premium" },
             { icon: BarChart3, value: `${myDealStats?.data?.rank || 0}`, label: "Leaderboard Rank", periodLabel: "this month" },
-            { icon: Flame, value: `${performance.currentStreak}`, label: "Day Streak", periodLabel: "consecutive days" },
+            { icon: Flame, value: `${currentStreak}`, label: "Day Streak", periodLabel: "consecutive days" },
           ] as Array<{ icon: typeof Phone; value: string; label: string; delta?: number; deltaFormat?: 'percent' | 'number'; periodLabel?: string }>).map((stat) => (
             <motion.div
               key={stat.label}
@@ -601,7 +713,7 @@ export default function AgentDashboard() {
                       Pipeline Snapshot
                     </CardTitle>
                     <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 hover:bg-gray-100" asChild>
-                      <Link href="/agents/pipeline">
+                      <Link href="/agents/inbox">
                         View All <ChevronRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>
@@ -621,7 +733,7 @@ export default function AgentDashboard() {
                         whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                        onClick={() => navigate(`/agents/pipeline?status=${stage.filter}`)}
+                        onClick={() => navigate(`/agents/inbox?status=${stage.filter}`)}
                         className="text-center p-4 rounded-xl bg-violet-50 border border-violet-100 cursor-pointer hover:bg-violet-100 transition-colors"
                       >
                         <p className="text-2xl font-bold text-gray-900">{stage.count}</p>
@@ -639,7 +751,7 @@ export default function AgentDashboard() {
                       </div>
                       <div className="space-y-2">
                         {hotLeads.map((lead) => (
-                          <Link key={lead.id} href={`/agents/leads?id=${lead.id}`}>
+                          <Link key={lead.id} href={`/agents/inbox?id=${lead.id}`}>
                             <motion.div
                               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                               transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
@@ -863,54 +975,33 @@ export default function AgentDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }} className="space-y-4">
-                  {/* Announcements */}
-                  {staticAnnouncements.slice(0, 1).map((announcement, idx) => (
-                    <div
-                      key={`ann-${idx}`}
-                      className={cn(
-                        "p-3 rounded-xl",
-                        announcement.priority === 'high'
-                          ? "bg-violet-50 border border-violet-200"
-                          : "bg-gray-50 border border-gray-100"
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                          announcement.priority === 'high'
-                            ? "bg-gradient-to-br from-violet-500 to-purple-600"
-                            : "bg-gray-400"
-                        )}>
-                          <Bell className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] text-gray-500 font-medium mb-1">{announcement.date}</p>
-                          <h4 className="font-semibold text-sm text-gray-900">{announcement.title}</h4>
-                          <p className="text-xs text-gray-600 mt-1 leading-relaxed">{announcement.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Upcoming Events */}
+                  {/* Upcoming Events from Calendar */}
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Upcoming</p>
-                    {upcomingEvents.slice(0, 2).map((event, idx) => (
-                      <div
-                        key={`evt-${idx}`}
-                        className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-violet-50 transition-colors cursor-pointer group"
-                      >
-                        <div className="text-center min-w-[44px] bg-white rounded-lg p-1.5 border border-violet-100 group-hover:border-violet-200 transition-colors">
-                          <p className="text-[8px] text-violet-400 uppercase font-semibold">{event.date.split(' ')[0]}</p>
-                          <p className="font-bold text-lg text-violet-600">{event.date.split(' ')[1]}</p>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm text-gray-900 group-hover:text-violet-900 transition-colors">{event.title}</p>
-                          <p className="text-xs text-gray-500">{event.time}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-violet-500 transition-colors" />
+                    {upcomingEvents.length === 0 ? (
+                      <div className="text-center py-4">
+                        <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm text-gray-500">No upcoming events</p>
+                        <p className="text-xs text-gray-400 mt-1">Connect your calendar or add events to see them here</p>
                       </div>
-                    ))}
+                    ) : (
+                      upcomingEvents.slice(0, 3).map((event: any, idx: number) => (
+                        <div
+                          key={event.id || `evt-${idx}`}
+                          className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-violet-50 transition-colors cursor-pointer group"
+                        >
+                          <div className="text-center min-w-[44px] bg-white rounded-lg p-1.5 border border-violet-100 group-hover:border-violet-200 transition-colors">
+                            <p className="text-[8px] text-violet-400 uppercase font-semibold">{String(event.date).split(' ')[0]}</p>
+                            <p className="font-bold text-lg text-violet-600">{String(event.date).split(' ')[1] || ''}</p>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm text-gray-900 group-hover:text-violet-900 transition-colors">{event.title}</p>
+                            <p className="text-xs text-gray-500">{event.time}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-violet-500 transition-colors" />
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   <Button variant="ghost" size="sm" asChild className="w-full text-violet-600 hover:bg-violet-50">
@@ -952,7 +1043,7 @@ export default function AgentDashboard() {
                       </span>
                     </div>
                     <Button className="w-full mt-2 bg-white text-violet-700 hover:bg-white/90 font-semibold shadow-lg" asChild>
-                      <Link href="/agents/earnings">
+                      <Link href="/agents/commissions">
                         View Statements <ArrowUpRight className="w-4 h-4 ml-1" />
                       </Link>
                     </Button>
@@ -985,7 +1076,7 @@ export default function AgentDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent style={{ padding: GRID.spacing.md, paddingTop: 0 }}>
-                  <ActivityFeed activities={activities.slice(0, 5)} />
+                  <ActivityFeed activities={teamActivities} showLiveIndicator={liveActivities.length > 0} maxItems={10} />
                 </CardContent>
               </Card>
             </motion.div>

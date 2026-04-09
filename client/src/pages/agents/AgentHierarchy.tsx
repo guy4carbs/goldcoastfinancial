@@ -5,10 +5,11 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { Network, Users, Crown, TrendingUp, Layers } from 'lucide-react';
+import { Network, Users, Crown, TrendingUp, Layers, AlertTriangle, Loader2 } from 'lucide-react';
 import { AgentLoungeLayout } from '@/components/agent/AgentLoungeLayout';
 import { AgentPageHero } from '@/components/agent/primitives';
 import { AgentStatCard, AgentStatCardGrid } from '@/components/agent/primitives';
+import { Button } from '@/components/ui/button';
 import {
   fadeInUp,
   staggerContainer,
@@ -47,7 +48,7 @@ async function fetchHierarchy(): Promise<HierarchyData | null> {
 // =============================================================================
 
 export default function AgentHierarchy() {
-  const { data: apiData, isLoading } = useQuery({
+  const { data: apiData, isLoading, isError, refetch } = useQuery({
     queryKey: ['/api/hierarchy/full'],
     queryFn: fetchHierarchy,
   });
@@ -77,6 +78,18 @@ export default function AgentHierarchy() {
   const agent = hierarchy?.agent;
   const uplineCount = hierarchy?.upline?.length || 0;
   const downlineCount = hierarchy?.downline?.length || 0;
+
+  if (isError) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="w-12 h-12 text-red-400" />
+          <p className="text-gray-600">Failed to load hierarchy data.</p>
+          <Button onClick={() => refetch()}>Retry</Button>
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
 
   return (
     <AgentLoungeLayout>

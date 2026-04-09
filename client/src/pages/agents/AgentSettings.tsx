@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   User,
   Mail,
@@ -166,6 +167,21 @@ export default function AgentSettings() {
     achievements: true,
   });
 
+  // Load notification preferences from backend
+  useEffect(() => {
+    fetch('/api/portal/preferences', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        setNotifications(prev => ({
+          ...prev,
+          email: data.email_notifications ?? prev.email,
+          push: data.push_notifications ?? prev.push,
+          sms: data.sms_notifications ?? prev.sms,
+        }));
+      })
+      .catch(() => {});
+  }, []);
+
   // Initialize profile from currentUser
   const getInitialProfile = (): ProfileSettings => {
     if (currentUser) {
@@ -251,10 +267,27 @@ export default function AgentSettings() {
   });
 
   const [twoFactor, setTwoFactor] = useState<TwoFactorSettings>({
-    enabled: true,
+    enabled: false,
     method: 'app',
     phoneNumber: '***-***-4567',
   });
+
+  // Load 2FA status from backend on mount
+  useEffect(() => {
+    fetch('/api/ai/2fa/status', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        setTwoFactor(prev => ({ ...prev, enabled: data.enabled || false }));
+      })
+      .catch(() => {});
+  }, []);
+
+  // Password change modal state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
     // Validate required fields
@@ -269,31 +302,85 @@ export default function AgentSettings() {
 
     setIsSaving(true);
 
-    // Build the profile object
-    const profileData = {
-      name: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
-      email: profile.email.trim(),
-      phone: profile.phone.trim(),
-      npn: profile.npn.trim() || undefined,
-    };
+    try {
+      // Persist to backend
+      const res = await fetch('/api/portal/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          firstName: profile.firstName.trim(),
+          lastName: profile.lastName.trim(),
+          email: profile.email.trim(),
+          phone: profile.phone.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to save profile');
+      }
 
-    // Create or update the profile - works with or without being logged in
-    createOrUpdateProfile(profileData);
+      // Update local store
+      const profileData = {
+        name: `${profile.firstName.trim()} ${profile.lastName.trim()}`,
+        email: profile.email.trim(),
+        phone: profile.phone.trim(),
+        npn: profile.npn.trim() || undefined,
+      };
+      createOrUpdateProfile(profileData);
 
-    // Small delay for UX feedback
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    setIsSaving(false);
-    toast.success('Profile saved successfully!', {
-      description: `Your info is now synced across all features.`
-    });
+      toast.success('Profile saved successfully!', {
+        description: `Your info is now synced across all features.`
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save profile');
+    } finally {
+      setIsSaving(false);
+    }
   }, [profile, createOrUpdateProfile]);
 
   // handleChangePhoto replaced by avatarInputRef + avatarMutation above
 
   const handleChangePassword = useCallback(() => {
-    toast.info('Password change coming soon');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowPasswordModal(true);
   }, []);
+
+  const handlePasswordSubmit = useCallback(async () => {
+    if (!currentPassword || !newPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const res = await fetch('/api/portal/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to change password');
+      }
+      toast.success('Password changed successfully');
+      setShowPasswordModal(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to change password');
+    } finally {
+      setPasswordSaving(false);
+    }
+  }, [currentPassword, newPassword, confirmPassword]);
 
   const handleViewSessions = useCallback(() => {
     toast.info('Session management coming soon');
@@ -309,7 +396,23 @@ export default function AgentSettings() {
   }, []);
 
   const handleNotificationChange = useCallback((key: keyof NotificationSettings, checked: boolean) => {
-    setNotifications(prev => ({ ...prev, [key]: checked }));
+    setNotifications(prev => {
+      const updated = { ...prev, [key]: checked };
+      // Persist core notification prefs to backend
+      if (key === 'email' || key === 'push' || key === 'sms') {
+        fetch('/api/portal/preferences', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            emailNotifications: updated.email,
+            pushNotifications: updated.push,
+            smsNotifications: updated.sms,
+          }),
+        }).catch(() => {});
+      }
+      return updated;
+    });
   }, []);
 
   const handleVerifyBank = useCallback(() => {
@@ -1345,6 +1448,74 @@ export default function AgentSettings() {
           </Card>
         </motion.div>
       </motion.div>
+
+      {/* Password Change Modal */}
+      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
+        <DialogContent className="sm:max-w-md" style={{ borderRadius: RADIUS.card }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-violet-600" aria-hidden="true" />
+              Change Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword" className="text-gray-900">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                style={{ borderRadius: RADIUS.input }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-gray-900">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+                style={{ borderRadius: RADIUS.input }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-900">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                style={{ borderRadius: RADIUS.input }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowPasswordModal(false)}
+              style={{ borderRadius: RADIUS.button }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handlePasswordSubmit}
+              disabled={passwordSaving || !currentPassword || !newPassword || !confirmPassword}
+              className="bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              {passwordSaving ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
+              ) : (
+                'Update Password'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AgentLoungeLayout>
   );
 }

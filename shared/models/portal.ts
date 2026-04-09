@@ -17,6 +17,16 @@ export const policies = pgTable("policies", {
   beneficiaryName: varchar("beneficiary_name"),
   beneficiaryRelationship: varchar("beneficiary_relationship"),
   beneficiaries: jsonb("beneficiaries").$type<Array<{name: string; relationship: string; percentage: number}>>().default(sql`'[]'::jsonb`),
+  // Book of Business tracking
+  clientStatus: varchar("client_status", { length: 20 }).default("pending"), // pending, active, chargeback
+  chargebackAt: timestamp("chargeback_at"),
+  chargebackReason: text("chargeback_reason"),
+  lastContactDate: timestamp("last_contact_date"),
+  nextFollowUpDate: timestamp("next_follow_up_date"),
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }),
+  draftDate: varchar("draft_date", { length: 10 }), // DD of month for premium draft
+  notes: text("notes"),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 
@@ -24,6 +34,7 @@ export const policies = pgTable("policies", {
   agentId: uuid("agent_id"),
   leadId: varchar("lead_id"),
   carrier: varchar("carrier"),
+  stateCode: varchar("state_code", { length: 2 }),
 });
 
 export const documents = pgTable("documents", {

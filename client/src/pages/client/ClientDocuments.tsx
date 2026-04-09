@@ -18,34 +18,59 @@ import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer, GRID } from '
 import { glassCard } from './clientConstants';
 import { usePortalDocuments, type PortalDocument } from '@/hooks/usePortalData';
 import { useQueryClient } from '@tanstack/react-query';
-import { FolderOpen, FileText, Download, Upload, Search, Filter, File, FileBadge, CheckCircle, Loader2, X, type LucideIcon } from 'lucide-react';
+import {
+  FolderOpen, FileText, Download, Upload, Search, Filter, File, FileBadge,
+  CheckCircle, Loader2, X, ClipboardList, CreditCard, Users, IdCard, FileCheck,
+  type LucideIcon,
+} from 'lucide-react';
 
 // ─── DOCUMENT CATEGORY ICON MAP ───
 const DOC_CATEGORY_ICONS: Record<string, { icon: LucideIcon; color: string }> = {
   policy: { icon: FileText, color: 'text-violet-600' },
+  application: { icon: FileCheck, color: 'text-indigo-600' },
+  claims: { icon: ClipboardList, color: 'text-amber-600' },
+  billing: { icon: CreditCard, color: 'text-rose-600' },
   tax: { icon: FileBadge, color: 'text-blue-600' },
+  beneficiary: { icon: Users, color: 'text-teal-600' },
+  statements: { icon: File, color: 'text-emerald-600' },
+  correspondence: { icon: FileText, color: 'text-gray-600' },
+  identification: { icon: IdCard, color: 'text-orange-600' },
+  // Legacy categories (backward compat)
   statement: { icon: File, color: 'text-emerald-600' },
-  correspondence: { icon: FileText, color: 'text-amber-600' },
+  form: { icon: FileCheck, color: 'text-indigo-600' },
   upload: { icon: Upload, color: 'text-gray-500' },
 };
 
 // ─── CATEGORY TABS ───
-type CategoryFilter = 'all' | 'policy' | 'tax' | 'statement' | 'correspondence';
+type CategoryFilter = 'all' | 'policy' | 'application' | 'claims' | 'billing' | 'tax' | 'beneficiary' | 'statements' | 'correspondence' | 'identification';
 
 const CATEGORY_TABS: { label: string; value: CategoryFilter }[] = [
   { label: 'All', value: 'all' },
-  { label: 'Policy Documents', value: 'policy' },
-  { label: 'Tax Forms', value: 'tax' },
-  { label: 'Statements', value: 'statement' },
-  { label: 'Correspondence', value: 'correspondence' },
+  { label: 'Policy', value: 'policy' },
+  { label: 'Applications', value: 'application' },
+  { label: 'Claims', value: 'claims' },
+  { label: 'Billing', value: 'billing' },
+  { label: 'Tax', value: 'tax' },
+  { label: 'Beneficiary', value: 'beneficiary' },
+  { label: 'Statements', value: 'statements' },
+  { label: 'Letters', value: 'correspondence' },
+  { label: 'ID & Verification', value: 'identification' },
 ];
 
 // Human-readable category labels for badges
 const CATEGORY_LABELS: Record<string, string> = {
   policy: 'Policy',
+  application: 'Application',
+  claims: 'Claim',
+  billing: 'Billing',
   tax: 'Tax Form',
+  beneficiary: 'Beneficiary',
+  statements: 'Statement',
+  correspondence: 'Letter',
+  identification: 'ID / Verification',
+  // Legacy
   statement: 'Statement',
-  correspondence: 'Correspondence',
+  form: 'Form',
   upload: 'Uploaded',
 };
 
@@ -160,7 +185,11 @@ export default function ClientDocuments() {
         />
 
         {/* ─── CATEGORY TABS ─── */}
-        <motion.div variants={fadeInUp} className="flex items-center gap-2 flex-wrap">
+        <motion.div variants={fadeInUp} className="overflow-x-auto">
+          <div
+            className="inline-flex items-center bg-gray-100/80 p-1 gap-1"
+            style={{ borderRadius: RADIUS.pill }}
+          >
           {CATEGORY_TABS.map((tab) => {
             const isActive = activeCategory === tab.value;
             return (
@@ -168,22 +197,18 @@ export default function ClientDocuments() {
                 key={tab.value}
                 onClick={() => setActiveCategory(tab.value)}
                 className={cn(
-                  'px-4 py-2 font-medium transition-all',
+                  'px-4 py-2 text-sm font-medium transition-all whitespace-nowrap',
                   isActive
-                    ? 'bg-violet-600 text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-violet-50 hover:text-violet-700',
+                    ? 'bg-white text-violet-700 shadow-sm'
+                    : 'text-gray-500 hover:text-violet-600',
                 )}
-                style={{
-                  borderRadius: RADIUS.pill,
-                  fontSize: TYPE.meta,
-                  boxShadow: isActive ? SHADOW.level2 : SHADOW.level1,
-                  border: isActive ? 'none' : '1px solid #e5e7eb',
-                }}
+                style={{ borderRadius: RADIUS.pill }}
               >
                 {tab.label}
               </button>
             );
           })}
+          </div>
         </motion.div>
 
         {/* ─── SEARCH BAR ─── */}

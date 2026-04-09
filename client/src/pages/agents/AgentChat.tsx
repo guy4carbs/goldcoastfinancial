@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAgentStore } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,8 @@ import {
   AtSign,
   File,
   ImageIcon,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -78,30 +80,79 @@ interface Message {
   mentions?: string[];
 }
 
-const CHANNELS: Channel[] = [];
-
-const DIRECT_MESSAGES: Channel[] = [];
-
-const AVAILABLE_USERS: readonly string[] = [] as const;
-
-// Study Groups data
+// Study Groups data (local/placeholder for now)
 const STUDY_GROUPS_DATA: { id: string; name: string; description: string; members: { id: string; name: string }[]; maxMembers: number; topic: string; nextSession?: Date; isJoined: boolean }[] = [];
 
 // Training Discussion data (for #training channel)
 const TRAINING_DISCUSSIONS: { id: string; author: { name: string; role?: string }; content: string; timestamp: Date; likes: number; isLiked: boolean; replies?: { id: string; author: { name: string }; content: string; timestamp: Date; likes: number; isLiked: boolean }[] }[] = [];
 
-// Peer Recognition data
+// Peer Recognition data (local/placeholder for now)
 const RECENT_RECOGNITIONS: { id: string; from: { name: string; role?: string }; to: { name: string }; badge: string; message: string; timestamp: Date; likes: number }[] = [];
 
-const INITIAL_MESSAGES: Message[] = [];
+interface AgentChatProps {
+  embedded?: boolean;
+}
 
-export default function AgentChat() {
+export default function AgentChat({ embedded }: AgentChatProps = {}) {
   const { currentUser } = useAgentStore();
+  const queryClient = useQueryClient();
   const agentName = currentUser?.name || 'Agent';
   const agentInitials = currentUser?.name?.split(' ').map(n => n[0]).join('') || 'AG';
 
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(CHANNELS[0] ?? null);
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  // ------- API Data Fetching -------
+
+  // Fetch main team chat channel (auto-creates on first visit)
+  const { data: mainChat } = useQuery({
+    queryKey: ['/api/chat/main'],
+  });
+
+  // Fetch all conversations
+  const { data: conversationsData, isLoading: loadingConvos } = useQuery({
+    queryKey: ['/api/chat/conversations'],
+    refetchInterval: 15000,
+  });
+
+  // Split into channels and DMs
+  const channels: Channel[] = useMemo(() => {
+    if (!conversationsData) return [];
+    return (conversationsData as any[])
+      .filter((c: any) => c.type === 'channel')
+      .map((c: any) => ({
+        id: c.conversationId,
+        name: c.name || 'Unnamed',
+        type: 'channel' as const,
+        unread: c.unreadCount || 0,
+        lastMessage: c.lastMessage?.content,
+      }));
+  }, [conversationsData]);
+
+  const directMessages: Channel[] = useMemo(() => {
+    if (!conversationsData) return [];
+    return (conversationsData as any[])
+      .filter((c: any) => c.type === 'direct')
+      .map((c: any) => ({
+        id: c.conversationId,
+        name: c.name || 'Direct Message',
+        type: 'direct' as const,
+        unread: c.unreadCount || 0,
+        lastMessage: c.lastMessage?.content,
+      }));
+  }, [conversationsData]);
+
+  // Fetch available users for new DMs / @mentions
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/chat/users'],
+  });
+  const availableUsers: { id: string; name: string }[] = useMemo(() => {
+    if (!usersData) return [];
+    return (usersData as any[]).map((u: any) => ({
+      id: u.id,
+      name: `${u.firstName} ${u.lastName}`.trim(),
+    }));
+  }, [usersData]);
+  const availableUserNames: string[] = useMemo(() => availableUsers.map(u => u.name), [availableUsers]);
+
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarTab, setSidebarTab] = useState<'chat' | 'groups' | 'recognition'>('chat');
@@ -115,6 +166,150 @@ export default function AgentChat() {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showMentions, setShowMentions] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
+  const [wsReconnect, setWsReconnect] = useState(0);
+
+  // ------- Fetch messages for selected channel -------
+  const { data: messagesData, isLoading: loadingMessages } = useQuery({
+    queryKey: ['/api/chat/conversations', selectedChannel?.id, 'messages'],
+    queryFn: async () => {
+      if (!selectedChannel?.id) return [];
+      const res = await fetch(`/api/chat/conversations/${selectedChannel.id}/messages`, { credentials: 'include' });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!selectedChannel?.id,
+    refetchInterval: 10000,
+  });
+
+  // Map API messages to frontend Message interface
+  const messages: Message[] = useMemo(() => {
+    if (!messagesData || !Array.isArray(messagesData)) return [];
+    return (messagesData as any[]).map((m: any) => {
+      const isOwn = m.senderId === currentUser?.id;
+      const initials = m.senderName?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '??';
+      const date = new Date(m.createdAt);
+      const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      return {
+        id: m.id,
+        sender: m.senderName || 'Unknown',
+        senderInitials: initials,
+        content: m.content,
+        timestamp: timeStr,
+        isOwn,
+        reactions: [],
+        mentions: [],
+      };
+    });
+  }, [messagesData, currentUser?.id]);
+
+  // ------- Send message mutation -------
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ conversationId, content }: { conversationId: string; content: string }) => {
+      const res = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content }),
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations', selectedChannel?.id, 'messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+    },
+    onError: () => {
+      toast.error('Failed to send message');
+    },
+  });
+
+  // ------- Create DM mutation -------
+  const createDmMutation = useMutation({
+    mutationFn: async (participantIds: string[]) => {
+      const res = await fetch('/api/chat/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ type: 'direct', participantIds }),
+      });
+      if (!res.ok) throw new Error('Failed to create conversation');
+      return res.json();
+    },
+    onSuccess: (newConv: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+      setSelectedChannel({
+        id: newConv.id || newConv.conversationId,
+        name: newConv.name || 'Direct Message',
+        type: 'direct',
+        unread: 0,
+      });
+    },
+    onError: () => {
+      toast.error('Failed to create conversation');
+    },
+  });
+
+  // ------- WebSocket for real-time updates -------
+  const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/chat`);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'auth', userId: currentUser.id }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'new_message') {
+          // Refresh messages for the conversation that received the message
+          queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations', data.message?.conversationId, 'messages'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+        }
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    ws.onclose = () => {
+      // Reconnect after 3 seconds
+      const timeout = setTimeout(() => {
+        if (wsRef.current === ws) {
+          setWsReconnect(prev => prev + 1);
+        }
+      }, 3000);
+      return () => clearTimeout(timeout);
+    };
+
+    ws.onerror = () => {
+      ws.close();
+    };
+
+    return () => {
+      ws.close();
+      wsRef.current = null;
+    };
+  }, [currentUser?.id, wsReconnect]);
+
+  // Join channel when selected
+  useEffect(() => {
+    if (selectedChannel?.id && wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'join_conversation', conversationId: selectedChannel.id }));
+    }
+  }, [selectedChannel?.id]);
+
+  // ------- Auto-select main channel on first load -------
+  useEffect(() => {
+    if (channels.length > 0 && !selectedChannel) {
+      const main = channels.find(c => c.name === 'Team Chat') || channels[0];
+      setSelectedChannel(main);
+    }
+  }, [channels, selectedChannel]);
 
   // Filter messages based on search
   const filteredMessages = useMemo(() =>
@@ -156,8 +351,8 @@ export default function AgentChat() {
 
   // Get total unread count for notification badge
   const totalUnread = useMemo(() =>
-    [...CHANNELS, ...DIRECT_MESSAGES].reduce((acc, ch) => acc + ch.unread, 0),
-    []
+    [...channels, ...directMessages].reduce((acc, ch) => acc + ch.unread, 0),
+    [channels, directMessages]
   );
 
   // Handle phone call
@@ -262,26 +457,17 @@ export default function AgentChat() {
     }
   }, []);
 
-  // Handle adding reaction to a message
+  // Handle adding reaction to a message (local-only for now — reactions API not yet wired)
+  const [localReactions, setLocalReactions] = useState<Record<string, { emoji: string; count: number }[]>>({});
   const handleAddReaction = useCallback((messageId: string, emoji: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id !== messageId) return msg;
-      const existingReactions = msg.reactions || [];
-      const existingReaction = existingReactions.find(r => r.emoji === emoji);
-      if (existingReaction) {
-        return {
-          ...msg,
-          reactions: existingReactions.map(r =>
-            r.emoji === emoji ? { ...r, count: r.count + 1 } : r
-          )
-        };
-      } else {
-        return {
-          ...msg,
-          reactions: [...existingReactions, { emoji, count: 1 }]
-        };
+    setLocalReactions(prev => {
+      const existing = prev[messageId] || [];
+      const found = existing.find(r => r.emoji === emoji);
+      if (found) {
+        return { ...prev, [messageId]: existing.map(r => r.emoji === emoji ? { ...r, count: r.count + 1 } : r) };
       }
-    }));
+      return { ...prev, [messageId]: [...existing, { emoji, count: 1 }] };
+    });
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -293,7 +479,7 @@ export default function AgentChat() {
   }, [messages]);
 
   const handleSendMessage = useCallback(() => {
-    if (!newMessage.trim() && pendingAttachments.length === 0) return;
+    if (!selectedChannel || (!newMessage.trim() && pendingAttachments.length === 0)) return;
 
     // Extract mentions from message
     const mentions: string[] = [];
@@ -303,19 +489,12 @@ export default function AgentChat() {
       mentions.push(match[1]);
     }
 
-    const message: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      senderInitials: currentUser?.name?.split(' ').map(n => n[0]).join('') || 'AJ',
-      content: newMessage,
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      isOwn: true,
-      replyTo: replyingTo ? { id: replyingTo.id, sender: replyingTo.sender, content: replyingTo.content } : undefined,
-      attachments: pendingAttachments.length > 0 ? [...pendingAttachments] : undefined,
-      mentions: mentions.length > 0 ? mentions : undefined,
-    };
+    // Send via API
+    sendMessageMutation.mutate({
+      conversationId: selectedChannel.id,
+      content: newMessage.trim(),
+    });
 
-    setMessages(prev => [...prev, message]);
     setNewMessage('');
     setReplyingTo(null);
     setPendingAttachments([]);
@@ -324,7 +503,7 @@ export default function AgentChat() {
     if (mentions.length > 0) {
       toast.info(`Mentioned: ${mentions.join(', ')}`);
     }
-  }, [newMessage, pendingAttachments, currentUser, replyingTo]);
+  }, [newMessage, pendingAttachments, selectedChannel, sendMessageMutation]);
 
   const handleReply = useCallback((message: Message) => {
     setReplyingTo(message);
@@ -469,8 +648,48 @@ export default function AgentChat() {
         {/* Chat Tab - Channels & DMs */}
         {sidebarTab === 'chat' && (
           <div className="p-2">
-            <ChannelList items={CHANNELS} title="Channels" />
-            <ChannelList items={DIRECT_MESSAGES} title="Direct Messages" />
+            {loadingConvos ? (
+              <div className="space-y-2 px-3">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex items-center gap-2 py-2 animate-pulse">
+                    <div className="w-4 h-4 bg-gray-200 rounded" />
+                    <div className="flex-1 h-4 bg-gray-200 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <ChannelList items={channels} title="Channels" />
+                <ChannelList items={directMessages} title="Direct Messages" />
+                {/* Start new chat button */}
+                <div className="px-3 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs gap-1"
+                    onClick={() => {
+                      if (availableUsers.length === 0) {
+                        toast.info('No users available for direct messages');
+                        return;
+                      }
+                      // Simple: create DM with first available user not yourself
+                      const otherUsers = availableUsers.filter(u => u.id !== currentUser?.id);
+                      if (otherUsers.length === 0) {
+                        toast.info('No other users available');
+                        return;
+                      }
+                      // For now, show a toast with a selection prompt. A proper modal would be better.
+                      toast.info('Select a user to message', {
+                        description: otherUsers.map(u => u.name).join(', '),
+                      });
+                    }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    Start new chat
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -571,27 +790,12 @@ export default function AgentChat() {
     </>
   );
 
-  return (
-    <AgentLoungeLayout>
-      {/* Hero Card - Agent Lounge Theme */}
-      <motion.div
-        variants={fadeInUp}
-        initial="hidden"
-        animate="visible"
-        className="mb-6"
-      >
-        <AgentPageHero
-          icon={MessageSquare}
-          title="Agent Chat"
-          subtitle="Connect with your team, share insights, and collaborate in real-time"
-        />
-      </motion.div>
-
+  const chatContent = (
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="h-[calc(100vh-14rem)] lg:h-[calc(100vh-12rem)] flex gap-0 -mx-4 lg:-mx-6"
+        className={embedded ? "h-full flex gap-0" : "h-[calc(100vh-14rem)] lg:h-[calc(100vh-12rem)] flex gap-0 -mx-4 lg:-mx-6"}
       >
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
@@ -773,6 +977,21 @@ export default function AgentChat() {
                   console.log('Like comment:', id);
                 }}
               />
+            ) : loadingMessages ? (
+              <div className="flex items-center justify-center h-full gap-2 text-gray-400">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Loading messages...</span>
+              </div>
+            ) : !selectedChannel ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
+                <MessageSquare className="w-10 h-10" />
+                <p className="text-sm">Select a channel to start chatting</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
+                <MessageSquare className="w-10 h-10" />
+                <p className="text-sm">No messages yet. Start the conversation!</p>
+              </div>
             ) : (
             <div className="space-y-4">
               {filteredMessages.map((message, idx) => (
@@ -863,7 +1082,7 @@ export default function AgentChat() {
                       "flex gap-1 mt-1 flex-wrap items-center",
                       message.isOwn && "justify-end"
                     )}>
-                      {message.reactions && message.reactions.map((reaction, ridx) => (
+                      {(localReactions[message.id] || message.reactions || []).map((reaction, ridx) => (
                         <button
                           key={ridx}
                           onClick={() => handleAddReaction(message.id, reaction.emoji)}
@@ -977,7 +1196,7 @@ export default function AgentChat() {
                   className="absolute bottom-20 left-4 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-50 max-h-40 overflow-y-auto"
                 >
                   <p className="text-xs text-gray-500 px-2 mb-1">Mention someone</p>
-                  {AVAILABLE_USERS.filter(u =>
+                  {availableUserNames.filter(u =>
                     u.toLowerCase().includes((newMessage.split(' ').pop() || '').slice(1).toLowerCase())
                   ).map(user => (
                     <button
@@ -1033,6 +1252,28 @@ export default function AgentChat() {
           </div>
         </motion.div>
       </motion.div>
+  );
+
+  if (embedded) {
+    return chatContent;
+  }
+
+  return (
+    <AgentLoungeLayout>
+      {/* Hero Card - Agent Lounge Theme */}
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="mb-6"
+      >
+        <AgentPageHero
+          icon={MessageSquare}
+          title="Agent Chat"
+          subtitle="Connect with your team, share insights, and collaborate in real-time"
+        />
+      </motion.div>
+      {chatContent}
     </AgentLoungeLayout>
   );
 }

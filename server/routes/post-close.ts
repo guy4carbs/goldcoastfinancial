@@ -14,6 +14,7 @@ import { recordCommissions } from "../services/commissionRecordService";
 import { queueAiWelcomeCall, schedulePostCloseFollowup, addJob } from "../services/jobQueue";
 import { isAiCallAvailable, parseRetellWebhook } from "../services/aiCallService";
 import { convertLeadToClient } from "../services/leadConversionService";
+import { storage } from "../storage";
 
 const router = Router();
 
@@ -147,40 +148,86 @@ router.post("/create", async (req: Request, res: Response) => {
       await pool.query(`UPDATE leads SET pipeline_stage = 'placed' WHERE id = $1`, [leadId]);
     } catch (_) { /* column may not exist in older schemas */ }
 
-    // 2. Convert lead to client (creates user account, policy, conversation)
-    let clientUserId = null;
-    let policyId = null;
+    // 2. Convert lead to client — ALWAYS create a user so they appear on My Clients page
+    let clientUserId: string | null = null;
+    let policyId: string | null = null;
 
-    // Only run conversion if we have a real email (not placeholder)
-    if (email?.trim()) {
-      try {
-        // convertLeadToClient imported at top of file
+    try {
+      // Try full conversion first (creates user + policy + conversation)
+      if (email?.trim()) {
         const convResult = await convertLeadToClient(leadId.toString(), userId);
         if (convResult.success) {
           clientUserId = convResult.clientUserId || null;
           policyId = convResult.policyId || null;
-
-          // Update policy with provided details
-          if (policyId && (carrier || cleanAmount || cleanPremium || coverageType)) {
-            const setClauses: string[] = ['updated_at = NOW()'];
-            const params: any[] = [];
-            let idx = 1;
-
-            if (carrier) { setClauses.push(`carrier = $${idx}`); params.push(carrier); idx++; }
-            if (cleanAmount) { setClauses.push(`coverage_amount = $${idx}`); params.push(parseInt(cleanAmount)); idx++; }
-            if (cleanPremium) { setClauses.push(`monthly_premium = $${idx}`); params.push(cleanPremium); idx++; }
-            if (coverageType) { setClauses.push(`type = $${idx}`); params.push(coverageType); idx++; }
-
-            params.push(policyId);
-            await pool.query(
-              `UPDATE policies SET ${setClauses.join(', ')} WHERE id = $${idx}::uuid`,
-              params
-            );
-          }
         }
-      } catch (convErr) {
-        console.error("[PostClose] Lead conversion failed (non-blocking):", convErr);
       }
+
+      // If conversion didn't create a user (no email or conversion failed), create one directly
+      if (!clientUserId) {
+        const bcrypt = await import("bcryptjs");
+        const tempPassword = crypto.randomUUID();
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+        // Check if user already exists by email
+        let existingUser = email?.trim() ? await storage.getUserByEmail(email.trim()) : null;
+
+        if (existingUser) {
+          clientUserId = existingUser.id;
+          // Update name and assignment
+          await storage.updateUser(existingUser.id, {
+            firstName: firstName,
+            lastName: lastName,
+            assignedAgentId: userId,
+            phone: phone || existingUser.phone,
+          });
+        } else {
+          const newUser = await storage.createUser({
+            email: clientEmail,
+            password: hashedPassword,
+            firstName: firstName || 'Unknown',
+            lastName: lastName || 'Client',
+            phone: phone || null,
+            role: 'client',
+            assignedAgentId: userId,
+            onboardingStatus: 'pending',
+          } as any);
+          clientUserId = newUser.id;
+        }
+      }
+
+      // Create a policy if one wasn't created by conversion
+      if (!policyId && clientUserId) {
+        const genPolicyNumber = `HLS-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
+        const policyResult = await pool.query(`
+          INSERT INTO policies (user_id, agent_id, policy_number, type, carrier, coverage_amount, monthly_premium, status, start_date, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending_setup', NOW(), NOW(), NOW())
+          RETURNING id
+        `, [clientUserId, userId, genPolicyNumber, coverageType || 'IUL', carrier || null,
+            cleanAmount ? parseInt(cleanAmount) : 0, cleanPremium || '0']);
+        policyId = policyResult.rows[0]?.id || null;
+      }
+
+      // Update policy with provided details if it already existed
+      if (policyId && (carrier || cleanAmount || cleanPremium || coverageType)) {
+        const setClauses: string[] = ['updated_at = NOW()'];
+        const params: any[] = [];
+        let idx = 1;
+
+        if (carrier) { setClauses.push(`carrier = $${idx}`); params.push(carrier); idx++; }
+        if (cleanAmount) { setClauses.push(`coverage_amount = $${idx}`); params.push(parseInt(cleanAmount)); idx++; }
+        if (cleanPremium) { setClauses.push(`monthly_premium = $${idx}`); params.push(cleanPremium); idx++; }
+        if (coverageType) { setClauses.push(`type = $${idx}`); params.push(coverageType); idx++; }
+
+        if (setClauses.length > 1) {
+          params.push(policyId);
+          await pool.query(
+            `UPDATE policies SET ${setClauses.join(', ')} WHERE id = $${idx}::uuid`,
+            params
+          );
+        }
+      }
+    } catch (convErr) {
+      console.error("[PostClose] Client/policy creation failed (non-blocking):", convErr);
     }
 
     // 3. Create the post-close workflow (or fetch if conversion already created one)
@@ -322,7 +369,27 @@ router.post("/:leadId/finalize-policy", async (req: Request, res: Response) => {
       );
     }
 
-    // 6. Mark workflow step complete
+    // 6. Auto-populate policy map from lead's state
+    try {
+      const leadResult = await pool.query(
+        `SELECT first_name, last_name, state FROM leads WHERE id::text = $1 LIMIT 1`,
+        [leadId]
+      );
+      const lead = leadResult.rows[0];
+      if (lead?.state) {
+        const productTypeNorm = normalizeProductType(type || null);
+        await pool.query(`
+          INSERT INTO agent_policies (user_id, state_code, client_name, carrier, coverage_type, status, premium_amount, coverage_amount, policy_number)
+          VALUES ($1, $2, $3, $4, $5, 'active', $6, $7, $8)
+        `, [userId, lead.state, `${lead.first_name || ''} ${lead.last_name || ''}`.trim(),
+            carrier || null, productTypeNorm,
+            Math.round((parseFloat(monthlyPremium) || 0) * 100), Math.round(parseFloat(coverageAmount) || 0), policyNumber || null]);
+      }
+    } catch (err: any) {
+      console.warn('[PostClose] Auto-populate agent_policies failed:', err?.message);
+    }
+
+    // 7. Mark workflow step complete
     await pool.query(`
       UPDATE post_close_workflows SET book_of_business_updated_at = NOW(), updated_at = NOW()
       WHERE lead_id = $1 AND agent_user_id = $2::text
@@ -458,7 +525,7 @@ router.post("/:leadId/launch", async (req: Request, res: Response) => {
     const agentName = `${wf.agent_first || ''} ${wf.agent_last || ''}`.trim();
     const appUrl = process.env.APP_URL || 'https://heritagels.org';
 
-    const actions = { email: false, sms: false, aiCall: false, followUps: false, nps: false };
+    const actions = { email: false, sms: false, aiCall: false, followUps: false, nps: false, welcomeKit: false };
 
     // 2. Set up client account with temporary password
     let tempPassword: string | null = null;
@@ -581,6 +648,21 @@ router.post("/:leadId/launch", async (req: Request, res: Response) => {
       }
     } catch (npsErr) {
       console.error("[PostClose] NPS scheduling failed (non-blocking):", npsErr);
+    }
+
+    // 6b. Generate Welcome Kit (5 branded PDFs — fire and forget)
+    try {
+      if (wf.client_user_id && wf.policy_id) {
+        const { generateAndDeliverWelcomeKit } = require("../services/documentDeliveryService");
+        generateAndDeliverWelcomeKit({
+          clientUserId: wf.client_user_id,
+          policyId: wf.policy_id,
+          agentUserId: userId,
+        }).catch((err: any) => console.error("[PostClose] Welcome kit failed (non-blocking):", err));
+        actions.welcomeKit = true;
+      }
+    } catch (kitErr) {
+      console.error("[PostClose] Welcome kit init failed:", kitErr);
     }
 
     // 7. Update workflow record with all timestamps

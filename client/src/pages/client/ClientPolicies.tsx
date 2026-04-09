@@ -177,7 +177,11 @@ export default function ClientPolicies() {
         </motion.div>
 
         {/* ─── FILTER TABS ─── */}
-        <motion.div variants={fadeInUp} className="flex items-center gap-2 flex-wrap">
+        <motion.div variants={fadeInUp}>
+          <div
+            className="inline-flex items-center bg-gray-100/80 p-1 gap-1"
+            style={{ borderRadius: RADIUS.pill }}
+          >
           {FILTER_TABS.map((tab) => {
             const isActive = activeFilter === tab.value;
             return (
@@ -185,22 +189,18 @@ export default function ClientPolicies() {
                 key={tab.value}
                 onClick={() => setActiveFilter(tab.value)}
                 className={cn(
-                  'px-4 py-2 font-medium transition-all',
+                  'px-4 py-2 text-sm font-medium transition-all whitespace-nowrap',
                   isActive
-                    ? 'bg-violet-600 text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-violet-50 hover:text-violet-700',
+                    ? 'bg-white text-violet-700 shadow-sm'
+                    : 'text-gray-500 hover:text-violet-600',
                 )}
-                style={{
-                  borderRadius: RADIUS.pill,
-                  fontSize: TYPE.meta,
-                  boxShadow: isActive ? SHADOW.level2 : SHADOW.level1,
-                  border: isActive ? 'none' : `1px solid ${COLORS.gray[200]}`,
-                }}
+                style={{ borderRadius: RADIUS.pill }}
               >
                 {tab.label}
               </button>
             );
           })}
+          </div>
         </motion.div>
 
         {/* ─── POLICY CARDS ─── */}

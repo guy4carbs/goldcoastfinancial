@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,16 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   MessageSquare,
   Mail,
-  Send,
   PenSquare,
   Users,
 } from "lucide-react";
 import { AgentPageHero } from "@/components/agent/primitives";
 import {
   RADIUS,
-  SHADOW,
-  MOTION,
-  TYPE,
   COLORS,
   fadeInUp,
   staggerContainer,
@@ -39,10 +36,34 @@ import ClientChatContent from "@/components/agent/communications/ClientChatConte
 export default function AgentCommunications() {
   const [activeTab, setActiveTab] = useState<'email' | 'chat' | 'client'>('email');
 
-  // Unread counts — will be populated from API when available
-  const unreadEmails = 0;
-  const unreadMessages = 0;
-  const unreadClientMessages = 0;
+  // Email unread count — fetch connection first, then inbox if connected
+  const { data: emailConn } = useQuery({
+    queryKey: ['/api/email/connection'],
+  });
+  const isEmailConnected = !!(emailConn as any)?.connection;
+
+  const { data: inboxData } = useQuery({
+    queryKey: ['/api/email/messages?folder=inbox&limit=50'],
+    enabled: isEmailConnected,
+  });
+  const unreadEmails = Array.isArray(inboxData)
+    ? inboxData.filter((e: any) => !e.isRead).length
+    : 0;
+
+  // Team chat unread count from conversations
+  const { data: chatConversations } = useQuery({
+    queryKey: ['/api/chat/conversations'],
+    refetchInterval: 15000,
+  });
+  const unreadMessages = Array.isArray(chatConversations)
+    ? (chatConversations as any[]).reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0)
+    : 0;
+
+  // Client chat unread count from dedicated endpoint
+  const { data: unreadData } = useQuery({
+    queryKey: ['/api/client-chat/unread-count'],
+  });
+  const unreadClientMessages = (unreadData as any)?.count || 0;
 
   return (
     <AgentLoungeLayout>
@@ -146,7 +167,7 @@ export default function AgentCommunications() {
               value="chat"
               className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden"
             >
-              <AgentChatContent />
+              <AgentChatContent colorScheme="violet" />
             </TabsContent>
 
             <TabsContent

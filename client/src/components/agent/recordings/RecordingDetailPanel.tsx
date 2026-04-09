@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   FileText, StickyNote, User, ArrowUpRight, ArrowDownLeft,
-  Star, MessageSquare, Lightbulb, Clock, ChevronDown,
+  Star, MessageSquare, Lightbulb, Clock, ChevronDown, Download,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -244,8 +244,25 @@ export function RecordingDetailPanel({
             <div className="lg:col-span-2 space-y-4">
               {/* Audio Player */}
               {recording.recordingUrl && (
-                <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="p-4 bg-gray-50 rounded-lg space-y-3">
                   <AudioPlayer recordingId={recording.id} duration={recording.duration} mode="full" />
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = `/api/calls/${recording.id}/recording`;
+                        link.download = `recording-${recording.id}.mp3`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Recording
+                    </Button>
+                  </div>
                 </div>
               )}
 

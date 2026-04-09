@@ -2025,6 +2025,62 @@ router.post("/leads/:id/activity", async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/crm/leads
+ * Create a new lead (agent manually adds)
+ */
+router.post("/leads", async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { firstName, lastName, email, phone, coverageType, source, notes, priority } = req.body;
+
+    if (!firstName && !lastName) {
+      return res.status(400).json({ error: "At least first or last name is required" });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO leads (first_name, last_name, email, phone, coverage_type, source, notes, priority, status, pipeline_stage, assigned_to, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'new', 'new', $9, NOW(), NOW())
+      RETURNING *
+    `, [
+      firstName || '', lastName || '', email || null, phone || null,
+      coverageType || null, source || 'manual', notes || null,
+      priority || 'medium', userId
+    ]);
+
+    const lead = result.rows[0];
+
+    // Log creation activity
+    await pool.query(`
+      INSERT INTO lead_activities (lead_id, type, title, description, performed_by)
+      VALUES ($1, 'create', 'Lead Created', 'Lead manually created', $2)
+    `, [lead.id, userId]);
+
+    res.status(201).json({
+      success: true,
+      lead: {
+        id: lead.id,
+        firstName: lead.first_name,
+        lastName: lead.last_name,
+        email: lead.email,
+        phone: lead.phone,
+        coverageType: lead.coverage_type,
+        source: lead.source,
+        status: lead.status,
+        priority: lead.priority,
+        pipelineStage: lead.pipeline_stage,
+        assignedTo: lead.assigned_to,
+        notes: lead.notes,
+        createdAt: lead.created_at,
+        updatedAt: lead.updated_at,
+      },
+    });
+  } catch (error: any) {
+    console.error("[CRM] Error creating lead:", error?.message);
+    res.status(500).json({ error: "Failed to create lead" });
+  }
+});
+
+/**
  * PATCH /api/crm/leads/:id
  * Update lead fields
  */

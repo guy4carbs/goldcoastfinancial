@@ -120,6 +120,101 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
 });
 
 // ============================================
+// PATCH /api/agent-clients/:clientId — Update client profile info
+// ============================================
+
+router.patch("/:clientId", requireAuth, requireClientAssignment, async (req: Request, res: Response) => {
+  try {
+    const { clientId } = req.params;
+    const { firstName, lastName, email, phone } = req.body;
+
+    const updateData: Record<string, any> = {};
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    const updated = await storage.updateUser(clientId, updateData);
+    if (!updated) {
+      return res.status(404).json({ error: "Client not found" });
+    }
+
+    res.json({
+      id: updated.id,
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      email: updated.email,
+      phone: updated.phone,
+    });
+  } catch (error: any) {
+    console.error("[AgentClients] Error updating client:", error?.message);
+    res.status(500).json({ error: "Failed to update client" });
+  }
+});
+
+// ============================================
+// POST /api/agent-clients/:clientId/resend-welcome — Resend welcome/login email
+// ============================================
+
+router.post("/:clientId/resend-welcome", requireAuth, requireClientAssignment, async (req: Request, res: Response) => {
+  try {
+    const sessionAgent = req.user! as AuthenticatedUser;
+    const { clientId } = req.params;
+
+    const client = await storage.getUserById(clientId);
+    if (!client) return res.status(404).json({ error: "Client not found" });
+
+    if (client.email?.includes('@placeholder.')) {
+      return res.status(400).json({ error: "Client has no real email address. Update their email first." });
+    }
+
+    // Fetch full agent record for phone number
+    const agentFull = await storage.getUserById(sessionAgent.id);
+
+    // Generate new temp password
+    const bcrypt = await import("bcryptjs");
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let tempPassword = 'HLS-';
+    for (let i = 0; i < 6; i++) tempPassword += chars[Math.floor(Math.random() * chars.length)];
+
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    await storage.updateUser(clientId, { password: hashedPassword });
+
+    // Send branded welcome email
+    const { sendPostCloseWelcomeEmail } = await import("../gmail");
+    await sendPostCloseWelcomeEmail({
+      clientFirstName: client.firstName || 'Valued Client',
+      clientEmail: client.email,
+      coverageType: 'life insurance',
+      agentName: `${sessionAgent.firstName || ''} ${sessionAgent.lastName || ''}`.trim() || 'Your Agent',
+      agentEmail: sessionAgent.email || '',
+      agentPhone: agentFull?.phone || undefined,
+      portalUrl: process.env.APP_URL || 'https://heritagels.org',
+      tempPassword,
+    });
+
+    // Create notification for audit trail
+    await storage.createNotification({
+      userId: clientId,
+      title: 'Login Email Resent',
+      message: 'A new login email with temporary credentials has been sent to your email.',
+      type: 'alert',
+      isRead: false,
+      actionUrl: '/client/login',
+    });
+
+    res.json({ success: true, message: 'Welcome email resent with new login credentials' });
+  } catch (error: any) {
+    console.error("[AgentClients] Error resending welcome:", error?.message);
+    res.status(500).json({ error: "Failed to resend welcome email" });
+  }
+});
+
+// ============================================
 // GET /api/agent-clients/:clientId — Full client detail
 // ============================================
 
@@ -132,13 +227,27 @@ router.get("/:clientId", requireAuth, requireClientAssignment, async (req: Reque
       return res.status(404).json({ error: "Client not found" });
     }
 
-    // Fetch all client data in parallel
-    const [policies, documents, billing, claims] = await Promise.all([
+    // Fetch all client data in parallel (billing uses raw SQL to include extended columns)
+    const [policies, documents, billingResult, claims] = await Promise.all([
       storage.getPoliciesByUserId(clientId),
       storage.getDocumentsByUserId(clientId),
-      storage.getBillingHistoryByUserId(clientId),
+      pool.query(`
+        SELECT id, user_id, policy_id, amount::float, status, payment_date, payment_method,
+               bank_name, routing_number, account_number, billing_type, description, due_date, created_at
+        FROM billing_history WHERE user_id = $1 ORDER BY created_at DESC
+      `, [clientId]),
       storage.getClaimsByClientId(clientId),
     ]);
+    // Decrypt routing/account numbers for display
+    let billing = billingResult.rows;
+    try {
+      const { decryptField, isEncrypted } = await import('../services/encryptionService');
+      billing = billing.map((b: any) => ({
+        ...b,
+        routing_number: b.routing_number && isEncrypted(b.routing_number) ? decryptField(b.routing_number) : b.routing_number,
+        account_number: b.account_number && isEncrypted(b.account_number) ? decryptField(b.account_number) : b.account_number,
+      }));
+    } catch {}
 
     const { password, twoFactorSecret, ...safeClient } = client;
 
@@ -406,6 +515,21 @@ router.post(
 );
 
 // ============================================
+// GET /api/agent-clients/:clientId/documents — List documents for a client
+// ============================================
+
+router.get("/:clientId/documents", requireAuth, requireClientAssignment, async (req: Request, res: Response) => {
+  try {
+    const { clientId } = req.params;
+    const docs = await storage.getDocumentsByUserId(clientId);
+    res.json(docs || []);
+  } catch (error: any) {
+    console.error("[AgentClients] Error fetching documents:", error?.message);
+    res.status(500).json({ error: "Failed to fetch documents" });
+  }
+});
+
+// ============================================
 // GET /api/agent-clients/:clientId/documents/:docId/download — Get signed S3 download URL
 // ============================================
 
@@ -430,7 +554,8 @@ router.get("/:clientId/documents/:docId/download", requireAuth, requireClientAss
       return res.status(500).json({ error: signedUrl.error || "Failed to generate download URL" });
     }
 
-    res.json({ url: signedUrl.url, filename: document.name });
+    // Redirect to the actual file URL
+    res.redirect(signedUrl.url!);
   } catch (error: any) {
     console.error("[AgentClients] Failed to get download URL:", error);
     res.status(500).json({ error: "Failed to get download URL" });
@@ -446,7 +571,10 @@ router.post("/:clientId/billing", requireAuth, requireClientAssignment, async (r
     const agent = req.user! as AuthenticatedUser;
     const { clientId } = req.params;
 
-    const { policyId, amount, status, paymentDate, paymentMethod, transactionId } = req.body;
+    const {
+      policyId, amount, status, paymentDate, paymentMethod, transactionId,
+      bankName, routingNumber, accountNumber, billingType, description, dueDate
+    } = req.body;
 
     if (!amount || !status || !paymentDate) {
       return res.status(400).json({
@@ -454,15 +582,42 @@ router.post("/:clientId/billing", requireAuth, requireClientAssignment, async (r
       });
     }
 
-    const billing = await storage.createBillingHistory({
-      userId: clientId,
-      policyId: policyId || null,
-      amount: String(amount),
-      status,
-      paymentDate: new Date(paymentDate),
-      paymentMethod: paymentMethod || null,
-      transactionId: transactionId || null,
-    });
+    // Encrypt sensitive bank fields before storage
+    const { encryptField } = await import('../services/encryptionService');
+    const encryptedRouting = routingNumber ? encryptField(routingNumber) : null;
+    const encryptedAccount = accountNumber ? encryptField(accountNumber) : null;
+
+    // Use raw pool.query to include new columns not yet in Drizzle schema
+    const result = await pool.query(`
+      INSERT INTO billing_history (user_id, policy_id, amount, status, payment_date, payment_method, transaction_id,
+        bank_name, routing_number, account_number, billing_type, description, due_date)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `, [
+      clientId,
+      policyId || null,
+      amount,
+      status || 'pending',
+      paymentDate ? new Date(paymentDate) : new Date(),
+      paymentMethod || null,
+      transactionId || null,
+      bankName || null,
+      encryptedRouting,
+      encryptedAccount,
+      billingType || null,
+      description || null,
+      dueDate ? new Date(dueDate) : null,
+    ]);
+
+    const billing = result.rows[0];
+
+    // Mask sensitive fields for response
+    if (billing.routing_number) {
+      billing.routing_masked = '****' + (routingNumber || '').slice(-4);
+    }
+    if (billing.account_number) {
+      billing.account_masked = '****' + (accountNumber || '').slice(-4);
+    }
 
     // Send notification to client
     try {
@@ -483,6 +638,67 @@ router.post("/:clientId/billing", requireAuth, requireClientAssignment, async (r
   } catch (error: any) {
     console.error("[AgentClients] Failed to create billing record:", error);
     res.status(500).json({ error: "Failed to create billing record" });
+  }
+});
+
+// ============================================
+// PATCH /api/agent-clients/:clientId/billing/:billingId — Update a billing record
+// ============================================
+
+router.patch("/:clientId/billing/:billingId", requireAuth, requireClientAssignment, async (req: Request, res: Response) => {
+  try {
+    const { billingId } = req.params;
+    const { amount, status, billingType, description, dueDate, bankName, routingNumber, accountNumber, paymentMethod } = req.body;
+
+    const sets: string[] = ['updated_at = NOW()'];
+    const vals: any[] = [];
+    let idx = 1;
+
+    if (amount !== undefined) { sets.push(`amount = $${idx++}`); vals.push(amount); }
+    if (status !== undefined) { sets.push(`status = $${idx++}`); vals.push(status); }
+    if (billingType !== undefined) { sets.push(`billing_type = $${idx++}`); vals.push(billingType); }
+    if (description !== undefined) { sets.push(`description = $${idx++}`); vals.push(description); }
+    if (dueDate !== undefined) { sets.push(`due_date = $${idx++}`); vals.push(dueDate ? new Date(dueDate) : null); }
+    if (bankName !== undefined) { sets.push(`bank_name = $${idx++}`); vals.push(bankName); }
+    if (paymentMethod !== undefined) { sets.push(`payment_method = $${idx++}`); vals.push(paymentMethod); }
+
+    // Encrypt sensitive fields if provided
+    if (routingNumber !== undefined) {
+      const { encryptField } = await import('../services/encryptionService');
+      sets.push(`routing_number = $${idx++}`); vals.push(routingNumber ? encryptField(routingNumber) : null);
+    }
+    if (accountNumber !== undefined) {
+      const { encryptField } = await import('../services/encryptionService');
+      sets.push(`account_number = $${idx++}`); vals.push(accountNumber ? encryptField(accountNumber) : null);
+    }
+
+    if (sets.length <= 1) return res.status(400).json({ error: "No fields to update" });
+
+    vals.push(billingId);
+    const result = await pool.query(
+      `UPDATE billing_history SET ${sets.join(', ')} WHERE id = $${idx}::uuid RETURNING *`,
+      vals
+    );
+
+    res.json(result.rows[0] || {});
+  } catch (error: any) {
+    console.error("[AgentClients] Error updating billing:", error?.message);
+    res.status(500).json({ error: "Failed to update billing record" });
+  }
+});
+
+// ============================================
+// DELETE /api/agent-clients/:clientId/billing/:billingId — Delete a billing record
+// ============================================
+
+router.delete("/:clientId/billing/:billingId", requireAuth, requireClientAssignment, async (req: Request, res: Response) => {
+  try {
+    const { billingId } = req.params;
+    await pool.query('DELETE FROM billing_history WHERE id = $1::uuid', [billingId]);
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("[AgentClients] Error deleting billing:", error?.message);
+    res.status(500).json({ error: "Failed to delete billing record" });
   }
 });
 

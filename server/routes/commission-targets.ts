@@ -111,7 +111,7 @@ router.put(
       // --- Close existing default for this hierarchy level ---
       await pool.query(
         `UPDATE commission_targets
-         SET effective_to = NOW(), updated_by = $1, updated_at = NOW()
+         SET effective_to = NOW(), set_by = $1, updated_at = NOW()
          WHERE scope = 'agency_default'
            AND hierarchy_level = $2
            AND effective_to IS NULL`,
@@ -122,10 +122,10 @@ router.put(
       const insertResult = await pool.query(
         `INSERT INTO commission_targets (
            scope, hierarchy_level, min_contract_level, max_contract_level,
-           default_contract_level, level_progression, created_by, updated_by,
+           default_contract_level, level_progression, set_by,
            effective_from, effective_to
          ) VALUES (
-           'agency_default', $1, $2, $3, $4, $5, $6, $6, NOW(), NULL
+           'agency_default', $1, $2, $3, $4, $5, $6, NOW(), NULL
          ) RETURNING *`,
         [
           hierarchyLevel,
@@ -355,7 +355,7 @@ router.put(
       // --- Close existing agent-specific target ---
       await pool.query(
         `UPDATE commission_targets
-         SET effective_to = NOW(), updated_by = $1, updated_at = NOW()
+         SET effective_to = NOW(), set_by = $1, updated_at = NOW()
          WHERE scope = 'agent_specific'
            AND agent_user_id = $2
            AND effective_to IS NULL`,
@@ -367,9 +367,9 @@ router.put(
         `INSERT INTO commission_targets (
            scope, agent_user_id, hierarchy_level, min_contract_level,
            max_contract_level, default_contract_level, level_progression,
-           created_by, updated_by, effective_from, effective_to
+           set_by, effective_from, effective_to
          ) VALUES (
-           'agent_specific', $1, $2, $3, $4, $5, $6, $7, $7, NOW(), NULL
+           'agent_specific', $1, $2, $3, $4, $5, $6, $7, NOW(), NULL
          ) RETURNING *`,
         [
           agentUserId,

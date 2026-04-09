@@ -97,8 +97,8 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-serif">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckSquare className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+              <CheckSquare className="w-5 h-5 text-white" />
             </div>
             Add New Task
           </DialogTitle>
@@ -142,10 +142,10 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
                     type="button"
                     onClick={() => setFormData({ ...formData, category: cat.value as Task['category'] })}
                     className={cn(
-                      "p-3 rounded-lg border-2 transition-all text-center",
+                      "p-3 rounded-xl border-2 transition-all text-center",
                       formData.category === cat.value
-                        ? "border-primary bg-primary/10"
-                        : "border-transparent bg-muted/50 hover:bg-muted"
+                        ? "border-violet-500 bg-violet-50"
+                        : "border-gray-200 bg-gray-50 hover:bg-gray-100"
                     )}
                   >
                     <Icon className={cn("w-5 h-5 mx-auto mb-1", cat.color)} />
@@ -173,10 +173,10 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
                   <Label
                     htmlFor={`priority-${priority.value}`}
                     className={cn(
-                      "flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                      "flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all",
                       formData.priority === priority.value
-                        ? "border-primary bg-primary/10"
-                        : "border-transparent bg-muted/50 hover:bg-muted"
+                        ? "border-violet-500 bg-violet-50"
+                        : "border-gray-200 bg-gray-50 hover:bg-gray-100"
                     )}
                   >
                     <Flag className={cn("w-4 h-4", priority.color)} />
@@ -214,10 +214,10 @@ export function AddTaskModal({ open, onOpenChange, onAddTask }: AddTaskModalProp
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="gap-2 bg-primary hover:bg-primary/90">
+          <Button onClick={handleSubmit} className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl">
             <CheckSquare className="w-4 h-4" />
             Create Task
           </Button>

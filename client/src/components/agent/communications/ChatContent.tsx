@@ -125,6 +125,25 @@ const DateSeparator = ({ date }: { date: string }) => (
   </div>
 );
 
+// Format timestamp like iMessage (handles "Yesterday", times, etc.)
+const formatConversationTime = (dateStr: string | null): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
+  } else {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+};
+
 interface Attachment {
   id: string;
   name: string;
@@ -226,16 +245,22 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
 
   // Map API conversations to the UI Conversation type
   const conversations: Conversation[] = useMemo(() => {
-    return apiConversations.map((c: any) => ({
-      id: c.id,
-      name: c.name || 'Direct Message',
-      initials: (c.name || 'DM').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
-      lastMessage: c.lastMessage || '',
-      timestamp: c.updatedAt ? new Date(c.updatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '',
-      unread: c.unreadCount || 0,
-      online: true,
-      isGroup: c.type === 'group' || c.type === 'channel',
-    }));
+    return apiConversations.map((c: any) => {
+      // lastMessage from API is a message object { content, senderName, createdAt } or null
+      const lm = c.lastMessage;
+      const lastMsgContent = lm?.content || '';
+      const lastMsgTime = lm?.createdAt || c.updatedAt;
+      return {
+        id: c.id,
+        name: c.name || 'Direct Message',
+        initials: (c.name || 'DM').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+        lastMessage: lastMsgContent,
+        timestamp: lastMsgTime ? formatConversationTime(lastMsgTime) : '',
+        unread: c.unreadCount || 0,
+        online: true,
+        isGroup: c.type === 'group' || c.type === 'channel',
+      };
+    });
   }, [apiConversations]);
 
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -247,6 +272,77 @@ export default function AgentChatContent({ colorScheme = 'violet' as CommColorSc
       setSelectedConversationId(conversations[0].id);
     }
   }, [conversations, selectedConversationId]);
+
+  // Track selected conversation in a ref for the WebSocket handler
+  const selectedConvRef = useRef<string | null>(null);
+  useEffect(() => {
+    selectedConvRef.current = selectedConversationId;
+  }, [selectedConversationId]);
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
+
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
+
+    const connect = () => {
+      try {
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          ws?.send(JSON.stringify({
+            type: 'auth',
+            userId: currentUser.id,
+          }));
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'new_message') {
+              // Refresh messages for the affected conversation
+              if (data.message?.conversationId) {
+                queryClient.invalidateQueries({ queryKey: ['team-messages', data.message.conversationId] });
+              }
+              // Refresh conversation list to update last message preview
+              queryClient.invalidateQueries({ queryKey: ['team-conversations'] });
+            }
+
+            if (data.type === 'typing' && data.conversationId === selectedConvRef.current) {
+              setIsTyping(data.isTyping);
+              if (data.isTyping) {
+                setTimeout(() => setIsTyping(false), 5000);
+              }
+            }
+          } catch (e) {
+            console.error('WebSocket message parse error:', e);
+          }
+        };
+
+        ws.onclose = () => {
+          reconnectTimeout = setTimeout(connect, 3000);
+        };
+
+        ws.onerror = () => {
+          ws?.close();
+        };
+      } catch (e) {
+        console.error('WebSocket connection error:', e);
+      }
+    };
+
+    connect();
+
+    return () => {
+      ws?.close();
+      clearTimeout(reconnectTimeout);
+    };
+  }, [currentUser?.id, queryClient]);
 
   const [newMessage, setNewMessage] = useState('');
 

@@ -1,10 +1,12 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -21,17 +23,19 @@ import {
   Clock,
   CheckCircle2,
   Inbox,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
-import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { RADIUS, SHADOW, MOTION, fadeInUp, staggerContainer, scaleIn } from '@/lib/heritageDesignSystem';
 
 interface Script {
   id: string;
   title: string;
   category: ScriptCategory;
   description: string;
-  pdfUrl?: string; // Will be populated with actual PDF URLs later
+  pdfUrl?: string;
   isFavorite: boolean;
   usageCount: number;
   lastUsed: string;
@@ -43,103 +47,11 @@ const categoryConfig: Record<ScriptCategory, { label: string; icon: typeof Phone
   phone: { label: 'Phone Script', icon: Phone, color: 'bg-violet-500/10 text-violet-600', gradient: 'from-violet-400 to-violet-500' },
 };
 
-// Company-wide sales scripts — provided by Heritage Life Solutions
-const COMPANY_SCRIPTS: Script[] = [
-  {
-    id: 'cold-call-intro',
-    title: 'Cold Call — Initial Contact',
-    category: 'phone',
-    description: 'Opening script for first-time cold calls to new leads. Establishes rapport and qualifies interest.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'warm-follow-up',
-    title: 'Warm Follow-Up Call',
-    category: 'phone',
-    description: 'Script for following up with leads who previously showed interest or requested information.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'appointment-setting',
-    title: 'Appointment Setting',
-    category: 'phone',
-    description: 'Script to convert an interested lead into a scheduled appointment for a needs analysis.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'needs-analysis',
-    title: 'Needs Analysis & Fact-Finding',
-    category: 'phone',
-    description: 'Guided questions to uncover the prospect\'s financial situation, family needs, and coverage gaps.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'product-presentation',
-    title: 'Product Presentation — Life Insurance',
-    category: 'phone',
-    description: 'Structured presentation for term life, whole life, IUL, and final expense products.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'objection-handling',
-    title: 'Objection Handling',
-    category: 'phone',
-    description: 'Responses to common objections: "I need to think about it," "I can\'t afford it," "I already have coverage."',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'closing-script',
-    title: 'Closing & Application',
-    category: 'phone',
-    description: 'Trial closes, assumptive closes, and transition into the application process.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'referral-request',
-    title: 'Referral Request',
-    category: 'phone',
-    description: 'Post-sale script to ask for warm referrals from satisfied clients.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'annual-review',
-    title: 'Annual Policy Review Call',
-    category: 'phone',
-    description: 'Script for reaching out to existing clients for their annual policy review and cross-sell opportunities.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-  {
-    id: 'recruiting-call',
-    title: 'Recruiting — Agent Opportunity Call',
-    category: 'phone',
-    description: 'Script for recruiting potential agents into your downline. Covers the Heritage opportunity and compensation.',
-    isFavorite: false,
-    usageCount: 0,
-    lastUsed: '',
-  },
-];
-
 function formatRelativeLastUsed(dateStr: string): string {
+  if (!dateStr) return 'Never';
   const now = Date.now();
   const then = new Date(dateStr).getTime();
+  if (isNaN(then)) return 'Never';
   const diffMs = now - then;
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -154,33 +66,73 @@ function formatRelativeLastUsed(dateStr: string): string {
 
 export default function AgentScripts() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [favorites, setFavorites] = useState<Set<string>>(
-    () => new Set(COMPANY_SCRIPTS.filter(s => s.isFavorite).map(s => s.id))
-  );
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
+  const queryClient = useQueryClient();
+
+  // Fetch scripts from API
+  const { data: scriptsData, isLoading, error } = useQuery<{ scripts: any[] }>({
+    queryKey: ['/api/scripts'],
+  });
+
+  // Map API response to local Script shape
+  const scripts = useMemo<Script[]>(() => {
+    if (!scriptsData?.scripts) return [];
+    return scriptsData.scripts.map((s: any) => ({
+      id: s.id,
+      title: s.name,
+      description: s.content,
+      category: (s.category || 'phone') as ScriptCategory,
+      pdfUrl: '',
+      usageCount: s.usage_count || 0,
+      lastUsed: s.updated_at || '',
+      isFavorite: s.is_favorite === true || s.is_favorite === 'true',
+    }));
+  }, [scriptsData]);
+
+  // Toggle favorite mutation
+  const favoriteMutation = useMutation({
+    mutationFn: async (scriptId: string) => {
+      const res = await fetch(`/api/scripts/${scriptId}/favorite`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to toggle favorite');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/scripts'] });
+    },
+  });
+
+  // Usage tracking mutation
+  const trackUsageMutation = useMutation({
+    mutationFn: async (scriptId: string) => {
+      await fetch(`/api/scripts/${scriptId}/track-usage`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    },
+  });
 
   const toggleFavorite = useCallback((id: string) => {
-    setFavorites(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  }, []);
+    favoriteMutation.mutate(id);
+  }, [favoriteMutation]);
 
-  const filteredScripts = useMemo(() => COMPANY_SCRIPTS.filter(script => {
+  const openScriptModal = useCallback((script: Script) => {
+    setSelectedScript(script);
+    trackUsageMutation.mutate(script.id);
+  }, [trackUsageMutation]);
+
+  const filteredScripts = useMemo(() => scripts.filter(script => {
     const matchesSearch = script.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          script.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
-  }), [searchQuery]);
+  }), [searchQuery, scripts]);
 
   const stats = useMemo(() => ({
     total: filteredScripts.length,
-    favorites: filteredScripts.filter(s => favorites.has(s.id)).length,
-  }), [filteredScripts, favorites]);
+    favorites: filteredScripts.filter(s => s.isFavorite).length,
+  }), [filteredScripts]);
 
   return (
     <AgentLoungeLayout>
@@ -202,8 +154,8 @@ export default function AgentScripts() {
         {/* Stats */}
         <motion.div variants={fadeInUp} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {[
-            { label: 'Total Scripts', value: stats.total, icon: BookOpen },
-            { label: 'Favorites', value: stats.favorites, icon: Star },
+            { label: 'Total Scripts', value: isLoading ? '...' : stats.total, icon: BookOpen },
+            { label: 'Favorites', value: isLoading ? '...' : stats.favorites, icon: Star },
           ].map((stat) => (
             <motion.div
               key={stat.label}
@@ -261,102 +213,150 @@ export default function AgentScripts() {
           </div>
         </motion.div>
 
-        {/* Scripts List */}
-        <motion.div variants={fadeInUp} className="space-y-4">
-          {filteredScripts.length === 0 ? (
+        {/* Error State */}
+        {error && (
+          <motion.div variants={fadeInUp}>
             <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardContent className="p-0">
-                {searchQuery ? (
-                  <div className="text-center py-12">
-                    <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                    <p className="text-gray-600 font-medium">No scripts match your search</p>
-                    <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
-                    <Button
-                      variant="link"
-                      className="mt-2 text-violet-600"
-                      onClick={() => setSearchQuery('')}
-                    >
-                      Clear Search
-                    </Button>
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={FileText}
-                    title="No scripts found"
-                    description="Scripts will appear here as they are added"
-                    variant="card"
-                  />
-                )}
+                <div className="text-center py-12">
+                  <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-amber-400" />
+                  <p className="text-gray-600 font-medium">Failed to load scripts</p>
+                  <p className="text-sm text-gray-400 mt-1">Please try again</p>
+                  <Button
+                    variant="outline"
+                    className="mt-4 gap-2"
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/scripts'] })}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Retry
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          ) : (
-            filteredScripts.map((script) => {
-              const category = categoryConfig[script.category];
-              const CategoryIcon = category.icon;
-              const isFav = favorites.has(script.id);
-              return (
-                <motion.div
-                  key={script.id}
-                  variants={fadeInUp}
-                  whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
-                  transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
-                >
-                  <Card
-                    className="border-0 transition-all cursor-pointer"
-                    style={{
-                      borderRadius: RADIUS.card,
-                      boxShadow: SHADOW.card
-                    }}
-                    onClick={() => setSelectedScript(script)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        <div className={cn("w-10 h-10 bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)} style={{ borderRadius: RADIUS.button }}>
-                          <CategoryIcon className="w-5 h-5 text-white" aria-hidden="true" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-primary">{script.title}</h3>
-                            <Badge className={cn("text-[10px]", category.color)}>
-                              {category.label}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-3">{script.description}</p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
-                              {script.usageCount} uses
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" aria-hidden="true" />
-                              {formatRelativeLastUsed(script.lastUsed)}
-                            </span>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavorite(script.id);
-                          }}
-                          aria-label={isFav ? `Remove ${script.title} from favorites` : `Add ${script.title} to favorites`}
-                        >
-                          {isFav ? (
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          ) : (
-                            <StarOff className="w-4 h-4 text-gray-400" />
-                          )}
-                        </Button>
+          </motion.div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <motion.div variants={fadeInUp} className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="w-10 h-10 rounded-2xl flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-full" />
+                      <div className="flex gap-4">
+                        <Skeleton className="h-3 w-16" />
+                        <Skeleton className="h-3 w-20" />
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })
-          )}
-        </motion.div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Scripts List */}
+        {!isLoading && !error && (
+          <motion.div variants={fadeInUp} className="space-y-4">
+            {filteredScripts.length === 0 ? (
+              <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+                <CardContent className="p-0">
+                  {searchQuery ? (
+                    <div className="text-center py-12">
+                      <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                      <p className="text-gray-600 font-medium">No scripts match your search</p>
+                      <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
+                      <Button
+                        variant="link"
+                        className="mt-2 text-violet-600"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        Clear Search
+                      </Button>
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={FileText}
+                      title="No scripts found"
+                      description="Scripts will appear here as they are added"
+                      variant="card"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              filteredScripts.map((script) => {
+                const category = categoryConfig[script.category];
+                const CategoryIcon = category.icon;
+                const isFav = script.isFavorite;
+                return (
+                  <motion.div
+                    key={script.id}
+                    variants={fadeInUp}
+                    whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+                    transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
+                  >
+                    <Card
+                      className="border-0 transition-all cursor-pointer"
+                      style={{
+                        borderRadius: RADIUS.card,
+                        boxShadow: SHADOW.card
+                      }}
+                      onClick={() => openScriptModal(script)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className={cn("w-10 h-10 bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-md", category.gradient)} style={{ borderRadius: RADIUS.button }}>
+                            <CategoryIcon className="w-5 h-5 text-white" aria-hidden="true" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-primary">{script.title}</h3>
+                              <Badge className={cn("text-[10px]", category.color)}>
+                                {category.label}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">{script.description}</p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
+                                {script.usageCount} uses
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" aria-hidden="true" />
+                                {formatRelativeLastUsed(script.lastUsed)}
+                              </span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(script.id);
+                            }}
+                            aria-label={isFav ? `Remove ${script.title} from favorites` : `Add ${script.title} to favorites`}
+                          >
+                            {isFav ? (
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            ) : (
+                              <StarOff className="w-4 h-4 text-gray-400" />
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Script PDF Modal */}
@@ -385,9 +385,9 @@ export default function AgentScripts() {
                       variant="ghost"
                       size="icon"
                       onClick={() => toggleFavorite(selectedScript.id)}
-                      aria-label={favorites.has(selectedScript.id) ? 'Remove from favorites' : 'Add to favorites'}
+                      aria-label={selectedScript.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                     >
-                      {favorites.has(selectedScript.id) ? (
+                      {selectedScript.isFavorite ? (
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       ) : (
                         <StarOff className="w-4 h-4 text-gray-400" />

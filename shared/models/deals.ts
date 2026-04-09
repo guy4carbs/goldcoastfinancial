@@ -14,6 +14,8 @@ export const deals = pgTable("deals", {
   verifiedAt: timestamp("verified_at"),
   verifiedBy: uuid("verified_by").references(() => users.id),
   notes: text("notes"),
+  productType: varchar("product_type", { length: 100 }),
+  stateCode: varchar("state_code", { length: 2 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

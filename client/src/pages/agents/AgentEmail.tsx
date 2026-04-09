@@ -105,9 +105,11 @@ export default function AgentEmail() {
   // Compose form state
   const [composeData, setComposeData] = useState({
     to: '',
+    cc: '',
     subject: '',
     body: ''
   });
+  const [quickReplyText, setQuickReplyText] = useState('');
 
   // Filter emails based on folder and search
   const filteredEmails = useMemo(() => {
@@ -247,7 +249,7 @@ export default function AgentEmail() {
 
     setEmails(prev => [newEmail, ...prev]);
     setShowCompose(false);
-    setComposeData({ to: '', subject: '', body: '' });
+    setComposeData({ to: '', cc: '', subject: '', body: '' });
     toast.success('Email sent successfully');
   }, [composeData, agentName, agentEmail]);
 
@@ -257,7 +259,7 @@ export default function AgentEmail() {
   }, []);
 
   const handleSaveDraft = useCallback(() => {
-    if (!composeData.to && !composeData.subject && !composeData.body) {
+    if (!composeData.to && !composeData.cc && !composeData.subject && !composeData.body) {
       toast.error('Nothing to save');
       return;
     }
@@ -279,24 +281,82 @@ export default function AgentEmail() {
 
     setEmails(prev => [draftEmail, ...prev]);
     setShowCompose(false);
-    setComposeData({ to: '', subject: '', body: '' });
+    setComposeData({ to: '', cc: '', subject: '', body: '' });
     toast.success('Draft saved');
   }, [composeData, agentName, agentEmail]);
 
   const handleReply = useCallback(() => {
-    // TODO: Implement reply functionality - open compose with prefilled data
-    toast.info('Reply feature coming soon');
-  }, []);
+    if (!selectedEmail) return;
+    const quotedBody = selectedEmail.body || '';
+    setComposeData({
+      to: selectedEmail.from.email,
+      cc: '',
+      subject: selectedEmail.subject.startsWith('Re:')
+        ? selectedEmail.subject
+        : `Re: ${selectedEmail.subject}`,
+      body: `\n\n---\nOn ${selectedEmail.date}, ${selectedEmail.from.name} wrote:\n> ${quotedBody.split('\n').join('\n> ')}`,
+    });
+    setShowCompose(true);
+  }, [selectedEmail]);
 
   const handleReplyAll = useCallback(() => {
-    // TODO: Implement reply all functionality
-    toast.info('Reply All feature coming soon');
-  }, []);
+    if (!selectedEmail) return;
+    const quotedBody = selectedEmail.body || '';
+    const allRecipients = [
+      selectedEmail.from.email,
+      ...(selectedEmail.to || [])
+        .filter((t) => t.email !== agentEmail)
+        .map((t) => t.email),
+    ].join(', ');
+    setComposeData({
+      to: allRecipients,
+      cc: '',
+      subject: selectedEmail.subject.startsWith('Re:')
+        ? selectedEmail.subject
+        : `Re: ${selectedEmail.subject}`,
+      body: `\n\n---\nOn ${selectedEmail.date}, ${selectedEmail.from.name} wrote:\n> ${quotedBody.split('\n').join('\n> ')}`,
+    });
+    setShowCompose(true);
+  }, [selectedEmail, agentEmail]);
 
   const handleForward = useCallback(() => {
-    // TODO: Implement forward functionality
-    toast.info('Forward feature coming soon');
-  }, []);
+    if (!selectedEmail) return;
+    const fwdBody = selectedEmail.body || '';
+    setComposeData({
+      to: '',
+      cc: '',
+      subject: selectedEmail.subject.startsWith('Fwd:')
+        ? selectedEmail.subject
+        : `Fwd: ${selectedEmail.subject}`,
+      body: `\n\n---\nForwarded message:\nFrom: ${selectedEmail.from.name} <${selectedEmail.from.email}>\nDate: ${selectedEmail.date}\nSubject: ${selectedEmail.subject}\nTo: ${(selectedEmail.to || []).map((t) => `${t.name} <${t.email}>`).join(', ')}\n\n${fwdBody}`,
+    });
+    setShowCompose(true);
+  }, [selectedEmail]);
+
+  const handleQuickReply = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEmail || !quickReplyText.trim()) return;
+    const quotedBody = selectedEmail.body || '';
+    const replyEmail: EmailMessage = {
+      id: `email-${Date.now()}`,
+      from: { name: agentName, email: agentEmail },
+      to: [{ name: selectedEmail.from.name, email: selectedEmail.from.email }],
+      subject: selectedEmail.subject.startsWith('Re:')
+        ? selectedEmail.subject
+        : `Re: ${selectedEmail.subject}`,
+      preview: quickReplyText.slice(0, 100),
+      body: `${quickReplyText}\n\n---\nOn ${selectedEmail.date}, ${selectedEmail.from.name} wrote:\n> ${quotedBody.split('\n').join('\n> ')}`,
+      date: 'Just now',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: true,
+      starred: false,
+      hasAttachment: false,
+      folder: 'sent',
+    };
+    setEmails(prev => [replyEmail, ...prev]);
+    setQuickReplyText('');
+    toast.success('Reply sent');
+  }, [selectedEmail, quickReplyText, agentName, agentEmail]);
 
   return (
     <AgentLoungeLayout>
@@ -642,15 +702,17 @@ export default function AgentEmail() {
                 {/* Quick Reply */}
                 <form
                   className="p-4 border-t bg-gray-50"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    // TODO: Implement quick reply functionality
-                    toast.info('Quick reply feature coming soon');
-                  }}
+                  onSubmit={handleQuickReply}
                 >
                   <div className="flex gap-2">
-                    <Input placeholder="Write a quick reply..." className="flex-1" aria-label="Quick reply message" />
-                    <Button type="submit" aria-label="Send quick reply">
+                    <Input
+                      placeholder={`Reply to ${selectedEmail.from.name}...`}
+                      className="flex-1"
+                      value={quickReplyText}
+                      onChange={(e) => setQuickReplyText(e.target.value)}
+                      aria-label="Quick reply message"
+                    />
+                    <Button type="submit" disabled={!quickReplyText.trim()} aria-label="Send quick reply">
                       <Send className="w-4 h-4" aria-hidden="true" />
                     </Button>
                   </div>
@@ -682,12 +744,21 @@ export default function AgentEmail() {
             >
               <div>
                 <Input
-                  type="email"
+                  type="text"
                   placeholder="To: email@example.com"
                   value={composeData.to}
                   onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
                   aria-label="Recipient email address"
                   required
+                />
+              </div>
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Cc: (optional)"
+                  value={composeData.cc}
+                  onChange={(e) => setComposeData({ ...composeData, cc: e.target.value })}
+                  aria-label="CC recipients"
                 />
               </div>
               <div>

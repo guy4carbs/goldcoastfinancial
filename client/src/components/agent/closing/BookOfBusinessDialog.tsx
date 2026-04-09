@@ -222,7 +222,9 @@ export function BookOfBusinessDialog({ open, onOpenChange, leadId, workflow, onC
       console.log("[BoB Save] selectedFiles:", selectedFiles.length);
 
       // 1. Finalize policy — updates policy, creates billing, sets onboarding status
-      await apiRequest("POST", `/api/post-close/${leadId}/finalize-policy`, {
+      // Non-blocking: if this fails (e.g., already finalized), still proceed to save BoB
+      try {
+        await apiRequest("POST", `/api/post-close/${leadId}/finalize-policy`, {
         carrier: newClient.carrier,
         policyNumber: newClient.policyNumber,
         type: newClient.policyType,
@@ -238,6 +240,9 @@ export function BookOfBusinessDialog({ open, onOpenChange, leadId, workflow, onC
         commissionRate: newClient.commissionRate || undefined,
         notes: newClient.notes || undefined,
       });
+      } catch (finalizeErr: any) {
+        console.warn("[BoB] Finalize-policy failed (proceeding with BoB save):", finalizeErr?.message);
+      }
 
       // 2. Upload documents via server (uses Firebase Storage on backend)
       let firstDocUrl: string | undefined;
@@ -279,30 +284,71 @@ export function BookOfBusinessDialog({ open, onOpenChange, leadId, workflow, onC
         }
       }
 
-      // 3. Save to Zustand store — update existing or add new
-      const store = useAgentStore.getState();
-      const existingIdx = store.bookOfBusiness.findIndex(c => c.leadId === leadId);
-      const clientToSave = {
-        ...newClient,
-        beneficiaries: allBeneficiaries,
-        policyDocumentUrl: firstDocUrl || newClient.policyDocumentUrl || undefined,
-      };
-      if (existingIdx >= 0) {
-        // Update existing entry
-        const updated = [...store.bookOfBusiness];
-        updated[existingIdx] = {
-          ...updated[existingIdx],
-          ...clientToSave,
-          dateOfBirth: dateOfBirth || updated[existingIdx].dateOfBirth,
-          policyDocumentUrl: firstDocUrl || updated[existingIdx].policyDocumentUrl,
-        };
-        useAgentStore.setState({ bookOfBusiness: updated });
-      } else {
-        // Add new entry
+      // 3. Save to Book of Business via real API
+      // If a policy already exists (from post-close finalize), UPDATE it instead of creating new
+      try {
+        const nameParts = newClient.name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const existingPolicyId = workflow?.policy_id;
+        const method = existingPolicyId ? "PUT" : "POST";
+        const url = existingPolicyId
+          ? `/api/book-of-business/${existingPolicyId}`
+          : "/api/book-of-business";
+
+        await apiRequest(method, url, {
+          name: newClient.name,
+          firstName,
+          lastName,
+          email: newClient.email,
+          phone: newClient.phone,
+          dateOfBirth: dateOfBirth || undefined,
+          // Address
+          streetAddress: newClient.streetAddress || undefined,
+          city: newClient.city || undefined,
+          state: newClient.state || undefined,
+          zipCode: newClient.zipCode || undefined,
+          // Sensitive info
+          ssn: newClient.ssn || undefined,
+          // Identification
+          idType: newClient.idType || undefined,
+          idNumber: newClient.idNumber || undefined,
+          idState: newClient.idState || undefined,
+          idExpiration: newClient.idExpiration || undefined,
+          // Banking
+          bankName: newClient.bankName || undefined,
+          bankRoutingNumber: newClient.bankRoutingNumber || undefined,
+          bankAccountNumber: newClient.bankAccountNumber || undefined,
+          // Medical
+          medicalInfo: newClient.medicalInfo || undefined,
+          // Policy
+          policyNumber: newClient.policyNumber,
+          policyType: newClient.policyType,
+          carrier: newClient.carrier,
+          coverageAmount: newClient.coverageAmount,
+          monthlyPremium: newClient.monthlyPremium,
+          commissionRate: newClient.commissionRate || undefined,
+          draftDate: newClient.draftDate || undefined,
+          policyEffectiveDate: newClient.policyEffectiveDate || undefined,
+          notes: newClient.notes || undefined,
+          clientStatus: newClient.clientStatus || 'active',
+          beneficiaries: allBeneficiaries.map(b => ({
+            name: b.name,
+            relationship: b.relationship,
+            percentage: b.percentage,
+          })),
+        });
+      } catch (bobErr: any) {
+        console.warn("[BoB] API save failed, falling back to local:", bobErr?.message);
+        // Fallback: save to Zustand store
+        const store = useAgentStore.getState();
         store.addClientToBook({
           leadId,
-          ...clientToSave,
+          ...newClient,
+          beneficiaries: allBeneficiaries,
           dateOfBirth: dateOfBirth || undefined,
+          policyDocumentUrl: firstDocUrl || newClient.policyDocumentUrl || undefined,
         });
       }
 

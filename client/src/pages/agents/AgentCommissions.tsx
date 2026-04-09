@@ -19,9 +19,11 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   Upload,
   X,
   Layers,
+  Loader2,
 } from 'lucide-react';
 import { AgentLoungeLayout } from '@/components/agent/AgentLoungeLayout';
 import { AgentPageHero } from '@/components/agent/primitives';
@@ -80,20 +82,20 @@ export function AgentCommissions() {
   // DATA FETCHING
   // =========================================================================
 
-  const { data: myPosition } = useQuery<any>({
+  const { data: myPosition, isLoading: positionLoading, isError: positionError } = useQuery<any>({
     queryKey: ['/api/hierarchy/my-position'],
   });
 
-  const { data: myTargets } = useQuery<any>({
+  const { data: myTargets, isError: targetsError } = useQuery<any>({
     queryKey: [`/api/commission-targets/agent/${currentUser?.id}`],
     enabled: !!currentUser?.id,
   });
 
-  const { data: myRequests } = useQuery<any>({
+  const { data: myRequests, isError: requestsError } = useQuery<any>({
     queryKey: ['/api/hierarchy-requests/my-requests'],
   });
 
-  const { data: myCommissions } = useQuery<any>({
+  const { data: myCommissions, isError: commissionsError } = useQuery<any>({
     queryKey: ['/api/commissions/my-earnings'],
   });
 
@@ -215,9 +217,33 @@ export function AgentCommissions() {
   // RENDER
   // =========================================================================
 
+  if (positionLoading && !myPosition) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
+
   return (
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-5">
+
+        {/* Inline error warnings for failed queries */}
+        {(positionError || commissionsError) && (
+          <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>Some commission data failed to load. Displayed values may be incomplete.</span>
+          </div>
+        )}
+        {targetsError && (
+          <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>Could not load commission targets. Tier progression may show defaults.</span>
+          </div>
+        )}
 
         {/* ================================================================= */}
         {/* HERO SECTION */}
@@ -491,7 +517,12 @@ export function AgentCommissions() {
                 </Badge>
               </div>
 
-              {requests.length === 0 ? (
+              {requestsError ? (
+                <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>Failed to load your requests. Please refresh the page to try again.</span>
+                </div>
+              ) : requests.length === 0 ? (
                 <motion.div
                   variants={scaleIn}
                   className="flex flex-col items-center justify-center py-12 text-center"
@@ -636,7 +667,7 @@ export function AgentCommissions() {
                       value={requestedLevel || ''}
                       onChange={(e) => setRequestedLevel(Number(e.target.value))}
                       placeholder={`e.g., ${nextLevel}`}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:border-violet-300 transition-all"
                       style={{ borderRadius: RADIUS.input }}
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">%</span>
@@ -659,7 +690,7 @@ export function AgentCommissions() {
                       value={monthlyApAmount || ''}
                       onChange={(e) => setMonthlyApAmount(Number(e.target.value))}
                       placeholder="e.g., 25000"
-                      className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                      className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:border-violet-300 transition-all"
                       style={{ borderRadius: RADIUS.input }}
                     />
                   </div>
@@ -678,7 +709,7 @@ export function AgentCommissions() {
                     onChange={(e) => setProofDescription(e.target.value)}
                     placeholder="Describe your performance, consistency, and why you qualify for this increase..."
                     rows={4}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 focus:outline-none focus:border-violet-300 transition-all resize-none"
                     style={{ borderRadius: RADIUS.input }}
                   />
                 </div>

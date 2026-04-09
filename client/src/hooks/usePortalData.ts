@@ -46,7 +46,7 @@ export interface PortalPolicy {
 export interface PortalDocument {
   id: string;
   name: string;
-  category: 'policy' | 'statement' | 'tax' | 'correspondence';
+  category: 'policy' | 'application' | 'claims' | 'billing' | 'tax' | 'beneficiary' | 'statements' | 'correspondence' | 'identification';
   date: string;
   fileSize: string;
   isNew: boolean;

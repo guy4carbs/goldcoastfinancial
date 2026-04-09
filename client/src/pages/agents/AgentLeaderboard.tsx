@@ -13,8 +13,11 @@ import {
   Target,
   DollarSign,
   Inbox,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
 
@@ -70,8 +73,11 @@ export default function AgentLeaderboard() {
   const timeKey = TIME_RANGE_KEY[timeRange];
   const periodParam = timeKey === 'week' ? 'week' : timeKey === 'month' ? 'month' : 'all';
 
+  const queryClient = useQueryClient();
+  const queryKey = `/api/deals/leaderboard?period=${periodParam}`;
+
   // Fetch real leaderboard from deals API
-  const { data: apiLeaderboard } = useQuery<{ success: boolean; data: Array<{
+  const { data: apiLeaderboard, isLoading, error } = useQuery<{ success: boolean; data: Array<{
     rank: number; agentUserId: string; firstName: string; lastName: string; name: string;
     totalAP: number; dealCount: number; contractLevel: number; isCurrentUser: boolean;
   }>; currentUserRank: number | null }>({
@@ -106,6 +112,28 @@ export default function AgentLeaderboard() {
   }, [apiLeaderboard, sortBy, timeKey, currentUserData?.id]);
 
   const currentUser = sortedLeaderboard.find(e => e.isCurrentUser);
+
+  if (isLoading) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="w-12 h-12 text-red-400" />
+          <p className="text-gray-600">Failed to load leaderboard.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: [queryKey] })}>Retry</Button>
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
 
   return (
     <AgentLoungeLayout>

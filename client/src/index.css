@@ -513,12 +513,22 @@
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible,
-[tabindex="0"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: none !important;
+}
+
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #7C7CFF;
-  outline-offset: 2px;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Opt-out of focus ring for embedded inputs (e.g. dialpad) */
@@ -529,8 +539,17 @@ textarea:focus-visible {
 
 /* Focus within for composite components */
 .focus-within-ring:focus-within {
-  outline: 2px solid #7C7CFF;
-  outline-offset: 2px;
+  outline: none;
+}
+
+/* Global: Remove all focus rings from shadcn/Tailwind ring utility */
+*:focus-visible {
+  --tw-ring-shadow: 0 0 #0000 !important;
+  outline: none !important;
+}
+*:focus {
+  --tw-ring-shadow: 0 0 #0000 !important;
+  outline: none !important;
 }
 
 /* #104: Chart patterns for accessibility */

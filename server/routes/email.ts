@@ -426,8 +426,8 @@ router.post("/connect/imap", async (req: Request, res: Response) => {
           INSERT INTO agent_calendar_connections
             (agent_user_id, provider, caldav_url, username, password, display_name, status)
           VALUES ($1, $2, $3, $4, $5, $6, 'active')
-          ON CONFLICT (agent_user_id) DO UPDATE SET
-            provider = $2, caldav_url = $3, username = $4, password = $5,
+          ON CONFLICT (agent_user_id, provider) DO UPDATE SET
+            caldav_url = $3, username = $4, password = $5,
             display_name = $6, status = 'active', updated_at = NOW()
         `, [userId, calInfo.provider, calInfo.caldavUrl, email, password, displayName || email]);
         console.log(`[Email] Auto-connected ${calInfo.provider} calendar for agent ${userId}`);

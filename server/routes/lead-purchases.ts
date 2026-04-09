@@ -153,11 +153,11 @@ router.post("/create-payment-intent", requireAuth, async (req: Request, res: Res
       return res.status(500).json({ success: false, message: "Failed to create payment" });
     }
 
-    // Save purchase record
+    // Save purchase record (including selected states)
     await pool.query(`
-      INSERT INTO lead_purchases (agent_user_id, lead_type, price_cents, quantity, stripe_payment_intent_id, stripe_status)
-      VALUES ($1::uuid, $2, $3, $4, $5, 'created')
-    `, [userId, product.id, totalCents, qty, result.paymentIntentId]);
+      INSERT INTO lead_purchases (agent_user_id, lead_type, price_cents, quantity, stripe_payment_intent_id, stripe_status, states)
+      VALUES ($1::uuid, $2, $3, $4, $5, 'created', $6::jsonb)
+    `, [userId, product.id, totalCents, qty, result.paymentIntentId, JSON.stringify(states)]);
 
     res.json({
       success: true,
@@ -310,7 +310,7 @@ router.get('/analytics', requireAuth, async (req: Request, res: Response) => {
     );
 
     const purchasesResult = await pool.query(
-      `SELECT lp.id, lp.lead_type, lp.quantity, lp.price_cents, lp.status, lp.stripe_status, lp.purchased_at, lp.created_at,
+      `SELECT lp.id, lp.lead_type, lp.quantity, lp.price_cents, lp.status, lp.stripe_status, lp.purchased_at, lp.created_at, lp.states,
               u.first_name, u.last_name, u.email
        FROM lead_purchases lp
        JOIN users u ON lp.agent_user_id = u.id
@@ -342,6 +342,7 @@ router.get('/analytics', requireAuth, async (req: Request, res: Response) => {
             quantity: r.quantity,
             priceCents: r.price_cents,
             status: r.status || r.stripe_status || 'pending',
+            states: r.states || [],
             purchasedAt: r.purchased_at || r.created_at,
           })),
           total: parseInt(countResult.rows[0]?.count) || 0,

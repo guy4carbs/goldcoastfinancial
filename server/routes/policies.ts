@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { fromZodError } from "zod-validation-error";
 import { storage } from "../storage";
+import { pool } from "../db";
 import { requireAuth } from "../routes";
 import { insertAgentPolicySchema } from "@shared/models/policies";
 
@@ -8,21 +9,49 @@ const router = Router();
 router.use(requireAuth);
 
 // GET /api/policies/summary - Grouped by state for the map widget
+// Combines agent_policies table AND policies table (where state_code is set)
 router.get("/summary", async (req, res) => {
   try {
     const userId = String(req.session.userId);
-    const policies = await storage.getAgentPolicies(userId);
 
-    // Group by state
+    // Group by state from BOTH tables
     const byState: Record<string, { count: number; totalPremium: number; totalCoverage: number }> = {};
-    for (const p of policies) {
-      if (!byState[p.stateCode]) {
-        byState[p.stateCode] = { count: 0, totalPremium: 0, totalCoverage: 0 };
+
+    // Source 1: agent_policies table
+    try {
+      const agentPolicies = await storage.getAgentPolicies(userId);
+      for (const p of agentPolicies) {
+        if (!p.stateCode) continue;
+        if (!byState[p.stateCode]) {
+          byState[p.stateCode] = { count: 0, totalPremium: 0, totalCoverage: 0 };
+        }
+        byState[p.stateCode].count++;
+        byState[p.stateCode].totalPremium += p.premiumAmount || 0;
+        byState[p.stateCode].totalCoverage += p.coverageAmount || 0;
       }
-      byState[p.stateCode].count++;
-      byState[p.stateCode].totalPremium += p.premiumAmount || 0;
-      byState[p.stateCode].totalCoverage += p.coverageAmount || 0;
-    }
+    } catch {}
+
+    // Source 2: policies table (Book of Business) — picks up policies with state_code
+    try {
+      const bobResult = await pool.query(
+        `SELECT state_code, COUNT(*) as cnt,
+                COALESCE(SUM(CAST(monthly_premium AS NUMERIC) * 100), 0) as total_premium,
+                COALESCE(SUM(coverage_amount), 0) as total_coverage
+         FROM policies
+         WHERE agent_id = $1 AND state_code IS NOT NULL AND state_code != ''
+         GROUP BY state_code`,
+        [userId]
+      );
+      for (const r of bobResult.rows) {
+        const sc = r.state_code;
+        if (!byState[sc]) {
+          byState[sc] = { count: 0, totalPremium: 0, totalCoverage: 0 };
+        }
+        byState[sc].count += parseInt(r.cnt);
+        byState[sc].totalPremium += parseInt(r.total_premium) || 0;
+        byState[sc].totalCoverage += parseInt(r.total_coverage) || 0;
+      }
+    } catch {}
 
     const summary = Object.entries(byState).map(([stateCode, data]) => ({
       stateCode,

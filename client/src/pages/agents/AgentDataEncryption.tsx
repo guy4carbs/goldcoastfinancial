@@ -372,10 +372,29 @@ export default function AgentDataEncryption() {
     toast.success("Secure link copied to clipboard");
   };
 
-  const resendLink = (link: SentLink) => {
-    toast.success(`Link resent to ${link.clientName}`, {
-      description: `Via ${link.method} to ${link.clientContact}`
-    });
+  const resendLink = async (link: SentLink) => {
+    try {
+      const res = await fetch(`/api/secure-forms/${link.id}/resend`, {
+        method: 'PUT',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to resend');
+      }
+      const data = await res.json();
+      // Update local state with new expiry
+      setSentLinks(prev => prev.map(l =>
+        l.id === link.id
+          ? { ...l, expiresAt: new Date(data.expiresAt), status: 'pending' as const }
+          : l
+      ));
+      toast.success(`Secure form link resent to ${link.clientName}`, {
+        description: `Email sent to ${link.clientContact}`
+      });
+    } catch (err: any) {
+      toast.error('Failed to resend: ' + (err.message || 'Unknown error'));
+    }
   };
 
   const viewFormData = async (linkId: string) => {

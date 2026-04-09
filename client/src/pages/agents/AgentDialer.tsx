@@ -829,12 +829,12 @@ export default function AgentDialer() {
   } = telnyx;
 
   // Real call history
-  const { data: callHistory = [] } = useQuery<any[]>({
+  const { data: callHistory = [], error: historyError } = useQuery<any[]>({
     queryKey: ['/api/calls/history'],
   });
 
   // Real call stats
-  const { data: callStats } = useQuery<{
+  const { data: callStats, error: statsError } = useQuery<{
     today: number;
     week: number;
     month: number;
@@ -1476,7 +1476,13 @@ export default function AgentDialer() {
                     </div>
 
                     <div className="space-y-2">
-                      {filteredHistory.length === 0 && (
+                      {historyError && (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs" style={{ borderRadius: RADIUS.input }}>
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>Could not load call history.</span>
+                        </div>
+                      )}
+                      {filteredHistory.length === 0 && !historyError && (
                         <div className="text-center py-8 text-gray-400">
                           <Phone className="w-8 h-8 mx-auto mb-2 opacity-40" />
                           <p className="text-sm">No calls yet</p>
@@ -1628,6 +1634,12 @@ export default function AgentDialer() {
             >
               {/* Stats */}
               <motion.div variants={fadeInUp}>
+                {statsError && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 mb-3 bg-amber-50 border border-amber-200 text-amber-700 text-sm" style={{ borderRadius: RADIUS.input }}>
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Could not load call stats. Dialer is still available.</span>
+                  </div>
+                )}
                 <AgentStatCardGrid>
                   <AgentStatCard
                     icon={PhoneCall}
@@ -2017,7 +2029,13 @@ export default function AgentDialer() {
                       </div>
 
                       <div className="space-y-2">
-                        {filteredHistory.length === 0 && (
+                        {historyError && (
+                          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs" style={{ borderRadius: RADIUS.input }}>
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>Could not load call history.</span>
+                          </div>
+                        )}
+                        {filteredHistory.length === 0 && !historyError && (
                           <div className="text-center py-8 text-gray-400">
                             <Phone className="w-8 h-8 mx-auto mb-2 opacity-40" />
                             <p className="text-sm">No calls yet</p>
@@ -2132,7 +2150,13 @@ export default function AgentDialer() {
                       name: 'Appointment',
                       icon: CalendarPlus,
                       description: 'Book an appointment',
-                      onClick: () => toast.info('Appointment booking coming soon'),
+                      onClick: () => {
+                        if (activeLead) {
+                          scheduleApptMutation.mutate();
+                        } else {
+                          toast.info('No active lead for appointment');
+                        }
+                      },
                     },
                     {
                       name: 'Secure Forms',

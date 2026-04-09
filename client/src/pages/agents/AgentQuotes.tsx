@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAgentStore, type Quote } from "@/lib/agentStore";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -263,6 +264,7 @@ const formatTimeAgo = (date: Date) => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 export default function AgentQuotes() {
+  const queryClient = useQueryClient();
   const {
     currentUser,
     quotes: storeQuotes,
@@ -298,9 +300,6 @@ export default function AgentQuotes() {
   const [devicePreview, setDevicePreview] = useState<DevicePreview>("phone");
   const [isSending, setIsSending] = useState(false);
 
-  const [sentQuoteDocs, setSentQuoteDocs] = useState<SentQuoteDoc[]>([]);
-  const [isLoadingSentDocs, setIsLoadingSentDocs] = useState(true);
-
   // ─── Manage Quotes State ────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -311,41 +310,33 @@ export default function AgentQuotes() {
   const [compareQuotes, setCompareQuotes] = useState<Quote[]>([]);
   const [showComparison, setShowComparison] = useState(false);
 
-  // ─── Fetch Sent Quote Documents ─────────────────────────────────────────
-  useEffect(() => {
-    const fetchDocs = async () => {
-      try {
-        const response = await fetch('/api/quotes');
-        if (response.ok) {
-          const data = await response.json();
-          const docs: SentQuoteDoc[] = (data.quotes || []).map((q: any) => ({
-            id: q.quoteId,
-            quoteRef: q.quoteRef,
-            quoteType: q.quoteType,
-            quoteTypeName: q.quoteTypeName || QUOTE_DOCUMENT_TYPES.find(t => t.id === q.quoteType)?.name || q.quoteType,
-            clientName: q.clientName,
-            clientEmail: q.clientEmail,
-            clientPhone: q.clientPhone,
-            carrierId: q.carrierId,
-            carrierName: q.carrierName,
-            coverageAmount: q.coverageAmount,
-            premium: q.premium,
-            method: q.smsSent ? 'both' : 'email',
-            sentAt: new Date(q.createdAt),
-            status: q.status as SentQuoteDoc['status'],
-            openedAt: q.openedAt || null,
-            expiresAt: q.expiresAt || null,
-          }));
-          setSentQuoteDocs(docs);
-        }
-      } catch (error) {
-        console.error('Failed to fetch sent quotes:', error);
-      } finally {
-        setIsLoadingSentDocs(false);
-      }
-    };
-    fetchDocs();
-  }, []);
+  // ─── Fetch Sent Quote Documents via TanStack Query ──────────────────────
+  const { data: sentDocsData, isLoading: isLoadingSentDocs } = useQuery<{ quotes: any[] }>({
+    queryKey: ['/api/quotes'],
+    refetchInterval: 30000,
+  });
+
+  const sentQuoteDocs: SentQuoteDoc[] = useMemo(() => {
+    const rawQuotes = sentDocsData?.quotes || [];
+    return rawQuotes.map((q: any) => ({
+      id: q.quoteId,
+      quoteRef: q.quoteRef,
+      quoteType: q.quoteType,
+      quoteTypeName: q.quoteTypeName || QUOTE_DOCUMENT_TYPES.find(t => t.id === q.quoteType)?.name || q.quoteType,
+      clientName: q.clientName,
+      clientEmail: q.clientEmail,
+      clientPhone: q.clientPhone,
+      carrierId: q.carrierId,
+      carrierName: q.carrierName,
+      coverageAmount: q.coverageAmount,
+      premium: q.premium,
+      method: (q.smsSent ? 'both' : 'email') as SentQuoteDoc['method'],
+      sentAt: new Date(q.createdAt),
+      status: q.status as SentQuoteDoc['status'],
+      openedAt: q.openedAt || null,
+      expiresAt: q.expiresAt || null,
+    }));
+  }, [sentDocsData]);
 
   // ─── Send Dialog Helpers ────────────────────────────────────────────────
 
@@ -388,56 +379,29 @@ export default function AgentQuotes() {
     setIsSending(true);
     try {
       const carrierName = INSURANCE_CARRIERS.find(c => c.id === formCarrier)?.name || formCarrier;
-      const response = await fetch('/api/quotes/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientName: formClientName,
-          clientEmail: formEmail || null,
-          clientPhone: formPhone || null,
-          quoteType: selectedDocType.id,
-          quoteTypeName: selectedDocType.name,
-          coverageAmount: formCoverageAmount,
-          premium: formPremium,
-          premiumFrequency: formPremiumFrequency,
-          termLength: formTermLength || null,
-          healthClass: formHealthClass || null,
-          benefits: formBenefits,
-          additionalNotes: formNotes || null,
-          carrierId: formCarrier,
-          carrierName,
-          sendMethod: formSendMethod,
-          agent: {
-            name: currentUser.name,
-            email: currentUser.email,
-            phone: currentUser.phone,
-            npn: currentUser.npn || undefined,
-          },
-        }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to send quote');
-
-      const newDoc: SentQuoteDoc = {
-        id: result.quoteId,
-        quoteRef: result.quoteRef,
+      const result = await sendQuoteMutation.mutateAsync({
+        clientName: formClientName,
+        clientEmail: formEmail || null,
+        clientPhone: formPhone || null,
         quoteType: selectedDocType.id,
         quoteTypeName: selectedDocType.name,
-        clientName: formClientName,
-        clientEmail: formEmail,
-        clientPhone: formPhone,
-        carrierId: formCarrier,
-        carrierName,
         coverageAmount: formCoverageAmount,
         premium: formPremium,
-        method: formSendMethod,
-        sentAt: new Date(),
-        status: "sent",
-        openedAt: null,
-        expiresAt: null,
-      };
-      setSentQuoteDocs(prev => [newDoc, ...prev]);
+        premiumFrequency: formPremiumFrequency,
+        termLength: formTermLength || null,
+        healthClass: formHealthClass || null,
+        benefits: formBenefits,
+        additionalNotes: formNotes || null,
+        carrierId: formCarrier,
+        carrierName,
+        sendMethod: formSendMethod,
+        agent: {
+          name: currentUser.name,
+          email: currentUser.email,
+          phone: currentUser.phone,
+          npn: currentUser.npn || undefined,
+        },
+      });
 
       if (result.emailSent) {
         toast.success(`Quote sent from ${currentUser.email}`, {
@@ -458,15 +422,55 @@ export default function AgentQuotes() {
     }
   };
 
+  // ─── Send Quote Mutation ───────────────────────────────────────────────
+  const sendQuoteMutation = useMutation({
+    mutationFn: async (quoteData: any) => {
+      const res = await fetch('/api/quotes/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(quoteData),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to send quote');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quotes'] });
+    },
+  });
+
+  // ─── Resend Quote Mutation ───────────────────────────────────────────��─
+  const resendMutation = useMutation({
+    mutationFn: async (quoteId: string) => {
+      const res = await fetch(`/api/quotes/${quoteId}/resend`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to resend');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quotes'] });
+      toast.success('Quote resent successfully!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to resend quote');
+    },
+  });
+
   const copyQuoteLink = (docId: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/quotes/view/${docId}`);
     toast.success("Quote link copied to clipboard");
   };
 
   const resendQuoteDoc = (doc: SentQuoteDoc) => {
-    toast.success(`Quote resent to ${doc.clientName}`, {
-      description: `Via ${doc.method} to ${doc.clientEmail || doc.clientPhone}`
-    });
+    resendMutation.mutate(doc.id);
   };
 
   const formatTimeRemaining = (expiresAt: string | null) => {

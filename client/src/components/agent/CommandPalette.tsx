@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -11,10 +10,13 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  LayoutDashboard, CheckSquare, Users, GraduationCap, FileText,
-  TrendingUp, DollarSign, ScrollText, Phone, UserPlus, Calendar,
-  Search, Settings, Moon, Sun, LogOut, Bell, Trophy, Zap,
-  Rocket, Play, Building2, BookOpen, ClipboardCheck, MessageSquare, Mail
+  Home, BarChart3, Inbox, Calendar, Briefcase, Handshake,
+  Users, ClipboardList, CreditCard, Contact, Globe,
+  Phone, MessageSquare, BookOpen, UserPlus,
+  FileText, Shield, FolderOpen, Bot,
+  Trophy, Star, Network, DollarSign, ShoppingBag, GraduationCap,
+  ClipboardCheck, Lightbulb,
+  Search, Settings, HelpCircle, LogOut,
 } from "lucide-react";
 
 interface CommandPaletteProps {
@@ -25,161 +27,206 @@ interface CommandPaletteProps {
   theme: 'light' | 'dark';
 }
 
-export function CommandPalette({ open, onOpenChange, onNavigate, onAction, theme }: CommandPaletteProps) {
-  const runCommand = useCallback((command: () => void) => {
+export function CommandPalette({ open, onOpenChange, onNavigate, onAction }: CommandPaletteProps) {
+  const [, setLocation] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const onClose = useCallback(() => {
     onOpenChange(false);
-    command();
+    setSearchQuery("");
+    setSearchResults([]);
   }, [onOpenChange]);
+
+  const go = useCallback((path: string) => {
+    onClose();
+    setLocation(path);
+  }, [onClose, setLocation]);
+
+  // Debounced API search for leads + clients
+  useEffect(() => {
+    if (searchQuery.length < 3) { setSearchResults([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const results: any[] = [];
+        const [leadsRes, clientsRes] = await Promise.all([
+          fetch(`/api/lead-distribution/inbox?search=${encodeURIComponent(searchQuery)}&limit=5`, { credentials: 'include' }),
+          fetch(`/api/agent-clients?search=${encodeURIComponent(searchQuery)}`, { credentials: 'include' }),
+        ]);
+        const leadsData = await leadsRes.json();
+        const clientsData = await clientsRes.json();
+
+        if (leadsData?.data?.length) {
+          for (const l of leadsData.data.slice(0, 3)) {
+            results.push({
+              id: `lead-${l.id}`,
+              label: `${l.first_name || l.firstName || ''} ${l.last_name || l.lastName || ''}`.trim() || l.email,
+              sub: l.phone || l.email || 'Lead',
+              type: 'Lead',
+              path: '/agents/inbox',
+            });
+          }
+        }
+        if (Array.isArray(clientsData)) {
+          for (const c of clientsData.slice(0, 3)) {
+            results.push({
+              id: `client-${c.id}`,
+              label: `${c.firstName || c.first_name || ''} ${c.lastName || c.last_name || ''}`.trim(),
+              sub: c.email || 'Client',
+              type: 'Client',
+              path: `/agents/clients/${c.id}`,
+            });
+          }
+        }
+        setSearchResults(results);
+      } catch {}
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => { if (!open) { setSearchQuery(""); setSearchResults([]); } }, [open]);
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <Command className="rounded-lg border shadow-md">
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          
-          <CommandGroup heading="Navigation">
-            <CommandItem onSelect={() => runCommand(() => onNavigate('dashboard'))}>
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                D
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('getting-started'))}>
-              <Rocket className="mr-2 h-4 w-4 text-violet-600" />
-              <span>Getting Started</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                G
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('tasks'))}>
-              <CheckSquare className="mr-2 h-4 w-4" />
-              <span>Tasks</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                T
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('crm'))}>
-              <Users className="mr-2 h-4 w-4" />
-              <span>CRM / Deal Room</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                C
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('email'))}>
-              <Mail className="mr-2 h-4 w-4 text-blue-600" />
-              <span>Email Inbox</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                M
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('chat'))}>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              <span>Team Chat</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('calendar'))}>
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>Calendar</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('training'))}>
-              <GraduationCap className="mr-2 h-4 w-4" />
-              <span>Training</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('videos'))}>
-              <Play className="mr-2 h-4 w-4 text-green-600" />
-              <span>Video Library</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                V
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('carriers'))}>
-              <Building2 className="mr-2 h-4 w-4 text-blue-600" />
-              <span>Carriers</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('resources'))}>
-              <BookOpen className="mr-2 h-4 w-4 text-purple-600" />
-              <span>Resources</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                R
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('scripts'))}>
-              <ScrollText className="mr-2 h-4 w-4" />
-              <span>Scripts</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('sops'))}>
-              <FileText className="mr-2 h-4 w-4" />
-              <span>SOPs</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('guidelines'))}>
-              <ClipboardCheck className="mr-2 h-4 w-4 text-orange-600" />
-              <span>Guidelines & Expectations</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('performance'))}>
-              <TrendingUp className="mr-2 h-4 w-4" />
-              <span>Performance</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                P
-              </kbd>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onNavigate('earnings'))}>
-              <DollarSign className="mr-2 h-4 w-4" />
-              <span>Earnings</span>
-              <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                E
-              </kbd>
-            </CommandItem>
+      <CommandInput placeholder="Search pages, leads, clients..." onValueChange={setSearchQuery} />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+
+        {searchResults.length > 0 && (
+          <CommandGroup heading="Search Results">
+            {searchResults.map(r => (
+              <CommandItem key={r.id} value={`${r.label} ${r.sub} ${r.type}`} onSelect={() => go(r.path)}>
+                <Search className="mr-2 h-4 w-4 text-violet-500" />
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium">{r.label}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{r.sub}</span>
+                </div>
+                <span className="ml-auto text-[10px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded">{r.type}</span>
+              </CommandItem>
+            ))}
           </CommandGroup>
-          
-          <CommandSeparator />
-          
-          <CommandGroup heading="Quick Actions">
-            <CommandItem onSelect={() => runCommand(() => onAction('log-call'))}>
-              <Phone className="mr-2 h-4 w-4 text-primary" />
-              <span>Log a Call</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onAction('add-lead'))}>
-              <UserPlus className="mr-2 h-4 w-4 text-violet-600" />
-              <span>Add New Lead</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onAction('schedule'))}>
-              <Calendar className="mr-2 h-4 w-4 text-primary" />
-              <span>Schedule Meeting</span>
-            </CommandItem>
-          </CommandGroup>
-          
-          <CommandSeparator />
-          
-          <CommandGroup heading="Views">
-            <CommandItem onSelect={() => runCommand(() => onAction('leaderboard'))}>
-              <Trophy className="mr-2 h-4 w-4 text-violet-600" />
-              <span>View Full Leaderboard</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onAction('achievements'))}>
-              <Zap className="mr-2 h-4 w-4 text-violet-600" />
-              <span>View All Achievements</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onAction('notifications'))}>
-              <Bell className="mr-2 h-4 w-4" />
-              <span>View Notifications</span>
-            </CommandItem>
-          </CommandGroup>
-          
-          <CommandSeparator />
-          
-          <CommandGroup heading="Settings">
-            <CommandItem onSelect={() => runCommand(() => onAction('toggle-theme'))}>
-              {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-              <span>Toggle Theme</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => onAction('logout'))}>
-              <LogOut className="mr-2 h-4 w-4 text-red-500" />
-              <span>Log Out</span>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-      </Command>
+        )}
+
+        {searchResults.length > 0 && <CommandSeparator />}
+
+        <CommandGroup heading="Command Center">
+          <CommandItem value="Dashboard home overview" onSelect={() => go('/agents/dashboard')}>
+            <Home className="mr-2 h-4 w-4" /><span>Dashboard</span>
+          </CommandItem>
+          <CommandItem value="Performance metrics stats analytics" onSelect={() => go('/agents/performance')}>
+            <BarChart3 className="mr-2 h-4 w-4" /><span>Performance</span>
+          </CommandItem>
+          <CommandItem value="Lead Inbox leads pipeline prospects" onSelect={() => go('/agents/inbox')}>
+            <Inbox className="mr-2 h-4 w-4" /><span>Lead Inbox</span>
+          </CommandItem>
+          <CommandItem value="Calendar events appointments schedule" onSelect={() => go('/agents/calendar')}>
+            <Calendar className="mr-2 h-4 w-4" /><span>Calendar</span>
+          </CommandItem>
+          <CommandItem value="Book of Business policies clients portfolio" onSelect={() => go('/agents/book-of-business')}>
+            <Briefcase className="mr-2 h-4 w-4" /><span>Book of Business</span>
+          </CommandItem>
+          <CommandItem value="Agency Deals submissions sales AP" onSelect={() => go('/agents/deals')}>
+            <Handshake className="mr-2 h-4 w-4" /><span>Agency Deals</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Clients">
+          <CommandItem value="My Clients client management" onSelect={() => go('/agents/clients')}>
+            <Users className="mr-2 h-4 w-4" /><span>My Clients</span>
+          </CommandItem>
+          <CommandItem value="Claims benefit filing tracking" onSelect={() => go('/agents/claims')}>
+            <ClipboardList className="mr-2 h-4 w-4" /><span>Claims</span>
+          </CommandItem>
+          <CommandItem value="Member Cards digital insurance card" onSelect={() => go('/agents/member-cards')}>
+            <CreditCard className="mr-2 h-4 w-4" /><span>Member Cards</span>
+          </CommandItem>
+          <CommandItem value="Business Card contact sharing" onSelect={() => go('/agents/business-card')}>
+            <Contact className="mr-2 h-4 w-4" /><span>Business Card</span>
+          </CommandItem>
+          <CommandItem value="Your Website agent landing page" onSelect={() => go('/agents/website')}>
+            <Globe className="mr-2 h-4 w-4" /><span>Your Website</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Outreach">
+          <CommandItem value="Dialer phone calls power dialer" onSelect={() => go('/agents/dialer')}>
+            <Phone className="mr-2 h-4 w-4" /><span>Dialer</span>
+          </CommandItem>
+          <CommandItem value="Communications email chat messaging" onSelect={() => go('/agents/communications')}>
+            <MessageSquare className="mr-2 h-4 w-4" /><span>Communications</span>
+          </CommandItem>
+          <CommandItem value="Scripts call sales talk tracks" onSelect={() => go('/agents/scripts')}>
+            <BookOpen className="mr-2 h-4 w-4" /><span>Scripts</span>
+          </CommandItem>
+          <CommandItem value="Recruiting agents downline invite" onSelect={() => go('/agents/recruiting')}>
+            <UserPlus className="mr-2 h-4 w-4" /><span>Recruiting</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Sales Toolkit">
+          <CommandItem value="Quotes policy pricing estimates" onSelect={() => go('/agents/quotes')}>
+            <FileText className="mr-2 h-4 w-4" /><span>Quotes</span>
+          </CommandItem>
+          <CommandItem value="Data Encryption secure forms SSN banking" onSelect={() => go('/agents/data-encryption')}>
+            <Shield className="mr-2 h-4 w-4" /><span>Data Encryption</span>
+          </CommandItem>
+          <CommandItem value="Resources training materials guides" onSelect={() => go('/agents/resources')}>
+            <FolderOpen className="mr-2 h-4 w-4" /><span>Resources</span>
+          </CommandItem>
+          <CommandItem value="AI Avatar Council advisors chat debate" onSelect={() => go('/agents/avatar-council')}>
+            <Bot className="mr-2 h-4 w-4" /><span>AI Avatar Council</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Growth">
+          <CommandItem value="Leaderboard rankings top agents" onSelect={() => go('/agents/leaderboard')}>
+            <Trophy className="mr-2 h-4 w-4" /><span>Leaderboard</span>
+          </CommandItem>
+          <CommandItem value="Achievements badges XP rewards" onSelect={() => go('/agents/achievements')}>
+            <Star className="mr-2 h-4 w-4" /><span>Achievements</span>
+          </CommandItem>
+          <CommandItem value="My Hierarchy upline downline commission" onSelect={() => go('/agents/hierarchy')}>
+            <Network className="mr-2 h-4 w-4" /><span>My Hierarchy</span>
+          </CommandItem>
+          <CommandItem value="My Commissions earnings statements AP" onSelect={() => go('/agents/commissions')}>
+            <DollarSign className="mr-2 h-4 w-4" /><span>My Commissions</span>
+          </CommandItem>
+          <CommandItem value="Buy Leads marketplace purchase" onSelect={() => go('/agents/lead-marketplace')}>
+            <ShoppingBag className="mr-2 h-4 w-4" /><span>Buy Leads</span>
+          </CommandItem>
+          <CommandItem value="Training Sessions schedule 1:1 coaching" onSelect={() => go('/agents/training-sessions')}>
+            <GraduationCap className="mr-2 h-4 w-4" /><span>Training Sessions</span>
+          </CommandItem>
+          <CommandItem value="Guidelines expectations compliance rules" onSelect={() => go('/agents/guidelines')}>
+            <ClipboardCheck className="mr-2 h-4 w-4" /><span>Guidelines</span>
+          </CommandItem>
+          <CommandItem value="Ideas Feedback suggestions submit" onSelect={() => go('/agents/ideas')}>
+            <Lightbulb className="mr-2 h-4 w-4" /><span>Ideas & Feedback</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Account">
+          <CommandItem value="Settings profile preferences password" onSelect={() => go('/agents/settings')}>
+            <Settings className="mr-2 h-4 w-4" /><span>Settings</span>
+          </CommandItem>
+          <CommandItem value="Help Support FAQ contact" onSelect={() => go('/agents/help')}>
+            <HelpCircle className="mr-2 h-4 w-4" /><span>Help & Support</span>
+          </CommandItem>
+          <CommandItem value="Log Out sign out exit" onSelect={() => { onClose(); onAction('logout'); }}>
+            <LogOut className="mr-2 h-4 w-4 text-red-500" /><span>Log Out</span>
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
     </CommandDialog>
   );
 }

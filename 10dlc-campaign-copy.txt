@@ -1,0 +1,83 @@
+============================
+CAMPAIGN DESCRIPTION
+============================
+
+Heritage Life Solutions uses SMS and MMS to communicate with insurance clients and licensed agents across four use cases: (1) Two-factor authentication codes for secure portal login, (2) Customer care replies to policy questions and service requests, (3) Account notifications for policy status changes, payment reminders, and appointment confirmations, (4) Marketing messages for new product offerings, open enrollment periods, and promotional updates. Additionally, Heritage Life Solutions sends policy documents, quotes, and illustrations to clients via MMS and SMS links to PDF documents for convenient mobile review and e-signature. Recipients are existing clients, prospective clients who submit inquiry forms, and contracted insurance agents.
+
+
+============================
+OPT IN WORKFLOW DESCRIPTION
+============================
+
+Customers and agents opt in to receive SMS messages through the following methods. Digital: Users provide their mobile phone number on the Heritage Life Solutions website (heritagels.org) during account registration, lead inquiry forms, or quote request forms. Adjacent to the phone number field, disclosure language states: "By providing your phone number, you consent to receive SMS messages from Heritage Life Solutions including two-factor authentication codes, customer care responses, account notifications, and marketing messages. Msg & data rates may apply. Msg frequency varies. Reply STOP to cancel." Users must actively check a consent checkbox before submitting the form. Verbal: Licensed agents may collect verbal opt-in consent during phone consultations, which is documented in the CRM system with a timestamp.
+
+
+============================
+KEYWORDS
+============================
+
+Opt in keywords:
+START, YES, SUBSCRIBE, UNSTOP, OPTIN, OPT-IN, JOIN, RESUME, CONTINUE
+
+Opt out keywords:
+STOP, UNSUBSCRIBE, CANCEL, END, QUIT, OPTOUT, OPT-OUT, REMOVE, LEAVE
+
+Help keywords:
+HELP, INFO, INFORMATION, SUPPORT, ASSIST, FAQ
+
+
+============================
+AUTO-RESPONSES
+============================
+
+Opt in message:
+Heritage Life Solutions: You're now subscribed to receive text messages including authentication codes, account updates, policy information, and promotional offers. Msg & data rates may apply. Msg frequency varies. Reply HELP for help, STOP to opt out.
+
+Opt out message:
+Heritage Life Solutions: You have been unsubscribed and will no longer receive messages from us. Reply START to resubscribe.
+
+Help message:
+Heritage Life Solutions: For assistance, visit heritagels.org or call (312) 675-2972. To stop messages, reply STOP. Msg & data rates may apply.
+
+
+============================
+SAMPLE MESSAGES
+============================
+
+Message 1 (2FA):
+Heritage Life Solutions: Your verification code is 483291. This code expires in 10 minutes. If you did not request this, please disregard.
+
+Message 2 (Customer Care):
+Heritage Life Solutions: Hi Maria, following up on your question about your term life policy. Your current coverage amount is $500,000 with a renewal date of 08/01/2026. Reply with any questions or call your agent at (312) 675-2972.
+
+Message 3 (Account Notification):
+Heritage Life Solutions: Your policy renewal is coming up on 05/15/2026. Log in at heritagels.org to review your options or reply to schedule a call with your agent. Reply STOP to opt out.
+
+Message 4 (Marketing):
+Heritage Life Solutions: Open enrollment starts next month! We have new term life and IUL options with competitive rates. Visit heritagels.org/quote to get a free quote or reply INFO to learn more. Msg & data rates apply. Reply STOP to unsubscribe.
+
+Message 5 (Marketing):
+Heritage Life Solutions: Are you overpaying for life insurance? Heritage Life Solutions can help you compare plans from top-rated carriers. Get your free quote at heritagels.org/quote or reply QUOTE to connect with an agent. Msg & data rates apply. Reply STOP to opt out.
+
+Message 6 (Account Notification - MMS/PDF):
+Heritage Life Solutions: Your life insurance quote is ready! We've sent your personalized illustration as an attachment. You can also view it at heritagels.org/documents. Reply with any questions or call your agent at (312) 675-2972. Reply STOP to opt out.
+
+
+============================
+COMPLIANCE LINKS
+============================
+
+Privacy policy: https://heritagels.org/privacy
+Terms and conditions: https://heritagels.org/terms
+Embedded link: https://heritagels.org
+
+
+============================
+CAMPAIGN AND CONTENT ATTRIBUTES
+============================
+
+Embedded Link: Yes
+Embedded Phone Number: Yes
+Number Pooling: No
+Age-Gated Content: No
+Direct Lending or Loan Arrangement: No

@@ -630,6 +630,20 @@ router.post("/webhook", validateTelnyxWebhook, async (req: Request, res: Respons
                   duration: payload.duration_secs || 0,
                 });
               }
+
+              // Log to team activity feed
+              try {
+                const duration = payload.duration_secs || 0;
+                if (duration > 0 && activeCall.agentUserId) {
+                  const agentResult = await pool.query('SELECT first_name, last_name FROM users WHERE id = $1', [activeCall.agentUserId]);
+                  const agent = agentResult.rows[0];
+                  const agentName = agent ? `${agent.first_name || ''} ${agent.last_name || ''}`.trim() : 'Agent';
+                  await pool.query(`
+                    INSERT INTO team_activity_feed (agent_user_id, agent_name, activity_type, title, message, metadata)
+                    VALUES ($1, $2, 'call', 'Call Completed', $3, $4)
+                  `, [activeCall.agentUserId, agentName, `completed a ${Math.round(duration / 60)}min call`, JSON.stringify({ duration, callControlId })]);
+                }
+              } catch {}
             }
           }
 

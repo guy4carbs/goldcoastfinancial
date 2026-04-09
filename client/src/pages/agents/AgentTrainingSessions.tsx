@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   GraduationCap, Calendar, Clock, Phone, Video, MapPin, Monitor,
-  Check, X, Loader2, Plus, User, MessageSquare, CheckCircle2, XCircle, AlertCircle,
+  Check, X, Loader2, Plus, User, MessageSquare, CheckCircle, CheckCircle2, XCircle, AlertCircle,
 } from "lucide-react";
 import { RADIUS, SHADOW, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
 import { apiRequest } from "@/lib/queryClient";
@@ -143,6 +143,31 @@ export default function AgentTrainingSessions() {
       toast.success("Session cancelled");
       queryClient.invalidateQueries({ queryKey: ["/api/training-sessions"] });
     },
+  });
+
+  // Complete session state & mutation
+  const [completingSession, setCompletingSession] = useState<any>(null);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [completionOutcome, setCompletionOutcome] = useState("");
+  const [completionNextSteps, setCompletionNextSteps] = useState("");
+
+  const completeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("PATCH", `/api/training-sessions/${completingSession.id}/complete`, {
+        outcome: completionOutcome,
+        nextSteps: completionNextSteps,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/training-sessions"] });
+      toast.success("Session completed!");
+      setShowCompleteDialog(false);
+      setCompletingSession(null);
+      setCompletionOutcome("");
+      setCompletionNextSteps("");
+    },
+    onError: () => toast.error("Failed to complete session"),
   });
 
   const resetForm = () => {
@@ -284,6 +309,21 @@ export default function AgentTrainingSessions() {
                           </div>
                           <div className="flex items-center gap-2">
                             {getStatusBadge(s.status)}
+                            {s.status === "accepted" && new Date(s.scheduledAt) < new Date() && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 gap-1"
+                                style={{ borderRadius: RADIUS.button }}
+                                onClick={() => {
+                                  setCompletingSession(s);
+                                  setShowCompleteDialog(true);
+                                }}
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                                Complete
+                              </Button>
+                            )}
                             {isMyRequest && s.status === "pending" && (
                               <Button
                                 size="sm"
@@ -479,6 +519,80 @@ export default function AgentTrainingSessions() {
               >
                 {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
                 Request Session
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Complete Session Dialog */}
+        <Dialog open={showCompleteDialog} onOpenChange={(o) => {
+          if (!o) {
+            setCompletingSession(null);
+            setCompletionOutcome("");
+            setCompletionNextSteps("");
+          }
+          setShowCompleteDialog(o);
+        }}>
+          <DialogContent className="sm:max-w-lg" style={{ borderRadius: RADIUS.card }}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+                Complete Session
+              </DialogTitle>
+            </DialogHeader>
+
+            {completingSession && (
+              <div className="space-y-5 py-2">
+                <div className="p-3 bg-emerald-50" style={{ borderRadius: RADIUS.input }}>
+                  <p className="text-sm font-semibold text-gray-900">
+                    1:1 with {completingSession.requestorId === currentUser?.id ? completingSession.trainerName : completingSession.requestorName}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatDate(completingSession.scheduledAt)} · {completingSession.duration} min
+                    {completingSession.topic ? ` · ${completingSession.topic}` : ""}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    How did the session go?
+                  </Label>
+                  <Textarea
+                    value={completionOutcome}
+                    onChange={(e) => setCompletionOutcome(e.target.value)}
+                    placeholder="Key takeaways, what was covered, how it went..."
+                    rows={3}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    What are the next steps?
+                  </Label>
+                  <Textarea
+                    value={completionNextSteps}
+                    onChange={(e) => setCompletionNextSteps(e.target.value)}
+                    placeholder="Action items, follow-ups, topics for next session..."
+                    rows={3}
+                    style={{ borderRadius: RADIUS.input }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => setShowCompleteDialog(false)} style={{ borderRadius: RADIUS.button }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => completeMutation.mutate()}
+                disabled={completeMutation.isPending}
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                style={{ borderRadius: RADIUS.button }}
+              >
+                {completeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                Mark Complete
               </Button>
             </div>
           </DialogContent>

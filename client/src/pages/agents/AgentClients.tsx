@@ -16,8 +16,9 @@ import { AgentLoungeLayout } from '@/components/agent/AgentLoungeLayout';
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from '@/components/agent/primitives';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import {
   RADIUS, SHADOW, MOTION, TYPE,
@@ -59,9 +60,12 @@ interface Client {
 
 export default function AgentClients() {
   const [searchTerm, setSearchTerm] = useState('');
+  const queryClient = useQueryClient();
 
-  const { data: clients = [], isLoading } = useQuery<Client[]>({
+  const { data: clients = [], isLoading, error } = useQuery<Client[]>({
     queryKey: ['/api/agent-clients'],
+    staleTime: 30000,
+    refetchInterval: 30000,
   });
 
   // Filter clients by search term
@@ -103,6 +107,20 @@ export default function AgentClients() {
 
   const formatStatus = (status: string) =>
     (status || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+
+  if (error) {
+    return (
+      <AgentLoungeLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <AlertTriangle className="w-12 h-12 text-red-400" />
+          <p className="text-gray-600">Failed to load clients. Please try again.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/agent-clients'] })} variant="outline">
+            Retry
+          </Button>
+        </div>
+      </AgentLoungeLayout>
+    );
+  }
 
   return (
     <AgentLoungeLayout>

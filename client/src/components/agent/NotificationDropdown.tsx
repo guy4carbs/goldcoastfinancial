@@ -16,10 +16,43 @@ export interface Notification {
   id: string;
   type: 'achievement' | 'message' | 'alert' | 'reminder' | 'earning' | 'training';
   title: string;
-  description: string;
-  time: string;
-  read: boolean;
+  /** Zustand store uses `description`, API uses `message` */
+  description?: string;
+  message?: string;
+  /** Zustand store uses `time` (string), API uses `createdAt` (ISO timestamp) */
+  time?: string;
+  createdAt?: string;
+  /** Zustand store uses `read`, API uses `isRead` */
+  read?: boolean;
+  isRead?: boolean;
   actionUrl?: string;
+}
+
+/** Normalize a notification from either Zustand or API shape */
+function isNotificationRead(n: Notification): boolean {
+  return n.isRead ?? n.read ?? false;
+}
+
+function getNotificationDescription(n: Notification): string {
+  return n.description || n.message || '';
+}
+
+function getNotificationTime(n: Notification): string {
+  if (n.time) return n.time;
+  if (n.createdAt) {
+    const date = new Date(n.createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  }
+  return '';
 }
 
 interface NotificationDropdownProps {
@@ -41,8 +74,8 @@ const getNotificationIcon = (type: Notification['type']) => {
   }
 };
 
-const getNotificationBgStyle = (type: Notification['type'], read: boolean): React.CSSProperties => {
-  if (read) return { backgroundColor: 'rgba(0,0,0,0.03)' };
+const getNotificationBgStyle = (type: Notification['type'], isRead: boolean): React.CSSProperties => {
+  if (isRead) return { backgroundColor: 'rgba(0,0,0,0.03)' };
   switch (type) {
     case 'achievement': return { backgroundColor: COLORS.primary.violet[50] };
     case 'alert': return { backgroundColor: `${COLORS.semantic.warning}15` };
@@ -58,7 +91,7 @@ export function NotificationDropdown({
   onClear 
 }: NotificationDropdownProps) {
   const [open, setOpen] = useState(false);
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !isNotificationRead(n)).length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -132,31 +165,31 @@ export function NotificationDropdown({
                     transition={{ delay: idx * 0.05 }}
                     className={cn(
                       "relative px-4 py-3 border-b last:border-0 group cursor-pointer transition-colors",
-                      !notification.read && "hover:bg-muted/50"
+                      !isNotificationRead(notification) && "hover:bg-muted/50"
                     )}
-                    style={getNotificationBgStyle(notification.type, notification.read)}
-                    onClick={() => !notification.read && onMarkAsRead(notification.id)}
+                    style={getNotificationBgStyle(notification.type, isNotificationRead(notification))}
+                    onClick={() => !isNotificationRead(notification) && onMarkAsRead(notification.id)}
                   >
                     <div className="flex gap-3">
                       <div className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                        notification.read ? "bg-muted" : "bg-white shadow-sm"
+                        isNotificationRead(notification) ? "bg-muted" : "bg-white shadow-sm"
                       )}>
                         {getNotificationIcon(notification.type)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={cn(
                           "text-sm line-clamp-1",
-                          !notification.read && "font-medium"
+                          !isNotificationRead(notification) && "font-medium"
                         )}>
                           {notification.title}
                         </p>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {notification.description}
+                          {getNotificationDescription(notification)}
                         </p>
                         <div className="flex items-center gap-1 mt-1.5 text-[10px] text-muted-foreground">
                           <Clock className="w-3 h-3" />
-                          {notification.time}
+                          {getNotificationTime(notification)}
                         </div>
                       </div>
                       <Button
@@ -171,7 +204,7 @@ export function NotificationDropdown({
                         <X className="w-3 h-3" />
                       </Button>
                     </div>
-                    {!notification.read && (
+                    {!isNotificationRead(notification) && (
                       <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-secondary rounded-full" />
                     )}
                   </motion.div>

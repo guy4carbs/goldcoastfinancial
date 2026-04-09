@@ -133,7 +133,7 @@ export default function PublicBusinessCard() {
                 </a>
               )}
               {card.websiteUrl && (
-                <a href={card.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white/10 hover:bg-white/15 rounded-xl transition-colors">
+                <a href={card.websiteUrl?.startsWith("http") ? card.websiteUrl : `https://${card.websiteUrl}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white/10 hover:bg-white/15 rounded-xl transition-colors">
                   <div className="w-9 h-9 rounded-xl bg-violet-500/20 flex items-center justify-center">
                     <Globe className="w-4 h-4 text-violet-400" />
                   </div>
@@ -193,7 +193,7 @@ export default function PublicBusinessCard() {
                   {socialLinks.map(({ url, icon: Icon, label, color }) => (
                     <a
                       key={label}
-                      href={url!}
+                      href={url!.startsWith('http') ? url! : `https://${url!}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"

@@ -3,7 +3,7 @@
  * Issue and manage Heritage Life Solutions digital insurance cards
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,12 +46,14 @@ import {
   ChevronRight,
   DollarSign,
   X,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, GLASS, MOTION, COLORS, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 // =============================================================================
 // TYPES
@@ -276,6 +278,41 @@ function useRevokeCard() {
   });
 }
 
+function useUpdateCard() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<IssueCardFormData> }) => {
+      const res = await fetch(`/api/member-cards/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          ...data,
+          coverageAmount: data.coverageAmount
+            ? parseFloat(String(data.coverageAmount).replace(/[,$]/g, ""))
+            : undefined,
+          monthlyPremium: data.monthlyPremium
+            ? parseFloat(String(data.monthlyPremium).replace(/[,$]/g, ""))
+            : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update card");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["member-cards"] });
+      toast.success("Card updated successfully!");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+}
+
 // =============================================================================
 // COMPONENTS
 // =============================================================================
@@ -371,9 +408,23 @@ function CardRow({ card, onClick, onRevoke }: { card: MemberCard; onClick: () =>
             size="sm"
             className="text-violet-700 hover:bg-violet-50"
             style={{ borderRadius: RADIUS.button }}
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation();
-              toast.info("Notification sent to member");
+              try {
+                const res = await fetch(`/api/member-cards/${card.id}/send`, {
+                  method: 'POST',
+                  credentials: 'include',
+                });
+                const data = await res.json();
+                if (data.method === 'mailto') {
+                  window.location.href = data.mailto;
+                  toast.info('Opening email client...');
+                } else {
+                  toast.success('Card sent to member!');
+                }
+              } catch {
+                toast.error('Failed to send card');
+              }
             }}
           >
             <Mail className="w-4 h-4" />
@@ -439,6 +490,35 @@ function IssueCardDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.memberFullName?.trim()) {
+      toast.error('Member name is required');
+      return;
+    }
+    if (!formData.insuranceCarrier) {
+      toast.error('Carrier is required');
+      return;
+    }
+    if (!formData.policyType) {
+      toast.error('Policy type is required');
+      return;
+    }
+    if (!formData.policyNumber?.trim()) {
+      toast.error('Policy number is required');
+      return;
+    }
+    const coverage = parseFloat(String(formData.coverageAmount).replace(/[$,]/g, ''));
+    if (!coverage || coverage <= 0) {
+      toast.error('Valid coverage amount is required');
+      return;
+    }
+    const premium = parseFloat(String(formData.monthlyPremium).replace(/[$,]/g, ''));
+    if (!premium || premium <= 0) {
+      toast.error('Valid monthly premium is required');
+      return;
+    }
+
     onSubmit(formData);
   };
 
@@ -734,14 +814,19 @@ function CardDetailSheet({
   card,
   open,
   onOpenChange,
+  onEdit,
 }: {
   card: MemberCard | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEdit?: (card: MemberCard) => void;
 }) {
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [walletLoading, setWalletLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
+  const [revokeLoading, setRevokeLoading] = useState(false);
 
   if (!card) return null;
 
@@ -765,7 +850,7 @@ function CardDetailSheet({
           effectiveDate: card.effectiveDate,
           expirationDate: card.expirationDate,
           beneficiaryName: card.beneficiaryName,
-          agentName: "Heritage Agent",
+          agentName: `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Heritage Agent',
           dba: "heritage",
         }),
       });
@@ -1028,16 +1113,47 @@ function CardDetailSheet({
                 <Download className="w-4 h-4" />
                 {pdfLoading ? "Generating..." : "Download PDF"}
               </Button>
+              {card.status === "active" && onEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 text-violet-700 border-violet-200 hover:bg-violet-50"
+                  style={{ borderRadius: RADIUS.button }}
+                  onClick={() => onEdit(card)}
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit Card
+                </Button>
+              )}
               {card.status === "active" && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
                   style={{ borderRadius: RADIUS.button }}
-                  onClick={() => toast.info("Use the list to revoke cards")}
+                  disabled={revokeLoading}
+                  onClick={async () => {
+                    setRevokeLoading(true);
+                    try {
+                      const res = await fetch(`/api/member-cards/${card.id}/revoke`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ reason: 'Revoked by agent' }),
+                      });
+                      if (!res.ok) throw new Error('Failed');
+                      queryClient.invalidateQueries({ queryKey: ['member-cards'] });
+                      toast.success('Card revoked');
+                      onOpenChange(false);
+                    } catch {
+                      toast.error('Failed to revoke card');
+                    } finally {
+                      setRevokeLoading(false);
+                    }
+                  }}
                 >
                   <Ban className="w-4 h-4" />
-                  Revoke Card
+                  {revokeLoading ? 'Revoking...' : 'Revoke Card'}
                 </Button>
               )}
             </div>
@@ -1057,6 +1173,260 @@ function DetailRow({ label, value, className }: { label: string; value: string; 
   );
 }
 
+function EditCardDialog({
+  card,
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading,
+}: {
+  card: MemberCard | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (id: string, data: Partial<IssueCardFormData>) => void;
+  isLoading: boolean;
+}) {
+  const [formData, setFormData] = useState<Partial<IssueCardFormData>>({});
+  const prevCardIdRef = useRef<string | undefined>(undefined);
+
+  // Sync form data when the card changes
+  if (card && card.id !== prevCardIdRef.current) {
+    prevCardIdRef.current = card.id;
+    setFormData({
+      memberFullName: card.memberFullName,
+      memberEmail: card.memberEmail,
+      memberPhone: card.memberPhone || '',
+      policyNumber: card.policyNumber,
+      coverageAmount: card.coverageAmount,
+      monthlyPremium: card.monthlyPremium,
+      beneficiaryName: card.beneficiaryName,
+      beneficiaryRelationship: card.beneficiaryRelationship || '',
+    });
+  }
+
+  if (!card) return null;
+
+  const handleClose = () => {
+    onOpenChange(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.memberFullName?.trim()) {
+      toast.error('Member name is required');
+      return;
+    }
+    if (!formData.policyNumber?.trim()) {
+      toast.error('Policy number is required');
+      return;
+    }
+    const coverage = parseFloat(String(formData.coverageAmount).replace(/[$,]/g, ''));
+    if (!coverage || coverage <= 0) {
+      toast.error('Valid coverage amount is required');
+      return;
+    }
+    const premium = parseFloat(String(formData.monthlyPremium).replace(/[$,]/g, ''));
+    if (!premium || premium <= 0) {
+      toast.error('Valid monthly premium is required');
+      return;
+    }
+
+    onSubmit(card.id, formData);
+  };
+
+  const updateField = (field: keyof IssueCardFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else onOpenChange(v); }}>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-0 [&>button.absolute]:hidden"
+        style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: RADIUS.card,
+          boxShadow: '0 16px 24px rgba(0, 0, 0, 0.08)',
+        }}
+      >
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
+                <Pencil className="w-5 h-5 text-amber-200" />
+              </div>
+              <div>
+                <span className="text-lg font-semibold text-gray-900">Edit Member Card</span>
+                <p className="text-xs text-gray-500 font-normal">
+                  Update card details for {card.memberFullName}
+                </p>
+              </div>
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              style={{ borderRadius: RADIUS.button }}
+              onClick={handleClose}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Member Information */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-violet-500" />
+              Member Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label htmlFor="edit-memberFullName">Full Name *</Label>
+                <Input
+                  id="edit-memberFullName"
+                  value={formData.memberFullName || ''}
+                  onChange={(e) => updateField("memberFullName", e.target.value)}
+                  placeholder="John Smith"
+                  required
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-memberEmail">Email *</Label>
+                <Input
+                  id="edit-memberEmail"
+                  type="email"
+                  value={formData.memberEmail || ''}
+                  onChange={(e) => updateField("memberEmail", e.target.value)}
+                  placeholder="john@example.com"
+                  required
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-memberPhone">Phone</Label>
+                <Input
+                  id="edit-memberPhone"
+                  value={formData.memberPhone || ''}
+                  onChange={(e) => updateField("memberPhone", e.target.value)}
+                  placeholder="(555) 123-4567"
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Policy Details */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-violet-500" />
+              Policy Details
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-policyNumber">Policy Number *</Label>
+                <Input
+                  id="edit-policyNumber"
+                  value={formData.policyNumber || ''}
+                  onChange={(e) => updateField("policyNumber", e.target.value)}
+                  placeholder="POL-123456789"
+                  required
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-coverageAmount">Coverage Amount *</Label>
+                <Input
+                  id="edit-coverageAmount"
+                  value={formData.coverageAmount || ''}
+                  onChange={(e) => updateField("coverageAmount", e.target.value)}
+                  placeholder="$500,000"
+                  required
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-monthlyPremium">Monthly Premium *</Label>
+                <Input
+                  id="edit-monthlyPremium"
+                  value={formData.monthlyPremium || ''}
+                  onChange={(e) => updateField("monthlyPremium", e.target.value)}
+                  placeholder="$125.00"
+                  required
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Beneficiary */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-violet-500" />
+              Beneficiary
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-beneficiaryName">Beneficiary Name *</Label>
+                <Input
+                  id="edit-beneficiaryName"
+                  value={formData.beneficiaryName || ''}
+                  onChange={(e) => updateField("beneficiaryName", e.target.value)}
+                  placeholder="Jane Smith"
+                  required
+                  style={{ borderRadius: RADIUS.input }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-beneficiaryRelationship">Relationship</Label>
+                <Select
+                  value={formData.beneficiaryRelationship || ''}
+                  onValueChange={(v) => updateField("beneficiaryRelationship", v)}
+                >
+                  <SelectTrigger style={{ borderRadius: RADIUS.input }}>
+                    <SelectValue placeholder="Select relationship" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIPS.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="text-violet-700 border-violet-200 hover:bg-violet-50"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+              style={{ borderRadius: RADIUS.button }}
+            >
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
@@ -1064,6 +1434,7 @@ function DetailRow({ label, value, className }: { label: string; value: string; 
 export default function AgentMemberCards() {
   const [showIssueDialog, setShowIssueDialog] = useState(false);
   const [selectedCard, setSelectedCard] = useState<MemberCard | null>(null);
+  const [editingCard, setEditingCard] = useState<MemberCard | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -1071,6 +1442,7 @@ export default function AgentMemberCards() {
   const { data: stats } = useCardStats();
   const issueCard = useIssueCard();
   const revokeCard = useRevokeCard();
+  const updateCard = useUpdateCard();
 
   const filteredCards = (cards || []).filter((card) => {
     const matchesSearch =
@@ -1090,6 +1462,21 @@ export default function AgentMemberCards() {
         setShowIssueDialog(false);
       },
     });
+  };
+
+  const handleUpdateCard = (id: string, data: Partial<IssueCardFormData>) => {
+    updateCard.mutate({ id, data }, {
+      onSuccess: () => {
+        setEditingCard(null);
+        setSelectedCard(null);
+      },
+    });
+  };
+
+  const handleEditFromSheet = (card: MemberCard) => {
+    setSelectedCard(null);
+    // Small delay so sheet closes before dialog opens
+    setTimeout(() => setEditingCard(card), 150);
   };
 
   return (
@@ -1243,6 +1630,16 @@ export default function AgentMemberCards() {
         card={selectedCard}
         open={!!selectedCard}
         onOpenChange={(open) => !open && setSelectedCard(null)}
+        onEdit={handleEditFromSheet}
+      />
+
+      {/* Edit Card Dialog */}
+      <EditCardDialog
+        card={editingCard}
+        open={!!editingCard}
+        onOpenChange={(open) => !open && setEditingCard(null)}
+        onSubmit={handleUpdateCard}
+        isLoading={updateCard.isPending}
       />
     </AgentLoungeLayout>
   );

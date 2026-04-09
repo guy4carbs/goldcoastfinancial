@@ -75,6 +75,7 @@ export interface LeadReminder {
 
 export interface Lead {
   id: string;
+  dbId?: string; // Backend CRM database UUID — set when lead originates from or is synced with the API
   name: string;
   email: string;
   phone: string;
