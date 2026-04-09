@@ -3,14 +3,14 @@
  * Provides endpoints for browsing templates, generating documents,
  * managing the approval queue, and previewing PDFs.
  *
- * GET    /api/document-templates                          — List active templates
- * GET    /api/document-templates/queue                    — Agent's queue (last 50)
- * GET    /api/document-templates/queue/:clientId          — Client document history
- * POST   /api/document-templates/generate                 — Generate a document
- * POST   /api/document-templates/queue/:queueId/approve   — Approve pending document
- * POST   /api/document-templates/queue/:queueId/cancel    — Cancel pending document
- * GET    /api/document-templates/preview/:templateKey/:clientId — Preview PDF
- * POST   /api/document-templates/generate-welcome-kit     — Generate full welcome kit
+ * GET    /api/document-templates                          -List active templates
+ * GET    /api/document-templates/queue                    -Agent's queue (last 50)
+ * GET    /api/document-templates/queue/:clientId          -Client document history
+ * POST   /api/document-templates/generate                 -Generate a document
+ * POST   /api/document-templates/queue/:queueId/approve   -Approve pending document
+ * POST   /api/document-templates/queue/:queueId/cancel    -Cancel pending document
+ * GET    /api/document-templates/preview/:templateKey/:clientId -Preview PDF
+ * POST   /api/document-templates/generate-welcome-kit     -Generate full welcome kit
  *
  * Governance: Forge (backend) + Conduit (integrations) + Relay (delivery)
  */
@@ -59,7 +59,7 @@ async function buildDocumentOptions(
     );
     agentNpn = rows[0]?.npn || "";
   } catch {
-    // NPN not required — continue without it
+    // NPN not required -continue without it
   }
 
   const clientInfo: ClientInfo = {
@@ -130,94 +130,94 @@ function getEmailContent(
 
   const templates: Record<string, { subject: string; htmlBody: string; plainText: string }> = {
     welcome_letter: {
-      subject: `Your Heritage Welcome Letter — ${firstName}`,
+      subject: `Your Heritage Welcome Letter -${firstName}`,
       htmlBody: `<p>Dear ${firstName},</p><p>Welcome to Heritage Life Solutions! Your personalized welcome letter is attached. You can view all your documents anytime in your ${portalLink}.</p><p>Warm regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nWelcome to Heritage Life Solutions! Your personalized welcome letter is attached. View all documents at https://heritagels.org/client/documents\n\nWarm regards,\n${agentName}`,
     },
     policy_summary: {
-      subject: `Your Policy Summary — ${extra?.policyNumber || "Heritage Life Solutions"}`,
+      subject: `Your Policy Summary -${extra?.policyNumber || "Heritage Life Solutions"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>Your policy summary is attached for your records. It includes your coverage details, premium information, and beneficiary designations. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour policy summary is attached for your records. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     claims_guide: {
-      subject: "Your Claims Filing Guide — Heritage Life Solutions",
+      subject: "Your Claims Filing Guide -Heritage Life Solutions",
       htmlBody: `<p>Dear ${firstName},</p><p>Your claims filing guide is attached. It outlines the step-by-step process should you ever need to file a claim. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour claims filing guide is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     beneficiary_designation_confirmation: {
-      subject: `Beneficiary Confirmation — ${extra?.policyNumber || "Heritage Life Solutions"}`,
+      subject: `Beneficiary Confirmation -${extra?.policyNumber || "Heritage Life Solutions"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>Your beneficiary designation confirmation is attached. Please review the beneficiaries listed and contact us if any changes are needed. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour beneficiary designation confirmation is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     portal_access_instructions: {
-      subject: "Your Client Portal Access — Heritage Life Solutions",
+      subject: "Your Client Portal Access -Heritage Life Solutions",
       htmlBody: `<p>Dear ${firstName},</p><p>Your client portal access instructions are attached. You can manage your policies, documents, and more from your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour client portal access instructions are attached. Access your portal at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     annual_policy_statement: {
-      subject: `Your Annual Policy Statement — ${extra?.year || new Date().getFullYear()}`,
+      subject: `Your Annual Policy Statement -${extra?.year || new Date().getFullYear()}`,
       htmlBody: `<p>Dear ${firstName},</p><p>Your annual policy statement is attached. It includes your current coverage, premiums paid, and beneficiary information. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour annual policy statement is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     premium_payment_reminder: {
-      subject: `Premium Payment Reminder — Due ${extra?.date || "soon"}`,
+      subject: `Premium Payment Reminder -Due ${extra?.date || "soon"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>This is a friendly reminder that your premium payment is coming due. Your payment details are in the attached document. Manage your billing in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour premium payment is coming due. Details are in the attached document. Manage billing at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     policy_anniversary_letter: {
-      subject: "Happy Policy Anniversary — Heritage Life Solutions",
+      subject: "Happy Policy Anniversary -Heritage Life Solutions",
       htmlBody: `<p>Dear ${firstName},</p><p>Happy policy anniversary! A personalized letter from your agent is attached. View all documents in your ${portalLink}.</p><p>Warm regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nHappy policy anniversary! A personalized letter from your agent is attached. View all documents at https://heritagels.org/client/documents\n\nWarm regards,\n${agentName}`,
     },
     annual_review_invitation: {
-      subject: "Annual Coverage Review — Heritage Life Solutions",
+      subject: "Annual Coverage Review -Heritage Life Solutions",
       htmlBody: `<p>Dear ${firstName},</p><p>It's time for your annual coverage review. Your invitation with scheduling details is attached. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nIt's time for your annual coverage review. Your invitation is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     claims_packet: {
-      subject: `Your Claims Filing Packet — Claim #${extra?.claimNumber || "N/A"}`,
+      subject: `Your Claims Filing Packet -Claim #${extra?.claimNumber || "N/A"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>Your claims filing packet is attached with everything you need to complete your claim. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour claims filing packet is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     claim_acknowledgment: {
-      subject: `Claim Received — #${extra?.claimNumber || "N/A"}`,
+      subject: `Claim Received -#${extra?.claimNumber || "N/A"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>We have received your claim. An acknowledgment letter with your claim number and next steps is attached. Track your claim in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nWe have received your claim. Your acknowledgment letter is attached. Track your claim at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     claim_status_update: {
-      subject: `Claim Status Update — #${extra?.claimNumber || "N/A"}`,
+      subject: `Claim Status Update -#${extra?.claimNumber || "N/A"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>There is an update on your claim. The status update document is attached with full details. Track your claim in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nThere is an update on your claim. Details are attached. Track your claim at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     claim_approval_letter: {
-      subject: `Claim Approved — #${extra?.claimNumber || "N/A"}`,
-      htmlBody: `<p>Dear ${firstName},</p><p>Great news — your claim has been approved. The approval letter with payout details is attached. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
+      subject: `Claim Approved -#${extra?.claimNumber || "N/A"}`,
+      htmlBody: `<p>Dear ${firstName},</p><p>Great news -your claim has been approved. The approval letter with payout details is attached. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour claim has been approved. The approval letter is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     claim_denial_letter: {
-      subject: `Claim Decision — #${extra?.claimNumber || "N/A"}`,
+      subject: `Claim Decision -#${extra?.claimNumber || "N/A"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>A decision has been made regarding your claim. The detailed letter including next steps and appeal information is attached. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nA decision has been made regarding your claim. Details and appeal information are attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     beneficiary_change_confirmation: {
-      subject: `Beneficiary Change Confirmed — ${extra?.policyNumber || "Heritage Life Solutions"}`,
+      subject: `Beneficiary Change Confirmed -${extra?.policyNumber || "Heritage Life Solutions"}`,
       htmlBody: `<p>Dear ${firstName},</p><p>Your beneficiary change has been processed. The confirmation document is attached with your updated beneficiary information. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour beneficiary change has been processed. Confirmation is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     contact_update_confirmation: {
-      subject: "Contact Information Updated — Heritage Life Solutions",
+      subject: "Contact Information Updated -Heritage Life Solutions",
       htmlBody: `<p>Dear ${firstName},</p><p>Your contact information has been updated. A confirmation document is attached for your records. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour contact information has been updated. Confirmation is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
     payment_method_update_confirmation: {
-      subject: "Payment Method Updated — Heritage Life Solutions",
+      subject: "Payment Method Updated -Heritage Life Solutions",
       htmlBody: `<p>Dear ${firstName},</p><p>Your payment method has been updated. A confirmation document is attached for your records. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
       plainText: `Dear ${firstName},\n\nYour payment method has been updated. Confirmation is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
     },
   };
 
   return templates[templateKey] || {
-    subject: `Document from Heritage Life Solutions — ${firstName}`,
+    subject: `Document from Heritage Life Solutions -${firstName}`,
     htmlBody: `<p>Dear ${firstName},</p><p>A new document is attached for your records. View all documents in your ${portalLink}.</p><p>Best regards,<br/>${agentName}</p>`,
     plainText: `Dear ${firstName},\n\nA new document is attached. View all documents at https://heritagels.org/client/documents\n\nBest regards,\n${agentName}`,
   };
@@ -250,7 +250,7 @@ function getPortalCategory(templateKey: string): string {
 }
 
 // =============================================================================
-// 1. GET / — List all active templates
+// 1. GET / -List all active templates
 // =============================================================================
 
 router.get("/", requireAuth, async (req: Request, res: Response) => {
@@ -276,7 +276,7 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
 });
 
 // =============================================================================
-// 2. GET /queue — Agent's pending/recent queue (last 50)
+// 2. GET /queue -Agent's pending/recent queue (last 50)
 // =============================================================================
 
 router.get("/queue", requireAuth, async (req: Request, res: Response) => {
@@ -302,7 +302,7 @@ router.get("/queue", requireAuth, async (req: Request, res: Response) => {
 });
 
 // =============================================================================
-// 3. GET /queue/:clientId — Document history for a specific client
+// 3. GET /queue/:clientId -Document history for a specific client
 // =============================================================================
 
 router.get("/queue/:clientId", requireAuth, async (req: Request, res: Response) => {
@@ -329,7 +329,7 @@ router.get("/queue/:clientId", requireAuth, async (req: Request, res: Response) 
 });
 
 // =============================================================================
-// 4. POST /generate — Agent triggers document generation
+// 4. POST /generate -Agent triggers document generation
 // =============================================================================
 
 router.post("/generate", requireAuth, async (req: Request, res: Response) => {
@@ -486,7 +486,7 @@ router.post("/generate", requireAuth, async (req: Request, res: Response) => {
 });
 
 // =============================================================================
-// 5. POST /queue/:queueId/approve — Approve a pending hybrid document
+// 5. POST /queue/:queueId/approve -Approve a pending hybrid document
 // =============================================================================
 
 router.post("/queue/:queueId/approve", requireAuth, async (req: Request, res: Response) => {
@@ -620,7 +620,7 @@ router.post("/queue/:queueId/approve", requireAuth, async (req: Request, res: Re
 });
 
 // =============================================================================
-// 6. POST /queue/:queueId/cancel — Cancel a pending document
+// 6. POST /queue/:queueId/cancel -Cancel a pending document
 // =============================================================================
 
 router.post("/queue/:queueId/cancel", requireAuth, async (req: Request, res: Response) => {
@@ -664,7 +664,7 @@ router.post("/queue/:queueId/cancel", requireAuth, async (req: Request, res: Res
 });
 
 // =============================================================================
-// 7. GET /preview/:templateKey/:clientId — Preview PDF without sending
+// 7. GET /preview/:templateKey/:clientId -Preview PDF without sending
 // =============================================================================
 
 router.get("/preview/:templateKey/:clientId", requireAuth, async (req: Request, res: Response) => {
@@ -717,7 +717,7 @@ router.get("/preview/:templateKey/:clientId", requireAuth, async (req: Request, 
 });
 
 // =============================================================================
-// 8. POST /generate-welcome-kit — Generate and deliver all 5 onboarding docs
+// 8. POST /generate-welcome-kit -Generate and deliver all 5 onboarding docs
 // =============================================================================
 
 router.post("/generate-welcome-kit", requireAuth, async (req: Request, res: Response) => {
@@ -728,8 +728,16 @@ router.post("/generate-welcome-kit", requireAuth, async (req: Request, res: Resp
       policyId: string;
     };
 
-    if (!clientUserId || !policyId) {
-      return res.status(400).json({ error: "clientUserId and policyId are required" });
+    if (!clientUserId) {
+      return res.status(400).json({ error: "clientUserId is required" });
+    }
+
+    // Auto-resolve policyId if not provided
+    let resolvedPolicyId = policyId;
+    if (!resolvedPolicyId) {
+      const policies = await storage.getPoliciesByUserId(clientUserId);
+      const activePolicy = policies.find((p: any) => p.status === 'active') || policies[0];
+      resolvedPolicyId = activePolicy?.id;
     }
 
     // Verify client exists
@@ -740,7 +748,7 @@ router.post("/generate-welcome-kit", requireAuth, async (req: Request, res: Resp
 
     await generateAndDeliverWelcomeKit({
       clientUserId,
-      policyId,
+      policyId: resolvedPolicyId || "",
       agentUserId: agentId,
     });
 

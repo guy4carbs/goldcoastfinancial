@@ -141,63 +141,66 @@ function ensureSpace(doc: PDFKit.PDFDocument, needed: number): void {
 // ---------------------------------------------------------------------------
 
 function buildHeader(doc: PDFKit.PDFDocument, title: string): void {
-  // Centered violet header bar
-  const barWidth = 420;
-  const barX = (PAGE_WIDTH - barWidth) / 2;
-
+  // Full-width violet header bar (matches documentSigningService.ts)
   doc
-    .rect(barX, 20, barWidth, 80)
+    .rect(0, 0, PAGE_WIDTH, 100)
     .fill(COLORS.headerBg);
 
-  // Rounded corners effect via slight radius
-  doc
-    .roundedRect(barX, 20, barWidth, 80, 6)
-    .fill(COLORS.headerBg);
-
-  // Centered agency name
+  // Agency name centered in header
   doc
     .font("Helvetica")
     .fontSize(9)
     .fillColor(COLORS.headerText)
-    .text("HERITAGE LIFE SOLUTIONS", 0, 38, { width: PAGE_WIDTH, align: "center" });
-
-  // Tagline
-  doc
-    .font("Helvetica")
-    .fontSize(7)
-    .fillColor("#c4b5fd")
-    .text("Protecting What Matters Most", 0, 50, { width: PAGE_WIDTH, align: "center" });
-
-  // Document title centered
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(14)
-    .fillColor(COLORS.headerText)
-    .text(title, 0, 65, { width: PAGE_WIDTH, align: "center" });
-
-  // Gold accent line centered below bar
-  const lineWidth = 200;
-  const lineX = (PAGE_WIDTH - lineWidth) / 2;
-  doc
-    .strokeColor(COLORS.goldAccent)
-    .lineWidth(2)
-    .moveTo(lineX, 105)
-    .lineTo(lineX + lineWidth, 105)
-    .stroke();
-
-  // Date centered below gold line
-  doc
-    .font("Helvetica")
-    .fontSize(9)
-    .fillColor(COLORS.mediumGray)
     .text(
-      new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
-      0,
-      115,
-      { width: PAGE_WIDTH, align: "center" }
+      "HERITAGE LIFE SOLUTIONS",
+      MARGIN_LEFT,
+      25,
+      { width: CONTENT_WIDTH, align: "center" }
     );
 
-  doc.y = 140;
+  // Document title centered (adaptive size for long titles)
+  const titleFontSize = title.length > 40 ? 12 : 16;
+  const titleY = title.length > 40 ? 40 : 42;
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(titleFontSize)
+    .fillColor(COLORS.headerText)
+    .text(title, MARGIN_LEFT, titleY, {
+      width: CONTENT_WIDTH,
+      align: "center",
+    });
+
+  // License line centered
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .fillColor(COLORS.headerText)
+    .text(`Illinois License #${AGENCY.npn}`, MARGIN_LEFT, 74, {
+      width: CONTENT_WIDTH,
+      align: "center",
+    });
+
+  // Move below header
+  doc.y = 120;
+
+  // Date right-aligned
+  doc
+    .fillColor(COLORS.mediumGray)
+    .font("Helvetica")
+    .fontSize(9)
+    .text(
+      new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+      MARGIN_LEFT,
+      doc.y,
+      { width: CONTENT_WIDTH, align: "right" }
+    );
+
+  doc.moveDown(1.5);
+
+  // Horizontal rule below date
+  drawHorizontalRule(doc);
+  doc.moveDown(1);
 }
 
 function buildAgentSignature(doc: PDFKit.PDFDocument, agent: AgentInfo): void {
@@ -526,7 +529,7 @@ function createDoc(title: string): PDFKit.PDFDocument {
     size: "LETTER",
     margins: { top: 60, bottom: 60, left: 60, right: 60 },
     info: {
-      Title: `${title} — ${AGENCY.name}`,
+      Title: `${title} -${AGENCY.name}`,
       Author: AGENCY.name,
       Subject: title,
       Creator: `${AGENCY.name} Document System`,
@@ -816,7 +819,7 @@ async function generateBeneficiaryDesignationConfirmation(
 
 async function generatePortalAccessInstructions(opts: GenerateDocumentOptions): Promise<Buffer> {
   const { client, agent } = opts;
-  const doc = createDoc("Your Client Portal — Getting Started");
+  const doc = createDoc("Your Client Portal -Getting Started");
 
   return wrapInBuffer(doc, () => {
     buildHeader(doc, "Your Client Portal \u2014 Getting Started");

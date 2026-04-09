@@ -4718,7 +4718,7 @@ export async function sendEmailWithAttachments(data: {
 }): Promise<any> {
   const gmail = await getGmailClient();
   if (!gmail) {
-    console.warn("[Gmail] Not configured — skipping attachment email");
+    console.warn("[Gmail] Not configured - skipping attachment email");
     return null;
   }
 

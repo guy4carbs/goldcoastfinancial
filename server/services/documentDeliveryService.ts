@@ -3,7 +3,7 @@
  * Multi-channel orchestrator: Firebase Storage + Email (with PDF) + SMS + Notification + Chat
  *
  * Delivers generated PDF documents through all available channels.
- * Each channel is non-blocking — failure in one does not prevent others.
+ * Each channel is non-blocking -failure in one does not prevent others.
  *
  * Governance: Forge (backend) + Conduit (integrations) + Relay (delivery)
  */
@@ -162,7 +162,7 @@ export async function deliverDocument(options: DeliveryOptions): Promise<Deliver
   if (!options.skipSms && options.client.phone && isSmsAvailable()) {
     try {
       await sendSms(options.client.phone,
-        `Heritage Life Solutions: A new document is available in your Client Portal — "${options.fileName.replace('.pdf', '')}". View it here: https://heritagels.org/client/documents`
+        `Heritage Life Solutions: A new document is available in your Client Portal -"${options.fileName.replace('.pdf', '')}". View it here: https://heritagels.org/client/documents`
       );
       result.channels.sms = { sent: true };
     } catch (err: any) {
@@ -220,7 +220,7 @@ export async function deliverDocument(options: DeliveryOptions): Promise<Deliver
 }
 
 // =============================================================================
-// WELCOME KIT — 1 email with 5 PDFs, 1 SMS, 5 portal records
+// WELCOME KIT -1 email with 5 PDFs, 1 SMS, 5 portal records
 // =============================================================================
 
 export async function generateAndDeliverWelcomeKit(options: WelcomeKitOptions): Promise<void> {
@@ -354,11 +354,11 @@ export async function generateAndDeliverWelcomeKit(options: WelcomeKitOptions): 
       <p>Congratulations on securing your life insurance coverage with Heritage Life Solutions. Your dedicated agent, <strong>${agentInfo.name}</strong>, has prepared your Welcome Kit.</p>
       <p>Attached you'll find:</p>
       <ul style="color:#374151;line-height:2;">
-        <li><strong>Welcome Letter</strong> — An introduction to Heritage and your agent</li>
-        <li><strong>Policy Summary</strong> — Your coverage details at a glance</li>
-        <li><strong>Claims Guide</strong> — How to file a claim when you need to</li>
-        <li><strong>Beneficiary Confirmation</strong> — Your current beneficiaries on record</li>
-        <li><strong>Portal Access Instructions</strong> — How to access your Client Portal</li>
+        <li><strong>Welcome Letter</strong> -An introduction to Heritage and your agent</li>
+        <li><strong>Policy Summary</strong> -Your coverage details at a glance</li>
+        <li><strong>Claims Guide</strong> -How to file a claim when you need to</li>
+        <li><strong>Beneficiary Confirmation</strong> -Your current beneficiaries on record</li>
+        <li><strong>Portal Access Instructions</strong> -How to access your Client Portal</li>
       </ul>
       <p>You can also access all of these documents anytime in your <a href="https://heritagels.org/client/documents" style="color:#7c3aed;font-weight:bold;">Client Portal</a>.</p>
       <p style="margin-top:24px;">Welcome to the Heritage family.</p>
@@ -374,7 +374,7 @@ export async function generateAndDeliverWelcomeKit(options: WelcomeKitOptions): 
     await sendEmailWithAttachments({
       to: client.email,
       replyTo: agentUser.email,
-      subject: `Your Heritage Life Solutions Welcome Kit — ${client.firstName}`,
+      subject: `Your Heritage Life Solutions Welcome Kit -${client.firstName}`,
       htmlBody: wrapInHeritageEmail(emailBody),
       plainTextBody: plainText,
       attachments: pdfs.map(pdf => ({
@@ -413,5 +413,5 @@ export async function generateAndDeliverWelcomeKit(options: WelcomeKitOptions): 
     console.error("[WelcomeKit] Notification failed:", err);
   }
 
-  console.log(`[WelcomeKit] Complete — ${pdfs.length} docs delivered to ${client.firstName} ${client.lastName}`);
+  console.log(`[WelcomeKit] Complete -${pdfs.length} docs delivered to ${client.firstName} ${client.lastName}`);
 }
