@@ -270,7 +270,17 @@ export function WebSocketProvider({ children, wsUrl }: WebSocketProviderProps) {
 export function useWebSocket() {
   const context = useContext(WebSocketContext);
   if (!context) {
-    throw new Error('useWebSocket must be used within a WebSocketProvider');
+    // Return no-op stubs instead of throwing — prevents crash during HMR or missing provider
+    return {
+      connectionState: 'disconnected' as ConnectionState,
+      connected: false,
+      subscribedChannels: [] as Channel[],
+      availableChannels: [] as Channel[],
+      subscribe: () => {},
+      unsubscribe: () => {},
+      addMessageHandler: () => () => {},
+      reconnect: () => {},
+    } as WebSocketContextType;
   }
   return context;
 }

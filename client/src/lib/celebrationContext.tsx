@@ -25,7 +25,13 @@ const CelebrationContext = createContext<CelebrationContextType | null>(null);
 export function useCelebration() {
   const context = useContext(CelebrationContext);
   if (!context) {
-    throw new Error('useCelebration must be used within CelebrationProvider');
+    // Return no-op stubs instead of throwing — prevents crash during HMR or missing provider
+    return {
+      showXP: () => {},
+      showAchievement: () => {},
+      showLevelUp: () => {},
+      showStreak: () => {},
+    } as CelebrationContextType;
   }
   return context;
 }

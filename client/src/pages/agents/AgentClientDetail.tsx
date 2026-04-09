@@ -240,6 +240,9 @@ export default function AgentClientDetail() {
   const [sendDocPolicyId, setSendDocPolicyId] = useState('');
   const [sendDocNote, setSendDocNote] = useState('');
   const [sendingDoc, setSendingDoc] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [debouncedNote, setDebouncedNote] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // ─── Claims status update state ───────────────────
   const [claimStatusMap, setClaimStatusMap] = useState<Record<number, string>>({});
@@ -289,6 +292,17 @@ export default function AgentClientDetail() {
     queryKey: ['/api/document-templates'],
     enabled: activeTab === 'documents',
   });
+
+  // Debounce personal note for live PDF preview (800ms delay)
+  useEffect(() => {
+    if (!showPdfPreview) return;
+    setPreviewLoading(true);
+    const timer = setTimeout(() => {
+      setDebouncedNote(sendDocNote);
+      setPreviewLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [sendDocNote, showPdfPreview]);
 
   const { data: docQueue = [] } = useQuery<any[]>({
     queryKey: ['/api/document-templates/queue', clientId],
@@ -1643,9 +1657,9 @@ export default function AgentClientDetail() {
       {/* ─── SEND DOCUMENT SHEET ──────────────────────── */}
       <Sheet open={showSendDocSheet} onOpenChange={(open) => {
         setShowSendDocSheet(open);
-        if (!open) { setSelectedTemplate(null); setSendDocPolicyId(''); setSendDocNote(''); }
+        if (!open) { setSelectedTemplate(null); setSendDocPolicyId(''); setSendDocNote(''); setShowPdfPreview(false); }
       }}>
-        <SheetContent className="sm:max-w-md overflow-y-auto" style={{ borderRadius: `${RADIUS.card}px 0 0 ${RADIUS.card}px` }}>
+        <SheetContent className={cn("overflow-y-auto transition-all duration-300", showPdfPreview ? "sm:max-w-5xl" : "sm:max-w-md")} style={{ borderRadius: `${RADIUS.card}px 0 0 ${RADIUS.card}px` }}>
           <SheetHeader>
             <SheetTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Send className="w-5 h-5 text-violet-600" />
@@ -1653,7 +1667,9 @@ export default function AgentClientDetail() {
             </SheetTitle>
           </SheetHeader>
 
-          <div className="space-y-5 mt-6">
+          <div className={cn("mt-6", showPdfPreview ? "flex gap-6" : "")}>
+          {/* Left column: form controls */}
+          <div className={cn("space-y-5", showPdfPreview ? "w-[360px] flex-shrink-0" : "w-full")}>
             {/* Template Selector */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-900">Document Template</Label>
@@ -1664,6 +1680,7 @@ export default function AgentClientDetail() {
                   setSelectedTemplate(tmpl || null);
                   setSendDocPolicyId('');
                   setSendDocNote('');
+                  setShowPdfPreview(false);
                 }}
               >
                 <SelectTrigger style={{ borderRadius: RADIUS.input }}>
@@ -1734,17 +1751,12 @@ export default function AgentClientDetail() {
               <div className="space-y-2 pt-2">
                 <Button
                   variant="outline"
-                  className="w-full text-violet-700 border-violet-200 hover:bg-violet-50"
+                  className={cn("w-full border-violet-200 hover:bg-violet-50", showPdfPreview ? "text-amber-700 border-amber-200 bg-amber-50" : "text-violet-700")}
                   style={{ borderRadius: RADIUS.button }}
-                  onClick={() =>
-                    window.open(
-                      `/api/document-templates/preview/${selectedTemplate.key}/${clientId}${sendDocPolicyId ? `?policyId=${sendDocPolicyId}` : ''}`,
-                      '_blank'
-                    )
-                  }
+                  onClick={() => setShowPdfPreview(!showPdfPreview)}
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  Preview PDF
+                  {showPdfPreview ? 'Hide Preview' : 'Preview PDF'}
                 </Button>
                 <Button
                   className="w-full bg-gradient-to-r from-violet-600 to-amber-500 hover:from-violet-700 hover:to-amber-600 text-white border-0"
@@ -1762,6 +1774,35 @@ export default function AgentClientDetail() {
                 </Button>
               </div>
             )}
+          </div>
+
+          {/* Right column: PDF preview iframe with live reload */}
+          {showPdfPreview && selectedTemplate && (() => {
+            const templateId = selectedTemplate.template_key || selectedTemplate.key;
+            const params: string[] = [];
+            if (sendDocPolicyId) params.push(`policyId=${sendDocPolicyId}`);
+            if (debouncedNote) params.push(`personalNote=${encodeURIComponent(debouncedNote)}`);
+            const previewUrl = `/api/document-templates/preview/${templateId}/${clientId}${params.length ? `?${params.join('&')}` : ''}`;
+
+            return (
+              <div className="flex-1 min-w-0 relative border border-gray-200 bg-gray-50 overflow-hidden" style={{ borderRadius: RADIUS.card, minHeight: 'calc(100vh - 120px)' }}>
+                {/* Loading overlay while debouncing */}
+                {previewLoading && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+                    <Loader2 className="w-8 h-8 text-violet-500 animate-spin mb-3" />
+                    <p className="text-sm text-gray-500 font-medium">Updating preview...</p>
+                  </div>
+                )}
+                <iframe
+                  key={previewUrl}
+                  src={previewUrl}
+                  className="w-full h-full"
+                  style={{ minHeight: 'calc(100vh - 120px)', border: 'none' }}
+                  title="Document Preview"
+                />
+              </div>
+            );
+          })()}
           </div>
         </SheetContent>
       </Sheet>

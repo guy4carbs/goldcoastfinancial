@@ -50,6 +50,14 @@ const AGENCY = {
   portalUrl: "https://heritagels.org/client/login",
 };
 
+const DEFAULT_CLAIM: ClaimInfo = {
+  claimNumber: "CLM-PREVIEW",
+  filedDate: new Date().toISOString(),
+  type: "Pending Review",
+  status: "filed",
+  amount: 0,
+};
+
 const PAGE_WIDTH = 612;
 const CONTENT_WIDTH = PAGE_WIDTH - 120; // 492pt
 const MARGIN_LEFT = 60;
@@ -1136,8 +1144,8 @@ async function generateAnnualReviewInvitation(opts: GenerateDocumentOptions): Pr
 // ---------------------------------------------------------------------------
 
 async function generateClaimsPacket(opts: GenerateDocumentOptions): Promise<Buffer> {
-  const { client, agent, policy, claim } = opts;
-  if (!claim) throw new Error("Claim information is required for claims_packet.");
+  const { client, agent, policy } = opts;
+  const claim = opts.claim || DEFAULT_CLAIM;
 
   const doc = createDoc("Claims Filing Packet");
 
@@ -1192,8 +1200,8 @@ async function generateClaimsPacket(opts: GenerateDocumentOptions): Promise<Buff
 // ---------------------------------------------------------------------------
 
 async function generateClaimAcknowledgment(opts: GenerateDocumentOptions): Promise<Buffer> {
-  const { client, agent, claim } = opts;
-  if (!claim) throw new Error("Claim information is required for claim_acknowledgment.");
+  const { client, agent } = opts;
+  const claim = opts.claim || DEFAULT_CLAIM;
 
   const doc = createDoc("Claim Acknowledgment");
 
@@ -1238,8 +1246,8 @@ async function generateClaimAcknowledgment(opts: GenerateDocumentOptions): Promi
 // ---------------------------------------------------------------------------
 
 async function generateClaimStatusUpdate(opts: GenerateDocumentOptions): Promise<Buffer> {
-  const { client, agent, claim, personalNote } = opts;
-  if (!claim) throw new Error("Claim information is required for claim_status_update.");
+  const { client, agent, personalNote } = opts;
+  const claim = opts.claim || DEFAULT_CLAIM;
 
   const doc = createDoc("Claim Status Update");
 
@@ -1294,8 +1302,8 @@ async function generateClaimStatusUpdate(opts: GenerateDocumentOptions): Promise
 // ---------------------------------------------------------------------------
 
 async function generateClaimApprovalLetter(opts: GenerateDocumentOptions): Promise<Buffer> {
-  const { client, agent, claim, personalNote, additionalData } = opts;
-  if (!claim) throw new Error("Claim information is required for claim_approval_letter.");
+  const { client, agent, personalNote, additionalData } = opts;
+  const claim = opts.claim || DEFAULT_CLAIM;
 
   const doc = createDoc("Claim Approval Notice");
 
@@ -1342,8 +1350,8 @@ async function generateClaimApprovalLetter(opts: GenerateDocumentOptions): Promi
 // ---------------------------------------------------------------------------
 
 async function generateClaimDenialLetter(opts: GenerateDocumentOptions): Promise<Buffer> {
-  const { client, agent, claim, personalNote } = opts;
-  if (!claim) throw new Error("Claim information is required for claim_denial_letter.");
+  const { client, agent, personalNote } = opts;
+  const claim = opts.claim || DEFAULT_CLAIM;
 
   const doc = createDoc("Claim Decision Notice");
 

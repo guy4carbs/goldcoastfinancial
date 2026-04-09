@@ -86,7 +86,35 @@ function getGreeting(): string {
 }
 
 
-export default function AgentDashboard() {
+// Error boundary to prevent dashboard crashes from taking down the app
+class DashboardErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: any) {
+    console.error("[AgentDashboard] Caught error:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Dashboard Loading Error</h2>
+          <p className="text-gray-500 mb-4">Something went wrong. Please refresh the page.</p>
+          <button onClick={() => { this.setState({ hasError: false }); window.location.reload(); }} className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700">
+            Refresh
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function AgentDashboardInner() {
   const {
     currentUser,
     performance,
@@ -242,6 +270,10 @@ export default function AgentDashboard() {
     };
   };
 
+  // Earnings from API (must be before getCommandDirective which references pendingEarnings)
+  const pendingEarnings = apiEarnings?.monthlyAp ?? 0;
+  const paidEarnings = apiEarnings?.ytdEarnings ?? 0;
+
   const directive = getCommandDirective();
 
   // Pipeline stats from API
@@ -271,9 +303,6 @@ export default function AgentDashboard() {
     .slice(0, 5), [tasks]);
 
   // Earnings from API
-  const pendingEarnings = apiEarnings?.monthlyAp ?? 0;
-  const paidEarnings = apiEarnings?.ytdEarnings ?? 0;
-
   // Fetch real team activity from API
   const { data: activityData } = useQuery<any>({
     queryKey: ['/api/team-activity?limit=20'],
@@ -926,14 +955,14 @@ export default function AgentDashboard() {
                           {idx === 0 ? <Trophy className="w-4 h-4" /> : idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate text-white">
+                          <span className="font-semibold text-sm truncate text-white block">
                             {entry.name}
                             {entry.id === currentUser?.id && (
                               <Badge className="ml-2 text-[9px] px-1.5 py-0 bg-white/30 text-white border-0">
                                 You
                               </Badge>
                             )}
-                          </p>
+                          </span>
                           <p className="text-[10px] text-white/70 flex items-center gap-1">
                             <Zap className="w-3 h-3 text-yellow-300" /> Level {entry.level}
                           </p>
@@ -1100,5 +1129,13 @@ export default function AgentDashboard() {
         </div>
       </motion.div>
     </AgentLoungeLayout>
+  );
+}
+
+export default function AgentDashboard() {
+  return (
+    <DashboardErrorBoundary>
+      <AgentDashboardInner />
+    </DashboardErrorBoundary>
   );
 }

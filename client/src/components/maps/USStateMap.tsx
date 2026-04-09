@@ -127,7 +127,7 @@ export function USStateMap({
             )}
             {data.value !== undefined && data.value > 0 && (
               <p className="text-xs text-gray-600">
-                ${data.value.toLocaleString()}
+                ${data.value.toLocaleString()} AP
               </p>
             )}
           </>

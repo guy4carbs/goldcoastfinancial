@@ -309,7 +309,6 @@ export default function AgentPerformance() {
             >
               {[
                 { value: 'earnings', label: 'Earnings', icon: DollarSign },
-                { value: 'pipeline', label: 'Pipeline', icon: Layers },
               ].map((tab) => (
                 <button
                   key={tab.value}
@@ -328,8 +327,8 @@ export default function AgentPerformance() {
               ))}
             </div>
 
-            {/* Pipeline Tab */}
-            <TabsContent value="pipeline" className="space-y-6 mt-6">
+            {/* Pipeline Tab - Removed */}
+            {false && <TabsContent value="pipeline" className="space-y-6 mt-6">
               {/* Summary Stats */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
@@ -543,7 +542,7 @@ export default function AgentPerformance() {
                       </CardContent>
                     </Card>
                   )}
-            </TabsContent>
+            </TabsContent>}
 
             {/* Earnings Tab */}
             <TabsContent value="earnings" className="space-y-6 mt-6">

@@ -671,7 +671,7 @@ router.get("/preview/:templateKey/:clientId", requireAuth, async (req: Request, 
   try {
     const agentId = req.user!.id;
     const { templateKey, clientId } = req.params;
-    const { policyId } = req.query as { policyId?: string };
+    const { policyId, personalNote } = req.query as { policyId?: string; personalNote?: string };
 
     // Fetch client and agent
     const client = await storage.getUserById(clientId);
@@ -693,7 +693,7 @@ router.get("/preview/:templateKey/:clientId", requireAuth, async (req: Request, 
       policy = policies.find((p: any) => p.status === 'active') || policies[0] || null;
     }
 
-    // Auto-resolve claim for claims templates
+    // Auto-resolve claim for claims templates (graceful - don't fail if no claims)
     let claim: any = null;
     if (templateKey.includes('claim')) {
       try {
@@ -702,13 +702,14 @@ router.get("/preview/:templateKey/:clientId", requireAuth, async (req: Request, 
       } catch {}
     }
 
-    // Build options and generate PDF
-    const docOptions = await buildDocumentOptions(templateKey, client, agentUser, policy, claim);
+    // Build options and generate PDF (include personalNote from query)
+    const docOptions = await buildDocumentOptions(templateKey, client, agentUser, policy, claim, personalNote ? decodeURIComponent(personalNote) : undefined);
     const pdfBuffer = await generateDocument(docOptions);
 
     // Return raw PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="preview-${templateKey}.pdf"`);
+    res.setHeader("Cache-Control", "no-cache, no-store");
     res.send(pdfBuffer);
   } catch (error: any) {
     console.error("[DocTemplates] Preview failed:", error);

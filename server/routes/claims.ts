@@ -48,11 +48,14 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
     const agent = req.user! as AuthenticatedUser;
     const claims = await storage.getClaimsByAgentId(agent.id);
 
-    // Enrich each claim with client info and notes
+    // Enrich each claim with client info, policy details, and notes
     const enriched = await Promise.all(
       claims.map(async (claim) => {
         const client = claim.claimantUserId
           ? await storage.getUserById(claim.claimantUserId)
+          : null;
+        const policy = claim.policyId
+          ? await storage.getPolicyById(claim.policyId)
           : null;
         const notes = await storage.getClaimNotes(claim.id);
         return {
@@ -60,6 +63,9 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
           clientName: client ? `${client.firstName} ${client.lastName}` : "Unknown",
           clientEmail: client?.email || "",
           clientPhone: client?.phone || "",
+          policyNumber: policy?.policyNumber || claim.policyId || "N/A",
+          policyType: policy?.type || "",
+          carrier: policy?.carrier || claim.carrier || "",
           notes,
         };
       })

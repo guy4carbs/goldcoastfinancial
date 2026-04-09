@@ -91,7 +91,7 @@ export function StateMapWidget({ agentId, className }: StateMapWidgetProps) {
         result[p.stateCode] = {
           highlighted: true,
           count: p.count,
-          value: p.totalCoverage,
+          value: p.totalPremium,
         };
       });
     }
@@ -318,7 +318,7 @@ export function StateMapWidget({ agentId, className }: StateMapWidgetProps) {
                         style={{ borderRadius: RADIUS.pill }}
                       >
                         <TrendingUp className="w-3 h-3 mr-1" />
-                        ${stats.totalValue.toLocaleString()}
+                        ${stats.totalValue.toLocaleString()} AP
                       </Badge>
                     )}
                   </div>
@@ -518,8 +518,8 @@ export function StateMapWidget({ agentId, className }: StateMapWidgetProps) {
                     </div>
                     {stats.totalValue > 0 && (
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Total Value</span>
-                        <span className="text-sm font-bold text-amber-600">${stats.totalValue.toLocaleString()}</span>
+                        <span className="text-xs text-gray-500">Total AP</span>
+                        <span className="text-sm font-bold text-amber-600">${stats.totalValue.toLocaleString()} AP</span>
                       </div>
                     )}
                   </div>
