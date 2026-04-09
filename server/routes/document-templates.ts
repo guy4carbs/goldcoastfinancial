@@ -376,11 +376,21 @@ router.post("/generate", requireAuth, async (req: Request, res: Response) => {
     let policy: any = null;
     if (policyId) {
       policy = await storage.getPolicyById(policyId);
+    } else {
+      // Auto-resolve client's first active policy if none specified
+      const policies = await storage.getPoliciesByUserId(clientUserId);
+      policy = policies.find((p: any) => p.status === 'active') || policies[0] || null;
     }
 
     let claim: any = null;
     if (claimId) {
       claim = await storage.getClaimById(claimId);
+    } else if (template.category === 'claims') {
+      // Auto-resolve client's most recent claim
+      try {
+        const claims = await storage.getClaimsByClientId(clientUserId);
+        claim = claims[0] || null;
+      } catch {}
     }
 
     // 3. Create queue record
@@ -674,14 +684,26 @@ router.get("/preview/:templateKey/:clientId", requireAuth, async (req: Request, 
       return res.status(404).json({ error: "Agent not found" });
     }
 
-    // Fetch policy if provided
+    // Fetch policy (provided or auto-resolve)
     let policy: any = null;
     if (policyId) {
       policy = await storage.getPolicyById(policyId);
+    } else {
+      const policies = await storage.getPoliciesByUserId(clientId);
+      policy = policies.find((p: any) => p.status === 'active') || policies[0] || null;
+    }
+
+    // Auto-resolve claim for claims templates
+    let claim: any = null;
+    if (templateKey.includes('claim')) {
+      try {
+        const claims = await storage.getClaimsByClientId(clientId);
+        claim = claims[0] || null;
+      } catch {}
     }
 
     // Build options and generate PDF
-    const docOptions = await buildDocumentOptions(templateKey, client, agentUser, policy, null);
+    const docOptions = await buildDocumentOptions(templateKey, client, agentUser, policy, claim);
     const pdfBuffer = await generateDocument(docOptions);
 
     // Return raw PDF

@@ -141,46 +141,63 @@ function ensureSpace(doc: PDFKit.PDFDocument, needed: number): void {
 // ---------------------------------------------------------------------------
 
 function buildHeader(doc: PDFKit.PDFDocument, title: string): void {
-  // Violet header rectangle
+  // Centered violet header bar
+  const barWidth = 420;
+  const barX = (PAGE_WIDTH - barWidth) / 2;
+
   doc
-    .rect(0, 0, PAGE_WIDTH, 100)
+    .rect(barX, 20, barWidth, 80)
     .fill(COLORS.headerBg);
 
-  // Agency name
+  // Rounded corners effect via slight radius
+  doc
+    .roundedRect(barX, 20, barWidth, 80, 6)
+    .fill(COLORS.headerBg);
+
+  // Centered agency name
   doc
     .font("Helvetica")
     .fontSize(9)
     .fillColor(COLORS.headerText)
-    .text("HERITAGE LIFE SOLUTIONS", MARGIN_LEFT, 30, { width: CONTENT_WIDTH });
+    .text("HERITAGE LIFE SOLUTIONS", 0, 38, { width: PAGE_WIDTH, align: "center" });
 
-  // Gold accent line
+  // Tagline
+  doc
+    .font("Helvetica")
+    .fontSize(7)
+    .fillColor("#c4b5fd")
+    .text("Protecting What Matters Most", 0, 50, { width: PAGE_WIDTH, align: "center" });
+
+  // Document title centered
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .fillColor(COLORS.headerText)
+    .text(title, 0, 65, { width: PAGE_WIDTH, align: "center" });
+
+  // Gold accent line centered below bar
+  const lineWidth = 200;
+  const lineX = (PAGE_WIDTH - lineWidth) / 2;
   doc
     .strokeColor(COLORS.goldAccent)
     .lineWidth(2)
-    .moveTo(0, 100)
-    .lineTo(PAGE_WIDTH, 100)
+    .moveTo(lineX, 105)
+    .lineTo(lineX + lineWidth, 105)
     .stroke();
 
-  // Document title
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(16)
-    .fillColor(COLORS.headerText)
-    .text(title, MARGIN_LEFT, 55, { width: CONTENT_WIDTH });
-
-  // Date right-aligned below header
+  // Date centered below gold line
   doc
     .font("Helvetica")
     .fontSize(9)
     .fillColor(COLORS.mediumGray)
     .text(
       new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
-      MARGIN_LEFT,
+      0,
       115,
-      { width: CONTENT_WIDTH, align: "right" }
+      { width: PAGE_WIDTH, align: "center" }
     );
 
-  doc.y = 135;
+  doc.y = 140;
 }
 
 function buildAgentSignature(doc: PDFKit.PDFDocument, agent: AgentInfo): void {
@@ -228,25 +245,96 @@ function buildAgentSignature(doc: PDFKit.PDFDocument, agent: AgentInfo): void {
 }
 
 function buildFooter(doc: PDFKit.PDFDocument): void {
+  // Small inline footer on every page
   const footerY = 732 - 14;
-
   doc
     .font("Helvetica")
     .fontSize(7)
     .fillColor(COLORS.lightGray)
     .text(
-      `${AGENCY.name} is a DBA of ${AGENCY.legal}. IL License #${AGENCY.npn}.`,
+      `${AGENCY.name} | ${AGENCY.legal} | IL License #${AGENCY.npn} | ${AGENCY.website}`,
       MARGIN_LEFT,
       footerY,
       { width: CONTENT_WIDTH, align: "center" }
     );
+}
 
+function buildLegalDisclosurePage(doc: PDFKit.PDFDocument): void {
+  doc.addPage();
+
+  // Centered header
   doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .fillColor(COLORS.sectionHeading)
+    .text("LEGAL DISCLOSURES", 0, 60, { width: PAGE_WIDTH, align: "center" });
+
+  // Gold divider
+  const lineWidth = 120;
+  const lineX = (PAGE_WIDTH - lineWidth) / 2;
+  doc
+    .strokeColor(COLORS.goldAccent)
+    .lineWidth(1.5)
+    .moveTo(lineX, 80)
+    .lineTo(lineX + lineWidth, 80)
+    .stroke();
+
+  doc.y = 100;
+
+  const sections = [
+    {
+      heading: "DISCLAIMER",
+      body: "This document is provided for informational purposes only and does not constitute, modify, amend, or replace any insurance policy, contract, certificate, or agreement issued by the insurance carrier. The terms and conditions of your insurance coverage are governed solely by the actual policy document issued by your carrier. In the event of any discrepancy between this document and your policy, the policy shall prevail.",
+    },
+    {
+      heading: "PRIVACY NOTICE",
+      body: "Heritage Life Solutions protects your personal information in accordance with applicable federal and state privacy laws, including the Gramm-Leach-Bliley Act and the NAIC Insurance Data Security Model Law. We collect, use, and disclose personal information only as necessary to provide insurance services, process claims, and fulfill regulatory obligations. Your information is never sold to third parties. For our full privacy policy, visit heritagels.org/privacy.",
+    },
+    {
+      heading: "ELECTRONIC DELIVERY CONSENT",
+      body: "By accessing this document electronically, you acknowledge and consent to electronic delivery of insurance-related documents pursuant to the Electronic Signatures in Global and National Commerce Act (ESIGN Act, 15 U.S.C. §7001 et seq.) and the Illinois Uniform Electronic Transactions Act (815 ILCS 333). You may withdraw your consent to electronic delivery at any time by contacting your agent.",
+    },
+    {
+      heading: "LICENSING INFORMATION",
+      body: `Heritage Life Solutions is a DBA (Doing Business As) of ${AGENCY.legal}. Illinois Department of Insurance License #${AGENCY.npn}. National Producer Number (NPN): ${AGENCY.npn}. Heritage Life Solutions operates as an independent insurance agency and is not an insurance carrier. Products and coverage are provided by the carriers listed in your policy documents.`,
+    },
+    {
+      heading: "COMPLAINT INFORMATION",
+      body: "If you have a complaint regarding your insurance coverage or this agency, you may contact the Illinois Department of Insurance at (866) 445-5364 or online at insurance.illinois.gov. You may also contact Heritage Life Solutions directly at support@heritagels.org.",
+    },
+  ];
+
+  for (const section of sections) {
+    ensureSpace(doc, 100);
+
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(8)
+      .fillColor(COLORS.sectionHeading)
+      .text(section.heading, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
+
+    doc.moveDown(0.3);
+
+    doc
+      .font("Helvetica")
+      .fontSize(7.5)
+      .fillColor(COLORS.mediumGray)
+      .text(section.body, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH, lineGap: 2 });
+
+    doc.moveDown(1);
+  }
+
+  // Copyright
+  doc.moveDown(1);
+  doc
+    .font("Helvetica")
+    .fontSize(7)
+    .fillColor(COLORS.lightGray)
     .text(
-      "This document is for informational purposes and does not modify the terms of any insurance policy.",
-      MARGIN_LEFT,
+      `© ${new Date().getFullYear()} ${AGENCY.legal}. All rights reserved.`,
+      0,
       doc.y,
-      { width: CONTENT_WIDTH, align: "center" }
+      { width: PAGE_WIDTH, align: "center" }
     );
 }
 
@@ -557,6 +645,7 @@ async function generateWelcomeLetter(opts: GenerateDocumentOptions): Promise<Buf
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -611,6 +700,7 @@ async function generatePolicySummary(opts: GenerateDocumentOptions): Promise<Buf
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -671,6 +761,7 @@ async function generateClaimsGuide(opts: GenerateDocumentOptions): Promise<Buffe
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -715,6 +806,7 @@ async function generateBeneficiaryDesignationConfirmation(
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -767,6 +859,7 @@ async function generatePortalAccessInstructions(opts: GenerateDocumentOptions): 
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -845,6 +938,7 @@ async function generateAnnualPolicyStatement(opts: GenerateDocumentOptions): Pro
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -904,6 +998,7 @@ async function generatePremiumPaymentReminder(opts: GenerateDocumentOptions): Pr
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -946,6 +1041,7 @@ async function generatePolicyAnniversaryLetter(opts: GenerateDocumentOptions): P
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -985,6 +1081,7 @@ async function generateAnnualReviewInvitation(opts: GenerateDocumentOptions): Pr
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1040,6 +1137,7 @@ async function generateClaimsPacket(opts: GenerateDocumentOptions): Promise<Buff
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1085,6 +1183,7 @@ async function generateClaimAcknowledgment(opts: GenerateDocumentOptions): Promi
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1140,6 +1239,7 @@ async function generateClaimStatusUpdate(opts: GenerateDocumentOptions): Promise
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1187,6 +1287,7 @@ async function generateClaimApprovalLetter(opts: GenerateDocumentOptions): Promi
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1252,6 +1353,7 @@ async function generateClaimDenialLetter(opts: GenerateDocumentOptions): Promise
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1309,6 +1411,7 @@ async function generateBeneficiaryChangeConfirmation(
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1373,6 +1476,7 @@ async function generateContactUpdateConfirmation(opts: GenerateDocumentOptions):
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
 
@@ -1440,5 +1544,6 @@ async function generatePaymentMethodUpdateConfirmation(
 
     buildAgentSignature(doc, agent);
     buildFooter(doc);
+    buildLegalDisclosurePage(doc);
   });
 }
