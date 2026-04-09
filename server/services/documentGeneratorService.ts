@@ -15,22 +15,37 @@ import { CARRIER_BRANDING } from "../../shared/carrierBranding";
 // Constants
 // ---------------------------------------------------------------------------
 
+// Heritage Brand Colors (extracted from heritage_logo_system_final.svg)
 const COLORS = {
-  headerBg: "#3b1f7e",
-  headerAccent: "#7c3aed",
-  goldAccent: "#D4AF37",
-  headerText: "#ffffff",
-  sectionHeading: "#1f2937",
-  bodyText: "#374151",
-  lightGray: "#9ca3af",
-  mediumGray: "#6b7280",
+  // Primary palette
+  navyDark: "#2D2060",      // Deep navy - cover page bg, header bars
+  navyMedium: "#3A2880",    // Medium navy - accents
+  navyHeader: "#3D2E8A",    // Header bar bg
+  violet: "#4A3A9E",        // Interactive elements
+  // Gold palette
+  goldPrimary: "#C8A840",   // Primary gold - headings, accents, section labels
+  goldDark: "#A07820",      // Dark gold - hover states
+  goldBright: "#E8C87A",    // Bright gold - decorative lines
+  goldLight: "#D4CCA8",     // Subtle gold backgrounds
+  // Text
+  textDark: "#140E04",      // Primary body text
+  textBody: "#2a2a2a",      // Body copy
+  textMedium: "#6b7280",    // Secondary text
+  textLight: "#9ca3af",     // Captions
+  // Backgrounds
+  cream: "#FAF7F0",         // Page accent
+  creamDark: "#EDE4CC",     // Table row alt
+  white: "#ffffff",
+  // Borders
   border: "#d1d5db",
+  borderGold: "#C8A840",
 };
 
 const AGENCY = {
   name: "Heritage Life Solutions",
   legal: "Gold Coast Financial Partners, LLC",
   npn: "22128144",
+  phone: "(630) 778-0888",
   website: "heritagels.org",
   portalUrl: "https://heritagels.org/client/login",
 };
@@ -140,53 +155,32 @@ function ensureSpace(doc: PDFKit.PDFDocument, needed: number): void {
 // Common PDF Builders
 // ---------------------------------------------------------------------------
 
-function buildHeader(doc: PDFKit.PDFDocument, title: string): void {
-  // Full-width violet header bar (matches documentSigningService.ts)
+function buildHeader(doc: PDFKit.PDFDocument, title: string, subtitle?: string): void {
+  // Taller navy header bar
   doc
-    .rect(0, 0, PAGE_WIDTH, 100)
-    .fill(COLORS.headerBg);
+    .rect(0, 0, PAGE_WIDTH, 64)
+    .fill(COLORS.navyDark);
 
-  // Agency name centered in header
-  doc
-    .font("Helvetica")
-    .fontSize(9)
-    .fillColor(COLORS.headerText)
-    .text(
-      "HERITAGE LIFE SOLUTIONS",
-      MARGIN_LEFT,
-      25,
-      { width: CONTENT_WIDTH, align: "center" }
-    );
-
-  // Document title centered (adaptive size for long titles)
-  const titleFontSize = title.length > 40 ? 12 : 16;
-  const titleY = title.length > 40 ? 40 : 42;
-
+  // "HERITAGE LIFE SOLUTIONS" centered, spaced lettering
   doc
     .font("Helvetica-Bold")
-    .fontSize(titleFontSize)
-    .fillColor(COLORS.headerText)
-    .text(title, MARGIN_LEFT, titleY, {
-      width: CONTENT_WIDTH,
-      align: "center",
-    });
+    .fontSize(13)
+    .fillColor(COLORS.white)
+    .text("H E R I T A G E   L I F E   S O L U T I O N S", 0, 25, { width: PAGE_WIDTH, align: "center" });
 
-  // License line centered
+  // Gold accent line below header bar
   doc
-    .font("Helvetica")
-    .fontSize(8)
-    .fillColor(COLORS.headerText)
-    .text(`Illinois License #${AGENCY.npn}`, MARGIN_LEFT, 74, {
-      width: CONTENT_WIDTH,
-      align: "center",
-    });
+    .strokeColor(COLORS.goldBright)
+    .lineWidth(2)
+    .moveTo(0, 64)
+    .lineTo(PAGE_WIDTH, 64)
+    .stroke();
 
-  // Move below header
-  doc.y = 120;
+  doc.y = 80;
 
   // Date right-aligned
   doc
-    .fillColor(COLORS.mediumGray)
+    .fillColor(COLORS.textMedium)
     .font("Helvetica")
     .fontSize(9)
     .text(
@@ -196,51 +190,74 @@ function buildHeader(doc: PDFKit.PDFDocument, title: string): void {
       { width: CONTENT_WIDTH, align: "right" }
     );
 
-  doc.moveDown(1.5);
+  doc.moveDown(0.5);
 
-  // Horizontal rule below date
-  drawHorizontalRule(doc);
+  // Document title - large serif-style heading
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(title.length > 40 ? 18 : 22)
+    .fillColor(COLORS.textDark)
+    .text(title, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
+
+  // Gold rule under title
+  doc.moveDown(0.5);
+  doc
+    .strokeColor(COLORS.goldPrimary)
+    .lineWidth(1)
+    .moveTo(MARGIN_LEFT, doc.y)
+    .lineTo(MARGIN_LEFT + CONTENT_WIDTH, doc.y)
+    .stroke();
+
   doc.moveDown(1);
 }
 
 function buildAgentSignature(doc: PDFKit.PDFDocument, agent: AgentInfo): void {
   ensureSpace(doc, 120);
   doc.moveDown(1.5);
-  drawHorizontalRule(doc);
+
+  // Gold divider
+  doc
+    .strokeColor(COLORS.goldPrimary)
+    .lineWidth(1)
+    .moveTo(MARGIN_LEFT, doc.y)
+    .lineTo(MARGIN_LEFT + CONTENT_WIDTH, doc.y)
+    .stroke();
+
   doc.moveDown(0.8);
 
   doc
     .font("Helvetica-Bold")
     .fontSize(10)
-    .fillColor(COLORS.sectionHeading)
+    .fillColor(COLORS.textDark)
     .text(agent.name, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .fillColor(COLORS.mediumGray)
+    .fillColor(COLORS.goldDark)
     .text("Licensed Insurance Agent", MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .fillColor(COLORS.bodyText)
+    .fillColor(COLORS.textBody)
     .text(agent.phone, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
 
   doc
     .text(agent.email, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
 
-  doc
-    .text(`NPN: ${agent.npn}`, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
+  if (agent.npn) {
+    doc.text(`NPN: ${agent.npn}`, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
+  }
 
   doc.moveDown(0.5);
 
   doc
     .font("Helvetica")
     .fontSize(8)
-    .fillColor(COLORS.lightGray)
+    .fillColor(COLORS.textMedium)
     .text(
-      `${AGENCY.name} | Agency NPN: ${AGENCY.npn}`,
+      `${AGENCY.name} | ${AGENCY.phone} | ${AGENCY.website}`,
       MARGIN_LEFT,
       doc.y,
       { width: CONTENT_WIDTH }
@@ -248,12 +265,18 @@ function buildAgentSignature(doc: PDFKit.PDFDocument, agent: AgentInfo): void {
 }
 
 function buildFooter(doc: PDFKit.PDFDocument): void {
-  // Small inline footer on every page
-  const footerY = 732 - 14;
+  const footerY = 732 - 10;
+
+  // Navy bar at bottom
+  doc
+    .rect(0, footerY - 6, PAGE_WIDTH, 30)
+    .fill(COLORS.navyDark);
+
+  // Agency info centered in white
   doc
     .font("Helvetica")
     .fontSize(7)
-    .fillColor(COLORS.lightGray)
+    .fillColor(COLORS.white)
     .text(
       `${AGENCY.name} | ${AGENCY.legal} | IL License #${AGENCY.npn} | ${AGENCY.website}`,
       MARGIN_LEFT,
@@ -265,24 +288,44 @@ function buildFooter(doc: PDFKit.PDFDocument): void {
 function buildLegalDisclosurePage(doc: PDFKit.PDFDocument): void {
   doc.addPage();
 
-  // Centered header
+  // Navy header bar (same as content pages)
+  doc
+    .rect(0, 0, PAGE_WIDTH, 64)
+    .fill(COLORS.navyDark);
+
   doc
     .font("Helvetica-Bold")
-    .fontSize(12)
-    .fillColor(COLORS.sectionHeading)
-    .text("LEGAL DISCLOSURES", 0, 60, { width: PAGE_WIDTH, align: "center" });
+    .fontSize(13)
+    .fillColor(COLORS.white)
+    .text("H E R I T A G E   L I F E   S O L U T I O N S", 0, 25, { width: PAGE_WIDTH, align: "center" });
 
-  // Gold divider
-  const lineWidth = 120;
-  const lineX = (PAGE_WIDTH - lineWidth) / 2;
   doc
-    .strokeColor(COLORS.goldAccent)
-    .lineWidth(1.5)
-    .moveTo(lineX, 80)
-    .lineTo(lineX + lineWidth, 80)
+    .strokeColor(COLORS.goldBright)
+    .lineWidth(2)
+    .moveTo(0, 64)
+    .lineTo(PAGE_WIDTH, 64)
     .stroke();
 
-  doc.y = 100;
+  doc.y = 80;
+
+  // Section label in gold
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor(COLORS.goldPrimary)
+    .text("LEGAL DISCLOSURES", MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
+
+  doc.moveDown(0.5);
+
+  // Gold rule
+  doc
+    .strokeColor(COLORS.goldPrimary)
+    .lineWidth(1)
+    .moveTo(MARGIN_LEFT, doc.y)
+    .lineTo(MARGIN_LEFT + CONTENT_WIDTH, doc.y)
+    .stroke();
+
+  doc.y += 12;
 
   const sections = [
     {
@@ -313,7 +356,7 @@ function buildLegalDisclosurePage(doc: PDFKit.PDFDocument): void {
     doc
       .font("Helvetica-Bold")
       .fontSize(8)
-      .fillColor(COLORS.sectionHeading)
+      .fillColor(COLORS.goldDark)
       .text(section.heading, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
 
     doc.moveDown(0.3);
@@ -321,7 +364,7 @@ function buildLegalDisclosurePage(doc: PDFKit.PDFDocument): void {
     doc
       .font("Helvetica")
       .fontSize(7.5)
-      .fillColor(COLORS.mediumGray)
+      .fillColor(COLORS.textBody)
       .text(section.body, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH, lineGap: 2 });
 
     doc.moveDown(1);
@@ -332,7 +375,7 @@ function buildLegalDisclosurePage(doc: PDFKit.PDFDocument): void {
   doc
     .font("Helvetica")
     .fontSize(7)
-    .fillColor(COLORS.lightGray)
+    .fillColor(COLORS.textLight)
     .text(
       `© ${new Date().getFullYear()} ${AGENCY.legal}. All rights reserved.`,
       0,
@@ -356,7 +399,7 @@ async function embedCarrierLogo(
       doc
         .font("Helvetica-Bold")
         .fontSize(10)
-        .fillColor(COLORS.sectionHeading)
+        .fillColor(COLORS.textDark)
         .text(branding.name, x, y, { width: maxWidth, align: "right" });
     }
     return;
@@ -370,14 +413,14 @@ async function embedCarrierLogo(
       doc
         .font("Helvetica-Bold")
         .fontSize(10)
-        .fillColor(COLORS.sectionHeading)
+        .fillColor(COLORS.textDark)
         .text(branding.name, x, y, { width: maxWidth, align: "right" });
     }
   } else {
     doc
       .font("Helvetica-Bold")
       .fontSize(10)
-      .fillColor(COLORS.sectionHeading)
+      .fillColor(COLORS.textDark)
       .text(branding.name, x, y, { width: maxWidth, align: "right" });
   }
 }
@@ -398,13 +441,13 @@ function drawTableRow(
   doc
     .font("Helvetica-Bold")
     .fontSize(9)
-    .fillColor(COLORS.sectionHeading)
+    .fillColor(COLORS.textDark)
     .text(label, MARGIN_LEFT, y, { width: labelWidth });
 
   doc
     .font("Helvetica")
     .fontSize(9)
-    .fillColor(COLORS.bodyText)
+    .fillColor(COLORS.textBody)
     .text(value, MARGIN_LEFT + labelWidth, y, { width: CONTENT_WIDTH - labelWidth });
 
   doc.y = Math.max(doc.y, y + 14);
@@ -417,7 +460,7 @@ function drawSectionHeading(doc: PDFKit.PDFDocument, heading: string): void {
   doc
     .font("Helvetica-Bold")
     .fontSize(11)
-    .fillColor(COLORS.sectionHeading)
+    .fillColor(COLORS.textDark)
     .text(heading, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH });
 
   doc.moveDown(0.4);
@@ -438,7 +481,7 @@ function drawBeneficiaryTable(
   doc
     .font("Helvetica-Bold")
     .fontSize(9)
-    .fillColor(COLORS.sectionHeading)
+    .fillColor(COLORS.textDark)
     .text("Name", colName, headerY)
     .text("Relationship", colRel, headerY)
     .text("Allocation %", colPct, headerY);
@@ -463,7 +506,7 @@ function drawBeneficiaryTable(
     doc
       .font("Helvetica")
       .fontSize(9)
-      .fillColor(COLORS.bodyText)
+      .fillColor(COLORS.textBody)
       .text(b.name, colName, rowY, { width: 190 })
       .text(b.relationship, colRel, rowY, { width: 170 })
       .text(`${b.percentage}%`, colPct, rowY, { width: 80 });
@@ -477,7 +520,7 @@ function drawParagraph(doc: PDFKit.PDFDocument, text: string, style?: "italic"):
   doc
     .font(style === "italic" ? "Helvetica-Oblique" : "Helvetica")
     .fontSize(9.5)
-    .fillColor(COLORS.bodyText)
+    .fillColor(COLORS.textBody)
     .text(text, MARGIN_LEFT, doc.y, {
       width: CONTENT_WIDTH,
       lineGap: 3,
@@ -490,11 +533,11 @@ function drawNumberedItem(doc: PDFKit.PDFDocument, number: number, text: string)
   doc
     .font("Helvetica-Bold")
     .fontSize(9.5)
-    .fillColor(COLORS.sectionHeading)
+    .fillColor(COLORS.textDark)
     .text(`${number}.`, MARGIN_LEFT, doc.y, { continued: true });
   doc
     .font("Helvetica")
-    .fillColor(COLORS.bodyText)
+    .fillColor(COLORS.textBody)
     .text(`  ${text}`, { width: CONTENT_WIDTH - 20, lineGap: 3 });
   doc.moveDown(0.3);
 }
@@ -504,7 +547,7 @@ function drawBulletItem(doc: PDFKit.PDFDocument, text: string): void {
   doc
     .font("Helvetica")
     .fontSize(9.5)
-    .fillColor(COLORS.bodyText)
+    .fillColor(COLORS.textBody)
     .text(`\u2022  ${text}`, MARGIN_LEFT + 10, doc.y, {
       width: CONTENT_WIDTH - 10,
       lineGap: 3,
@@ -837,7 +880,7 @@ async function generatePortalAccessInstructions(opts: GenerateDocumentOptions): 
     doc
       .font("Helvetica-Bold")
       .fontSize(10)
-      .fillColor(COLORS.headerAccent)
+      .fillColor(COLORS.violet)
       .text(AGENCY.portalUrl, MARGIN_LEFT, doc.y, { width: CONTENT_WIDTH, link: AGENCY.portalUrl });
     doc.moveDown(0.5);
 
@@ -1463,7 +1506,7 @@ async function generateContactUpdateConfirmation(opts: GenerateDocumentOptions):
     doc
       .font("Helvetica-Bold")
       .fontSize(9.5)
-      .fillColor(COLORS.sectionHeading)
+      .fillColor(COLORS.textDark)
       .text(
         "If you did not request this change, please contact your agent immediately.",
         MARGIN_LEFT,
@@ -1531,7 +1574,7 @@ async function generatePaymentMethodUpdateConfirmation(
     doc
       .font("Helvetica-Bold")
       .fontSize(9.5)
-      .fillColor(COLORS.sectionHeading)
+      .fillColor(COLORS.textDark)
       .text(
         "If you did not authorize this change, please contact your agent immediately.",
         MARGIN_LEFT,

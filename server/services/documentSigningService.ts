@@ -28,10 +28,12 @@ export interface SignerInfo {
 // ---------------------------------------------------------------------------
 
 const COLORS = {
-  headerBg: "#3b1f7e",   // Heritage violet
+  headerBg: "#2D2060",   // Heritage navy (from logo SVG)
   headerText: "#ffffff",
-  sectionHeading: "#1f2937",
-  bodyText: "#374151",
+  goldAccent: "#C8A840",
+  goldBright: "#E8C87A",
+  sectionHeading: "#140E04",
+  bodyText: "#2a2a2a",
   lightGray: "#9ca3af",
   mediumGray: "#6b7280",
   border: "#d1d5db",
@@ -89,44 +91,56 @@ export async function generateSignedPdf(
     // PAGE 1+: Document Header + Legal Text
     // =====================================================================
 
-    // Heritage branding header bar
+    // Heritage branding header bar (taller, centered, spaced lettering)
     doc
-      .rect(0, 0, pageWidth, 100)
+      .rect(0, 0, pageWidth, 64)
       .fill(COLORS.headerBg);
 
     doc
-      .font("Helvetica")
-      .fontSize(9)
+      .font("Helvetica-Bold")
+      .fontSize(13)
       .fillColor(COLORS.headerText)
       .text(
-        "HERITAGE LIFE SOLUTIONS — GOLD COAST FINANCIAL GROUP, LLC",
-        60,
+        "H E R I T A G E   L I F E   S O L U T I O N S",
+        0,
         25,
-        { width: contentWidth, align: "center" }
+        { width: pageWidth, align: "center" }
       );
 
-    // Adaptive title size for long document names
-    const titleFontSize = docContent.title.length > 50 ? 12 : 16;
-    const titleY = docContent.title.length > 50 ? 38 : 42;
+    // Gold accent line
+    doc
+      .strokeColor(COLORS.goldBright)
+      .lineWidth(2)
+      .moveTo(0, 64)
+      .lineTo(pageWidth, 64)
+      .stroke();
 
+    // Move below header
+    doc.y = 80;
+
+    // Document title
+    const titleFontSize = docContent.title.length > 50 ? 12 : 16;
     doc
       .font("Helvetica-Bold")
       .fontSize(titleFontSize)
-      .text(docContent.title, 60, titleY, {
+      .fillColor(COLORS.sectionHeading)
+      .text(docContent.title, 60, doc.y, {
         width: contentWidth,
         align: "center",
       });
+
+    doc.moveDown(0.3);
 
     doc
       .font("Helvetica")
       .fontSize(8)
-      .text("Illinois License #22128144", 60, 74, {
+      .fillColor(COLORS.mediumGray)
+      .text("Gold Coast Financial Partners, LLC | Illinois License #22128144", 60, doc.y, {
         width: contentWidth,
         align: "center",
       });
 
-    // Move below header
-    doc.y = 120;
+    doc.y += 10;
 
     // Date line
     doc
