@@ -269,10 +269,12 @@ export function ClientLoungeLayout({ children }: ClientLoungeLayoutProps) {
 
     const detailSegment = segments[2];
     if (detailSegment) {
+      // If it looks like a UUID, show generic label instead
+      const isUuid = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i.test(detailSegment);
       crumbs.push({
-        label: detailSegment
-          .replace(/-/g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase()),
+        label: isUuid
+          ? 'Details'
+          : detailSegment.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
       });
     }
 

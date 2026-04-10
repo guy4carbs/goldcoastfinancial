@@ -1033,15 +1033,56 @@ export default function AgentClaims() {
                               </p>
                             </div>
 
-                            {/* Submitted status */}
-                            <p
-                              className={cn(
-                                'text-xs font-medium flex-shrink-0',
-                                doc.submitted ? 'text-emerald-600' : 'text-amber-600'
+                            {/* Upload + Status */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {!doc.submitted && (
+                                <label
+                                  className="text-xs font-medium text-violet-600 hover:text-violet-800 cursor-pointer px-2 py-1 rounded-md hover:bg-violet-50 transition-colors"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Upload style={{ width: 12, height: 12 }} className="inline mr-1" />
+                                  Upload
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file || !selectedClaim) return;
+                                      try {
+                                        const formData = new FormData();
+                                        formData.append('file', file);
+                                        formData.append('name', `Claim ${selectedClaim.claimNumber} - ${doc.name}`);
+                                        formData.append('category', 'claims');
+                                        const res = await fetch('/api/portal/documents/upload', {
+                                          method: 'POST',
+                                          credentials: 'include',
+                                          body: formData,
+                                        });
+                                        if (res.ok) {
+                                          // Mark as received
+                                          handleDocToggle();
+                                          toast.success(`${doc.name} uploaded`);
+                                        } else {
+                                          toast.error('Upload failed');
+                                        }
+                                      } catch {
+                                        toast.error('Upload failed');
+                                      }
+                                      e.target.value = '';
+                                    }}
+                                  />
+                                </label>
                               )}
-                            >
-                              {doc.submitted ? 'Received' : 'Pending'}
-                            </p>
+                              <p
+                                className={cn(
+                                  'text-xs font-medium',
+                                  doc.submitted ? 'text-emerald-600' : 'text-amber-600'
+                                )}
+                              >
+                                {doc.submitted ? 'Received' : 'Pending'}
+                              </p>
+                            </div>
                           </div>
                         );
                       })}

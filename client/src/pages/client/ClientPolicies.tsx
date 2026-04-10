@@ -70,9 +70,9 @@ function downloadPolicyPDF(policy: PortalPolicy) {
   <tr><th>Policy Number</th><td>${policy.policyNumber}</td></tr>
   <tr><th>Coverage Amount</th><td>${fmtCurrency(policy.coverageAmount)}</td></tr>
   <tr><th>Monthly Premium</th><td>$${policy.monthlyPremium}/mo</td></tr>
-  <tr><th>Start Date</th><td>${policy.startDate}</td></tr>
+  <tr><th>Start Date</th><td>${policy.startDate ? new Date(policy.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</td></tr>
   ${policy.endDate ? `<tr><th>End Date</th><td>${policy.endDate}</td></tr>` : ''}
-  <tr><th>Next Payment</th><td>${policy.nextPaymentDate ?? 'N/A'}</td></tr>
+  <tr><th>Next Payment</th><td>${policy.nextPaymentDate ? new Date(policy.nextPaymentDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</td></tr>
   <tr><th>Auto-Pay</th><td>${policy.autoPayEnabled ? 'Enabled' : 'Disabled'}</td></tr>
   ${policy.cashValue ? `<tr><th>Cash Value</th><td>${fmtCurrency(policy.cashValue)}</td></tr>` : ''}
 </table>
@@ -320,13 +320,13 @@ export default function ClientPolicies() {
                               <div>
                                 <p className="text-gray-400 font-medium" style={{ fontSize: TYPE.micro }}>Start Date</p>
                                 <p className="text-gray-900 font-semibold" style={{ fontSize: TYPE.meta }}>
-                                  {policy.startDate}
+                                  {policy.startDate ? new Date(policy.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-gray-400 font-medium" style={{ fontSize: TYPE.micro }}>Next Payment</p>
                                 <p className="text-gray-900 font-semibold" style={{ fontSize: TYPE.meta }}>
-                                  {policy.nextPaymentDate ?? 'N/A'}
+                                  {policy.nextPaymentDate ? new Date(policy.nextPaymentDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                                 </p>
                               </div>
                               <div>

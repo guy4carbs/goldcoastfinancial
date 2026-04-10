@@ -712,7 +712,25 @@ router.get("/:clientId/claims", requireAuth, requireClientAssignment, async (req
 
     const claims = await storage.getClaimsByClientId(clientId);
 
-    res.json(claims);
+    // Enrich with policy details
+    const enriched = await Promise.all(
+      claims.map(async (claim: any) => {
+        const policy = claim.policyId ? await storage.getPolicyById(claim.policyId) : null;
+        return {
+          ...claim,
+          // Normalized field names for frontend
+          type: claim.claimType || claim.type || '',
+          filedDate: claim.submittedAt || claim.filedDate || claim.createdAt,
+          amount: claim.claimAmount || claim.amount || 0,
+          description: claim.internalNotes || claim.description || '',
+          policyNumber: policy?.policyNumber || claim.policyId || '',
+          policyType: policy?.type || '',
+          carrier: policy?.carrier || claim.carrier || '',
+        };
+      })
+    );
+
+    res.json(enriched);
   } catch (error: any) {
     console.error("[AgentClients] Failed to fetch client claims:", error);
     res.status(500).json({ error: "Failed to fetch client claims" });

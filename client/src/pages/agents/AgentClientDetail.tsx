@@ -142,7 +142,7 @@ interface Doc {
   id: number;
   name: string;
   category: string;
-  fileSize: number;
+  fileSize: string | number;
   mimeType: string;
   createdAt: string;
 }
@@ -184,10 +184,18 @@ const formatDate = (dateStr: string | null) => {
 const formatStatus = (status: string) =>
   (status || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
-const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+const formatFileSize = (size: string | number) => {
+  if (typeof size === 'string') {
+    // Already formatted (e.g., "5 KB", "2.4 MB")
+    if (size.includes('KB') || size.includes('MB') || size.includes('GB') || size.includes('B')) return size;
+    const num = parseFloat(size);
+    if (isNaN(num)) return size || '';
+    return formatFileSize(num);
+  }
+  if (!size || isNaN(size)) return '';
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 const getStatusColor = (status: string) =>
@@ -569,14 +577,17 @@ export default function AgentClientDetail() {
   const handleClaimStatusUpdate = async (claim: Claim, newStatus: string, personalNote: string) => {
     setUpdatingClaimId(claim.id);
     try {
-      // Update claim status
-      const statusRes = await fetch(`/api/agent-clients/${clientId}/claims/${claim.id}/status`, {
-        method: 'PATCH',
+      // Update claim status via the claims API
+      const statusRes = await fetch(`/api/claims/${claim.id}/status`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, denialReason: newStatus === 'denied' ? personalNote : undefined }),
       });
-      if (!statusRes.ok) throw new Error('Failed to update claim status');
+      if (!statusRes.ok) {
+        const err = await statusRes.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update claim status');
+      }
 
       // Send document notification based on status
       const templateMap: Record<string, string> = {
@@ -594,14 +605,13 @@ export default function AgentClientDetail() {
             credentials: 'include',
             body: JSON.stringify({
               templateKey,
-              clientUserId: parseInt(clientId!),
+              clientUserId: clientId,
               claimId: claim.id,
               personalNote: personalNote || undefined,
             }),
           });
         } catch {
-          // Document sending is non-blocking — notify but don't fail the status update
-          toast.error('Status updated but notification failed to send');
+          toast.error('Status updated but document failed to send');
         }
       }
 
@@ -1273,6 +1283,26 @@ export default function AgentClientDetail() {
                               </div>
 
                               {/* ─── Status Update Section ─────────────── */}
+                              {(() => {
+                                // Valid transitions per status
+                                const transitions: Record<string, string[]> = {
+                                  filed: ['under_review'],
+                                  documents_needed: ['under_review'],
+                                  under_review: ['approved', 'denied'],
+                                  approved: ['paid'],
+                                  denied: [],
+                                  paid: [],
+                                };
+                                const allowed = transitions[claim.status] || [];
+                                if (allowed.length === 0) return (
+                                  <div className="mt-4 pt-3 border-t border-gray-100">
+                                    <p className="text-xs text-gray-400 flex items-center gap-2">
+                                      <CheckCircle className="w-3.5 h-3.5" />
+                                      This claim has reached its final status.
+                                    </p>
+                                  </div>
+                                );
+                                return (
                               <div className="mt-4 pt-3 border-t border-gray-100">
                                 <div className="flex items-center gap-3">
                                   <Label className="text-xs text-gray-500 whitespace-nowrap">Update Status</Label>
@@ -1284,8 +1314,8 @@ export default function AgentClientDetail() {
                                       <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {['filed', 'documents_needed', 'under_review', 'approved', 'denied', 'paid'].map((s) => (
-                                        <SelectItem key={s} value={s} disabled={s === claim.status}>
+                                      {allowed.map((s) => (
+                                        <SelectItem key={s} value={s}>
                                           {formatStatus(s)}
                                         </SelectItem>
                                       ))}
@@ -1407,6 +1437,8 @@ export default function AgentClientDetail() {
                                   </Button>
                                 )}
                               </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         </CardContent>

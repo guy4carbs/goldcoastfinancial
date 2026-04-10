@@ -1,0 +1,84 @@
+============================
+CAMPAIGN DESCRIPTION
+============================
+
+Heritage Life Solutions uses SMS and MMS to communicate with insurance clients and licensed agents across four use cases: (1) Two-factor authentication codes for secure portal login, (2) Customer care replies to policy questions and service requests, (3) Account notifications for policy status changes, payment reminders, and appointment confirmations, (4) Marketing and promotional messages for new product offerings, open enrollment periods, and special rates. Additionally, Heritage Life Solutions sends policy documents, quotes, and illustrations to clients via MMS and SMS links to PDF documents for convenient mobile review and e-signature. Recipients are existing clients, prospective clients who submit inquiry forms, and contracted insurance agents.
+
+
+============================
+OPT IN WORKFLOW DESCRIPTION
+============================
+
+Heritage Life Solutions collects SMS opt-in consent through two methods:
+
+1. DIGITAL OPT-IN (Website): Users provide their mobile phone number on the Heritage Life Solutions website (heritagels.org) during account registration, lead inquiry forms, or quote request forms. Adjacent to the phone number field, the following disclosure language is displayed: "By providing your phone number and checking this box, you consent to receive SMS and MMS messages from Heritage Life Solutions. Message types include: two-factor authentication codes, customer care responses, account notifications (such as appointment reminders, policy updates, and payment reminders), and marketing/promotional messages (such as new product offerings, special rates, and enrollment updates). Message frequency varies. Msg & data rates may apply. Reply STOP to opt out at any time. Reply HELP for help. View our Privacy Policy at heritagels.org/privacy and Terms at heritagels.org/terms." Users must actively check a consent checkbox before submitting the form. The form cannot be submitted without this checkbox selected.
+
+2. VERBAL OPT-IN (Phone): During phone consultations, licensed agents read the following script to the customer: "I'd like to send you text messages from Heritage Life Solutions regarding your account. These messages may include appointment reminders, policy updates, payment reminders, customer support responses, verification codes, and marketing or promotional messages about new products and special rates. Message frequency varies. Standard message and data rates may apply. You can reply STOP at any time to opt out, or reply HELP for assistance. Our privacy policy is available at heritagels.org/privacy. Do you consent to receive these text messages?" The agent records the customer's verbal consent in the CRM system with a timestamp and the agent's name. For marketing messages specifically, a double opt-in is used: after verbal consent is recorded, the system automatically sends a confirmation SMS to the customer stating: "Heritage Life Solutions: You've been opted in to receive promotional messages. Reply YES to confirm or STOP to cancel. Msg & data rates may apply." The customer must reply YES before any marketing messages are sent. This confirmation is logged in the system.
+
+
+============================
+KEYWORDS
+============================
+
+Opt in keywords:
+START,YES,SUBSCRIBE,UNSTOP,OPTIN,JOIN,RESUME,CONTINUE
+
+Opt out keywords:
+STOP,UNSUBSCRIBE,CANCEL,END,QUIT,OPTOUT,REMOVE,LEAVE
+
+Help keywords:
+HELP,INFO,INFORMATION,SUPPORT,ASSIST,FAQ
+
+
+============================
+AUTO-RESPONSES
+============================
+
+Opt in message:
+Heritage Life Solutions: You're now subscribed to receive text messages including authentication codes, customer care responses, account notifications, policy updates, and marketing/promotional offers. Msg & data rates may apply. Msg frequency varies. Reply HELP for help, STOP to opt out. Privacy Policy: heritagels.org/privacy
+
+Opt out message:
+Heritage Life Solutions: You have been unsubscribed and will no longer receive messages from us. Reply START to resubscribe. For help, visit heritagels.org.
+
+Help message:
+Heritage Life Solutions: For assistance, visit heritagels.org or call (312) 675-2972. Msg types: authentication codes, account notifications, customer care, and marketing. Msg frequency varies. Msg & data rates may apply. Reply STOP to opt out. Privacy Policy: heritagels.org/privacy
+
+
+============================
+SAMPLE MESSAGES (5 MAX)
+============================
+
+Message 1 (2FA):
+Heritage Life Solutions: Your verification code is 483291. This code expires in 10 minutes. If you did not request this, please disregard.
+
+Message 2 (Customer Care):
+Heritage Life Solutions: Hi Maria, following up on your question about your term life policy. Your current coverage amount is $500,000 with a renewal date of 08/01/2026. Reply with any questions or call your agent at (312) 675-2972. Reply STOP to opt out.
+
+Message 3 (Account Notification):
+Heritage Life Solutions: Your policy renewal is coming up on 05/15/2026. Log in at heritagels.org to review your options or reply to schedule a call with your agent. Msg & data rates apply. Reply STOP to opt out.
+
+Message 4 (Marketing):
+Heritage Life Solutions: Open enrollment starts next month! We have new term life and IUL options with competitive rates. Visit heritagels.org/quote to get a free quote or reply INFO to learn more. Msg & data rates apply. Reply STOP to unsubscribe.
+
+Message 5 (Account Notification - MMS/PDF):
+Heritage Life Solutions: Your life insurance quote is ready! We've sent your personalized illustration as an attachment. You can also view it at heritagels.org/documents. Reply with any questions or call your agent at (312) 675-2972. Msg & data rates apply. Reply STOP to opt out.
+
+
+============================
+COMPLIANCE LINKS
+============================
+
+Privacy policy: https://heritagels.org/privacy
+Terms and conditions: https://heritagels.org/terms
+Embedded link: https://heritagels.org
+
+
+============================
+CAMPAIGN AND CONTENT ATTRIBUTES
+============================
+
+Embedded Link: Yes
+Embedded Phone Number: Yes
+Number Pooling: No
+Age-Gated Content: No
+Direct Lending or Loan Arrangement: No

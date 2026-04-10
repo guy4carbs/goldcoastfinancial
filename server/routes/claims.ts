@@ -357,7 +357,7 @@ function buildStatusUpdateMessage(
   const lines = [
     header,
     divider,
-    `Claim #${claim.id}`,
+    `Claim #${claim.claimNumber || claim.id}`,
     `Status: ${prevLabel} → ${newLabel}`,
     "",
     "Details:",

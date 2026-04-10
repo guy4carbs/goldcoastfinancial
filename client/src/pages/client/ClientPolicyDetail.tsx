@@ -261,7 +261,7 @@ export default function ClientPolicyDetail() {
                     Start Date
                   </p>
                   <p className="text-gray-900 font-semibold" style={{ fontSize: TYPE.meta }}>
-                    {policy.startDate}
+                    {policy.startDate ? new Date(policy.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                   </p>
                 </div>
                 {policy.endDate && (
@@ -279,7 +279,7 @@ export default function ClientPolicyDetail() {
                     Next Payment
                   </p>
                   <p className="text-gray-900 font-semibold" style={{ fontSize: TYPE.meta }}>
-                    {policy.nextPaymentDate ?? 'N/A'}
+                    {policy.nextPaymentDate ? new Date(policy.nextPaymentDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                   </p>
                 </div>
                 <div>
