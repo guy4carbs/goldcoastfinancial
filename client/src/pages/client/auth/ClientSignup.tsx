@@ -702,9 +702,7 @@ export default function ClientSignup() {
                             className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 mt-0.5"
                           />
                           <span className="text-gray-500 group-hover:text-gray-700 transition-colors" style={{ fontSize: TYPE.micro, lineHeight: 1.5 }}>
-                            By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC
-                            including appointment reminders, application updates, and verification codes. Message frequency varies.
-                            Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                            By checking this box, I agree to receive SMS and MMS messages from Heritage Life Solutions (Gold Coast Financial Partners LLC) including authentication codes, customer care responses, account notifications, and marketing/promotional messages. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. <a href="/legal/privacy" className="underline hover:text-gray-700">Privacy Policy</a>.
                           </span>
                         </label>
                         {errors.smsConsent && (

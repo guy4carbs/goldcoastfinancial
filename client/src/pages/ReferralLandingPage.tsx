@@ -782,7 +782,7 @@ export default function ReferralLandingPage() {
                     />
                     {errors.phone && <p id="err-phone" role="alert" className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                     <p className="text-xs text-gray-400 mt-1">
-                      By submitting, you consent to contact via phone and SMS at the number provided.
+                      By submitting, you consent to receive SMS and MMS messages from Heritage Life Solutions (Gold Coast Financial Partners LLC) including authentication codes, customer care responses, account notifications, and marketing/promotional messages. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
                     </p>
                   </div>
 

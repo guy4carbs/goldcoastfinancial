@@ -617,7 +617,7 @@ export default function BookAppointment() {
                           className="mt-0.5 w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
                         />
                         <span className="text-xs text-gray-500 leading-relaxed">
-                          By checking this box, I agree to receive SMS messages from Gold Coast Financial Partners LLC including appointment reminders, application updates, and verification codes. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help.
+                          By checking this box, I agree to receive SMS and MMS messages from Heritage Life Solutions (Gold Coast Financial Partners LLC) including authentication codes, customer care responses, account notifications, and marketing/promotional messages. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. <a href="/legal/privacy" className="underline hover:text-gray-700">Privacy Policy</a>.
                         </span>
                       </label>
                     </div>
