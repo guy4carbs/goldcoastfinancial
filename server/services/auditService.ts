@@ -1,6 +1,6 @@
 import { pool } from "../db";
 
-export async function logAudit(userId: string | null, action: string, entityType?: string, entityId?: string, metadata?: any, ipAddress?: string) {
+export async function logAudit(userId: string | null | undefined, action: string, entityType?: string | null, entityId?: string | null, metadata?: any, ipAddress?: string | null) {
   try {
     await pool.query(
       `INSERT INTO audit_logs (id, user_id, action, entity_type, entity_id, metadata, ip_address, created_at)
@@ -18,4 +18,4 @@ export const logAgentApproved = (userId: string, agentId: string, by: string) =>
 export const logAgentRejected = (userId: string, agentId: string, by: string, reason?: string) => logAudit(by, "agent_rejected", "agent", agentId, { userId, reason });
 export const logPipelineMove = (by: string, agentId: string, from: string, to: string) => logAudit(by, "pipeline_move", "agent", agentId, { from, to });
 export const logDocumentSigned = (agentId: string, docType: string) => logAudit(agentId, "document_signed", "document", docType, { agentId });
-export const logComplianceCheck = (flagsCreated: number, flagsResolved: number) => logAudit(null, "compliance_check", "system", null, { flagsCreated, flagsResolved });
+export const logComplianceCheck = (flagsCreated: number, flagsResolved: number) => logAudit(undefined, "compliance_check", "system", undefined, { flagsCreated, flagsResolved });

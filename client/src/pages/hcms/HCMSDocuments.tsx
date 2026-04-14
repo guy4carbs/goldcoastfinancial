@@ -6,7 +6,7 @@ const MOCK = [
   { id: "4", name: "NDA Signed", agentName: "Michael Chen", category: "contract", uploadDate: "2025-02-01", expirationDate: "", status: "active" },
   { id: "5", name: "E&O Certificate 2025", agentName: "David Park", category: "e&o_certificate", uploadDate: "2025-03-01", expirationDate: "2026-03-01", status: "expired" },
 ];
-const catColor: Record<string, string> = { e&o_certificate: "var(--gc-status-review)", state_license: "var(--gc-status-active)", w9: "var(--gc-text-muted)", contract: "var(--gc-gold)" };
+const catColor: Record<string, string> = { "e&o_certificate": "var(--gc-status-review)", state_license: "var(--gc-status-active)", w9: "var(--gc-text-muted)", contract: "var(--gc-gold)" };
 const cols: Column<typeof MOCK[0]>[] = [
   { key: "name", label: "Document", sortable: true },
   { key: "agentName", label: "Agent", sortable: true },

@@ -5,7 +5,7 @@ import { Shield, AlertCircle, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const { loginMutation, registerMutation } = useAuth();
+  const { login, register: registerFn, isLoggingIn, isRegistering } = useAuth();
   const [tab, setTab] = useState<"login" | "register">("login");
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "", firstName: "", lastName: "", confirmPassword: "", role: "sales_agent" });
@@ -14,7 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      const result = await loginMutation.mutateAsync({ email: form.email, password: form.password });
+      const result = await login({ email: form.email, password: form.password });
       const role = (result as any)?.role || "client";
       if (role === "owner" || role === "system_admin") setLocation("/ops");
       else if (role === "manager" || role === "sales_agent") setLocation("/hcms");
@@ -28,12 +28,12 @@ export default function LoginPage() {
     if (form.password !== form.confirmPassword) { setError("Passwords do not match"); return; }
     if (form.password.length < 8) { setError("Password must be at least 8 characters"); return; }
     try {
-      await registerMutation.mutateAsync({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName });
+      await registerFn({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName });
       setLocation("/hcms");
     } catch (e: any) { setError(e.message || "Registration failed"); }
   };
 
-  const loading = loginMutation.isPending || registerMutation.isPending;
+  const loading = isLoggingIn || isRegistering;
 
   return (
     <div data-theme="gc-dark" className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "var(--gc-bg)", fontFamily: "var(--gc-font-body)" }}>
