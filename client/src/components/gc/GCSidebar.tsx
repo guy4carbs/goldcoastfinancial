@@ -219,7 +219,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
   return (
     <>
       {/* Desktop */}
-      <aside className="hidden lg:block fixed top-[2px] left-0 bottom-0 w-[248px] z-40">{sidebar}</aside>
+      <aside className="hidden lg:block fixed top-[2px] left-0 bottom-0 w-[240px] z-40">{sidebar}</aside>
       {/* Mobile toggle */}
       <button className="lg:hidden fixed top-3 left-3 z-50 p-2" style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }} onClick={() => setMobileOpen(true)}>
         <Menu className="w-5 h-5" style={{ color: "var(--gc-text-primary)" }} />
@@ -228,7 +228,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="relative w-[248px] h-full shadow-2xl">{sidebar}</div>
+          <div className="relative w-[240px] h-full shadow-2xl">{sidebar}</div>
           <button className="absolute top-4 right-4 p-2" style={{ color: "var(--gc-text-primary)", backgroundColor: "var(--gc-surface)", borderRadius: "var(--gc-radius-md)", border: "1px solid var(--gc-border)" }} onClick={() => setMobileOpen(false)}><X className="w-5 h-5" /></button>
         </div>
       )}
