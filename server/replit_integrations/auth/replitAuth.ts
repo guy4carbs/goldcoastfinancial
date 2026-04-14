@@ -52,12 +52,11 @@ function updateUserSession(
 
 async function upsertUser(claims: any) {
   await authStorage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-  });
+    email: claims["email"] || `replit-${claims["sub"]}@placeholder.com`,
+    password: "replit-oauth-managed",
+    firstName: claims["first_name"] || "Replit",
+    lastName: claims["last_name"] || "User",
+  } as any);
 }
 
 export async function setupAuth(app: Express) {

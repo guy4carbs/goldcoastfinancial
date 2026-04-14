@@ -6,6 +6,18 @@ import { sql } from "drizzle-orm";
 export * from "./models/auth";
 export * from "./models/portal";
 export * from "./models/chat";
+export * from "./models/crm";
+export * from "./models/licenses";
+export * from "./models/agentProfiles";
+export * from "./models/deals";
+export * from "./models/documentTemplates";
+export * from "./models/security";
+export * from "./models/enterprise";
+export * from "./models/bookTransfers";
+export * from "./models/carrierAppointments";
+export * from "./models/contracting";
+export * from "./models/production";
+export * from "./models/complianceFlags";
 
 export const guideRequests = pgTable("guide_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

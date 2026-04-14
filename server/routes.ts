@@ -11,6 +11,28 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { Pool } from "pg";
 
+// HCMS Route Imports
+import { attachUser } from "./middleware/auth";
+import hcmsAgentsRouter from "./routes/hcms-agents";
+import hcmsContractingRouter from "./routes/hcms-contracting";
+import hcmsSigningRouter from "./routes/hcms-signing";
+import hcmsLicensingRouter from "./routes/hcms-licensing";
+import hcmsCarriersRouter from "./routes/hcms-carriers";
+import hcmsDocumentsRouter from "./routes/hcms-documents";
+import applyRouter from "./routes/apply";
+import opsProductionRouter from "./routes/ops-production";
+import opsDealsRouter from "./routes/ops-deals";
+import opsCrmRouter from "./routes/ops-crm";
+import opsCommissionsRouter from "./routes/ops-commissions";
+import opsComplianceRouter from "./routes/ops-compliance";
+import opsAnalyticsRouter from "./routes/ops-analytics";
+import hcmsHierarchyRouter from "./routes/hcms-hierarchy";
+import hcmsCompensationRouter from "./routes/hcms-compensation";
+import hcmsHierarchyRequestsRouter from "./routes/hcms-hierarchy-requests";
+import opsMarketingRouter from "./routes/ops-marketing";
+import opsInvestorsRouter from "./routes/ops-investors";
+import opsSettingsRouter from "./routes/ops-settings";
+
 declare module "express-session" {
   interface SessionData {
     userId: string;
@@ -78,13 +100,14 @@ export async function registerRoutes(
       // Hash password
       const hashedPassword = await bcrypt.hash(validatedData.password, 10);
       
-      // Create user
+      // Create user with default role
       const user = await storage.createUser({
         email: validatedData.email,
         password: hashedPassword,
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
         phone: validatedData.phone || null,
+        role: "client",
       });
       
       // Set session
@@ -890,7 +913,7 @@ export async function registerRoutes(
       try {
         await sendNewsletterNotification({
           email: validatedData.email,
-          name: validatedData.name,
+          name: validatedData.name ?? undefined,
           subscriptionType: validatedData.subscriptionType || 'general',
         });
       } catch (emailError) {
@@ -901,7 +924,7 @@ export async function registerRoutes(
       try {
         await sendNewsletterWelcome({
           email: validatedData.email,
-          name: validatedData.name,
+          name: validatedData.name ?? undefined,
           subscriptionType: validatedData.subscriptionType || 'general',
         });
       } catch (emailError) {
@@ -1001,6 +1024,41 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to submit quiz" });
     }
   });
+
+  // ============================================
+  // HCMS PLATFORM ROUTES
+  // ============================================
+
+  // Attach user to request for RBAC middleware (non-blocking — populates req.user if session exists)
+  app.use("/api/hcms", attachUser);
+
+  app.use("/api/hcms/agents", hcmsAgentsRouter);
+  app.use("/api/hcms/contracting", hcmsContractingRouter);
+  app.use("/api/hcms/signing", hcmsSigningRouter);
+  app.use("/api/hcms/licensing", hcmsLicensingRouter);
+  app.use("/api/hcms/carriers", hcmsCarriersRouter);
+  app.use("/api/hcms/documents", hcmsDocumentsRouter);
+  app.use("/api/hcms/hierarchy", hcmsHierarchyRouter);
+  app.use("/api/hcms/compensation", hcmsCompensationRouter);
+  app.use("/api/hcms/hierarchy-requests", hcmsHierarchyRequestsRouter);
+
+  // ============================================
+  // OPS HUB ROUTES (Production, Deals, CRM)
+  // ============================================
+
+  app.use("/api/ops", attachUser);
+  app.use("/api/ops/production", opsProductionRouter);
+  app.use("/api/ops/deals", opsDealsRouter);
+  app.use("/api/ops/crm", opsCrmRouter);
+  app.use("/api/ops/commissions", opsCommissionsRouter);
+  app.use("/api/ops/compliance", opsComplianceRouter);
+  app.use("/api/ops/analytics", opsAnalyticsRouter);
+  app.use("/api/ops/marketing", opsMarketingRouter);
+  app.use("/api/ops/investors", opsInvestorsRouter);
+  app.use("/api/ops/settings", opsSettingsRouter);
+
+  // Public route — no auth required
+  app.use("/api/apply", applyRouter);
 
   return httpServer;
 }

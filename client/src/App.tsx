@@ -19,6 +19,10 @@ import InstitutionalBlog from "@/pages/institutional/InstitutionalBlog";
 import InstitutionalBlogArticle from "@/pages/institutional/InstitutionalBlogArticle";
 import InstitutionalNewsArticle from "@/pages/institutional/InstitutionalNewsArticle";
 import InstitutionalMedia from "@/pages/institutional/InstitutionalMedia";
+import HCMSLayout from "@/pages/hcms/HCMSLayout";
+import OpsLayout from "@/pages/ops/OpsLayout";
+import AgentPortal from "@/pages/apply/AgentPortal";
+import LoginPage from "@/pages/auth/LoginPage";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -60,6 +64,14 @@ function Router() {
         <Route path="/blog" component={InstitutionalBlog} />
         <Route path="/blog/:slug" component={InstitutionalBlogArticle} />
         <Route path="/media" component={InstitutionalMedia} />
+
+        {/* Gold Coast Platform routes */}
+        <Route path="/hcms" component={HCMSLayout} />
+        <Route path="/hcms/:rest*" component={HCMSLayout} />
+        <Route path="/ops" component={OpsLayout} />
+        <Route path="/ops/:rest*" component={OpsLayout} />
+        <Route path="/apply" component={AgentPortal} />
+        <Route path="/login" component={LoginPage} />
       </Switch>
     </>
   );

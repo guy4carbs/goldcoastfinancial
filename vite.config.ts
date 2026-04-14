@@ -39,10 +39,31 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-charts': ['recharts'],
+          'vendor-radix': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-popover',
+          ],
+          'vendor-motion': ['framer-motion'],
+          'vendor-dnd': ['@hello-pangea/dnd'],
+        },
+      },
+    },
   },
   server: {
     host: "0.0.0.0",
     allowedHosts: true,
+    hmr: {
+      path: "/vite-hmr",
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],
