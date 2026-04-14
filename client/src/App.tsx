@@ -77,13 +77,24 @@ function Router() {
   );
 }
 
+function InstitutionalWrapper() {
+  const [location] = useLocation();
+  const isPlatform = location.startsWith("/hcms") || location.startsWith("/ops") || location.startsWith("/apply") || location.startsWith("/login");
+  if (isPlatform) return null;
+  return (
+    <>
+      <LoadingScreen />
+      <NewsletterBanner />
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AnalyticsProvider>
-          <LoadingScreen />
-          <NewsletterBanner />
+          <InstitutionalWrapper />
           <Toaster />
           <Router />
         </AnalyticsProvider>
