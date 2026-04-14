@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, Wallet, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight } from "lucide-react";
+import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, Wallet, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -9,11 +9,20 @@ export interface NavSection { title: string; items: NavItem[]; collapsible?: boo
 const hcmsNav: NavSection[] = [
   { title: "OVERVIEW", items: [
     { label: "Command Center", href: "/hcms", icon: LayoutDashboard },
-    { label: "Contracting", href: "/hcms/contracting", icon: FileSignature },
+  ]},
+  { title: "CONTRACTING", collapsible: true, items: [
+    { label: "Overview", href: "/hcms/contracting", icon: FileSignature },
+    { label: "Requests", href: "/hcms/contracting/requests", icon: ScrollText },
+    { label: "Bank Details", href: "/hcms/contracting/bank", icon: CreditCard },
+    { label: "Licenses", href: "/hcms/contracting/licenses", icon: Award },
+    { label: "E&O Insurance", href: "/hcms/contracting/eo", icon: ShieldAlert },
+    { label: "Trainings", href: "/hcms/contracting/trainings", icon: GraduationCap },
+    { label: "Employment", href: "/hcms/contracting/employment", icon: Briefcase },
+    { label: "Doing Business As", href: "/hcms/contracting/dba", icon: Building2 },
+    { label: "Questions", href: "/hcms/contracting/questions", icon: HelpCircle },
   ]},
   { title: "AGENTS", items: [
     { label: "Agent Directory", href: "/hcms/agents", icon: Users },
-    { label: "Licensing", href: "/hcms/licensing", icon: Award },
     { label: "Carriers", href: "/hcms/carriers", icon: Building2 },
   ]},
   { title: "ORGANIZATION", items: [
