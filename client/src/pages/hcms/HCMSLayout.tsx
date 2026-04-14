@@ -16,7 +16,6 @@ import ContractingDBA from "./contracting/ContractingDBA";
 import ContractingQuestions from "./contracting/ContractingQuestions";
 
 function getPage(path: string) {
-  // Match most specific first
   if (path.startsWith("/hcms/contracting/requests")) return <ContractingRequests />;
   if (path.startsWith("/hcms/contracting/bank")) return <ContractingBank />;
   if (path.startsWith("/hcms/contracting/licenses")) return <ContractingLicenses />;
@@ -30,14 +29,18 @@ function getPage(path: string) {
   if (path === "/hcms/agents") return <HCMSAgents />;
   if (path === "/hcms/carriers") return <HCMSCarriers />;
   if (path === "/hcms/hierarchy") return <HCMSHierarchy />;
+  if (path === "/hcms") return <HCMSDashboard />;
   return <HCMSDashboard />;
 }
 
 export default function HCMSLayout() {
-  const [location] = useLocation();
+  // Use window.location.pathname for full path (Wouter's useLocation may return relative path in nested routes)
+  const [wouterLocation] = useLocation();
+  const fullPath = typeof window !== "undefined" ? window.location.pathname : wouterLocation;
+
   return (
-    <GCShell title="HCMS" subtitle="Agent Contracting & Carrier Tracking" sidebarVariant="hcms" activePath={location}>
-      {getPage(location)}
+    <GCShell title="HCMS" subtitle="Agent Contracting & Carrier Tracking" sidebarVariant="hcms" activePath={fullPath}>
+      {getPage(fullPath)}
     </GCShell>
   );
 }
