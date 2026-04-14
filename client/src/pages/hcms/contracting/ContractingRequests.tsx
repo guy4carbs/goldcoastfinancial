@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, type Column } from "@/components/gc";
 import { ExternalLink } from "lucide-react";
 
+// DEBUG: If you see this comment in the browser source, the file loaded correctly
+console.log("[ContractingRequests] Module loaded successfully");
+
 const MOCK = [
   { id: "1", agent: "Sarah Mitchell", carrier: "Americo", state: "IL", requestDate: "2026-04-10", status: "draft", notes: "Awaiting E&O upload", returnReason: "" },
   { id: "2", agent: "James Rodriguez", carrier: "Corebridge Financial", state: "TX", requestDate: "2026-04-08", status: "draft", notes: "Missing state license", returnReason: "" },
