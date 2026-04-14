@@ -17,7 +17,7 @@ function GCShellInner({ children, title, subtitle, actions, sidebarVariant = "hc
       style={{ backgroundColor: "var(--gc-bg)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)" }}>
       <div className="fixed top-0 left-0 right-0 h-[2px] z-50" style={{ background: "linear-gradient(90deg, #C4975A, #D4A55A)" }} />
       <GCSidebar variant={sidebarVariant} activePath={activePath} />
-      <div className="flex-1 flex flex-col lg:ml-[240px]">
+      <div className="flex-1 flex flex-col lg:ml-[248px]">
         <GCTopbar title={title} subtitle={subtitle} actions={actions} />
         <GCContent>{children}</GCContent>
       </div>
