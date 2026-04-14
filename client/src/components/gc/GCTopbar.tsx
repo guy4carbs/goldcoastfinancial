@@ -8,7 +8,7 @@ const themeIcons: Record<GCThemeId, typeof Moon> = { "gc-dark": Moon, "gc-light"
 const GC_APPS = [
   { id: "hcms", name: "HCMS", desc: "Hierarchy & Compensation", href: "/hcms", icon: Shield, available: true },
   { id: "ops", name: "Ops Hub", desc: "Back-office Command", href: "/ops", icon: BarChart3, available: true },
-  { id: "heritage", name: "Heritage", desc: "Agent Login Portal", href: "https://heritagels.org/login", icon: Building2, available: true },
+  { id: "heritage", name: "Heritage", desc: "Agent CRM Login", href: "https://heritagels.org/agents/login", icon: Building2, available: true },
   { id: "crm", name: "CRM", desc: "Customer Relations", href: "#", icon: Lock, available: false },
   { id: "analytics", name: "Analytics", desc: "Business Intelligence", href: "#", icon: Lock, available: false },
   { id: "mobile", name: "Mobile", desc: "iOS & Android", href: "#", icon: Lock, available: false },
