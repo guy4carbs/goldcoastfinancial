@@ -1,5 +1,5 @@
 import { GCShell } from "@/components/gc";
-import { Route, Switch, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import HCMSDashboard from "./HCMSDashboard";
 import HCMSAgents from "./HCMSAgents";
 import HCMSAgentDetail from "./HCMSAgentDetail";
@@ -15,29 +15,29 @@ import ContractingEmployment from "./contracting/ContractingEmployment";
 import ContractingDBA from "./contracting/ContractingDBA";
 import ContractingQuestions from "./contracting/ContractingQuestions";
 
+function getPage(path: string) {
+  // Match most specific first
+  if (path.startsWith("/hcms/contracting/requests")) return <ContractingRequests />;
+  if (path.startsWith("/hcms/contracting/bank")) return <ContractingBank />;
+  if (path.startsWith("/hcms/contracting/licenses")) return <ContractingLicenses />;
+  if (path.startsWith("/hcms/contracting/eo")) return <ContractingEO />;
+  if (path.startsWith("/hcms/contracting/trainings")) return <ContractingTrainings />;
+  if (path.startsWith("/hcms/contracting/employment")) return <ContractingEmployment />;
+  if (path.startsWith("/hcms/contracting/dba")) return <ContractingDBA />;
+  if (path.startsWith("/hcms/contracting/questions")) return <ContractingQuestions />;
+  if (path === "/hcms/contracting") return <HCMSContracting />;
+  if (path.match(/^\/hcms\/agents\/[^/]+/)) return <HCMSAgentDetail />;
+  if (path === "/hcms/agents") return <HCMSAgents />;
+  if (path === "/hcms/carriers") return <HCMSCarriers />;
+  if (path === "/hcms/hierarchy") return <HCMSHierarchy />;
+  return <HCMSDashboard />;
+}
+
 export default function HCMSLayout() {
   const [location] = useLocation();
   return (
     <GCShell title="HCMS" subtitle="Agent Contracting & Carrier Tracking" sidebarVariant="hcms" activePath={location}>
-      <Switch>
-        {/* Most specific routes first */}
-        <Route path="/hcms/agents/:id" component={HCMSAgentDetail} />
-        <Route path="/hcms/contracting/requests" component={ContractingRequests} />
-        <Route path="/hcms/contracting/bank" component={ContractingBank} />
-        <Route path="/hcms/contracting/licenses" component={ContractingLicenses} />
-        <Route path="/hcms/contracting/eo" component={ContractingEO} />
-        <Route path="/hcms/contracting/trainings" component={ContractingTrainings} />
-        <Route path="/hcms/contracting/employment" component={ContractingEmployment} />
-        <Route path="/hcms/contracting/dba" component={ContractingDBA} />
-        <Route path="/hcms/contracting/questions" component={ContractingQuestions} />
-        {/* Parent routes after children */}
-        <Route path="/hcms/contracting" component={HCMSContracting} />
-        <Route path="/hcms/agents" component={HCMSAgents} />
-        <Route path="/hcms/carriers" component={HCMSCarriers} />
-        <Route path="/hcms/hierarchy" component={HCMSHierarchy} />
-        <Route path="/hcms" component={HCMSDashboard} />
-        <Route><HCMSDashboard /></Route>
-      </Switch>
+      {getPage(location)}
     </GCShell>
   );
 }
