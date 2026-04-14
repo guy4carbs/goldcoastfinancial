@@ -6,14 +6,17 @@ import HCMSAgentDetail from "./HCMSAgentDetail";
 import HCMSCarriers from "./HCMSCarriers";
 import HCMSHierarchy from "./HCMSHierarchy";
 import HCMSContracting from "./HCMSContracting";
-import ContractingRequests from "./contracting/ContractingRequests";
-import ContractingBank from "./contracting/ContractingBank";
-import ContractingLicenses from "./contracting/ContractingLicenses";
-import ContractingEO from "./contracting/ContractingEO";
-import ContractingTrainings from "./contracting/ContractingTrainings";
-import ContractingEmployment from "./contracting/ContractingEmployment";
-import ContractingDBA from "./contracting/ContractingDBA";
-import ContractingQuestions from "./contracting/ContractingQuestions";
+import { lazy, Suspense } from "react";
+
+// Lazy load contracting sub-pages to prevent import crashes from breaking the entire layout
+const ContractingRequests = lazy(() => import("./contracting/ContractingRequests"));
+const ContractingBank = lazy(() => import("./contracting/ContractingBank"));
+const ContractingLicenses = lazy(() => import("./contracting/ContractingLicenses"));
+const ContractingEO = lazy(() => import("./contracting/ContractingEO"));
+const ContractingTrainings = lazy(() => import("./contracting/ContractingTrainings"));
+const ContractingEmployment = lazy(() => import("./contracting/ContractingEmployment"));
+const ContractingDBA = lazy(() => import("./contracting/ContractingDBA"));
+const ContractingQuestions = lazy(() => import("./contracting/ContractingQuestions"));
 
 function getPage(path: string) {
   if (path.startsWith("/hcms/contracting/requests")) return <ContractingRequests />;
@@ -33,14 +36,18 @@ function getPage(path: string) {
   return <HCMSDashboard />;
 }
 
+const Loading = () => (
+  <div style={{ padding: 40, color: "var(--gc-text-muted)", fontFamily: "var(--gc-font-body)" }}>Loading...</div>
+);
+
 export default function HCMSLayout() {
-  // Use window.location.pathname for full path (Wouter's useLocation may return relative path in nested routes)
-  const [wouterLocation] = useLocation();
-  const fullPath = typeof window !== "undefined" ? window.location.pathname : wouterLocation;
+  const fullPath = typeof window !== "undefined" ? window.location.pathname : "/hcms";
 
   return (
     <GCShell title="HCMS" subtitle="Agent Contracting & Carrier Tracking" sidebarVariant="hcms" activePath={fullPath}>
-      {getPage(fullPath)}
+      <Suspense fallback={<Loading />}>
+        {getPage(fullPath)}
+      </Suspense>
     </GCShell>
   );
 }
