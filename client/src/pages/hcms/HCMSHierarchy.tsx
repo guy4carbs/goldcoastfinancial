@@ -46,7 +46,25 @@ export default function HCMSHierarchy() {
             </div>
           )}
         </div>
-      ) : <div style={{ color: "var(--gc-text-muted)", fontFamily: "var(--gc-font-body)", padding: "var(--gc-space-8)", textAlign: "center" }}>Table view — coming soon</div>}
+      ) : (() => {
+        const flatten = (node: HierarchyNode, upline: string = "—"): any[] => [
+          { name: node.name, level: node.level, title: node.title, contractLevel: node.contractLevel, overridePercentage: node.overridePercentage, upline, downlines: node.children.length, teamAip: node.totalAip },
+          ...node.children.flatMap(c => flatten(c, node.name))
+        ];
+        const rows = flatten(MOCK_TREE);
+        const levelColors = ["var(--gc-gold)", "var(--gc-chart-2)", "var(--gc-chart-4)", "var(--gc-chart-3)", "var(--gc-text-secondary)", "var(--gc-text-muted)", "var(--gc-text-muted)", "var(--gc-text-muted)"];
+        const tableCols: Column<any>[] = [
+          { key: "name", label: "Agent", sortable: true, render: (v: string) => <span style={{ fontWeight: 500 }}>{v}</span> },
+          { key: "level", label: "Level", sortable: true, render: (v: number) => <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", color: levelColors[v], backgroundColor: `color-mix(in srgb, ${levelColors[v]} 15%, transparent)` }}>L{v}</span> },
+          { key: "title", label: "Title" },
+          { key: "contractLevel", label: "Contract %", sortable: true, render: (v: number) => <span style={{ fontFamily: "var(--gc-font-display)", color: "var(--gc-gold)" }}>{v}%</span> },
+          { key: "overridePercentage", label: "Override %", sortable: true, render: (v: number) => v > 0 ? `${v}%` : "—" },
+          { key: "upline", label: "Upline" },
+          { key: "downlines", label: "Downlines", sortable: true },
+          { key: "teamAip", label: "Team AIP", sortable: true, render: (v: number) => `$${(v/1000).toFixed(0)}K` },
+        ];
+        return <GCDataTable columns={tableCols} data={rows} searchable searchPlaceholder="Search hierarchy..." />;
+      })()}
     </div>
   );
 }
