@@ -7,24 +7,17 @@ export interface NavItem { label: string; href: string; icon: typeof Shield; bad
 export interface NavSection { title: string; items: NavItem[]; collapsible?: boolean; }
 
 const hcmsNav: NavSection[] = [
-  { title: "PIPELINE", items: [
-    { label: "Overview", href: "/hcms", icon: LayoutDashboard },
+  { title: "OVERVIEW", items: [
+    { label: "Command Center", href: "/hcms", icon: LayoutDashboard },
     { label: "Contracting", href: "/hcms/contracting", icon: FileSignature },
-    { label: "Pipeline", href: "/hcms/pipeline", icon: Kanban },
   ]},
   { title: "AGENTS", items: [
     { label: "Agent Directory", href: "/hcms/agents", icon: Users },
     { label: "Licensing", href: "/hcms/licensing", icon: Award },
     { label: "Carriers", href: "/hcms/carriers", icon: Building2 },
   ]},
-  { title: "MANAGEMENT", items: [
+  { title: "ORGANIZATION", items: [
     { label: "Hierarchy", href: "/hcms/hierarchy", icon: GitBranch },
-    { label: "Compensation", href: "/hcms/compensation", icon: DollarSign },
-    { label: "Documents", href: "/hcms/documents", icon: FolderOpen },
-  ]},
-  { title: "COMPLIANCE", items: [
-    { label: "Compliance", href: "/hcms/compliance", icon: ShieldCheck },
-    { label: "Alerts", href: "/hcms/alerts", icon: AlertTriangle },
   ]},
 ];
 
