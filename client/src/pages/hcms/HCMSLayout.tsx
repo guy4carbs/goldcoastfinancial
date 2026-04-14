@@ -17,11 +17,11 @@ import HCMSAlerts from "./HCMSAlerts";
 export default function HCMSLayout() {
   const [location] = useLocation();
   return (
-    <GCShell title="HCMS" subtitle="Hierarchy & Compensation Management" sidebarVariant="hcms" activePath={location}>
+    <GCShell title="HCMS" subtitle="Agent Contracting & Carrier Tracking" sidebarVariant="hcms" activePath={location}>
       <Switch>
         <Route path="/hcms/agents/:id" component={HCMSAgentDetail} />
         <Route path="/hcms/hierarchy/requests" component={HCMSHierarchyRequests} />
-        <Route path="/hcms" component={HCMSPipeline} />
+        <Route path="/hcms" component={HCMSDashboard} />
         <Route path="/hcms/contracting" component={HCMSContracting} />
         <Route path="/hcms/pipeline" component={HCMSPipeline} />
         <Route path="/hcms/agents" component={HCMSAgents} />
