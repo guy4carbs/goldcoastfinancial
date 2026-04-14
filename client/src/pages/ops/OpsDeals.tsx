@@ -22,7 +22,7 @@ export default function OpsDeals() {
   return (
     <div>
       <GCPageHeader title="Deal Submissions" subtitle="Track and verify agent deal submissions" accentUnderline
-        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Submit Deal</button>} />
+        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Submit Deal</button>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Submitted (Month)" value={4} accentTop />
         <GCKPICard label="Verified" value={2} accentTop />

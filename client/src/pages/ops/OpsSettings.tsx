@@ -19,7 +19,7 @@ const statusColor: Record<string, string> = { connected: "var(--gc-status-active
 const userCols: Column<typeof USERS[0]>[] = [
   { key: "name", label: "Name", sortable: true },
   { key: "email", label: "Email", sortable: true },
-  { key: "role", label: "Role", render: (v) => <span style={{ padding: "2px 8px", borderRadius: "2px", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: "var(--gc-gold)", backgroundColor: `color-mix(in srgb, var(--gc-gold) 15%, transparent)` }}>{v}</span> },
+  { key: "role", label: "Role", render: (v) => <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: "var(--gc-gold)", backgroundColor: `color-mix(in srgb, var(--gc-gold) 15%, transparent)` }}>{v}</span> },
   { key: "isActive", label: "Status", render: (v) => <span style={{ color: v ? "var(--gc-status-active)" : "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)" }}>{v ? "Active" : "Inactive"}</span> },
   { key: "lastLogin", label: "Last Login", sortable: true },
 ];
@@ -33,7 +33,7 @@ export default function OpsSettings() {
       {tab === "integrations" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {INTEGRATIONS.map(i => (
-            <div key={i.name} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px" }}>
+            <div key={i.name} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
               <div className="flex items-center justify-between mb-2">
                 <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>{i.name}</span>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: statusColor[i.status] }} />
@@ -47,7 +47,7 @@ export default function OpsSettings() {
       {tab === "system" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[["Database", "Connected", "var(--gc-status-active)"], ["Users", "5 total", "var(--gc-text-primary)"], ["Agents", "4 active", "var(--gc-text-primary)"]].map(([label, val, color]) => (
-            <div key={label as string} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px" }}>
+            <div key={label as string} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>{label}</div>
               <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: color as string }}>{val}</div>
             </div>

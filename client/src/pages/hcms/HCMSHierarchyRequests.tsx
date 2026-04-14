@@ -8,7 +8,7 @@ const MOCK = [
 const typeColor: Record<string, string> = { level_change: "var(--gc-gold)", commission_change: "var(--gc-chart-2)", placement: "var(--gc-chart-4)" };
 const cols: Column<typeof MOCK[0]>[] = [
   { key: "agentName", label: "Agent", sortable: true },
-  { key: "requestType", label: "Type", render: (v) => <span style={{ padding: "2px 8px", borderRadius: "2px", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: typeColor[v] || "var(--gc-text-muted)", backgroundColor: `color-mix(in srgb, ${typeColor[v] || "var(--gc-text-muted)"} 15%, transparent)` }}>{v.replace(/_/g, " ")}</span> },
+  { key: "requestType", label: "Type", render: (v) => <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: typeColor[v] || "var(--gc-text-muted)", backgroundColor: `color-mix(in srgb, ${typeColor[v] || "var(--gc-text-muted)"} 15%, transparent)` }}>{v.replace(/_/g, " ")}</span> },
   { key: "currentValue", label: "Current" },
   { key: "requestedValue", label: "Requested" },
   { key: "status", label: "Status", render: (v) => <GCStatusBadge status={v} /> },
@@ -18,7 +18,7 @@ export default function HCMSHierarchyRequests() {
   return (
     <div>
       <GCPageHeader title="Hierarchy Requests" subtitle="Review placement & commission change requests" accentUnderline
-        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>New Request</button>} />
+        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>New Request</button>} />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <GCKPICard label="Pending Review" value={2} accentTop />
         <GCKPICard label="Approved (Month)" value={1} accentTop delta={{ value: "+1", positive: true }} />

@@ -25,7 +25,7 @@ function TreeNode({ node, depth, onNodeClick, selectedNodeId, expandedIds, toggl
         onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (hasChildren) toggleExpand(node.id); onNodeClick?.(node); } }}
         style={{ minWidth: 200 }}>
         <div style={{
-          padding: "var(--gc-space-3) var(--gc-space-4)", borderRadius: "0px",
+          padding: "var(--gc-space-3) var(--gc-space-4)", borderRadius: "var(--gc-radius-md)",
           border: selected ? "2px solid var(--gc-gold)" : "1px solid var(--gc-border)",
           backgroundColor: isOwner ? "var(--gc-gold)" : "var(--gc-surface)",
           transition: "border-color var(--gc-transition-fast)", width: "100%",
@@ -34,7 +34,7 @@ function TreeNode({ node, depth, onNodeClick, selectedNodeId, expandedIds, toggl
           <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", opacity: 0.8 }}>{node.title}</div>
           <div className="flex items-center justify-between mt-1">
             <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", fontWeight: 600, color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-gold)" }}>{node.contractLevel}%</span>
-            {node.overridePercentage > 0 && <span style={{ fontSize: "var(--gc-text-xs)", padding: "1px 6px", borderRadius: "2px", backgroundColor: `color-mix(in srgb, var(--gc-gold) 15%, transparent)`, color: "var(--gc-gold)" }}>{node.overridePercentage}% override</span>}
+            {node.overridePercentage > 0 && <span style={{ fontSize: "var(--gc-text-xs)", padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", backgroundColor: `color-mix(in srgb, var(--gc-gold) 15%, transparent)`, color: "var(--gc-gold)" }}>{node.overridePercentage}% override</span>}
           </div>
           <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-text-muted)", marginTop: 4 }}>${(node.totalAip / 1000).toFixed(0)}K AIP</div>
           {hasChildren && (

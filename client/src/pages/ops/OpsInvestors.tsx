@@ -9,7 +9,7 @@ export default function OpsInvestors() {
   return (
     <div>
       <GCPageHeader title="Investor Relations" subtitle="Portfolio metrics & growth reporting" accentUnderline
-        actions={<button onClick={() => alert("PDF export coming soon")} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Export PDF</button>} />
+        actions={<button onClick={() => alert("PDF export coming soon")} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Export PDF</button>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <GCKPICard label="Agents Under Management" value={34} accentTop delta={{ value: "+12% YoY", positive: true }} />
         <GCKPICard label="Total AIP" value="$1.24M" accentTop delta={{ value: "+28% YoY", positive: true }} />
@@ -23,14 +23,14 @@ export default function OpsInvestors() {
         <GCAreaChart data={AIP_GROWTH} title="AIP Growth" valueFormatter={v => `$${(v/1000000).toFixed(2)}M`} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", padding: "var(--gc-space-4)" }}>
+        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-4)" }}>
           <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-4)" }}>Carrier Diversification</div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart><Pie data={PIE_DATA} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">{PIE_DATA.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}</Pie><Tooltip /></PieChart>
           </ResponsiveContainer>
           <div className="flex flex-wrap gap-3 mt-2 justify-center">{PIE_DATA.map((d, i) => <span key={d.name} className="flex items-center gap-1" style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-secondary)" }}><span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: PIE_COLORS[i] }} />{d.name} {d.value}%</span>)}</div>
         </div>
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", padding: "var(--gc-space-4)" }}>
+        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-4)" }}>
           <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-4)" }}>Financial Summary</div>
           <div className="flex flex-col gap-3">
             {FINANCIALS.map((f, i) => (

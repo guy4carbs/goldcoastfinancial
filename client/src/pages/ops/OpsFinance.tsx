@@ -18,9 +18,9 @@ export default function OpsFinance() {
       <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Recent Transactions</div>
       <div className="flex flex-col gap-2">
         {TXN.map((t, i) => (
-          <div key={i} style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border-subtle)", borderRadius: "0px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={i} style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div className="flex items-center gap-3">
-              <span style={{ padding: "2px 6px", borderRadius: "2px", fontSize: "var(--gc-text-xs)", fontFamily: "var(--gc-font-body)", color: typeColor[t.type], backgroundColor: `color-mix(in srgb, ${typeColor[t.type]} 15%, transparent)`, textTransform: "capitalize" as const }}>{t.type}</span>
+              <span style={{ padding: "2px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontFamily: "var(--gc-font-body)", color: typeColor[t.type], backgroundColor: `color-mix(in srgb, ${typeColor[t.type]} 15%, transparent)`, textTransform: "capitalize" as const }}>{t.type}</span>
               <div>
                 <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)" }}>{t.desc}</div>
                 <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{t.date}</div>

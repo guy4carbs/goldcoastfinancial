@@ -21,14 +21,14 @@ export default function HCMSCarriers() {
   return (
     <div>
       <GCPageHeader title="Carrier Appointments" subtitle="Manage agent-carrier appointment status" accentUnderline
-        actions={<div className="flex gap-2">{(["matrix","list"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "2px", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v}</button>)}</div>} />
+        actions={<div className="flex gap-2">{(["matrix","list"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v}</button>)}</div>} />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <GCKPICard label="Total Carriers" value={5} accentTop />
         <GCKPICard label="Active Appointments" value={3} accentTop />
         <GCKPICard label="Pending" value={1} accentTop />
       </div>
       {view === "matrix" ? (
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", overflow: "auto" }}>
+        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", overflow: "auto" }}>
           <table className="w-full"><thead><tr style={{ borderBottom: "1px solid var(--gc-border)" }}>
             <th style={{ padding: "var(--gc-space-3) var(--gc-space-4)", textAlign: "left", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)" }}>Agent</th>
             {CARRIERS.map(c => <th key={c} style={{ padding: "var(--gc-space-3)", textAlign: "center", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)" }}>{c}</th>)}

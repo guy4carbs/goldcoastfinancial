@@ -22,7 +22,7 @@ export default function HCMSCompensation() {
   return (
     <div>
       <GCPageHeader title="Compensation Schedules" subtitle="Commission rates, override rules & contract level management" accentUnderline />
-      <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", overflow: "auto", marginBottom: "var(--gc-space-6)" }}>
+      <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", overflow: "auto", marginBottom: "var(--gc-space-6)" }}>
         <table className="w-full"><thead><tr style={{ borderBottom: "2px solid var(--gc-gold)" }}>
           {["Level", "Title", "Default Contract %", "Override Spread"].map(h => <th key={h} style={{ padding: "var(--gc-space-3) var(--gc-space-4)", textAlign: "left", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-gold)" }}>{h}</th>)}
         </tr></thead><tbody>
@@ -37,13 +37,13 @@ export default function HCMSCompensation() {
           })}
         </tbody></table>
       </div>
-      <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", padding: "var(--gc-space-6)" }}>
+      <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
         <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Waterfall Simulator</div>
         <div className="flex gap-4 mb-6">
           <div><label style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-2)" }}>Premium ($)</label>
-            <input type="number" value={premium} onChange={e => setPremium(Number(e.target.value))} style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "2px", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)", width: 150 }} /></div>
+            <input type="number" value={premium} onChange={e => setPremium(Number(e.target.value))} style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)", width: 150 }} /></div>
           <div><label style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-2)" }}>Agent Level</label>
-            <select value={agentLevel} onChange={e => setAgentLevel(Number(e.target.value))} style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "2px", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }}>
+            <select value={agentLevel} onChange={e => setAgentLevel(Number(e.target.value))} style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }}>
               {SCHEDULE.filter(s => s.level >= 4).map(s => <option key={s.level} value={s.level}>{s.name} ({s.defaultContract}%)</option>)}
             </select></div>
         </div>

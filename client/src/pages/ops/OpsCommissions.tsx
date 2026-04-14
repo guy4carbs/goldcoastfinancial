@@ -35,7 +35,7 @@ export default function OpsCommissions() {
         <GCAreaChart data={TRENDS} title="Commission Trends (Personal vs Override)" keys={["Personal", "Override"]} valueFormatter={v => `$${(v/1000).toFixed(0)}K`} />
         <GCBarChart data={CARRIERS} title="Commissions by Carrier" valueFormatter={v => `$${(v/1000).toFixed(0)}K`} />
       </div>
-      <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", padding: "var(--gc-space-4)", marginBottom: "var(--gc-space-6)" }}>
+      <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-4)", marginBottom: "var(--gc-space-6)" }}>
         <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Waterfall Override Breakdown ($10K Premium)</div>
         <div className="flex flex-col gap-2">
           {WATERFALL.map(w => <GCStatRow key={w.name} label={`${w.name}${w.spread > 0 ? ` — ${w.spread}% spread` : " — Personal"}`} value={w.earning} max={10000} formatter={v => `$${v.toLocaleString()}`} />)}

@@ -29,7 +29,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
     <div className="flex flex-col h-full" style={{ backgroundColor: "var(--gc-sidebar)", borderRight: "1px solid var(--gc-border)" }}>
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="p-2" style={{ backgroundColor: "var(--gc-gold)", borderRadius: "0px" }}>
+        <div className="p-2" style={{ backgroundColor: "var(--gc-gold)", borderRadius: "var(--gc-radius-md)" }}>
           <Shield className="w-4 h-4" style={{ color: "var(--gc-btn-primary-text)" }} />
         </div>
         <div className="flex flex-col">
@@ -50,7 +50,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
                 const active = activePath === item.href || (item.href !== "/hcms" && item.href !== "/ops" && activePath.startsWith(item.href));
                 return (
                   <a key={item.href} href={item.href}
-                    className={cn("flex items-center gap-2 px-3 py-1.5 rounded-none", "no-underline")}
+                    className={cn("flex items-center gap-2 px-3 py-1.5 rounded-sm", "no-underline")}
                     style={{
                       fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: active ? 500 : 400,
                       color: active ? "var(--gc-nav-active-text)" : "var(--gc-text-secondary)",
@@ -60,7 +60,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
                     <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: active ? "var(--gc-gold)" : "var(--gc-text-muted)", opacity: active ? 1 : 0.4 }} />
                     <span className="truncate">{item.label}</span>
                     {item.badge != null && (
-                      <span className="ml-auto text-xs px-1.5 py-0.5 rounded-none" style={{ backgroundColor: "var(--gc-gold)", color: "var(--gc-btn-primary-text)", fontSize: "var(--gc-text-xs)", fontWeight: 600 }}>
+                      <span className="ml-auto text-xs px-1.5 py-0.5 rounded-sm" style={{ backgroundColor: "var(--gc-gold)", color: "var(--gc-btn-primary-text)", fontSize: "var(--gc-text-xs)", fontWeight: 600 }}>
                         {item.badge}
                       </span>
                     )}
@@ -90,7 +90,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
       {/* Desktop */}
       <aside className="hidden lg:block fixed top-[2px] left-0 bottom-0 w-[240px] z-40">{sidebar}</aside>
       {/* Mobile toggle */}
-      <button className="lg:hidden fixed top-3 left-3 z-50 p-2" style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px" }} onClick={() => setMobileOpen(true)}>
+      <button className="lg:hidden fixed top-3 left-3 z-50 p-2" style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }} onClick={() => setMobileOpen(true)}>
         <Menu className="w-5 h-5" style={{ color: "var(--gc-text-primary)" }} />
       </button>
       {/* Mobile overlay */}

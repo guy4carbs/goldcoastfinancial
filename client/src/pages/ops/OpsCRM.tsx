@@ -28,7 +28,7 @@ export default function OpsCRM() {
   return (
     <div>
       <GCPageHeader title="Sales Pipeline" subtitle="Lead management & conversion tracking" accentUnderline
-        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Add Lead</button>} />
+        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Add Lead</button>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Total Leads" value={leads.length} accentTop />
         <GCKPICard label="Pipeline Value" value={`$${(totalValue/1000).toFixed(0)}K`} accentTop />
@@ -38,10 +38,10 @@ export default function OpsCRM() {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           {STAGES.map(stage => (
-            <div key={stage.id} style={{ backgroundColor: "var(--gc-surface-2)", borderRadius: "0px", border: "1px solid var(--gc-border-subtle)" }}>
+            <div key={stage.id} style={{ backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-md)", border: "1px solid var(--gc-border-subtle)" }}>
               <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
                 <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)" }}>{stage.label}</span>
-                <span style={{ fontSize: "var(--gc-text-xs)", fontWeight: 600, color: stage.color, backgroundColor: `color-mix(in srgb, ${stage.color} 15%, transparent)`, padding: "1px 6px", borderRadius: "2px" }}>{groups[stage.id]?.length || 0}</span>
+                <span style={{ fontSize: "var(--gc-text-xs)", fontWeight: 600, color: stage.color, backgroundColor: `color-mix(in srgb, ${stage.color} 15%, transparent)`, padding: "1px 6px", borderRadius: "var(--gc-radius-sm)" }}>{groups[stage.id]?.length || 0}</span>
               </div>
               <Droppable droppableId={stage.id}>
                 {(prov) => (
@@ -49,10 +49,10 @@ export default function OpsCRM() {
                     {(groups[stage.id] || []).map((lead, i) => (
                       <Draggable key={lead.id} draggableId={lead.id} index={i}>
                         {(p) => (
-                          <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps} style={{ ...p.draggableProps.style, padding: "var(--gc-space-3)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border-subtle)", borderRadius: "0px" }}>
+                          <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps} style={{ ...p.draggableProps.style, padding: "var(--gc-space-3)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)" }}>
                             <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)", marginBottom: 4 }}>{lead.name}</div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span style={{ padding: "1px 6px", borderRadius: "2px", fontSize: "var(--gc-text-xs)", color: srcColor[lead.source] || "var(--gc-text-muted)", backgroundColor: `color-mix(in srgb, ${srcColor[lead.source] || "var(--gc-text-muted)"} 15%, transparent)` }}>{lead.source.replace(/_/g, " ")}</span>
+                              <span style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", color: srcColor[lead.source] || "var(--gc-text-muted)", backgroundColor: `color-mix(in srgb, ${srcColor[lead.source] || "var(--gc-text-muted)"} 15%, transparent)` }}>{lead.source.replace(/_/g, " ")}</span>
                               <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: tierDot[lead.tier] || "var(--gc-text-muted)" }} />
                             </div>
                             <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-md)", color: "var(--gc-gold)" }}>${lead.value.toLocaleString()}</div>

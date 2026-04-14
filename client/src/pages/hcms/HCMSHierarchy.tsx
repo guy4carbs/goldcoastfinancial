@@ -23,7 +23,7 @@ export default function HCMSHierarchy() {
   return (
     <div>
       <GCPageHeader title="Hierarchy" subtitle="Organization structure & override levels" accentUnderline
-        actions={<div className="flex gap-2">{(["tree","table"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "2px", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v}</button>)}</div>} />
+        actions={<div className="flex gap-2">{(["tree","table"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v}</button>)}</div>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Total Agents" value={8} accentTop />
         <GCKPICard label="Avg Contract Level" value="88%" accentTop />
@@ -34,7 +34,7 @@ export default function HCMSHierarchy() {
         <div className="flex gap-6">
           <div className="flex-1 overflow-auto"><GCHierarchyTree data={MOCK_TREE} onNodeClick={setSelected} selectedNodeId={selected?.id} /></div>
           {selected && (
-            <div style={{ width: 280, padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px", flexShrink: 0 }}>
+            <div style={{ width: 280, padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", flexShrink: 0 }}>
               <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-2)" }}>{selected.name}</div>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", marginBottom: "var(--gc-space-4)" }}>{selected.title}</div>
               {[["Contract Level", `${selected.contractLevel}%`], ["Override", `${selected.overridePercentage}%`], ["Team AIP", `$${(selected.totalAip/1000).toFixed(0)}K`]].map(([l,v],i) => (

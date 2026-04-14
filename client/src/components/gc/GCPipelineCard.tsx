@@ -24,7 +24,7 @@ export function GCPipelineCard({ agent, onClick }: GCPipelineCardProps) {
   return (
     <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       className="cursor-pointer" style={{
-        padding: "12px 16px", backgroundColor: "var(--gc-surface)", borderRadius: "0px",
+        padding: "12px 16px", backgroundColor: "var(--gc-surface)", borderRadius: "var(--gc-radius-md)",
         borderLeft: `3px solid ${borderColor}`, borderTop: "1px solid", borderRight: "1px solid", borderBottom: "1px solid",
         borderTopColor: hovered ? "var(--gc-gold)" : "var(--gc-border)", borderRightColor: hovered ? "var(--gc-gold)" : "var(--gc-border)", borderBottomColor: hovered ? "var(--gc-gold)" : "var(--gc-border)",
         transition: "border-color var(--gc-transition-normal)",

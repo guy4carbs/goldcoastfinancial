@@ -18,12 +18,12 @@ export default function HCMSAlerts() {
       </div>
       <div className="flex flex-col gap-2">
         {ALERTS.map(a => (
-          <div key={a.id} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderLeft: `3px solid ${sevColor[a.severity]}`, borderRadius: "0px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={a.id} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderLeft: `3px solid ${sevColor[a.severity]}`, borderRadius: "var(--gc-radius-md)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{a.title}</div>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)", marginTop: 2 }}>{a.agent}</div>
             </div>
-            <span style={{ padding: "2px 8px", borderRadius: "2px", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: sevColor[a.severity], backgroundColor: `color-mix(in srgb, ${sevColor[a.severity]} 15%, transparent)` }}>{a.severity}</span>
+            <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: sevColor[a.severity], backgroundColor: `color-mix(in srgb, ${sevColor[a.severity]} 15%, transparent)` }}>{a.severity}</span>
           </div>
         ))}
       </div>

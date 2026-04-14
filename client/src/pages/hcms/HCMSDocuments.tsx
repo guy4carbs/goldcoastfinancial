@@ -10,7 +10,7 @@ const catColor: Record<string, string> = { "e&o_certificate": "var(--gc-status-r
 const cols: Column<typeof MOCK[0]>[] = [
   { key: "name", label: "Document", sortable: true },
   { key: "agentName", label: "Agent", sortable: true },
-  { key: "category", label: "Category", render: (v) => <span style={{ padding: "2px 8px", borderRadius: "2px", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: catColor[v] || "var(--gc-text-muted)", backgroundColor: `color-mix(in srgb, ${catColor[v] || "var(--gc-text-muted)"} 15%, transparent)` }}>{v.replace(/_/g, " ")}</span> },
+  { key: "category", label: "Category", render: (v) => <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)", color: catColor[v] || "var(--gc-text-muted)", backgroundColor: `color-mix(in srgb, ${catColor[v] || "var(--gc-text-muted)"} 15%, transparent)` }}>{v.replace(/_/g, " ")}</span> },
   { key: "uploadDate", label: "Uploaded", sortable: true },
   { key: "expirationDate", label: "Expires", sortable: true },
   { key: "status", label: "Status", render: (v) => <GCStatusBadge status={v} /> },
@@ -19,7 +19,7 @@ export default function HCMSDocuments() {
   return (
     <div>
       <GCPageHeader title="Document Vault" subtitle="Agent document management & compliance tracking" accentUnderline
-        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Upload Document</button>} />
+        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Upload Document</button>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Total Documents" value={5} accentTop />
         <GCKPICard label="E&O Certificates" value={2} accentTop />

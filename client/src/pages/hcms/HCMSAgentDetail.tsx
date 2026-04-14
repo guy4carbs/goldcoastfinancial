@@ -11,8 +11,8 @@ export default function HCMSAgentDetail() {
     <div>
       <GCPageHeader title={MOCK.name} subtitle={MOCK.email} breadcrumbs={[{ label: "Agents", href: "/hcms/agents" }, { label: MOCK.name }]} accentUnderline
         actions={<div className="flex gap-2">
-          <button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-status-active)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>Approve</button>
-          <button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-status-terminated)", color: "#fff", borderRadius: "2px", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>Reject</button>
+          <button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-status-active)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>Approve</button>
+          <button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-status-terminated)", color: "#fff", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>Reject</button>
         </div>} />
       <div className="flex gap-1 mb-6">
         {tabs.map(t => (
@@ -22,7 +22,7 @@ export default function HCMSAgentDetail() {
       {activeTab === "profile" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[["Status", <GCStatusBadge status={MOCK.status} />], ["Email", MOCK.email], ["Phone", MOCK.phone], ["State", MOCK.state], ["City", MOCK.city], ["ZIP", MOCK.zip], ["Experience", MOCK.yearsExperience], ["NPN", MOCK.npn], ["E&O Provider", MOCK.eoProvider], ["E&O Expiration", MOCK.eoExpiration]].map(([label, val], i) => (
-            <div key={i} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px" }}>
+            <div key={i} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>{label}</div>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)" }}>{val}</div>
             </div>
@@ -34,7 +34,7 @@ export default function HCMSAgentDetail() {
       {activeTab === "contracting" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {["NDA", "Debt Rollup", "Compliance"].map(doc => (
-            <div key={doc} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "0px" }}>
+            <div key={doc} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
               <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-2)" }}>{doc}</div>
               <GCStatusBadge status="pending" />
             </div>

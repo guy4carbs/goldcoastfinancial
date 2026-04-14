@@ -28,10 +28,10 @@ export function GCPipelineBoard({ agents, onStageChange }: GCPipelineBoardProps)
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {columns.map(col => (
-          <div key={col.id} style={{ backgroundColor: "var(--gc-surface-2)", borderRadius: "0px", border: "1px solid var(--gc-border-subtle)" }}>
+          <div key={col.id} style={{ backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-md)", border: "1px solid var(--gc-border-subtle)" }}>
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
               <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500, letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)" }}>{col.label}</span>
-              <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: col.color, backgroundColor: `color-mix(in srgb, ${col.color} 15%, transparent)`, padding: "2px 6px", borderRadius: "2px" }}>{groups[col.id]?.length || 0}</span>
+              <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: col.color, backgroundColor: `color-mix(in srgb, ${col.color} 15%, transparent)`, padding: "2px 6px", borderRadius: "var(--gc-radius-sm)" }}>{groups[col.id]?.length || 0}</span>
             </div>
             <Droppable droppableId={col.id}>
               {(provided, snapshot) => (

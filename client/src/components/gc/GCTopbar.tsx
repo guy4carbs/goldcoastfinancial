@@ -20,9 +20,9 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
       </div>
       <div className="flex items-center gap-2">
         {actions}
-        <button onClick={cycle} className="p-2 rounded-none" style={{ color: "var(--gc-text-secondary)", transition: "color var(--gc-transition-fast)" }}
+        <button onClick={cycle} className="p-2 rounded-sm" style={{ color: "var(--gc-text-secondary)", transition: "color var(--gc-transition-fast)" }}
           title={`Theme: ${themes.find(t => t.id === theme)?.label}`}><Icon className="w-4 h-4" /></button>
-        <button className="p-2 rounded-none relative" style={{ color: "var(--gc-text-secondary)" }}>
+        <button className="p-2 rounded-sm relative" style={{ color: "var(--gc-text-secondary)" }}>
           <Bell className="w-4 h-4" />
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ backgroundColor: "var(--gc-gold)" }} />
         </button>

@@ -32,14 +32,14 @@ export default function OpsCompliance() {
   return (
     <div>
       <GCPageHeader title="Compliance" subtitle="Compliance monitoring, flag management & audit trail" accentUnderline
-        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "2px", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Run Check</button>} />
+        actions={<button style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500 }}>Run Check</button>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Critical Flags" value={2} accentTop delta={{ value: "Action needed", positive: false }} />
         <GCKPICard label="Warning Flags" value={2} accentTop />
         <GCKPICard label="Open Total" value={5} accentTop />
         <GCKPICard label="Resolved (Month)" value={22} accentTop delta={{ value: "+5", positive: true }} />
       </div>
-      <div className="flex gap-2 mb-4">{(["flags","audit"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "2px", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v === "flags" ? "Flags" : "Audit Trail"}</button>)}</div>
+      <div className="flex gap-2 mb-4">{(["flags","audit"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v === "flags" ? "Flags" : "Audit Trail"}</button>)}</div>
       {view === "flags" ? <GCDataTable columns={flagCols} data={FLAGS} searchable /> : <GCDataTable columns={auditCols} data={AUDIT} searchable />}
     </div>
   );

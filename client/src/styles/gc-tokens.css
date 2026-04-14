@@ -187,7 +187,11 @@
 
   /* Border Radius */
   --gc-radius-none: 0px;
-  --gc-radius-sm: 2px;
+  --gc-radius-xs: 4px;
+  --gc-radius-sm: 6px;
+  --gc-radius-md: 8px;
+  --gc-radius-lg: 12px;
+  --gc-radius-xl: 16px;
   --gc-radius-full: 9999px;
 
   /* Font Families */
@@ -209,7 +213,7 @@
 .gc-card {
   background: var(--gc-surface);
   border: 1px solid var(--gc-border);
-  border-radius: 0px;
+  border-radius: var(--gc-radius-md);
   transition: border-color var(--gc-transition-normal);
 }
 .gc-card:hover {
@@ -225,7 +229,7 @@
 }
 
 .gc-input {
-  border-radius: 2px;
+  border-radius: var(--gc-radius-sm);
   border: 1px solid var(--gc-border);
   background: var(--gc-surface);
   color: var(--gc-text-primary);
@@ -240,7 +244,7 @@
 }
 
 .gc-btn {
-  border-radius: 2px;
+  border-radius: var(--gc-radius-sm);
   font-family: var(--gc-font-body);
   font-size: var(--gc-text-base);
   font-weight: 500;

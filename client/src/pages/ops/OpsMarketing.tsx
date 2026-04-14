@@ -35,8 +35,8 @@ export default function OpsMarketing() {
           {FUNNEL.map((f, i) => (
             <div key={f.stage} className="flex items-center gap-4">
               <span style={{ width: 100, fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-secondary)", textAlign: "right" }}>{f.stage}</span>
-              <div style={{ flex: 1, height: 32, backgroundColor: "var(--gc-surface-2)", borderRadius: "0px", position: "relative" }}>
-                <div style={{ height: "100%", width: `${(f.count / 78) * 100}%`, background: `linear-gradient(90deg, var(--gc-gold), var(--gc-gold-bright))`, borderRadius: "0px", transition: "width var(--gc-transition-normal)", display: "flex", alignItems: "center", paddingLeft: "var(--gc-space-3)" }}>
+              <div style={{ flex: 1, height: 32, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-md)", position: "relative" }}>
+                <div style={{ height: "100%", width: `${(f.count / 78) * 100}%`, background: `linear-gradient(90deg, var(--gc-gold), var(--gc-gold-bright))`, borderRadius: "var(--gc-radius-md)", transition: "width var(--gc-transition-normal)", display: "flex", alignItems: "center", paddingLeft: "var(--gc-space-3)" }}>
                   <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-md)", fontWeight: 600, color: "var(--gc-btn-primary-text)" }}>{f.count}</span>
                 </div>
               </div>

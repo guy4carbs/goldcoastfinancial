@@ -19,7 +19,7 @@ export function GCStatusBadge({ status, className }: GCStatusBadgeProps) {
   return (
     <span className={className} style={{
       display: "inline-flex", alignItems: "center", padding: "2px 8px",
-      borderRadius: "2px", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)",
+      borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)",
       fontWeight: 500, letterSpacing: "var(--gc-tracking-wide)",
       color: config.color, backgroundColor: `color-mix(in srgb, ${config.color} 15%, transparent)`,
     }}>

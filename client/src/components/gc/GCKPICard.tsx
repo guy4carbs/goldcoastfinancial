@@ -14,7 +14,7 @@ export function GCKPICard({ label, value, delta, accentTop, className }: GCKPICa
       style={{
         padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)",
         border: "1px solid", borderColor: hovered ? "var(--gc-gold)" : "var(--gc-border)",
-        borderRadius: "0px", borderTop: accentTop ? "2px solid var(--gc-gold)" : undefined,
+        borderRadius: "var(--gc-radius-md)", borderTop: accentTop ? "2px solid var(--gc-gold)" : undefined,
         transition: "border-color var(--gc-transition-normal)",
       }}>
       <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500, letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>
