@@ -1,0 +1,267 @@
+/* Gold Coast Financial Platform — Design Tokens
+ * Scoped to [data-theme] on GCShell — never affects institutional pages.
+ * Three themes: gc-dark (default), gc-light, gc-maroon.
+ */
+
+/* =============================================
+   DARK THEME
+   ============================================= */
+[data-theme="gc-dark"] {
+  --gc-bg: #2D0A12;
+  --gc-surface: #3A1018;
+  --gc-surface-2: #52182A;
+  --gc-sidebar: #1A1A1A;
+
+  --gc-border: rgba(196, 151, 90, 0.25);
+  --gc-border-subtle: rgba(255, 255, 255, 0.06);
+
+  --gc-gold: #C4975A;
+  --gc-gold-bright: #D4A55A;
+
+  --gc-text-primary: #E8DDD0;
+  --gc-text-secondary: #B8A898;
+  --gc-text-muted: #9A8578;
+
+  --gc-nav-active-bg: rgba(196, 151, 90, 0.12);
+  --gc-nav-active-text: #D4A55A;
+
+  --gc-btn-primary-bg: #C4975A;
+  --gc-btn-primary-text: #2D0A12;
+
+  --gc-status-active: #7EC8A4;
+  --gc-status-pending: #C4975A;
+  --gc-status-review: #A8C4E0;
+  --gc-status-terminated: #E09090;
+  --gc-status-warning: #E07060;
+
+  --gc-chart-1: #C4975A;
+  --gc-chart-2: #8B5CF6;
+  --gc-chart-3: #22C55E;
+  --gc-chart-4: #3B82F6;
+  --gc-chart-5: #F59E0B;
+
+  --gc-shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --gc-shadow-md: 0 4px 8px rgba(0,0,0,0.3);
+  --gc-shadow-lg: 0 8px 16px rgba(0,0,0,0.3);
+
+  --gc-hover-overlay: rgba(255, 255, 255, 0.04);
+  --gc-focus-ring: 0 0 0 2px #C4975A;
+  --gc-transition-fast: 150ms ease;
+  --gc-transition-normal: 200ms ease;
+}
+
+/* =============================================
+   LIGHT THEME
+   ============================================= */
+[data-theme="gc-light"] {
+  --gc-bg: #F5EEE6;
+  --gc-surface: #FFFFFF;
+  --gc-surface-2: #F5EEE6;
+  --gc-sidebar: #EDE4D8;
+
+  --gc-border: rgba(74, 20, 32, 0.15);
+  --gc-border-subtle: rgba(74, 20, 32, 0.08);
+
+  --gc-gold: #C4975A;
+  --gc-gold-bright: #D4A55A;
+
+  --gc-text-primary: #2D1810;
+  --gc-text-secondary: #9A7A6A;
+  --gc-text-muted: #B89A88;
+
+  --gc-nav-active-bg: rgba(74, 20, 32, 0.08);
+  --gc-nav-active-text: #4A1420;
+
+  --gc-btn-primary-bg: #C4975A;
+  --gc-btn-primary-text: #FFFFFF;
+
+  --gc-status-active: #2A6B45;
+  --gc-status-pending: #C4975A;
+  --gc-status-review: #1A4A7A;
+  --gc-status-terminated: #8B2020;
+  --gc-status-warning: #C0503A;
+
+  --gc-chart-1: #C4975A;
+  --gc-chart-2: #8B5CF6;
+  --gc-chart-3: #22C55E;
+  --gc-chart-4: #3B82F6;
+  --gc-chart-5: #F59E0B;
+
+  --gc-shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --gc-shadow-md: 0 4px 8px rgba(0,0,0,0.08);
+  --gc-shadow-lg: 0 8px 16px rgba(0,0,0,0.1);
+
+  --gc-hover-overlay: rgba(0, 0, 0, 0.04);
+  --gc-focus-ring: 0 0 0 2px #C4975A;
+  --gc-transition-fast: 150ms ease;
+  --gc-transition-normal: 200ms ease;
+}
+
+/* =============================================
+   MAROON THEME
+   ============================================= */
+[data-theme="gc-maroon"] {
+  --gc-bg: #4A1420;
+  --gc-surface: #5C1C28;
+  --gc-surface-2: #6B2030;
+  --gc-sidebar: #3A0E18;
+
+  --gc-border: rgba(196, 151, 90, 0.30);
+  --gc-border-subtle: rgba(196, 151, 90, 0.12);
+
+  --gc-gold: #C4975A;
+  --gc-gold-bright: #D4A55A;
+
+  --gc-text-primary: #F0E8DE;
+  --gc-text-secondary: #C8A898;
+  --gc-text-muted: #A89080;
+
+  --gc-nav-active-bg: rgba(196, 151, 90, 0.15);
+  --gc-nav-active-text: #D4A55A;
+
+  --gc-btn-primary-bg: #D4A55A;
+  --gc-btn-primary-text: #2D0A12;
+
+  --gc-status-active: #7EC8A4;
+  --gc-status-pending: #C4975A;
+  --gc-status-review: #A8C4E0;
+  --gc-status-terminated: #E09090;
+  --gc-status-warning: #E07060;
+
+  --gc-chart-1: #C4975A;
+  --gc-chart-2: #8B5CF6;
+  --gc-chart-3: #22C55E;
+  --gc-chart-4: #3B82F6;
+  --gc-chart-5: #F59E0B;
+
+  --gc-shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --gc-shadow-md: 0 4px 8px rgba(0,0,0,0.2);
+  --gc-shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+
+  --gc-hover-overlay: rgba(255, 255, 255, 0.04);
+  --gc-focus-ring: 0 0 0 2px #C4975A;
+  --gc-transition-fast: 150ms ease;
+  --gc-transition-normal: 200ms ease;
+}
+
+/* =============================================
+   SHARED TOKENS (same across all themes)
+   ============================================= */
+[data-theme="gc-dark"],
+[data-theme="gc-light"],
+[data-theme="gc-maroon"] {
+  /* Typography Scale — Perfect Fourth (1.333) */
+  --gc-text-xs: 10px;
+  --gc-text-sm: 11px;
+  --gc-text-base: 13px;
+  --gc-text-md: 14px;
+  --gc-text-lg: 16px;
+  --gc-text-xl: 20px;
+  --gc-text-2xl: 24px;
+  --gc-text-3xl: 28px;
+  --gc-text-4xl: 32px;
+  --gc-text-5xl: 40px;
+
+  /* Line Heights */
+  --gc-leading-tight: 1.2;
+  --gc-leading-normal: 1.5;
+  --gc-leading-relaxed: 1.65;
+
+  /* Letter Spacing */
+  --gc-tracking-tight: -0.02em;
+  --gc-tracking-normal: 0;
+  --gc-tracking-wide: 0.05em;
+  --gc-tracking-wider: 0.10em;
+
+  /* Spacing — 8-Point Grid */
+  --gc-space-1: 4px;
+  --gc-space-2: 8px;
+  --gc-space-3: 12px;
+  --gc-space-4: 16px;
+  --gc-space-5: 20px;
+  --gc-space-6: 24px;
+  --gc-space-8: 32px;
+  --gc-space-10: 40px;
+  --gc-space-12: 48px;
+  --gc-space-16: 64px;
+
+  /* Border Radius */
+  --gc-radius-none: 0px;
+  --gc-radius-sm: 2px;
+  --gc-radius-full: 9999px;
+
+  /* Font Families */
+  --gc-font-display: 'Playfair Display', serif;
+  --gc-font-body: 'DM Sans', sans-serif;
+}
+
+/* =============================================
+   UTILITY CLASSES
+   ============================================= */
+.gc-font-display { font-family: var(--gc-font-display); }
+.gc-font-body { font-family: var(--gc-font-body); }
+
+.gc-gold-rule {
+  border-top: 2px solid;
+  border-image: linear-gradient(90deg, var(--gc-gold), var(--gc-gold-bright)) 1;
+}
+
+.gc-card {
+  background: var(--gc-surface);
+  border: 1px solid var(--gc-border);
+  border-radius: 0px;
+  transition: border-color var(--gc-transition-normal);
+}
+.gc-card:hover {
+  border-color: var(--gc-gold);
+}
+.gc-card-accent {
+  border-top: 2px solid var(--gc-gold);
+}
+
+.gc-focus-visible:focus-visible {
+  outline: none;
+  box-shadow: var(--gc-focus-ring);
+}
+
+.gc-input {
+  border-radius: 2px;
+  border: 1px solid var(--gc-border);
+  background: var(--gc-surface);
+  color: var(--gc-text-primary);
+  font-family: var(--gc-font-body);
+  font-size: var(--gc-text-md);
+  transition: border-color var(--gc-transition-fast);
+}
+.gc-input:focus {
+  border-color: var(--gc-gold);
+  outline: none;
+  box-shadow: var(--gc-focus-ring);
+}
+
+.gc-btn {
+  border-radius: 2px;
+  font-family: var(--gc-font-body);
+  font-size: var(--gc-text-base);
+  font-weight: 500;
+  letter-spacing: var(--gc-tracking-wide);
+  transition: all var(--gc-transition-fast);
+}
+
+.gc-section-label {
+  font-family: var(--gc-font-body);
+  font-size: var(--gc-text-xs);
+  font-weight: 500;
+  letter-spacing: var(--gc-tracking-wider);
+  text-transform: uppercase;
+  color: var(--gc-text-muted);
+}
+
+.gc-table-header {
+  font-family: var(--gc-font-body);
+  font-size: var(--gc-text-xs);
+  font-weight: 500;
+  letter-spacing: var(--gc-tracking-wider);
+  text-transform: uppercase;
+  color: var(--gc-text-secondary);
+}

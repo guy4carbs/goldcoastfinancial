@@ -1,0 +1,10 @@
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+export function GCContent({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <main className={cn("flex-1 overflow-y-auto p-6", className)} style={{ backgroundColor: "var(--gc-bg)" }}>
+      {children}
+    </main>
+  );
+}
