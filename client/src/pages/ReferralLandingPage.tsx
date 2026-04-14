@@ -198,7 +198,7 @@ export default function ReferralLandingPage() {
     if (!lastName.trim()) e.lastName = "Last name is required";
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "A valid email is required";
     const phoneDigits = phone.replace(/\D/g, "");
-    if (phoneDigits.length !== 10) e.phone = "A valid 10-digit phone number is required";
+    if (phone.trim() && phoneDigits.length !== 10) e.phone = "Please enter a valid 10-digit phone number";
     if (!coverageType) e.coverageType = "Please select a coverage type";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -765,7 +765,7 @@ export default function ReferralLandingPage() {
                   {/* Phone */}
                   <div>
                     <label htmlFor="ref-phone" className="text-sm font-semibold text-gray-700 mb-1 block">
-                      Phone *
+                      Phone
                     </label>
                     <input
                       id="ref-phone"

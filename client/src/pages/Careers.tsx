@@ -176,8 +176,8 @@ export default function Careers() {
 
   const handleSubmitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.smsConsent) {
-      alert("Please agree to receive SMS communications to continue.");
+    if (formData.phone && formData.phone.trim() && !formData.smsConsent) {
+      alert("Please agree to the SMS consent to provide a phone number.");
       return;
     }
     setIsSubmitting(true);
@@ -602,14 +602,13 @@ export default function Careers() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
+                        Phone Number
                       </label>
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        required
                         className="w-full px-4 py-3 border border-[#e8e0d5] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         placeholder="(555) 123-4567"
                       />

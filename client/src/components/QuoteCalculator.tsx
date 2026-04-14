@@ -1197,9 +1197,9 @@ Estimated Monthly Rate: $${recommendation?.monthlyRate?.toFixed(2) || 'N/A'}
     applicationData.firstName.length >= 2 &&
     applicationData.lastName.length >= 2 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(applicationData.email) &&
-    applicationData.phone.replace(/\D/g, "").length === 10 &&
     applicationData.dateOfBirth !== "" &&
-    applicationData.smsConsent === true;
+    (!applicationData.phone.trim() || applicationData.phone.replace(/\D/g, "").length === 10) &&
+    (!applicationData.phone.trim() || applicationData.smsConsent === true);
 
   const isAppStep2Valid = () =>
     applicationData.street.length >= 5 &&

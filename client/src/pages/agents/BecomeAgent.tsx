@@ -41,8 +41,8 @@ export default function BecomeAgent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.smsConsent) {
-      alert('Please agree to the SMS consent before submitting.');
+    if (formData.phone && formData.phone.trim() && !formData.smsConsent) {
+      alert('Please agree to the SMS consent to provide a phone number.');
       return;
     }
     setIsSubmitting(true);
@@ -430,10 +430,9 @@ export default function BecomeAgent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                   <input
                     type="tel"
-                    required
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-200 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
