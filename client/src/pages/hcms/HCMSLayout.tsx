@@ -20,9 +20,8 @@ export default function HCMSLayout() {
   return (
     <GCShell title="HCMS" subtitle="Agent Contracting & Carrier Tracking" sidebarVariant="hcms" activePath={location}>
       <Switch>
+        {/* Most specific routes first */}
         <Route path="/hcms/agents/:id" component={HCMSAgentDetail} />
-        <Route path="/hcms" component={HCMSDashboard} />
-        <Route path="/hcms/contracting" component={HCMSContracting} />
         <Route path="/hcms/contracting/requests" component={ContractingRequests} />
         <Route path="/hcms/contracting/bank" component={ContractingBank} />
         <Route path="/hcms/contracting/licenses" component={ContractingLicenses} />
@@ -31,9 +30,12 @@ export default function HCMSLayout() {
         <Route path="/hcms/contracting/employment" component={ContractingEmployment} />
         <Route path="/hcms/contracting/dba" component={ContractingDBA} />
         <Route path="/hcms/contracting/questions" component={ContractingQuestions} />
+        {/* Parent routes after children */}
+        <Route path="/hcms/contracting" component={HCMSContracting} />
         <Route path="/hcms/agents" component={HCMSAgents} />
         <Route path="/hcms/carriers" component={HCMSCarriers} />
         <Route path="/hcms/hierarchy" component={HCMSHierarchy} />
+        <Route path="/hcms" component={HCMSDashboard} />
         <Route><HCMSDashboard /></Route>
       </Switch>
     </GCShell>
