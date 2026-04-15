@@ -56,16 +56,16 @@ export default function ContractingRequests() {
 
   const filtered = useMemo(() => MOCK.filter(r => r.status === tab.toLowerCase()), [tab]);
 
-  // Shared base columns (same width across all tabs)
-  const baseAgent: Column<Request> = { key: "agent", label: "Agent", sortable: true, width: 150, render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> };
-  const baseCarrier: Column<Request> = { key: "carrier", label: "Carrier", sortable: true, width: 160 };
-  const baseState: Column<Request> = { key: "state", label: "State", width: 60, align: "center" };
+  // Shared base columns — use percentage widths for even distribution
+  const baseAgent: Column<Request> = { key: "agent", label: "Agent", sortable: true, width: "18%", render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> };
+  const baseCarrier: Column<Request> = { key: "carrier", label: "Carrier", sortable: true, width: "20%" };
+  const baseState: Column<Request> = { key: "state", label: "State", width: "7%", align: "center" };
 
-  // 6 columns per tab: Agent | Carrier | State | Date col | Status/Info col | Detail col
+  // 6 columns per tab: Agent | Carrier | State | Date | Info | Detail
   const cols: Column<Request>[] = tab === "Drafts" ? [
     baseAgent, baseCarrier, baseState,
-    { key: "date", label: "Started", sortable: true, width: 100 },
-    { key: "completionPct", label: "Progress", width: 110, render: (v) => (
+    { key: "date", label: "Started", sortable: true, width: "12%" },
+    { key: "completionPct", label: "Progress", width: "15%", render: (v) => (
       <div className="flex items-center gap-2">
         <div style={{ width: 48, height: 5, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-full)", overflow: "hidden" }}>
           <div style={{ height: "100%", width: `${v || 0}%`, backgroundColor: (v || 0) >= 80 ? "var(--gc-status-active)" : "var(--gc-gold)", borderRadius: "var(--gc-radius-full)" }} />
@@ -73,17 +73,17 @@ export default function ContractingRequests() {
         <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>{v || 0}%</span>
       </div>
     )},
-    { key: "missingItems", label: "Missing Items", render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-status-warning)" }}>{v || "—"}</span> },
+    { key: "missingItems", label: "Missing Items", width: "28%", render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-status-warning)" }}>{v || "—"}</span> },
   ] : tab === "Submitted" ? [
     baseAgent, baseCarrier, baseState,
-    { key: "submittedDate", label: "Submitted", sortable: true, width: 100 },
-    { key: "expectedDays", label: "Expected", width: 110, render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{v ? `${v} biz days` : "—"}</span> },
-    { key: "status", label: "Status", render: () => <GCStatusBadge status="review" /> },
+    { key: "submittedDate", label: "Submitted", sortable: true, width: "12%" },
+    { key: "expectedDays", label: "Expected", width: "15%", render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{v ? `${v} biz days` : "—"}</span> },
+    { key: "status", label: "Status", width: "28%", render: () => <GCStatusBadge status="review" /> },
   ] : [
     baseAgent, baseCarrier, baseState,
-    { key: "returnDate", label: "Returned", sortable: true, width: 100 },
-    { key: "result", label: "Result", width: 110, render: (v) => resultBadge(v) },
-    { key: "writingNumber", label: "Writing #", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
+    { key: "returnDate", label: "Returned", sortable: true, width: "12%" },
+    { key: "result", label: "Result", width: "15%", render: (v) => resultBadge(v) },
+    { key: "writingNumber", label: "Writing #", width: "28%", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
   ];
 
   return (
