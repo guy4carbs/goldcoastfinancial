@@ -41,6 +41,8 @@ const tabs = ["All Agents", "Licensed", "Unlicensed", "Expired"] as const;
 export default function ContractingLicenses() {
   const [tab, setTab] = useState<typeof tabs[number]>("All Agents");
   const [viewing, setViewing] = useState<AgentLicenses | null>(null);
+  const [popupPage, setPopupPage] = useState(0);
+  const LICENSES_PER_PAGE = 5;
 
   const counts = useMemo(() => ({
     all: MOCK.length,
@@ -65,19 +67,30 @@ export default function ContractingLicenses() {
     { key: "agent", label: "Agent", sortable: true, width: "18%", render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
     { key: "npn", label: "NPN", width: "10%", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>None</span> },
     { key: "licenses", label: "Licenses", width: "8%", align: "center", render: (v) => <span style={{ fontFamily: "var(--gc-font-display)", fontWeight: 600, color: (v as License[]).length > 0 ? "var(--gc-text-primary)" : "var(--gc-status-terminated)" }}>{(v as License[]).length}</span> },
-    { key: "agentId", label: "States", width: "24%", render: (_v, row) => row.licenses.length > 0 ? (
-      <div className="flex flex-wrap gap-1">
-        {row.licenses.map(l => (
-          <span key={l.state} style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: l.status === "active" ? "var(--gc-status-active)" : "var(--gc-status-terminated)", backgroundColor: `color-mix(in srgb, ${l.status === "active" ? "var(--gc-status-active)" : "var(--gc-status-terminated)"} 12%, transparent)` }}>
-            {l.state}{l.resident ? " ★" : ""}
-          </span>
-        ))}
-      </div>
-    ) : <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>No licenses</span> },
+    { key: "agentId", label: "States", width: "24%", render: (_v, row) => {
+      if (row.licenses.length === 0) return <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>No licenses</span>;
+      const MAX_SHOWN = 5;
+      const shown = row.licenses.slice(0, MAX_SHOWN);
+      const remaining = row.licenses.length - MAX_SHOWN;
+      return (
+        <div className="flex flex-wrap items-center gap-1">
+          {shown.map(l => (
+            <span key={l.state} style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: l.status === "active" ? "var(--gc-status-active)" : "var(--gc-status-terminated)", backgroundColor: `color-mix(in srgb, ${l.status === "active" ? "var(--gc-status-active)" : "var(--gc-status-terminated)"} 12%, transparent)` }}>
+              {l.state}{l.resident ? " ★" : ""}
+            </span>
+          ))}
+          {remaining > 0 && (
+            <span onClick={() => { setViewing(row); setPopupPage(0); }} style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: "var(--gc-gold)", backgroundColor: "color-mix(in srgb, var(--gc-gold) 12%, transparent)", cursor: "pointer" }}>
+              +{remaining} more
+            </span>
+          )}
+        </div>
+      );
+    }},
     { key: "agent", label: "Resident", width: "10%", render: (_v, row) => <span style={{ fontWeight: 500 }}>{residentState(row)}</span> },
     { key: "agent", label: "Status", width: "12%", render: (_v, row) => row.licenses.length === 0 ? <GCStatusBadge status="warning" /> : hasExpired(row) ? <GCStatusBadge status="expired" /> : <GCStatusBadge status="active" /> },
     { key: "agent", label: "", width: "8%", align: "center", render: (_v, row) => row.licenses.length > 0 ? (
-      <button onClick={() => setViewing(row)} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)" }}>
+      <button onClick={() => { setViewing(row); setPopupPage(0); }} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)" }}>
         <Eye className="w-3 h-3" /> View
       </button>
     ) : null },
@@ -117,49 +130,66 @@ export default function ContractingLicenses() {
       <GCDataTable columns={cols} data={filtered} searchable searchPlaceholder="Search by agent name or NPN..." />
 
       {/* License Detail Popup */}
-      {viewing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setViewing(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: 640, maxHeight: "80vh", overflow: "auto", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewing.agent}</div>
-                <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>NPN: {viewing.npn || "Not assigned"} · {viewing.licenses.length} license{viewing.licenses.length !== 1 ? "s" : ""}</div>
+      {viewing && (() => {
+        const totalPages = Math.ceil(viewing.licenses.length / LICENSES_PER_PAGE);
+        const paged = viewing.licenses.slice(popupPage * LICENSES_PER_PAGE, (popupPage + 1) * LICENSES_PER_PAGE);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => { setViewing(null); setPopupPage(0); }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: 640, maxHeight: "85vh", overflow: "auto", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewing.agent}</div>
+                  <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>NPN: {viewing.npn || "Not assigned"} · {viewing.licenses.length} license{viewing.licenses.length !== 1 ? "s" : ""} across {new Set(viewing.licenses.map(l => l.state)).size} state{new Set(viewing.licenses.map(l => l.state)).size !== 1 ? "s" : ""}</div>
+                </div>
+                <button onClick={() => { setViewing(null); setPopupPage(0); }} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
               </div>
-              <button onClick={() => setViewing(null)} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
-            </div>
 
-            {/* License Grid */}
-            {viewing.licenses.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {viewing.licenses.map((l, i) => (
-                  <div key={i} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${l.status === "active" ? "var(--gc-status-active)" : "var(--gc-status-terminated)"}` }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-2xl)", fontWeight: 600, color: "var(--gc-text-primary)" }}>{l.state}</span>
-                        <div>
-                          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{l.type}</div>
-                          <div style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{l.license}</div>
+              {/* License Cards (paginated) */}
+              {viewing.licenses.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {paged.map((l, i) => (
+                    <div key={i} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${l.status === "active" ? "var(--gc-status-active)" : "var(--gc-status-terminated)"}` }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-2xl)", fontWeight: 600, color: "var(--gc-text-primary)" }}>{l.state}</span>
+                          <div>
+                            <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{l.type}</div>
+                            <div style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{l.license}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {l.resident && <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: "var(--gc-gold)", backgroundColor: "color-mix(in srgb, var(--gc-gold) 12%, transparent)" }}>Resident</span>}
+                          <GCStatusBadge status={l.status} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {l.resident && <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontWeight: 600, color: "var(--gc-gold)", backgroundColor: "color-mix(in srgb, var(--gc-gold) 12%, transparent)" }}>Resident</span>}
-                        <GCStatusBadge status={l.status} />
+                      <div className="flex gap-6" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
+                        <span>Effective: <span style={{ color: "var(--gc-text-secondary)" }}>{l.effective}</span></span>
+                        <span>Expires: <span style={{ color: l.status === "expired" ? "var(--gc-status-terminated)" : "var(--gc-text-secondary)", fontWeight: l.status === "expired" ? 600 : 400 }}>{l.expires}</span></span>
                       </div>
                     </div>
-                    <div className="flex gap-6" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
-                      <span>Effective: <span style={{ color: "var(--gc-text-secondary)" }}>{l.effective}</span></span>
-                      <span>Expires: <span style={{ color: l.status === "expired" ? "var(--gc-status-terminated)" : "var(--gc-text-secondary)", fontWeight: l.status === "expired" ? 600 : 400 }}>{l.expires}</span></span>
-                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ padding: "var(--gc-space-8)", textAlign: "center", color: "var(--gc-text-muted)" }}>No licenses on file for this agent.</div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: "1px solid var(--gc-border-subtle)" }}>
+                  <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
+                    Showing {popupPage * LICENSES_PER_PAGE + 1}–{Math.min((popupPage + 1) * LICENSES_PER_PAGE, viewing.licenses.length)} of {viewing.licenses.length}
+                  </span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setPopupPage(p => Math.max(0, p - 1))} disabled={popupPage === 0} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", cursor: popupPage === 0 ? "default" : "pointer", opacity: popupPage === 0 ? 0.4 : 1, fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)" }}>Prev</button>
+                    <button onClick={() => setPopupPage(p => Math.min(totalPages - 1, p + 1))} disabled={popupPage >= totalPages - 1} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", cursor: popupPage >= totalPages - 1 ? "default" : "pointer", opacity: popupPage >= totalPages - 1 ? 0.4 : 1, fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)" }}>Next</button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ padding: "var(--gc-space-8)", textAlign: "center", color: "var(--gc-text-muted)" }}>No licenses on file for this agent.</div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
