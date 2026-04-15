@@ -71,6 +71,11 @@ export default function HCMSCarriers() {
     <div>
       <GCPageHeader title="Carrier Directory" subtitle="Heritage Life Solutions carrier partners — 23 carriers across all product lines" accentUnderline />
 
+      {/* Mock data notice */}
+      <div className="flex items-center gap-2 mb-4" style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "color-mix(in srgb, var(--gc-status-warning) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--gc-status-warning) 25%, transparent)", borderRadius: "var(--gc-radius-md)" }}>
+        <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-status-warning)" }}>Sample data — AM Best ratings, NAIC codes, contact info, processing times, and advance months are placeholders. Verify before production use.</span>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Total Carriers" value={CARRIERS.length} accentTop />
         <GCKPICard label="Total Appointments" value={totalAppointed} accentTop delta={{ value: "Across all agents", positive: true }} />
