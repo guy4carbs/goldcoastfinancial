@@ -56,13 +56,16 @@ export default function ContractingRequests() {
 
   const filtered = useMemo(() => MOCK.filter(r => r.status === tab.toLowerCase()), [tab]);
 
-  // Tab-specific columns
-  const draftCols: Column<Request>[] = [
-    { key: "agent", label: "Agent", sortable: true, width: 160, render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
-    { key: "carrier", label: "Carrier", sortable: true },
-    { key: "state", label: "State", width: 60, align: "center" },
-    { key: "date", label: "Started", sortable: true, width: 110 },
-    { key: "completionPct", label: "Progress", width: 120, render: (v) => (
+  // Shared base columns (same width across all tabs)
+  const baseAgent: Column<Request> = { key: "agent", label: "Agent", sortable: true, width: 150, render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> };
+  const baseCarrier: Column<Request> = { key: "carrier", label: "Carrier", sortable: true, width: 160 };
+  const baseState: Column<Request> = { key: "state", label: "State", width: 60, align: "center" };
+
+  // 6 columns per tab: Agent | Carrier | State | Date col | Status/Info col | Detail col
+  const cols: Column<Request>[] = tab === "Drafts" ? [
+    baseAgent, baseCarrier, baseState,
+    { key: "date", label: "Started", sortable: true, width: 100 },
+    { key: "completionPct", label: "Progress", width: 110, render: (v) => (
       <div className="flex items-center gap-2">
         <div style={{ width: 48, height: 5, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-full)", overflow: "hidden" }}>
           <div style={{ height: "100%", width: `${v || 0}%`, backgroundColor: (v || 0) >= 80 ? "var(--gc-status-active)" : "var(--gc-gold)", borderRadius: "var(--gc-radius-full)" }} />
@@ -71,28 +74,17 @@ export default function ContractingRequests() {
       </div>
     )},
     { key: "missingItems", label: "Missing Items", render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-status-warning)" }}>{v || "—"}</span> },
+  ] : tab === "Submitted" ? [
+    baseAgent, baseCarrier, baseState,
+    { key: "submittedDate", label: "Submitted", sortable: true, width: 100 },
+    { key: "expectedDays", label: "Expected", width: 110, render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{v ? `${v} biz days` : "—"}</span> },
+    { key: "status", label: "Status", render: () => <GCStatusBadge status="review" /> },
+  ] : [
+    baseAgent, baseCarrier, baseState,
+    { key: "returnDate", label: "Returned", sortable: true, width: 100 },
+    { key: "result", label: "Result", width: 110, render: (v) => resultBadge(v) },
+    { key: "writingNumber", label: "Writing #", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
   ];
-
-  const submittedCols: Column<Request>[] = [
-    { key: "agent", label: "Agent", sortable: true, width: 160, render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
-    { key: "carrier", label: "Carrier", sortable: true },
-    { key: "state", label: "State", width: 60, align: "center" },
-    { key: "submittedDate", label: "Submitted", sortable: true, width: 110 },
-    { key: "expectedDays", label: "Expected", width: 100, render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{v ? `${v} business days` : "—"}</span> },
-    { key: "status", label: "Status", width: 120, render: () => <GCStatusBadge status="review" /> },
-  ];
-
-  const returnedCols: Column<Request>[] = [
-    { key: "agent", label: "Agent", sortable: true, width: 160, render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
-    { key: "carrier", label: "Carrier", sortable: true },
-    { key: "state", label: "State", width: 60, align: "center" },
-    { key: "returnDate", label: "Returned", sortable: true, width: 110 },
-    { key: "result", label: "Result", width: 120, render: (v) => resultBadge(v) },
-    { key: "writingNumber", label: "Writing #", width: 120, render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
-    { key: "carrierResponse", label: "Carrier Response", render: (v) => <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{v || "—"}</span> },
-  ];
-
-  const cols = tab === "Drafts" ? draftCols : tab === "Submitted" ? submittedCols : returnedCols;
 
   return (
     <div>
