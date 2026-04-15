@@ -2,25 +2,30 @@ import { useState } from "react";
 import { GCPageHeader, GCKPICard, GCStatusBadge, GCDataTable, type Column } from "@/components/gc";
 import { CheckCircle, Clock, X as XIcon, Download, ExternalLink, User, AlertTriangle } from "lucide-react";
 
-// Full agent data
-const AGENT = {
-  id: "1", name: "Sarah Mitchell", email: "sarah@example.com", phone: "(312) 555-0142",
-  state: "IL", city: "Chicago", zip: "60601", street: "1240 Michigan Ave",
-  dob: "1989-06-15", ssn: "***-**-4523", npn: "18842956",
-  status: "pending_review", contractLevel: "85%", upline: "Nicholas Gallagher",
-  yearsExperience: "5+", previousAgency: "Northwestern Mutual", isLicensed: true,
-  // E&O
-  eoProvider: "NAPA", eoPolicyNumber: "EO-2026-445821", eoExpiration: "2027-01-15", eoCoverage: "$1,000,000",
-  // Bank
-  bank: "Chase Bank", accountType: "Checking", ddStatus: "active",
-  // Training
-  amlStatus: "active", amlExpiration: "2027-01-15", ceStatus: "active",
-  // DBA
-  dbaType: "Individual",
-  // Questions
-  flaggedQuestions: 0,
-  // Dates
-  applicationDate: "2026-01-08", approvedDate: null as string | null,
+interface AgentData {
+  id: string; name: string; email: string; phone: string;
+  state: string; city: string; zip: string; street: string;
+  dob: string; ssn: string; npn: string;
+  status: string; contractLevel: string; upline: string;
+  yearsExperience: string; previousAgency: string; isLicensed: boolean;
+  eoProvider: string; eoPolicyNumber: string; eoExpiration: string; eoCoverage: string;
+  bank: string; accountType: string; ddStatus: string;
+  amlStatus: string; amlExpiration: string; ceStatus: string;
+  dbaType: string; flaggedQuestions: number;
+  applicationDate: string; approvedDate: string | null;
+}
+
+// All 9 agents
+const AGENTS_DB: Record<string, AgentData> = {
+  "1": { id: "1", name: "Sarah Mitchell", email: "sarah@example.com", phone: "(312) 555-0142", state: "IL", city: "Chicago", zip: "60601", street: "1240 Michigan Ave", dob: "1989-06-15", ssn: "***-**-4523", npn: "18842956", status: "approved", contractLevel: "85%", upline: "Nicholas Gallagher", yearsExperience: "5+", previousAgency: "Northwestern Mutual", isLicensed: true, eoProvider: "NAPA", eoPolicyNumber: "EO-2026-445821", eoExpiration: "2027-01-15", eoCoverage: "$1,000,000", bank: "Chase Bank", accountType: "Checking", ddStatus: "active", amlStatus: "active", amlExpiration: "2027-01-15", ceStatus: "active", dbaType: "Individual", flaggedQuestions: 0, applicationDate: "2026-01-08", approvedDate: "2026-01-20" },
+  "2": { id: "2", name: "James Rodriguez", email: "james@example.com", phone: "(214) 555-0198", state: "TX", city: "Dallas", zip: "75219", street: "4502 Oak Lawn Ave", dob: "1985-03-22", ssn: "***-**-8891", npn: "22109845", status: "approved", contractLevel: "80%", upline: "Nicholas Gallagher", yearsExperience: "7+", previousAgency: "New York Life", isLicensed: true, eoProvider: "CalSurance", eoPolicyNumber: "EO-2025-331209", eoExpiration: "2026-03-01", eoCoverage: "$1,000,000", bank: "Bank of America", accountType: "Checking", ddStatus: "active", amlStatus: "active", amlExpiration: "2026-06-01", ceStatus: "expired", dbaType: "Individual", flaggedQuestions: 1, applicationDate: "2026-01-12", approvedDate: "2026-01-25" },
+  "3": { id: "3", name: "Michael Chen", email: "michael@example.com", phone: "(415) 555-0198", state: "CA", city: "San Francisco", zip: "94108", street: "450 Sutter St", dob: "1987-08-14", ssn: "***-**-6612", npn: "33201478", status: "approved", contractLevel: "90%", upline: "Jack Cook", yearsExperience: "6+", previousAgency: "State Farm", isLicensed: true, eoProvider: "NAPA", eoPolicyNumber: "EO-2025-887412", eoExpiration: "2026-06-01", eoCoverage: "$2,000,000", bank: "Wells Fargo", accountType: "Savings", ddStatus: "active", amlStatus: "active", amlExpiration: "2027-02-01", ceStatus: "active", dbaType: "Business Entity", flaggedQuestions: 0, applicationDate: "2025-12-15", approvedDate: "2025-12-28" },
+  "4": { id: "4", name: "Emily Watson", email: "emily@example.com", phone: "(305) 555-0167", state: "FL", city: "Miami", zip: "33137", street: "2200 Biscayne Blvd", dob: "1992-11-08", ssn: "***-**-3310", npn: "44120093", status: "in_review", contractLevel: "80%", upline: "Nicholas Gallagher", yearsExperience: "1+", previousAgency: "Allstate", isLicensed: true, eoProvider: "EOforLess", eoPolicyNumber: "EO-2024-119003", eoExpiration: "2025-08-01", eoCoverage: "$1,000,000", bank: "US Bank", accountType: "Checking", ddStatus: "pending", amlStatus: "missing", amlExpiration: "", ceStatus: "active", dbaType: "Individual", flaggedQuestions: 0, applicationDate: "2026-04-05", approvedDate: null },
+  "5": { id: "5", name: "David Park", email: "david@example.com", phone: "(212) 555-0145", state: "NY", city: "New York", zip: "10017", street: "125 Park Ave", dob: "1983-05-20", ssn: "***-**-7721", npn: "55098234", status: "approved", contractLevel: "83%", upline: "Jack Cook", yearsExperience: "8+", previousAgency: "MetLife", isLicensed: true, eoProvider: "NAPA", eoPolicyNumber: "EO-2025-554210", eoExpiration: "2026-09-01", eoCoverage: "$1,000,000", bank: "Citibank", accountType: "Checking", ddStatus: "active", amlStatus: "active", amlExpiration: "2026-11-01", ceStatus: "active", dbaType: "Business Entity", flaggedQuestions: 1, applicationDate: "2024-07-15", approvedDate: "2024-07-28" },
+  "6": { id: "6", name: "Lisa Thompson", email: "lisa@example.com", phone: "(480) 555-0133", state: "AZ", city: "Phoenix", zip: "85004", street: "100 W Washington St", dob: "1990-02-18", ssn: "***-**-9910", npn: "66334201", status: "approved", contractLevel: "80%", upline: "Jack Cook", yearsExperience: "3+", previousAgency: "Farmers Insurance", isLicensed: true, eoProvider: "NAPA", eoPolicyNumber: "EO-2025-661234", eoExpiration: "2026-09-01", eoCoverage: "$1,000,000", bank: "PNC Bank", accountType: "Checking", ddStatus: "active", amlStatus: "active", amlExpiration: "2026-09-01", ceStatus: "active", dbaType: "Individual", flaggedQuestions: 1, applicationDate: "2025-06-01", approvedDate: "2025-06-15" },
+  "7": { id: "7", name: "Robert Kim", email: "robert@example.com", phone: "(404) 555-0211", state: "GA", city: "Atlanta", zip: "30308", street: "550 Peachtree St", dob: "1995-04-12", ssn: "***-**-6645", npn: "", status: "pending_review", contractLevel: "—", upline: "—", yearsExperience: "0", previousAgency: "", isLicensed: false, eoProvider: "", eoPolicyNumber: "", eoExpiration: "", eoCoverage: "", bank: "", accountType: "", ddStatus: "missing", amlStatus: "missing", amlExpiration: "", ceStatus: "missing", dbaType: "Individual", flaggedQuestions: 0, applicationDate: "2026-04-12", approvedDate: null },
+  "8": { id: "8", name: "Amanda Torres", email: "amanda@example.com", phone: "(720) 555-0188", state: "CO", city: "Denver", zip: "80202", street: "1800 Larimer St", dob: "1990-09-28", ssn: "***-**-2201", npn: "88201340", status: "in_review", contractLevel: "—", upline: "Nicholas Gallagher", yearsExperience: "2+", previousAgency: "Bankers Life", isLicensed: true, eoProvider: "NAPA", eoPolicyNumber: "EO-2026-221340", eoExpiration: "2027-04-01", eoCoverage: "$1,000,000", bank: "TD Bank", accountType: "Checking", ddStatus: "pending", amlStatus: "active", amlExpiration: "2027-04-01", ceStatus: "active", dbaType: "Individual", flaggedQuestions: 0, applicationDate: "2026-04-11", approvedDate: null },
+  "9": { id: "9", name: "Jack Cook", email: "jack@goldcoastfnl.com", phone: "(630) 478-1835", state: "IL", city: "Naperville", zip: "60563", street: "1240 Iroquois Ave", dob: "1988-01-15", ssn: "***-**-8679", npn: "22128144", status: "approved", contractLevel: "100%", upline: "Gaetano", yearsExperience: "15+", previousAgency: "Family First Life", isLicensed: true, eoProvider: "CalSurance", eoPolicyNumber: "EO-2025-100100", eoExpiration: "2026-01-01", eoCoverage: "$3,000,000", bank: "Chase Bank", accountType: "Checking", ddStatus: "active", amlStatus: "active", amlExpiration: "2026-01-01", ceStatus: "active", dbaType: "Business Entity", flaggedQuestions: 1, applicationDate: "2022-01-01", approvedDate: "2022-01-05" },
 };
 
 const DOCUMENTS = [
@@ -92,7 +97,11 @@ const carrierCols: Column<typeof CARRIER_APPTS[0]>[] = [
   { key: "states", label: "States", width: "12%" },
 ];
 
-export default function HCMSAgentDetail() {
+export default function HCMSAgentDetail({ agentId }: { agentId?: string }) {
+  // Look up agent from URL or default to "1"
+  const id = agentId || (typeof window !== "undefined" ? window.location.pathname.split("/").pop() : "1") || "1";
+  const AGENT = AGENTS_DB[id] || AGENTS_DB["1"];
+
   const [tab, setTab] = useState("profile");
   const [agentStatus, setAgentStatus] = useState(AGENT.status);
   const [showConfirm, setShowConfirm] = useState<"approve" | "reject" | null>(null);
