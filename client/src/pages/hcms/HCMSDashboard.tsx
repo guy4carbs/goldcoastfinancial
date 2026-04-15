@@ -88,7 +88,7 @@ export default function HCMSDashboard() {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3 mb-6">
         <a href="/apply" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>
-          <Plus className="w-4 h-4" /> Start New Application
+          <Plus className="w-4 h-4" /> Send Application
         </a>
         <a href="https://www.surelc.com" target="_blank" rel="noopener noreferrer" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer" }}>
           <ExternalLink className="w-4 h-4" /> Open SureLC
