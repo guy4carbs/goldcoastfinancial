@@ -68,7 +68,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
       borderRight: "1px solid var(--gc-border)",
     }}>
       {/* Logo Area */}
-      <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--gc-border-subtle)" }}>
+      <div style={{ height: 64, padding: "0 20px", display: "flex", alignItems: "center", borderBottom: "1px solid var(--gc-border)" }}>
         <div className="flex items-center gap-3">
           <div style={{
             width: 36, height: 36, borderRadius: "var(--gc-radius-md)",
