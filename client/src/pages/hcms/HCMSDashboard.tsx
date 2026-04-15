@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, GCBarChart, type Column } from "@/components/gc";
 import { Link } from "wouter";
-import { AlertTriangle, ArrowRight, Users, FileSignature, Building2, ShieldCheck, ExternalLink, Plus, UserCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, Users, FileSignature, Building2, ShieldCheck, ExternalLink, Plus, UserCheck, Send, Copy, Check } from "lucide-react";
 
 // Recent applications
 const APPLICATIONS = [
@@ -68,6 +68,12 @@ export default function HCMSDashboard() {
   const [showAssign, setShowAssign] = useState(false);
   const [assignAgent, setAssignAgent] = useState("");
   const [assignReviewer, setAssignReviewer] = useState("");
+  const [showSend, setShowSend] = useState(false);
+  const [sendName, setSendName] = useState("");
+  const [sendEmail, setSendEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const applicationUrl = typeof window !== "undefined" ? `${window.location.origin}/apply` : "/apply";
 
   const docsIncomplete = APPLICATIONS.filter(a => a.docsComplete < a.docsTotal).length;
 
@@ -87,9 +93,9 @@ export default function HCMSDashboard() {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3 mb-6">
-        <a href="/apply" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>
-          <Plus className="w-4 h-4" /> Send Application
-        </a>
+        <button onClick={() => setShowSend(true)} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>
+          <Send className="w-4 h-4" /> Send Application
+        </button>
         <a href="https://www.surelc.com" target="_blank" rel="noopener noreferrer" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer" }}>
           <ExternalLink className="w-4 h-4" /> Open SureLC
         </a>
@@ -163,6 +169,52 @@ export default function HCMSDashboard() {
               <button onClick={() => setShowAssign(false)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", cursor: "pointer" }}>Cancel</button>
               <button onClick={() => { setShowAssign(false); setAssignAgent(""); setAssignReviewer(""); }} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontWeight: 500 }}>Assign</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Application Dialog */}
+      {showSend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => { setShowSend(false); setSent(false); }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: 440, backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+            <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-2)" }}>Send Application</div>
+            <p style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", marginBottom: "var(--gc-space-4)" }}>Send the contracting application link to a prospective agent via email.</p>
+
+            {sent ? (
+              <div className="flex flex-col items-center gap-3 py-6">
+                <Check className="w-10 h-10" style={{ color: "var(--gc-status-active)" }} />
+                <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Application Sent!</div>
+                <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>Email sent to {sendEmail}</div>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-3 mb-4">
+                  <div>
+                    <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Agent Name</label>
+                    <input value={sendName} onChange={e => setSendName(e.target.value)} placeholder="Full name" style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Email Address</label>
+                    <input value={sendEmail} onChange={e => setSendEmail(e.target.value)} placeholder="agent@email.com" type="email" style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }} />
+                  </div>
+                </div>
+                <div style={{ padding: "var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-sm)", marginBottom: "var(--gc-space-4)" }}>
+                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>Or copy application link</div>
+                  <div className="flex items-center gap-2">
+                    <input readOnly value={applicationUrl} style={{ flex: 1, padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }} />
+                    <button onClick={() => { navigator.clipboard.writeText(applicationUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="flex items-center gap-1" style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: copied ? "var(--gc-status-active)" : "var(--gc-text-secondary)", cursor: "pointer", fontSize: "var(--gc-text-sm)", whiteSpace: "nowrap" as const }}>
+                      {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setShowSend(false)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", cursor: "pointer" }}>Cancel</button>
+                  <button onClick={() => { setSent(true); setTimeout(() => { setSent(false); setShowSend(false); setSendName(""); setSendEmail(""); }, 2000); }} disabled={!sendEmail.trim()} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: sendEmail.trim() ? "pointer" : "not-allowed", fontWeight: 500, opacity: sendEmail.trim() ? 1 : 0.5 }}>
+                    <Send className="w-3.5 h-3.5" /> Send Email
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
