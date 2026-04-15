@@ -36,11 +36,11 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-[2px] z-40 flex items-center justify-between h-16 px-6 gap-4"
+    <header className="sticky top-[2px] z-40 flex items-center justify-between h-12 px-6 gap-4"
       style={{ backgroundColor: "var(--gc-surface)", borderBottom: "1px solid var(--gc-border)" }}>
-      <div className="flex flex-col min-w-0">
-        {title && <h1 style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", lineHeight: "var(--gc-leading-tight)", letterSpacing: "var(--gc-tracking-tight)" }}>{title}</h1>}
-        {subtitle && <p style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{subtitle}</p>}
+      <div className="flex items-center min-w-0">
+        {title && <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)", fontWeight: 600, color: "var(--gc-text-primary)", letterSpacing: "var(--gc-tracking-wide)" }}>{title}</span>}
+        {subtitle && <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", marginLeft: "var(--gc-space-3)" }}>{subtitle}</span>}
       </div>
       <div className="flex items-center gap-2">
         {actions}
