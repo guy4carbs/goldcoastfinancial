@@ -1,112 +1,198 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, type Column } from "@/components/gc";
-import { Edit3, ExternalLink } from "lucide-react";
+import { Link } from "wouter";
+import { ExternalLink, Eye, X as XIcon } from "lucide-react";
 
-const CARRIERS = ["Mutual of Omaha", "Transamerica", "Americo", "Corebridge Financial", "National Life Group", "North American"];
-const AGENTS_DATA: { name: string; appointments: Record<string, { status: string; writing: string; level: string }> }[] = [
-  { name: "Sarah Mitchell", appointments: { "Mutual of Omaha": { status: "appointed", writing: "MOO-445821", level: "85%" }, "Transamerica": { status: "appointed", writing: "TRA-118904", level: "80%" }, "Americo": { status: "pending", writing: "", level: "" }, "Corebridge Financial": { status: "none", writing: "", level: "" }, "National Life Group": { status: "appointed", writing: "NLG-228110", level: "82%" }, "North American": { status: "none", writing: "", level: "" } } },
-  { name: "James Rodriguez", appointments: { "Mutual of Omaha": { status: "none", writing: "", level: "" }, "Transamerica": { status: "appointed", writing: "TRA-229015", level: "78%" }, "Americo": { status: "appointed", writing: "AMR-334201", level: "75%" }, "Corebridge Financial": { status: "pending", writing: "", level: "" }, "National Life Group": { status: "none", writing: "", level: "" }, "North American": { status: "none", writing: "", level: "" } } },
-  { name: "Michael Chen", appointments: { "Mutual of Omaha": { status: "appointed", writing: "MOO-556932", level: "90%" }, "Transamerica": { status: "appointed", writing: "TRA-330122", level: "88%" }, "Americo": { status: "appointed", writing: "AMR-441003", level: "85%" }, "Corebridge Financial": { status: "appointed", writing: "CBF-112204", level: "90%" }, "National Life Group": { status: "appointed", writing: "NLG-339211", level: "88%" }, "North American": { status: "pending", writing: "", level: "" } } },
-  { name: "Emily Watson", appointments: { "Mutual of Omaha": { status: "terminated", writing: "MOO-221334", level: "70%" }, "Transamerica": { status: "appointed", writing: "TRA-441223", level: "80%" }, "Americo": { status: "none", writing: "", level: "" }, "Corebridge Financial": { status: "none", writing: "", level: "" }, "National Life Group": { status: "none", writing: "", level: "" }, "North American": { status: "none", writing: "", level: "" } } },
-  { name: "David Park", appointments: { "Mutual of Omaha": { status: "appointed", writing: "MOO-667845", level: "83%" }, "Transamerica": { status: "none", writing: "", level: "" }, "Americo": { status: "appointed", writing: "AMR-552134", level: "80%" }, "Corebridge Financial": { status: "appointed", writing: "CBF-223315", level: "83%" }, "National Life Group": { status: "none", writing: "", level: "" }, "North American": { status: "appointed", writing: "NAM-114502", level: "80%" } } },
+interface Appointment { carrier: string; writing: string; status: string; level: string; date: string; states: string; }
+interface AgentCarriers { agentId: string; agent: string; appointments: Appointment[]; }
+
+const MOCK: AgentCarriers[] = [
+  { agentId: "1", agent: "Sarah Mitchell", appointments: [
+    { carrier: "Mutual of Omaha", writing: "MOO-445821", status: "appointed", level: "85%", date: "2024-06-15", states: "IL" },
+    { carrier: "Transamerica", writing: "TRA-118904", status: "appointed", level: "80%", date: "2024-07-01", states: "IL" },
+    { carrier: "National Life Group", writing: "NLG-228110", status: "appointed", level: "82%", date: "2025-01-15", states: "IL, IN" },
+    { carrier: "Americo", writing: "", status: "pending", level: "", date: "2026-04-01", states: "IL" },
+  ]},
+  { agentId: "2", agent: "James Rodriguez", appointments: [
+    { carrier: "Transamerica", writing: "TRA-229015", status: "appointed", level: "78%", date: "2024-09-01", states: "TX" },
+    { carrier: "Americo", writing: "AMR-334201", status: "appointed", level: "75%", date: "2025-02-01", states: "TX" },
+    { carrier: "Corebridge Financial", writing: "", status: "pending", level: "", date: "2026-04-08", states: "TX" },
+  ]},
+  { agentId: "3", agent: "Michael Chen", appointments: [
+    { carrier: "Mutual of Omaha", writing: "MOO-556932", status: "appointed", level: "90%", date: "2024-03-15", states: "CA" },
+    { carrier: "Transamerica", writing: "TRA-330122", status: "appointed", level: "88%", date: "2024-05-01", states: "CA" },
+    { carrier: "Americo", writing: "AMR-441003", status: "appointed", level: "85%", date: "2024-08-01", states: "CA" },
+    { carrier: "Corebridge Financial", writing: "CBF-112204", status: "appointed", level: "90%", date: "2025-01-20", states: "CA" },
+    { carrier: "National Life Group", writing: "NLG-339211", status: "appointed", level: "88%", date: "2025-04-01", states: "CA, NY" },
+    { carrier: "North American", writing: "", status: "pending", level: "", date: "2026-04-05", states: "CA" },
+  ]},
+  { agentId: "4", agent: "Emily Watson", appointments: [
+    { carrier: "Transamerica", writing: "TRA-441223", status: "appointed", level: "80%", date: "2025-06-01", states: "FL" },
+    { carrier: "Mutual of Omaha", writing: "MOO-221334", status: "terminated", level: "70%", date: "2024-01-15", states: "FL" },
+  ]},
+  { agentId: "5", agent: "David Park", appointments: [
+    { carrier: "Mutual of Omaha", writing: "MOO-667845", status: "appointed", level: "83%", date: "2024-04-01", states: "NY" },
+    { carrier: "Americo", writing: "AMR-552134", status: "appointed", level: "80%", date: "2024-09-01", states: "NY" },
+    { carrier: "Corebridge Financial", writing: "CBF-223315", status: "appointed", level: "83%", date: "2025-03-01", states: "NY, NJ" },
+    { carrier: "North American", writing: "NAM-114502", status: "appointed", level: "80%", date: "2025-07-01", states: "NY" },
+  ]},
+  { agentId: "6", agent: "Lisa Thompson", appointments: [
+    { carrier: "Transamerica", writing: "TRA-661102", status: "appointed", level: "78%", date: "2025-08-01", states: "AZ" },
+  ]},
+  { agentId: "7", agent: "Robert Kim", appointments: [] },
+  { agentId: "8", agent: "Amanda Torres", appointments: [
+    { carrier: "Transamerica", writing: "", status: "pending", level: "", date: "2026-04-11", states: "CO" },
+  ]},
+  { agentId: "9", agent: "Jack Cook", appointments: [
+    { carrier: "Mutual of Omaha", writing: "MOO-100001", status: "appointed", level: "100%", date: "2022-01-15", states: "IL, IN, WI" },
+    { carrier: "Transamerica", writing: "TRA-100002", status: "appointed", level: "100%", date: "2022-02-01", states: "IL, IN" },
+    { carrier: "Americo", writing: "AMR-100003", status: "appointed", level: "100%", date: "2022-03-01", states: "IL" },
+    { carrier: "Corebridge Financial", writing: "CBF-100004", status: "appointed", level: "100%", date: "2022-06-01", states: "IL, IN" },
+    { carrier: "National Life Group", writing: "NLG-100005", status: "appointed", level: "100%", date: "2023-01-01", states: "IL, IN, WI" },
+    { carrier: "North American", writing: "NAM-100006", status: "appointed", level: "100%", date: "2023-06-01", states: "IL" },
+  ]},
 ];
 
-const statusDot: Record<string, string> = { appointed: "var(--gc-status-active)", pending: "var(--gc-status-pending)", terminated: "var(--gc-status-terminated)", none: "var(--gc-text-muted)" };
-
-// Flatten for list view
-const flatList = AGENTS_DATA.flatMap(a => Object.entries(a.appointments).filter(([_, v]) => v.status !== "none").map(([carrier, v]) => ({ agent: a.name, carrier, writing: v.writing, status: v.status, level: v.level })));
-
-const listCols: Column<typeof flatList[0]>[] = [
-  { key: "agent", label: "Agent", sortable: true },
-  { key: "carrier", label: "Carrier", sortable: true },
-  { key: "writing", label: "Writing #", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Not assigned</span> },
-  { key: "status", label: "Status", render: (v) => <GCStatusBadge status={v === "appointed" ? "active" : v} /> },
-  { key: "level", label: "Commission", render: (v) => v || "—" },
-];
+const allAppts = MOCK.flatMap(a => a.appointments);
+const tabs = ["All Agents", "Fully Appointed", "Has Pending", "No Appointments"] as const;
+const MAX_CARRIERS_SHOWN = 3;
 
 export default function HCMSCarriers() {
-  const [view, setView] = useState<"matrix" | "list">("matrix");
-  const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [tab, setTab] = useState<typeof tabs[number]>("All Agents");
+  const [viewing, setViewing] = useState<AgentCarriers | null>(null);
+  const [popupPage, setPopupPage] = useState(0);
+  const PER_PAGE = 5;
 
-  const appointed = flatList.filter(f => f.status === "appointed").length;
-  const pending = flatList.filter(f => f.status === "pending").length;
-  const noWriting = flatList.filter(f => f.status === "appointed" && !f.writing).length;
+  const counts = useMemo(() => ({
+    all: MOCK.length,
+    fullyAppointed: MOCK.filter(a => a.appointments.length > 0 && a.appointments.every(ap => ap.status === "appointed")).length,
+    hasPending: MOCK.filter(a => a.appointments.some(ap => ap.status === "pending")).length,
+    noAppts: MOCK.filter(a => a.appointments.length === 0).length,
+    totalAppointed: allAppts.filter(a => a.status === "appointed").length,
+    totalPending: allAppts.filter(a => a.status === "pending").length,
+    totalTerminated: allAppts.filter(a => a.status === "terminated").length,
+    uniqueCarriers: new Set(allAppts.map(a => a.carrier)).size,
+  }), []);
+
+  const filtered = useMemo(() => {
+    if (tab === "Fully Appointed") return MOCK.filter(a => a.appointments.length > 0 && a.appointments.every(ap => ap.status === "appointed"));
+    if (tab === "Has Pending") return MOCK.filter(a => a.appointments.some(ap => ap.status === "pending"));
+    if (tab === "No Appointments") return MOCK.filter(a => a.appointments.length === 0);
+    return MOCK;
+  }, [tab]);
+
+  const cols: Column<AgentCarriers>[] = [
+    { key: "agent", label: "Agent", sortable: true, width: "16%", render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
+    { key: "appointments", label: "Total", width: "7%", align: "center", render: (v) => <span style={{ fontFamily: "var(--gc-font-display)", fontWeight: 600, color: (v as Appointment[]).length > 0 ? "var(--gc-text-primary)" : "var(--gc-text-muted)" }}>{(v as Appointment[]).length}</span> },
+    { key: "agentId", label: "Appointed", width: "8%", align: "center", render: (_v, row) => {
+      const c = row.appointments.filter(a => a.status === "appointed").length;
+      return <span style={{ fontWeight: 600, color: c > 0 ? "var(--gc-status-active)" : "var(--gc-text-muted)" }}>{c}</span>;
+    }},
+    { key: "agentId", label: "Pending", width: "8%", align: "center", render: (_v, row) => {
+      const c = row.appointments.filter(a => a.status === "pending").length;
+      return <span style={{ fontWeight: 500, color: c > 0 ? "var(--gc-status-pending)" : "var(--gc-text-muted)" }}>{c}</span>;
+    }},
+    { key: "agentId", label: "Carriers", width: "28%", render: (_v, row) => {
+      if (row.appointments.length === 0) return <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>No appointments</span>;
+      const appointed = row.appointments.filter(a => a.status === "appointed");
+      const shown = appointed.slice(0, MAX_CARRIERS_SHOWN);
+      const remaining = appointed.length - MAX_CARRIERS_SHOWN;
+      return (
+        <div className="flex flex-wrap items-center gap-1">
+          {shown.map((a, i) => (
+            <span key={i} style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", color: "var(--gc-status-active)", backgroundColor: "color-mix(in srgb, var(--gc-status-active) 12%, transparent)" }}>{a.carrier}</span>
+          ))}
+          {remaining > 0 && <span onClick={() => { setViewing(row); setPopupPage(0); }} style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", color: "var(--gc-gold)", backgroundColor: "color-mix(in srgb, var(--gc-gold) 12%, transparent)", cursor: "pointer" }}>+{remaining} more</span>}
+          {row.appointments.some(a => a.status === "pending") && <span style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", color: "var(--gc-status-pending)", backgroundColor: "color-mix(in srgb, var(--gc-status-pending) 12%, transparent)" }}>{row.appointments.filter(a => a.status === "pending").length} pending</span>}
+        </div>
+      );
+    }},
+    { key: "agentId", label: "Writing #s", width: "18%", render: (_v, row) => {
+      const withWriting = row.appointments.filter(a => a.writing);
+      if (withWriting.length === 0) return <span style={{ color: "var(--gc-text-muted)" }}>—</span>;
+      return (
+        <div className="flex flex-wrap items-center gap-1">
+          {withWriting.slice(0, 2).map((a, i) => <span key={i} style={{ fontFamily: "monospace", fontSize: "var(--gc-text-xs)", color: "var(--gc-gold)" }}>{a.writing}</span>)}
+          {withWriting.length > 2 && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>+{withWriting.length - 2}</span>}
+        </div>
+      );
+    }},
+    { key: "agentId", label: "", width: "7%", align: "center", render: (_v, row) => row.appointments.length > 0 ? (
+      <button onClick={() => { setViewing(row); setPopupPage(0); }} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)" }}><Eye className="w-3 h-3" /> View</button>
+    ) : null },
+  ];
 
   return (
     <div>
-      <GCPageHeader title="Carrier Appointments" subtitle="Track agent-carrier appointments, writing numbers & SureLC status" accentUnderline
-        actions={<div className="flex gap-2">
-          {(["matrix", "list"] as const).map(v => <button key={v} onClick={() => setView(v)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: view === v ? "var(--gc-gold)" : "var(--gc-surface)", color: view === v ? "var(--gc-btn-primary-text)" : "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer", textTransform: "capitalize" as const }}>{v}</button>)}
-          <a href="https://www.surelc.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 no-underline" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)" }}><ExternalLink className="w-3.5 h-3.5" /> SureLC</a>
-        </div>} />
+      <GCPageHeader title="Carrier Appointments" subtitle="Agent-carrier appointments, writing numbers & SureLC tracking" accentUnderline
+        actions={<a href="https://www.surelc.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 no-underline" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)" }}><ExternalLink className="w-3.5 h-3.5" /> Open SureLC</a>} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <GCKPICard label="Carriers in Network" value={CARRIERS.length} accentTop />
-        <GCKPICard label="Active Appointments" value={appointed} accentTop delta={{ value: `${AGENTS_DATA.length} agents`, positive: true }} />
-        <GCKPICard label="Pending in SureLC" value={pending} accentTop delta={{ value: "Awaiting submission", positive: false }} />
-        <GCKPICard label="Missing Writing #s" value={noWriting} accentTop />
+        <GCKPICard label="Active Appointments" value={counts.totalAppointed} accentTop delta={{ value: `${counts.uniqueCarriers} carriers`, positive: true }} />
+        <GCKPICard label="Pending in SureLC" value={counts.totalPending} accentTop delta={{ value: "Awaiting", positive: false }} />
+        <GCKPICard label="No Appointments" value={counts.noAppts} accentTop delta={{ value: counts.noAppts > 0 ? "Needs carriers" : "All covered", positive: counts.noAppts === 0 }} />
+        <GCKPICard label="Terminated" value={counts.totalTerminated} accentTop />
       </div>
 
-      {view === "matrix" ? (
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", overflow: "auto" }}>
-          <table className="w-full" style={{ borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={{ padding: "var(--gc-space-3) var(--gc-space-4)", textAlign: "left", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)", borderBottom: "2px solid var(--gc-gold)", position: "sticky" as const, left: 0, backgroundColor: "var(--gc-surface)", zIndex: 1, minWidth: 160 }}>Agent</th>
-                {CARRIERS.map(c => <th key={c} style={{ padding: "var(--gc-space-3)", textAlign: "center", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)", borderBottom: "2px solid var(--gc-gold)", minWidth: 140 }}>{c}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {AGENTS_DATA.map((agent, ai) => (
-                <tr key={agent.name} style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
-                  <td style={{ padding: "var(--gc-space-3) var(--gc-space-4)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)", position: "sticky" as const, left: 0, backgroundColor: ai % 2 === 0 ? "var(--gc-surface)" : "var(--gc-surface-2)", zIndex: 1 }}>{agent.name}</td>
-                  {CARRIERS.map(carrier => {
-                    const appt = agent.appointments[carrier];
-                    const cellKey = `${agent.name}-${carrier}`;
-                    const isEditing = editingCell === cellKey;
-                    const isHovered = hoveredCell === cellKey;
-                    return (
-                      <td key={carrier}
-                        onMouseEnter={() => setHoveredCell(cellKey)}
-                        onMouseLeave={() => setHoveredCell(null)}
-                        style={{ padding: "var(--gc-space-2) var(--gc-space-3)", textAlign: "center", backgroundColor: ai % 2 === 0 ? "var(--gc-surface)" : "var(--gc-surface-2)", position: "relative" as const, cursor: appt.status !== "none" ? "pointer" : "default" }}>
-                        <div className="flex flex-col items-center gap-1">
-                          <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", backgroundColor: statusDot[appt.status], opacity: appt.status === "none" ? 0.2 : 1 }} />
-                          {appt.writing ? (
-                            isEditing ? (
-                              <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => setEditingCell(null)} onKeyDown={e => e.key === "Enter" && setEditingCell(null)} style={{ width: 100, padding: "2px 4px", fontSize: "var(--gc-text-xs)", fontFamily: "monospace", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-gold)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", textAlign: "center" }} />
-                            ) : (
-                              <span onClick={() => { setEditingCell(cellKey); setEditValue(appt.writing); }} style={{ fontFamily: "monospace", fontSize: "var(--gc-text-xs)", color: "var(--gc-gold)", cursor: "pointer" }}>{appt.writing}</span>
-                            )
-                          ) : appt.status !== "none" ? (
-                            <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", fontStyle: "italic" }}>No #</span>
-                          ) : null}
-                          {appt.level && <span style={{ fontSize: "9px", color: "var(--gc-text-muted)" }}>{appt.level}</span>}
-                        </div>
-                        {isHovered && appt.status !== "none" && !isEditing && (
-                          <div style={{ position: "absolute", top: 2, right: 2 }}><Edit3 className="w-3 h-3" style={{ color: "var(--gc-text-muted)", opacity: 0.5 }} /></div>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex items-center gap-6 px-4 py-3" style={{ borderTop: "1px solid var(--gc-border-subtle)" }}>
-            {[["Appointed", "var(--gc-status-active)"], ["Pending in SureLC", "var(--gc-status-pending)"], ["Terminated", "var(--gc-status-terminated)"], ["Not Started", "var(--gc-text-muted)"]].map(([label, color]) => (
-              <span key={label as string} className="flex items-center gap-1.5" style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: color as string, opacity: label === "Not Started" ? 0.2 : 1 }} />
-                {label}
-              </span>
-            ))}
+      <div className="flex gap-1 mb-4">
+        {tabs.map(t => {
+          const count = t === "All Agents" ? counts.all : t === "Fully Appointed" ? counts.fullyAppointed : t === "Has Pending" ? counts.hasPending : counts.noAppts;
+          return (
+            <button key={t} onClick={() => setTab(t)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: tab === t ? 500 : 400, color: tab === t ? "var(--gc-nav-active-text)" : "var(--gc-text-secondary)", backgroundColor: "transparent", border: "none", borderBottom: tab === t ? "2px solid var(--gc-gold)" : "2px solid transparent", cursor: "pointer" }}>
+              {t} <span style={{ fontSize: "var(--gc-text-xs)", opacity: 0.7 }}>({count})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <GCDataTable columns={cols} data={filtered} searchable searchPlaceholder="Search by agent name..." />
+
+      {/* View Agent Carriers Popup */}
+      {viewing && (() => {
+        const totalPages = Math.ceil(viewing.appointments.length / PER_PAGE);
+        const paged = viewing.appointments.slice(popupPage * PER_PAGE, (popupPage + 1) * PER_PAGE);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setViewing(null)}>
+            <div onClick={e => e.stopPropagation()} style={{ width: 620, maxHeight: "85vh", overflow: "auto", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewing.agent}</div>
+                  <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{viewing.appointments.length} appointment{viewing.appointments.length !== 1 ? "s" : ""} · {viewing.appointments.filter(a => a.status === "appointed").length} active</div>
+                </div>
+                <button onClick={() => setViewing(null)} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {paged.map((a, i) => (
+                  <div key={i} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${a.status === "appointed" ? "var(--gc-status-active)" : a.status === "pending" ? "var(--gc-status-pending)" : "var(--gc-status-terminated)"}` }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div style={{ fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{a.carrier}</div>
+                        <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{a.states} · Appointed {a.date}</div>
+                      </div>
+                      <GCStatusBadge status={a.status === "appointed" ? "active" : a.status === "pending" ? "pending" : "terminated"} />
+                    </div>
+                    <div className="flex gap-6" style={{ fontSize: "var(--gc-text-sm)" }}>
+                      <span style={{ color: "var(--gc-text-muted)" }}>Writing #: {a.writing ? <span style={{ fontFamily: "monospace", color: "var(--gc-gold)" }}>{a.writing}</span> : <span style={{ fontStyle: "italic" }}>Pending</span>}</span>
+                      {a.level && <span style={{ color: "var(--gc-text-muted)" }}>Commission: <span style={{ fontFamily: "var(--gc-font-display)", fontWeight: 600, color: "var(--gc-gold)" }}>{a.level}</span></span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: "1px solid var(--gc-border-subtle)" }}>
+                  <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Showing {popupPage * PER_PAGE + 1}–{Math.min((popupPage + 1) * PER_PAGE, viewing.appointments.length)} of {viewing.appointments.length}</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setPopupPage(p => Math.max(0, p - 1))} disabled={popupPage === 0} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", cursor: popupPage === 0 ? "default" : "pointer", opacity: popupPage === 0 ? 0.4 : 1, fontSize: "var(--gc-text-sm)" }}>Prev</button>
+                    <button onClick={() => setPopupPage(p => Math.min(totalPages - 1, p + 1))} disabled={popupPage >= totalPages - 1} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", cursor: popupPage >= totalPages - 1 ? "default" : "pointer", opacity: popupPage >= totalPages - 1 ? 0.4 : 1, fontSize: "var(--gc-text-sm)" }}>Next</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      ) : (
-        <GCDataTable columns={listCols} data={flatList} searchable searchPlaceholder="Search appointments..." />
-      )}
+        );
+      })()}
     </div>
   );
 }
