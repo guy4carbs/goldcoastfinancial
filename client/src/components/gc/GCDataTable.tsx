@@ -1,7 +1,7 @@
 import { useState, useMemo, type ReactNode } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search } from "lucide-react";
 
-export interface Column<T> { key: string; label: string; sortable?: boolean; render?: (value: any, row: T) => ReactNode; }
+export interface Column<T> { key: string; label: string; sortable?: boolean; render?: (value: any, row: T) => ReactNode; width?: number | string; align?: "left" | "center" | "right"; }
 
 export interface GCDataTableProps<T extends Record<string, any>> {
   columns: Column<T>[]; data: T[]; searchable?: boolean; searchPlaceholder?: string; pageSize?: number;
@@ -50,12 +50,12 @@ export function GCDataTable<T extends Record<string, any>>({ columns, data, sear
         </div>
       )}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" style={{ tableLayout: "fixed" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--gc-border)" }}>
               {columns.map(col => (
-                <th key={col.key} className="text-left px-4 py-3"
-                  style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500, letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)", cursor: col.sortable ? "pointer" : "default", userSelect: "none" }}
+                <th key={col.key} className="px-4 py-3"
+                  style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500, letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-secondary)", cursor: col.sortable ? "pointer" : "default", userSelect: "none", textAlign: col.align || "left", width: col.width, minWidth: col.width }}
                   onClick={() => col.sortable && toggleSort(col.key)}
                   tabIndex={col.sortable ? 0 : undefined}
                   onKeyDown={e => col.sortable && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggleSort(col.key))}>
@@ -73,7 +73,7 @@ export function GCDataTable<T extends Record<string, any>>({ columns, data, sear
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--gc-hover-overlay)")}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
                 {columns.map(col => (
-                  <td key={col.key} className="px-4 py-3" style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)" }}>
+                  <td key={col.key} className="px-4 py-3" style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)", textAlign: col.align || "left", width: col.width, minWidth: col.width }}>
                     {col.render ? col.render(row[col.key], row) : String(row[col.key] ?? "")}
                   </td>
                 ))}

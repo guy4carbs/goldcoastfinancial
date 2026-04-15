@@ -62,7 +62,7 @@ export default function HCMSContracting() {
   const avgCompletion = Math.round((completedRequiredDocs / totalRequiredDocs) * 100);
 
   const cols: Column<AgentDocs>[] = [
-    { key: "agent", label: "Agent", sortable: true, render: (v, row) => (
+    { key: "agent", label: "Agent", sortable: true, width: 160, render: (v, row) => (
       <Link href={`/hcms/agents/${row.id}`}>
         <span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span>
       </Link>
@@ -70,13 +70,15 @@ export default function HCMSContracting() {
     ...DOCS.map((doc, di) => ({
       key: `doc_${di}`,
       label: doc.short,
+      width: 50,
+      align: "center" as const,
       render: (_: any, row: AgentDocs) => (
         <div title={`${doc.label}: ${row.docs[di]}${!doc.required ? " (optional)" : ""}`} style={{ display: "flex", justifyContent: "center" }}>
           <DocIcon status={row.docs[di]} />
         </div>
       ),
     })),
-    { key: "id", label: "Progress", render: (_: any, row: AgentDocs) => {
+    { key: "id", label: "Progress", width: 100, render: (_: any, row: AgentDocs) => {
       const done = row.docs.filter((d, i) => DOCS[i].required && (d === "signed" || d === "uploaded")).length;
       const pct = Math.round((done / totalRequired) * 100);
       return (
