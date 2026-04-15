@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { GCPageHeader, GCKPICard, GCHierarchyTree, GCDataTable, GCStatusBadge, type HierarchyNode, type Column } from "@/components/gc";
+import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, type HierarchyNode, type Column } from "@/components/gc";
+import { GCHierarchyFlow, buildNodesEdges } from "@/components/gc/GCHierarchyFlow";
 import { Link } from "wouter";
-import { Eye, X as XIcon, Users, Building2, FileText, ArrowDown } from "lucide-react";
+import { Eye, X as XIcon, Users } from "lucide-react";
 
 const MOCK_TREE: HierarchyNode = {
   id: "owner", name: "Gaetano", title: "Agency Owner", level: 0, contractLevel: 120, overridePercentage: 0, totalAip: 1243500,
@@ -63,7 +64,7 @@ const allRows = flatten(MOCK_TREE);
 const levelColors = ["var(--gc-gold)", "var(--gc-chart-2)", "var(--gc-chart-4)", "var(--gc-chart-3)", "var(--gc-text-secondary)", "var(--gc-text-muted)"];
 
 export default function HCMSHierarchy() {
-  const [view, setView] = useState<"tree" | "table">("table");
+  const [view, setView] = useState<"tree" | "table">("tree");
   const [selected, setSelected] = useState<HierarchyNode | null>(null);
   const [viewAgent, setViewAgent] = useState<any | null>(null);
 
@@ -117,95 +118,8 @@ export default function HCMSHierarchy() {
       </div>
 
       {view === "tree" ? (
-        <div className="flex gap-6">
-          <div className="flex-1 overflow-auto">
-            <GCHierarchyTree data={MOCK_TREE} onNodeClick={setSelected} selectedNodeId={selected?.id} />
-          </div>
-
-          {/* Detail Panel */}
-          {selected && selectedMeta && (
-            <div style={{ width: 300, padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", flexShrink: 0, alignSelf: "flex-start" }}>
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{selected.name}</div>
-                  <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{selected.title}</div>
-                </div>
-                <button onClick={() => setSelected(null)} style={{ color: "var(--gc-text-muted)", background: "none", border: "none", cursor: "pointer" }}><XIcon className="w-4 h-4" /></button>
-              </div>
-
-              <GCStatusBadge status={selectedMeta.status} />
-
-              {/* Key Metrics */}
-              <div className="flex flex-col gap-0 mt-4">
-                {[
-                  ["Contract Level", `${selected.contractLevel}%`, true],
-                  ["Override Spread", selected.overridePercentage > 0 ? `${selected.overridePercentage}%` : "None", selected.overridePercentage > 0],
-                  ["Team AIP", `${selected.totalAip >= 1000000 ? "$" + (selected.totalAip / 1000000).toFixed(1) + "M" : "$" + (selected.totalAip / 1000).toFixed(0) + "K"}`, false],
-                  ["Carriers", `${selectedMeta.carriers}`, false],
-                  ["Documents", selectedMeta.docs, false],
-                ].map(([label, val, gold], i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "var(--gc-space-2) 0", borderBottom: "1px solid var(--gc-border-subtle)" }}>
-                    <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{label}</span>
-                    <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-sm)", fontWeight: 600, color: gold ? "var(--gc-gold)" : "var(--gc-text-primary)" }}>{val}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Upline */}
-              {selectedResult?.parent && (
-                <div className="mt-4">
-                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>Reports To</div>
-                  <div className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-sm)" }}>
-                    <Users className="w-3.5 h-3.5" style={{ color: "var(--gc-gold)" }} />
-                    <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-primary)", fontWeight: 500 }}>{selectedResult.parent.name}</span>
-                    <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>{selectedResult.parent.contractLevel}%</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Direct Reports */}
-              {selected.children.length > 0 && (
-                <div className="mt-4">
-                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>Direct Reports ({selected.children.length})</div>
-                  <div className="flex flex-col gap-1">
-                    {selected.children.map(child => {
-                      const childMeta = AGENT_META[child.id];
-                      const spread = selected.contractLevel - child.contractLevel;
-                      return (
-                        <div key={child.id} className="flex items-center justify-between" style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-sm)", cursor: "pointer" }} onClick={() => setSelected(child)}>
-                          <div>
-                            <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-primary)", fontWeight: 500 }}>{child.name}</span>
-                            <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", marginLeft: 8 }}>{child.contractLevel}%</span>
-                          </div>
-                          {spread > 0 && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-gold)", fontWeight: 500 }}>+{spread}% spread</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Override Spread Visualization */}
-              {selected.overridePercentage > 0 && selectedResult?.parent && (
-                <div className="mt-4" style={{ padding: "var(--gc-space-3)", backgroundColor: "color-mix(in srgb, var(--gc-gold) 8%, transparent)", borderRadius: "var(--gc-radius-sm)", border: "1px solid color-mix(in srgb, var(--gc-gold) 20%, transparent)" }}>
-                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-gold)", fontWeight: 600, marginBottom: "var(--gc-space-2)" }}>Override Earned</div>
-                  <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", lineHeight: 1.5 }}>
-                    Earns <span style={{ fontFamily: "var(--gc-font-display)", fontWeight: 600, color: "var(--gc-gold)" }}>{selected.overridePercentage}%</span> spread on direct downline production
-                    <span style={{ display: "block", fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", marginTop: 4 }}>({selected.contractLevel}% − next level below)</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Link to agent detail */}
-              {!["owner", "mgr1"].includes(selected.id) && (
-                <Link href={`/hcms/agents/${selected.id}`}>
-                  <div className="mt-4 flex items-center justify-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", cursor: "pointer", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", fontWeight: 500 }}>
-                    <Eye className="w-3.5 h-3.5" /> View Full Profile
-                  </div>
-                </Link>
-              )}
-            </div>
-          )}
+        <div>
+          {(() => { const { nodes: fn, edges: fe } = buildNodesEdges(MOCK_TREE as any); return <GCHierarchyFlow nodes={fn} edges={fe} height={550} />; })()}
         </div>
       ) : (
         <GCDataTable columns={tableCols} data={allRows} searchable searchPlaceholder="Search by name or title..." />
