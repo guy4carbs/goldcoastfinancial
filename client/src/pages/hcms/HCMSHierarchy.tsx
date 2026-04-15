@@ -63,7 +63,7 @@ const allRows = flatten(MOCK_TREE);
 const levelColors = ["var(--gc-gold)", "var(--gc-chart-2)", "var(--gc-chart-4)", "var(--gc-chart-3)", "var(--gc-text-secondary)", "var(--gc-text-muted)"];
 
 export default function HCMSHierarchy() {
-  const [view, setView] = useState<"tree" | "table">("tree");
+  const [view, setView] = useState<"tree" | "table">("table");
   const [selected, setSelected] = useState<HierarchyNode | null>(null);
   const [viewAgent, setViewAgent] = useState<any | null>(null);
 
@@ -72,11 +72,17 @@ export default function HCMSHierarchy() {
   const totalAip = MOCK_TREE.totalAip;
 
   const tableCols: Column<any>[] = [
-    { key: "name", label: "Agent", sortable: true, width: "16%", render: (v: string, row: any) => {
+    { key: "name", label: "Agent", sortable: true, width: "20%", render: (v: string, row: any) => {
       const isLinked = !["owner", "mgr1"].includes(row.id);
-      return isLinked
-        ? <Link href={`/hcms/agents/${row.id}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link>
-        : <span style={{ fontWeight: 500 }}>{v}</span>;
+      const indent = row.depth * 20;
+      return (
+        <div className="flex items-center" style={{ paddingLeft: indent }}>
+          {row.depth > 0 && <span style={{ color: "var(--gc-border)", marginRight: 8 }}>└</span>}
+          {isLinked
+            ? <Link href={`/hcms/agents/${row.id}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link>
+            : <span style={{ fontWeight: 500 }}>{v}</span>}
+        </div>
+      );
     }},
     { key: "level", label: "Level", sortable: true, width: "8%", render: (v: number) => <span style={{ padding: "2px 8px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-sm)", color: levelColors[Math.min(v, 5)], backgroundColor: `color-mix(in srgb, ${levelColors[Math.min(v, 5)]} 15%, transparent)` }}>L{v}</span> },
     { key: "title", label: "Title", width: "14%" },
@@ -85,7 +91,7 @@ export default function HCMSHierarchy() {
     { key: "upline", label: "Upline", width: "14%" },
     { key: "carriers", label: "Carriers", sortable: true, width: "8%", align: "center", render: (v: number) => <span style={{ color: v > 0 ? "var(--gc-text-primary)" : "var(--gc-text-muted)" }}>{v}</span> },
     { key: "docs", label: "Docs", width: "8%", align: "center" },
-    { key: "teamAip", label: "Team AIP", sortable: true, width: "10%", render: (v: number) => <span style={{ fontFamily: "var(--gc-font-display)" }}>${(v / 1000).toFixed(0)}K</span> },
+    { key: "teamAip", label: "Team AIP", sortable: true, width: "10%", render: (v: number) => <span style={{ fontFamily: "var(--gc-font-display)" }}>{(v as number) >= 1000000 ? `$${((v as number) / 1000000).toFixed(1)}M` : `$${((v as number) / 1000).toFixed(0)}K`}</span> },
     { key: "id", label: "", width: "7%", align: "center", render: (_v: any, row: any) => {
       const isLinked = !["owner", "mgr1"].includes(row.id);
       return isLinked ? (
@@ -106,7 +112,7 @@ export default function HCMSHierarchy() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <GCKPICard label="Total in Hierarchy" value={totalAgents} accentTop />
         <GCKPICard label="Avg Contract Level" value={`${avgContract}%`} accentTop />
-        <GCKPICard label="Total Agency AIP" value={`$${(totalAip / 1000).toFixed(0)}K`} accentTop delta={{ value: "All downlines", positive: true }} />
+        <GCKPICard label="Total Agency AIP" value={`$${totalAip >= 1000000 ? (totalAip / 1000000).toFixed(1) + "M" : (totalAip / 1000).toFixed(0) + "K"}`} accentTop delta={{ value: "All downlines", positive: true }} />
         <GCKPICard label="Hierarchy Depth" value={`${Math.max(...allRows.map(r => r.level)) + 1} levels`} accentTop />
       </div>
 
@@ -134,7 +140,7 @@ export default function HCMSHierarchy() {
                 {[
                   ["Contract Level", `${selected.contractLevel}%`, true],
                   ["Override Spread", selected.overridePercentage > 0 ? `${selected.overridePercentage}%` : "None", selected.overridePercentage > 0],
-                  ["Team AIP", `$${(selected.totalAip / 1000).toFixed(0)}K`, false],
+                  ["Team AIP", `${selected.totalAip >= 1000000 ? "$" + (selected.totalAip / 1000000).toFixed(1) + "M" : "$" + (selected.totalAip / 1000).toFixed(0) + "K"}`, false],
                   ["Carriers", `${selectedMeta.carriers}`, false],
                   ["Documents", selectedMeta.docs, false],
                 ].map(([label, val, gold], i) => (

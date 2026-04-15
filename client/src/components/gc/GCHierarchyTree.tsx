@@ -36,7 +36,7 @@ function TreeNode({ node, depth, onNodeClick, selectedNodeId, expandedIds, toggl
             <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", fontWeight: 600, color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-gold)" }}>{node.contractLevel}%</span>
             {node.overridePercentage > 0 && <span style={{ fontSize: "var(--gc-text-xs)", padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", backgroundColor: `color-mix(in srgb, var(--gc-gold) 15%, transparent)`, color: "var(--gc-gold)" }}>{node.overridePercentage}% override</span>}
           </div>
-          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-text-muted)", marginTop: 4 }}>${(node.totalAip / 1000).toFixed(0)}K AIP</div>
+          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-text-muted)", marginTop: 4 }}>{node.totalAip >= 1000000 ? `$${(node.totalAip / 1000000).toFixed(1)}M` : `$${(node.totalAip / 1000).toFixed(0)}K`} AIP</div>
           {hasChildren && (
             <button onClick={e => { e.stopPropagation(); toggleExpand(node.id); }} className="mt-1 p-0.5" style={{ color: isOwner ? "var(--gc-btn-primary-text)" : "var(--gc-text-muted)" }}>
               {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
