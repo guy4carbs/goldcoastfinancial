@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, GCBarChart, type Column } from "@/components/gc";
 import { Link } from "wouter";
-import { AlertTriangle, ArrowRight, Users, FileSignature, Building2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, Users, FileSignature, Building2, ShieldCheck, ExternalLink, Plus, UserCheck } from "lucide-react";
 
+// Recent applications
 const APPLICATIONS = [
   { id: "1", name: "Jessica Davis", submittedAt: "2026-04-13", docsComplete: 4, docsTotal: 9, status: "pending_review" },
   { id: "2", name: "Robert Kim", submittedAt: "2026-04-12", docsComplete: 2, docsTotal: 9, status: "pending_review" },
@@ -10,27 +12,30 @@ const APPLICATIONS = [
   { id: "5", name: "Daniel Martinez", submittedAt: "2026-04-08", docsComplete: 3, docsTotal: 9, status: "pending_review" },
 ];
 
+// Compliance alerts
 const ALERTS = [
   { id: "1", severity: "critical", agent: "James Rodriguez", issue: "TX License expires in 12 days" },
   { id: "2", severity: "critical", agent: "David Park", issue: "E&O Certificate expires in 8 days" },
   { id: "3", severity: "warning", agent: "Emily Watson", issue: "Active in FL without FL license" },
-  { id: "4", severity: "warning", agent: "New Agent A", issue: "Contracting incomplete — 18 days" },
+  { id: "4", severity: "warning", agent: "Jennifer Wu", issue: "Contracting incomplete — 18 days" },
   { id: "5", severity: "info", agent: "Sarah Mitchell", issue: "IL License expires in 75 days" },
 ];
 
+// Carrier appointment data
 const CARRIER_STATUS = [
   { name: "Mutual of Omaha", value: 8 }, { name: "Transamerica", value: 6 },
   { name: "Americo", value: 5 }, { name: "Corebridge", value: 4 },
   { name: "National Life", value: 3 }, { name: "North American", value: 2 },
 ];
 
+// Activity feed
 const ACTIVITY = [
-  { text: "Jessica Davis submitted agent application", time: "2h ago", icon: FileSignature, color: "var(--gc-gold)" },
-  { text: "Sarah Mitchell appointed with Mutual of Omaha", time: "5h ago", icon: Building2, color: "var(--gc-status-active)" },
-  { text: "James Rodriguez — TX license expiring (12 days)", time: "1d ago", icon: AlertTriangle, color: "var(--gc-status-warning)" },
-  { text: "Michael Chen approved as active agent", time: "1d ago", icon: Users, color: "var(--gc-status-active)" },
-  { text: "Emily Watson signed NDA agreement", time: "2d ago", icon: FileSignature, color: "var(--gc-gold)" },
-  { text: "David Park — E&O certificate expires in 8 days", time: "2d ago", icon: ShieldCheck, color: "var(--gc-status-terminated)" },
+  { text: "Jessica Davis submitted contracting application", time: "2h ago", icon: FileSignature, color: "var(--gc-gold)" },
+  { text: "Sarah Mitchell appointed with Mutual of Omaha — Writing #MOO-445821", time: "5h ago", icon: Building2, color: "var(--gc-status-active)" },
+  { text: "James Rodriguez — TX license expiration alert (12 days)", time: "1d ago", icon: AlertTriangle, color: "var(--gc-status-warning)" },
+  { text: "Michael Chen approved — all 9 documents complete", time: "1d ago", icon: Users, color: "var(--gc-status-active)" },
+  { text: "Emily Watson signed NDA via signature pad", time: "2d ago", icon: FileSignature, color: "var(--gc-gold)" },
+  { text: "David Park E&O certificate expiring — renewal required", time: "2d ago", icon: ShieldCheck, color: "var(--gc-status-terminated)" },
 ];
 
 const sevColor: Record<string, string> = { critical: "var(--gc-status-terminated)", warning: "var(--gc-status-warning)", info: "var(--gc-status-review)" };
@@ -55,38 +60,63 @@ const alertCols: Column<typeof ALERTS[0]>[] = [
   { key: "issue", label: "Issue" },
 ];
 
+// Assign reviewer dialog
+const REVIEWERS = ["Jack Cook", "Nicholas Gallagher", "Gaetano"];
+const PENDING_AGENTS = APPLICATIONS.filter(a => a.status === "pending_review");
+
 export default function HCMSDashboard() {
+  const [showAssign, setShowAssign] = useState(false);
+  const [assignAgent, setAssignAgent] = useState("");
+  const [assignReviewer, setAssignReviewer] = useState("");
+
+  const docsIncomplete = APPLICATIONS.filter(a => a.docsComplete < a.docsTotal).length;
+
   return (
     <div>
       <GCPageHeader title="Command Center" subtitle="Agent contracting, carrier tracking & compliance overview" accentUnderline />
 
+      {/* KPIs — all clickable */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-        <GCKPICard label="New Applications" value={5} accentTop delta={{ value: "+3 this week", positive: true }} />
-        <GCKPICard label="Active Agents" value={34} accentTop />
-        <GCKPICard label="Pending in SureLC" value={8} accentTop delta={{ value: "Awaiting", positive: false }} />
+        <GCKPICard label="New Applications" value={5} accentTop delta={{ value: "+3 this week", positive: true }} href="/hcms/contracting" />
+        <GCKPICard label="Active Agents" value={34} accentTop href="/hcms/agents" />
+        <GCKPICard label="Pending in SureLC" value={8} accentTop delta={{ value: "Awaiting", positive: false }} href="/hcms/contracting/requests" />
         <GCKPICard label="Compliance Alerts" value={5} accentTop delta={{ value: "2 critical", positive: false }} />
-        <GCKPICard label="Avg Contract Level" value="84%" accentTop />
-        <GCKPICard label="Missing Carriers" value={6} accentTop delta={{ value: "< 3 carriers", positive: false }} />
+        <GCKPICard label="Docs Incomplete" value={docsIncomplete} accentTop delta={{ value: `${docsIncomplete} of ${APPLICATIONS.length} agents`, positive: false }} href="/hcms/contracting" />
+        <GCKPICard label="Returned from Carrier" value={2} accentTop delta={{ value: "Action needed", positive: false }} href="/hcms/contracting/requests" />
       </div>
 
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <a href="/apply" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>
+          <Plus className="w-4 h-4" /> Start New Application
+        </a>
+        <a href="https://www.surelc.com" target="_blank" rel="noopener noreferrer" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer" }}>
+          <ExternalLink className="w-4 h-4" /> Open SureLC
+        </a>
+        <button onClick={() => setShowAssign(true)} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer" }}>
+          <UserCheck className="w-4 h-4" /> Assign Reviewer
+        </button>
+      </div>
+
+      {/* Tables: Applications + Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
           <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
             <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Recent Applications</span>
-            <Link href="/hcms/pipeline"><span className="flex items-center gap-1" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)", cursor: "pointer" }}>View all <ArrowRight className="w-3 h-3" /></span></Link>
+            <Link href="/hcms/contracting"><span className="flex items-center gap-1" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)", cursor: "pointer" }}>View all <ArrowRight className="w-3 h-3" /></span></Link>
           </div>
           <GCDataTable columns={appCols} data={APPLICATIONS} pageSize={5} />
         </div>
 
         <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
+          <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
             <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Compliance Alerts</span>
-            <Link href="/hcms/compliance"><span className="flex items-center gap-1" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)", cursor: "pointer" }}>View all <ArrowRight className="w-3 h-3" /></span></Link>
           </div>
           <GCDataTable columns={alertCols} data={ALERTS} pageSize={5} />
         </div>
       </div>
 
+      {/* Chart + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <GCBarChart data={CARRIER_STATUS} title="Active Appointments by Carrier" valueFormatter={v => `${v} agents`} />
 
@@ -107,6 +137,35 @@ export default function HCMSDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Assign Reviewer Dialog */}
+      {showAssign && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setShowAssign(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: 400, backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+            <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Assign Reviewer</div>
+            <div className="flex flex-col gap-4 mb-6">
+              <div>
+                <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Pending Application</label>
+                <select value={assignAgent} onChange={e => setAssignAgent(e.target.value)} style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }}>
+                  <option value="">Select agent...</option>
+                  {PENDING_AGENTS.map(a => <option key={a.id} value={a.id}>{a.name} — submitted {a.submittedAt}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Reviewer</label>
+                <select value={assignReviewer} onChange={e => setAssignReviewer(e.target.value)} style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }}>
+                  <option value="">Select reviewer...</option>
+                  {REVIEWERS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowAssign(false)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", cursor: "pointer" }}>Cancel</button>
+              <button onClick={() => { setShowAssign(false); setAssignAgent(""); setAssignReviewer(""); }} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontWeight: 500 }}>Assign</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
