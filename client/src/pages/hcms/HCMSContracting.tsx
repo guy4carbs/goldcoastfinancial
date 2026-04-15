@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, type Column } from "@/components/gc";
-import { CheckCircle, Clock, X as XIcon, Minus, Send, Copy, Check } from "lucide-react";
+import { CheckCircle, Clock, X as XIcon, Minus, Send, Copy, Check, Eye } from "lucide-react";
 import { Link } from "wouter";
 
 const DOCS = [
@@ -44,6 +44,7 @@ const tabs = ["All Agents", "Missing Docs", "Complete"] as const;
 export default function HCMSContracting() {
   const [tab, setTab] = useState<typeof tabs[number]>("All Agents");
   const [showSend, setShowSend] = useState(false);
+  const [viewAgent, setViewAgent] = useState<AgentDocs | null>(null);
   const [sendEmail, setSendEmail] = useState("");
   const [sendName, setSendName] = useState("");
   const [sent, setSent] = useState(false);
@@ -111,6 +112,9 @@ export default function HCMSContracting() {
     }},
     { key: "submittedAt", label: "Submitted", sortable: true },
     { key: "reviewer", label: "Reviewer", render: (v: any) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Unassigned</span> },
+    { key: "id", label: "", width: 60, align: "center" as const, render: (_: any, row: AgentDocs) => (
+      <button onClick={() => setViewAgent(row)} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)" }}><Eye className="w-3 h-3" /> View</button>
+    )},
   ];
 
   return (
@@ -157,6 +161,51 @@ export default function HCMSContracting() {
           </span>
         ))}
       </div>
+
+      {/* View Agent Doc Checklist Popup */}
+      {viewAgent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setViewAgent(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: 520, maxHeight: "85vh", overflow: "auto", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewAgent.agent}</div>
+                <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Document Checklist · Submitted {viewAgent.submittedAt} · Reviewer: {viewAgent.reviewer || "Unassigned"}</div>
+              </div>
+              <button onClick={() => setViewAgent(null)} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
+            </div>
+
+            {/* Progress bar */}
+            <div style={{ marginBottom: "var(--gc-space-4)", padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-md)" }}>
+              <div className="flex items-center justify-between mb-2">
+                <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Required Documents</span>
+                <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-gold)" }}>
+                  {viewAgent.docs.filter((d, i) => DOCS[i].required && (d === "signed" || d === "uploaded")).length}/{totalRequired}
+                </span>
+              </div>
+              <div style={{ height: 6, backgroundColor: "var(--gc-surface)", borderRadius: "var(--gc-radius-full)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(viewAgent.docs.filter((d, i) => DOCS[i].required && (d === "signed" || d === "uploaded")).length / totalRequired) * 100}%`, backgroundColor: "var(--gc-gold)", borderRadius: "var(--gc-radius-full)" }} />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {DOCS.map((doc, di) => (
+                <div key={di} style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${viewAgent.docs[di] === "signed" || viewAgent.docs[di] === "uploaded" ? "var(--gc-status-active)" : viewAgent.docs[di] === "pending" ? "var(--gc-status-pending)" : viewAgent.docs[di] === "missing" ? "var(--gc-status-terminated)" : "var(--gc-text-muted)"}` }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <DocIcon status={viewAgent.docs[di]} />
+                      <div>
+                        <span style={{ fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{doc.label}</span>
+                        {!doc.required && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", marginLeft: 8 }}>(Optional)</span>}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: "var(--gc-text-sm)", color: viewAgent.docs[di] === "signed" || viewAgent.docs[di] === "uploaded" ? "var(--gc-status-active)" : viewAgent.docs[di] === "pending" ? "var(--gc-status-pending)" : viewAgent.docs[di] === "missing" ? "var(--gc-status-terminated)" : "var(--gc-text-muted)", textTransform: "capitalize" as const }}>{viewAgent.docs[di]}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Send Application Dialog */}
       {showSend && (

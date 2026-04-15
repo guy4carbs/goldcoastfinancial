@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, type Column } from "@/components/gc";
 import { Link } from "wouter";
-import { CheckCircle, X as XIcon } from "lucide-react";
+import { CheckCircle, X as XIcon, Eye } from "lucide-react";
 
 interface BankRecord {
   agentId: string; agent: string; bank: string; accountType: string;
@@ -22,23 +22,27 @@ const MOCK: BankRecord[] = [
 
 const tabs = ["All", "Active", "Pending", "Missing"] as const;
 const FileIcon = ({ ok }: { ok: boolean }) => ok
-  ? <CheckCircle className="w-3.5 h-3.5" style={{ color: "var(--gc-status-active)" }} />
-  : <XIcon className="w-3.5 h-3.5" style={{ color: "var(--gc-status-terminated)" }} />;
-
-const cols: Column<BankRecord>[] = [
-  { key: "agent", label: "Agent", sortable: true, width: "18%", render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
-  { key: "bank", label: "Bank Name", sortable: true, width: "17%", render: (v) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Not provided</span> },
-  { key: "accountType", label: "Type", width: "10%", render: (v) => v || "—" },
-  { key: "routing", label: "Routing #", width: "10%", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
-  { key: "account", label: "Account #", width: "10%", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
-  { key: "ddFormOnFile", label: "DD Form", width: "8%", align: "center", render: (v) => <FileIcon ok={v} /> },
-  { key: "voidedCheckOnFile", label: "Voided Check", width: "10%", align: "center", render: (v) => <FileIcon ok={v} /> },
-  { key: "ddStatus", label: "Status", width: "10%", render: (v) => <GCStatusBadge status={v === "active" ? "active" : v === "pending" ? "pending" : "warning"} /> },
-  { key: "lastUpdated", label: "Updated", sortable: true, width: "7%", render: (v) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Never</span> },
-];
+  ? <span className="flex items-center gap-1" style={{ color: "var(--gc-status-active)", fontSize: "var(--gc-text-sm)" }}><CheckCircle className="w-3.5 h-3.5" /> On File</span>
+  : <span className="flex items-center gap-1" style={{ color: "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)" }}><XIcon className="w-3.5 h-3.5" /> Missing</span>;
 
 export default function ContractingBank() {
   const [tab, setTab] = useState<typeof tabs[number]>("All");
+  const [viewBank, setViewBank] = useState<BankRecord | null>(null);
+
+  const cols: Column<BankRecord>[] = [
+    { key: "agent", label: "Agent", sortable: true, width: "16%", render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
+    { key: "bank", label: "Bank Name", sortable: true, width: "15%", render: (v) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Not provided</span> },
+    { key: "accountType", label: "Type", width: "8%", render: (v) => v || "—" },
+    { key: "routing", label: "Routing #", width: "9%", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
+    { key: "account", label: "Account #", width: "9%", render: (v) => v ? <span style={{ fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }}>{v}</span> : <span style={{ color: "var(--gc-text-muted)" }}>—</span> },
+    { key: "ddFormOnFile", label: "DD Form", width: "9%", align: "center", render: (v) => <FileIcon ok={v} /> },
+    { key: "voidedCheckOnFile", label: "Voided Check", width: "10%", align: "center", render: (v) => <FileIcon ok={v} /> },
+    { key: "ddStatus", label: "Status", width: "9%", render: (v) => <GCStatusBadge status={v === "active" ? "active" : v === "pending" ? "pending" : "warning"} /> },
+    { key: "lastUpdated", label: "Updated", sortable: true, width: "7%", render: (v) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Never</span> },
+    { key: "agentId", label: "", width: "8%", align: "center", render: (_v, row) => row.bank ? (
+      <button onClick={() => setViewBank(row)} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)" }}><Eye className="w-3 h-3" /> View</button>
+    ) : null },
+  ];
 
   const counts = useMemo(() => ({
     all: MOCK.length,
@@ -76,6 +80,53 @@ export default function ContractingBank() {
       </div>
 
       <GCDataTable columns={cols} data={filtered} searchable searchPlaceholder="Search by agent or bank..." />
+
+      {/* View Bank Detail Popup */}
+      {viewBank && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setViewBank(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: 480, backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewBank.agent}</div>
+                <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Banking & Direct Deposit Details</div>
+              </div>
+              <button onClick={() => setViewBank(null)} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
+            </div>
+            <div style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-md)", border: "1px solid var(--gc-border-subtle)" }}>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  ["Bank Name", viewBank.bank || "Not provided"],
+                  ["Account Type", viewBank.accountType || "—"],
+                  ["Routing Number", viewBank.routing || "—"],
+                  ["Account Number", viewBank.account || "—"],
+                ].map(([label, val]) => (
+                  <div key={label as string}>
+                    <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: 2 }}>{label}</div>
+                    <div style={{ fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)", fontFamily: label === "Routing Number" || label === "Account Number" ? "monospace" : "var(--gc-font-body)" }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-6 mt-4 pt-4" style={{ borderTop: "1px solid var(--gc-border-subtle)" }}>
+                <div>
+                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: 2 }}>Direct Deposit Form</div>
+                  <FileIcon ok={viewBank.ddFormOnFile} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: 2 }}>Voided Check</div>
+                  <FileIcon ok={viewBank.voidedCheckOnFile} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: 2 }}>Status</div>
+                  <GCStatusBadge status={viewBank.ddStatus === "active" ? "active" : viewBank.ddStatus === "pending" ? "pending" : "warning"} />
+                </div>
+              </div>
+              {viewBank.lastUpdated && (
+                <div className="mt-3" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Last updated: {viewBank.lastUpdated}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
