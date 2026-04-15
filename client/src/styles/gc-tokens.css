@@ -270,6 +270,17 @@
   color: var(--gc-text-secondary);
 }
 
+/* Select dropdown option styling for dark themes */
+[data-theme="gc-dark"] select option,
+[data-theme="gc-maroon"] select option {
+  background-color: #3A1018;
+  color: #E8DDD0;
+}
+[data-theme="gc-light"] select option {
+  background-color: #FFFFFF;
+  color: #2D1810;
+}
+
 /* React Flow controls dark theme override */
 .gc-flow-controls button {
   background-color: var(--gc-surface) !important;
