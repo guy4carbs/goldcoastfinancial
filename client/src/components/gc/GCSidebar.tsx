@@ -120,7 +120,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
               {!isCollapsed && (
                 <div className="flex flex-col" style={{ padding: "2px 8px 0" }}>
                   {section.items.map((item) => {
-                    const active = activePath === item.href || (item.href !== "/hcms" && item.href !== "/ops" && activePath.startsWith(item.href + "/"));
+                    const active = activePath === item.href;
                     const ItemIcon = item.icon;
                     return (
                       <a
