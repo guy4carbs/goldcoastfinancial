@@ -269,3 +269,21 @@
   text-transform: uppercase;
   color: var(--gc-text-secondary);
 }
+
+/* React Flow controls dark theme override */
+.gc-flow-controls button {
+  background-color: var(--gc-surface) !important;
+  border-bottom-color: var(--gc-border) !important;
+  color: var(--gc-text-secondary) !important;
+  fill: var(--gc-text-secondary) !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+.gc-flow-controls button:hover {
+  background-color: var(--gc-surface-2) !important;
+}
+.gc-flow-controls button svg {
+  fill: var(--gc-text-secondary) !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+}

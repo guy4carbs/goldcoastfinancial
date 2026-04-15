@@ -144,8 +144,8 @@ function FlowInner({ nodes: inputNodes, edges: inputEdges, height }: { nodes: No
         proOptions={{ hideAttribution: true }}
       >
         <Background color="var(--gc-border-subtle)" gap={20} size={1} />
-        <Controls showInteractive={false} style={{ borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)" }} />
-        <MiniMap nodeStrokeColor="var(--gc-gold)" nodeColor="var(--gc-surface)" maskColor="color-mix(in srgb, var(--gc-bg) 80%, transparent)" style={{ borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)" }} />
+        <Controls showInteractive={false} style={{ borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", boxShadow: "var(--gc-shadow-sm)" }} className="gc-flow-controls" />
+        <MiniMap nodeStrokeColor="var(--gc-gold)" nodeColor="var(--gc-surface)" maskColor="color-mix(in srgb, var(--gc-bg) 85%, transparent)" style={{ borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", width: 120, height: 80 }} />
       </ReactFlow>
     </div>
   );
