@@ -82,37 +82,39 @@ export default function HCMSContracting() {
   const avgCompletion = Math.round((completedRequiredDocs / totalRequiredDocs) * 100);
 
   const cols: Column<AgentDocs>[] = [
-    { key: "agent", label: "Agent", sortable: true, width: 160, render: (v, row) => (
+    { key: "agent", label: "Agent", sortable: true, width: "18%", render: (v, row) => (
       <Link href={`/hcms/agents/${row.id}`}>
         <span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span>
       </Link>
     )},
-    ...DOCS.map((doc, di) => ({
-      key: `doc_${di}`,
-      label: doc.short,
-      width: 50,
-      align: "center" as const,
-      render: (_: any, row: AgentDocs) => (
-        <div title={`${doc.label}: ${row.docs[di]}${!doc.required ? " (optional)" : ""}`} style={{ display: "flex", justifyContent: "center" }}>
-          <DocIcon status={row.docs[di]} />
-        </div>
-      ),
-    })),
-    { key: "id", label: "Progress", width: 100, render: (_: any, row: AgentDocs) => {
+    { key: "id", label: "Completion", width: "22%", render: (_: any, row: AgentDocs) => {
       const done = row.docs.filter((d, i) => DOCS[i].required && (d === "signed" || d === "uploaded")).length;
       const pct = Math.round((done / totalRequired) * 100);
       return (
-        <div className="flex items-center gap-2" style={{ minWidth: 80 }}>
-          <div style={{ width: 48, height: 5, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-full)", overflow: "hidden", flexShrink: 0 }}>
-            <div style={{ height: "100%", width: `${pct}%`, backgroundColor: pct === 100 ? "var(--gc-status-active)" : "var(--gc-gold)", borderRadius: "var(--gc-radius-full)" }} />
+        <div className="flex items-center gap-3">
+          <div style={{ width: 80, height: 6, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-full)", overflow: "hidden", flexShrink: 0 }}>
+            <div style={{ height: "100%", width: `${pct}%`, backgroundColor: pct === 100 ? "var(--gc-status-active)" : "var(--gc-gold)", borderRadius: "var(--gc-radius-full)", transition: "width var(--gc-transition-normal)" }} />
           </div>
-          <span style={{ fontSize: "var(--gc-text-xs)", color: pct === 100 ? "var(--gc-status-active)" : "var(--gc-text-muted)", whiteSpace: "nowrap" }}>{done}/{totalRequired}</span>
+          <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-md)", fontWeight: 600, color: pct === 100 ? "var(--gc-status-active)" : "var(--gc-text-primary)" }}>{done}/{totalRequired}</span>
+          <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>{pct}%</span>
         </div>
       );
     }},
-    { key: "submittedAt", label: "Submitted", sortable: true },
-    { key: "reviewer", label: "Reviewer", render: (v: any) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Unassigned</span> },
-    { key: "id", label: "", width: 60, align: "center" as const, render: (_: any, row: AgentDocs) => (
+    { key: "id", label: "Signed", width: "8%", align: "center" as const, render: (_: any, row: AgentDocs) => {
+      const c = row.docs.filter(d => d === "signed").length;
+      return <span style={{ color: c > 0 ? "var(--gc-status-active)" : "var(--gc-text-muted)" }}>{c}</span>;
+    }},
+    { key: "id", label: "Uploaded", width: "8%", align: "center" as const, render: (_: any, row: AgentDocs) => {
+      const c = row.docs.filter(d => d === "uploaded").length;
+      return <span style={{ color: c > 0 ? "var(--gc-status-active)" : "var(--gc-text-muted)" }}>{c}</span>;
+    }},
+    { key: "id", label: "Pending", width: "8%", align: "center" as const, render: (_: any, row: AgentDocs) => {
+      const c = row.docs.filter(d => d === "pending" || d === "missing").length;
+      return <span style={{ color: c > 0 ? "var(--gc-status-warning)" : "var(--gc-text-muted)" }}>{c}</span>;
+    }},
+    { key: "submittedAt", label: "Submitted", sortable: true, width: "12%" },
+    { key: "reviewer", label: "Reviewer", width: "14%", render: (v: any) => v || <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>Unassigned</span> },
+    { key: "id", label: "", width: "8%", align: "center" as const, render: (_: any, row: AgentDocs) => (
       <button onClick={() => setViewAgent(row)} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)" }}><Eye className="w-3 h-3" /> View</button>
     )},
   ];
