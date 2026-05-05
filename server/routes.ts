@@ -831,22 +831,71 @@ export async function registerRoutes(
     try {
       const validatedData = insertQuoteRequestSchema.parse(req.body);
       const quoteRequest = await storage.createQuoteRequest(validatedData);
-      
+
+      // Compute the auto-score / priority once — used by both the leads-table
+      // mirror below AND the in-memory WebSocket broadcast further down.
+      const coverageNum = parseInt(String(validatedData.coverageAmount).replace(/[^0-9]/g, '')) || 0;
+      const birthYear = validatedData.birthDate ? new Date(validatedData.birthDate).getFullYear() : null;
+      const age = birthYear ? new Date().getFullYear() - birthYear : null;
+      const baseScore = Math.min(90, Math.max(30, Math.round(coverageNum / 10000) * 5 + 40));
+      const leadScore = age && age >= 30 && age <= 55 ? Math.min(95, baseScore + 10) : baseScore;
+      const priority = coverageNum >= 500000 ? 'urgent' : coverageNum >= 250000 ? 'high' : coverageNum >= 100000 ? 'medium' : 'low';
+      const scoreTier: 'cold' | 'warm' | 'hot' | 'on_fire' =
+        leadScore >= 80 ? 'on_fire' : leadScore >= 60 ? 'hot' : leadScore >= 40 ? 'warm' : 'cold';
+
+      // Mirror into the shared `leads` table so the cross-deployment Founders
+      // Lead Distribution surface (goldcoastfinancial.co) sees website quote
+      // submissions in its Website tab. source='web_form' matches the
+      // founders pool filter; sourceId links back to quote_requests.id for
+      // traceability. Underwriting context (DOB, age, height, weight,
+      // addressLine2, full medical background) lands in the
+      // `enrichment_data` JSONB column so the founders LeadDetailDrawer can
+      // render a full "Underwriting Info" card without re-querying
+      // quote_requests. Best-effort: a leads-insert failure must NOT block
+      // the quote_request response — the visitor's submission still confirmed.
+      try {
+        await storage.createLead({
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          streetAddress: validatedData.streetAddress || null,
+          city: validatedData.city || null,
+          state: validatedData.state || null,
+          zipCode: validatedData.zipCode || null,
+          source: 'web_form',
+          sourceId: String(quoteRequest.id),
+          status: 'new',
+          priority,
+          coverageType: validatedData.coverageType || null,
+          coverageAmount: validatedData.coverageAmount ? String(validatedData.coverageAmount) : null,
+          estimatedValue: coverageNum || null,
+          leadScore,
+          scoreTier,
+          pipelineStage: 'new',
+          notes: validatedData.medicalBackground || null,
+          enrichmentData: {
+            addressLine2: validatedData.addressLine2 || null,
+            birthDate: validatedData.birthDate || null,
+            age,
+            height: validatedData.height || null,
+            weight: validatedData.weight || null,
+            // gender + tobacco are captured by the QuickQuoteWidget but not
+            // currently in insertQuoteRequestSchema. If they're added there
+            // later, surface them here too.
+            medicalBackground: validatedData.medicalBackground || null,
+            quoteRequestId: quoteRequest.id,
+            submittedAt: new Date().toISOString(),
+          },
+        } as any);
+      } catch (leadErr: any) {
+        console.error("[QuoteRequests] Failed to mirror into leads table:", leadErr?.message);
+      }
+
       // Broadcast new website lead to Executive Lead Distribution via WebSocket
       try {
         const wsServer = app.get('wsServer');
         if (wsServer) {
-          // Parse coverage amount to numeric
-          const coverageNum = parseInt(String(validatedData.coverageAmount).replace(/[^0-9]/g, '')) || 0;
-          // Calculate age from birthDate
-          const birthYear = validatedData.birthDate ? new Date(validatedData.birthDate).getFullYear() : null;
-          const age = birthYear ? new Date().getFullYear() - birthYear : null;
-          // Auto-score: higher coverage = higher score, adjusted by age
-          const baseScore = Math.min(90, Math.max(30, Math.round(coverageNum / 10000) * 5 + 40));
-          const leadScore = age && age >= 30 && age <= 55 ? Math.min(95, baseScore + 10) : baseScore;
-          // Priority based on coverage amount
-          const priority = coverageNum >= 500000 ? 'urgent' : coverageNum >= 250000 ? 'high' : coverageNum >= 100000 ? 'medium' : 'low';
-
           const websiteLead = {
             type: 'new_website_lead',
             lead: {
@@ -866,7 +915,7 @@ export async function registerRoutes(
               estimatedValue: coverageNum,
               coverageAmountDisplay: validatedData.coverageAmount,
               leadScore,
-              scoreTier: leadScore >= 80 ? 'on_fire' : leadScore >= 60 ? 'hot' : leadScore >= 40 ? 'warm' : 'cold',
+              scoreTier,
               status: 'pool',
               distributedTo: null,
               assignedTo: null,
