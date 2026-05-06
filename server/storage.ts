@@ -2431,7 +2431,8 @@ export class DatabaseStorage implements IStorage {
     // shared/models/loungeAccess.ts ROLE_TO_LOUNGES — kept identical here.
     // Recognizes both 'manager' (legacy) and 'agency_manager' (canonical) +
     // founder/director/director_lounge introduced by goldcoast.
-    const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'];
+    // Wave Z10: marketing_lounge + investor_lounge dropped from heritage. Those surfaces now live exclusively on goldcoast.
+    const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'];
     const MANAGER_LOUNGES = ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'];
     const roleToLounges: Record<string, string[]> = {
       founder: ALL_LOUNGES,
@@ -2458,7 +2459,8 @@ export class DatabaseStorage implements IStorage {
   async reinitializeLoungeAccess(userId: string, newRole: string, performedBy: string): Promise<void> {
     // Wave Y: spec-aligned matrix. Mirrors initializeDefaultLoungeAccess above
     // (which mirrors goldcoast shared/models/loungeAccess.ts ROLE_TO_LOUNGES).
-    const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'];
+    // Wave Z10: marketing_lounge + investor_lounge dropped from heritage. Those surfaces now live exclusively on goldcoast.
+    const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'];
     const MANAGER_LOUNGES = ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'];
     const roleToLounges: Record<string, string[]> = {
       founder: ALL_LOUNGES,
