@@ -105,7 +105,8 @@ const HIGH_TRUST_2FA_ROLES = new Set<string>([
   Roles.OWNER,
   Roles.SYSTEM_ADMIN,
   Roles.DIRECTOR,
-  Roles.AGENCY_MANAGER, // 'manager' on heritage-app
+  Roles.AGENCY_MANAGER,    // 'manager' on heritage-app (legacy)
+  Roles.MANAGER_CANONICAL, // 'agency_manager' (Wave Y: matches goldcoast canonical)
   Roles.SALES_AGENT,
   Roles.MARKETING_STAFF,
   Roles.INVESTOR,

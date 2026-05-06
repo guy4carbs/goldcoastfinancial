@@ -22,7 +22,8 @@ export const Roles = {
   OWNER: 'owner',
   SYSTEM_ADMIN: 'system_admin',
   DIRECTOR: 'director',
-  AGENCY_MANAGER: 'manager',
+  AGENCY_MANAGER: 'manager',           // legacy: literal string is 'manager'
+  MANAGER_CANONICAL: 'agency_manager', // Wave Y: matches goldcoast canonical string
   SALES_AGENT: 'sales_agent',
   MARKETING_STAFF: 'marketing_staff',
   CLIENT: 'client',
@@ -33,13 +34,15 @@ export type Role = typeof Roles[keyof typeof Roles];
 
 export const ALL_ROLES: Role[] = Object.values(Roles);
 
-// Role hierarchy for comparisons (lower index = higher privilege)
+// Role hierarchy for comparisons (lower index = higher privilege).
+// MANAGER_CANONICAL sits at the same tier as AGENCY_MANAGER (both = manager-tier).
 export const ROLE_HIERARCHY: Role[] = [
   Roles.FOUNDER,
   Roles.OWNER,
   Roles.SYSTEM_ADMIN,
   Roles.DIRECTOR,
   Roles.AGENCY_MANAGER,
+  Roles.MANAGER_CANONICAL,
   Roles.SALES_AGENT,
   Roles.MARKETING_STAFF,
   Roles.CLIENT,
@@ -432,11 +435,19 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
   // Inherits the full AGENCY_MANAGER permission set — assigned post-hoc
   // below to avoid a forward-reference into the same literal.
   [Roles.DIRECTOR]: [],
+
+  // ===== MANAGER_CANONICAL - Wave Y: 'agency_manager' string alias =====
+  // Same permission set as AGENCY_MANAGER ('manager') so any goldcoast user
+  // with role='agency_manager' behaves identically to a heritage-stored
+  // role='manager' user. Assigned post-hoc below.
+  [Roles.MANAGER_CANONICAL]: [],
 };
 
-// Post-hoc: director inherits the agency-manager permission set so any
-// goldcoast user with role=director gets manager-tier access on heritage-app.
+// Post-hoc: director + manager_canonical inherit the agency-manager permission
+// set so any goldcoast user with role=director OR role=agency_manager gets
+// manager-tier access on heritage-app.
 ROLE_PERMISSIONS[Roles.DIRECTOR] = [...ROLE_PERMISSIONS[Roles.AGENCY_MANAGER]];
+ROLE_PERMISSIONS[Roles.MANAGER_CANONICAL] = [...ROLE_PERMISSIONS[Roles.AGENCY_MANAGER]];
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -482,10 +493,18 @@ export function isRoleAtLeast(roleA: Role, roleB: Role): boolean {
 }
 
 /**
- * Check if a role is admin-level (Owner, SystemAdmin, or Manager)
+ * Check if a role is admin-level (Owner, SystemAdmin, or Manager).
+ * MANAGER_CANONICAL ('agency_manager') counts the same as AGENCY_MANAGER ('manager').
  */
 export function isAdminRole(role: Role): boolean {
-  const adminRoles: Role[] = [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER];
+  const adminRoles: Role[] = [
+    Roles.FOUNDER,
+    Roles.OWNER,
+    Roles.SYSTEM_ADMIN,
+    Roles.DIRECTOR,
+    Roles.AGENCY_MANAGER,
+    Roles.MANAGER_CANONICAL,
+  ];
   return adminRoles.includes(role);
 }
 
@@ -508,14 +527,14 @@ export const RoleGroups = {
   // the heritage-app admin gate without falling through to CLIENT.
   ADMINS: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN],
 
-  // Management level
-  MANAGEMENT: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER],
+  // Management level (MANAGER_CANONICAL = 'agency_manager' aliased to same tier)
+  MANAGEMENT: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MANAGER_CANONICAL],
 
   // Staff (employees)
-  STAFF: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF],
+  STAFF: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MANAGER_CANONICAL, Roles.SALES_AGENT, Roles.MARKETING_STAFF],
 
   // AI Lounge access
-  AI_LOUNGE: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.SALES_AGENT],
+  AI_LOUNGE: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MANAGER_CANONICAL, Roles.SALES_AGENT],
 
   // External users
   EXTERNAL: [Roles.CLIENT, Roles.INVESTOR],

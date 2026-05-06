@@ -2427,13 +2427,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async initializeDefaultLoungeAccess(userId: string, role: string): Promise<void> {
+    // Wave Y: spec-aligned matrix. Source of truth lives at goldcoast
+    // shared/models/loungeAccess.ts ROLE_TO_LOUNGES — kept identical here.
+    // Recognizes both 'manager' (legacy) and 'agency_manager' (canonical) +
+    // founder/director/director_lounge introduced by goldcoast.
+    const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'];
+    const MANAGER_LOUNGES = ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'];
     const roleToLounges: Record<string, string[]> = {
-      owner: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'],
-      system_admin: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'],
-      manager: ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'],
+      founder: ALL_LOUNGES,
+      owner: ALL_LOUNGES,
+      system_admin: ['admin_panel', 'support_lounge'],
+      director: ['agent_portal', 'manager_lounge', 'director_lounge', 'crm_lounge', 'onboarding_lounge'],
+      agency_manager: MANAGER_LOUNGES,
+      manager: MANAGER_LOUNGES,
       sales_agent: ['agent_portal', 'crm_lounge', 'onboarding_lounge'],
-      marketing_staff: ['marketing_lounge', 'crm_lounge'],
-      investor: ['executive_lounge', 'investor_lounge'],
+      marketing_staff: [],
+      investor: [],
       client: ['client_lounge'],
     };
 
@@ -2447,13 +2456,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reinitializeLoungeAccess(userId: string, newRole: string, performedBy: string): Promise<void> {
+    // Wave Y: spec-aligned matrix. Mirrors initializeDefaultLoungeAccess above
+    // (which mirrors goldcoast shared/models/loungeAccess.ts ROLE_TO_LOUNGES).
+    const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'];
+    const MANAGER_LOUNGES = ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'];
     const roleToLounges: Record<string, string[]> = {
-      owner: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge', 'investor_lounge'],
-      system_admin: ['agent_portal', 'manager_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'marketing_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'],
-      manager: ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'],
+      founder: ALL_LOUNGES,
+      owner: ALL_LOUNGES,
+      system_admin: ['admin_panel', 'support_lounge'],
+      director: ['agent_portal', 'manager_lounge', 'director_lounge', 'crm_lounge', 'onboarding_lounge'],
+      agency_manager: MANAGER_LOUNGES,
+      manager: MANAGER_LOUNGES,
       sales_agent: ['agent_portal', 'crm_lounge', 'onboarding_lounge'],
-      marketing_staff: ['marketing_lounge', 'crm_lounge'],
-      investor: ['executive_lounge', 'investor_lounge'],
+      marketing_staff: [],
+      investor: [],
       client: ['client_lounge'],
     };
 
