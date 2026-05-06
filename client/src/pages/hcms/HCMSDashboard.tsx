@@ -1,223 +1,317 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, GCBarChart, type Column } from "@/components/gc";
+import { SendApplicationDialog } from "@/components/SendApplicationDialog";
+import { TOUR } from "@/lib/tour/selectors";
 import { Link } from "wouter";
-import { AlertTriangle, ArrowRight, Users, FileSignature, Building2, ShieldCheck, ExternalLink, Plus, UserCheck, Send, Copy, Check } from "lucide-react";
+import { AlertTriangle, ArrowRight, Users, FileSignature, ShieldCheck, ExternalLink, Send, Loader2, Eye } from "lucide-react";
 
-// Recent applications
-const APPLICATIONS = [
-  { id: "1", name: "Jessica Davis", submittedAt: "2026-04-13", docsComplete: 4, docsTotal: 9, status: "pending_review" },
-  { id: "2", name: "Robert Kim", submittedAt: "2026-04-12", docsComplete: 2, docsTotal: 9, status: "pending_review" },
-  { id: "3", name: "Amanda Torres", submittedAt: "2026-04-11", docsComplete: 7, docsTotal: 9, status: "in_review" },
-  { id: "4", name: "Christopher Lee", submittedAt: "2026-04-09", docsComplete: 9, docsTotal: 9, status: "in_review" },
-  { id: "5", name: "Daniel Martinez", submittedAt: "2026-04-08", docsComplete: 3, docsTotal: 9, status: "pending_review" },
-];
+/* ------------------------------------------------------------------ */
+/* Types                                                              */
+/* ------------------------------------------------------------------ */
 
-// Compliance alerts
-const ALERTS = [
-  { id: "1", severity: "critical", agent: "James Rodriguez", issue: "TX License expires in 12 days" },
-  { id: "2", severity: "critical", agent: "David Park", issue: "E&O Certificate expires in 8 days" },
-  { id: "3", severity: "warning", agent: "Emily Watson", issue: "Active in FL without FL license" },
-  { id: "4", severity: "warning", agent: "Jennifer Wu", issue: "Contracting incomplete — 18 days" },
-  { id: "5", severity: "info", agent: "Sarah Mitchell", issue: "IL License expires in 75 days" },
-];
+interface Agent {
+  userId: string; firstName: string; lastName: string; email: string;
+  status: string; npn: string; dbaType: string; state: string;
+  joinedAt: string; docsSigned: number; docsUploaded: number;
+  docsTotal: number; allCompleted: boolean; eoExpiration: string | null;
+  ceExpirationDate: string | null; amlCertificateKey: string | null;
+  ndaStatus: string; complianceStatus: string; debtRollupStatus: string;
+}
 
-// Carrier appointment data
-const CARRIER_STATUS = [
-  { name: "Mutual of Omaha", value: 8 }, { name: "Transamerica", value: 6 },
-  { name: "Americo", value: 5 }, { name: "Corebridge", value: 4 },
-  { name: "National Life", value: 3 }, { name: "North American", value: 2 },
-];
+interface Stats {
+  total: number; pending_review: number; in_review: number; approved: number; rejected: number;
+}
 
-// Activity feed
-const ACTIVITY = [
-  { text: "Jessica Davis submitted contracting application", time: "2h ago", icon: FileSignature, color: "var(--gc-gold)" },
-  { text: "Sarah Mitchell appointed with Mutual of Omaha — Writing #MOO-445821", time: "5h ago", icon: Building2, color: "var(--gc-status-active)" },
-  { text: "James Rodriguez — TX license expiration alert (12 days)", time: "1d ago", icon: AlertTriangle, color: "var(--gc-status-warning)" },
-  { text: "Michael Chen approved — all 9 documents complete", time: "1d ago", icon: Users, color: "var(--gc-status-active)" },
-  { text: "Emily Watson signed NDA via signature pad", time: "2d ago", icon: FileSignature, color: "var(--gc-gold)" },
-  { text: "David Park E&O certificate expiring — renewal required", time: "2d ago", icon: ShieldCheck, color: "var(--gc-status-terminated)" },
-];
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
-const sevColor: Record<string, string> = { critical: "var(--gc-status-terminated)", warning: "var(--gc-status-warning)", info: "var(--gc-status-review)" };
+function fmtDate(d: string | null): string {
+  if (!d) return "\u2014";
+  try { const date = new Date(d); return isNaN(date.getTime()) ? "\u2014" : `${String(date.getUTCMonth() + 1).padStart(2, "0")}/${String(date.getUTCDate()).padStart(2, "0")}/${date.getUTCFullYear()}`; } catch { return "\u2014"; }
+}
 
-const appCols: Column<typeof APPLICATIONS[0]>[] = [
-  { key: "name", label: "Agent", sortable: true, render: (v, row) => <Link href={`/hcms/agents/${row.id}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
-  { key: "submittedAt", label: "Submitted", sortable: true },
-  { key: "docsComplete", label: "Docs", render: (v, row) => (
-    <div className="flex items-center gap-2">
-      <div style={{ width: 48, height: 5, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-full)", overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${(v / row.docsTotal) * 100}%`, backgroundColor: v === row.docsTotal ? "var(--gc-status-active)" : "var(--gc-gold)", borderRadius: "var(--gc-radius-full)" }} />
-      </div>
-      <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>{v}/{row.docsTotal}</span>
-    </div>
+function daysUntil(d: string | null): number | null {
+  if (!d) return null;
+  try { const ms = new Date(d).getTime() - Date.now(); return Math.ceil(ms / 86400000); } catch { return null; }
+}
+
+function timeAgo(d: string): string {
+  const parsed = new Date(d).getTime();
+  if (isNaN(parsed)) return "just now";
+  const diff = Date.now() - parsed;
+  if (diff <= 0) return "just now";
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Column definitions                                                 */
+/* ------------------------------------------------------------------ */
+
+const appCols: Column<Agent>[] = [
+  { key: "firstName", label: "Agent", sortable: true, render: (_v, row) => (
+    <Link href={`/hcms/agents/${row.userId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{row.firstName} {row.lastName}</span></Link>
   )},
-  { key: "status", label: "Status", render: (v) => <GCStatusBadge status={v} /> },
+  { key: "joinedAt", label: "Submitted", sortable: true, render: (v) => fmtDate(v) },
+  { key: "docsTotal", label: "Docs", render: (_v, row) => {
+    const total = row.docsSigned + row.docsUploaded;
+    return (
+      <div className="flex items-center gap-2">
+        <div style={{ width: 48, height: 5, backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-full)", overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${(total / 7) * 100}%`, backgroundColor: row.allCompleted ? "var(--gc-status-active)" : "var(--gc-gold)", borderRadius: "var(--gc-radius-full)" }} />
+        </div>
+        <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>{total}/7</span>
+      </div>
+    );
+  }},
+  { key: "status", label: "Status", render: (v) => <GCStatusBadge status={v === "approved" ? "active" : v === "in_review" ? "warning" : v === "rejected" ? "terminated" : "pending"} /> },
+  { key: "userId", label: "", width: "60px", align: "center", render: (_v, row) => (
+    <Link href={`/hcms/agents/${row.userId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer" }}><Eye className="w-3.5 h-3.5" /></span></Link>
+  )},
 ];
 
-const alertCols: Column<typeof ALERTS[0]>[] = [
-  { key: "severity", label: "", render: (v) => <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", backgroundColor: sevColor[v] }} /> },
-  { key: "agent", label: "Agent" },
+interface AlertRow { id: string; severity: string; agent: string; agentId: string; issue: string; }
+
+const alertCols: Column<AlertRow>[] = [
+  { key: "severity", label: "", width: "24px", render: (v) => {
+    const color = v === "critical" ? "var(--gc-status-terminated)" : v === "warning" ? "var(--gc-status-warning)" : "var(--gc-status-review)";
+    return <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", backgroundColor: color }} />;
+  }},
+  { key: "agent", label: "Agent", render: (v, row) => (
+    <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer" }}>{v}</span></Link>
+  )},
   { key: "issue", label: "Issue" },
 ];
 
-// Assign reviewer dialog
-const REVIEWERS = ["Jack Cook", "Nicholas Gallagher", "Gaetano"];
-const PENDING_AGENTS = APPLICATIONS.filter(a => a.status === "pending_review");
+/* ------------------------------------------------------------------ */
+/* Main Component                                                     */
+/* ------------------------------------------------------------------ */
 
 export default function HCMSDashboard() {
-  const [showAssign, setShowAssign] = useState(false);
-  const [assignAgent, setAssignAgent] = useState("");
-  const [assignReviewer, setAssignReviewer] = useState("");
-  const [showSend, setShowSend] = useState(false);
-  const [sendName, setSendName] = useState("");
-  const [sendEmail, setSendEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const applicationUrl = typeof window !== "undefined" ? `${window.location.origin}/apply` : "/apply";
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [stats, setStats] = useState<Stats>({ total: 0, pending_review: 0, in_review: 0, approved: 0, rejected: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const docsIncomplete = APPLICATIONS.filter(a => a.docsComplete < a.docsTotal).length;
+  // Send Application dialog state
+  const [showSend, setShowSend] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/hcms/agents/stats", { credentials: "include" }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch("/api/hcms/agents/", { credentials: "include" }).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([s, a]) => {
+      if (!s && !a) {
+        setError("Failed to load dashboard data. Please check your connection and try again.");
+      } else {
+        if (s) setStats(s as Stats);
+        if (Array.isArray(a)) setAgents(a);
+      }
+      setLoading(false);
+    }).catch(() => { setError("Failed to load dashboard data. Please check your connection and try again."); setLoading(false); });
+  }, []);
+
+  if (loading) return <div className="flex items-center justify-center" style={{ padding: "var(--gc-space-8)" }}><Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--gc-gold)" }} /></div>;
+
+  if (error) return (
+    <div style={{ padding: "var(--gc-space-8)" }}>
+      <div className="flex items-center gap-3" style={{ padding: "var(--gc-space-4)", backgroundColor: "color-mix(in srgb, var(--gc-status-terminated) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--gc-status-terminated) 25%, transparent)", borderRadius: "var(--gc-radius-md)" }}>
+        <AlertTriangle className="w-5 h-5" style={{ color: "var(--gc-status-terminated)", flexShrink: 0 }} />
+        <div>
+          <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)", marginBottom: 4 }}>Unable to Load Dashboard</div>
+          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{error}</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* -- Derive dashboard data from real agents ----------------------- */
+  const pendingAgents = agents.filter(a => a.status === "pending_review" || a.status === "in_review")
+    .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime());
+
+  const docsIncomplete = agents.filter(a => !a.allCompleted).length;
+
+  // Build compliance alerts from real data
+  const alerts: AlertRow[] = [];
+  let alertId = 0;
+  agents.forEach(a => {
+    const name = `${a.firstName} ${a.lastName}`;
+    // E&O expiration
+    if (a.eoExpiration) {
+      const days = daysUntil(a.eoExpiration);
+      if (days !== null && days <= 30 && days > 0) {
+        alerts.push({ id: String(++alertId), severity: days <= 14 ? "critical" : "warning", agent: name, agentId: a.userId, issue: `E&O expires in ${days} days` });
+      } else if (days !== null && days <= 0) {
+        alerts.push({ id: String(++alertId), severity: "critical", agent: name, agentId: a.userId, issue: `E&O expired ${Math.abs(days)} days ago` });
+      }
+    }
+    // CE Credits expiration
+    if (a.ceExpirationDate) {
+      const ceDays = daysUntil(a.ceExpirationDate);
+      if (ceDays !== null && ceDays <= 30 && ceDays > 0) {
+        alerts.push({ id: String(++alertId), severity: ceDays <= 14 ? "critical" : "warning", agent: name, agentId: a.userId, issue: `CE credits expire in ${ceDays} days` });
+      } else if (ceDays !== null && ceDays <= 0) {
+        alerts.push({ id: String(++alertId), severity: "critical", agent: name, agentId: a.userId, issue: `CE credits expired ${Math.abs(ceDays)} days ago` });
+      }
+    }
+    // Active agent checks
+    if (a.status === "approved") {
+      // Missing docs
+      if (!a.allCompleted) {
+        alerts.push({ id: String(++alertId), severity: "warning", agent: name, agentId: a.userId, issue: `Active agent — documents incomplete (${a.docsSigned + a.docsUploaded}/7)` });
+      }
+      // AML certificate missing
+      if (!a.amlCertificateKey) {
+        alerts.push({ id: String(++alertId), severity: "warning", agent: name, agentId: a.userId, issue: "AML certificate missing" });
+      }
+      // NDA not signed
+      if (a.ndaStatus && a.ndaStatus !== "signed") {
+        alerts.push({ id: String(++alertId), severity: "warning", agent: name, agentId: a.userId, issue: "NDA not signed" });
+      }
+      // Compliance agreement not signed
+      if (a.complianceStatus && a.complianceStatus !== "signed") {
+        alerts.push({ id: String(++alertId), severity: "warning", agent: name, agentId: a.userId, issue: "Compliance agreement not signed" });
+      }
+      // Debt rollup not signed
+      if (a.debtRollupStatus && a.debtRollupStatus !== "signed") {
+        alerts.push({ id: String(++alertId), severity: "info", agent: name, agentId: a.userId, issue: "Debt rollup agreement not signed" });
+      }
+    }
+  });
+  // Sort: critical first
+  alerts.sort((a, b) => (a.severity === "critical" ? 0 : a.severity === "warning" ? 1 : 2) - (b.severity === "critical" ? 0 : b.severity === "warning" ? 1 : 2));
+
+  // Build activity from recent agents
+  const recentActivity = agents
+    .filter(a => a.joinedAt)
+    .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime())
+    .slice(0, 8)
+    .map(a => {
+      const name = `${a.firstName} ${a.lastName}`;
+      const time = timeAgo(a.joinedAt);
+      if (a.status === "approved") return { text: `${name} approved — ${a.allCompleted ? "all documents complete" : "awaiting remaining documents"}`, time, icon: Users, color: "var(--gc-status-active)" };
+      if (a.status === "in_review") return { text: `${name} application under review`, time, icon: ShieldCheck, color: "var(--gc-status-warning)" };
+      if (a.status === "rejected") return { text: `${name} application rejected`, time, icon: AlertTriangle, color: "var(--gc-status-terminated)" };
+      return { text: `${name} application submitted`, time, icon: FileSignature, color: "var(--gc-gold)" };
+    });
+
+  const criticalAlerts = alerts.filter(a => a.severity === "critical").length;
 
   return (
     <div>
-      <GCPageHeader title="Command Center" subtitle="Agent contracting, carrier tracking & compliance overview" accentUnderline />
+      <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.HEADER}>
+        <GCPageHeader title="Command Center" subtitle="Agent contracting, carrier tracking & compliance overview" accentUnderline />
+      </div>
 
-      {/* KPIs — all clickable */}
+      {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-        <GCKPICard label="New Applications" value={5} accentTop delta={{ value: "+3 this week", positive: true }} href="/hcms/contracting" />
-        <GCKPICard label="Active Agents" value={34} accentTop href="/hcms/agents" />
-        <GCKPICard label="Pending in SureLC" value={8} accentTop delta={{ value: "Awaiting", positive: false }} href="/hcms/contracting/requests" />
-        <GCKPICard label="Compliance Alerts" value={5} accentTop delta={{ value: "2 critical", positive: false }} />
-        <GCKPICard label="Docs Incomplete" value={docsIncomplete} accentTop delta={{ value: `${docsIncomplete} of ${APPLICATIONS.length} agents`, positive: false }} href="/hcms/contracting" />
-        <GCKPICard label="Returned from Carrier" value={2} accentTop delta={{ value: "Action needed", positive: false }} href="/hcms/contracting/requests" />
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.KPI_AGENTS}>
+          <GCKPICard label="Total Agents" value={stats.total || agents.length} accentTop href="/hcms/agents" />
+        </div>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.KPI_PENDING}>
+          <GCKPICard label="Pending Review" value={stats.pending_review || 0} accentTop delta={{ value: (stats.pending_review || 0) > 0 ? "Needs attention" : "All clear", positive: !(stats.pending_review || 0) }} href="/hcms/contracting" />
+        </div>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.KPI_IN_REVIEW}>
+          <GCKPICard label="In Review" value={stats.in_review || 0} accentTop href="/hcms/agents" />
+        </div>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.KPI_ACTIVE}>
+          <GCKPICard label="Active Agents" value={stats.approved || 0} accentTop delta={{ value: `${Math.round(((stats.approved || 0) / Math.max(stats.total || 1, 1)) * 100)}%`, positive: true }} href="/hcms/agents" />
+        </div>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.KPI_ALERTS}>
+          <GCKPICard label="Compliance Alerts" value={alerts.length} accentTop delta={{ value: criticalAlerts > 0 ? `${criticalAlerts} critical` : "All clear", positive: criticalAlerts === 0 }} />
+        </div>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.KPI_REQUESTS}>
+          <GCKPICard label="Docs Incomplete" value={docsIncomplete} accentTop delta={{ value: docsIncomplete > 0 ? "Action needed" : "All complete", positive: docsIncomplete === 0 }} href="/hcms/contracting" />
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <button onClick={() => setShowSend(true)} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>
+      <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.QUICK_LINKS} className="flex flex-wrap gap-3 mb-6">
+        <button data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.QUICK_SEND_APP} onClick={() => setShowSend(true)} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, border: "none", cursor: "pointer" }}>
           <Send className="w-4 h-4" /> Send Application
         </button>
         <a href="https://www.surelc.com" target="_blank" rel="noopener noreferrer" className="no-underline flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer" }}>
           <ExternalLink className="w-4 h-4" /> Open SureLC
         </a>
-        <button onClick={() => setShowAssign(true)} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", cursor: "pointer" }}>
-          <UserCheck className="w-4 h-4" /> Assign Reviewer
-        </button>
       </div>
 
       {/* Tables: Applications + Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.APPLICATIONS_TABLE} style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
           <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
             <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Recent Applications</span>
-            <Link href="/hcms/contracting"><span className="flex items-center gap-1" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)", cursor: "pointer" }}>View all <ArrowRight className="w-3 h-3" /></span></Link>
+            <Link href="/hcms/agents"><span className="flex items-center gap-1" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-gold)", cursor: "pointer" }}>View all <ArrowRight className="w-3 h-3" /></span></Link>
           </div>
-          <GCDataTable columns={appCols} data={APPLICATIONS} pageSize={5} />
+          {pendingAgents.length === 0 ? (
+            <div style={{ padding: "var(--gc-space-6)", textAlign: "center", color: "var(--gc-text-muted)", fontSize: "var(--gc-text-sm)" }}>No pending applications</div>
+          ) : (
+            <GCDataTable columns={appCols} data={pendingAgents.slice(0, 5)} pageSize={5} />
+          )}
         </div>
 
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.ALERTS_TABLE} style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
           <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
             <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Compliance Alerts</span>
           </div>
-          <GCDataTable columns={alertCols} data={ALERTS} pageSize={5} />
+          {alerts.length === 0 ? (
+            <div style={{ padding: "var(--gc-space-6)", textAlign: "center", color: "var(--gc-text-muted)", fontSize: "var(--gc-text-sm)" }}>No compliance alerts</div>
+          ) : (
+            <GCDataTable columns={alertCols} data={alerts.slice(0, 5)} pageSize={5} />
+          )}
         </div>
       </div>
 
-      {/* Chart + Activity */}
+      {/* Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <GCBarChart data={CARRIER_STATUS} title="Active Appointments by Carrier" valueFormatter={v => `${v} agents`} />
-
-        <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-4)" }}>
-          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500, letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-4)" }}>Recent Activity</div>
-          <div className="flex flex-col gap-2">
-            {ACTIVITY.map((a, i) => (
-              <div key={i} className="flex items-start gap-3" style={{ padding: "var(--gc-space-2) 0", borderBottom: i < ACTIVITY.length - 1 ? "1px solid var(--gc-border-subtle)" : "none" }}>
-                <div style={{ padding: "var(--gc-space-1)", borderRadius: "var(--gc-radius-full)", backgroundColor: `color-mix(in srgb, ${a.color} 15%, transparent)`, flexShrink: 0, marginTop: 2 }}>
-                  <a.icon className="w-3.5 h-3.5" style={{ color: a.color }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)", lineHeight: 1.4 }}>{a.text}</div>
-                  <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", marginTop: 2 }}>{a.time}</div>
-                </div>
-              </div>
-            ))}
+        {/* Agent Status Breakdown */}
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.STATUS_CHART} style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
+          <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
+            <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Agents by Status</span>
           </div>
+          {(stats.approved || 0) + (stats.in_review || 0) + (stats.pending_review || 0) + (stats.rejected || 0) === 0 ? (
+            <div style={{ padding: "var(--gc-space-6)", textAlign: "center", color: "var(--gc-text-muted)", fontSize: "var(--gc-text-sm)" }}>No agent data available</div>
+          ) : (
+            <div style={{ padding: "var(--gc-space-4)" }}>
+              <GCBarChart bare data={[
+                { name: "Active", value: stats.approved || 0 },
+                { name: "In Review", value: stats.in_review || 0 },
+                { name: "Pending", value: stats.pending_review || 0 },
+                { name: "Rejected", value: stats.rejected || 0 },
+              ]} valueFormatter={v => `${v} agents`} />
+            </div>
+          )}
+        </div>
+
+        <div data-tour-id={TOUR.ADMIN.HCMS_DASHBOARD.RECENT_ACTIVITY} style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)" }}>
+          <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--gc-border-subtle)" }}>
+            <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Recent Activity</span>
+          </div>
+          {recentActivity.length === 0 ? (
+            <div style={{ padding: "var(--gc-space-6)", textAlign: "center", color: "var(--gc-text-muted)", fontSize: "var(--gc-text-sm)" }}>No recent activity</div>
+          ) : (
+            <div className="flex flex-col gap-2" style={{ padding: "var(--gc-space-4)" }}>
+              {recentActivity.map((a, i) => (
+                <div key={i} className="flex items-start gap-3" style={{ padding: "var(--gc-space-2) 0", borderBottom: i < recentActivity.length - 1 ? "1px solid var(--gc-border-subtle)" : "none" }}>
+                  <div style={{ padding: "var(--gc-space-1)", borderRadius: "var(--gc-radius-full)", backgroundColor: `color-mix(in srgb, ${a.color} 15%, transparent)`, flexShrink: 0, marginTop: 2 }}>
+                    <a.icon className="w-3.5 h-3.5" style={{ color: a.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", color: "var(--gc-text-primary)", lineHeight: 1.4 }}>{a.text}</div>
+                    <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)", marginTop: 2 }}>{a.time}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Assign Reviewer Dialog */}
-      {showAssign && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setShowAssign(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: 400, backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
-            <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Assign Reviewer</div>
-            <div className="flex flex-col gap-4 mb-6">
-              <div>
-                <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Pending Application</label>
-                <select value={assignAgent} onChange={e => setAssignAgent(e.target.value)} style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)", outline: "none", appearance: "none" as const, WebkitAppearance: "none" as const, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23B8A898' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}>
-                  <option value="">Select agent...</option>
-                  {PENDING_AGENTS.map(a => <option key={a.id} value={a.id}>{a.name} — submitted {a.submittedAt}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Reviewer</label>
-                <select value={assignReviewer} onChange={e => setAssignReviewer(e.target.value)} style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)", outline: "none", appearance: "none" as const, WebkitAppearance: "none" as const, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23B8A898' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}>
-                  <option value="">Select reviewer...</option>
-                  {REVIEWERS.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowAssign(false)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", cursor: "pointer" }}>Cancel</button>
-              <button onClick={() => { setShowAssign(false); setAssignAgent(""); setAssignReviewer(""); }} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: "pointer", fontWeight: 500 }}>Assign</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Send Application Dialog */}
-      {showSend && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => { setShowSend(false); setSent(false); }}>
-          <div onClick={e => e.stopPropagation()} style={{ width: 440, backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
-            <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-2)" }}>Send Application</div>
-            <p style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", marginBottom: "var(--gc-space-4)" }}>Send the contracting application link to a prospective agent via email.</p>
-
-            {sent ? (
-              <div className="flex flex-col items-center gap-3 py-6">
-                <Check className="w-10 h-10" style={{ color: "var(--gc-status-active)" }} />
-                <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-primary)" }}>Application Sent!</div>
-                <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>Email sent to {sendEmail}</div>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-col gap-3 mb-4">
-                  <div>
-                    <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Agent Name</label>
-                    <input value={sendName} onChange={e => setSendName(e.target.value)} placeholder="Full name" style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Email Address</label>
-                    <input value={sendEmail} onChange={e => setSendEmail(e.target.value)} placeholder="agent@email.com" type="email" style={{ width: "100%", padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-md)" }} />
-                  </div>
-                </div>
-                <div style={{ padding: "var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", borderRadius: "var(--gc-radius-sm)", marginBottom: "var(--gc-space-4)" }}>
-                  <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-2)" }}>Or copy application link</div>
-                  <div className="flex items-center gap-2">
-                    <input readOnly value={applicationUrl} style={{ flex: 1, padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontFamily: "monospace", fontSize: "var(--gc-text-sm)" }} />
-                    <button onClick={() => { navigator.clipboard.writeText(applicationUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="flex items-center gap-1" style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: copied ? "var(--gc-status-active)" : "var(--gc-text-secondary)", cursor: "pointer", fontSize: "var(--gc-text-sm)", whiteSpace: "nowrap" as const }}>
-                      {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
-                    </button>
-                  </div>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button onClick={() => setShowSend(false)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", cursor: "pointer" }}>Cancel</button>
-                  <button onClick={() => { setSent(true); setTimeout(() => { setSent(false); setShowSend(false); setSendName(""); setSendEmail(""); }, 2000); }} disabled={!sendEmail.trim()} className="flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-4)", backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)", borderRadius: "var(--gc-radius-sm)", border: "none", cursor: sendEmail.trim() ? "pointer" : "not-allowed", fontWeight: 500, opacity: sendEmail.trim() ? 1 : 0.5 }}>
-                    <Send className="w-3.5 h-3.5" /> Send Email
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <SendApplicationDialog open={showSend} onClose={() => setShowSend(false)} />
     </div>
   );
 }

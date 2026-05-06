@@ -1,142 +1,260 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { GCPageHeader, GCKPICard, GCDataTable, GCStatusBadge, type Column } from "@/components/gc";
+import { TOUR } from "@/lib/tour/selectors";
 import { Link } from "wouter";
-import { CheckCircle, X as XIcon, Eye, AlertTriangle } from "lucide-react";
+import { CheckCircle, X as XIcon, Loader2, AlertTriangle, Eye } from "lucide-react";
 
-interface Training { type: string; completionDate: string; expirationDate: string; status: "active" | "expiring" | "expired" | "missing"; daysUntilExpiry: number | null; certOnFile: boolean; }
-interface AgentTrainings { agentId: string; agent: string; trainings: Training[]; }
+interface Agent {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  amlCertificateKey: string | null;
+  ceExpirationDate: string | null;
+  complianceStatus: string;
+  status: string;
+}
 
-const MOCK: AgentTrainings[] = [
-  { agentId: "1", agent: "Sarah Mitchell", trainings: [
-    { type: "AML", completionDate: "2026-01-15", expirationDate: "2027-01-15", status: "active", daysUntilExpiry: 275, certOnFile: true },
-    { type: "CE Credits (IL)", completionDate: "2025-12-01", expirationDate: "2027-12-01", status: "active", daysUntilExpiry: 596, certOnFile: true },
-    { type: "Compliance", completionDate: "2026-01-15", expirationDate: "2027-01-15", status: "active", daysUntilExpiry: 275, certOnFile: true },
-  ]},
-  { agentId: "2", agent: "James Rodriguez", trainings: [
-    { type: "AML", completionDate: "2025-06-01", expirationDate: "2026-06-01", status: "active", daysUntilExpiry: 47, certOnFile: true },
-    { type: "CE Credits (TX)", completionDate: "", expirationDate: "2026-04-30", status: "expired", daysUntilExpiry: null, certOnFile: false },
-  ]},
-  { agentId: "3", agent: "Michael Chen", trainings: [
-    { type: "AML", completionDate: "2026-02-01", expirationDate: "2027-02-01", status: "active", daysUntilExpiry: 292, certOnFile: true },
-    { type: "CE Credits (CA)", completionDate: "2025-09-15", expirationDate: "2027-09-15", status: "active", daysUntilExpiry: 518, certOnFile: true },
-    { type: "Product Training (Americo)", completionDate: "2026-03-01", expirationDate: "", status: "active", daysUntilExpiry: null, certOnFile: true },
-    { type: "Product Training (Corebridge)", completionDate: "2026-01-15", expirationDate: "", status: "active", daysUntilExpiry: null, certOnFile: true },
-  ]},
-  { agentId: "4", agent: "Emily Watson", trainings: [
-    { type: "AML", completionDate: "", expirationDate: "", status: "missing", daysUntilExpiry: null, certOnFile: false },
-    { type: "CE Credits (FL)", completionDate: "2025-08-01", expirationDate: "2027-08-01", status: "active", daysUntilExpiry: 474, certOnFile: true },
-  ]},
-  { agentId: "5", agent: "David Park", trainings: [
-    { type: "AML", completionDate: "2025-11-01", expirationDate: "2026-11-01", status: "active", daysUntilExpiry: 200, certOnFile: true },
-    { type: "CE Credits (NY)", completionDate: "2025-06-01", expirationDate: "2027-06-01", status: "active", daysUntilExpiry: 413, certOnFile: true },
-    { type: "Compliance", completionDate: "2026-01-20", expirationDate: "2027-01-20", status: "active", daysUntilExpiry: 280, certOnFile: true },
-  ]},
-  { agentId: "6", agent: "Lisa Thompson", trainings: [
-    { type: "AML", completionDate: "2025-09-01", expirationDate: "2026-09-01", status: "active", daysUntilExpiry: 139, certOnFile: true },
-  ]},
-  { agentId: "7", agent: "Robert Kim", trainings: [] },
-  { agentId: "8", agent: "Amanda Torres", trainings: [
-    { type: "AML", completionDate: "2026-04-01", expirationDate: "2027-04-01", status: "active", daysUntilExpiry: 351, certOnFile: true },
-  ]},
-  { agentId: "9", agent: "Jack Cook", trainings: [
-    { type: "AML", completionDate: "2025-01-01", expirationDate: "2026-01-01", status: "expiring", daysUntilExpiry: 261, certOnFile: true },
-    { type: "CE Credits (IL)", completionDate: "2025-01-01", expirationDate: "2027-01-01", status: "active", daysUntilExpiry: 626, certOnFile: true },
-    { type: "Compliance", completionDate: "2025-06-01", expirationDate: "2026-06-01", status: "active", daysUntilExpiry: 47, certOnFile: true },
-    { type: "Product Training (Mutual of Omaha)", completionDate: "2025-03-01", expirationDate: "", status: "active", daysUntilExpiry: null, certOnFile: true },
-    { type: "Product Training (Transamerica)", completionDate: "2025-04-01", expirationDate: "", status: "active", daysUntilExpiry: null, certOnFile: true },
-    { type: "Product Training (Americo)", completionDate: "2025-05-01", expirationDate: "", status: "active", daysUntilExpiry: null, certOnFile: true },
-  ]},
-];
+type CEStatus = "active" | "expiring" | "expired" | "unknown";
 
-const allTrainings = MOCK.flatMap(a => a.trainings);
-const hasAML = (a: AgentTrainings) => a.trainings.some(t => t.type === "AML" && (t.status === "active" || t.status === "expiring"));
-const amlStatus = (a: AgentTrainings) => {
-  const aml = a.trainings.find(t => t.type === "AML");
-  if (!aml) return "missing";
-  return aml.status;
-};
+interface AgentRow {
+  userId: string;
+  name: string;
+  hasAmlCert: boolean;
+  ceExpirationDate: string | null;
+  ceStatus: CEStatus;
+  ceDaysUntil: number | null;
+  complianceSigned: boolean;
+}
 
-const tabs = ["All Agents", "AML Complete", "AML Missing/Expired", "No Trainings"] as const;
+function deriveCEStatus(ceExpirationDate: string | null): { status: CEStatus; daysUntil: number | null } {
+  if (!ceExpirationDate) return { status: "unknown", daysUntil: null };
+  const now = new Date();
+  const exp = new Date(ceExpirationDate);
+  const diffMs = exp.getTime() - now.getTime();
+  const daysUntil = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (daysUntil < 0) return { status: "expired", daysUntil };
+  if (daysUntil <= 90) return { status: "expiring", daysUntil };
+  return { status: "active", daysUntil };
+}
 
-const FileIcon = ({ ok }: { ok: boolean }) => ok
-  ? <span className="flex items-center gap-1" style={{ color: "var(--gc-status-active)", fontSize: "var(--gc-text-sm)" }}><CheckCircle className="w-3.5 h-3.5" /> On File</span>
-  : <span className="flex items-center gap-1" style={{ color: "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)" }}><XIcon className="w-3.5 h-3.5" /> Missing</span>;
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return `${String(d.getUTCMonth()+1).padStart(2,"0")}/${String(d.getUTCDate()).padStart(2,"0")}/${d.getUTCFullYear()}`;
+  } catch { return "—"; }
+}
+
+function isComplete(row: AgentRow): boolean {
+  return row.hasAmlCert && row.ceStatus === "active" && row.complianceSigned;
+}
+
+const tabs = ["All", "Complete", "Incomplete"] as const;
 
 export default function ContractingTrainings() {
-  const [tab, setTab] = useState<typeof tabs[number]>("All Agents");
-  const [viewing, setViewing] = useState<AgentTrainings | null>(null);
-  const [popupPage, setPopupPage] = useState(0);
-  const PER_PAGE = 5;
+  const [agents, setAgents] = useState<AgentRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<typeof tabs[number]>("All");
+  const [viewing, setViewing] = useState<AgentRow | null>(null);
+
+  const loadData = () => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/hcms/agents/", { credentials: "include" })
+      .then(res => { if (!res.ok) throw new Error(`Failed to fetch agents (${res.status})`); return res.json(); })
+      .then((data: Agent[]) => {
+        setAgents(data.map(a => {
+          const { status: ceStatus, daysUntil } = deriveCEStatus(a.ceExpirationDate);
+          return { userId: a.userId, name: `${a.firstName} ${a.lastName}`, hasAmlCert: !!a.amlCertificateKey, ceExpirationDate: a.ceExpirationDate, ceStatus, ceDaysUntil: daysUntil, complianceSigned: a.complianceStatus === "signed" };
+        }));
+        setLoading(false);
+      })
+      .catch(err => { setError(err.message || "Failed to load training data"); setLoading(false); });
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   const counts = useMemo(() => ({
-    all: MOCK.length,
-    amlComplete: MOCK.filter(a => hasAML(a)).length,
-    amlMissing: MOCK.filter(a => !hasAML(a) && a.trainings.length > 0).length + MOCK.filter(a => { const aml = a.trainings.find(t => t.type === "AML"); return aml && (aml.status === "expired" || aml.status === "missing"); }).length,
-    noTrainings: MOCK.filter(a => a.trainings.length === 0).length,
-    totalActive: allTrainings.filter(t => t.status === "active").length,
-    totalCerts: allTrainings.filter(t => t.certOnFile).length,
-  }), []);
+    total: agents.length,
+    amlComplete: agents.filter((a) => a.hasAmlCert).length,
+    ceActive: agents.filter((a) => a.ceStatus === "active").length,
+    complianceSigned: agents.filter((a) => a.complianceSigned).length,
+  }), [agents]);
 
   const filtered = useMemo(() => {
-    if (tab === "AML Complete") return MOCK.filter(a => hasAML(a));
-    if (tab === "AML Missing/Expired") return MOCK.filter(a => !hasAML(a));
-    if (tab === "No Trainings") return MOCK.filter(a => a.trainings.length === 0);
-    return MOCK;
-  }, [tab]);
+    if (tab === "Complete") return agents.filter(isComplete);
+    if (tab === "Incomplete") return agents.filter((a) => !isComplete(a));
+    return agents;
+  }, [agents, tab]);
 
-  const cols: Column<AgentTrainings>[] = [
-    { key: "agent", label: "Agent", sortable: true, width: "18%", render: (v, row) => <Link href={`/hcms/agents/${row.agentId}`}><span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>{v}</span></Link> },
-    { key: "trainings", label: "Total", width: "8%", align: "center", render: (v) => <span style={{ fontFamily: "var(--gc-font-display)", fontWeight: 600, color: (v as Training[]).length > 0 ? "var(--gc-text-primary)" : "var(--gc-status-terminated)" }}>{(v as Training[]).length}</span> },
-    { key: "agentId", label: "AML", width: "12%", render: (_v, row) => {
-      const s = amlStatus(row);
-      if (s === "active") return <span className="flex items-center gap-1" style={{ color: "var(--gc-status-active)", fontSize: "var(--gc-text-sm)" }}><CheckCircle className="w-3.5 h-3.5" /> Complete</span>;
-      if (s === "expiring") return <span className="flex items-center gap-1" style={{ color: "var(--gc-status-warning)", fontSize: "var(--gc-text-sm)" }}><AlertTriangle className="w-3.5 h-3.5" /> Expiring</span>;
-      if (s === "expired") return <span className="flex items-center gap-1" style={{ color: "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)" }}><XIcon className="w-3.5 h-3.5" /> Expired</span>;
-      return <span className="flex items-center gap-1" style={{ color: "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)" }}><XIcon className="w-3.5 h-3.5" /> Missing</span>;
-    }},
-    { key: "agentId", label: "Types", width: "30%", render: (_v, row) => {
-      if (row.trainings.length === 0) return <span style={{ color: "var(--gc-text-muted)", fontStyle: "italic" }}>No trainings</span>;
-      const types = Array.from(new Set(row.trainings.map(t => t.type.split(" (")[0])));
-      return (
-        <div className="flex flex-wrap gap-1">
-          {types.map(t => (
-            <span key={t} style={{ padding: "1px 6px", borderRadius: "var(--gc-radius-sm)", fontSize: "var(--gc-text-xs)", fontWeight: 500, color: "var(--gc-text-secondary)", backgroundColor: "var(--gc-surface-2)" }}>{t}</span>
-          ))}
+  const cols: Column<AgentRow>[] = [
+    {
+      key: "name",
+      label: "Agent",
+      sortable: true,
+      width: "18%",
+      render: (v, row) => (
+        <Link href={`/hcms/agents/${row.userId}`}>
+          <span style={{ color: "var(--gc-gold)", cursor: "pointer", fontWeight: 500 }}>
+            {v as string}
+          </span>
+        </Link>
+      ),
+    },
+    {
+      key: "hasAmlCert",
+      label: "AML Certificate",
+      width: "16%",
+      render: (v) =>
+        v ? (
+          <span className="flex items-center gap-1" style={{ color: "var(--gc-status-active)", fontSize: "var(--gc-text-sm)" }}>
+            <CheckCircle className="w-3.5 h-3.5" /> On File
+          </span>
+        ) : (
+          <span className="flex items-center gap-1" style={{ color: "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)" }}>
+            <XIcon className="w-3.5 h-3.5" /> Missing
+          </span>
+        ),
+    },
+    {
+      key: "ceExpirationDate",
+      label: "CE Expiration",
+      sortable: true,
+      width: "18%",
+      render: (v, row) => (
+        <div style={{ fontSize: "var(--gc-text-sm)" }}>
+          <span style={{ color: "var(--gc-text-primary)" }}>{formatDate(v as string | null)}</span>
+          {row.ceDaysUntil !== null && (
+            <span
+              style={{
+                marginLeft: 6,
+                color:
+                  row.ceStatus === "expired"
+                    ? "var(--gc-status-terminated)"
+                    : row.ceStatus === "expiring"
+                    ? "var(--gc-status-warning)"
+                    : "var(--gc-text-muted)",
+                fontSize: "var(--gc-text-xs)",
+              }}
+            >
+              {row.ceDaysUntil < 0 ? `(expired ${Math.abs(row.ceDaysUntil)}d ago)` : `(${row.ceDaysUntil}d)`}
+            </span>
+          )}
         </div>
-      );
-    }},
-    { key: "agentId", label: "Certs on File", width: "12%", render: (_v, row) => {
-      const onFile = row.trainings.filter(t => t.certOnFile).length;
-      return <span style={{ fontSize: "var(--gc-text-sm)", color: onFile === row.trainings.length && row.trainings.length > 0 ? "var(--gc-status-active)" : "var(--gc-text-muted)" }}>{onFile}/{row.trainings.length}</span>;
-    }},
-    { key: "agentId", label: "Status", width: "10%", render: (_v, row) => {
-      if (row.trainings.length === 0) return <GCStatusBadge status="warning" />;
-      if (row.trainings.some(t => t.status === "expired" || t.status === "missing")) return <GCStatusBadge status="warning" />;
-      return <GCStatusBadge status="active" />;
-    }},
-    { key: "agentId", label: "", width: "8%", align: "center", render: (_v, row) => row.trainings.length > 0 ? (
-      <button onClick={() => { setViewing(row); setPopupPage(0); }} className="flex items-center gap-1" style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-gold)", cursor: "pointer", fontSize: "var(--gc-text-sm)", fontFamily: "var(--gc-font-body)" }}>
-        <Eye className="w-3 h-3" /> View
-      </button>
-    ) : null },
+      ),
+    },
+    {
+      key: "ceStatus",
+      label: "CE Status",
+      width: "14%",
+      render: (v) => {
+        const status = v as CEStatus;
+        if (status === "active") return <GCStatusBadge status="active" />;
+        if (status === "expiring") return <GCStatusBadge status="warning" />;
+        if (status === "expired") return <GCStatusBadge status="expired" />;
+        return <span style={{ color: "var(--gc-text-muted)", fontSize: "var(--gc-text-sm)", fontStyle: "italic" }}>Unknown</span>;
+      },
+    },
+    {
+      key: "complianceSigned",
+      label: "Compliance Agreement",
+      width: "14%",
+      render: (v) =>
+        v ? (
+          <span className="flex items-center gap-1" style={{ color: "var(--gc-status-active)", fontSize: "var(--gc-text-sm)" }}>
+            <CheckCircle className="w-3.5 h-3.5" /> Signed
+          </span>
+        ) : (
+          <span className="flex items-center gap-1" style={{ color: "var(--gc-status-warning)", fontSize: "var(--gc-text-sm)" }}>
+            <XIcon className="w-3.5 h-3.5" /> Pending
+          </span>
+        ),
+    },
+    {
+      key: "actions" as any,
+      label: "",
+      width: "8%",
+      align: "center" as const,
+      render: (_v: any, row: AgentRow) => (
+        <button onClick={() => setViewing(row)} className="flex items-center gap-1" style={{
+          padding: "var(--gc-space-1) var(--gc-space-3)",
+          backgroundColor: "transparent",
+          border: "1px solid var(--gc-border)",
+          borderRadius: "var(--gc-radius-sm)",
+          color: "var(--gc-gold)",
+          cursor: "pointer",
+          fontSize: "var(--gc-text-sm)",
+        }}>
+          <Eye className="w-3 h-3" /> View
+        </button>
+      ),
+    },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--gc-gold)" }} />
+        <span className="ml-3" style={{ color: "var(--gc-text-muted)", fontSize: "var(--gc-text-base)" }}>Loading training data...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <GCPageHeader title="Training & Certifications" subtitle="AML certification, continuing education, and compliance agreement tracking" accentUnderline />
+        <div className="flex items-center gap-3" style={{
+          padding: "var(--gc-space-4)",
+          backgroundColor: "color-mix(in srgb, var(--gc-status-terminated) 8%, transparent)",
+          border: "1px solid color-mix(in srgb, var(--gc-status-terminated) 25%, transparent)",
+          borderRadius: "var(--gc-radius-md)",
+        }}>
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" style={{ color: "var(--gc-status-terminated)" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "var(--gc-text-sm)", fontWeight: 500 }}>Unable to Load Training Data</div>
+            <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)" }}>{error}</div>
+          </div>
+          <button onClick={loadData} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", backgroundColor: "transparent", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-secondary)", cursor: "pointer", fontSize: "var(--gc-text-sm)" }}>Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <GCPageHeader title="Trainings" subtitle="AML certification, CE credits, product training & compliance — AML is required for contracting" accentUnderline />
+      <div data-tour-id={TOUR.ADMIN.CONTRACTING_TRAININGS.HEADER}>
+        <GCPageHeader title="Training & Certifications" subtitle="AML certification, continuing education, and compliance agreement tracking" accentUnderline />
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <GCKPICard label="AML Certified" value={counts.amlComplete} accentTop delta={{ value: `${counts.all - counts.amlComplete} missing`, positive: false }} />
-        <GCKPICard label="Active Certifications" value={counts.totalActive} accentTop />
-        <GCKPICard label="No Trainings" value={counts.noTrainings} accentTop delta={{ value: "Action needed", positive: false }} />
-        <GCKPICard label="Certificates on File" value={`${counts.totalCerts}/${allTrainings.length}`} accentTop />
+      <div data-tour-id={TOUR.ADMIN.CONTRACTING_TRAININGS.SUMMARY} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <GCKPICard label="Total Agents" value={counts.total} accentTop />
+        <GCKPICard label="AML Complete" value={counts.amlComplete} accentTop delta={(counts.total - counts.amlComplete) > 0 ? { value: `${counts.total - counts.amlComplete} missing`, positive: false } : { value: "All complete", positive: true }} />
+        <GCKPICard label="CE Active" value={counts.ceActive} accentTop delta={(counts.total - counts.ceActive) > 0 ? { value: `${counts.total - counts.ceActive} expired/unknown`, positive: false } : { value: "All current", positive: true }} />
+        <GCKPICard label="Compliance Signed" value={counts.complianceSigned} accentTop delta={(counts.total - counts.complianceSigned) > 0 ? { value: `${counts.total - counts.complianceSigned} pending`, positive: false } : { value: "All signed", positive: true }} />
       </div>
 
       <div className="flex gap-1 mb-4">
-        {tabs.map(t => {
-          const count = t === "All Agents" ? counts.all : t === "AML Complete" ? counts.amlComplete : t === "AML Missing/Expired" ? MOCK.filter(a => !hasAML(a)).length : counts.noTrainings;
+        {tabs.map((t) => {
+          const count = t === "All" ? agents.length : t === "Complete" ? agents.filter(isComplete).length : agents.filter((a) => !isComplete(a)).length;
           return (
-            <button key={t} onClick={() => setTab(t)} style={{ padding: "var(--gc-space-2) var(--gc-space-4)", fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: tab === t ? 500 : 400, color: tab === t ? "var(--gc-nav-active-text)" : "var(--gc-text-secondary)", backgroundColor: "transparent", border: "none", borderBottom: tab === t ? "2px solid var(--gc-gold)" : "2px solid transparent", cursor: "pointer" }}>
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                padding: "var(--gc-space-2) var(--gc-space-4)",
+                fontFamily: "var(--gc-font-body)",
+                fontSize: "var(--gc-text-base)",
+                fontWeight: tab === t ? 500 : 400,
+                color: tab === t ? "var(--gc-nav-active-text)" : "var(--gc-text-secondary)",
+                backgroundColor: "transparent",
+                border: "none",
+                borderBottom: tab === t ? "2px solid var(--gc-gold)" : "2px solid transparent",
+                cursor: "pointer",
+              }}
+            >
               {t} <span style={{ fontSize: "var(--gc-text-xs)", opacity: 0.7 }}>({count})</span>
             </button>
           );
@@ -145,52 +263,86 @@ export default function ContractingTrainings() {
 
       <GCDataTable columns={cols} data={filtered} searchable searchPlaceholder="Search by agent name..." />
 
-      {/* View Trainings Popup */}
-      {viewing && (() => {
-        const totalPages = Math.ceil(viewing.trainings.length / PER_PAGE);
-        const paged = viewing.trainings.slice(popupPage * PER_PAGE, (popupPage + 1) * PER_PAGE);
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setViewing(null)}>
-            <div onClick={e => e.stopPropagation()} style={{ width: 560, maxHeight: "85vh", overflow: "auto", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewing.agent}</div>
-                  <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{viewing.trainings.length} training{viewing.trainings.length !== 1 ? "s" : ""} · {viewing.trainings.filter(t => t.certOnFile).length} certificates on file</div>
+      {viewing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={() => setViewing(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: 520, maxWidth: "95vw", maxHeight: "85vh", overflow: "auto", backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-6)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)" }}>{viewing.name}</div>
+                <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Training & Certification Details</div>
+              </div>
+              <button onClick={() => setViewing(null)} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {/* AML Certificate */}
+              <div style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${viewing.hasAmlCert ? "var(--gc-status-active)" : "var(--gc-status-terminated)"}` }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {viewing.hasAmlCert ? <CheckCircle className="w-4 h-4" style={{ color: "var(--gc-status-active)" }} /> : <XIcon className="w-4 h-4" style={{ color: "var(--gc-status-terminated)" }} />}
+                    <div>
+                      <div style={{ fontWeight: 500, color: "var(--gc-text-primary)" }}>AML Certificate</div>
+                      <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{viewing.hasAmlCert ? "Certificate on file" : "Not uploaded"}</div>
+                    </div>
+                  </div>
+                  <GCStatusBadge status={viewing.hasAmlCert ? "active" : "warning"} />
                 </div>
-                <button onClick={() => setViewing(null)} style={{ padding: "var(--gc-space-2)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-muted)" }}><XIcon className="w-5 h-5" /></button>
               </div>
 
-              <div className="flex flex-col gap-3">
-                {paged.map((t, i) => (
-                  <div key={i} style={{ padding: "var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${t.status === "active" ? "var(--gc-status-active)" : t.status === "expiring" ? "var(--gc-status-warning)" : "var(--gc-status-terminated)"}` }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{t.type}</div>
-                      <div className="flex items-center gap-2">
-                        <FileIcon ok={t.certOnFile} />
-                        <GCStatusBadge status={t.status === "active" ? "active" : t.status === "expiring" ? "warning" : t.status === "expired" ? "expired" : "warning"} />
+              {/* CE Credits */}
+              <div style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${viewing.ceStatus === "active" ? "var(--gc-status-active)" : viewing.ceStatus === "expiring" ? "var(--gc-status-warning)" : viewing.ceStatus === "expired" ? "var(--gc-status-terminated)" : "var(--gc-text-muted)"}` }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {viewing.ceStatus === "active" ? <CheckCircle className="w-4 h-4" style={{ color: "var(--gc-status-active)" }} /> : viewing.ceStatus === "unknown" ? <AlertTriangle className="w-4 h-4" style={{ color: "var(--gc-text-muted)" }} /> : <AlertTriangle className="w-4 h-4" style={{ color: viewing.ceStatus === "expiring" ? "var(--gc-status-warning)" : "var(--gc-status-terminated)" }} />}
+                    <div>
+                      <div style={{ fontWeight: 500, color: "var(--gc-text-primary)" }}>Continuing Education (CE)</div>
+                      <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
+                        {viewing.ceExpirationDate ? `Expires: ${formatDate(viewing.ceExpirationDate)}` : "No expiration date on file"}
+                        {viewing.ceDaysUntil !== null && <span style={{ marginLeft: 6, color: viewing.ceStatus === "expired" ? "var(--gc-status-terminated)" : viewing.ceStatus === "expiring" ? "var(--gc-status-warning)" : "var(--gc-text-muted)" }}>
+                          {viewing.ceDaysUntil < 0 ? `(expired ${Math.abs(viewing.ceDaysUntil)}d ago)` : `(${viewing.ceDaysUntil}d remaining)`}
+                        </span>}
                       </div>
                     </div>
-                    <div className="flex gap-6" style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
-                      <span>Completed: <span style={{ color: "var(--gc-text-secondary)" }}>{t.completionDate || "Not completed"}</span></span>
-                      {t.expirationDate && <span>Expires: <span style={{ color: t.status === "expired" ? "var(--gc-status-terminated)" : "var(--gc-text-secondary)", fontWeight: t.status === "expired" ? 600 : 400 }}>{t.expirationDate}</span>{t.daysUntilExpiry !== null && t.daysUntilExpiry <= 90 && <span style={{ color: "var(--gc-status-warning)", marginLeft: 4 }}>({t.daysUntilExpiry}d)</span>}</span>}
-                    </div>
                   </div>
-                ))}
+                  <GCStatusBadge status={viewing.ceStatus === "active" ? "active" : viewing.ceStatus === "expiring" ? "warning" : viewing.ceStatus === "expired" ? "expired" : "pending"} />
+                </div>
               </div>
 
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: "1px solid var(--gc-border-subtle)" }}>
-                  <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>Showing {popupPage * PER_PAGE + 1}–{Math.min((popupPage + 1) * PER_PAGE, viewing.trainings.length)} of {viewing.trainings.length}</span>
-                  <div className="flex gap-2">
-                    <button onClick={() => setPopupPage(p => Math.max(0, p - 1))} disabled={popupPage === 0} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", cursor: popupPage === 0 ? "default" : "pointer", opacity: popupPage === 0 ? 0.4 : 1, fontSize: "var(--gc-text-sm)" }}>Prev</button>
-                    <button onClick={() => setPopupPage(p => Math.min(totalPages - 1, p + 1))} disabled={popupPage >= totalPages - 1} style={{ padding: "var(--gc-space-1) var(--gc-space-3)", borderRadius: "var(--gc-radius-sm)", border: "1px solid var(--gc-border)", backgroundColor: "var(--gc-surface)", color: "var(--gc-text-secondary)", cursor: popupPage >= totalPages - 1 ? "default" : "pointer", opacity: popupPage >= totalPages - 1 ? 0.4 : 1, fontSize: "var(--gc-text-sm)" }}>Next</button>
+              {/* Compliance Agreement */}
+              <div style={{ padding: "var(--gc-space-3) var(--gc-space-4)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border-subtle)", borderRadius: "var(--gc-radius-md)", borderLeft: `3px solid ${viewing.complianceSigned ? "var(--gc-status-active)" : "var(--gc-status-pending)"}` }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {viewing.complianceSigned ? <CheckCircle className="w-4 h-4" style={{ color: "var(--gc-status-active)" }} /> : <XIcon className="w-4 h-4" style={{ color: "var(--gc-status-pending)" }} />}
+                    <div>
+                      <div style={{ fontWeight: 500, color: "var(--gc-text-primary)" }}>Compliance & Ethics Agreement</div>
+                      <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>{viewing.complianceSigned ? "Signed" : "Pending signature"}</div>
+                    </div>
                   </div>
+                  <GCStatusBadge status={viewing.complianceSigned ? "active" : "pending"} />
                 </div>
-              )}
+              </div>
             </div>
+
+            {/* Completion Summary */}
+            <div className="flex items-center justify-between mt-4 pt-4" style={{ borderTop: "1px solid var(--gc-border-subtle)" }}>
+              <span style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
+                {[viewing.hasAmlCert, viewing.ceStatus === "active", viewing.complianceSigned].filter(Boolean).length}/3 complete
+              </span>
+              <GCStatusBadge status={viewing.hasAmlCert && viewing.ceStatus === "active" && viewing.complianceSigned ? "active" : "warning"} />
+            </div>
+
+            <Link href={`/hcms/agents/${viewing.userId}`}>
+              <span className="flex items-center justify-center gap-2 mt-4" style={{
+                padding: "var(--gc-space-2) var(--gc-space-4)",
+                backgroundColor: "color-mix(in srgb, var(--gc-gold) 10%, transparent)",
+                border: "1px solid var(--gc-gold)", borderRadius: "var(--gc-radius-sm)",
+                color: "var(--gc-gold)", fontSize: "var(--gc-text-sm)", fontWeight: 500, cursor: "pointer",
+                textAlign: "center", display: "block"
+              }}>View Full Profile</span>
+            </Link>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 }

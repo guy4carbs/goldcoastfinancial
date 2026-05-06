@@ -15,9 +15,19 @@ export default function LoginPage() {
     setError("");
     try {
       const result = await login({ email: form.email, password: form.password });
-      const role = (result as any)?.role || "client";
-      if (role === "owner" || role === "system_admin") setLocation("/ops");
-      else if (role === "manager" || role === "sales_agent") setLocation("/hcms");
+      // 2FA gate takes precedence over role-based home routing.
+      if (result.requires_2fa_enrollment) {
+        setLocation("/auth/2fa/enroll");
+        return;
+      }
+      if (result.requires_2fa_verification) {
+        setLocation("/auth/2fa");
+        return;
+      }
+      const role = result.user?.role || "client";
+      if (role === "founder") setLocation("/hcms");
+      else if (role === "owner" || role === "system_admin") setLocation("/ops");
+      else if (role === "director" || role === "agency_manager" || role === "sales_agent") setLocation("/hcms");
       else setLocation("/");
     } catch (e: any) { setError(e.message || "Login failed"); }
   };

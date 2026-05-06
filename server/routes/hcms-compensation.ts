@@ -13,19 +13,19 @@ router.get("/targets", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
     if (hierarchyLevel) { p.push(parseInt(hierarchyLevel as string)); sql += ` AND hierarchy_level = $${p.length}`; }
     sql += ` ORDER BY hierarchy_level ASC`;
     res.json((await pool.query(sql, p)).rows);
-  } catch (e: any) { res.status(500).json({ error: e.message }); }
+  } catch (e: any) { console.error("[HCMS]", e.message); res.status(500).json({ error: "Something went wrong" }); }
 });
-router.get("/simulate", requireAuth, async (req, res) => {
+router.get("/simulate", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
   try {
     const { premium, agentId } = req.query;
     if (!premium || !agentId) return res.status(400).json({ error: "premium and agentId required" });
     const result = await calculateWaterfallOverrides(agentId as string, parseFloat(premium as string));
     res.json(result);
-  } catch (e: any) { res.status(500).json({ error: e.message }); }
+  } catch (e: any) { console.error("[HCMS]", e.message); res.status(500).json({ error: "Something went wrong" }); }
 });
 router.get("/schedule/current", requireAuth, requireRole(...MANAGER_PLUS), async (_req, res) => {
   try { res.json((await pool.query(`SELECT * FROM commission_targets WHERE effective_to IS NULL OR effective_to > NOW() ORDER BY hierarchy_level ASC`)).rows); }
-  catch (e: any) { res.status(500).json({ error: e.message }); }
+  catch (e: any) { console.error("[HCMS]", e.message); res.status(500).json({ error: "Something went wrong" }); }
 });
 
 export default router;
