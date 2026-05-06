@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, MANAGER_PLUS, ADMIN_PLUS } from "../middleware/auth";
+import { logFounderAction } from "../services/founderAudit";
 
 const router = Router();
 router.get("/dashboard", requireAuth, async (_req, res) => {
@@ -26,16 +27,46 @@ router.get("/leads", requireAuth, async (req, res) => {
     res.json((await pool.query(sql, p)).rows);
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
-router.post("/leads", requireAuth, async (req, res) => {
+router.post("/leads", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
   try {
     const { firstName, lastName, email, phone, source, estimatedValue, notes } = req.body;
-    await pool.query(`INSERT INTO leads (id, first_name, last_name, email, phone, source, estimated_value, notes, created_at) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW())`, [firstName, lastName, email, phone, source || "web_form", estimatedValue, notes]);
-    res.json({ success: true });
+    const inserted = await pool.query(
+      `INSERT INTO leads (id, first_name, last_name, email, phone, source, estimated_value, notes, created_at)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW())
+       RETURNING id`,
+      [firstName, lastName, email, phone, source || "web_form", estimatedValue, notes],
+    );
+    const newId = inserted.rows[0]?.id;
+    try {
+      await logFounderAction({
+        actorUserId: req.user!.id,
+        action: "lead.created",
+        entityType: "lead",
+        entityId: newId,
+        payload: { source: source || "web_form", firstName, lastName, email, estimatedValue: estimatedValue ?? null },
+      });
+    } catch (auditErr: any) {
+      console.error("[ops-crm] /leads audit failed:", auditErr?.message);
+    }
+    res.json({ success: true, id: newId });
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
-router.put("/leads/:id/stage", requireAuth, async (req, res) => {
+router.put("/leads/:id/stage", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
   try {
+    const before = await pool.query(`SELECT pipeline_stage FROM leads WHERE id = $1`, [req.params.id]);
+    const fromStage = before.rows[0]?.pipeline_stage ?? null;
     await pool.query(`UPDATE leads SET pipeline_stage = $1, updated_at = NOW() WHERE id = $2`, [req.body.stage, req.params.id]);
+    try {
+      await logFounderAction({
+        actorUserId: req.user!.id,
+        action: "lead.stage_changed",
+        entityType: "lead",
+        entityId: req.params.id,
+        payload: { from: fromStage, to: req.body.stage },
+      });
+    } catch (auditErr: any) {
+      console.error("[ops-crm] /stage audit failed:", auditErr?.message);
+    }
     res.json({ success: true });
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
