@@ -1,0 +1,17 @@
+# Nixpacks build config — pins Node 20 + guarantees devDependencies install.
+#
+# Without this file, Railway's Nixpacks defaults to Node 18, which causes
+# 50+ EBADENGINE warnings (AWS SDK v3, Firebase v12, vite 7, @vitejs/plugin-
+# react 5, tsx 4 all want Node 20+) and the install chain can leave
+# `node_modules/.bin/tsx` missing — the build then fails with
+# `sh: 1: tsx: not found` (exit 127).
+#
+# `--include=dev` is also explicit so a future change to NODE_ENV=production
+# at the install phase can never silently prune devDeps that the build
+# script needs (tsx, vite, esbuild, typescript).
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-9_x", "openssl"]
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
