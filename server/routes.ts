@@ -10,9 +10,32 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { Pool } from "pg";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
 
 // HCMS Route Imports
-import { attachUser } from "./middleware/auth";
+import { attachUser, blockWritesDuringViewAs, requireAuth as requireAuthMw, requireRole, FOUNDERS_ONLY } from "./middleware/auth";
+import { onRoleChanged } from "./services/foundersEventBus";
+import { ROLES_REQUIRING_2FA_SET } from "./types/permissions";
+import { csrfProtection, csrfTokenHandler } from "./middleware/csrf";
+import { setRlsContext } from "./middleware/rlsContext";
+import {
+  startEnrolment,
+  verifyTotpCode,
+  decryptStoredSecret,
+  encryptSecretForStorage,
+  persistRecoveryCodes,
+  consumeRecoveryCode,
+} from "./services/totp";
+import {
+  buildRegistrationOptions,
+  consumeRegistration,
+  buildAuthenticationOptions,
+  consumeAuthentication,
+  listCredentials,
+  deleteCredential,
+} from "./services/webauthn";
 import hcmsAgentsRouter from "./routes/hcms-agents";
 import hcmsContractingRouter from "./routes/hcms-contracting";
 import hcmsSigningRouter from "./routes/hcms-signing";
@@ -20,6 +43,9 @@ import hcmsLicensingRouter from "./routes/hcms-licensing";
 import hcmsCarriersRouter from "./routes/hcms-carriers";
 import hcmsDocumentsRouter from "./routes/hcms-documents";
 import applyRouter from "./routes/apply";
+import agentPortalRouter from "./routes/agent-portal";
+import agentNotificationsRouter from "./routes/agent-notifications";
+import agentLicensesRouter from "./routes/agent-licenses";
 import opsProductionRouter from "./routes/ops-production";
 import opsDealsRouter from "./routes/ops-deals";
 import opsCrmRouter from "./routes/ops-crm";
@@ -32,6 +58,35 @@ import hcmsHierarchyRequestsRouter from "./routes/hcms-hierarchy-requests";
 import opsMarketingRouter from "./routes/ops-marketing";
 import opsInvestorsRouter from "./routes/ops-investors";
 import opsSettingsRouter from "./routes/ops-settings";
+
+// Finance Lounge
+import financeDashboardRouter from "./routes/finance-dashboard";
+import financeRevenueRouter from "./routes/finance-revenue";
+import financeOverridesRouter from "./routes/finance-overrides";
+import financeTransactionsRouter from "./routes/finance-transactions";
+import financeCashflowRouter from "./routes/finance-cashflow";
+import financeChargebacksRouter from "./routes/finance-chargebacks";
+import financeStatementsRouter from "./routes/finance-statements";
+import financeReconciliationRouter from "./routes/finance-reconciliation";
+import financeReportsRouter from "./routes/finance-reports";
+
+// Founders Lounge
+import { startViewAsSweeper } from "./services/viewAsSweeper";
+import foundersRouter from "./routes/founders";
+import foundersProfitRouter from "./routes/founders-profit";
+import foundersPlaidRouter from "./routes/founders-plaid";
+import foundersViewasRouter from "./routes/founders-viewas";
+import foundersOversightRouter from "./routes/founders-oversight";
+import foundersDashboardConfigRouter from "./routes/founders-dashboard-config";
+import foundersBookRouter from "./routes/founders-book";
+import bookOfBusinessRouter from "./routes/book-of-business";
+import foundersTeamsRouter from "./routes/founders-teams";
+import foundersLeadsRouter from "./routes/founders-leads";
+import foundersAgenciesRouter from "./routes/founders-agencies";
+import {
+  leadRevenueFoundersRouter,
+  leadRevenueAgentRouter,
+} from "./routes/lead-revenue";
 
 declare module "express-session" {
   interface SessionData {
@@ -58,10 +113,12 @@ export function setupSession(app: Express) {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: true,
+        // In production both must be true for cross-site cookie use; in dev
+        // localhost has no TLS so `secure: true` would drop every cookie.
+        secure: process.env.NODE_ENV === "production",
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: "none",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       },
     })
   );
@@ -84,8 +141,156 @@ export async function registerRoutes(
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
   });
   
+  // Mount cookie-parser BEFORE setupSession so the CSRF middleware (which is
+  // mounted shortly after the session) can read its own cookie via req.cookies.
+  // Sign cookies with the same secret as sessions so signature checks succeed.
+  app.use(cookieParser(process.env.SESSION_SECRET || "gold-coast-financial-secret-key"));
+
   setupSession(app);
-  
+
+  // Sentinel H4: CSP frame-ancestors + basic hardening. The Founders Lounge
+  // embeds an iframe of the impersonated user's landing page; restrict framers
+  // to the same origin so no third party can iframe heritagels.org.
+  //
+  // In DEV we must disable the strict script-src CSP entirely because Vite
+  // serves inline bootstrap scripts + HMR websockets that a default helmet CSP
+  // would refuse. We still set X-Frame-Options + frame-ancestors via a tiny
+  // hand-rolled middleware so dev-mode clickjacking surface stays covered.
+  if (process.env.NODE_ENV === "production") {
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          useDefaults: true,
+          directives: {
+            "frame-ancestors": ["'self'"],
+            // Plaid Link requires its own iframe + scripts when launched.
+            "frame-src": ["'self'", "https://cdn.plaid.com"],
+            "script-src": ["'self'", "https://cdn.plaid.com"],
+            "connect-src": ["'self'", "https://*.plaid.com"],
+          },
+        },
+        // Lock framing/embedding tighter than the default. COEP stays off
+        // because Plaid Link iframe doesn't ship CORP headers.
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: { policy: "same-origin" },
+        crossOriginResourcePolicy: { policy: "same-origin" },
+        // 2-year HSTS with preload — when the project is on the preload list,
+        // browsers will refuse plaintext entirely.
+        strictTransportSecurity: {
+          maxAge: 63072000,
+          includeSubDomains: true,
+          preload: true,
+        },
+        // Lock down high-impact browser features that this app never needs.
+        permittedCrossDomainPolicies: { permittedPolicies: "none" },
+        referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+      }),
+    );
+    // Permissions-Policy — block sensors and dangerous APIs we don't use.
+    app.use((_req, res, next) => {
+      res.setHeader(
+        "Permissions-Policy",
+        [
+          "accelerometer=()",
+          "camera=()",
+          "geolocation=()",
+          "gyroscope=()",
+          "magnetometer=()",
+          "microphone=()",
+          "payment=()",
+          "usb=()",
+          "interest-cohort=()",
+        ].join(", "),
+      );
+      next();
+    });
+  } else {
+    app.use(
+      helmet({
+        contentSecurityPolicy: false,
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false,
+        crossOriginResourcePolicy: false,
+      })
+    );
+    app.use((_req, res, next) => {
+      res.setHeader("X-Frame-Options", "SAMEORIGIN");
+      next();
+    });
+  }
+
+  // GLOBAL view-as write block (Sentinel C1). Mounted AFTER session is attached
+  // so req.session.viewingAs is populated, but BEFORE any write-capable route
+  // (auth, HCMS, Finance, Ops, Founders). Non-write methods and a small
+  // allowlist (view-as session end, logout) are permitted; see the middleware
+  // for full details.
+  app.use("/api", blockWritesDuringViewAs);
+
+  // CSRF protection on every state-changing API call. Path-level exemptions
+  // are baked into the middleware (webhooks, anonymous auth). The SPA fetches
+  // /api/csrf-token on boot and echoes the token in the X-CSRF-Token header
+  // for every POST/PATCH/DELETE.
+  app.get("/api/csrf-token", csrfTokenHandler);
+  app.use("/api", csrfProtection);
+
+  // Attach req.user globally on /api so 2FA, plaid, and any other handler can
+  // use the role-aware middleware (requireAuthMw, requireRole, etc.) without
+  // each router having to mount attachUser separately.
+  app.use("/api", attachUser);
+
+  // Section 2.3 — open an RLS-scoped pg client per authenticated request and
+  // set `app.user_id` + `app.role` session vars so the RLS policies in
+  // migrations/0006_row_level_security.sql have what they need.
+  app.use("/api", setRlsContext);
+
+  // Sentinel H1: rate limit the write-heavy / abuse-prone Founders endpoints.
+  // Keeps the unique-user-per-IP semantics simple via default IP keying. GET
+  // routes are exempted because the review gates insist founders must be able
+  // to pull the activity feed freely.
+  const foundersWriteLimiter = rateLimit({
+    windowMs: 60_000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => ["GET", "HEAD", "OPTIONS"].includes(req.method),
+    message: { error: "Too many requests", code: "RATE_LIMITED" },
+  });
+  const foundersViewAsLimiter = rateLimit({
+    windowMs: 60_000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => ["GET", "HEAD", "OPTIONS"].includes(req.method),
+    message: { error: "Too many view-as operations", code: "RATE_LIMITED" },
+  });
+  app.use("/api/founders", foundersWriteLimiter);
+  app.use("/api/founders/viewas", foundersViewAsLimiter);
+
+  // Sentinel H7: login rate limit. 5 fails / 15min per IP+email is enough to
+  // block credential stuffing without locking out forgetful real humans. The
+  // DB-side lockout below catches longer-horizon attacks across IPs.
+  const loginRateLimiter = rateLimit({
+    windowMs: 15 * 60_000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true, // only failures count toward the cap
+    keyGenerator: (req) => {
+      const ip = req.ip || "unknown";
+      const email = String((req.body as any)?.email || "").toLowerCase();
+      return `${ip}|${email}`;
+    },
+    // Skip outside production: dev iteration + Playwright suites must not get
+    // locked out of localhost. Production keeps the full 5-attempt cap.
+    skip: () => process.env.NODE_ENV !== "production",
+    message: {
+      error: "Too many login attempts. Please try again in 15 minutes.",
+      code: "RATE_LIMITED",
+    },
+  });
+  app.use("/api/auth/login", loginRateLimiter);
+  app.use("/api/auth/2fa/verify", loginRateLimiter);
+
   // Auth: Register new user
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -127,36 +332,309 @@ export async function registerRoutes(
   
   // Auth: Login
   app.post("/api/auth/login", async (req, res) => {
+    const ip = req.ip || "unknown";
+    const userAgent = (req.headers["user-agent"] || "").toString().slice(0, 500);
+    let validatedEmail = "";
     try {
       const validatedData = loginSchema.parse(req.body);
-      
+      validatedEmail = validatedData.email.toLowerCase();
+
+      // DB-side lockout: 10+ failed attempts for this email in the last 30
+      // minutes locks the account until the window passes. Survives across
+      // server processes (express-rate-limit is in-memory per process).
+      // Skipped outside production so dev iteration + Playwright suites are
+      // not blocked by stale failure counts in the local DB.
+      if (process.env.NODE_ENV === "production") {
+        const lockCheck = await pool.query(
+          `SELECT COUNT(*)::int AS fails, MAX(created_at) AS last_at
+           FROM login_attempts
+           WHERE email = $1 AND success = false
+             AND created_at > NOW() - INTERVAL '30 minutes'`,
+          [validatedEmail],
+        );
+        if ((lockCheck.rows[0]?.fails ?? 0) >= 10) {
+          return res.status(429).json({
+            error: "Account temporarily locked. Try again in 30 minutes.",
+            code: "ACCOUNT_LOCKED",
+          });
+        }
+      }
+
       // Find user
       const user = await storage.getUserByEmail(validatedData.email);
       if (!user) {
+        await pool
+          .query(
+            `INSERT INTO login_attempts (email, ip_address, success, user_agent) VALUES ($1, $2, false, $3)`,
+            [validatedEmail, ip, userAgent],
+          )
+          .catch(() => {});
         return res.status(401).json({ error: "Invalid email or password" });
       }
-      
+
       // Check password
       const isValid = await bcrypt.compare(validatedData.password, user.password);
       if (!isValid) {
+        await pool
+          .query(
+            `INSERT INTO login_attempts (email, ip_address, success, user_agent) VALUES ($1, $2, false, $3)`,
+            [validatedEmail, ip, userAgent],
+          )
+          .catch(() => {});
         return res.status(401).json({ error: "Invalid email or password" });
       }
-      
-      // Set session
+
+      // Successful login — record + set session
+      await pool
+        .query(
+          `INSERT INTO login_attempts (email, ip_address, success, user_agent) VALUES ($1, $2, true, $3)`,
+          [validatedEmail, ip, userAgent],
+        )
+        .catch(() => {});
       req.session.userId = user.id;
-      
+      // SECURITY: every fresh password login must re-prove possession of the
+      // second factor. Clear any leftover 2FA-verified flag from a prior
+      // session so Touch ID / Face ID / TOTP is forced on the very next call.
+      (req.session as any).twoFactorVerified = false;
+
+      // 2FA gate hints — let the SPA decide the next route. The list of
+      // forced-2FA roles is the single source of truth in
+      // server/types/permissions.ts → ROLES_REQUIRING_2FA. Adding a role
+      // there is the only change needed to make 2FA mandatory for it.
+      const requires_2fa_enrollment =
+        ROLES_REQUIRING_2FA_SET.has(user.role) && !user.twoFactorEnabled;
+      const requires_2fa_verification = !!user.twoFactorEnabled;
+
       // Return user without password
       const { password, ...safeUser } = user;
-      res.json({ user: safeUser });
+      res.json({ user: safeUser, requires_2fa_enrollment, requires_2fa_verification });
     } catch (error: any) {
       if (error.name === "ZodError") {
         return res.status(400).json({ error: fromZodError(error).toString() });
       }
-      console.error("Error logging in:", error);
+      console.error("Error logging in:", error?.message || "login_failed");
       res.status(500).json({ error: "Failed to log in" });
     }
   });
   
+  // ─── 2FA (TOTP) routes ─────────────────────────────────────────────
+  // Mandatory for FOUNDER/OWNER/SYSTEM_ADMIN. Other roles can opt-in.
+  // Flow:
+  //   1. POST /api/auth/2fa/enroll/begin      → returns secret + QR + recovery codes
+  //   2. POST /api/auth/2fa/enroll/verify     → confirms a TOTP code, persists secret
+  //   3. POST /api/auth/2fa/verify            → login challenge (sets twoFactorVerified)
+  //   4. POST /api/auth/2fa/recovery          → consume a single-use recovery code
+  //   5. POST /api/auth/2fa/disable           → reset for a user (admin path)
+  app.post("/api/auth/2fa/enroll/begin", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    if (req.user.twoFactorEnabled) {
+      return res.status(409).json({ error: "2FA is already enabled. Disable first to re-enroll." });
+    }
+    try {
+      const artifact = await startEnrolment({ userEmail: req.user.email });
+      // Stash the candidate secret in the session until verify completes.
+      // We never write to users.two_factor_secret until the user proves they
+      // can produce a valid TOTP code from this secret.
+      (req.session as any).pending2faSecret = artifact.secret;
+      (req.session as any).pending2faRecoveryCodes = artifact.recoveryCodes;
+      res.json({
+        secret: artifact.secret,
+        otpauthUrl: artifact.otpauthUrl,
+        qrDataUrl: artifact.qrDataUrl,
+        recoveryCodes: artifact.recoveryCodes,
+      });
+    } catch (e: any) {
+      console.error("2FA enroll/begin error:", e?.message || "enroll_begin_failed");
+      res.status(500).json({ error: "Failed to start 2FA enrolment" });
+    }
+  });
+
+  app.post("/api/auth/2fa/enroll/verify", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const code = String((req.body as any)?.code || "").trim();
+    const session = req.session as any;
+    const secret: string | undefined = session.pending2faSecret;
+    const recoveryCodes: string[] | undefined = session.pending2faRecoveryCodes;
+    if (!secret) return res.status(400).json({ error: "No enrolment in progress" });
+    if (!verifyTotpCode(secret, code)) {
+      return res.status(401).json({ error: "Invalid code" });
+    }
+    try {
+      const encrypted = encryptSecretForStorage(secret);
+      await pool.query(
+        `UPDATE users SET two_factor_secret = $1, two_factor_enabled = true WHERE id = $2`,
+        [encrypted, req.user.id],
+      );
+      if (recoveryCodes?.length) {
+        await persistRecoveryCodes(req.user.id, recoveryCodes);
+      }
+      delete session.pending2faSecret;
+      delete session.pending2faRecoveryCodes;
+      session.twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("2FA enroll/verify error:", e?.message || "enroll_verify_failed");
+      res.status(500).json({ error: "Failed to enable 2FA" });
+    }
+  });
+
+  app.post("/api/auth/2fa/verify", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    if (!req.user.twoFactorEnabled) {
+      return res.status(400).json({ error: "2FA is not enabled" });
+    }
+    const code = String((req.body as any)?.code || "").trim();
+    try {
+      const result = await pool.query(`SELECT two_factor_secret FROM users WHERE id = $1`, [req.user.id]);
+      const ciphertext = result.rows[0]?.two_factor_secret;
+      if (!ciphertext) return res.status(400).json({ error: "2FA not enrolled" });
+      const secret = decryptStoredSecret(ciphertext);
+      if (!verifyTotpCode(secret, code)) {
+        return res.status(401).json({ error: "Invalid code" });
+      }
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("2FA verify error:", e?.message || "verify_failed");
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+  app.post("/api/auth/2fa/recovery", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const code = String((req.body as any)?.code || "").trim();
+    if (!code) return res.status(400).json({ error: "Code required" });
+    try {
+      const ok = await consumeRecoveryCode(req.user.id, code);
+      if (!ok) return res.status(401).json({ error: "Invalid recovery code" });
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("2FA recovery error:", e?.message || "recovery_failed");
+      res.status(500).json({ error: "Recovery failed" });
+    }
+  });
+
+  // ─── WebAuthn / passkeys (Section 2.1) ─────────────────────────────
+  // Coexists with TOTP. A user with EITHER a verified TOTP session OR a
+  // verified passkey session passes the requireAuth 2FA gate.
+  app.post("/api/auth/webauthn/register/begin", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      // Self-heal: if the user already has at least one passkey credential
+      // recorded, but twoFactorEnabled is still false, flip the flag and
+      // redirect the SPA to the auth (verify) flow instead of forcing a
+      // duplicate registration.
+      const existing = await listCredentials(req.user.id);
+      if (existing.length > 0) {
+        if (!req.user.twoFactorEnabled) {
+          await storage.updateUser(req.user.id, { twoFactorEnabled: true } as any);
+        }
+        (req.session as any).twoFactorVerified = true;
+        return res.status(200).json({
+          ok: true,
+          alreadyEnrolled: true,
+          message: "Passkey already enrolled — using existing credential.",
+        });
+      }
+      const options = await buildRegistrationOptions({
+        userId: req.user.id,
+        userEmail: req.user.email,
+        userName: `${req.user.firstName} ${req.user.lastName}`.trim(),
+        req,
+      });
+      (req.session as any).webauthnChallenge = options.challenge;
+      res.json(options);
+    } catch (e: any) {
+      console.error("WebAuthn register/begin error:", e?.message || "register_begin_failed");
+      res.status(500).json({ error: "Failed to start passkey registration" });
+    }
+  });
+
+  app.post("/api/auth/webauthn/register/finish", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const expectedChallenge = (req.session as any).webauthnChallenge as string | undefined;
+    if (!expectedChallenge) return res.status(400).json({ error: "No registration in progress" });
+    try {
+      const result = await consumeRegistration({
+        userId: req.user.id,
+        expectedChallenge,
+        body: (req.body as any)?.attestation || req.body,
+        nickname: (req.body as any)?.nickname,
+        req,
+      });
+      delete (req.session as any).webauthnChallenge;
+      if (!result.ok) return res.status(400).json({ error: result.reason });
+      // Persist the enrollment + mark this session as 2FA-verified.
+      // Registering a passkey proves possession of an authenticator the same
+      // way TOTP enrol does.
+      await storage.updateUser(req.user.id, { twoFactorEnabled: true } as any);
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("WebAuthn register/finish error:", e?.message || "register_finish_failed");
+      res.status(500).json({ error: "Failed to register passkey" });
+    }
+  });
+
+  app.post("/api/auth/webauthn/auth/begin", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      const options = await buildAuthenticationOptions({ userId: req.user.id, req });
+      if (!options) return res.status(404).json({ error: "No passkey enrolled" });
+      (req.session as any).webauthnChallenge = options.challenge;
+      res.json(options);
+    } catch (e: any) {
+      console.error("WebAuthn auth/begin error:", e?.message || "auth_begin_failed");
+      res.status(500).json({ error: "Failed to start passkey authentication" });
+    }
+  });
+
+  app.post("/api/auth/webauthn/auth/finish", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const expectedChallenge = (req.session as any).webauthnChallenge as string | undefined;
+    if (!expectedChallenge) return res.status(400).json({ error: "No authentication in progress" });
+    try {
+      const result = await consumeAuthentication({
+        userId: req.user.id,
+        expectedChallenge,
+        body: (req.body as any)?.assertion || req.body,
+        req,
+      });
+      delete (req.session as any).webauthnChallenge;
+      if (!result.ok) return res.status(401).json({ error: result.reason });
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("WebAuthn auth/finish error:", e?.message || "auth_finish_failed");
+      res.status(500).json({ error: "Failed to verify passkey" });
+    }
+  });
+
+  app.get("/api/auth/webauthn/credentials", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      res.json(await listCredentials(req.user.id));
+    } catch (e: any) {
+      console.error("WebAuthn list error:", e?.message);
+      res.status(500).json({ error: "Failed to list passkeys" });
+    }
+  });
+
+  app.delete("/api/auth/webauthn/credentials/:id", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const id = req.params.id;
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: "Invalid id" });
+    try {
+      const ok = await deleteCredential(req.user.id, id);
+      if (!ok) return res.status(404).json({ error: "Not found" });
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("WebAuthn delete error:", e?.message);
+      res.status(500).json({ error: "Failed to delete passkey" });
+    }
+  });
+
   // Auth: Logout
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
@@ -172,19 +650,89 @@ export async function registerRoutes(
     if (!req.session.userId) {
       return res.json({ user: null });
     }
-    
+
     try {
       const user = await storage.getUserById(req.session.userId);
       if (!user) {
         return res.json({ user: null });
       }
-      
+
       const { password, ...safeUser } = user;
       res.json({ user: safeUser });
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ error: "Failed to fetch user" });
+    } catch (error: any) {
+      console.error("Error fetching user:", error?.message, error?.stack);
+      res.status(500).json({
+        error: "Failed to fetch user",
+        detail: error?.message,
+      });
     }
+  });
+
+  // ---------------------------------------------------------------------------
+  // GET /api/me/events — per-user SSE channel
+  // ---------------------------------------------------------------------------
+  // Phase D Wave 1 (Conduit). Every authenticated user can subscribe to THEIR
+  // own role-change events. Subscription is bound to `req.user.id` server-side
+  // — `onRoleChanged` filters by userId internally so this connection can
+  // never receive another user's events even if both are listening on the
+  // same process. The client-supplied user id, if any, is ignored.
+  //
+  // Mirrors the SSE pattern in `server/routes/founders-leads.ts:664-715`:
+  // text/event-stream headers, 25s keepalive comments, and a triple-cleanup
+  // (`req.on("close")` / `req.on("aborted")` / `res.on("close")`).
+  app.get("/api/me/events", requireAuthMw, async (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders?.();
+
+    let closed = false;
+    const write = (data: any) => {
+      if (closed) return;
+      try {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      } catch {
+        closed = true;
+      }
+    };
+
+    write({ type: "ready", at: new Date().toISOString() });
+
+    // SECURITY: bind the subscription to `req.user.id`. Never trust any
+    // client-supplied user id — `onRoleChanged` filters server-side so a
+    // stranger's event can never reach this stream.
+    const userId = req.user!.id;
+    const unsubscribe = onRoleChanged(userId, (ev) => write(ev));
+
+    const keepalive = setInterval(() => {
+      if (closed) return;
+      try {
+        res.write(": keepalive\n\n");
+      } catch {
+        closed = true;
+      }
+    }, 25000);
+
+    const cleanup = () => {
+      if (closed) return;
+      closed = true;
+      clearInterval(keepalive);
+      try {
+        unsubscribe();
+      } catch {
+        /* noop */
+      }
+      try {
+        res.end();
+      } catch {
+        /* noop */
+      }
+    };
+
+    req.on("close", cleanup);
+    req.on("aborted", cleanup);
+    res.on("close", cleanup);
   });
   
   // Quote request submission
@@ -1057,8 +1605,134 @@ export async function registerRoutes(
   app.use("/api/ops/investors", opsInvestorsRouter);
   app.use("/api/ops/settings", opsSettingsRouter);
 
-  // Public route — no auth required
+  // ============================================
+  // FINANCE LOUNGE ROUTES
+  // ============================================
+
+  app.use("/api/finance", attachUser);
+  app.use("/api/finance/dashboard", financeDashboardRouter);
+  app.use("/api/finance/revenue", financeRevenueRouter);
+  app.use("/api/finance/overrides", financeOverridesRouter);
+  app.use("/api/finance/transactions", financeTransactionsRouter);
+  app.use("/api/finance/cashflow", financeCashflowRouter);
+  app.use("/api/finance/chargebacks", financeChargebacksRouter);
+  app.use("/api/finance/statements", financeStatementsRouter);
+  app.use("/api/finance/reconciliation", financeReconciliationRouter);
+  app.use("/api/finance/reports", financeReportsRouter);
+
+  // ============================================
+  // FOUNDERS LOUNGE ROUTES
+  // ============================================
+
+  app.use("/api/founders", attachUser);
+  // Mount specific sub-paths before the generic aggregator so Express resolves them first.
+  app.use("/api/founders/profit", foundersProfitRouter);
+  app.use("/api/founders/plaid", foundersPlaidRouter);
+
+  // Section 3.3 — audit-chain verifier endpoint. Founders can spot-check
+  // the integrity of the audit log. Cron job will hit this on a schedule.
+  app.get(
+    "/api/founders/audit-chain/verify",
+    requireAuthMw,
+    requireRole(...FOUNDERS_ONLY),
+    async (_req, res) => {
+      try {
+        const { verifyAuditChain } = await import("./services/auditChainVerifier");
+        const result = await verifyAuditChain();
+        res.json(result);
+      } catch (e: any) {
+        console.error("Audit chain verify error:", e?.message || "verify_failed");
+        res.status(500).json({ error: "verify_failed" });
+      }
+    },
+  );
+
+  // SOC 2 evidence bundle — read-only snapshot of the live control state.
+  // Auditor / Drata / Vanta consumes this as a deterministic JSON document.
+  app.get(
+    "/api/founders/soc2/evidence",
+    requireAuthMw,
+    requireRole(...FOUNDERS_ONLY),
+    async (_req, res) => {
+      try {
+        const { buildEvidenceBundle } = await import("./services/soc2Evidence");
+        const bundle = await buildEvidenceBundle();
+        res.json(bundle);
+      } catch (e: any) {
+        console.error("SOC2 evidence error:", e?.message || "evidence_failed");
+        res.status(500).json({ error: "evidence_failed" });
+      }
+    },
+  );
+
+  // Quarterly access review — see server/services/accessReview.ts.
+  app.get(
+    "/api/founders/soc2/access-review",
+    requireAuthMw,
+    requireRole(...FOUNDERS_ONLY),
+    async (req, res) => {
+      try {
+        const days = Math.min(365, Math.max(1, Number(req.query.days) || 90));
+        const { buildAccessReview } = await import("./services/accessReview");
+        const report = await buildAccessReview({ daysBack: days });
+        res.json(report);
+      } catch (e: any) {
+        console.error("Access review error:", e?.message || "access_review_failed");
+        res.status(500).json({ error: "access_review_failed" });
+      }
+    },
+  );
+  app.use("/api/founders/viewas", foundersViewasRouter);
+  // Heritage-port additions: book of business, team performance, lead
+  // distribution, lead revenue, and key metrics. Mounted BEFORE the generic
+  // /api/founders aggregator so specific paths win.
+  app.use("/api/founders/book", foundersBookRouter);
+  app.use("/api/founders/teams", foundersTeamsRouter);
+  app.use("/api/founders/leads", foundersLeadsRouter);
+  // Agency Management — sub-agencies, carrier contracts, entity formation.
+  // The router uses NESTED paths shaped /agencies/... and /carriers/..., so
+  // mounting at /api/founders gives final URLs like
+  // /api/founders/agencies/kpis and /api/founders/carriers/:id/compliance.
+  // Mounted BEFORE the generic foundersRouter aggregator below so the
+  // more-specific routes win.
+  app.use("/api/founders", foundersAgenciesRouter);
+  // Lead Marketplace — revenue dashboards (Wave 2 / Forge).
+  app.use("/api/founders/lead-revenue", leadRevenueFoundersRouter);
+  // Oversight stubs for Founders Revenue / Growth pages. Hierarchy uses the
+  // existing /api/hcms/hierarchy/* endpoints directly.
+  app.use("/api/founders", foundersOversightRouter);
+  // Dashboard config mutations (PUT /goals/:metricKey, POST /cash-balance).
+  // Mounted BEFORE the generic foundersRouter aggregator so the more specific
+  // /api/founders/dashboard/* paths win over any catch-alls below.
+  app.use("/api/founders/dashboard", foundersDashboardConfigRouter);
+  app.use("/api/founders", foundersRouter);
+
+  // Sentinel H3: start the view-as sweeper (auto-ends sessions older than 4h).
+  startViewAsSweeper();
+
+  // Apply route — attachUser needed so /invite can use requireAuth
+  app.use("/api/apply", attachUser);
   app.use("/api/apply", applyRouter);
+
+  // Agent portal — authenticated agents
+  app.use("/api/agent-portal", attachUser);
+  app.use("/api/agent-portal/notifications", agentNotificationsRouter);
+  app.use("/api/agent-portal", agentPortalRouter);
+
+  // Book of Business — authenticated agents manage their own client roster.
+  // attachUser is already mounted globally on /api (line ~237) so req.user is
+  // populated; the router applies requireAuth per-route.
+  app.use("/api/book-of-business", bookOfBusinessRouter);
+
+  // License management
+  app.use("/api/licenses", attachUser);
+  app.use("/api/licenses", agentLicensesRouter);
+
+  // Lead Marketplace — agent-facing catalog + checkout (Wave 2 / Forge).
+  // attachUser is required so requireAuth has req.user; vendor-cost columns
+  // are stripped at the SELECT layer inside the router itself.
+  app.use("/api/leads", attachUser);
+  app.use("/api/leads", leadRevenueAgentRouter);
 
   return httpServer;
 }

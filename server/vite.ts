@@ -21,8 +21,10 @@ export async function setupVite(server: Server, app: Express) {
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
+        // Do NOT process.exit(1) — client runtime errors are routed through
+        // Vite's logger by @replit/vite-plugin-runtime-error-modal and would
+        // otherwise kill the dev server every time the browser throws.
         viteLogger.error(msg, options);
-        process.exit(1);
       },
     },
     server: serverOptions,

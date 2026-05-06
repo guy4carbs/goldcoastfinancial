@@ -13,17 +13,37 @@ export interface WaterfallResult { levels: WaterfallLevel[]; totalPayout: number
  * Overrides do NOT skip levels.
  * Example: Owner(120%) → Director(100%) → Manager(90%) → Agent(80%) on $10K:
  *   Agent earns 80% ($8K), Manager earns 10% spread ($1K), Director earns 10% ($1K), Owner earns 20% ($2K)
+ *
+ * `asOfDate` is the temporal anchor for resolving the active hierarchy. Pass
+ * the deal's `created_at` so historical commissions stay stable when the
+ * hierarchy is mutated forward (Phase C). Defaults to `NOW()` for callers that
+ * just want the current state (e.g., admin tooling, dashboard examples).
+ * (Ledger C2 — fixes the previous-NOW()-only filter that made historical
+ * deals walk the latest hierarchy after any mutation.)
  */
-export async function calculateWaterfallOverrides(agentUserId: string, premiumAmount: number): Promise<WaterfallResult> {
+export async function calculateWaterfallOverrides(
+  agentUserId: string,
+  premiumAmount: number,
+  asOfDate?: Date | string,
+): Promise<WaterfallResult> {
   const levels: WaterfallLevel[] = [];
+  const anchor: string | null = asOfDate
+    ? (asOfDate instanceof Date ? asOfDate.toISOString() : asOfDate)
+    : null;
+
+  // SQL fragment + params helper — uses NOW() when no anchor was supplied so
+  // existing call-sites that don't pass a date keep their current behavior.
+  const dateFilter = anchor
+    ? "ah.effective_from <= $2::timestamptz AND (ah.effective_to IS NULL OR ah.effective_to > $2::timestamptz)"
+    : "(ah.effective_to IS NULL OR ah.effective_to > NOW())";
 
   // Get the agent's hierarchy position
   const agentResult = await pool.query(
     `SELECT ah.*, u.first_name, u.last_name FROM agent_hierarchy ah
      JOIN users u ON u.id = ah.agent_user_id
-     WHERE ah.agent_user_id = $1 AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+     WHERE ah.agent_user_id = $1 AND ${dateFilter}
      LIMIT 1`,
-    [agentUserId]
+    anchor ? [agentUserId, anchor] : [agentUserId]
   );
 
   if (agentResult.rows.length === 0) {
@@ -54,9 +74,9 @@ export async function calculateWaterfallOverrides(agentUserId: string, premiumAm
     const uplineResult = await pool.query(
       `SELECT ah.*, u.first_name, u.last_name FROM agent_hierarchy ah
        JOIN users u ON u.id = ah.agent_user_id
-       WHERE ah.agent_user_id = $1 AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+       WHERE ah.agent_user_id = $1 AND ${dateFilter}
        LIMIT 1`,
-      [currentAgentId]
+      anchor ? [currentAgentId, anchor] : [currentAgentId]
     );
 
     if (uplineResult.rows.length === 0) break;

@@ -1,14 +1,55 @@
 export enum Roles {
+  FOUNDER = "founder",
   OWNER = "owner",
   SYSTEM_ADMIN = "system_admin",
-  AGENCY_MANAGER = "manager",
+  DIRECTOR = "director",
+  AGENCY_MANAGER = "agency_manager",
+  // Backward-compat: pre-0009_add_director_role rows had role="manager".
+  // Vector audit confirmed no enum constraint on users.role, so leftover
+  // "manager" rows must still be accepted by gates until the migration runs.
+  MANAGER = "manager",
   SALES_AGENT = "sales_agent",
   MARKETING_STAFF = "marketing_staff",
   CLIENT = "client",
   INVESTOR = "investor",
 }
 
-const ROLE_HIERARCHY: Roles[] = [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT, Roles.INVESTOR];
+const ROLE_HIERARCHY: Roles[] = [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT, Roles.INVESTOR];
+
+/**
+ * SINGLE SOURCE OF TRUTH for which roles are forced into 2FA.
+ *
+ * Every login under one of these roles is blocked at the gate until the user
+ * has enrolled (passkey or TOTP) AND verified the current session. Adding a
+ * new role here is the ONLY change needed to make 2FA mandatory for it —
+ * the auth middleware (`server/middleware/auth.ts`) and the login response
+ * (`server/routes.ts`) both import this list.
+ *
+ * Excluded by design: `Roles.CLIENT` — consumers use the separate Heritage
+ * portal flow, not this app.
+ */
+export const ROLES_REQUIRING_2FA: ReadonlyArray<Roles> = [
+  Roles.FOUNDER,
+  Roles.OWNER,
+  Roles.SYSTEM_ADMIN,
+  Roles.DIRECTOR,
+  Roles.AGENCY_MANAGER,
+  Roles.MANAGER, // backward-compat
+  Roles.SALES_AGENT,
+  Roles.MARKETING_STAFF,
+  Roles.INVESTOR,
+];
+
+/** Set form, optimised for O(1) membership checks at the request gate. */
+export const ROLES_REQUIRING_2FA_SET: ReadonlySet<string> = new Set<string>(
+  ROLES_REQUIRING_2FA,
+);
+
+/** Helper — true if the given role string falls under the 2FA mandate. */
+export function isRoleRequiring2FA(role: string | undefined | null): boolean {
+  if (!role) return false;
+  return ROLES_REQUIRING_2FA_SET.has(role);
+}
 
 export enum Permission {
   LEADS_VIEW_OWN = "leads:view:own", LEADS_VIEW_ALL = "leads:view:all", LEADS_CREATE = "leads:create", LEADS_EDIT = "leads:edit", LEADS_DELETE = "leads:delete", LEADS_ASSIGN = "leads:assign",
@@ -27,21 +68,29 @@ export enum Permission {
 
 const ALL_ADMIN_PERMS = Object.values(Permission);
 
+const AGENCY_MANAGER_PERMS: Permission[] = [
+  Permission.LEADS_VIEW_ALL, Permission.LEADS_CREATE, Permission.LEADS_EDIT, Permission.LEADS_ASSIGN,
+  Permission.POLICIES_VIEW_ALL, Permission.POLICIES_CREATE,
+  Permission.CLIENTS_VIEW_ALL, Permission.CLIENTS_EDIT,
+  Permission.COMMISSIONS_VIEW_ALL, Permission.COMMISSIONS_MANAGE,
+  Permission.ANALYTICS_VIEW_ALL, Permission.REPORTS_CREATE, Permission.REPORTS_EXPORT,
+  Permission.HIERARCHY_VIEW_ALL, Permission.HIERARCHY_MANAGE, Permission.HIERARCHY_REQUEST_CREATE, Permission.HIERARCHY_REQUEST_REVIEW,
+  Permission.HCMS_AGENTS_VIEW, Permission.HCMS_AGENTS_EDIT, Permission.HCMS_CONTRACTING,
+  Permission.HCMS_COMPLIANCE_VIEW, Permission.HCMS_COMPLIANCE_MANAGE,
+  Permission.OPS_PRODUCTION_VIEW, Permission.OPS_ANALYTICS_VIEW,
+  Permission.USERS_VIEW,
+];
+
 export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
+  [Roles.FOUNDER]: ALL_ADMIN_PERMS,
   [Roles.OWNER]: ALL_ADMIN_PERMS,
   [Roles.SYSTEM_ADMIN]: ALL_ADMIN_PERMS.filter(p => p !== Permission.COMMISSIONS_PAYOUT),
-  [Roles.AGENCY_MANAGER]: [
-    Permission.LEADS_VIEW_ALL, Permission.LEADS_CREATE, Permission.LEADS_EDIT, Permission.LEADS_ASSIGN,
-    Permission.POLICIES_VIEW_ALL, Permission.POLICIES_CREATE,
-    Permission.CLIENTS_VIEW_ALL, Permission.CLIENTS_EDIT,
-    Permission.COMMISSIONS_VIEW_ALL, Permission.COMMISSIONS_MANAGE,
-    Permission.ANALYTICS_VIEW_ALL, Permission.REPORTS_CREATE, Permission.REPORTS_EXPORT,
-    Permission.HIERARCHY_VIEW_ALL, Permission.HIERARCHY_MANAGE, Permission.HIERARCHY_REQUEST_CREATE, Permission.HIERARCHY_REQUEST_REVIEW,
-    Permission.HCMS_AGENTS_VIEW, Permission.HCMS_AGENTS_EDIT, Permission.HCMS_CONTRACTING,
-    Permission.HCMS_COMPLIANCE_VIEW, Permission.HCMS_COMPLIANCE_MANAGE,
-    Permission.OPS_PRODUCTION_VIEW, Permission.OPS_ANALYTICS_VIEW,
-    Permission.USERS_VIEW,
-  ],
+  // Director gets all Agency Manager permissions for now; expand later as the
+  // tier earns differentiated capabilities (e.g. multi-team analytics).
+  [Roles.DIRECTOR]: AGENCY_MANAGER_PERMS,
+  [Roles.AGENCY_MANAGER]: AGENCY_MANAGER_PERMS,
+  // Backward-compat for legacy "manager" rows; same perms as agency_manager.
+  [Roles.MANAGER]: AGENCY_MANAGER_PERMS,
   [Roles.SALES_AGENT]: [
     Permission.LEADS_VIEW_OWN, Permission.LEADS_CREATE,
     Permission.POLICIES_VIEW_OWN, Permission.CLIENTS_VIEW_OWN,
@@ -79,8 +128,8 @@ export function isValidRole(role: unknown): role is Roles {
 
 export const RoleGroups = {
   ADMINS: [Roles.OWNER, Roles.SYSTEM_ADMIN],
-  MANAGEMENT: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER],
-  STAFF: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF],
+  MANAGEMENT: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MANAGER],
+  STAFF: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF],
   EXTERNAL: [Roles.CLIENT, Roles.INVESTOR],
   ALL: Object.values(Roles),
 };

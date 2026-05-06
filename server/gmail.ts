@@ -591,3 +591,264 @@ To unsubscribe, visit goldcoastfnl.com/goldcoastfinancial2 or reply to this emai
     }
   });
 }
+
+export async function sendApplicationInvite(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  applicationUrl: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const subject = "You're Invited to Join Gold Coast Financial Partners";
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#F5EEE6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5EEE6;padding:40px 20px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+<!-- Header -->
+<tr><td style="background:linear-gradient(135deg,#4A1420 0%,#6B2030 100%);padding:40px 40px 30px;border-radius:12px 12px 0 0;text-align:center;">
+<div style="width:60px;height:60px;margin:0 auto 16px;background:linear-gradient(135deg,#C4975A,#D4A55A);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+<table role="presentation"><tr><td style="width:60px;height:60px;text-align:center;vertical-align:middle;background:linear-gradient(135deg,#C4975A,#D4A55A);border-radius:50%;">
+<span style="font-size:24px;font-weight:bold;color:#4A1420;font-family:Georgia,serif;">GC</span>
+</td></tr></table>
+</div>
+<h1 style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:400;color:#F0E8DE;letter-spacing:0.5px;">Welcome to the Team</h1>
+<p style="margin:0;font-size:14px;color:#C4975A;letter-spacing:1px;">GOLD COAST FINANCIAL PARTNERS, LLC</p>
+</td></tr>
+
+<!-- Gold accent bar -->
+<tr><td style="height:3px;background:linear-gradient(90deg,#C4975A,#D4A55A,#C4975A);"></td></tr>
+
+<!-- Body -->
+<tr><td style="background-color:#FFFFFF;padding:40px;">
+
+<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${data.firstName},</p>
+
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">You have been invited to join <strong>Gold Coast Financial Partners, LLC</strong> as a contracted insurance agent. We are excited to have you on board.</p>
+
+<p style="margin:0 0 8px;font-size:13px;color:#8A7060;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Your Application Link</p>
+<p style="margin:0 0 24px;font-size:14px;color:#6B5548;line-height:1.5;">Click the button below to start your application. It takes approximately 10-20 minutes to complete.</p>
+
+<!-- CTA Button -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+<tr><td align="center">
+<a href="${data.applicationUrl}" target="_blank" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#C4975A,#D4A55A);color:#4A1420;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;letter-spacing:0.5px;">Begin Application</a>
+</td></tr>
+<tr><td align="center" style="padding-top:12px;">
+<p style="margin:0;font-size:11px;color:#8A7060;line-height:1.4;">Or copy this link into your browser:<br><a href="${data.applicationUrl}" style="color:#C4975A;text-decoration:none;word-break:break-all;font-size:11px;">${data.applicationUrl}</a></p>
+</td></tr>
+</table>
+
+<!-- Divider -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+<tr><td style="height:1px;background-color:#EDE4D8;"></td></tr>
+</table>
+
+<p style="margin:0 0 16px;font-size:13px;color:#8A7060;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">What You'll Need</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+${['Social Security Number', 'Bank account information (routing & account number)', 'Errors & Omissions (E&O) insurance policy details', 'Government-issued photo ID', 'AML (Anti-Money Laundering) certificate', 'Direct Deposit form'].map(item => `
+<tr><td style="padding:6px 0;font-size:14px;color:#2D1810;line-height:1.5;">
+<span style="color:#C4975A;font-weight:bold;margin-right:8px;">&#9670;</span> ${item}
+</td></tr>`).join('')}
+</table>
+
+<p style="margin:0 0 16px;font-size:13px;color:#8A7060;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">What to Expect</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+${[
+  'Account setup - create your login credentials',
+  'Personal & professional information',
+  'Background disclosure questions',
+  'Banking & E&O insurance details',
+  'Document signing - NDA, Debt Rollup, and Compliance agreements',
+  'Document uploads'
+].map((item, i) => `
+<tr><td style="padding:5px 0;font-size:14px;color:#2D1810;line-height:1.5;">
+<span style="display:inline-block;width:22px;height:22px;background:#4A1420;color:#C4975A;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:bold;margin-right:10px;">${i + 1}</span> ${item}
+</td></tr>`).join('')}
+</table>
+
+<!-- Divider -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+<tr><td style="height:1px;background-color:#EDE4D8;"></td></tr>
+</table>
+
+<div style="background:#F5EEE6;border-radius:8px;padding:20px;margin:0 0 24px;border-left:3px solid #C4975A;">
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.5;"><strong style="color:#2D1810;">Your link is valid for 30 days.</strong> You can save your progress and return at any time using the same link.</p>
+</div>
+
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">If you have any questions, please contact us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a> or call <strong style="color:#2D1810;">(630) 778-0888</strong>.</p>
+
+</td></tr>
+
+<!-- Footer -->
+<tr><td style="background:#4A1420;padding:28px 40px 20px;border-radius:0 0 12px 12px;text-align:center;">
+<p style="margin:0 0 4px;font-size:13px;color:#C4975A;font-weight:600;letter-spacing:0.5px;">Gold Coast Financial Partners, LLC</p>
+<p style="margin:0 0 16px;font-size:12px;color:#A89080;">Naperville, Illinois</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+<tr><td style="height:1px;background-color:rgba(196,151,90,0.2);"></td></tr>
+</table>
+<p style="margin:0 0 8px;font-size:11px;color:#8A7060;line-height:1.5;">This invitation was sent by an administrator at Gold Coast Financial Partners, LLC. If you did not expect this email, please disregard it.</p>
+<p style="margin:0 0 8px;font-size:10px;color:#6B5548;line-height:1.5;">Gold Coast Financial Partners, LLC is a licensed insurance agency. All agents are independent contractors and not employees of Gold Coast Financial Partners, LLC. Insurance products are offered through licensed carriers.</p>
+<p style="margin:0;font-size:10px;color:#6B5548;line-height:1.5;">&copy; ${new Date().getFullYear()} Gold Coast Financial Partners, LLC. All rights reserved.<br>
+<a href="https://goldcoastfinancial.co/terms" style="color:#C4975A;text-decoration:none;">Terms of Service</a> &nbsp;|&nbsp; <a href="https://goldcoastfinancial.co/privacy" style="color:#C4975A;text-decoration:none;">Privacy Policy</a></p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  const message = [
+    'Content-Type: text/html; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: base64',
+    `To: ${data.email}`,
+    `From: Gold Coast Financial Partners <${process.env.GMAIL_FROM_EMAIL || 'contact@goldcoastfnl.com'}>`,
+    `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
+    '',
+    Buffer.from(html).toString('base64')
+  ].join('\n');
+
+  const encodedMessage = Buffer.from(message)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      raw: encodedMessage
+    }
+  });
+}
+
+/**
+ * Notify an agent by email that an admin sent them a message in the Agent HCMS.
+ * Teaser-only (subject + CTA) — the full message stays in the in-app bell.
+ * Brand-matched to sendApplicationInvite.
+ */
+export async function sendAgentMessageNotification(data: {
+  firstName: string;
+  email: string;
+  title: string;
+  actionUrl?: string | null;
+  portalUrl: string;
+}) {
+  const gmail = await getGmailClient();
+
+  const subject = `New message from Gold Coast Financial Partners — ${data.title}`;
+  const targetPath = data.actionUrl && data.actionUrl.trim()
+    ? data.actionUrl.trim()
+    : "/hcms/my/dashboard";
+  const ctaUrl = `${data.portalUrl.replace(/\/$/, "")}${targetPath.startsWith("/") ? targetPath : `/${targetPath}`}`;
+
+  const esc = (s: string) =>
+    String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#F5EEE6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5EEE6;padding:40px 20px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+<!-- Header -->
+<tr><td style="background:linear-gradient(135deg,#4A1420 0%,#6B2030 100%);padding:40px 40px 30px;border-radius:12px 12px 0 0;text-align:center;">
+<table role="presentation" align="center"><tr><td style="width:60px;height:60px;text-align:center;vertical-align:middle;background:linear-gradient(135deg,#C4975A,#D4A55A);border-radius:50%;">
+<span style="font-size:24px;font-weight:bold;color:#4A1420;font-family:Georgia,serif;">GC</span>
+</td></tr></table>
+<h1 style="margin:16px 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:400;color:#F0E8DE;letter-spacing:0.5px;">You have a new message</h1>
+<p style="margin:0;font-size:14px;color:#C4975A;letter-spacing:1px;">GOLD COAST FINANCIAL PARTNERS, LLC</p>
+</td></tr>
+
+<!-- Gold accent bar -->
+<tr><td style="height:3px;background:linear-gradient(90deg,#C4975A,#D4A55A,#C4975A);"></td></tr>
+
+<!-- Body -->
+<tr><td style="background-color:#FFFFFF;padding:40px;">
+
+<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${esc(data.firstName || "there")},</p>
+
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">
+An administrator at <strong>Gold Coast Financial Partners, LLC</strong> sent you a message in your Agent HCMS.
+</p>
+
+<!-- Message teaser card -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+<tr><td style="background:#F5EEE6;border-left:3px solid #C4975A;border-radius:8px;padding:18px 20px;">
+<p style="margin:0 0 6px;font-size:11px;color:#8A7060;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Subject</p>
+<p style="margin:0;font-size:16px;color:#2D1810;line-height:1.4;font-weight:600;">${esc(data.title)}</p>
+</td></tr>
+</table>
+
+<p style="margin:0 0 24px;font-size:14px;color:#6B5548;line-height:1.5;">
+Log in to the Agent HCMS to read the full message and take any requested action.
+</p>
+
+<!-- CTA Button -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+<tr><td align="center">
+<a href="${ctaUrl}" target="_blank" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#C4975A,#D4A55A);color:#4A1420;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;letter-spacing:0.5px;">Open in Agent HCMS</a>
+</td></tr>
+<tr><td align="center" style="padding-top:12px;">
+<p style="margin:0;font-size:11px;color:#8A7060;line-height:1.4;">Or copy this link into your browser:<br><a href="${ctaUrl}" style="color:#C4975A;text-decoration:none;word-break:break-all;font-size:11px;">${ctaUrl}</a></p>
+</td></tr>
+</table>
+
+<!-- Divider -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+<tr><td style="height:1px;background-color:#EDE4D8;"></td></tr>
+</table>
+
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">Questions? Reach us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a> or <strong style="color:#2D1810;">(630) 778-0888</strong>.</p>
+
+</td></tr>
+
+<!-- Footer -->
+<tr><td style="background:#4A1420;padding:28px 40px 20px;border-radius:0 0 12px 12px;text-align:center;">
+<p style="margin:0 0 4px;font-size:13px;color:#C4975A;font-weight:600;letter-spacing:0.5px;">Gold Coast Financial Partners, LLC</p>
+<p style="margin:0 0 16px;font-size:12px;color:#A89080;">Naperville, Illinois</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+<tr><td style="height:1px;background-color:rgba(196,151,90,0.2);"></td></tr>
+</table>
+<p style="margin:0 0 8px;font-size:11px;color:#8A7060;line-height:1.5;">This notification was sent because an administrator messaged you in the Agent HCMS.</p>
+<p style="margin:0 0 8px;font-size:10px;color:#6B5548;line-height:1.5;">Gold Coast Financial Partners, LLC is a licensed insurance agency. Agents are independent contractors. Insurance products are offered through licensed carriers.</p>
+<p style="margin:0;font-size:10px;color:#6B5548;line-height:1.5;">&copy; ${new Date().getFullYear()} Gold Coast Financial Partners, LLC. All rights reserved.<br>
+<a href="https://goldcoastfinancial.co/terms" style="color:#C4975A;text-decoration:none;">Terms of Service</a> &nbsp;|&nbsp; <a href="https://goldcoastfinancial.co/privacy" style="color:#C4975A;text-decoration:none;">Privacy Policy</a></p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  const rawMime = [
+    'Content-Type: text/html; charset="UTF-8"',
+    'MIME-Version: 1.0',
+    'Content-Transfer-Encoding: base64',
+    `To: ${data.email}`,
+    `From: Gold Coast Financial Partners <${process.env.GMAIL_FROM_EMAIL || 'contact@goldcoastfnl.com'}>`,
+    `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
+    '',
+    Buffer.from(html).toString('base64'),
+  ].join('\n');
+
+  const encoded = Buffer.from(rawMime)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  await gmail.users.messages.send({ userId: 'me', requestBody: { raw: encoded } });
+}
