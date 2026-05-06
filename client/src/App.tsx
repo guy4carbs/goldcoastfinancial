@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { LoadingScreen, NewsletterBanner } from "@/components/institutional";
 import { usePageTracking, useScrollTracking } from "@/hooks/useAnalytics";
+import { useRealtimeHierarchy } from "@/hooks/useRealtimeHierarchy";
+import { GlobalViewAsBanner } from "@/components/founders/GlobalViewAsBanner";
 
 // Institutional
 import InstitutionalHome from "@/pages/institutional/InstitutionalHome";
@@ -23,7 +25,7 @@ import InstitutionalNewsArticle from "@/pages/institutional/InstitutionalNewsArt
 import InstitutionalMedia from "@/pages/institutional/InstitutionalMedia";
 
 // HCMS - each page is self-contained with its own shell wrapper
-import HCMSLayout from "@/pages/hcms/HCMSLayout";
+import HCMSLayout, { AdminOnly, AgentOnly, ManagerOnly, ExecutiveOnly, FoundersOnly } from "@/pages/hcms/HCMSLayout";
 import AgentsPage from "@/pages/hcms/AgentsPage";
 import AgentDetailPage from "@/pages/hcms/AgentDetailPage";
 import CarriersPage from "@/pages/hcms/CarriersPage";
@@ -38,12 +40,23 @@ import EmploymentPage from "@/pages/hcms/contracting/EmploymentPage";
 import DBAPage from "@/pages/hcms/contracting/DBAPage";
 import QuestionsPage from "@/pages/hcms/contracting/QuestionsPage";
 
+// Agent Portal
+import { AgentDashboardPage, AgentProfilePage, AgentRequestsPage, AgentDocumentsPage, AgentLicensesPage, AgentEOPage, AgentBankPage, AgentTrainingsPage, AgentEmploymentPage, AgentDBAPage, AgentQuestionsPage, AgentCarriersPage, AgentHierarchyPage } from "@/pages/hcms/agent/AgentPages";
+
 // Ops
 import OpsLayout from "@/pages/ops/OpsLayout";
 
+// Lounges
+import FinanceLayout from "@/pages/finance/FinanceLayout";
+import InvestorsLayout from "@/pages/investors/InvestorsLayout";
+import MarketingLayout from "@/pages/marketing/MarketingLayout";
+import FoundersLoungeLayout from "@/pages/founders/FoundersLoungeLayout";
+
 // Auth / Public
-import AgentPortal from "@/pages/apply/AgentPortal";
+import AgentApplication from "@/pages/apply/AgentApplication";
 import LoginPage from "@/pages/auth/LoginPage";
+import Auth2faEnrollPage from "@/pages/auth/Auth2faEnrollPage";
+import Auth2faVerifyPage from "@/pages/auth/Auth2faVerifyPage";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -61,9 +74,19 @@ function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * Phase D Wave 2 (Nova) — mounts useRealtimeHierarchy ONCE at the app root so
+ * SSE subscriptions live for the lifetime of the session. Must sit INSIDE
+ * <QueryClientProvider> because the hook calls useQueryClient().
+ */
+function RealtimeBridge({ children }: { children: React.ReactNode }) {
+  useRealtimeHierarchy();
+  return <>{children}</>;
+}
+
 function InstitutionalWrapper() {
   const [location] = useLocation();
-  const isPlatform = location.startsWith("/hcms") || location.startsWith("/ops") || location.startsWith("/apply") || location.startsWith("/login");
+  const isPlatform = location.startsWith("/hcms") || location.startsWith("/ops") || location.startsWith("/finance") || location.startsWith("/investors/") || location.startsWith("/marketing") || location.startsWith("/founders") || location.startsWith("/apply") || location.startsWith("/login") || location.startsWith("/auth/");
   if (isPlatform) return null;
   return (
     <>
@@ -93,31 +116,65 @@ function Router() {
         <Route path="/blog/:slug" component={InstitutionalBlogArticle} />
         <Route path="/media" component={InstitutionalMedia} />
 
-        {/* HCMS — contracting sub-pages (most specific first) */}
-        <Route path="/hcms/contracting/requests" component={RequestsPage} />
-        <Route path="/hcms/contracting/bank" component={BankPage} />
-        <Route path="/hcms/contracting/licenses" component={LicensesPage} />
-        <Route path="/hcms/contracting/eo" component={EOPage} />
-        <Route path="/hcms/contracting/trainings" component={TrainingsPage} />
-        <Route path="/hcms/contracting/employment" component={EmploymentPage} />
-        <Route path="/hcms/contracting/dba" component={DBAPage} />
-        <Route path="/hcms/contracting/questions" component={QuestionsPage} />
-        <Route path="/hcms/contracting" component={ContractingOverviewPage} />
+        {/* HCMS — Agent Portal (sales_agent + owner) */}
+        <Route path="/hcms/my/dashboard">{() => <AgentOnly><AgentDashboardPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/profile">{() => <AgentOnly><AgentProfilePage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/requests">{() => <AgentOnly><AgentRequestsPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/documents">{() => <AgentOnly><AgentDocumentsPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/licenses">{() => <AgentOnly><AgentLicensesPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/eo">{() => <AgentOnly><AgentEOPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/bank">{() => <AgentOnly><AgentBankPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/trainings">{() => <AgentOnly><AgentTrainingsPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/employment">{() => <AgentOnly><AgentEmploymentPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/dba">{() => <AgentOnly><AgentDBAPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/questions">{() => <AgentOnly><AgentQuestionsPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/carriers">{() => <AgentOnly><AgentCarriersPage /></AgentOnly>}</Route>
+        <Route path="/hcms/my/hierarchy">{() => <AgentOnly><AgentHierarchyPage /></AgentOnly>}</Route>
 
-        {/* HCMS — main pages */}
-        <Route path="/hcms/agents/:id" component={AgentDetailPage} />
-        <Route path="/hcms/agents" component={AgentsPage} />
-        <Route path="/hcms/carriers" component={CarriersPage} />
-        <Route path="/hcms/hierarchy" component={HierarchyPage} />
+        {/* HCMS — Admin contracting sub-pages (owner/admin/manager only) */}
+        <Route path="/hcms/contracting/requests">{() => <AdminOnly><RequestsPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/bank">{() => <AdminOnly><BankPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/licenses">{() => <AdminOnly><LicensesPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/eo">{() => <AdminOnly><EOPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/trainings">{() => <AdminOnly><TrainingsPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/employment">{() => <AdminOnly><EmploymentPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/dba">{() => <AdminOnly><DBAPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting/questions">{() => <AdminOnly><QuestionsPage /></AdminOnly>}</Route>
+        <Route path="/hcms/contracting">{() => <AdminOnly><ContractingOverviewPage /></AdminOnly>}</Route>
+
+        {/* HCMS — Admin main pages (owner/admin/manager only) */}
+        <Route path="/hcms/agents/:id">{() => <AdminOnly><AgentDetailPage /></AdminOnly>}</Route>
+        <Route path="/hcms/agents">{() => <AdminOnly><AgentsPage /></AdminOnly>}</Route>
+        <Route path="/hcms/carriers">{() => <AdminOnly><CarriersPage /></AdminOnly>}</Route>
+        <Route path="/hcms/hierarchy">{() => <AdminOnly><HierarchyPage /></AdminOnly>}</Route>
+
+        {/* HCMS — Dashboard (role-detected: agent sees agent dashboard, admin sees admin dashboard) */}
         <Route path="/hcms" component={HCMSLayout} />
 
         {/* Ops */}
-        <Route path="/ops" component={OpsLayout} />
-        <Route path="/ops/:rest*" component={OpsLayout} />
+        <Route path="/ops">{() => <ManagerOnly><OpsLayout /></ManagerOnly>}</Route>
+        <Route path="/ops/:rest*">{() => <ManagerOnly><OpsLayout /></ManagerOnly>}</Route>
+
+        {/* Finance Lounge (owner + system_admin only) */}
+        <Route path="/finance">{() => <ExecutiveOnly><FinanceLayout /></ExecutiveOnly>}</Route>
+        <Route path="/finance/:rest*">{() => <ExecutiveOnly><FinanceLayout /></ExecutiveOnly>}</Route>
+
+        {/* Founders Lounge (role === "founder" only) */}
+        <Route path="/founders">{() => <FoundersOnly><FoundersLoungeLayout /></FoundersOnly>}</Route>
+        <Route path="/founders/:rest*">{() => <FoundersOnly><FoundersLoungeLayout /></FoundersOnly>}</Route>
+
+        {/* Investors Lounge (owner + system_admin only) — /investors stays as institutional page */}
+        <Route path="/investors/:rest*">{() => <ExecutiveOnly><InvestorsLayout /></ExecutiveOnly>}</Route>
+
+        {/* Marketing Lounge (owner + system_admin + manager) */}
+        <Route path="/marketing">{() => <ManagerOnly><MarketingLayout /></ManagerOnly>}</Route>
+        <Route path="/marketing/:rest*">{() => <ManagerOnly><MarketingLayout /></ManagerOnly>}</Route>
 
         {/* Auth / Public */}
-        <Route path="/apply" component={AgentPortal} />
+        <Route path="/apply" component={AgentApplication} />
         <Route path="/login" component={LoginPage} />
+        <Route path="/auth/2fa/enroll" component={Auth2faEnrollPage} />
+        <Route path="/auth/2fa" component={Auth2faVerifyPage} />
       </Switch>
     </>
   );
@@ -126,13 +183,25 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AnalyticsProvider>
-          <InstitutionalWrapper />
-          <Toaster />
-          <Router />
-        </AnalyticsProvider>
-      </TooltipProvider>
+      <RealtimeBridge>
+        <TooltipProvider>
+          <AnalyticsProvider>
+            {/*
+              GlobalViewAsBanner mounts at the App root so the founder sees a
+              persistent "VIEWING AS X" reminder on EVERY page (HCMS, Ops,
+              Finance, Founders, Investors, Marketing, etc.) for the duration
+              of an active impersonation session. It self-suppresses to null
+              when no session is active. Sits above the GCShell sidebar via
+              z-index: 100 and publishes --gc-global-viewas-banner-height for
+              layouts that need to offset for it.
+            */}
+            <GlobalViewAsBanner />
+            <InstitutionalWrapper />
+            <Toaster />
+            <Router />
+          </AnalyticsProvider>
+        </TooltipProvider>
+      </RealtimeBridge>
     </QueryClientProvider>
   );
 }
