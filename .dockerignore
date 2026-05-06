@@ -1,0 +1,29 @@
+# Keep the Docker build context lean. Without this, every `COPY . /app/.`
+# in the Nixpacks-generated Dockerfile would carry local node_modules /
+# build artifacts / test reports / git history into the image — which
+# both bloats the image and risks overwriting freshly-installed deps
+# from the previous COPY.
+
+node_modules
+dist
+.git
+.github
+
+# Env / secrets — must never land in the image
+.env
+.env.*
+*.pem
+
+# Local artifacts
+*.log
+.DS_Store
+.cache
+.nyc_output
+coverage
+test-results
+playwright-report
+
+# IDE / OS
+.vscode
+.idea
+Thumbs.db
