@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/gc-tokens.css";
+@import "./styles/tour.css";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -643,4 +644,14 @@ html {
     hsl(348 55% 25%) 100%
   );
   box-shadow: 0 2px 8px hsl(348 65% 20% / 0.25);
+}
+
+/* WCAG 2.1 AA — global keyboard focus ring (gold). Only fires for keyboard
+   navigation thanks to :focus-visible — mouse clicks never trigger it, so
+   the chrome stays clean. Falls back to gc-gold when the bright variant
+   isn't defined by the active theme. */
+*:focus-visible {
+  outline: 2px solid var(--gc-gold-bright, var(--gc-gold));
+  outline-offset: 2px;
+  border-radius: var(--gc-radius-sm);
 }

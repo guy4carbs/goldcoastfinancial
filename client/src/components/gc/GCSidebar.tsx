@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, Wallet, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert } from "lucide-react";
+import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert, UserPlus, ArrowLeftRight, Banknote, RotateCcw, Receipt, FileCheck, Crown, Network, Rocket, Eye, Send, Coins } from "lucide-react";
+import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -38,27 +39,131 @@ const opsNav: NavSection[] = [
     { label: "Production", href: "/ops/production", icon: BarChart3 },
     { label: "Deals", href: "/ops/deals", icon: Handshake },
     { label: "Pipeline", href: "/ops/pipeline", icon: GitPullRequest },
-    { label: "Finance", href: "/ops/finance", icon: Wallet },
   ]},
   { title: "INTELLIGENCE", items: [
     { label: "Commissions", href: "/ops/commissions", icon: DollarSign },
     { label: "Analytics", href: "/ops/analytics", icon: TrendingUp },
     { label: "Reporting", href: "/ops/reporting", icon: FileText },
-    { label: "Marketing", href: "/ops/marketing", icon: Megaphone },
   ]},
   { title: "ADMIN", items: [
-    { label: "Investors", href: "/ops/investors", icon: Landmark },
     { label: "Compliance", href: "/ops/compliance", icon: ShieldCheck },
     { label: "Settings", href: "/ops/settings", icon: Settings },
   ]},
 ];
 
-export interface GCSidebarProps { variant?: "hcms" | "ops"; activePath?: string; }
+const financeNav: NavSection[] = [
+  { title: "OVERVIEW", items: [
+    { label: "Dashboard", href: "/finance", icon: LayoutDashboard },
+  ]},
+  { title: "FINANCIAL OPS", items: [
+    { label: "Revenue", href: "/finance/revenue", icon: TrendingUp },
+    { label: "Overrides", href: "/finance/overrides", icon: ArrowLeftRight },
+    { label: "Transactions", href: "/finance/transactions", icon: CreditCard },
+    { label: "Cash Flow", href: "/finance/cashflow", icon: Banknote },
+  ]},
+  { title: "COMPLIANCE", items: [
+    { label: "Chargebacks", href: "/finance/chargebacks", icon: RotateCcw },
+    { label: "Reconciliation", href: "/finance/reconciliation", icon: FileCheck },
+    { label: "Statements", href: "/finance/statements", icon: Receipt },
+  ]},
+  { title: "REPORTING", items: [
+    { label: "Reports", href: "/finance/reports", icon: FileText },
+  ]},
+];
 
-export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps) {
+const investorsNav: NavSection[] = [
+  { title: "OVERVIEW", items: [
+    { label: "Dashboard", href: "/investors/dashboard", icon: LayoutDashboard },
+  ]},
+  { title: "PORTFOLIO", items: [
+    { label: "Portfolio", href: "/investors/portfolio", icon: Briefcase },
+    { label: "Carrier Mix", href: "/investors/carriers", icon: PieChart },
+  ]},
+  { title: "PERFORMANCE", items: [
+    { label: "Performance", href: "/investors/performance", icon: TrendingUp },
+    { label: "Reports", href: "/investors/reports", icon: FileText },
+  ]},
+];
+
+const marketingNav: NavSection[] = [
+  { title: "OVERVIEW", items: [
+    { label: "Dashboard", href: "/marketing", icon: LayoutDashboard },
+  ]},
+  { title: "CAMPAIGNS", items: [
+    { label: "Campaigns", href: "/marketing/campaigns", icon: Megaphone },
+    { label: "Leads", href: "/marketing/leads", icon: Users },
+  ]},
+  { title: "GROWTH", items: [
+    { label: "Recruitment", href: "/marketing/recruitment", icon: UserPlus },
+    { label: "Analytics", href: "/marketing/analytics", icon: TrendingUp },
+  ]},
+];
+
+const agentNav: NavSection[] = [
+  { title: "OVERVIEW", items: [
+    { label: "My Dashboard", href: "/hcms/my/dashboard", icon: LayoutDashboard },
+  ]},
+  { title: "CONTRACTING", collapsible: true, items: [
+    { label: "Overview", href: "/hcms/my/profile", icon: FileSignature },
+    { label: "Documents", href: "/hcms/my/documents", icon: FolderOpen },
+    { label: "Requests", href: "/hcms/my/requests", icon: ScrollText },
+    { label: "Bank Details", href: "/hcms/my/bank", icon: CreditCard },
+    { label: "Licenses", href: "/hcms/my/licenses", icon: Award },
+    { label: "E&O Insurance", href: "/hcms/my/eo", icon: ShieldAlert },
+    { label: "Trainings", href: "/hcms/my/trainings", icon: GraduationCap },
+    { label: "Employment", href: "/hcms/my/employment", icon: Briefcase },
+    { label: "Doing Business As", href: "/hcms/my/dba", icon: Building2 },
+    { label: "Questions", href: "/hcms/my/questions", icon: HelpCircle },
+  ]},
+  { title: "AGENTS", items: [
+    { label: "Carriers", href: "/hcms/my/carriers", icon: Building2 },
+    { label: "Hierarchy", href: "/hcms/my/hierarchy", icon: GitBranch },
+  ]},
+];
+
+const foundersNav: NavSection[] = [
+  { title: "OVERSIGHT", items: [
+    { label: "Dashboard", href: "/founders", icon: LayoutDashboard },
+    { label: "Revenue", href: "/founders/revenue", icon: TrendingUp },
+    { label: "Hierarchy", href: "/founders/hierarchy", icon: Network },
+    { label: "Growth", href: "/founders/growth", icon: Rocket },
+  ]},
+  { title: "ORGANIZATION", items: [
+    { label: "Book of Business", href: "/founders/book", icon: FolderOpen },
+    { label: "Team Performance", href: "/founders/team-performance", icon: Users },
+    { label: "Lead Distribution", href: "/founders/lead-distribution", icon: Send },
+    { label: "Agency Management", href: "/founders/agency-management", icon: Building2 },
+  ]},
+  { title: "OWNERSHIP", items: [
+    { label: "Profit Split", href: "/founders/profit-split", icon: Coins },
+  ]},
+  { title: "ADMIN", items: [
+    { label: "Access", href: "/founders/access", icon: Shield },
+    { label: "View As", href: "/founders/view-as", icon: Eye },
+    { label: "Settings", href: "/founders/settings", icon: Settings },
+  ]},
+];
+
+export type SidebarVariant = "hcms" | "ops" | "agent" | "finance" | "investors" | "marketing" | "founders";
+
+const NAV_MAP: Record<SidebarVariant, NavSection[]> = {
+  hcms: hcmsNav, ops: opsNav, agent: agentNav,
+  finance: financeNav, investors: investorsNav, marketing: marketingNav,
+  founders: foundersNav,
+};
+
+const SUBTITLE_MAP: Record<SidebarVariant, string> = {
+  hcms: "HCMS Platform", ops: "Operations Hub", agent: "Agent HCMS",
+  finance: "Finance", investors: "Investor Relations", marketing: "Marketing & Growth",
+  founders: "Founders Lounge",
+};
+
+export interface GCSidebarProps { variant?: SidebarVariant; activePath?: string; userName?: string; userEmail?: string; }
+
+export function GCSidebar({ variant = "hcms", activePath = "", userName, userEmail }: GCSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const nav = variant === "hcms" ? hcmsNav : opsNav;
+  const nav = NAV_MAP[variant] || opsNav;
 
   const toggleSection = (title: string) => setCollapsed(prev => ({ ...prev, [title]: !prev[title] }));
 
@@ -79,15 +184,23 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
             <Shield className="w-4.5 h-4.5" style={{ color: "var(--gc-btn-primary-text)" }} />
           </div>
           <div className="flex flex-col">
-            <span style={{
+            <span className="flex items-center gap-1.5" style={{
               fontFamily: "var(--gc-font-display)", fontSize: "13px", fontWeight: 600,
               color: "var(--gc-text-primary)", letterSpacing: "var(--gc-tracking-tight)", lineHeight: 1.1,
-            }}>GOLD COAST</span>
+            }}>
+              GOLD COAST
+              {variant === "founders" && (
+                <Crown
+                  className="w-3 h-3 flex-shrink-0"
+                  style={{ color: "var(--gc-platinum, #D9D6D0)", opacity: 0.85 }}
+                />
+              )}
+            </span>
             <span style={{
               fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500,
               color: "var(--gc-gold)", letterSpacing: "var(--gc-tracking-wider)",
               textTransform: "uppercase" as const, marginTop: 1,
-            }}>{variant === "hcms" ? "HCMS Platform" : "Operations Hub"}</span>
+            }}>{SUBTITLE_MAP[variant]}</span>
           </div>
         </div>
       </div>
@@ -123,7 +236,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
                     const active = activePath === item.href;
                     const ItemIcon = item.icon;
                     return (
-                      <a
+                      <Link
                         key={item.href}
                         href={item.href}
                         className="no-underline flex items-center gap-3"
@@ -135,9 +248,14 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
                           fontWeight: active ? 500 : 400,
                           color: active ? "var(--gc-nav-active-text)" : "var(--gc-text-secondary)",
                           backgroundColor: active ? "var(--gc-nav-active-bg)" : "transparent",
-                          transition: "all var(--gc-transition-fast)",
+                          transition: "background-color var(--gc-transition-fast), color var(--gc-transition-fast)",
                           position: "relative" as const,
-                          borderLeft: active ? "2px solid var(--gc-gold)" : "2px solid transparent",
+                          borderLeftWidth: 2,
+                          borderLeftStyle: "solid" as const,
+                          borderLeftColor: active ? "var(--gc-gold)" : "transparent",
+                          borderTopWidth: 0,
+                          borderRightWidth: 0,
+                          borderBottomWidth: 0,
                         }}
                         onMouseEnter={e => {
                           if (!active) {
@@ -169,7 +287,7 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
                             {item.badge}
                           </span>
                         )}
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>
@@ -208,10 +326,10 @@ export function GCSidebar({ variant = "hcms", activePath = "" }: GCSidebarProps)
             color: "var(--gc-btn-primary-text)",
             fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-sm)", fontWeight: 600,
             boxShadow: "0 1px 4px color-mix(in srgb, var(--gc-gold) 25%, transparent)",
-          }}>G</div>
+          }}>{(userName || "A").charAt(0).toUpperCase()}</div>
           <div className="flex flex-col min-w-0">
-            <span className="truncate" style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)", lineHeight: 1.2 }}>Administrator</span>
-            <span className="truncate" style={{ fontFamily: "var(--gc-font-body)", fontSize: "10px", color: "var(--gc-text-muted)", lineHeight: 1.2 }}>admin@goldcoastfnl.com</span>
+            <span className="truncate" style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-base)", fontWeight: 500, color: "var(--gc-text-primary)", lineHeight: 1.2 }}>{userName || "Administrator"}</span>
+            <span className="truncate" style={{ fontFamily: "var(--gc-font-body)", fontSize: "10px", color: "var(--gc-text-muted)", lineHeight: 1.2 }}>{userEmail || "admin@goldcoastfnl.com"}</span>
           </div>
         </div>
       </div>

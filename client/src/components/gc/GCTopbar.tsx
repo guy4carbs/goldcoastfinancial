@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Moon, Sun, Palette, Bell, User, LayoutGrid, Lock, Shield, BarChart3, Building2 } from "lucide-react";
+import { Moon, Sun, Palette, Bell, User, UserCircle, LayoutGrid, Lock, Shield, BarChart3, Building2, ArrowLeftRight, Wallet, Landmark, Megaphone, Crown } from "lucide-react";
+import { Link } from "wouter";
 import { useGCTheme, type GCThemeId } from "./GCThemeProvider";
+import { useAuth } from "@/hooks/use-auth";
+import { NotificationBell } from "@/components/tour/NotificationBell";
 import type { ReactNode } from "react";
 
 const themeIcons: Record<GCThemeId, typeof Moon> = { "gc-dark": Moon, "gc-light": Sun, "gc-maroon": Palette };
@@ -8,14 +11,97 @@ const themeIcons: Record<GCThemeId, typeof Moon> = { "gc-dark": Moon, "gc-light"
 const GC_APPS = [
   { id: "hcms", name: "HCMS", desc: "Agent Contracting", href: "/hcms", icon: Shield, available: true },
   { id: "ops", name: "Ops Hub", desc: "Back-office Command", href: "/ops", icon: BarChart3, available: true },
+  { id: "finance", name: "Finance", desc: "Financial Operations", href: "/finance", icon: Wallet, available: true },
+  { id: "investors", name: "Investors", desc: "Investor Relations", href: "/investors/dashboard", icon: Landmark, available: true },
+  { id: "marketing", name: "Marketing", desc: "Growth Engine", href: "/marketing", icon: Megaphone, available: true },
+  { id: "founders", name: "Founders", desc: "Ownership Oversight", href: "/founders", icon: Crown, available: true },
   { id: "heritage", name: "Heritage", desc: "Agent CRM Login", href: "https://heritagels.org/agents/login", icon: Building2, available: true },
   { id: "crm", name: "CRM", desc: "Customer Relations", href: "#", icon: Lock, available: false },
-  { id: "analytics", name: "Analytics", desc: "Business Intelligence", href: "#", icon: Lock, available: false },
-  { id: "mobile", name: "Mobile", desc: "iOS & Android", href: "#", icon: Lock, available: false },
   { id: "training", name: "Training", desc: "Agent Academy", href: "#", icon: Lock, available: false },
-  { id: "marketing", name: "Marketing", desc: "Growth Engine", href: "#", icon: Lock, available: false },
   { id: "ai", name: "AI Council", desc: "Avatar Debate", href: "#", icon: Lock, available: false },
 ];
+
+function ViewModeToggle() {
+  const { user } = useAuth();
+  if (user?.role !== "owner" && user?.role !== "founder") return null;
+
+  const isAgentView = typeof window !== "undefined" && window.location.pathname.startsWith("/hcms/my");
+
+  return (
+    <button
+      onClick={() => { window.location.href = isAgentView ? "/hcms" : "/hcms/my/dashboard"; }}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm"
+      style={{
+        fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em",
+        color: "var(--gc-gold)",
+        backgroundColor: "color-mix(in srgb, var(--gc-gold) 10%, transparent)",
+        border: "1px solid color-mix(in srgb, var(--gc-gold) 25%, transparent)",
+        borderRadius: "var(--gc-radius-sm)",
+        cursor: "pointer", transition: "all 0.2s",
+      }}
+      title={isAgentView ? "Switch to Admin View" : "Switch to Agent View"}
+    >
+      <ArrowLeftRight className="w-3.5 h-3.5" />
+      {isAgentView ? "ADMIN" : "AGENT"}
+    </button>
+  );
+}
+
+function UserMenu() {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    window.location.href = "/login";
+  };
+
+  const profileHref = user?.role === "sales_agent" || user?.role === "owner" ? "/hcms/my/profile" : null;
+
+  return (
+    <div ref={ref} data-tour-id="hcms-shell-user-menu" style={{ position: "relative" }}>
+      <button onClick={() => setOpen(!open)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--gc-gold)", color: "var(--gc-btn-primary-text)", border: "none", cursor: "pointer" }}>
+        <User className="w-4 h-4" />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 220, backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", boxShadow: "var(--gc-shadow-lg)", zIndex: 100, overflow: "hidden" }}>
+          <div style={{ padding: "var(--gc-space-3)", borderBottom: "1px solid var(--gc-border-subtle)" }}>
+            <div style={{ fontSize: "var(--gc-text-sm)", fontWeight: 500, color: "var(--gc-text-primary)" }}>{user?.firstName} {user?.lastName}</div>
+            <div style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>{user?.email}</div>
+          </div>
+          {profileHref && (
+            <Link href={profileHref}>
+              <span
+                onClick={() => setOpen(false)}
+                className="w-full flex items-center gap-2"
+                style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-text-primary)", fontSize: "var(--gc-text-sm)", textAlign: "left", display: "flex" }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--gc-hover-overlay)")}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <UserCircle className="w-4 h-4" style={{ color: "var(--gc-gold)" }} />
+                View my profile
+              </span>
+            </Link>
+          )}
+          <button onClick={handleLogout} className="w-full flex items-center gap-2" style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "transparent", border: "none", cursor: "pointer", color: "var(--gc-status-terminated)", fontSize: "var(--gc-text-sm)", textAlign: "left", borderTop: profileHref ? "1px solid var(--gc-border-subtle)" : "none" }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--gc-hover-overlay)"}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+          >
+            Log Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export interface GCTopbarProps { title?: string; subtitle?: string; actions?: ReactNode; }
 
@@ -46,7 +132,7 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
         {actions}
 
         {/* App Switcher */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative" ref={menuRef} data-tour-id="hcms-shell-app-switcher">
           <button
             onClick={() => setMenuOpen(o => !o)}
             className="p-2 rounded-sm"
@@ -163,20 +249,17 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
           )}
         </div>
 
+        {/* View Mode Toggle (owner only) */}
+        <ViewModeToggle />
+
         {/* Theme Toggle */}
-        <button onClick={cycle} className="p-2 rounded-sm" style={{ color: "var(--gc-text-secondary)", transition: "color var(--gc-transition-fast)" }}
+        <button data-tour-id="hcms-shell-theme-toggle" onClick={cycle} className="p-2 rounded-sm" style={{ color: "var(--gc-text-secondary)", transition: "color var(--gc-transition-fast)" }}
           title={`Theme: ${themes.find(t => t.id === theme)?.label}`}><Icon className="w-4 h-4" /></button>
 
-        {/* Notifications */}
-        <button className="p-2 rounded-sm relative" style={{ color: "var(--gc-text-secondary)" }}>
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ backgroundColor: "var(--gc-gold)" }} />
-        </button>
-
-        {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--gc-gold)", color: "var(--gc-btn-primary-text)" }}>
-          <User className="w-4 h-4" />
-        </div>
+        {/* Notifications — full dropdown functionality wired by NotificationBell */}
+        <NotificationBell />
+        {/* User Avatar + Logout */}
+        <UserMenu />
       </div>
     </header>
   );

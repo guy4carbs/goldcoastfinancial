@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-export interface GCBarChartProps { data: { name: string; value: number }[]; title?: string; valueFormatter?: (v: number) => string; }
+export interface GCBarChartProps { data: { name: string; value: number }[]; title?: string; valueFormatter?: (v: number) => string; bare?: boolean; }
 
 const CustomTooltip = ({ active, payload, valueFormatter }: any) => {
   if (!active || !payload?.[0]) return null;
@@ -12,10 +12,13 @@ const CustomTooltip = ({ active, payload, valueFormatter }: any) => {
   );
 };
 
-export function GCBarChart({ data, title, valueFormatter = (v) => v.toLocaleString() }: GCBarChartProps) {
+export function GCBarChart({ data, title, valueFormatter = (v) => v.toLocaleString(), bare = false }: GCBarChartProps) {
   const chartHeight = data.length * 40 + 28;
+  const wrapperStyle = bare
+    ? {}
+    : { backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-4)" };
   return (
-    <div style={{ backgroundColor: "var(--gc-surface)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-md)", padding: "var(--gc-space-4)" }}>
+    <div style={wrapperStyle}>
       {title && <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-xs)", fontWeight: 500, letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", marginBottom: "var(--gc-space-3)" }}>{title}</div>}
       <div style={{ width: "100%", height: chartHeight }}>
         <ResponsiveContainer width="100%" height="100%">

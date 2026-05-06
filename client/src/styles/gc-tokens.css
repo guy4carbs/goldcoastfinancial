@@ -9,7 +9,7 @@
 [data-theme="gc-dark"] {
   --gc-bg: #2D0A12;
   --gc-surface: #3A1018;
-  --gc-surface-2: #52182A;
+  --gc-surface-2: #4A1522;
   --gc-sidebar: #1A1A1A;
 
   --gc-border: rgba(196, 151, 90, 0.25);
@@ -20,7 +20,7 @@
 
   --gc-text-primary: #E8DDD0;
   --gc-text-secondary: #B8A898;
-  --gc-text-muted: #9A8578;
+  --gc-text-muted: #A89080;
 
   --gc-nav-active-bg: rgba(196, 151, 90, 0.12);
   --gc-nav-active-text: #D4A55A;
@@ -56,23 +56,23 @@
 [data-theme="gc-light"] {
   --gc-bg: #F5EEE6;
   --gc-surface: #FFFFFF;
-  --gc-surface-2: #F5EEE6;
+  --gc-surface-2: #EDE4D8;
   --gc-sidebar: #EDE4D8;
 
-  --gc-border: rgba(74, 20, 32, 0.15);
-  --gc-border-subtle: rgba(74, 20, 32, 0.08);
+  --gc-border: rgba(74, 20, 32, 0.18);
+  --gc-border-subtle: rgba(74, 20, 32, 0.10);
 
-  --gc-gold: #C4975A;
-  --gc-gold-bright: #D4A55A;
+  --gc-gold: #9A7540;
+  --gc-gold-bright: #B8893E;
 
   --gc-text-primary: #2D1810;
-  --gc-text-secondary: #9A7A6A;
-  --gc-text-muted: #B89A88;
+  --gc-text-secondary: #6B5548;
+  --gc-text-muted: #8A7060;
 
   --gc-nav-active-bg: rgba(74, 20, 32, 0.08);
   --gc-nav-active-text: #4A1420;
 
-  --gc-btn-primary-bg: #C4975A;
+  --gc-btn-primary-bg: #9A7540;
   --gc-btn-primary-text: #FFFFFF;
 
   --gc-status-active: #2A6B45;
@@ -103,30 +103,30 @@
 [data-theme="gc-maroon"] {
   --gc-bg: #4A1420;
   --gc-surface: #5C1C28;
-  --gc-surface-2: #6B2030;
+  --gc-surface-2: #612030;
   --gc-sidebar: #3A0E18;
 
   --gc-border: rgba(196, 151, 90, 0.30);
   --gc-border-subtle: rgba(196, 151, 90, 0.12);
 
-  --gc-gold: #C4975A;
-  --gc-gold-bright: #D4A55A;
+  --gc-gold: #D4A55A;
+  --gc-gold-bright: #E0B268;
 
   --gc-text-primary: #F0E8DE;
-  --gc-text-secondary: #C8A898;
-  --gc-text-muted: #A89080;
+  --gc-text-secondary: #D0B0A0;
+  --gc-text-muted: #BCA090;
 
   --gc-nav-active-bg: rgba(196, 151, 90, 0.15);
-  --gc-nav-active-text: #D4A55A;
+  --gc-nav-active-text: #E0B268;
 
   --gc-btn-primary-bg: #D4A55A;
   --gc-btn-primary-text: #2D0A12;
 
-  --gc-status-active: #7EC8A4;
-  --gc-status-pending: #C4975A;
-  --gc-status-review: #A8C4E0;
-  --gc-status-terminated: #E09090;
-  --gc-status-warning: #E07060;
+  --gc-status-active: #8AD4B0;
+  --gc-status-pending: #D4A55A;
+  --gc-status-review: #B0D0E8;
+  --gc-status-terminated: #E8A0A0;
+  --gc-status-warning: #E88070;
 
   --gc-chart-1: #C4975A;
   --gc-chart-2: #8B5CF6;
@@ -297,4 +297,35 @@
   fill: var(--gc-text-secondary) !important;
   max-width: 14px !important;
   max-height: 14px !important;
+}
+
+/* =============================================
+   FOUNDERS LOUNGE — Platinum Accent
+   ============================================= */
+:root,
+[data-theme="gc-dark"],
+[data-theme="gc-light"],
+[data-theme="gc-maroon"] {
+  --gc-platinum: #D9D6D0;
+}
+
+.founders-hero-accent {
+  position: relative;
+}
+.founders-hero-accent::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #D9D6D0, transparent);
+  pointer-events: none;
+}
+
+.founders-kpi-platinum-top {
+  position: relative;
+  border-radius: var(--gc-radius-md);
+  padding-top: 1px;
+  background: linear-gradient(90deg, transparent, var(--gc-platinum, #D9D6D0), transparent);
 }

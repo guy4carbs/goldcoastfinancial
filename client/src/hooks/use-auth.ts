@@ -18,7 +18,13 @@ async function fetchUser(): Promise<Omit<User, "password"> | null> {
   return data.user;
 }
 
-async function loginUser(credentials: LoginInput): Promise<Omit<User, "password">> {
+export interface LoginResult {
+  user: Omit<User, "password">;
+  requires_2fa_enrollment?: boolean;
+  requires_2fa_verification?: boolean;
+}
+
+async function loginUser(credentials: LoginInput): Promise<LoginResult> {
   const response = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -32,7 +38,11 @@ async function loginUser(credentials: LoginInput): Promise<Omit<User, "password"
   }
 
   const data = await response.json();
-  return data.user;
+  return {
+    user: data.user,
+    requires_2fa_enrollment: !!data.requires_2fa_enrollment,
+    requires_2fa_verification: !!data.requires_2fa_verification,
+  };
 }
 
 async function registerUser(userData: RegisterInput): Promise<Omit<User, "password">> {
@@ -75,8 +85,8 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: (user) => {
-      queryClient.setQueryData(["/api/auth/user"], user);
+    onSuccess: (result) => {
+      queryClient.setQueryData(["/api/auth/user"], result.user);
     },
   });
 

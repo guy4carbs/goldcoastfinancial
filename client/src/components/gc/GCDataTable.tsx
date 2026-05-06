@@ -1,15 +1,16 @@
 import { useState, useMemo, type ReactNode } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search } from "lucide-react";
 
-export interface Column<T> { key: string; label: string; sortable?: boolean; render?: (value: any, row: T) => ReactNode; width?: number | string; align?: "left" | "center" | "right"; }
+export interface Column<T> { key: string; label: string | ReactNode; sortable?: boolean; render?: (value: any, row: T) => ReactNode; width?: number | string; align?: "left" | "center" | "right"; }
 
 export interface GCDataTableProps<T extends Record<string, any>> {
   columns: Column<T>[]; data: T[]; searchable?: boolean; searchPlaceholder?: string; pageSize?: number;
+  onRowClick?: (row: T) => void;
 }
 
 type SortDir = "asc" | "desc" | null;
 
-export function GCDataTable<T extends Record<string, any>>({ columns, data, searchable, searchPlaceholder = "Search...", pageSize = 10 }: GCDataTableProps<T>) {
+export function GCDataTable<T extends Record<string, any>>({ columns, data, searchable, searchPlaceholder = "Search...", pageSize = 10, onRowClick }: GCDataTableProps<T>) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>(null);
@@ -59,7 +60,7 @@ export function GCDataTable<T extends Record<string, any>>({ columns, data, sear
                   onClick={() => col.sortable && toggleSort(col.key)}
                   tabIndex={col.sortable ? 0 : undefined}
                   onKeyDown={e => col.sortable && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggleSort(col.key))}>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1" style={{ justifyContent: col.align === "right" ? "flex-end" : col.align === "center" ? "center" : "flex-start" }}>
                     {col.label}
                     {col.sortable && (sortKey === col.key ? (sortDir === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />) : <ChevronsUpDown className="w-3 h-3 opacity-30" />)}
                   </span>
@@ -69,7 +70,8 @@ export function GCDataTable<T extends Record<string, any>>({ columns, data, sear
           </thead>
           <tbody>
             {paged.map((row, i) => (
-              <tr key={i} className="group" style={{ borderBottom: "1px solid var(--gc-border-subtle)", transition: "background-color var(--gc-transition-fast)" }}
+              <tr key={i} className="group" style={{ borderBottom: "1px solid var(--gc-border-subtle)", transition: "background-color var(--gc-transition-fast)", cursor: onRowClick ? "pointer" : "default" }}
+                onClick={() => onRowClick?.(row)}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--gc-hover-overlay)")}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>
                 {columns.map(col => (

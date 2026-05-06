@@ -2,13 +2,17 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import _runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
 
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
+    // Replit's runtime-error-plugin opens a full-screen overlay on every
+    // client throw, which blocks the whole app. Dev-only; disabled here so
+    // component errors stay contained to their own render tree.
+    // runtimeErrorOverlay(),
     tailwindcss(),
     metaImagesPlugin(),
     ...(process.env.NODE_ENV !== "production" &&
@@ -63,6 +67,7 @@ export default defineConfig({
     allowedHosts: true,
     hmr: {
       path: "/vite-hmr",
+      overlay: false,
     },
     fs: {
       strict: true,

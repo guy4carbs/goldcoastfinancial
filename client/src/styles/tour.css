@@ -1,0 +1,200 @@
+/* ============================================================
+   HCMS Walkthrough — driver.js theme overrides.
+   Uses the Gold Coast design tokens from gc-tokens.css so the
+   popover matches whichever [data-theme] is active on GCShell.
+
+   driver.js appends its popover to <body>, outside GCShell's
+   themed subtree. TourProvider copies the active data-theme via
+   onPopoverRender — this :where() block is a zero-specificity
+   fallback so the popover still renders correctly if that hook
+   is ever missing (any real [data-theme="gc-*"] rule overrides).
+   ============================================================ */
+:where(.driver-popover.gc-tour-popover) {
+  --gc-bg: #2D0A12;
+  --gc-surface: #3A1018;
+  --gc-surface-2: #4A1522;
+  --gc-border: rgba(196, 151, 90, 0.25);
+  --gc-border-subtle: rgba(255, 255, 255, 0.06);
+  --gc-gold: #C4975A;
+  --gc-gold-bright: #D4A55A;
+  --gc-text-primary: #E8DDD0;
+  --gc-text-secondary: #B8A898;
+  --gc-text-muted: #A89080;
+  --gc-btn-primary-bg: #C4975A;
+  --gc-btn-primary-text: #2D0A12;
+  --gc-radius-sm: 4px;
+  --gc-radius-md: 8px;
+  --gc-radius-full: 999px;
+  --gc-space-1: 4px;
+  --gc-space-2: 8px;
+  --gc-space-3: 12px;
+  --gc-space-4: 16px;
+  --gc-text-xs: 11px;
+  --gc-text-sm: 13px;
+  --gc-text-base: 14px;
+  --gc-text-lg: 17px;
+  --gc-font-body: 'Montserrat', system-ui, sans-serif;
+  --gc-font-display: 'Playfair Display', Georgia, serif;
+  --gc-shadow-lg: 0 8px 24px rgba(0,0,0,0.35);
+  --gc-transition-fast: 150ms ease;
+  --gc-hover-overlay: rgba(255, 255, 255, 0.04);
+}
+
+/* Popover surface */
+.driver-popover.gc-tour-popover {
+  background: var(--gc-surface);
+  color: var(--gc-text-primary);
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius-md);
+  box-shadow: var(--gc-shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.25));
+  font-family: var(--gc-font-body);
+  padding: var(--gc-space-4);
+  max-width: 360px;
+}
+
+/* Arrow follows the popover background in all 4 side variants */
+.driver-popover.gc-tour-popover .driver-popover-arrow-side-left {
+  border-left-color: var(--gc-surface);
+}
+.driver-popover.gc-tour-popover .driver-popover-arrow-side-right {
+  border-right-color: var(--gc-surface);
+}
+.driver-popover.gc-tour-popover .driver-popover-arrow-side-top {
+  border-top-color: var(--gc-surface);
+}
+.driver-popover.gc-tour-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--gc-surface);
+}
+
+/* Typography */
+.driver-popover.gc-tour-popover .driver-popover-title {
+  font-family: var(--gc-font-display);
+  font-size: var(--gc-text-lg);
+  font-weight: 600;
+  color: var(--gc-text-primary);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--gc-space-2);
+  padding: 0;
+}
+
+.driver-popover.gc-tour-popover .driver-popover-description {
+  font-family: var(--gc-font-body);
+  font-size: var(--gc-text-sm);
+  line-height: 1.55;
+  color: var(--gc-text-secondary);
+  margin: 0 0 var(--gc-space-3);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-progress-text {
+  font-size: var(--gc-text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gc-text-muted);
+  font-weight: 500;
+}
+
+/* Footer / buttons */
+.driver-popover.gc-tour-popover .driver-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gc-space-2);
+  margin-top: var(--gc-space-3);
+  padding: 0;
+}
+
+.driver-popover.gc-tour-popover .driver-popover-navigation-btns {
+  display: flex;
+  gap: var(--gc-space-2);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-next-btn,
+.driver-popover.gc-tour-popover .driver-popover-prev-btn {
+  font-family: var(--gc-font-body);
+  font-size: var(--gc-text-sm);
+  font-weight: 500;
+  padding: var(--gc-space-2) var(--gc-space-4);
+  border-radius: var(--gc-radius-sm);
+  text-shadow: none;
+  transition: transform var(--gc-transition-fast, 150ms ease),
+    opacity var(--gc-transition-fast, 150ms ease),
+    box-shadow var(--gc-transition-fast, 150ms ease);
+  cursor: pointer;
+}
+
+.driver-popover.gc-tour-popover .driver-popover-next-btn {
+  background: var(--gc-btn-primary-bg, var(--gc-gold));
+  color: var(--gc-btn-primary-text);
+  border: 1px solid var(--gc-btn-primary-bg, var(--gc-gold));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-next-btn:hover {
+  background: var(--gc-gold-bright, var(--gc-gold));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-prev-btn {
+  background: transparent;
+  color: var(--gc-text-secondary);
+  border: 1px solid var(--gc-border);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-prev-btn:hover {
+  background: var(--gc-hover-overlay, rgba(0, 0, 0, 0.03));
+  color: var(--gc-text-primary);
+  border-color: var(--gc-border);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-prev-btn:disabled,
+.driver-popover.gc-tour-popover .driver-popover-next-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Close button */
+.driver-popover.gc-tour-popover .driver-popover-close-btn {
+  color: var(--gc-text-muted);
+  top: var(--gc-space-2);
+  right: var(--gc-space-2);
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity var(--gc-transition-fast, 150ms ease),
+    color var(--gc-transition-fast, 150ms ease);
+}
+
+.driver-popover.gc-tour-popover .driver-popover-close-btn:hover {
+  color: var(--gc-text-primary);
+  opacity: 1;
+}
+
+/* Highlight ring around the active element — use the brand gold */
+.driver-active-element {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gc-gold) 55%, transparent),
+    0 0 0 9px color-mix(in srgb, var(--gc-gold) 18%, transparent) !important;
+  border-radius: var(--gc-radius-md) !important;
+  transition: box-shadow 220ms ease !important;
+}
+
+/* Overlay — respect the stage cut-out driver.js creates */
+.driver-overlay {
+  transition: opacity 180ms ease;
+}
+
+/* Animation polish — driver.js toggles .driver-popover-animated when animate:true */
+.driver-popover.gc-tour-popover.driver-popover-animated {
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+/* Reduced motion — honor the user's preference */
+@media (prefers-reduced-motion: reduce) {
+  .driver-popover.gc-tour-popover.driver-popover-animated,
+  .driver-active-element,
+  .driver-overlay {
+    transition: none !important;
+  }
+}
