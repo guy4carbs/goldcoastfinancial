@@ -2436,7 +2436,7 @@ export class DatabaseStorage implements IStorage {
     const roleToLounges: Record<string, string[]> = {
       founder: ALL_LOUNGES,
       owner: ALL_LOUNGES,
-      system_admin: ['admin_panel', 'support_lounge', 'crm_lounge', 'onboarding_lounge'], // Wave Z: any heritage = CRM/onboarding
+      system_admin: ['admin_panel', 'ai_lounge', 'support_lounge', 'crm_lounge', 'onboarding_lounge'], // Wave Z5: admin bundle includes AI + Support
       director: ['agent_portal', 'manager_lounge', 'director_lounge', 'crm_lounge', 'onboarding_lounge'],
       agency_manager: MANAGER_LOUNGES,
       manager: MANAGER_LOUNGES,
@@ -2463,7 +2463,7 @@ export class DatabaseStorage implements IStorage {
     const roleToLounges: Record<string, string[]> = {
       founder: ALL_LOUNGES,
       owner: ALL_LOUNGES,
-      system_admin: ['admin_panel', 'support_lounge', 'crm_lounge', 'onboarding_lounge'], // Wave Z: any heritage = CRM/onboarding
+      system_admin: ['admin_panel', 'ai_lounge', 'support_lounge', 'crm_lounge', 'onboarding_lounge'], // Wave Z5: admin bundle includes AI + Support
       director: ['agent_portal', 'manager_lounge', 'director_lounge', 'crm_lounge', 'onboarding_lounge'],
       agency_manager: MANAGER_LOUNGES,
       manager: MANAGER_LOUNGES,
