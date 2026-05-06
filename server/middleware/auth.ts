@@ -91,6 +91,42 @@ export async function attachUser(req: Request, res: Response, next: NextFunction
  * Require authenticated user
  * Blocks request if not authenticated
  */
+// 2FA gate. Mirrors goldcoast (feature/hcms-foundation server/middleware/auth.ts:68-87)
+// so high-trust roles enforce 2FA enrollment + verification on the same set of
+// surfaces across both deployments. Without this, a user promoted to
+// agency_manager via the goldcoast Founders Access page can log into
+// heritagels.org and bypass 2FA entirely.
+//
+// Single source of truth for the role set lives at
+// server/types/permissions.ts ROLES_REQUIRING_2FA on goldcoast; mirrored here
+// because heritage-app's permissions.ts doesn't export the same constant yet.
+const HIGH_TRUST_2FA_ROLES = new Set<string>([
+  Roles.FOUNDER,
+  Roles.OWNER,
+  Roles.SYSTEM_ADMIN,
+  Roles.DIRECTOR,
+  Roles.AGENCY_MANAGER, // 'manager' on heritage-app
+  Roles.SALES_AGENT,
+  Roles.MARKETING_STAFF,
+  Roles.INVESTOR,
+]);
+
+// Endpoints exempt from the 2FA gate so a user can actually enroll/verify.
+const TWO_FA_EXEMPT_PATHS = [
+  '/api/auth/2fa/enroll/begin',
+  '/api/auth/2fa/enroll/verify',
+  '/api/auth/2fa/verify',
+  '/api/auth/2fa/recovery',
+  '/api/auth/webauthn/register/begin',
+  '/api/auth/webauthn/register/finish',
+  '/api/auth/webauthn/auth/begin',
+  '/api/auth/webauthn/auth/finish',
+  '/api/auth/webauthn/credentials',
+  '/api/auth/logout',
+  '/api/auth/user',
+  '/api/csrf-token',
+];
+
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.session?.userId) {
     return res.status(401).json({
@@ -114,6 +150,27 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
       code: 'ACCOUNT_DISABLED',
       message: 'Your account has been disabled',
     });
+  }
+
+  // 2FA gate — high-trust roles must have a verified 2FA session before any
+  // non-exempt route runs.
+  if (HIGH_TRUST_2FA_ROLES.has(req.user.role)) {
+    const fullPath = (req.originalUrl || req.url || req.path || '').split('?')[0];
+    const isExempt = TWO_FA_EXEMPT_PATHS.some((p) => fullPath === p || fullPath.startsWith(`${p}/`));
+    if (!isExempt) {
+      if (!req.user.twoFactorEnabled) {
+        return res.status(403).json({
+          error: '2FA enrollment required',
+          code: 'REQUIRES_2FA_ENROLLMENT',
+        });
+      }
+      if (!req.user.twoFactorVerified) {
+        return res.status(403).json({
+          error: '2FA verification required',
+          code: 'REQUIRES_2FA',
+        });
+      }
+    }
   }
 
   next();

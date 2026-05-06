@@ -9,11 +9,19 @@
 
 /**
  * Role hierarchy (highest to lowest):
- * Owner > SystemAdmin > AgencyManager > SalesAgent > MarketingStaff > Client > Investor
+ * Founder > Owner > SystemAdmin > Director > AgencyManager > SalesAgent > MarketingStaff > Client > Investor
+ *
+ * FOUNDER and DIRECTOR are introduced by the goldcoast deployment
+ * (feature/hcms-foundation, server/types/permissions.ts:1-15). Both branches
+ * share the same `users.role` column, so heritage-app must accept these
+ * strings — without this, isValidRole() defaults them to CLIENT and a
+ * `founder` user logging into heritagels.org gets locked out of every surface.
  */
 export const Roles = {
+  FOUNDER: 'founder',
   OWNER: 'owner',
   SYSTEM_ADMIN: 'system_admin',
+  DIRECTOR: 'director',
   AGENCY_MANAGER: 'manager',
   SALES_AGENT: 'sales_agent',
   MARKETING_STAFF: 'marketing_staff',
@@ -27,8 +35,10 @@ export const ALL_ROLES: Role[] = Object.values(Roles);
 
 // Role hierarchy for comparisons (lower index = higher privilege)
 export const ROLE_HIERARCHY: Role[] = [
+  Roles.FOUNDER,
   Roles.OWNER,
   Roles.SYSTEM_ADMIN,
+  Roles.DIRECTOR,
   Roles.AGENCY_MANAGER,
   Roles.SALES_AGENT,
   Roles.MARKETING_STAFF,
@@ -170,6 +180,10 @@ export const ALL_PERMISSIONS: PermissionType[] = Object.values(Permission);
 // =============================================================================
 
 export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
+  // ===== FOUNDER - All permissions (introduced by goldcoast deployment) =====
+  // Founders have unrestricted access on heritage-app surfaces too.
+  [Roles.FOUNDER]: ALL_PERMISSIONS,
+
   // ===== OWNER - All permissions =====
   [Roles.OWNER]: ALL_PERMISSIONS,
 
@@ -413,7 +427,16 @@ export const ROLE_PERMISSIONS: Record<Role, PermissionType[]> = {
     Permission.ANALYTICS_EXECUTIVE,
     Permission.REPORTS_EXPORT,
   ],
+
+  // ===== DIRECTOR - Manager-tier oversight (introduced by goldcoast) =====
+  // Inherits the full AGENCY_MANAGER permission set — assigned post-hoc
+  // below to avoid a forward-reference into the same literal.
+  [Roles.DIRECTOR]: [],
 };
+
+// Post-hoc: director inherits the agency-manager permission set so any
+// goldcoast user with role=director gets manager-tier access on heritage-app.
+ROLE_PERMISSIONS[Roles.DIRECTOR] = [...ROLE_PERMISSIONS[Roles.AGENCY_MANAGER]];
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -462,7 +485,7 @@ export function isRoleAtLeast(roleA: Role, roleB: Role): boolean {
  * Check if a role is admin-level (Owner, SystemAdmin, or Manager)
  */
 export function isAdminRole(role: Role): boolean {
-  const adminRoles: Role[] = [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER];
+  const adminRoles: Role[] = [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER];
   return adminRoles.includes(role);
 }
 
@@ -481,17 +504,18 @@ export function isValidRole(role: string): role is Role {
  * Predefined role groups for common access patterns
  */
 export const RoleGroups = {
-  // Full admin access
-  ADMINS: [Roles.OWNER, Roles.SYSTEM_ADMIN],
+  // Full admin access — FOUNDER + DIRECTOR added so goldcoast roles also pass
+  // the heritage-app admin gate without falling through to CLIENT.
+  ADMINS: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN],
 
   // Management level
-  MANAGEMENT: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER],
+  MANAGEMENT: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER],
 
   // Staff (employees)
-  STAFF: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF],
+  STAFF: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF],
 
   // AI Lounge access
-  AI_LOUNGE: [Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT],
+  AI_LOUNGE: [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.SALES_AGENT],
 
   // External users
   EXTERNAL: [Roles.CLIENT, Roles.INVESTOR],
