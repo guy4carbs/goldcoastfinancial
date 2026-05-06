@@ -4,3 +4,12 @@ dist/
 .env.*
 *.pem
 .DS_Store
+Security/
+
+# Playwright artifacts — regenerated per run
+test-results/
+playwright-report/
+
+# One-shot probe / debug scripts (underscore prefix in scripts/) — local-use only
+scripts/_*.mjs
+scripts/_*.ts

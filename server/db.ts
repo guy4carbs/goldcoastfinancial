@@ -6,11 +6,23 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
 }
 
+// Pool sizing: founders dashboards fan out 8-10 concurrent useQuery requests,
+// each of which previously consumed 2 connections (one from setRlsContext, one
+// from pool.query). We've removed the RLS connection (see middleware/
+// rlsContext.ts incident note) but the dashboard fan-out is still real, so
+// keep the cap generous enough to absorb a multi-tab founder. Neon free-tier
+// allows ~100 concurrent connections so 25 leaves plenty of headroom.
+//
+// statement_timeout / query_timeout: hard ceiling on any single query so a
+// slow plan can't hold a connection long enough to starve the rest of the
+// app. 30s matches the express response logger expectations.
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 10,
+  max: 25,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
+  statement_timeout: 30000,
+  query_timeout: 30000,
 });
 
 pool.on('error', (err) => {
@@ -153,6 +165,78 @@ export async function initializeDatabase() {
       );
     `);
 
+    // Extra policy fields used by the Founders Book of Business detail drawer.
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS carrier VARCHAR;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS effective_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS renewal_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS risk_class VARCHAR(50);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS smoker_status VARCHAR(20);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS application_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS issue_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS beneficiary_dob DATE;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS beneficiary_phone VARCHAR(20);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS beneficiary_email VARCHAR(255);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS beneficiary_ssn_encrypted TEXT;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS contingent_beneficiary_name VARCHAR;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS contingent_beneficiary_relationship VARCHAR;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS contingent_beneficiary_phone VARCHAR(20);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS contingent_beneficiary_email VARCHAR(255);`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS riders JSONB DEFAULT '[]'::jsonb;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS agent_notes TEXT;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS last_contact_date TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS next_contact_scheduled TIMESTAMP;`);
+    await client.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS premium_mode VARCHAR(20);`);
+
+    // Client profile (PII) — separate table from agent_profiles, encrypted SSN/banking.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS client_profiles (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+        date_of_birth DATE,
+        ssn_encrypted TEXT,
+        ssn_last4 VARCHAR(4),
+        gender VARCHAR(20),
+        marital_status VARCHAR(20),
+        occupation VARCHAR(120),
+        employer VARCHAR(120),
+        annual_income DECIMAL(12, 2),
+        height_inches INTEGER,
+        weight_lbs INTEGER,
+        smoker_status VARCHAR(20),
+        health_class VARCHAR(50),
+        medical_conditions TEXT,
+        street_address TEXT,
+        address_line2 TEXT,
+        city VARCHAR(120),
+        state VARCHAR(2),
+        zip_code VARCHAR(10),
+        mailing_same_as_residence BOOLEAN DEFAULT TRUE,
+        mailing_street_address TEXT,
+        mailing_city VARCHAR(120),
+        mailing_state VARCHAR(2),
+        mailing_zip_code VARCHAR(10),
+        bank_name VARCHAR(120),
+        bank_account_type VARCHAR(20),
+        routing_number_encrypted TEXT,
+        account_number_encrypted TEXT,
+        account_last4 VARCHAR(4),
+        emergency_contact_name VARCHAR(255),
+        emergency_contact_phone VARCHAR(20),
+        emergency_contact_relationship VARCHAR(50),
+        drivers_license_number_encrypted TEXT,
+        drivers_license_state VARCHAR(2),
+        drivers_license_expiration DATE,
+        preferred_contact_method VARCHAR(20),
+        do_not_contact BOOLEAN DEFAULT FALSE,
+        agent_notes TEXT,
+        last_contact_date TIMESTAMP,
+        next_contact_scheduled TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_client_profiles_user_id ON client_profiles (user_id);`);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS documents (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -255,12 +339,37 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW() NOT NULL
       );
     `);
+    // Columns added live in production but missing from the original CREATE
+    // TABLE. lead_score_tier is the canonical scoring bucket the founders +
+    // heritage-app code reads/writes; score_tier above is deprecated and kept
+    // only until a coordinated cleanup removes the dead readers.
+    // distribution_batch_id groups leads sent in a single round-robin pass.
+    await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_score_tier VARCHAR(20);`);
+    await client.query(`ALTER TABLE leads ADD COLUMN IF NOT EXISTS distribution_batch_id UUID;`);
+
+    // Status enum lock. The 9 values below are what BOTH deployments
+    // (heritagels.org / goldcoastfinancial.co) actually write today —
+    // verified via SELECT DISTINCT against the live leads table. Adding
+    // 'quoted' and 'follow_up' to keep heritage-app's intermediate
+    // pipeline states valid alongside the canonical lifecycle.
+    await client.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'leads_status_check'
+        ) THEN
+          ALTER TABLE leads ADD CONSTRAINT leads_status_check
+            CHECK (status IN ('new','contacted','qualified','quoted','follow_up','scheduled','won','lost','disqualified'));
+        END IF;
+      END $$;
+    `);
+
     await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_assigned_to ON leads (assigned_to);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_status ON leads (status);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_pipeline_stage ON leads (pipeline_stage);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_lead_score ON leads (lead_score);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_next_follow_up ON leads (next_follow_up);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_distributed_to ON leads (distributed_to);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_leads_distribution_batch_id ON leads (distribution_batch_id);`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS lead_activities (
@@ -872,6 +981,122 @@ export async function initializeDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_carrier_appointments_status ON carrier_appointments (status);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_carrier_appointments_agent_carrier ON carrier_appointments (agent_user_id, carrier_id);`);
 
+    // ============================================
+    // FOUNDERS DASHBOARD PRODUCTION (migration 0017)
+    // Editable per-quarter goals, training completions, cash balance
+    // snapshots, and tenant-scoping the deals table by agency_id.
+    //
+    // The FK to agencies(id) requires that the 0011 migration has run; on a
+    // fresh DB without migrations the agencies table won't exist yet, so the
+    // CREATE TABLE statements with that FK are wrapped in try/catch so dev
+    // boots stay green. The backfill is also wrapped because it joins on
+    // agent_hierarchy / agency_teams which may be empty.
+    // ============================================
+
+    try {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS founder_goals (
+          id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          agency_id          UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+          metric_key         VARCHAR(40) NOT NULL,
+          period_type        VARCHAR(20) NOT NULL,
+          period_start       DATE NOT NULL,
+          target_value       NUMERIC(14, 2) NOT NULL,
+          unit               VARCHAR(20) NOT NULL DEFAULT 'usd',
+          notes              TEXT,
+          created_at         TIMESTAMP NOT NULL DEFAULT NOW(),
+          created_by_user_id UUID REFERENCES users(id),
+          UNIQUE (agency_id, metric_key, period_start)
+        );
+      `);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_founder_goals_agency ON founder_goals(agency_id, period_start);`);
+    } catch (e) {
+      console.warn("[db] founder_goals create skipped (agencies table missing?):", (e as Error).message);
+    }
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS training_completions (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        training_key    VARCHAR(60) NOT NULL,
+        completed_at    TIMESTAMP,
+        expires_at      TIMESTAMP,
+        status          VARCHAR(20) NOT NULL DEFAULT 'pending',
+        evidence_s3_key TEXT,
+        created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+        UNIQUE (agent_user_id, training_key)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_completions_agent ON training_completions(agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_completions_status ON training_completions(status);`);
+
+    try {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS cash_balances (
+          id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          agency_id          UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+          account_label      VARCHAR(80) NOT NULL,
+          account_last4      VARCHAR(4),
+          balance_cents      BIGINT NOT NULL,
+          as_of_at           TIMESTAMP NOT NULL,
+          source             VARCHAR(20) NOT NULL DEFAULT 'manual',
+          notes              TEXT,
+          created_at         TIMESTAMP NOT NULL DEFAULT NOW(),
+          created_by_user_id UUID REFERENCES users(id)
+        );
+      `);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_cash_balances_agency_asof ON cash_balances(agency_id, as_of_at DESC);`);
+    } catch (e) {
+      console.warn("[db] cash_balances create skipped (agencies table missing?):", (e as Error).message);
+    }
+
+    // deals.agency_id — tenant scoping. Uses ALTER ... IF NOT EXISTS so it's
+    // a no-op if the column already exists.
+    try {
+      await client.query(`ALTER TABLE deals ADD COLUMN IF NOT EXISTS agency_id UUID REFERENCES agencies(id);`);
+      await client.query(`CREATE INDEX IF NOT EXISTS idx_deals_agency ON deals(agency_id);`);
+    } catch (e) {
+      console.warn("[db] deals.agency_id ALTER skipped (agencies table missing?):", (e as Error).message);
+    }
+
+    // Backfill: derive agency_id for any deal that doesn't have one. Uses the
+    // submitting agent (deals.agent_user_id) → agency_teams.manager_user_id
+    // when the agent is a manager, otherwise walks agent_hierarchy.upline_chain
+    // (JSONB) to find the nearest manager. Falls back to the root agency.
+    try {
+      await client.query(`
+        WITH deal_to_agency AS (
+          SELECT d.id AS deal_id,
+                 COALESCE(
+                   (SELECT at.agency_id
+                      FROM agency_teams at
+                     WHERE at.manager_user_id = d.agent_user_id
+                     LIMIT 1),
+                   (SELECT at.agency_id
+                      FROM agent_hierarchy ah
+                      JOIN agency_teams at
+                        ON at.manager_user_id::text = ANY(
+                             ARRAY(SELECT jsonb_array_elements_text(ah.upline_chain))
+                           )
+                     WHERE ah.agent_user_id = d.agent_user_id
+                       AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+                     ORDER BY ah.effective_from DESC
+                     LIMIT 1),
+                   '00000000-0000-4000-8000-000000000001'::uuid
+                 ) AS agency_id
+            FROM deals d
+           WHERE d.agency_id IS NULL
+        )
+        UPDATE deals
+           SET agency_id = dta.agency_id
+          FROM deal_to_agency dta
+         WHERE deals.id = dta.deal_id;
+      `);
+    } catch (e) {
+      // Safe to skip — empty deals table or missing agency_teams on fresh DB.
+      console.warn("[db] deals.agency_id backfill skipped:", (e as Error).message);
+    }
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS agent_eo_policies (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1027,6 +1252,162 @@ export async function initializeDatabase() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_carrier_sync_carrier ON carrier_sync_log (carrier_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_carrier_sync_status ON carrier_sync_log (status);`);
+
+    // ============================================
+    // FINANCE LOUNGE TABLES
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS chargebacks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        commission_id UUID,
+        policy_number VARCHAR(50),
+        insured_name VARCHAR(200),
+        carrier_code VARCHAR(50),
+        agent_user_id UUID,
+        original_premium DECIMAL(12,2),
+        original_commission DECIMAL(10,2),
+        chargeback_amount DECIMAL(10,2),
+        lapse_date TIMESTAMP,
+        grace_period_ends TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'grace',
+        recovery_type VARCHAR(20),
+        recovery_amount DECIMAL(10,2) DEFAULT 0,
+        resolved_at TIMESTAMP,
+        resolved_by UUID,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_chargebacks_status ON chargebacks (status);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_chargebacks_agent ON chargebacks (agent_user_id);`);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS chargeback_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        chargeback_id UUID,
+        event_type VARCHAR(30),
+        description TEXT,
+        performed_by UUID,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_chargeback_events_cb ON chargeback_events (chargeback_id);`);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS carrier_statements (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        carrier_id VARCHAR,
+        period_month INTEGER,
+        period_year INTEGER,
+        received_date TIMESTAMP,
+        reported_amount DECIMAL(12,2),
+        line_item_count INTEGER DEFAULT 0,
+        status VARCHAR(20) DEFAULT 'pending',
+        imported_by UUID,
+        file_name VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS statement_line_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        statement_id UUID,
+        policy_number VARCHAR(50),
+        insured_name VARCHAR(200),
+        reported_amount DECIMAL(10,2),
+        expected_amount DECIMAL(10,2),
+        variance DECIMAL(10,2),
+        matched_commission_id UUID,
+        match_confidence DECIMAL(3,2),
+        status VARCHAR(20) DEFAULT 'unmatched',
+        resolution_notes TEXT,
+        resolved_by UUID,
+        resolved_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_sli_statement ON statement_line_items (statement_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_sli_status ON statement_line_items (status);`);
+
+    // ============================================
+    // HERITAGE SHARED TABLES (created by heritage-app branch, read by Finance)
+    // ============================================
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS lead_purchases (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        agent_user_id UUID NOT NULL REFERENCES users(id),
+        lead_type VARCHAR(100) NOT NULL,
+        price_cents INTEGER NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        stripe_payment_intent_id VARCHAR(255),
+        stripe_status VARCHAR(50) DEFAULT 'pending',
+        status VARCHAR(20) DEFAULT 'pending',
+        purchased_at TIMESTAMP DEFAULT NOW(),
+        delivered_at TIMESTAMP,
+        states JSONB,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_agent ON lead_purchases (agent_user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lead_purchases_status ON lead_purchases (status);`);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS commission_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        policy_id UUID,
+        deal_id UUID,
+        agent_id UUID NOT NULL REFERENCES users(id),
+        upline_agent_id UUID REFERENCES users(id),
+        commission_type VARCHAR(30) NOT NULL DEFAULT 'personal',
+        premium_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+        contract_level DECIMAL(5,2) NOT NULL DEFAULT 0,
+        override_spread DECIMAL(5,2) DEFAULT 0,
+        commission_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+        period_month INTEGER,
+        period_year INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_records_agent ON commission_records (agent_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_commission_records_deal ON commission_records (deal_id);`);
+
+    // 2FA recovery codes (Section 1 hardening). One row per code, hashed,
+    // single-use. Wiping prior rows on re-enrolment happens in totp.ts.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS two_factor_recovery_codes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL,
+        code_hash TEXT NOT NULL,
+        used_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_2fa_recovery_user ON two_factor_recovery_codes (user_id);`);
+
+    // WebAuthn credentials (Section 2.1 — phishing-resistant 2FA). One row
+    // per registered passkey. `public_key` is COSE-encoded base64url; the
+    // `counter` is the rolling sign count (used to detect cloned authenticators).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS webauthn_credentials (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL,
+        credential_id TEXT NOT NULL UNIQUE,
+        public_key TEXT NOT NULL,
+        counter BIGINT NOT NULL DEFAULT 0,
+        transports TEXT,
+        device_type VARCHAR(40),
+        backed_up BOOLEAN NOT NULL DEFAULT FALSE,
+        nickname VARCHAR(120),
+        last_used_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_webauthn_user ON webauthn_credentials (user_id);`);
 
     console.log("Database tables initialized successfully.");
   } catch (error) {

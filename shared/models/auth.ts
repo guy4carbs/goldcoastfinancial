@@ -15,7 +15,9 @@ export const sessions = pgTable(
 );
 
 // Role enum for RBAC
-export const userRoleEnum = ["owner", "system_admin", "manager", "sales_agent", "client"] as const;
+// "manager" is kept for backward compat with rows predating the
+// 0009_add_director_role migration that renames manager → agency_manager.
+export const userRoleEnum = ["founder", "owner", "system_admin", "director", "agency_manager", "manager", "sales_agent", "client"] as const;
 export type UserRole = typeof userRoleEnum[number];
 
 // User storage table for custom authentication
