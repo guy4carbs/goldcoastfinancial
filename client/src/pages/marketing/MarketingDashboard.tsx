@@ -1,4 +1,6 @@
-import { GCPageHeader, GCKPICard, GCDataTable, GCAreaChart, type Column } from "@/components/gc";
+import { useState } from "react";
+import { GCPageHeader, GCKPICard, GCDataTable, GCPeriodSelector, type Column } from "@/components/gc";
+
 const SOURCES = [
   { source: "Web Form", leads: 28, conversions: 8, convRate: 28.6, revenue: 25600, roi: 320 },
   { source: "Referral", leads: 18, conversions: 7, convRate: 38.9, revenue: 31500, roi: 450 },
@@ -6,8 +8,18 @@ const SOURCES = [
   { source: "Social Media", leads: 10, conversions: 2, convRate: 20.0, revenue: 4200, roi: 140 },
   { source: "Paid Ads", leads: 6, conversions: 1, convRate: 16.7, revenue: 3800, roi: 95 },
 ];
-const FUNNEL = [{ stage: "New", count: 78 }, { stage: "Contacted", count: 62 }, { stage: "Qualified", count: 45 }, { stage: "Quoted", count: 32 }, { stage: "Application", count: 22 }, { stage: "Placed", count: 18 }];
+
+const FUNNEL = [
+  { stage: "New", count: 78 },
+  { stage: "Contacted", count: 62 },
+  { stage: "Qualified", count: 45 },
+  { stage: "Quoted", count: 32 },
+  { stage: "Application", count: 22 },
+  { stage: "Placed", count: 18 },
+];
+
 const roiColor = (r: number) => r >= 200 ? "var(--gc-status-active)" : r >= 100 ? "var(--gc-gold)" : "var(--gc-status-terminated)";
+
 const cols: Column<typeof SOURCES[0]>[] = [
   { key: "source", label: "Source", sortable: true },
   { key: "leads", label: "Leads", sortable: true },
@@ -16,19 +28,25 @@ const cols: Column<typeof SOURCES[0]>[] = [
   { key: "revenue", label: "Revenue", sortable: true, render: (v) => `$${v.toLocaleString()}` },
   { key: "roi", label: "ROI", sortable: true, render: (v) => <span style={{ fontFamily: "var(--gc-font-display)", fontWeight: 600, color: roiColor(v) }}>{v}%</span> },
 ];
-export default function OpsMarketing() {
+
+export default function MarketingDashboard() {
+  const [period, setPeriod] = useState("this-month");
   return (
     <div>
-      <GCPageHeader title="Marketing & Growth" subtitle="Campaign performance, lead attribution & recruitment pipeline" accentUnderline />
+      <GCPageHeader title="Marketing Overview" subtitle="Campaign performance, lead attribution & recruitment pipeline" accentUnderline
+        actions={
+          <GCPeriodSelector value={period} onChange={setPeriod} />
+        }
+      />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <GCKPICard label="Total Leads (Month)" value={78} accentTop delta={{ value: "+18%", positive: true }} />
         <GCKPICard label="Conversion Rate" value="23%" accentTop delta={{ value: "+2%", positive: true }} />
         <GCKPICard label="Cost Per Lead" value="$42" accentTop delta={{ value: "-8%", positive: true }} />
         <GCKPICard label="Agent Recruits" value={6} accentTop delta={{ value: "+2", positive: true }} />
-        <GCKPICard label="Pipeline Value" value="$245K" accentTop />
+        <GCKPICard label="Pipeline Value" value="$245K" accentTop href="/finance" />
       </div>
       <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Lead Source Attribution</div>
-      <GCDataTable columns={cols} data={SOURCES} searchable />
+      <GCDataTable columns={cols} data={SOURCES} />
       <div style={{ marginTop: "var(--gc-space-6)" }}>
         <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Conversion Funnel</div>
         <div className="flex flex-col gap-2">

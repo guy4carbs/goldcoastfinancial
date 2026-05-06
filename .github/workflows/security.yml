@@ -1,0 +1,56 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Daily 13:00 UTC = 09:00 ET — gives us a fresh report every morning
+    - cron: "0 13 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: npm audit (high+critical block)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install (no scripts)
+        run: npm ci --ignore-scripts
+
+      # Block merges if any production dependency has a high or critical CVE.
+      # Dev-only vulnerabilities are noisy and rarely exploitable in this
+      # project's context, so we deliberately scope to --omit=dev.
+      - name: npm audit --audit-level=high --omit=dev
+        run: npm audit --audit-level=high --omit=dev
+
+  typecheck:
+    name: tsc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

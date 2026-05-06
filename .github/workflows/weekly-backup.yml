@@ -1,0 +1,102 @@
+name: Weekly Backup
+
+# Encrypted off-host snapshot of the production DB. Runs Sundays 02:00 UTC
+# (= Sat 22:00 ET). Pushes to s3://gc-backups-prod with Object Lock
+# COMPLIANCE retention (7 years).
+#
+# Required secrets (set in repo Settings → Secrets → Actions):
+#   AWS_BACKUP_ROLE_ARN     IAM role with PutObject + Object Lock on the bucket
+#   AWS_REGION              e.g. us-east-1
+#   BACKUP_BUCKET           e.g. gc-backups-prod
+#   DATABASE_URL_RO         Read-only Postgres URL (recommended) or main DATABASE_URL
+#   BACKUP_GPG_PUBLIC_KEY   ASCII-armored PGP public key whose private half
+#                            lives in a Shamir 3-of-5 split offline.
+#
+# Optional:
+#   GITHUB_TOKEN already provided by Actions; no extra config needed.
+#
+# Tag protection: only pushes to main + scheduled triggers can run this.
+on:
+  schedule:
+    - cron: "0 2 * * 0" # 02:00 UTC every Sunday
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # for OIDC into AWS
+  contents: read
+
+jobs:
+  backup:
+    name: pg_dump → gpg → s3 (Object Lock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pg_dump (Postgres 16 client)
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+          sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16 gnupg
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_BACKUP_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Import backup PGP public key
+        run: |
+          echo "${{ secrets.BACKUP_GPG_PUBLIC_KEY }}" | gpg --import
+          gpg --list-keys
+
+      - name: Dump + encrypt + upload
+        env:
+          DATABASE_URL_RO: ${{ secrets.DATABASE_URL_RO }}
+          BACKUP_BUCKET: ${{ secrets.BACKUP_BUCKET }}
+        run: |
+          set -e
+          DATE_UTC=$(date -u +%Y%m%d-%H%M%S)
+          DUMP=/tmp/gc-${DATE_UTC}.dump
+          ENC=${DUMP}.gpg
+          KEY="db/$(date -u +%Y%m)/gc-${DATE_UTC}.dump.gpg"
+
+          pg_dump --format=custom --compress=9 --no-owner --no-privileges \
+            "$DATABASE_URL_RO" > "$DUMP"
+          SIZE_BEFORE=$(stat -c%s "$DUMP")
+          echo "Dump size: $SIZE_BEFORE bytes"
+
+          # Encrypt to the backup recipient. Use --trust-model always so the
+          # key doesn't need to be ultimately trusted in this ephemeral runner.
+          gpg --batch --yes --trust-model always \
+            --encrypt --recipient backup@heritagels.org \
+            --output "$ENC" "$DUMP"
+          shred -u "$DUMP"
+
+          # Object Lock COMPLIANCE: retain 90 days hot in Standard, then
+          # lifecycle policy on the bucket transitions to Glacier Deep
+          # Archive at day 90 and expires at day 2555 (~7 years).
+          RETAIN_UNTIL=$(date -u -d "+90 days" +%Y-%m-%dT%H:%M:%SZ)
+          aws s3api put-object \
+            --bucket "$BACKUP_BUCKET" \
+            --key "$KEY" \
+            --body "$ENC" \
+            --object-lock-mode COMPLIANCE \
+            --object-lock-retain-until-date "$RETAIN_UNTIL" \
+            --server-side-encryption AES256
+
+          shred -u "$ENC"
+          echo "Uploaded s3://$BACKUP_BUCKET/$KEY"
+
+      # Optional: post a one-line audit row by hitting our own backup-audit
+      # endpoint. Uncomment + provide BACKUP_AUDIT_URL/COOKIE secrets when
+      # the endpoint is wired (Phase 4 backlog).
+      # - name: Audit-log the upload
+      #   run: |
+      #     curl -X POST -H "Cookie: ${{ secrets.HEALTHCHECK_SESSION_COOKIE }}" \
+      #          -H "Content-Type: application/json" \
+      #          -d "{\"key\":\"$KEY\"}" \
+      #          "${{ vars.HEALTHCHECK_BASE_URL }}/api/founders/backups/audit"

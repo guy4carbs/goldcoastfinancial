@@ -1,0 +1,140 @@
+name: Daily Security Health
+
+on:
+  schedule:
+    # Every day 13:00 UTC = 09:00 ET
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    name: Compose security health digest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install (no scripts)
+        run: npm ci --ignore-scripts
+
+      # 1. npm audit summary — production deps only.
+      - name: npm audit (prod)
+        id: audit
+        continue-on-error: true
+        run: |
+          set +e
+          npm audit --omit=dev --json > /tmp/audit.json
+          high=$(jq '.metadata.vulnerabilities.high // 0' /tmp/audit.json)
+          critical=$(jq '.metadata.vulnerabilities.critical // 0' /tmp/audit.json)
+          moderate=$(jq '.metadata.vulnerabilities.moderate // 0' /tmp/audit.json)
+          low=$(jq '.metadata.vulnerabilities.low // 0' /tmp/audit.json)
+          echo "high=$high" >> $GITHUB_OUTPUT
+          echo "critical=$critical" >> $GITHUB_OUTPUT
+          echo "moderate=$moderate" >> $GITHUB_OUTPUT
+          echo "low=$low" >> $GITHUB_OUTPUT
+
+      # 2. Live evidence + audit chain. Requires DB access — pulled from
+      #    secrets so the workflow can query the prod (or staging) Neon.
+      - name: Pull SOC 2 evidence + verify audit chain
+        id: evidence
+        continue-on-error: true
+        env:
+          HEALTHCHECK_SESSION_COOKIE: ${{ secrets.HEALTHCHECK_SESSION_COOKIE }}
+          HEALTHCHECK_BASE_URL: ${{ vars.HEALTHCHECK_BASE_URL || 'https://app.heritagels.org' }}
+        run: |
+          set -e
+          # Both endpoints need a founder session cookie. The cookie is
+          # generated once with `npm run cron:cookie` (one-shot script,
+          # documented in policies/secret-rotation.md) and stored as a repo
+          # secret with 90-day rotation.
+          if [ -z "$HEALTHCHECK_SESSION_COOKIE" ]; then
+            echo "::warning::HEALTHCHECK_SESSION_COOKIE not set — skipping live probes"
+            echo "evidence_skipped=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          curl -sS -H "Cookie: $HEALTHCHECK_SESSION_COOKIE" \
+               -o /tmp/audit-chain.json \
+               "$HEALTHCHECK_BASE_URL/api/founders/audit-chain/verify"
+          curl -sS -H "Cookie: $HEALTHCHECK_SESSION_COOKIE" \
+               -o /tmp/evidence.json \
+               "$HEALTHCHECK_BASE_URL/api/founders/soc2/evidence"
+          chain_ok=$(jq -r '.ok' /tmp/audit-chain.json)
+          chain_count=$(jq -r '.count' /tmp/audit-chain.json)
+          ht_count=$(jq -r '[.authentication.highTrustRoles[] | .count] | add // 0' /tmp/evidence.json)
+          ht_2fa=$(jq -r '[.authentication.highTrustRoles[] | .with2fa] | add // 0' /tmp/evidence.json)
+          ht_passkey=$(jq -r '[.authentication.highTrustRoles[] | .withPasskey] | add // 0' /tmp/evidence.json)
+          failed_24h=$(jq -r '.authentication.failedLoginsLast24h' /tmp/evidence.json)
+          lockouts=$(jq -r '.authentication.accountLockoutsCurrent' /tmp/evidence.json)
+          plaid_v2=$(jq -r '.encryption.plaidItemsV2' /tmp/evidence.json)
+          plaid_v1=$(jq -r '.encryption.plaidItemsV1' /tmp/evidence.json)
+          echo "chain_ok=$chain_ok" >> $GITHUB_OUTPUT
+          echo "chain_count=$chain_count" >> $GITHUB_OUTPUT
+          echo "ht_count=$ht_count" >> $GITHUB_OUTPUT
+          echo "ht_2fa=$ht_2fa" >> $GITHUB_OUTPUT
+          echo "ht_passkey=$ht_passkey" >> $GITHUB_OUTPUT
+          echo "failed_24h=$failed_24h" >> $GITHUB_OUTPUT
+          echo "lockouts=$lockouts" >> $GITHUB_OUTPUT
+          echo "plaid_v2=$plaid_v2" >> $GITHUB_OUTPUT
+          echo "plaid_v1=$plaid_v1" >> $GITHUB_OUTPUT
+
+      # 3. Compose digest + post to Slack (via webhook secret).
+      - name: Build digest
+        id: digest
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          cat > /tmp/digest.md <<EOF
+          # Security Health · $DATE
+
+          ## Dependencies
+          - Critical: ${{ steps.audit.outputs.critical }}
+          - High: ${{ steps.audit.outputs.high }}
+          - Moderate: ${{ steps.audit.outputs.moderate }}
+          - Low: ${{ steps.audit.outputs.low }}
+
+          ## Audit chain
+          - ok: \`${{ steps.evidence.outputs.chain_ok }}\` (${{ steps.evidence.outputs.chain_count }} rows)
+
+          ## Authentication
+          - High-trust users: ${{ steps.evidence.outputs.ht_count }} (${{ steps.evidence.outputs.ht_2fa }} 2FA, ${{ steps.evidence.outputs.ht_passkey }} passkey)
+          - Failed logins last 24h: ${{ steps.evidence.outputs.failed_24h }}
+          - Currently locked accounts: ${{ steps.evidence.outputs.lockouts }}
+
+          ## Encryption
+          - Plaid items v2 (KMS): ${{ steps.evidence.outputs.plaid_v2 }}
+          - Plaid items v1 (legacy): ${{ steps.evidence.outputs.plaid_v1 }}
+          EOF
+          cat /tmp/digest.md
+
+      - name: Post to Slack
+        if: env.SLACK_SECURITY_WEBHOOK != ''
+        env:
+          SLACK_SECURITY_WEBHOOK: ${{ secrets.SLACK_SECURITY_WEBHOOK }}
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          BODY=$(jq -Rs . < /tmp/digest.md)
+          curl -X POST -H 'Content-Type: application/json' \
+            -d "{\"text\":\"*Security Health · $DATE*\",\"attachments\":[{\"color\":\"#C4975A\",\"text\":$BODY}]}" \
+            "$SLACK_SECURITY_WEBHOOK"
+
+      # 4. Fail the job if anything is structurally broken.
+      - name: Hard-fail on broken state
+        run: |
+          set -e
+          if [ "${{ steps.audit.outputs.critical }}" != "0" ]; then
+            echo "::error::Critical npm advisory present"
+            exit 1
+          fi
+          if [ "${{ steps.evidence.outputs.evidence_skipped }}" = "true" ]; then
+            exit 0
+          fi
+          if [ "${{ steps.evidence.outputs.chain_ok }}" != "true" ]; then
+            echo "::error::Audit chain divergence detected"
+            exit 1
+          fi

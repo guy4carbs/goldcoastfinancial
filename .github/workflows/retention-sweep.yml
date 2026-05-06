@@ -1,0 +1,42 @@
+name: Retention Sweep
+
+# Hard-deletes rows past their retention windows per
+# docs/security/policies/data-retention.md. Idempotent; runs daily at
+# 04:00 UTC (= 00:00 ET, after the backup window).
+#
+# Required secrets:
+#   DATABASE_URL — full read/write URL (delete + audit insert).
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run in dry-run mode (count only)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    name: Retention sweep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install (no scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Run retention sweep
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: node scripts/retention-sweep.mjs
