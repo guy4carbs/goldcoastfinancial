@@ -6,12 +6,12 @@ const STORAGE_KEY = "hcms.tour.state.v1";
 const defaultState: TourPersistedState = {
   completedTourIds: [],
   resume: null,
-  firstLoginDismissed: { agent: false, admin: false, finance: false },
+  firstLoginDismissed: { agent: false, admin: false, finance: false, founder: false },
   lastSeenAt: 0,
 };
 
 function safeParse(raw: string | null): TourPersistedState {
-  if (!raw) return { ...defaultState, firstLoginDismissed: { agent: false, admin: false, finance: false } };
+  if (!raw) return { ...defaultState, firstLoginDismissed: { agent: false, admin: false, finance: false, founder: false } };
   try {
     const parsed = JSON.parse(raw);
     return {
@@ -26,9 +26,10 @@ function safeParse(raw: string | null): TourPersistedState {
             }
           : null,
       // Migration:
-      //  - Legacy boolean → treat as all-roles dismissed (don't re-nag).
-      //  - Pre-finance object → preserve agent/admin, default finance to false
-      //    so existing users see the finance tour on their next /finance visit.
+      //  - Legacy boolean → treat as all-roles dismissed (don't re-nag existing users).
+      //  - Pre-finance object → preserve agent/admin, default missing roles to
+      //    false so existing users see the new lounge tours on their first visit.
+      //  - Pre-founder object → same logic for the founder flag.
       firstLoginDismissed: (() => {
         const fld = parsed.firstLoginDismissed;
         if (fld && typeof fld === "object") {
@@ -36,15 +37,16 @@ function safeParse(raw: string | null): TourPersistedState {
             agent: Boolean(fld.agent),
             admin: Boolean(fld.admin),
             finance: Boolean(fld.finance),
+            founder: Boolean(fld.founder),
           };
         }
         const legacy = Boolean(fld);
-        return { agent: legacy, admin: legacy, finance: legacy };
+        return { agent: legacy, admin: legacy, finance: legacy, founder: legacy };
       })(),
       lastSeenAt: typeof parsed.lastSeenAt === "number" ? parsed.lastSeenAt : 0,
     };
   } catch {
-    return { ...defaultState, firstLoginDismissed: { agent: false, admin: false, finance: false } };
+    return { ...defaultState, firstLoginDismissed: { agent: false, admin: false, finance: false, founder: false } };
   }
 }
 

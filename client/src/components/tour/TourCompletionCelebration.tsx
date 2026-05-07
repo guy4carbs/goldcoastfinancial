@@ -45,14 +45,23 @@ export function TourCompletionCelebration() {
   //  - agent: ends on /hcms/my/hierarchy → lands on agent dashboard
   //  - admin: ends on /hcms/contracting/questions → lands on Agent Directory
   //  - finance: ends on /finance/reports → lands on Command Center
+  //  - founder: ends on /founders/settings → lands on the Founders Dashboard
   const role = celebratingTour?.role;
   const primaryCtaHref =
-    role === "admin" ? "/hcms/agents" : role === "finance" ? "/finance" : "/hcms/my/dashboard";
+    role === "admin"
+      ? "/hcms/agents"
+      : role === "finance"
+      ? "/finance"
+      : role === "founder"
+      ? "/founders"
+      : "/hcms/my/dashboard";
   const primaryCtaLabel =
     role === "admin"
       ? "Back to Agent Directory"
       : role === "finance"
       ? "Back to Command Center"
+      : role === "founder"
+      ? "Back to Founders Dashboard"
       : "Take me to my dashboard";
   const copy =
     role === "admin"
@@ -68,6 +77,13 @@ export function TourCompletionCelebration() {
           headline: `You're set up, ${firstName}.`,
           body:
             "You've seen every view in the Finance Lounge — revenue tracking, commission overrides, transaction lifecycle, and the full reporting suite. Daily work lives on the Command Center; drill into any card to dig deeper.",
+        }
+      : role === "founder"
+      ? {
+          eyebrow: "FOUNDERS WALKTHROUGH COMPLETE",
+          headline: `Welcome upstairs, ${firstName}.`,
+          body:
+            "You've seen every view in the Founders Lounge — agency-wide oversight, organization management, ownership economics, and access controls. The Dashboard is your daily landing; everything else is one click into the depth you need.",
         }
       : {
           eyebrow: "WALKTHROUGH COMPLETE",

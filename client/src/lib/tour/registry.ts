@@ -35,6 +35,18 @@ import { financeChargebacksTour } from "./tours/finance/chargebacks";
 import { financeReconciliationTour } from "./tours/finance/reconciliation";
 import { financeStatementsTour } from "./tours/finance/statements";
 import { financeReportsTour } from "./tours/finance/reports";
+import { founderDashboardTour } from "./tours/founder/dashboard";
+import { founderRevenueTour } from "./tours/founder/revenue";
+import { founderHierarchyTour } from "./tours/founder/hierarchy";
+import { founderGrowthTour } from "./tours/founder/growth";
+import { founderBookTour } from "./tours/founder/book";
+import { founderTeamPerformanceTour } from "./tours/founder/team-performance";
+import { founderLeadDistributionTour } from "./tours/founder/lead-distribution";
+import { founderAgencyManagementTour } from "./tours/founder/agency-management";
+import { founderProfitSplitTour } from "./tours/founder/profit-split";
+import { founderAccessTour } from "./tours/founder/access";
+import { founderViewAsTour } from "./tours/founder/view-as";
+import { founderSettingsTour } from "./tours/founder/settings";
 
 const ALL: TourConfig[] = [
   agentDashboardTour,
@@ -74,6 +86,19 @@ const ALL: TourConfig[] = [
   financeReconciliationTour,
   financeStatementsTour,
   financeReportsTour,
+  // Founders chain — 12 tours, /founders through /founders/settings, celebration finale
+  founderDashboardTour,
+  founderRevenueTour,
+  founderHierarchyTour,
+  founderGrowthTour,
+  founderBookTour,
+  founderTeamPerformanceTour,
+  founderLeadDistributionTour,
+  founderAgencyManagementTour,
+  founderProfitSplitTour,
+  founderAccessTour,
+  founderViewAsTour,
+  founderSettingsTour,
 ];
 
 const BY_ID = new Map<string, TourConfig>(ALL.map((t) => [t.id, t]));

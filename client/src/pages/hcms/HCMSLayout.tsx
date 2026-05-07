@@ -52,12 +52,16 @@ export function ExecutiveOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-// Blocks non-founders from the Founders Lounge — only role === "founder"
+// Blocks non-founders from the Founders Lounge — only role === "founder".
+// TODO(test-bypass): "owner" is temporarily allowed so the Founders walkthrough
+// can be exercised end-to-end before any account is promoted to the founder
+// role. Remove the owner branch once the founder role is provisioned in
+// production for the people who should actually be founders.
 export function FoundersOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
   if (!user) return <Redirect to="/login" />;
-  if (user.role !== "founder") return <Redirect to="/hcms" />;
+  if (user.role !== "founder" && user.role !== "owner") return <Redirect to="/hcms" />;
   return <>{children}</>;
 }
 
@@ -103,10 +107,12 @@ export function TourAutoStart({ role }: { role: TourRole }) {
     //  - agent:   /hcms/my/dashboard  (startsWith — nested agent routes OK)
     //  - admin:   /hcms               (exact match — /hcms/* sub-routes shouldn't trigger)
     //  - finance: /finance            (exact match — /finance/* sub-routes shouldn't trigger)
+    //  - founder: /founders           (exact match — /founders/* sub-routes shouldn't trigger)
     const matchesEntry = (() => {
       if (role === "agent") return location.startsWith("/hcms/my/dashboard");
       if (role === "admin") return location === "/hcms";
       if (role === "finance") return location === "/finance";
+      if (role === "founder") return location === "/founders";
       return false;
     })();
     if (!matchesEntry) return;

@@ -1,6 +1,6 @@
 import type { DriveStep } from "driver.js";
 
-export type TourRole = "agent" | "admin" | "finance";
+export type TourRole = "agent" | "admin" | "finance" | "founder";
 
 export interface TourStep extends DriveStep {
   section?: string;
@@ -34,8 +34,9 @@ export interface ResumePointer {
 export interface TourPersistedState {
   completedTourIds: string[];
   resume: ResumePointer | null;
-  /** Per-role first-login dismissal — an owner who views /hcms/my/*, /hcms/*,
-   *  and /finance gets an independent auto-start for each role. */
-  firstLoginDismissed: { agent: boolean; admin: boolean; finance: boolean };
+  /** Per-role first-login dismissal — independent auto-start for each
+   *  lounge so a founder/owner who views /hcms/my/*, /hcms/*, /finance,
+   *  and /founders gets one auto-start per role. */
+  firstLoginDismissed: { agent: boolean; admin: boolean; finance: boolean; founder: boolean };
   lastSeenAt: number;
 }

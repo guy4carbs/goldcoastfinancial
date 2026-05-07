@@ -16,13 +16,16 @@ export function TourButton() {
   if (!user) return null;
   if (activeTourId) return null;
 
-  // Only show inside HCMS and Finance
+  // Only show inside HCMS, Finance, and Founders lounges
   const inHcms = location.startsWith("/hcms");
   const inFinance = location.startsWith("/finance");
-  if (!inHcms && !inFinance) return null;
+  const inFounders = location.startsWith("/founders");
+  if (!inHcms && !inFinance && !inFounders) return null;
 
   let role: TourRole;
-  if (inFinance) {
+  if (inFounders) {
+    role = "founder";
+  } else if (inFinance) {
     role = "finance";
   } else {
     role = ADMIN_ROLES.has(user.role) && !location.startsWith("/hcms/my/") ? "admin" : "agent";
@@ -30,7 +33,13 @@ export function TourButton() {
 
   // Entry-page fallback per role so the FAB always points at a real tour.
   const fallbackPath =
-    role === "agent" ? "/hcms/my/dashboard" : role === "admin" ? "/hcms/agents" : "/finance";
+    role === "agent"
+      ? "/hcms/my/dashboard"
+      : role === "admin"
+      ? "/hcms/agents"
+      : role === "finance"
+      ? "/finance"
+      : "/founders";
   const config = getTourForRoute(location, role) || getTourForRoute(fallbackPath, role);
 
   if (!config) return null;

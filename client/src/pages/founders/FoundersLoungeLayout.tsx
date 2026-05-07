@@ -22,6 +22,7 @@ import { TourProvider } from "@/lib/tour/TourProvider";
 import { TourButton } from "@/components/tour/TourButton";
 import { ResumeTourBanner } from "@/components/tour/ResumeTourBanner";
 import { TourCompletionCelebration } from "@/components/tour/TourCompletionCelebration";
+import { TourAutoStart } from "@/pages/hcms/HCMSLayout";
 
 export default function FoundersLoungeLayout() {
   const [location] = useLocation();
@@ -82,6 +83,7 @@ export default function FoundersLoungeLayout() {
       </GCShell>
       <TourButton />
       <TourCompletionCelebration />
+      <TourAutoStart role="founder" />
     </TourProvider>
   );
 }
