@@ -1,10 +1,10 @@
 /**
  * Founders Agency Management — backend routes.
  *
- * All endpoints are gated `requireAuth + requireRole(...ADMIN_PLUS)` at the
- * router level — same gate as the rest of the Founders Lounge so owners and
- * system_admins can manage agencies alongside founders. Every write emits
- * `logFounderAction(...)`.
+ * All endpoints are gated `requireAuth + requireRole(...FOUNDERS_ONLY)` at the
+ * router level (Wave Y tightening — founders are the only role with access to
+ * the Founders Lounge; Owner + System Admin no longer hit /founders/*). Every
+ * write emits `logFounderAction(...)`.
  *
  * Endpoint surface (mounted under /api/founders, so paths look like
  * /api/founders/agencies/... and /api/founders/carriers/...):
@@ -37,21 +37,17 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { pool } from "../db";
-import { requireAuth, requireRole, ADMIN_PLUS } from "../middleware/auth";
+import { requireAuth, requireRole, FOUNDERS_ONLY, blockWritesDuringViewAs } from "../middleware/auth";
 import { logFounderAction } from "../services/founderAudit";
 import { ROOT_AGENCY_ID } from "../services/agencyResolver";
-import {
-  DEMO_FALLBACK_ENABLED,
-  demoAgencies,
-  demoAgencyCarrierContracts,
-  demoEntityRoster,
-} from "../services/foundersDemoData";
+import { genericError } from "./founders-book";
 import { HIERARCHY_TITLES } from "../../shared/models/enterprise";
 import {
   emitHierarchyChanged,
   emitRoleChanged,
 } from "../services/foundersEventBus";
 import { titleToRole } from "../services/hierarchyRoleMap";
+import { reinitializeLoungeAccess } from "../services/loungeAccessSync";
 import { storage } from "../storage";
 import {
   sendFormationGuideEmail,
@@ -61,11 +57,11 @@ import {
 } from "../services/emailTemplates/formationGuide";
 
 const router = Router();
-// Founders Lounge gate. ADMIN_PLUS = [FOUNDER, OWNER, SYSTEM_ADMIN] — same as
-// the rest of the lounge (founders-book, founders-leads, founders-teams,
-// founders-oversight). Using FOUNDERS_ONLY here would 403 owners and
-// system_admins out of every agency endpoint, blanking the page.
-router.use(requireAuth, requireRole(...ADMIN_PLUS));
+// Founders Lounge gate. Wave Y tightened from ADMIN_PLUS → FOUNDERS_ONLY per
+// founder mandate: Owner has access to everything in goldcoast EXCEPT the
+// Founders Lounge. System Admin's surfaces are the Admin HCMS + Ops Hub, not
+// the Founders Lounge. Founder is the only role that hits these endpoints.
+router.use(requireAuth, requireRole(...FOUNDERS_ONLY));
 
 // ─── Rate limiters for formation-guide endpoints (Sentinel HIGH) ─────────
 // Send is rate-limited per founder (10/hr) to prevent accidental or malicious
@@ -197,7 +193,7 @@ router.get("/agencies/kpis", async (_req, res) => {
     });
   } catch (e: any) {
     console.error("[FoundersAgencies] kpis error:", e?.message);
-    res.status(500).json({ error: "Failed to load agency KPIs" });
+    res.status(500).json(genericError("Failed to load agency KPIs"));
   }
 });
 
@@ -235,16 +231,6 @@ router.get("/agencies/tree", async (_req, res) => {
          JOIN users u ON u.id = at.manager_user_id
          ORDER BY u.last_name ASC NULLS LAST`,
     );
-
-    if (
-      DEMO_FALLBACK_ENABLED &&
-      agencyRes.rows.length === 0 &&
-      teamsRes.rows.length === 0
-    ) {
-      // demoAgencies() returns an array; FE consumes a single root node.
-      const demo = demoAgencies();
-      return res.json(demo[0] ?? null);
-    }
 
     // Index teams by agency_id. Field names mirror the snake_case shape
     // FoundersAgencyManagement.tsx + AgencyTreeFlow.tsx consume so the page
@@ -308,7 +294,7 @@ router.get("/agencies/tree", async (_req, res) => {
     res.json(roots[0] ?? null);
   } catch (e: any) {
     console.error("[FoundersAgencies] tree error:", e?.message);
-    res.status(500).json({ error: "Failed to load agency tree" });
+    res.status(500).json(genericError("Failed to load agency tree"));
   }
 });
 
@@ -343,7 +329,7 @@ router.get("/agencies/entity-stats", async (_req, res) => {
     });
   } catch (e: any) {
     console.error("[FoundersAgencies] entity-stats error:", e?.message);
-    res.status(500).json({ error: "Failed to load entity stats" });
+    res.status(500).json(genericError("Failed to load entity stats"));
   }
 });
 
@@ -371,10 +357,6 @@ router.get("/agencies/entity-roster", async (req, res) => {
         ORDER BY u.last_name ASC NULLS LAST, u.first_name ASC NULLS LAST
         LIMIT 500`,
     );
-
-    if (DEMO_FALLBACK_ENABLED && r.rows.length === 0) {
-      return res.json(demoEntityRoster());
-    }
 
     const rows = r.rows.map((p: any) => {
       let ownerCount = 0;
@@ -405,7 +387,7 @@ router.get("/agencies/entity-roster", async (req, res) => {
     res.json(rows);
   } catch (e: any) {
     console.error("[FoundersAgencies] entity-roster error:", e?.message);
-    res.status(500).json({ error: "Failed to load entity roster" });
+    res.status(500).json(genericError("Failed to load entity roster"));
   }
 });
 
@@ -576,7 +558,7 @@ const SendFormationGuideSchema = z
     { message: "Total recipients (user IDs + emails) must be 1–50" },
   );
 
-router.post("/agencies/formation-guide/send", formationGuideSendLimiter, async (req, res) => {
+router.post("/agencies/formation-guide/send", formationGuideSendLimiter, blockWritesDuringViewAs, async (req, res) => {
   // Validate body
   const parse = SendFormationGuideSchema.safeParse(req.body);
   if (!parse.success) {
@@ -923,13 +905,13 @@ router.get("/agencies/:id", async (req, res) => {
     });
   } catch (e: any) {
     console.error("[FoundersAgencies] get agency error:", e?.message);
-    res.status(500).json({ error: "Failed to load agency" });
+    res.status(500).json(genericError("Failed to load agency"));
   }
 });
 
 // ─── Create agency ───────────────────────────────────────────────────────────
 
-router.post("/agencies", async (req, res) => {
+router.post("/agencies", blockWritesDuringViewAs, async (req, res) => {
   try {
     const {
       parentAgencyId,
@@ -1018,13 +1000,13 @@ router.post("/agencies", async (req, res) => {
     res.json({ success: true, id: newId });
   } catch (e: any) {
     console.error("[FoundersAgencies] create agency error:", e?.message);
-    res.status(500).json({ error: "Failed to create agency" });
+    res.status(500).json(genericError("Failed to create agency"));
   }
 });
 
 // ─── Update agency ───────────────────────────────────────────────────────────
 
-router.patch("/agencies/:id", async (req, res) => {
+router.patch("/agencies/:id", blockWritesDuringViewAs, async (req, res) => {
   const id = req.params.id;
   if (!isUuid(id)) return res.status(400).json({ error: "Invalid agency id" });
   try {
@@ -1112,13 +1094,13 @@ router.patch("/agencies/:id", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] patch agency error:", e?.message);
-    res.status(500).json({ error: "Failed to update agency" });
+    res.status(500).json(genericError("Failed to update agency"));
   }
 });
 
 // ─── Delete (soft-suspend or hard-delete) agency ─────────────────────────────
 
-router.delete("/agencies/:id", async (req, res) => {
+router.delete("/agencies/:id", blockWritesDuringViewAs, async (req, res) => {
   const id = req.params.id;
   if (!isUuid(id)) return res.status(400).json({ error: "Invalid agency id" });
   if (id === ROOT_AGENCY_ID) {
@@ -1175,13 +1157,13 @@ router.delete("/agencies/:id", async (req, res) => {
     res.json({ success: true, mode: "soft" });
   } catch (e: any) {
     console.error("[FoundersAgencies] delete agency error:", e?.message);
-    res.status(500).json({ error: "Failed to delete agency" });
+    res.status(500).json(genericError("Failed to delete agency"));
   }
 });
 
 // ─── Assign team (manager) to agency (upsert via PK on manager_user_id) ─────
 
-router.post("/agencies/:id/teams", async (req, res) => {
+router.post("/agencies/:id/teams", blockWritesDuringViewAs, async (req, res) => {
   const agencyId = req.params.id;
   if (!isUuid(agencyId)) return res.status(400).json({ error: "Invalid agency id" });
   const { managerUserId } = req.body || {};
@@ -1224,7 +1206,7 @@ router.post("/agencies/:id/teams", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] assign team error:", e?.message);
-    res.status(500).json({ error: "Failed to assign team" });
+    res.status(500).json(genericError("Failed to assign team"));
   }
 });
 
@@ -1272,7 +1254,7 @@ const promoteAndAssignSchema = z.object({
   parentAgencyId: z.string().uuid().optional(),
 });
 
-router.post("/agencies/promote-and-assign", async (req, res) => {
+router.post("/agencies/promote-and-assign", blockWritesDuringViewAs, async (req, res) => {
   const parsed = promoteAndAssignSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
@@ -1394,13 +1376,19 @@ router.post("/agencies/promote-and-assign", async (req, res) => {
           oldRow.override_percentage,
         ],
       );
-      // Mirror the title-derived role on `users.role` so the privilege gate
-      // matches the new badge. IS DISTINCT FROM keeps this idempotent.
+      // Mirror the title-derived role on `users.role` AND propagate the
+      // matching lounge-access grants via the shared service so heritage-app
+      // sees fresh `user_lounge_access` rows + the SOC 2 attestation row in
+      // `access_change_log`. The service short-circuits if oldRole === newRole
+      // (idempotent), preserving the prior IS DISTINCT FROM behavior.
       const promotedRole = titleToRole(TEAM_LEAD_TITLE);
-      await client.query(
-        `UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2 AND role IS DISTINCT FROM $1`,
-        [promotedRole, agentUserId],
-      );
+      await reinitializeLoungeAccess({
+        userId: agentUserId,
+        newRole: promotedRole,
+        performedByUserId: req.user!.id,
+        reason: `promote-and-assign → ${TEAM_LEAD_TITLE} for new agency "${name}"`,
+        client, // join the existing transaction
+      });
     }
 
     // 5. Insert the lightweight agency (name only).
@@ -1539,21 +1527,14 @@ router.get("/agencies/:id/carriers", async (req, res) => {
       [agencyId],
     );
 
-    if (
-      DEMO_FALLBACK_ENABLED &&
-      r.rows.length === 0 &&
-      agencyId === ROOT_AGENCY_ID
-    ) {
-      return res.json(demoAgencyCarrierContracts());
-    }
     res.json(r.rows);
   } catch (e: any) {
     console.error("[FoundersAgencies] list contracts error:", e?.message);
-    res.status(500).json({ error: "Failed to load agency contracts" });
+    res.status(500).json(genericError("Failed to load agency contracts"));
   }
 });
 
-router.post("/agencies/:id/carriers", async (req, res) => {
+router.post("/agencies/:id/carriers", blockWritesDuringViewAs, async (req, res) => {
   const agencyId = req.params.id;
   if (!isUuid(agencyId)) return res.status(400).json({ error: "Invalid agency id" });
   const {
@@ -1634,11 +1615,11 @@ router.post("/agencies/:id/carriers", async (req, res) => {
     res.json({ success: true, id });
   } catch (e: any) {
     console.error("[FoundersAgencies] add contract error:", e?.message);
-    res.status(500).json({ error: "Failed to add agency contract" });
+    res.status(500).json(genericError("Failed to add agency contract"));
   }
 });
 
-router.patch("/agencies/:id/carriers/:contractId", async (req, res) => {
+router.patch("/agencies/:id/carriers/:contractId", blockWritesDuringViewAs, async (req, res) => {
   const { id: agencyId, contractId } = req.params;
   if (!isUuid(agencyId) || !isUuid(contractId)) {
     return res.status(400).json({ error: "Invalid id" });
@@ -1704,11 +1685,11 @@ router.patch("/agencies/:id/carriers/:contractId", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] patch contract error:", e?.message);
-    res.status(500).json({ error: "Failed to update contract" });
+    res.status(500).json(genericError("Failed to update contract"));
   }
 });
 
-router.delete("/agencies/:id/carriers/:contractId", async (req, res) => {
+router.delete("/agencies/:id/carriers/:contractId", blockWritesDuringViewAs, async (req, res) => {
   const { id: agencyId, contractId } = req.params;
   if (!isUuid(agencyId) || !isUuid(contractId)) {
     return res.status(400).json({ error: "Invalid id" });
@@ -1734,7 +1715,7 @@ router.delete("/agencies/:id/carriers/:contractId", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] delete contract error:", e?.message);
-    res.status(500).json({ error: "Failed to terminate contract" });
+    res.status(500).json(genericError("Failed to terminate contract"));
   }
 });
 
@@ -1761,11 +1742,11 @@ router.get("/agencies/:id/overrides", async (req, res) => {
     res.json(r.rows);
   } catch (e: any) {
     console.error("[FoundersAgencies] list overrides error:", e?.message);
-    res.status(500).json({ error: "Failed to load overrides" });
+    res.status(500).json(genericError("Failed to load overrides"));
   }
 });
 
-router.post("/agencies/:id/overrides", async (req, res) => {
+router.post("/agencies/:id/overrides", blockWritesDuringViewAs, async (req, res) => {
   const agencyId = req.params.id;
   if (!isUuid(agencyId)) return res.status(400).json({ error: "Invalid agency id" });
   const { carrierId, productType, commissionPctDelta, effectiveFrom, effectiveTo, notes } =
@@ -1807,11 +1788,11 @@ router.post("/agencies/:id/overrides", async (req, res) => {
     res.json({ success: true, id });
   } catch (e: any) {
     console.error("[FoundersAgencies] add override error:", e?.message);
-    res.status(500).json({ error: "Failed to add override" });
+    res.status(500).json(genericError("Failed to add override"));
   }
 });
 
-router.delete("/agencies/:id/overrides/:overrideId", async (req, res) => {
+router.delete("/agencies/:id/overrides/:overrideId", blockWritesDuringViewAs, async (req, res) => {
   const { id: agencyId, overrideId } = req.params;
   if (!isUuid(agencyId) || !isUuid(overrideId)) {
     return res.status(400).json({ error: "Invalid id" });
@@ -1839,13 +1820,13 @@ router.delete("/agencies/:id/overrides/:overrideId", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] delete override error:", e?.message);
-    res.status(500).json({ error: "Failed to remove override" });
+    res.status(500).json(genericError("Failed to remove override"));
   }
 });
 
 // ─── Carrier directory CRUD (founder-only additions) ────────────────────────
 
-router.post("/carriers", async (req, res) => {
+router.post("/carriers", blockWritesDuringViewAs, async (req, res) => {
   const {
     name,
     shortName,
@@ -1909,11 +1890,11 @@ router.post("/carriers", async (req, res) => {
       return res.status(409).json({ error: "Carrier code already exists" });
     }
     console.error("[FoundersAgencies] create carrier error:", e?.message);
-    res.status(500).json({ error: "Failed to create carrier" });
+    res.status(500).json(genericError("Failed to create carrier"));
   }
 });
 
-router.patch("/carriers/:id", async (req, res) => {
+router.patch("/carriers/:id", blockWritesDuringViewAs, async (req, res) => {
   // Sentinel HIGH 2 — carrier_directory.id is varchar(20). Reject anything
   // outside the canonical alphanumeric/code charset before it touches SQL.
   const id = String(req.params.id || "").trim();
@@ -1980,7 +1961,7 @@ router.patch("/carriers/:id", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] patch carrier error:", e?.message);
-    res.status(500).json({ error: "Failed to update carrier" });
+    res.status(500).json(genericError("Failed to update carrier"));
   }
 });
 
@@ -2004,11 +1985,11 @@ router.get("/carriers/:id/compliance", async (req, res) => {
     res.json(r.rows);
   } catch (e: any) {
     console.error("[FoundersAgencies] list compliance error:", e?.message);
-    res.status(500).json({ error: "Failed to load compliance requirements" });
+    res.status(500).json(genericError("Failed to load compliance requirements"));
   }
 });
 
-router.post("/carriers/:id/compliance", async (req, res) => {
+router.post("/carriers/:id/compliance", blockWritesDuringViewAs, async (req, res) => {
   // Sentinel HIGH 2 — defend the path param.
   const id = String(req.params.id || "").trim();
   if (!id || id.length > 64 || !/^[A-Za-z0-9_\-:.]+$/.test(id)) {
@@ -2068,11 +2049,11 @@ router.post("/carriers/:id/compliance", async (req, res) => {
     });
   } catch (e: any) {
     console.error("[FoundersAgencies] add compliance error:", e?.message);
-    res.status(500).json({ error: "Failed to add compliance requirement" });
+    res.status(500).json(genericError("Failed to add compliance requirement"));
   }
 });
 
-router.delete("/carriers/:id/compliance/:reqId", async (req, res) => {
+router.delete("/carriers/:id/compliance/:reqId", blockWritesDuringViewAs, async (req, res) => {
   // Sentinel HIGH 2 — defend the path param.
   const id = String(req.params.id || "").trim();
   const { reqId } = req.params;
@@ -2103,7 +2084,7 @@ router.delete("/carriers/:id/compliance/:reqId", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("[FoundersAgencies] delete compliance error:", e?.message);
-    res.status(500).json({ error: "Failed to remove compliance requirement" });
+    res.status(500).json(genericError("Failed to remove compliance requirement"));
   }
 });
 

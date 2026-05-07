@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, varchar, integer, boolean, decimal, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, integer, boolean, decimal, uuid, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { users } from "./auth";
@@ -107,3 +107,28 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type BillingHistory = typeof billingHistory.$inferSelect;
 export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
+
+// =============================================================================
+// FOUNDER SETTINGS (Wave AF1) — per-founder UI preferences persisted server
+// side so they travel across devices. One row per founder, keyed by user_id.
+// settings is a free-form JSONB blob (notifications, feature flags, theme).
+// =============================================================================
+export const founderSettings = pgTable("founder_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFounderSettingsSchema = createInsertSchema(founderSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type FounderSettings = typeof founderSettings.$inferSelect;
+export type InsertFounderSettings = z.infer<typeof insertFounderSettingsSchema>;

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Save,
   Download,
@@ -16,6 +17,7 @@ import { TOUR } from "@/lib/tour/selectors";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { csrfHeaders } from "@/lib/queryClient";
 // SPLIT_RECIPIENTS is the canonical founder distribution split (3 founders +
 // retained reserves). Imported here so the System Constants card stays in
 // sync with the ledger automatically — never duplicate the values inline.
@@ -104,34 +106,16 @@ const TWO_FA_ROLE_LABELS = [
   "Investor",
 ];
 
-// ─── STORAGE ───
-function storageKey(userId: string, scope: string) {
-  return `founders-settings:${userId}:${scope}`;
-}
-
-function loadScope<T>(userId: string, scope: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(storageKey(userId, scope));
-    if (!raw) return fallback;
-    return { ...fallback, ...JSON.parse(raw) } as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveScope<T>(userId: string, scope: string, value: T) {
-  try {
-    localStorage.setItem(storageKey(userId, scope), JSON.stringify(value));
-  } catch {
-    // ignore
-  }
-}
+// Wave AF1: settings persist server-side via /api/founders/settings (one
+// JSONB blob per founder, keyed by user_id). Old localStorage helpers were
+// removed so settings travel across devices.
 
 // ─── MAIN ───
 export default function FoundersSettings() {
   const { toast } = useToast();
   const { user } = useAuth();
   const userId = user?.id ?? "anon";
+  const queryClient = useQueryClient();
 
   const [settings, setSettings] = useState<FoundersSettingsShape>(DEFAULTS);
   const [rangeStart, setRangeStart] = useState(() => {
@@ -145,20 +129,55 @@ export default function FoundersSettings() {
   const [loggingOutOthers, setLoggingOutOthers] = useState(false);
   const [logoutError, setLogoutError] = useState<Error | null>(null);
 
-  // ─── LOAD ON MOUNT ───
+  // Wave AF4a: server-side settings via React Query.
+  const settingsQuery = useQuery({
+    queryKey: ["/api/founders/settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/founders/settings", { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return (await res.json()) as { settings: Partial<FoundersSettingsShape>; updatedAt: string };
+    },
+    staleTime: 60_000,
+  });
+
+  // Hydrate local form state when the server settings load. Merge against
+  // DEFAULTS so newly-added toggles get sensible values for old rows.
   useEffect(() => {
-    if (!userId) return;
-    const notifications = loadScope<NotificationPrefs>(
-      userId,
-      "notifications",
-      DEFAULTS.notifications
-    );
-    const flags = loadScope<FeatureFlags>(userId, "flags", DEFAULTS.flags);
-    const platinum = loadScope<{ enabled: boolean }>(userId, "platinum", {
-      enabled: DEFAULTS.platinum,
-    }).enabled;
-    setSettings({ notifications, flags, platinum });
-  }, [userId]);
+    if (!settingsQuery.data) return;
+    const s = settingsQuery.data.settings || {};
+    setSettings({
+      notifications: { ...DEFAULTS.notifications, ...(s.notifications || {}) },
+      flags: { ...DEFAULTS.flags, ...(s.flags || {}) },
+      platinum: typeof s.platinum === "boolean" ? s.platinum : DEFAULTS.platinum,
+    });
+  }, [settingsQuery.data]);
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (next: FoundersSettingsShape) => {
+      const res = await fetch("/api/founders/settings", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+        body: JSON.stringify({ settings: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings saved",
+        description: "Synced across devices.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/founders/settings"] });
+    },
+    onError: (err: Error) =>
+      toast({
+        title: "Save failed",
+        description: err.message,
+        variant: "destructive",
+      }),
+  });
 
   // ─── PLATINUM CLASS APPLICATION ───
   useEffect(() => {
@@ -193,54 +212,35 @@ export default function FoundersSettings() {
 
   // ─── SAVE ───
   const handleSave = () => {
-    saveScope(userId, "notifications", settings.notifications);
-    saveScope(userId, "flags", settings.flags);
-    saveScope(userId, "platinum", { enabled: settings.platinum });
-    toast({
-      title: "Settings saved",
-      description: "Your founder preferences are stored locally.",
-    });
+    saveSettingsMutation.mutate(settings);
   };
 
   // ─── EXPORT ───
+  // Wave AF2 wired: backend accepts YYYY-MM-DD strings (not ISO timestamps).
+  // Streams CSV by default; ?format=json available if needed.
   const handleExport = async () => {
     setExporting(true);
     try {
-      const since = `${rangeStart}T00:00:00.000Z`;
-      const until = `${rangeEnd}T23:59:59.999Z`;
       const url = `/api/founders/activity/feed?since=${encodeURIComponent(
-        since
-      )}&until=${encodeURIComponent(until)}&format=csv`;
-
+        rangeStart,
+      )}&until=${encodeURIComponent(rangeEnd)}&format=csv`;
       const res = await fetch(url, { credentials: "include" });
       if (!res.ok) {
-        // Fallback: request JSON
-        const jsonRes = await fetch(
-          `/api/founders/activity/feed?since=${encodeURIComponent(
-            since
-          )}&until=${encodeURIComponent(until)}`,
-          { credentials: "include" }
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(
+          (errBody as { error?: string }).error || `Export failed: HTTP ${res.status}`,
         );
-        if (!jsonRes.ok) throw new Error(`Export failed: ${jsonRes.status}`);
-        const data = await jsonRes.json();
-        downloadBlob(
-          new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
-          `founder-audit-${rangeEnd}.json`
-        );
-      } else {
-        const contentType = res.headers.get("content-type") || "";
-        const blob = await res.blob();
-        const ext = contentType.includes("json") ? "json" : "csv";
-        downloadBlob(blob, `founder-audit-${rangeEnd}.${ext}`);
       }
+      const blob = await res.blob();
+      downloadBlob(blob, `founder-audit-${rangeStart}-${rangeEnd}.csv`);
       setExportError(null);
       toast({ title: "Export ready", description: "Audit log downloaded." });
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Unable to export");
       setExportError(error);
       toast({
-        title: "Export pending — backend coming soon",
-        description: "The founder audit feed endpoint is not yet wired. Try again once the backend ships.",
+        title: "Export failed",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -248,23 +248,29 @@ export default function FoundersSettings() {
     }
   };
 
+  // Wave AF3 wired: POST /api/auth/sessions/logout-others. CSRF required.
+  // Returns { destroyed: N } indicating how many other sessions were ended.
   const handleLogoutOtherSessions = async () => {
     setLoggingOutOthers(true);
     try {
       const res = await fetch("/api/auth/sessions/logout-others", {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
       });
-      if (res.status === 501 || res.status === 404) {
-        toast({
-          title: "Not yet supported",
-          description: "Multi-session logout is not yet implemented.",
-        });
-        return;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((data as { error?: string }).error || `HTTP ${res.status}`);
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setLogoutError(null);
-      toast({ title: "Logged out other sessions" });
+      const destroyed = (data as { destroyed?: number }).destroyed ?? 0;
+      toast({
+        title: "Other sessions ended",
+        description:
+          destroyed === 0
+            ? "No other active sessions found."
+            : `${destroyed} other ${destroyed === 1 ? "device" : "devices"} signed out.`,
+      });
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Unable to log out");
       setLogoutError(error);
@@ -357,8 +363,12 @@ export default function FoundersSettings() {
                 <Network className="w-4 h-4" />
                 <span className="hidden xl:inline">Manage Hierarchy →</span>
               </Link>
-              <GCPrimaryButton onClick={handleSave} icon={<Save className="w-4 h-4" />}>
-                Save
+              <GCPrimaryButton
+                onClick={handleSave}
+                disabled={saveSettingsMutation.isPending}
+                icon={<Save className="w-4 h-4" />}
+              >
+                {saveSettingsMutation.isPending ? "Saving…" : "Save"}
               </GCPrimaryButton>
             </div>
           }
@@ -478,10 +488,10 @@ export default function FoundersSettings() {
               >
                 <GCPrimaryButton
                   onClick={handleExport}
-                  disabled
+                  disabled={exporting}
                   icon={<Download className="w-4 h-4" />}
                 >
-                  Export CSV
+                  {exporting ? "Exporting…" : "Export CSV"}
                 </GCPrimaryButton>
                 <span
                   style={{
@@ -642,10 +652,10 @@ export default function FoundersSettings() {
             <div className="flex items-center gap-2">
               <GCSecondaryButton
                 onClick={handleLogoutOtherSessions}
-                disabled
+                disabled={loggingOutOthers}
                 icon={<LogOut className="w-4 h-4" />}
               >
-                Log Out Other Sessions
+                {loggingOutOthers ? "Signing out…" : "Log Out Other Sessions"}
               </GCSecondaryButton>
               <span
                 style={{

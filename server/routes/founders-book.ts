@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { pool } from "../db";
-import { requireAuth, requireRole, ADMIN_PLUS } from "../middleware/auth";
+import { requireAuth, requireRole, FOUNDERS_ONLY } from "../middleware/auth";
 import { listTeams, listTeamAgents } from "../services/teamDerivation";
 import { encryptField, decryptField, maskField } from "../services/encryptionService";
 import * as s3Service from "../services/s3Service";
@@ -12,8 +12,9 @@ import { logFounderAction } from "../services/founderAudit";
 
 const router = Router();
 
-// Book is founders-only. ADMIN_PLUS = [FOUNDER, OWNER, SYSTEM_ADMIN].
-router.use(requireAuth, requireRole(...ADMIN_PLUS));
+// Book is founders-only. Wave Y tightened from ADMIN_PLUS → FOUNDERS_ONLY
+// (Owner + System Admin no longer access /founders/* per founder mandate).
+router.use(requireAuth, requireRole(...FOUNDERS_ONLY));
 
 // Status filter convention — every Book aggregation that touches deals or
 // policies excludes terminal-failure statuses. Mirrors the honor-system
@@ -699,7 +700,7 @@ router.patch("/clients/:clientId", async (req, res) => {
 
 // =============================================================================
 // GET /clients/:clientId/documents — All documents linked to this client's policies
-// Founders-only via the router-level requireRole(...ADMIN_PLUS) gate above.
+// Founders-only via the router-level requireRole(...FOUNDERS_ONLY) gate above.
 // Joined to policies + uploader so the panel can show "Uploaded by X · Policy Y".
 // =============================================================================
 router.get("/clients/:clientId/documents", async (req, res) => {
@@ -786,9 +787,9 @@ router.get("/documents/:documentId/url", async (req, res) => {
 
 // =============================================================================
 // GET /documents/:documentId/stream — server-side proxy for founder iframe.
-// Founder gate is enforced by router.use(requireAuth, requireRole(ADMIN_PLUS))
+// Founder gate is enforced by router.use(requireAuth, requireRole(FOUNDERS_ONLY))
 // at the top of this file — no extra per-doc ownership check needed for
-// admin scope, but session is re-validated on every fetch.
+// founder scope, but session is re-validated on every fetch.
 // =============================================================================
 router.get("/documents/:documentId/stream", async (req, res) => {
   try {

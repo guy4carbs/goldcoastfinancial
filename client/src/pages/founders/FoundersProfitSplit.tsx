@@ -21,8 +21,13 @@ import {
 import { TOUR } from "@/lib/tour/selectors";
 import { useToast } from "@/hooks/use-toast";
 import { csrfHeaders } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
 import { dollars, splitAmountCents } from "./utils/format";
 import { SPLIT_RECIPIENTS } from "@shared/models/founders";
+
+// Gold focus + hover ring for KPI tiles. Mirrors Revenue / Growth / Book / Team Performance / Lead Distribution / Agency Management.
+const KPI_LINK_CLASS =
+  "block rounded-md transition-shadow hover:ring-2 hover:ring-[var(--gc-gold-bright,var(--gc-gold))] focus-visible:ring-2 focus-visible:ring-[var(--gc-gold)]";
 
 // ─── Types ──────────────────────────────────────────────────────────────
 interface SummaryResponse {
@@ -159,6 +164,41 @@ export default function FoundersProfitSplit() {
   });
   const activeItem = itemsQuery.data?.find((i) => i.status !== "revoked") || null;
   const isConnected = !!activeItem;
+
+  // Surface Plaid query errors as a toast so the founder isn't left wondering
+  // why the Connect Chase card just sits there. Fires once per error instance
+  // (re-shows on a fresh failure after recovery).
+  const itemsErrorRef = useRef<Error | null>(null);
+  const pendingErrorRef = useRef<Error | null>(null);
+  useEffect(() => {
+    if (itemsQuery.error && itemsQuery.error !== itemsErrorRef.current) {
+      itemsErrorRef.current = itemsQuery.error as Error;
+      toast({
+        title: "Couldn't load Plaid connections",
+        description: (itemsQuery.error as Error).message || "Try again in a moment.",
+        variant: "destructive",
+      });
+    } else if (!itemsQuery.error) {
+      itemsErrorRef.current = null;
+    }
+  }, [itemsQuery.error, toast]);
+  useEffect(() => {
+    if (pendingQuery.error && pendingQuery.error !== pendingErrorRef.current) {
+      pendingErrorRef.current = pendingQuery.error as Error;
+      toast({
+        title: "Couldn't load pending Plaid deposits",
+        description: (pendingQuery.error as Error).message || "Try again in a moment.",
+        variant: "destructive",
+      });
+    } else if (!pendingQuery.error) {
+      pendingErrorRef.current = null;
+    }
+  }, [pendingQuery.error, toast]);
+  const plaidQueriesErrored = !!(itemsQuery.error || pendingQuery.error);
+  const retryPlaidQueries = useCallback(() => {
+    itemsQuery.refetch();
+    pendingQuery.refetch();
+  }, [itemsQuery, pendingQuery]);
 
   // ─── Plaid Link token (lazy) ────────────────────────────────────────
   const [linkToken, setLinkToken] = useState<string | null>(null);
@@ -398,11 +438,11 @@ export default function FoundersProfitSplit() {
                 style={OUTLINED_BUTTON_STYLE}
                 title="Manage Hierarchy"
               >
-                <Network className="w-4 h-4" />
+                <Network aria-hidden="true" className="w-4 h-4" />
                 <span className="hidden xl:inline">Manage Hierarchy →</span>
               </Link>
               <div data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.ADD_DEPOSIT_BUTTON}>
-                <GCPrimaryButton onClick={() => setAddOpen(true)} icon={<Plus className="w-4 h-4" />}>
+                <GCPrimaryButton onClick={() => setAddOpen(true)} icon={<Plus aria-hidden="true" className="w-4 h-4" />}>
                   Add Deposit
                 </GCPrimaryButton>
               </div>
@@ -414,37 +454,68 @@ export default function FoundersProfitSplit() {
       {/* KPI grid renders FIRST so the money numbers stay above the fold —
           Plaid onboarding/pending-review banners moved BELOW the KPIs.
           Money In drills to #timeline (chart context); the other 3 → #ledger. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 mt-6" data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.KPI_GRID}>
-        <Link href="#timeline" style={{ textDecoration: "none", cursor: "pointer" }} className="block transition-transform hover:-translate-y-[1px]">
-          <GCKPICard
-            label="Money In"
-            value={dollars(totalCents, { compact: true })}
-            tooltip={`${summaryQuery.data?.depositCount ?? 0} deposits in selected period`}
-          />
-        </Link>
-        <Link href="#ledger" style={{ textDecoration: "none", cursor: "pointer" }} className="block transition-transform hover:-translate-y-[1px]">
-          <GCKPICard
-            label="To Split (90%)"
-            value={dollars(poolCents, { compact: true })}
-            tooltip="The amount owed across the three founders before retained reserves"
-          />
-        </Link>
-        <Link href="#ledger" style={{ textDecoration: "none", cursor: "pointer" }} className="block transition-transform hover:-translate-y-[1px]">
-          <GCKPICard
-            label="Per Founder (30%)"
-            value={dollars(perFounderCents, { compact: true })}
-            accentTop
-            tooltip="Each founder receives 30% of every deposit"
-          />
-        </Link>
-        <Link href="#ledger" style={{ textDecoration: "none", cursor: "pointer" }} className="block transition-transform hover:-translate-y-[1px]">
-          <GCKPICard
-            label="Retained (10%)"
-            value={dollars(retainedCents, { compact: true })}
-            tooltip="Stays in the business checking account"
-          />
-        </Link>
-      </div>
+      <section
+        aria-labelledby="founders-profit-kpi-heading"
+        className="mb-6 mt-6"
+        data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.KPI_GRID}
+      >
+        <h2 id="founders-profit-kpi-heading" className="sr-only">Profit split KPIs</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {summaryQuery.isLoading || !summaryQuery.data ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[116px] w-full" />
+            ))
+          ) : (
+            <>
+              <Link
+                href="#timeline"
+                aria-label={`Money in: ${dollars(totalCents, { compact: true })} across ${summaryQuery.data?.depositCount ?? 0} deposits — jump to timeline`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Money In"
+                  value={dollars(totalCents, { compact: true })}
+                  tooltip={`${summaryQuery.data?.depositCount ?? 0} deposits in selected period`}
+                />
+              </Link>
+              <Link
+                href="#ledger"
+                aria-label={`To split (90%): ${dollars(poolCents, { compact: true })} — jump to ledger`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="To Split (90%)"
+                  value={dollars(poolCents, { compact: true })}
+                  tooltip="The amount owed across the three founders before retained reserves"
+                />
+              </Link>
+              <Link
+                href="#ledger"
+                aria-label={`Per founder (30%): ${dollars(perFounderCents, { compact: true })} — jump to ledger`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Per Founder (30%)"
+                  value={dollars(perFounderCents, { compact: true })}
+                  accentTop
+                  tooltip="Each founder receives 30% of every deposit"
+                />
+              </Link>
+              <Link
+                href="#ledger"
+                aria-label={`Retained (10%): ${dollars(retainedCents, { compact: true })} — jump to ledger`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Retained (10%)"
+                  value={dollars(retainedCents, { compact: true })}
+                  tooltip="Stays in the business checking account"
+                />
+              </Link>
+            </>
+          )}
+        </div>
+      </section>
 
       {/* Plaid banners — relocated BELOW the KPI grid (Axiom finding 2026-05-01)
           so the money numbers always render above the fold. Connect-card only
@@ -454,6 +525,8 @@ export default function FoundersProfitSplit() {
           loading={linkLoading || exchangeMutation.isPending}
           onConnect={fetchLinkToken}
           alreadyAttempted={!itemsQuery.isLoading}
+          plaidErrored={plaidQueriesErrored}
+          onRetry={retryPlaidQueries}
         />
       )}
 
@@ -463,7 +536,14 @@ export default function FoundersProfitSplit() {
 
       {/* Split card — inner H2 already says "Distribution Breakdown", so the
           outer eyebrow label is omitted to avoid stutter (Axiom finding). */}
-      <div id="breakdown" className="mb-6">
+      <section
+        id="breakdown"
+        aria-labelledby="founders-profit-breakdown-heading"
+        className="mb-6"
+      >
+        {summaryQuery.isLoading || !summaryQuery.data ? (
+          <Skeleton className="h-[260px] w-full" />
+        ) : (
       <div
         className="mb-6"
         data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.SPLIT_CARD}
@@ -476,9 +556,18 @@ export default function FoundersProfitSplit() {
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-xl)", color: "var(--gc-text-primary)", letterSpacing: "var(--gc-tracking-tight)" }}>
+            <h2
+              id="founders-profit-breakdown-heading"
+              style={{
+                fontFamily: "var(--gc-font-display)",
+                fontSize: "var(--gc-text-xl)",
+                color: "var(--gc-text-primary)",
+                letterSpacing: "var(--gc-tracking-tight)",
+                margin: 0,
+              }}
+            >
               Distribution Breakdown
-            </div>
+            </h2>
             <div style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
               {summaryQuery.data ? `${summaryQuery.data.start} → ${summaryQuery.data.end}` : "—"}
             </div>
@@ -525,7 +614,7 @@ export default function FoundersProfitSplit() {
                     flexShrink: 0,
                   }}
                 >
-                  {isRetained ? <Coins className="w-4 h-4" /> : initialsOf(r.fullName)}
+                  {isRetained ? <Coins aria-hidden="true" className="w-4 h-4" /> : initialsOf(r.fullName)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
@@ -556,25 +645,39 @@ export default function FoundersProfitSplit() {
           })}
         </div>
       </div>
-      </div>
+        )}
+      </section>
 
       {/* Timeline chart */}
-      <div id="timeline" className="mb-6" data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.TIMELINE_CHART}>
-        <div className="mb-3" style={SECTION_LABEL_STYLE}>
+      <section
+        id="timeline"
+        aria-labelledby="founders-profit-timeline-heading"
+        className="mb-6"
+        data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.TIMELINE_CHART}
+      >
+        <h2 id="founders-profit-timeline-heading" className="mb-3" style={{ ...SECTION_LABEL_STYLE, margin: 0, marginBottom: "0.75rem" }}>
           Deposits Over Time · {period.replace(/-/g, " ").toUpperCase()}
-        </div>
-        <GCAreaChart
-          title={`Deposits Over Time · ${labelForPeriod(period)}`}
-          data={chartData}
-          valueFormatter={(v) => dollars(Math.round(v * 100), { compact: true })}
-        />
-      </div>
+        </h2>
+        {timelineQuery.isLoading ? (
+          <Skeleton className="h-[320px] w-full" />
+        ) : (
+          <GCAreaChart
+            title={`Deposits Over Time · ${labelForPeriod(period)}`}
+            data={chartData}
+            valueFormatter={(v) => dollars(Math.round(v * 100), { compact: true })}
+          />
+        )}
+      </section>
 
       {/* Ledger */}
-      <div id="ledger" data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.LEDGER_TABLE}>
-        <div className="mb-3" style={SECTION_LABEL_STYLE}>
+      <section
+        id="ledger"
+        aria-labelledby="founders-profit-ledger-heading"
+        data-tour-id={TOUR.FOUNDERS.PROFIT_SPLIT.LEDGER_TABLE}
+      >
+        <h2 id="founders-profit-ledger-heading" className="mb-3" style={{ ...SECTION_LABEL_STYLE, margin: 0, marginBottom: "0.75rem" }}>
           Ledger · {period.replace(/-/g, " ").toUpperCase()}
-        </div>
+        </h2>
         {/* Source filter chip row — instant client-side filter over the
             already-fetched ledger window. Mirrors the source-pill pattern
             used on the Lead Distribution pool table. */}
@@ -597,7 +700,7 @@ export default function FoundersProfitSplit() {
           ))}
         </div>
         {ledgerQuery.isLoading ? (
-          <div className="py-8 text-center" style={{ color: "var(--gc-text-muted)" }}>Loading ledger…</div>
+          <Skeleton className="h-[240px] w-full" />
         ) : filteredLedgerRows.length === 0 ? (
           <EmptyTableBlock
             title="No deposits in period."
@@ -612,7 +715,7 @@ export default function FoundersProfitSplit() {
             pageSize={20}
           />
         )}
-      </div>
+      </section>
 
       {addOpen && (
         <AddDepositModal onClose={() => setAddOpen(false)} period={period} />
@@ -795,7 +898,7 @@ function DeleteRowButton({ id, period }: { id: string; period: string; onSuccess
         cursor: "pointer",
       }}
     >
-      <Trash2 className="w-3.5 h-3.5" />
+      <Trash2 aria-hidden="true" className="w-3.5 h-3.5" />
     </button>
   );
 }
@@ -1010,7 +1113,7 @@ function AddDepositModal({ onClose, period }: { onClose: () => void; period: str
               borderRadius: "var(--gc-radius-sm)",
             }}
           >
-            <TrendingUp className="w-3.5 h-3.5" style={{ color: "var(--gc-gold)" }} />
+            <TrendingUp aria-hidden="true" className="w-3.5 h-3.5" style={{ color: "var(--gc-gold)" }} />
             <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-secondary)" }}>
               Suggested: <strong style={{ color: "var(--gc-gold)" }}>{dollars(estimatedCents, { cents: true })}</strong> from {depositDate} commission run
             </span>
@@ -1042,7 +1145,7 @@ function AddDepositModal({ onClose, period }: { onClose: () => void; period: str
 
         <div className="flex items-center justify-end gap-2 mt-2">
           <GCSecondaryButton onClick={onClose}>Cancel</GCSecondaryButton>
-          <GCPrimaryButton type="submit" disabled={create.isPending} icon={<Plus className="w-3.5 h-3.5" />}>
+          <GCPrimaryButton type="submit" disabled={create.isPending} icon={<Plus aria-hidden="true" className="w-3.5 h-3.5" />}>
             {create.isPending ? "Saving…" : "Record Deposit"}
           </GCPrimaryButton>
         </div>
@@ -1056,10 +1159,14 @@ function ConnectChaseCard({
   loading,
   onConnect,
   alreadyAttempted,
+  plaidErrored,
+  onRetry,
 }: {
   loading: boolean;
   onConnect: () => void;
   alreadyAttempted: boolean;
+  plaidErrored?: boolean;
+  onRetry?: () => void;
 }) {
   return (
     <div
@@ -1084,7 +1191,7 @@ function ConnectChaseCard({
             flexShrink: 0,
           }}
         >
-          <Building2 className="w-6 h-6" />
+          <Building2 aria-hidden="true" className="w-6 h-6" />
         </div>
         <div className="flex-1 min-w-0">
           <div
@@ -1103,19 +1210,36 @@ function ConnectChaseCard({
             touches our servers.
           </div>
         </div>
-        <GCPrimaryButton
-          onClick={onConnect}
-          disabled={loading || !alreadyAttempted}
-          icon={
-            loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <LinkIcon className="w-4 h-4" />
-            )
-          }
-        >
-          {loading ? "Connecting…" : "Connect"}
-        </GCPrimaryButton>
+        <div className="flex items-center gap-2">
+          {plaidErrored && onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              aria-label="Retry loading Plaid connection status"
+              style={{
+                ...OUTLINED_BUTTON_STYLE,
+                padding: "8px 14px",
+                cursor: "pointer",
+                color: "var(--gc-status-warning)",
+              }}
+            >
+              Try again
+            </button>
+          )}
+          <GCPrimaryButton
+            onClick={onConnect}
+            disabled={loading || !alreadyAttempted}
+            icon={
+              loading ? (
+                <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
+              ) : (
+                <LinkIcon aria-hidden="true" className="w-4 h-4" />
+              )
+            }
+          >
+            {loading ? "Connecting…" : "Connect"}
+          </GCPrimaryButton>
+        </div>
       </div>
     </div>
   );
@@ -1167,6 +1291,7 @@ function PlaidStatusPill({
         <button
           onClick={onDisconnect}
           disabled={disconnecting}
+          aria-label={`Disconnect Plaid item for ${item.institutionName || "this account"}`}
           style={{
             marginLeft: 6,
             padding: "0 8px",
@@ -1200,7 +1325,7 @@ function PendingReviewTray({ rows }: { rows: PlaidPendingRow[] }) {
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" style={{ color: "var(--gc-gold)" }} />
+          <AlertTriangle aria-hidden="true" className="w-4 h-4" style={{ color: "var(--gc-gold)" }} />
           <span
             style={{
               fontFamily: "var(--gc-font-display)",
@@ -1347,7 +1472,7 @@ function PendingReviewRow({ row }: { row: PlaidPendingRow }) {
           opacity: busy ? 0.5 : 1,
         }}
       >
-        <Check className="w-3.5 h-3.5" /> Confirm
+        <Check aria-hidden="true" className="w-3.5 h-3.5" /> Confirm
       </button>
       <button
         onClick={() => skip.mutate()}
@@ -1364,7 +1489,7 @@ function PendingReviewRow({ row }: { row: PlaidPendingRow }) {
           opacity: busy ? 0.5 : 1,
         }}
       >
-        <XIcon className="w-3.5 h-3.5" /> Skip
+        <XIcon aria-hidden="true" className="w-3.5 h-3.5" /> Skip
       </button>
     </div>
   );

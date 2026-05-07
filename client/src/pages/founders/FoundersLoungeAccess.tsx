@@ -45,11 +45,140 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { csrfHeaders } from "@/lib/queryClient";
 import {
-  loungeAccessDemo,
-  filterMembersByTwoFactor,
-  filterMembersByIdle,
-  type AccessKpis,
-} from "./utils/loungeAccessDemo";
+  LOUNGE_KEYS,
+  ROLE_TO_LOUNGES,
+  type LoungeKey,
+  GC_SURFACES,
+  ROLE_TO_GC_SURFACES,
+  type GcSurface,
+  AUTO_LOUNGES,
+  LOUNGE_TIER_LADDER,
+  LOUNGE_BUNDLES,
+  BUNDLE_MEMBER_LOUNGES,
+  loungesIncludedByGrant,
+  loungesRevokedByRevoke,
+} from "@shared/models/loungeAccess";
+
+// Wave Z+Z5: hide auto-bundled (CRM, Onboarding), self-service (Client), and
+// bundle-member (AI, Support — granted via Admin) lounges from the per-user
+// toggle matrix. They all still exist in the Role Defaults banner above as
+// the canonical reference.
+const HIDDEN_TOGGLE_KEYS = new Set<LoungeKey>([
+  "client_lounge",
+  ...AUTO_LOUNGES,
+  ...Array.from(BUNDLE_MEMBER_LOUNGES),
+]);
+const VISIBLE_LOUNGE_KEYS = LOUNGE_KEYS.filter(
+  (lk) => !HIDDEN_TOGGLE_KEYS.has(lk),
+);
+
+// All 10 roles recognized across goldcoast + heritage. Drives:
+//   - Members tab role filter dropdown (was 7 roles, Wave Y → 10).
+//   - Role Defaults banner rows on Lounge Access tab.
+const ALL_ROLES = [
+  "founder",
+  "owner",
+  "system_admin",
+  "director",
+  "agency_manager",
+  "manager",
+  "sales_agent",
+  "marketing_staff",
+  "client",
+  "investor",
+] as const;
+
+// Display labels for the 13 heritage lounge_keys. Lives here (not in shared/)
+// because it's pure presentation — heritage-app uses different labels for the
+// same keys. Source of truth for the keys themselves is
+// shared/models/loungeAccess.
+const LOUNGE_LABELS: Record<LoungeKey, string> = {
+  agent_portal: "Agent",
+  manager_lounge: "Manager",
+  director_lounge: "Director",
+  executive_lounge: "Executive",
+  crm_lounge: "CRM",
+  ai_lounge: "AI",
+  admin_panel: "Admin",
+  client_lounge: "Client",
+  onboarding_lounge: "Onboarding",
+  finance_lounge: "Finance",
+  support_lounge: "Support",
+};
+
+// Display labels for the 7 goldcoast surfaces. Goldcoast access is role-gated
+// at the Express middleware layer (requireRole(...)), not lounge-toggle-able.
+// These labels are read-only reference in the Role Defaults banner.
+const GC_SURFACE_LABELS: Record<GcSurface, string> = {
+  agent_hcms: "Agent HCMS",
+  admin_hcms: "Admin HCMS",
+  ops_hub: "Ops Hub",
+  founders_lounge: "Founders Lounge",
+  marketing: "Marketing",
+  investor_portal: "Investor",
+  client_dashboard: "Client Dashboard",
+};
+
+// Granting `admin_panel` is the highest-stakes per-user toggle on this page —
+// it gives access to heritage-app's most powerful surface. Wave Y replaces the
+// prior `founders_lounge` sentinel (which never existed as a lounge_key) with
+// admin_panel as the gate that triggers the confirmation modal.
+const HIGH_STAKES_LOUNGE: LoungeKey = "admin_panel";
+
+// Roles considered "high-trust" for the 2FA-coverage denominator. Mirrors
+// goldcoast's ROLES_REQUIRING_2FA (server/types/permissions.ts:31-41) minus
+// CLIENT — clients use the heritagels.org consumer flow, not this app.
+const HIGH_TRUST_ROLES = [
+  "founder",
+  "owner",
+  "system_admin",
+  "director",
+  "agency_manager",
+  "manager", // legacy alias for agency_manager
+  "sales_agent",
+  "marketing_staff",
+  "investor",
+] as const;
+
+function daysSinceMs(iso: string | null | undefined): number {
+  if (!iso) return Number.POSITIVE_INFINITY;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return 0;
+  return Math.floor(ms / 86_400_000);
+}
+
+// KPI drill-in helpers (preserved from the prior demo store but operating on
+// real MemberRow data now). Pure functions — no store access.
+function filterMembersByTwoFactor<T extends { role: string; two_factor_enabled?: boolean }>(
+  members: T[],
+  state: "enabled" | "disabled",
+): T[] {
+  const want = state === "enabled";
+  return members.filter(
+    (m) => (HIGH_TRUST_ROLES as readonly string[]).includes(m.role) && !!m.two_factor_enabled === want,
+  );
+}
+function filterMembersByIdle<T extends { last_login_at?: string | null }>(
+  members: T[],
+  days: number,
+): T[] {
+  return members.filter((m) => daysSinceMs(m.last_login_at) > days);
+}
+
+// Derived from members + pending. Was previously sourced from the demo store.
+interface AccessKpis {
+  pendingCount: number;
+  activeMembers: number;
+  twoFactorCoverage: number;
+  idle60d: number;
+  twoFactorEnabledCount: number;
+  highTrustMemberCount: number;
+}
+
+// Gold focus + hover ring for KPI tiles. Mirrors Revenue / Growth / Book / Team
+// Performance / Lead Distribution / Agency Management / Profit Split.
+const KPI_LINK_CLASS =
+  "block rounded-md transition-shadow hover:ring-2 hover:ring-[var(--gc-gold-bright,var(--gc-gold))] focus-visible:ring-2 focus-visible:ring-[var(--gc-gold)]";
 
 // Shared style tokens — mirror FoundersTeamPerformance.tsx so the founders
 // pages render identically across the lounge.
@@ -86,7 +215,8 @@ const SECTION_LABEL_STYLE: React.CSSProperties = {
 
 // ─── TYPES ───
 interface PendingRegistration {
-  id: string;
+  id: string;          // agent_profiles.id — used as React row key only
+  user_id: string;     // users.id — what /approve and /reject expect (FK target)
   email: string;
   first_name: string;
   last_name: string;
@@ -104,11 +234,13 @@ interface MemberRow {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string | null;
   role: string;
   is_active: boolean;
   approval_status?: string | null;
   last_login_at?: string | null;
   avatar_url?: string | null;
+  two_factor_enabled?: boolean;
 }
 
 interface AuditRow {
@@ -128,20 +260,15 @@ interface LoungeAccessRow {
 }
 
 // ─── CONFIG ───
-const LOUNGE_DEFS = [
-  { key: "agent_lounge", label: "Agent" },
-  { key: "manager_lounge", label: "Manager" },
-  { key: "executive_lounge", label: "Executive" },
-  { key: "investor_lounge", label: "Investor" },
-  { key: "founders_lounge", label: "Founders" },
-] as const;
-
 const ROLE_LABEL: Record<string, string> = {
   founder: "Founder",
   owner: "Owner",
-  system_admin: "Admin",
+  system_admin: "System Admin",
+  director: "Director",
+  agency_manager: "Agency Manager",
   manager: "Manager",
-  sales_agent: "Agent",
+  sales_agent: "Sales Agent",
+  marketing_staff: "Marketing Staff",
   client: "Client",
   investor: "Investor",
 };
@@ -150,81 +277,34 @@ const ROLE_COLOR: Record<string, string> = {
   founder: "var(--gc-gold)",
   owner: "var(--gc-gold-bright)",
   system_admin: "var(--gc-chart-4)",      // blue
-  manager: "var(--gc-chart-2)",            // purple
+  director: "var(--gc-chart-1)",           // teal
+  agency_manager: "var(--gc-chart-2)",     // purple
+  manager: "var(--gc-chart-2)",            // purple (legacy alias)
   sales_agent: "var(--gc-chart-3)",        // green
+  marketing_staff: "var(--gc-chart-6)",    // pink
   investor: "var(--gc-chart-5)",           // amber
   client: "var(--gc-text-secondary)",
 };
 
 // ─── API (frontend demo store) ───
-// All /api/members* calls route to the in-memory loungeAccessDemo store so the
-// page is fully functional without any backend. Approve / reject / invite /
-// lounge-toggle mutations all persist in memory until page refresh.
+// Real backend wrappers. No demo intercept — the goldcoast `/api/members/*`
+// router (server/routes/founders-members.ts) is the source of truth for
+// pending registrations, member roster, audit log, and lounge grants. Every
+// mutation carries a CSRF header so the global csrf-csrf middleware accepts.
 async function fetchJSON<T = unknown>(url: string): Promise<T> {
-  // Strip the origin/leading "/" and split off any querystring.
-  const [path, qs] = url.split("?");
-  const params = new URLSearchParams(qs || "");
-
-  if (path === "/api/members/pending") {
-    return loungeAccessDemo.listPending() as unknown as T;
-  }
-  if (path === "/api/members") {
-    return loungeAccessDemo.listMembers({
-      role: params.get("role") || undefined,
-      status: params.get("status") || undefined,
-      approval: params.get("approval_status") || undefined,
-    }) as unknown as T;
-  }
-  if (path === "/api/members/audit") {
-    return loungeAccessDemo.listAudit(params.get("actionType") || undefined) as unknown as T;
-  }
-  const accessMatch = path.match(/^\/api\/members\/([^/]+)\/lounge-access$/);
-  if (accessMatch) {
-    return loungeAccessDemo.getLoungeAccess(accessMatch[1]) as unknown as T;
-  }
-
-  // Fallback: real network for anything else.
   const res = await fetch(url, { credentials: "include" });
-  if (res.status === 404) return [] as unknown as T;
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`API ${res.status}${detail ? `: ${detail.slice(0, 120)}` : ""}`);
+  }
+  return res.json() as Promise<T>;
 }
 
 async function postJSON(url: string, body: Record<string, unknown>) {
-  const approveMatch = url.match(/^\/api\/members\/([^/]+)\/approve$/);
-  if (approveMatch) {
-    const r = loungeAccessDemo.approve(approveMatch[1]);
-    if (!r.ok) throw new Error(r.error);
-    return r;
-  }
-  const rejectMatch = url.match(/^\/api\/members\/([^/]+)\/reject$/);
-  if (rejectMatch) {
-    const r = loungeAccessDemo.reject(rejectMatch[1], String(body.reason || ""));
-    if (!r.ok) throw new Error(r.error);
-    return r;
-  }
-  const toggleMatch = url.match(/^\/api\/members\/([^/]+)\/lounge\/([^/]+)$/);
-  if (toggleMatch) {
-    const r = loungeAccessDemo.toggleLounge(toggleMatch[1], toggleMatch[2], !!body.granted);
-    if (!r.ok) throw new Error(r.error);
-    return r;
-  }
-  if (url === "/api/members/invite") {
-    const r = loungeAccessDemo.invite({
-      email: String(body.email || ""),
-      first_name: String(body.first_name || ""),
-      last_name: String(body.last_name || ""),
-      role: String(body.role || "sales_agent"),
-    });
-    if (!r.ok) throw new Error(r.error);
-    return r;
-  }
-
-  // Fallback: real network for anything else.
   const res = await fetch(url, {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -357,22 +437,36 @@ function ApprovalPill({ status }: { status: string }) {
   );
 }
 
+// Pill-style role indicator. Founder gets a gold crown + bold gold styling
+// ("most prestigious role across all platforms" per founder mandate). Other
+// roles get a tinted pill in their ROLE_COLOR.
 function RoleBadge({ role }: { role: string }) {
-  const color = ROLE_COLOR[role] || "var(--gc-text-muted)";
+  const isFounder = role === "founder";
+  const color = isFounder
+    ? "var(--gc-gold)"
+    : ROLE_COLOR[role] || "var(--gc-text-muted)";
   const label = ROLE_LABEL[role] || role;
   return (
     <span
-      className="inline-flex items-center font-medium"
+      className="inline-flex items-center gap-1.5 font-medium whitespace-nowrap"
       style={{
-        padding: "2px 8px",
+        padding: "3px 10px",
         borderRadius: "var(--gc-radius-full)",
         fontSize: "var(--gc-text-xs)",
         fontFamily: "var(--gc-font-body)",
         color,
-        backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
-        border: `1px solid color-mix(in srgb, ${color} 30%, transparent)`,
+        fontWeight: isFounder ? 600 : 500,
+        backgroundColor: `color-mix(in srgb, ${color} ${isFounder ? 18 : 12}%, transparent)`,
+        border: `1px solid color-mix(in srgb, ${color} ${isFounder ? 50 : 30}%, transparent)`,
       }}
     >
+      {isFounder && (
+        <Crown
+          className="w-3 h-3"
+          style={{ color: "var(--gc-gold)" }}
+          aria-hidden="true"
+        />
+      )}
       {label}
     </span>
   );
@@ -426,6 +520,13 @@ export default function FoundersLoungeAccess() {
   const [rejectTarget, setRejectTarget] = useState<PendingRegistration | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  // Wave AC2: approve modal state. Founder picks upline + contract level
+  // before the agent_hierarchy row gets inserted.
+  const [approveTarget, setApproveTarget] = useState<PendingRegistration | null>(null);
+  const [approveUplineId, setApproveUplineId] = useState<string>("");
+  const [approveContractPct, setApproveContractPct] = useState<number>(80);
+  const [approveReason, setApproveReason] = useState<string>("");
+
   const [selectedMember, setSelectedMember] = useState<MemberRow | null>(null);
   const [memberFilterRole, setMemberFilterRole] = useState<string>("all");
   const [memberFilterStatus, setMemberFilterStatus] = useState<string>("all");
@@ -439,6 +540,17 @@ export default function FoundersLoungeAccess() {
   const [founderGrantTarget, setFounderGrantTarget] = useState<
     { userId: string; memberName: string; granted: boolean } | null
   >(null);
+
+  // Wave Y8: change-role modal. Founders click the Change Role button on a
+  // member row → pick the new role + reason → POST /api/members/:id/role.
+  // Backend calls reinitializeLoungeAccess which atomically updates users.role,
+  // wipes stale heritage lounge grants, re-grants the new role's defaults, and
+  // writes access_change_log + founder_audit_log. Goldcoast surface gating
+  // updates automatically on the next request because requireRole(...) reads
+  // users.role fresh.
+  const [roleChangeTarget, setRoleChangeTarget] = useState<MemberRow | null>(null);
+  const [roleChangeNewRole, setRoleChangeNewRole] = useState<string>("sales_agent");
+  const [roleChangeReason, setRoleChangeReason] = useState<string>("");
 
   // Impersonate (View-As) modal target — the per-row Impersonate button on
   // the Members tab opens this confirmation. Submission posts to the
@@ -519,17 +631,51 @@ export default function FoundersLoungeAccess() {
     retry: 0,
   });
 
-  // Access KPI strip — sourced from the same in-memory demo store as the
-  // member tables. We wrap the synchronous getter in TanStack Query so it
-  // shares the loading / error skeleton machinery with the rest of the page,
-  // and so a future swap to a real /api/founders/access/kpis endpoint is a
-  // one-line change to the queryFn.
-  const accessKpisQuery = useQuery<AccessKpis>({
-    queryKey: ["lounge-access-kpis"],
-    queryFn: async () => loungeAccessDemo.getAccessKpis(),
-    staleTime: 30_000,
+  // Wave AC2: uplines list, used by the approve modal so the founder can
+  // place the new agent in the hierarchy. Only fetches when the modal opens.
+  // Same endpoint the SendApplicationDialog uses.
+  const uplinesQuery = useQuery({
+    queryKey: ["/api/hcms/hierarchy/uplines"],
+    queryFn: () =>
+      fetchJSON<
+        Array<{
+          id: string;
+          first_name: string;
+          last_name: string;
+          email: string;
+          role: string;
+          contract_level: number | string | null;
+        }>
+      >(`/api/hcms/hierarchy/uplines`),
+    enabled: !!approveTarget,
     retry: 0,
+    staleTime: 30_000,
   });
+
+  // Access KPI strip — derived client-side from the already-fetched member +
+  // pending lists so we don't need a separate /api/members/kpis endpoint
+  // round-trip. Recomputes whenever either source query refetches.
+  const accessKpisQuery = useMemo<{ data: AccessKpis | undefined; isLoading: boolean }>(() => {
+    if (membersQuery.isLoading || pendingQuery.isLoading) {
+      return { data: undefined, isLoading: true };
+    }
+    const members = (membersQuery.data || []) as MemberRow[];
+    const pending = (pendingQuery.data || []) as PendingRegistration[];
+    const highTrust = members.filter((m) => (HIGH_TRUST_ROLES as readonly string[]).includes(m.role));
+    const twoFactorEnabledCount = highTrust.filter((m) => !!m.two_factor_enabled).length;
+    return {
+      data: {
+        pendingCount: pending.length,
+        activeMembers: members.filter((m) => m.is_active || daysSinceMs(m.last_login_at) <= 30).length,
+        twoFactorCoverage:
+          highTrust.length > 0 ? Math.round((twoFactorEnabledCount / highTrust.length) * 100) : 0,
+        idle60d: members.filter((m) => daysSinceMs(m.last_login_at) > 60).length,
+        twoFactorEnabledCount,
+        highTrustMemberCount: highTrust.length,
+      },
+      isLoading: false,
+    };
+  }, [membersQuery.data, membersQuery.isLoading, pendingQuery.data, pendingQuery.isLoading]);
 
   // Page-level error guard — only blank out if EVERY core query errors.
   // Mirrors FoundersTeamPerformance.tsx:120-148.
@@ -541,13 +687,32 @@ export default function FoundersLoungeAccess() {
   const firstError = membersQuery.error || pendingQuery.error || auditQuery.error;
 
   // ─── MUTATIONS ───
+  // Wave AC2: approve now takes upline + contract level so we can place the
+  // new agent in agent_hierarchy. Server inserts the row inside the same
+  // transaction as the users/profile updates.
   const approveMutation = useMutation({
-    mutationFn: (id: string) => postJSON(`/api/members/${id}/approve`, {}),
+    mutationFn: (vars: {
+      userId: string;
+      uplineId: string | null;
+      contractLevelPct: number;
+      reason: string | null;
+    }) =>
+      postJSON(`/api/members/${vars.userId}/approve`, {
+        uplineId: vars.uplineId,
+        contractLevelPct: vars.contractLevelPct,
+        reason: vars.reason,
+      }),
     onSuccess: () => {
-      toast({ title: "Approved", description: "Registration approved" });
+      toast({
+        title: "Approved",
+        description: "Hierarchy row created. Approval email sent.",
+      });
+      setApproveTarget(null);
+      setApproveReason("");
       queryClient.invalidateQueries({ queryKey: ["/api/members/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
       queryClient.invalidateQueries({ queryKey: ["/api/members/audit"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hcms/hierarchy/uplines"] });
     },
     onError: (err: Error) =>
       toast({ title: "Approval failed", description: err.message, variant: "destructive" }),
@@ -578,10 +743,10 @@ export default function FoundersLoungeAccess() {
       granted: boolean;
     }) => postJSON(`/api/members/${userId}/lounge/${loungeKey}`, { granted }),
     onSuccess: (_d, vars) => {
-      const lounge = LOUNGE_DEFS.find((l) => l.key === vars.loungeKey);
+      const label = LOUNGE_LABELS[vars.loungeKey as LoungeKey] || vars.loungeKey;
       toast({
         title: vars.granted ? "Access granted" : "Access revoked",
-        description: `${lounge?.label || vars.loungeKey} Lounge`,
+        description: `${label} Lounge`,
       });
       queryClient.invalidateQueries({
         queryKey: ["/api/members/lounge-access", vars.userId],
@@ -627,9 +792,15 @@ export default function FoundersLoungeAccess() {
   // apply here; the matrix is always the complete roster).
   const matrixMembers = useMemo(() => members, [members]);
 
-  // Matrix requires per-user access — fetch lazily per row is expensive; we rely on inline call API
+  // Matrix requires per-user access — fetch lazily per row is expensive; we
+  // rely on inline call API. Wave Z: cascade fan-out. Granting a tier (e.g.
+  // Director) also grants every lower tier (Manager, Agent) plus the
+  // auto-bundled CRM + Onboarding. Revoking a base tier (e.g. Agent) cascades
+  // up and revokes all super-tiers (Manager, Director, Executive). Each
+  // cascaded lounge gets its own POST so the access_change_log SOC 2 trail
+  // captures one row per state change, not bulk updates.
   const handleToggleLounge = (user: MemberRow, loungeKey: string, granted: boolean) => {
-    if (loungeKey === "founders_lounge" && granted) {
+    if (loungeKey === HIGH_STAKES_LOUNGE && granted) {
       setFounderGrantTarget({
         userId: user.id,
         memberName: `${user.first_name} ${user.last_name}`,
@@ -637,15 +808,129 @@ export default function FoundersLoungeAccess() {
       });
       return;
     }
-    toggleLoungeMutation.mutate({ userId: user.id, loungeKey, granted });
+    const cascade = granted
+      ? loungesIncludedByGrant(loungeKey as LoungeKey)
+      : loungesRevokedByRevoke(loungeKey as LoungeKey);
+    for (const lk of cascade) {
+      toggleLoungeMutation.mutate({ userId: user.id, loungeKey: lk, granted });
+    }
   };
 
   const confirmFounderGrant = () => {
     if (!founderGrantTarget) return;
     toggleLoungeMutation.mutate({
       userId: founderGrantTarget.userId,
-      loungeKey: "founders_lounge",
+      loungeKey: HIGH_STAKES_LOUNGE,
       granted: founderGrantTarget.granted,
+    });
+  };
+
+  // Wave Y8: change-role mutation. Posts to /api/members/:id/role; backend
+  // calls reinitializeLoungeAccess which writes users.role + access_change_log
+  // + founder_audit_log + heritage lounge re-grants atomically. On success we
+  // invalidate the members + per-user lounge-access caches so the matrix
+  // re-fetches with the new role's defaults.
+  const changeRoleMutation = useMutation({
+    mutationFn: ({ userId, newRole, reason }: { userId: string; newRole: string; reason: string | null }) =>
+      postJSON(`/api/members/${userId}/role`, { newRole, reason }),
+    onSuccess: (_d, vars) => {
+      toast({
+        title: "Role updated",
+        description: `Now ${ROLE_LABEL[vars.newRole] || vars.newRole}. Heritage lounges re-granted to the new role's defaults.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/audit"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/lounge-access", vars.userId] });
+      setRoleChangeTarget(null);
+      setRoleChangeReason("");
+    },
+    onError: (err: Error) =>
+      toast({ title: "Role change failed", description: err.message, variant: "destructive" }),
+  });
+
+  const openChangeRole = (member: MemberRow) => {
+    setRoleChangeTarget(member);
+    setRoleChangeNewRole(member.role || "sales_agent");
+    setRoleChangeReason("");
+  };
+
+  // Wave Z8: reset-to-role-default mutation. Wipes any per-user override rows
+  // in user_lounge_access + re-grants the canonical defaults for the user's
+  // current role. Used to clear stale overrides from earlier waves so the
+  // toggle matrix matches ROLE_TO_LOUNGES.
+  const resetLoungeMutation = useMutation({
+    mutationFn: (userId: string) =>
+      postJSON(`/api/members/${userId}/reset-lounge-access`, {}),
+    onSuccess: (_d, userId) => {
+      toast({
+        title: "Access reset",
+        description: "Toggle matrix now reflects this role's canonical defaults.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/lounge-access", userId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/audit"] });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Reset failed", description: err.message, variant: "destructive" }),
+  });
+
+  // Wave Z9: bulk reset — fires reset for every member in one click. Use case:
+  // earlier wave spec changes left stale per-user override rows on multiple
+  // users; this clears them all at once so the matrix matches ROLE_TO_LOUNGES
+  // for the entire roster.
+  const resetAllLoungeMutation = useMutation({
+    mutationFn: () => postJSON(`/api/members/reset-all-lounge-access`, {}),
+    onSuccess: (data: any) => {
+      toast({
+        title: `Bulk reset complete`,
+        description: `${data?.pass ?? "All"} of ${data?.total ?? "?"} members reset to role defaults.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/audit"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/lounge-access"] });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Bulk reset failed", description: err.message, variant: "destructive" }),
+  });
+
+  // Wave AB: hard-delete user. PROTECTED_EMAILS guard (guy4carbs@gmail.com)
+  // is enforced server-side; this client just calls DELETE and reflects the
+  // server's success/failure response.
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await fetch(`/api/members/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { ...(await csrfHeaders()) },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error((err as { error?: string }).error || `HTTP ${res.status}`);
+      }
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "User deleted",
+        description: `${data?.deleted?.email ?? "Account"} has been removed.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/audit"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/pending"] });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" }),
+  });
+
+  const submitChangeRole = () => {
+    if (!roleChangeTarget) return;
+    if (roleChangeNewRole === roleChangeTarget.role) {
+      toast({ title: "No change", description: "That's already this user's role." });
+      return;
+    }
+    changeRoleMutation.mutate({
+      userId: roleChangeTarget.id,
+      newRole: roleChangeNewRole,
+      reason: roleChangeReason.trim() || null,
     });
   };
 
@@ -919,10 +1204,19 @@ export default function FoundersLoungeAccess() {
   ];
 
   // ─── LOUNGE MATRIX COLUMNS ───
+  // Wave Y7: matrix renders Member name, Role badge (founder gets crown +
+  // gold styling), then 13 heritage lounge toggles. Goldcoast surfaces are
+  // role-derived (shown read-only in the Role Defaults banner above), so
+  // they're not toggleable here.
+  // Wave Z2 fix: GCDataTable uses tableLayout: 'fixed', so column widths MUST
+  // be passed via the Column.width field — minWidth on inner content is
+  // ignored. Setting explicit widths so toggle switches no longer overlap the
+  // Role column's Change button.
   const loungeColumns: Column<MemberRow>[] = [
     {
       key: "memberName",
       label: "Member",
+      width: 180,
       render: (_v, row) => (
         <div>
           <div
@@ -930,56 +1224,186 @@ export default function FoundersLoungeAccess() {
               fontSize: "var(--gc-text-sm)",
               color: "var(--gc-text-primary)",
               fontWeight: 500,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
             {row.first_name} {row.last_name}
           </div>
-          <div style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-text-muted)" }}>
+          <div
+            style={{
+              fontSize: "var(--gc-text-xs)",
+              color: "var(--gc-text-muted)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {row.email}
           </div>
         </div>
       ),
     },
     {
-      key: "agent_lounge",
-      label: "Agent",
-      align: "center",
+      key: "role",
+      label: "Role",
+      width: 340,
       render: (_v, row) => (
-        <ToggleCell row={row} loungeKey="agent_lounge" onToggle={handleToggleLounge} />
+        <div className="flex items-center gap-1.5 whitespace-nowrap">
+          <RoleBadge role={row.role} />
+          <button
+            type="button"
+            onClick={() => openChangeRole(row)}
+            className="inline-flex items-center text-xs whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gc-gold)] transition-colors"
+            style={{
+              color: "var(--gc-text-secondary)",
+              fontFamily: "var(--gc-font-body)",
+              padding: "2px 8px",
+              borderRadius: "var(--gc-radius-full)",
+              border: "1px solid var(--gc-border)",
+              backgroundColor: "var(--gc-surface)",
+              fontWeight: 500,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--gc-gold)";
+              e.currentTarget.style.color = "var(--gc-gold)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--gc-border)";
+              e.currentTarget.style.color = "var(--gc-text-secondary)";
+            }}
+            aria-label={`Change role for ${row.first_name} ${row.last_name}`}
+          >
+            Change
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Reset ${row.first_name} ${row.last_name}'s access to ${ROLE_LABEL[row.role] || row.role} defaults? This wipes any per-user lounge overrides.`,
+                )
+              ) {
+                resetLoungeMutation.mutate(row.id);
+              }
+            }}
+            disabled={resetLoungeMutation.isPending}
+            className="inline-flex items-center text-xs whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gc-gold)] transition-colors disabled:opacity-50"
+            style={{
+              color: "var(--gc-text-muted)",
+              fontFamily: "var(--gc-font-body)",
+              padding: "2px 8px",
+              borderRadius: "var(--gc-radius-full)",
+              border: "1px solid var(--gc-border)",
+              backgroundColor: "transparent",
+              fontWeight: 500,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--gc-gold)";
+              e.currentTarget.style.color = "var(--gc-gold)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--gc-border)";
+              e.currentTarget.style.color = "var(--gc-text-muted)";
+            }}
+            title={`Reset to ${ROLE_LABEL[row.role] || row.role} defaults`}
+            aria-label={`Reset ${row.first_name} ${row.last_name} to ${ROLE_LABEL[row.role] || row.role} role defaults`}
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Delete ${row.first_name} ${row.last_name} (${row.email})?\n\nThis hard-deletes the user, their agent_profile, lounge grants, and notifications. Audit row written before deletion. This cannot be undone.`,
+                )
+              ) {
+                deleteUserMutation.mutate(row.id);
+              }
+            }}
+            disabled={deleteUserMutation.isPending}
+            className="inline-flex items-center text-xs whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gc-status-terminated,#b91c1c)] transition-colors disabled:opacity-50"
+            style={{
+              color: "var(--gc-text-muted)",
+              fontFamily: "var(--gc-font-body)",
+              padding: "2px 8px",
+              borderRadius: "var(--gc-radius-full)",
+              border: "1px solid var(--gc-border)",
+              backgroundColor: "transparent",
+              fontWeight: 500,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--gc-status-terminated, #b91c1c)";
+              e.currentTarget.style.color = "var(--gc-status-terminated, #b91c1c)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--gc-border)";
+              e.currentTarget.style.color = "var(--gc-text-muted)";
+            }}
+            title={`Delete ${row.email}`}
+            aria-label={`Delete ${row.first_name} ${row.last_name}`}
+          >
+            Delete
+          </button>
+        </div>
       ),
     },
-    {
-      key: "manager_lounge",
-      label: "Manager",
-      align: "center",
-      render: (_v, row) => (
-        <ToggleCell row={row} loungeKey="manager_lounge" onToggle={handleToggleLounge} />
-      ),
-    },
-    {
-      key: "executive_lounge",
-      label: "Executive",
-      align: "center",
-      render: (_v, row) => (
-        <ToggleCell row={row} loungeKey="executive_lounge" onToggle={handleToggleLounge} />
-      ),
-    },
-    {
-      key: "investor_lounge",
-      label: "Investor",
-      align: "center",
-      render: (_v, row) => (
-        <ToggleCell row={row} loungeKey="investor_lounge" onToggle={handleToggleLounge} />
-      ),
-    },
-    {
-      key: "founders_lounge",
-      label: <Crown className="w-4 h-4 mx-auto" style={{ color: "var(--gc-gold)" }} />,
-      align: "center",
-      render: (_v, row) => (
-        <ToggleCell row={row} loungeKey="founders_lounge" onToggle={handleToggleLounge} />
-      ),
-    },
+    // Wave Z2 fix: drop multi-line cascade subtitle from headers (was bleeding
+    // into adjacent columns). Cascade hint moves to a single-line footer note
+    // below the matrix. Tier columns get a small "↓N" badge next to the label
+    // indicating how many lower tiers cascade in.
+    ...VISIBLE_LOUNGE_KEYS.map<Column<MemberRow>>((lk) => {
+      const tierIdx = LOUNGE_TIER_LADDER.indexOf(lk);
+      const bundleMembers = LOUNGE_BUNDLES[lk] || [];
+      // Cascade-down count = tier predecessors (for ladder) + bundle members
+      // (for bundle leads). Both feed the same ↓N badge.
+      const cascadeNames =
+        tierIdx > 0
+          ? LOUNGE_TIER_LADDER.slice(0, tierIdx).map((k) => LOUNGE_LABELS[k])
+          : bundleMembers.map((k) => LOUNGE_LABELS[k]);
+      const cascadeCount = cascadeNames.length;
+      return {
+        key: lk,
+        width: 80,
+        label: (
+          <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap">
+            {lk === HIGH_STAKES_LOUNGE && (
+              <Crown
+                className="w-3.5 h-3.5"
+                style={{ color: "var(--gc-gold)" }}
+                aria-hidden="true"
+              />
+            )}
+            <span>{LOUNGE_LABELS[lk]}</span>
+            {cascadeCount > 0 && (
+              <span
+                title={`Cascades to: ${cascadeNames.join(", ")}`}
+                aria-label={`Toggling on also grants ${cascadeNames.join(", ")}`}
+                style={{
+                  fontSize: "9px",
+                  color: "var(--gc-gold)",
+                  fontWeight: 600,
+                  border: "1px solid var(--gc-gold)",
+                  borderRadius: "var(--gc-radius-full)",
+                  padding: "0 4px",
+                  lineHeight: 1.4,
+                  textTransform: "none",
+                  letterSpacing: 0,
+                }}
+              >
+                ↓{cascadeCount}
+              </span>
+            )}
+          </span>
+        ),
+        align: "center",
+        render: (_v, row) => (
+          <ToggleCell row={row} loungeKey={lk} onToggle={handleToggleLounge} />
+        ),
+      };
+    }),
   ];
 
   // ─── FILTER BAR (members) ───
@@ -1005,13 +1429,7 @@ export default function FoundersLoungeAccess() {
         width={160}
         options={[
           { value: "all", label: "All" },
-          { value: "founder", label: "Founder" },
-          { value: "owner", label: "Owner" },
-          { value: "system_admin", label: "Admin" },
-          { value: "manager", label: "Manager" },
-          { value: "sales_agent", label: "Agent" },
-          { value: "investor", label: "Investor" },
-          { value: "client", label: "Client" },
+          ...ALL_ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] || r })),
         ]}
       />
       <FilterLabel>Status</FilterLabel>
@@ -1126,68 +1544,72 @@ export default function FoundersLoungeAccess() {
 
       {/* KPI strip — drill-in via wouter Link to in-page tab anchors. The
           2FA + Idle tiles also carry a `?filter=` so the Members tab pre-applies
-          the matching demo-store helper before rendering. */}
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 mt-6"
+          the matching client-side filter helper before rendering. */}
+      <section
+        aria-labelledby="founders-access-kpi-heading"
+        className="mb-6 mt-6"
         data-tour-id={TOUR.FOUNDERS.ACCESS.KPI_GRID}
       >
-        {accessKpisQuery.isLoading || !accessKpisQuery.data ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[116px] w-full" />
-          ))
-        ) : (
-          <>
-            <Link
-              href="#pending"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="Pending Registrations"
-                value={accessKpisQuery.data.pendingCount}
-                accentTop
-                tooltip="Awaiting approval / rejection"
-              />
-            </Link>
-            <Link
-              href="#members"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="Active Members"
-                value={accessKpisQuery.data.activeMembers}
-                accentTop
-                tooltip="Active flag set OR last login within 30 days"
-              />
-            </Link>
-            <Link
-              href="#members?filter=no-2fa"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="High-Trust 2FA"
-                value={`${accessKpisQuery.data.twoFactorCoverage}%`}
-                accentTop
-                tooltip={`${accessKpisQuery.data.twoFactorEnabledCount}/${accessKpisQuery.data.highTrustMemberCount} high-trust members have 2FA enabled`}
-              />
-            </Link>
-            <Link
-              href="#members?filter=idle60"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="Idle 60d"
-                value={accessKpisQuery.data.idle60d}
-                accentTop
-                tooltip="Members with no login in the last 60 days (or never)"
-              />
-            </Link>
-          </>
-        )}
-      </div>
+        <h2 id="founders-access-kpi-heading" className="sr-only">Lounge access KPIs</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {accessKpisQuery.isLoading || !accessKpisQuery.data ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[116px] w-full" />
+            ))
+          ) : (
+            <>
+              <Link
+                href="#pending"
+                aria-label={`Pending registrations: ${accessKpisQuery.data.pendingCount} — jump to pending tab`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Pending Registrations"
+                  value={accessKpisQuery.data.pendingCount}
+                  accentTop
+                  tooltip="Awaiting approval / rejection"
+                />
+              </Link>
+              <Link
+                href="#members"
+                aria-label={`Active members: ${accessKpisQuery.data.activeMembers} — jump to members tab`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Active Members"
+                  value={accessKpisQuery.data.activeMembers}
+                  accentTop
+                  tooltip="Active flag set OR last login within 30 days"
+                />
+              </Link>
+              <Link
+                href="#members?filter=no-2fa"
+                aria-label={`High-trust 2FA coverage: ${accessKpisQuery.data.twoFactorCoverage}% (${accessKpisQuery.data.twoFactorEnabledCount} of ${accessKpisQuery.data.highTrustMemberCount}) — jump to members filtered by no-2FA`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="High-Trust 2FA"
+                  value={`${accessKpisQuery.data.twoFactorCoverage}%`}
+                  accentTop
+                  tooltip={`${accessKpisQuery.data.twoFactorEnabledCount}/${accessKpisQuery.data.highTrustMemberCount} high-trust members have 2FA enabled`}
+                />
+              </Link>
+              <Link
+                href="#members?filter=idle60"
+                aria-label={`Idle 60 days: ${accessKpisQuery.data.idle60d} members — jump to members filtered by idle`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Idle 60d"
+                  value={accessKpisQuery.data.idle60d}
+                  accentTop
+                  tooltip="Members with no login in the last 60 days (or never)"
+                />
+              </Link>
+            </>
+          )}
+        </div>
+      </section>
 
       <GCTabs value={activeTab} onValueChange={setActiveTab} className="w-full" data-tour-id={TOUR.FOUNDERS.ACCESS.TABS}>
         <GCTabsList className="mb-4">
@@ -1202,7 +1624,7 @@ export default function FoundersLoungeAccess() {
                   padding: "0 6px",
                   borderRadius: "var(--gc-radius-full)",
                   backgroundColor: "var(--gc-status-pending)",
-                  color: "#111",
+                  color: "var(--gc-text-primary)",
                 }}
               >
                 {pendingRegistrations.length}
@@ -1219,7 +1641,7 @@ export default function FoundersLoungeAccess() {
           {pendingQuery.isError ? (
             <EmptyTableBlock
               title="Couldn't load pending registrations."
-              subtext="The /api/members/pending endpoint is not reachable yet."
+              subtext={(pendingQuery.error as Error | undefined)?.message || "Try refreshing in a moment."}
             />
           ) : pendingQuery.isLoading ? (
             <Skeleton className="h-[200px] w-full" />
@@ -1329,7 +1751,12 @@ export default function FoundersLoungeAccess() {
                   <div className="flex flex-col gap-2 flex-shrink-0 self-start" style={{ minWidth: 130 }}>
                     <GCPrimaryButton
                       icon={<Check className="w-4 h-4" />}
-                      onClick={() => approveMutation.mutate(reg.id)}
+                      onClick={() => {
+                        setApproveTarget(reg);
+                        setApproveUplineId("");
+                        setApproveContractPct(80);
+                        setApproveReason("");
+                      }}
                       disabled={approveMutation.isPending}
                     >
                       Approve
@@ -1353,7 +1780,7 @@ export default function FoundersLoungeAccess() {
           {membersQuery.isError ? (
             <EmptyTableBlock
               title="Couldn't load members."
-              subtext="The /api/members endpoint is not reachable yet."
+              subtext={(membersQuery.error as Error | undefined)?.message || "Try refreshing in a moment."}
             />
           ) : (
             <GCDataTable
@@ -1371,7 +1798,7 @@ export default function FoundersLoungeAccess() {
           {membersQuery.isError ? (
             <EmptyTableBlock
               title="Couldn't load member list."
-              subtext="The /api/members endpoint is not reachable yet."
+              subtext={(membersQuery.error as Error | undefined)?.message || "Try refreshing in a moment."}
             />
           ) : matrixMembers.length === 0 ? (
             <EmptyTableBlock
@@ -1380,6 +1807,23 @@ export default function FoundersLoungeAccess() {
             />
           ) : (
             <>
+              <RoleDefaultsBanner />
+              <div className="flex items-center justify-end mb-3">
+                <GCSecondaryButton
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Reset ALL ${matrixMembers.length} members to their role's canonical lounge defaults?\n\nThis wipes any per-user overrides currently in user_lounge_access. Each member's toggles will immediately reflect ROLE_TO_LOUNGES for their role. Audit-logged.`,
+                      )
+                    ) {
+                      resetAllLoungeMutation.mutate();
+                    }
+                  }}
+                  disabled={resetAllLoungeMutation.isPending}
+                >
+                  {resetAllLoungeMutation.isPending ? "Resetting…" : "Reset all to role defaults"}
+                </GCSecondaryButton>
+              </div>
               <GCDataTable
                 columns={loungeColumns}
                 data={matrixMembers}
@@ -1388,13 +1832,23 @@ export default function FoundersLoungeAccess() {
                 pageSize={20}
               />
               <div
-                className="px-4 py-2 mt-2"
+                className="px-4 py-3 mt-2 flex flex-wrap items-center gap-x-6 gap-y-1"
                 style={{
                   fontSize: "var(--gc-text-xs)",
                   color: "var(--gc-text-muted)",
                 }}
               >
-                {members.length} members total. Granting the Founders Lounge requires confirmation.
+                <span>{members.length} members total.</span>
+                <span>
+                  <span style={{ color: "var(--gc-gold)", fontWeight: 600 }}>↓N</span>{" "}
+                  badges = tier cascade. Toggling Manager auto-grants Agent, Director auto-grants Manager + Agent, etc.
+                </span>
+                <span>
+                  Granting <strong style={{ color: "var(--gc-text-secondary)" }}>Admin</strong> requires confirmation.
+                </span>
+                <span>
+                  CRM + Onboarding auto-included with any heritage access. Admin bundles AI + Support.
+                </span>
               </div>
             </>
           )}
@@ -1441,7 +1895,7 @@ export default function FoundersLoungeAccess() {
           {auditQuery.isError ? (
             <EmptyTableBlock
               title="Couldn't load audit history."
-              subtext="The /api/members/audit endpoint is not reachable yet."
+              subtext={(auditQuery.error as Error | undefined)?.message || "Try refreshing in a moment."}
             />
           ) : (
             <GCDataTable
@@ -1508,7 +1962,7 @@ export default function FoundersLoungeAccess() {
               onClick={() => {
                 if (rejectTarget && rejectReason.trim()) {
                   rejectMutation.mutate({
-                    id: rejectTarget.id,
+                    id: rejectTarget.user_id,
                     reason: rejectReason.trim(),
                   });
                 }
@@ -1520,24 +1974,201 @@ export default function FoundersLoungeAccess() {
         </GCModal>
       )}
 
-      {/* ─── FOUNDERS GRANT CONFIRMATION ─── */}
+      {/* ─── APPROVE WITH HIERARCHY PLACEMENT (Wave AC) ─── */}
+      {approveTarget && (
+        <GCModal
+          title={`Approve ${approveTarget.first_name} ${approveTarget.last_name}`}
+          icon={<Check className="w-5 h-5" style={{ color: "var(--gc-gold)" }} aria-hidden="true" />}
+          subtitle={`Place ${approveTarget.email} in the hierarchy and set their contract level.`}
+          onClose={() => {
+            if (approveMutation.isPending) return;
+            setApproveTarget(null);
+            setApproveReason("");
+          }}
+          width={520}
+        >
+          <div className="mb-3">
+            <label style={GC_FORM_LABEL}>Upline</label>
+            <GCSelect
+              theme={theme}
+              value={approveUplineId}
+              onValueChange={setApproveUplineId}
+              width="100%"
+              options={[
+                { value: "", label: "(Top of tree — no upline)" },
+                ...((uplinesQuery.data ?? []).map((u) => ({
+                  value: u.id,
+                  label: `${u.first_name} ${u.last_name} — ${ROLE_LABEL[u.role] || u.role} (${u.contract_level ?? "—"}%)`,
+                }))),
+              ]}
+            />
+            {uplinesQuery.data && uplinesQuery.data.length === 0 && (
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--gc-text-muted)",
+                  marginTop: 4,
+                  fontFamily: "var(--gc-font-body)",
+                }}
+              >
+                No active uplines yet. Approving with no upline places this agent at the top of the tree.
+              </p>
+            )}
+          </div>
+          <div className="mb-3">
+            <label style={GC_FORM_LABEL}>Contract level %</label>
+            <Input
+              type="number"
+              min={0}
+              max={120}
+              value={approveContractPct}
+              onChange={(e) =>
+                setApproveContractPct(
+                  Math.max(0, Math.min(120, Number(e.target.value) || 0)),
+                )
+              }
+              style={GC_FORM_INPUT}
+            />
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--gc-text-muted)",
+                marginTop: 4,
+                fontFamily: "var(--gc-font-body)",
+              }}
+            >
+              80% is the new-agent baseline. Owner is 120%; the spread is the override.
+            </p>
+          </div>
+          <div className="mb-3">
+            <label style={GC_FORM_LABEL}>Reason (optional, audited)</label>
+            <Input
+              value={approveReason}
+              onChange={(e) => setApproveReason(e.target.value)}
+              placeholder="e.g. Q2 hire from Smith agency"
+              maxLength={500}
+              style={GC_FORM_INPUT}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-2 mt-4">
+            <GCSecondaryButton
+              onClick={() => {
+                if (approveMutation.isPending) return;
+                setApproveTarget(null);
+                setApproveReason("");
+              }}
+            >
+              Cancel
+            </GCSecondaryButton>
+            <GCPrimaryButton
+              onClick={() =>
+                approveMutation.mutate({
+                  userId: approveTarget.user_id,
+                  uplineId: approveUplineId || null,
+                  contractLevelPct: approveContractPct,
+                  reason: approveReason.trim() || null,
+                })
+              }
+              icon={<Check className="w-4 h-4" aria-hidden="true" />}
+              disabled={approveMutation.isPending}
+            >
+              {approveMutation.isPending ? "Approving…" : "Approve"}
+            </GCPrimaryButton>
+          </div>
+        </GCModal>
+      )}
+
+      {/* ─── CHANGE ROLE (Wave Y8) ─── */}
+      {roleChangeTarget && (
+        <GCModal
+          title={`Change role — ${roleChangeTarget.first_name} ${roleChangeTarget.last_name}`}
+          icon={<Crown className="w-5 h-5" style={{ color: "var(--gc-gold)" }} aria-hidden="true" />}
+          subtitle={`Currently ${ROLE_LABEL[roleChangeTarget.role] || roleChangeTarget.role}`}
+          onClose={() => {
+            if (changeRoleMutation.isPending) return;
+            setRoleChangeTarget(null);
+            setRoleChangeReason("");
+          }}
+          width={520}
+        >
+          <p
+            className="mb-3"
+            style={{
+              fontFamily: "var(--gc-font-body)",
+              fontSize: "var(--gc-text-sm)",
+              color: "var(--gc-text-secondary)",
+              lineHeight: 1.5,
+            }}
+          >
+            Changing the role updates Goldcoast surface access (auto-derived
+            from the role) and re-grants Heritage lounge defaults from the
+            canonical matrix. Existing per-user lounge overrides are reset.
+          </p>
+          <div className="mb-3">
+            <label style={GC_FORM_LABEL}>New role</label>
+            <GCSelect
+              theme={theme}
+              value={roleChangeNewRole}
+              onValueChange={setRoleChangeNewRole}
+              width="100%"
+              options={ALL_ROLES.map((r) => ({
+                value: r,
+                label: ROLE_LABEL[r] || r,
+              }))}
+            />
+          </div>
+          <div className="mb-3">
+            <label style={GC_FORM_LABEL}>Reason (optional, audited)</label>
+            <Input
+              value={roleChangeReason}
+              onChange={(e) => setRoleChangeReason(e.target.value)}
+              placeholder="e.g. Promoted from Sales Agent to Manager"
+              maxLength={500}
+              style={GC_FORM_INPUT}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-2 mt-4">
+            <GCSecondaryButton
+              onClick={() => {
+                if (changeRoleMutation.isPending) return;
+                setRoleChangeTarget(null);
+                setRoleChangeReason("");
+              }}
+            >
+              Cancel
+            </GCSecondaryButton>
+            <GCPrimaryButton
+              onClick={submitChangeRole}
+              icon={<Crown className="w-4 h-4" aria-hidden="true" />}
+              disabled={
+                changeRoleMutation.isPending ||
+                roleChangeNewRole === roleChangeTarget.role
+              }
+            >
+              {changeRoleMutation.isPending ? "Updating…" : "Update role"}
+            </GCPrimaryButton>
+          </div>
+        </GCModal>
+      )}
+
+      {/* ─── HIGH-STAKES LOUNGE GRANT CONFIRMATION (admin_panel) ─── */}
       {founderGrantTarget && (
         <GCModal
-          title="Grant Founders Lounge Access?"
-          icon={<Crown className="w-5 h-5" style={{ color: "var(--gc-gold)" }} />}
+          title="Grant Admin Panel Access?"
+          icon={<Crown className="w-5 h-5" style={{ color: "var(--gc-gold)" }} aria-hidden="true" />}
           subtitle={null}
           onClose={() => setFounderGrantTarget(null)}
           width={500}
         >
           <p style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", lineHeight: 1.5 }}>
-            Granting the Founders Lounge gives{" "}
+            Granting the Admin Panel gives{" "}
             <strong style={{ color: "var(--gc-text-primary)" }}>{founderGrantTarget?.memberName}</strong>{" "}
-            top-tier access across GC + Heritage with approval authority. This is
-            consequential — proceed only if intended.
+            heritage's most powerful surface (user management, system controls, role
+            mutations). This is consequential — proceed only if intended.
           </p>
           <div className="flex items-center justify-end gap-2 mt-6">
             <GCSecondaryButton onClick={() => setFounderGrantTarget(null)}>Cancel</GCSecondaryButton>
-            <GCPrimaryButton onClick={confirmFounderGrant} icon={<Crown className="w-4 h-4" />}>
+            <GCPrimaryButton onClick={confirmFounderGrant} icon={<Crown className="w-4 h-4" aria-hidden="true" />}>
               Confirm Grant
             </GCPrimaryButton>
           </div>
@@ -1745,12 +2376,17 @@ export default function FoundersLoungeAccess() {
                     Lounge Access
                   </div>
                   <div className="flex flex-col gap-2">
-                    {LOUNGE_DEFS.map((lounge) => {
-                      const granted = memberAccessMap[lounge.key] ?? false;
-                      const isFounders = lounge.key === "founders_lounge";
+                    {LOUNGE_KEYS.map((lk) => {
+                      // Wave Z7: per-user override OR role default fallback.
+                      const userOverride = memberAccessMap[lk];
+                      const granted =
+                        userOverride !== undefined
+                          ? userOverride
+                          : (ROLE_TO_LOUNGES[selectedMember.role] || []).includes(lk);
+                      const isHighStakes = lk === HIGH_STAKES_LOUNGE;
                       return (
                         <div
-                          key={lounge.key}
+                          key={lk}
                           className="flex items-center justify-between px-4 py-3"
                           style={{
                             backgroundColor: "var(--gc-surface)",
@@ -1760,8 +2396,12 @@ export default function FoundersLoungeAccess() {
                           }}
                         >
                           <div className="flex items-center gap-2">
-                            {isFounders && (
-                              <Crown className="w-3.5 h-3.5" style={{ color: "var(--gc-gold)" }} />
+                            {isHighStakes && (
+                              <Crown
+                                className="w-3.5 h-3.5"
+                                style={{ color: "var(--gc-gold)" }}
+                                aria-hidden="true"
+                              />
                             )}
                             <span
                               style={{
@@ -1771,13 +2411,13 @@ export default function FoundersLoungeAccess() {
                                 fontFamily: "var(--gc-font-body)",
                               }}
                             >
-                              {lounge.label} Lounge
+                              {LOUNGE_LABELS[lk]} Lounge
                             </span>
                           </div>
                           <GCSwitch
                             checked={granted}
                             onCheckedChange={(checked) => {
-                              if (isFounders && checked) {
+                              if (isHighStakes && checked) {
                                 setFounderGrantTarget({
                                   userId: selectedMember.id,
                                   memberName: `${selectedMember.first_name} ${selectedMember.last_name}`,
@@ -1786,7 +2426,7 @@ export default function FoundersLoungeAccess() {
                               } else {
                                 toggleLoungeMutation.mutate({
                                   userId: selectedMember.id,
-                                  loungeKey: lounge.key,
+                                  loungeKey: lk,
                                   granted: checked,
                                 });
                               }
@@ -1860,8 +2500,223 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+// ─── ROLE DEFAULTS BANNER ───
+// Read-only access matrix showing the canonical role → surface mapping across
+// BOTH deployments — Gold Coast (left) and Heritage (right). Goldcoast is
+// role-gated at the Express layer, heritage is lounge-key-gated. Sourced from
+// shared/models/loungeAccess.ts so the banner can never drift from runtime.
+function RoleDefaultsBanner() {
+  return (
+    <section
+      aria-labelledby="role-defaults-heading"
+      className="mb-4 rounded-md p-4"
+      style={{
+        backgroundColor: "var(--gc-surface-2)",
+        border: "1px solid var(--gc-border-subtle)",
+      }}
+    >
+      <h3
+        id="role-defaults-heading"
+        style={{
+          fontSize: "var(--gc-text-xs)",
+          color: "var(--gc-text-muted)",
+          textTransform: "uppercase",
+          letterSpacing: "var(--gc-tracking-wider)",
+          fontFamily: "var(--gc-font-body)",
+          marginBottom: "var(--gc-space-2)",
+        }}
+      >
+        Role Access Matrix — read-only reference
+      </h3>
+      <p
+        className="mb-4"
+        style={{
+          fontSize: "var(--gc-text-xs)",
+          color: "var(--gc-text-secondary)",
+          fontFamily: "var(--gc-font-body)",
+        }}
+      >
+        Default access by role. Override per user in the matrix below.
+      </p>
+      <div className="flex flex-col gap-4">
+        <RoleMatrixTable
+          title="Gold Coast Surfaces"
+          subtitle="Auto-granted by role. Not toggleable."
+          accent="var(--gc-gold)"
+          columns={GC_SURFACES.map((k) => ({ key: k, label: GC_SURFACE_LABELS[k] }))}
+          rowHas={(role, key) => (ROLE_TO_GC_SURFACES[role] || []).includes(key as GcSurface)}
+        />
+        <RoleMatrixTable
+          title="Heritage Lounges"
+          subtitle="Default by role. Override per user below."
+          accent="var(--gc-gold-bright)"
+          columns={LOUNGE_KEYS.map((k) => ({ key: k, label: LOUNGE_LABELS[k] }))}
+          rowHas={(role, key) => (ROLE_TO_LOUNGES[role] || []).includes(key as LoungeKey)}
+        />
+      </div>
+    </section>
+  );
+}
+
+function RoleMatrixTable({
+  title,
+  subtitle,
+  accent,
+  columns,
+  rowHas,
+}: {
+  title: string;
+  subtitle: string;
+  accent: string;
+  columns: Array<{ key: string; label: string }>;
+  rowHas: (role: string, key: string) => boolean;
+}) {
+  return (
+    <div
+      className="rounded-md p-3"
+      style={{
+        backgroundColor: "var(--gc-surface)",
+        border: "1px solid var(--gc-border)",
+      }}
+    >
+      <div
+        className="mb-1 flex items-center gap-2"
+        style={{
+          fontSize: "var(--gc-text-sm)",
+          fontWeight: 600,
+          color: "var(--gc-text-primary)",
+          fontFamily: "var(--gc-font-body)",
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            backgroundColor: accent,
+            display: "inline-block",
+          }}
+        />
+        {title}
+      </div>
+      <div
+        className="mb-3"
+        style={{
+          fontSize: "var(--gc-text-xs)",
+          color: "var(--gc-text-muted)",
+          fontFamily: "var(--gc-font-body)",
+        }}
+      >
+        {subtitle}
+      </div>
+      <div style={{ width: "100%" }}>
+        <table
+          className="border-collapse"
+          style={{
+            fontSize: "11px",
+            fontFamily: "var(--gc-font-body)",
+            tableLayout: "fixed",
+            width: "100%",
+          }}
+        >
+          <colgroup>
+            <col style={{ width: "110px" }} />
+            {columns.map((c) => (
+              <col key={c.key} />
+            ))}
+          </colgroup>
+          <thead>
+            <tr>
+              <th
+                className="text-left py-2 pr-2"
+                style={{
+                  color: "var(--gc-text-muted)",
+                  fontWeight: 500,
+                  borderBottom: "1px solid var(--gc-border-subtle)",
+                }}
+              >
+                Role
+              </th>
+              {columns.map((c) => (
+                <th
+                  key={c.key}
+                  className="px-1 py-2 text-center"
+                  style={{
+                    color: "var(--gc-text-muted)",
+                    fontWeight: 500,
+                    borderBottom: "1px solid var(--gc-border-subtle)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                  title={c.label}
+                >
+                  {c.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ALL_ROLES.map((role, idx) => {
+              const isFounder = role === "founder";
+              return (
+                <tr
+                  key={role}
+                  style={{
+                    backgroundColor: isFounder
+                      ? "color-mix(in srgb, var(--gc-gold) 8%, transparent)"
+                      : idx % 2 === 1
+                      ? "var(--gc-surface-2)"
+                      : "transparent",
+                  }}
+                >
+                  <td
+                    className="py-1.5 pr-3 whitespace-nowrap"
+                    style={{
+                      color: isFounder ? "var(--gc-gold)" : "var(--gc-text-primary)",
+                      fontWeight: isFounder ? 600 : 500,
+                    }}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      {isFounder && (
+                        <Crown
+                          className="w-3.5 h-3.5"
+                          style={{ color: "var(--gc-gold)" }}
+                          aria-hidden="true"
+                        />
+                      )}
+                      {ROLE_LABEL[role] || role}
+                    </span>
+                  </td>
+                  {columns.map((c) => {
+                    const has = rowHas(role, c.key);
+                    return (
+                      <td
+                        key={c.key}
+                        className="px-1 py-1.5 text-center"
+                        style={{
+                          color: has ? "var(--gc-gold)" : "var(--gc-text-muted)",
+                          fontWeight: has ? 600 : 400,
+                        }}
+                        aria-label={`${ROLE_LABEL[role] || role} ${has ? "has" : "lacks"} ${c.label} access`}
+                      >
+                        {has ? "✓" : "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── TOGGLE CELL ───
-// Per-row lounge access fetch + switch. React-Query dedupes the 5 cells
+// Per-row lounge access fetch + switch. React-Query dedupes the 13 cells
 // per row so each member still triggers a single /lounge-access request.
 function ToggleCell({
   row,
@@ -1879,10 +2734,15 @@ function ToggleCell({
     retry: 0,
     staleTime: 30_000,
   });
+  // Wave Z7: effective state = per-user override OR role default. If the user
+  // has an explicit row in user_lounge_access (granted true OR false), that
+  // wins. Otherwise fall back to ROLE_TO_LOUNGES[role] so a fresh founder
+  // shows all toggles ON, a fresh sales_agent shows only Agent ON, etc.
   const granted = useMemo(() => {
     const entry = (data ?? []).find((r) => r.lounge_key === loungeKey);
-    return entry?.granted ?? false;
-  }, [data, loungeKey]);
+    if (entry) return entry.granted;
+    return (ROLE_TO_LOUNGES[row.role] || []).includes(loungeKey as LoungeKey);
+  }, [data, loungeKey, row.role]);
 
   return (
     <div className="flex items-center justify-center">

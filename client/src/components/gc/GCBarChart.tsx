@@ -23,7 +23,7 @@ export function GCBarChart({ data, title, valueFormatter = (v) => v.toLocaleStri
       <div style={{ width: "100%", height: chartHeight }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ left: 0, right: 8, top: 0, bottom: 0 }} barGap={0}>
-            <XAxis type="number" tick={{ fontSize: 10, fill: "var(--gc-text-muted)" }} axisLine={false} tickLine={false} tickFormatter={valueFormatter} />
+            <XAxis type="number" tick={{ fontSize: 10, fill: "var(--gc-text-muted)" }} axisLine={false} tickLine={false} tickFormatter={valueFormatter} domain={[0, "dataMax"]} allowDecimals={false} />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "var(--gc-text-secondary)" }} axisLine={false} tickLine={false} width={100} />
             <Tooltip content={<CustomTooltip valueFormatter={valueFormatter} />} cursor={false} />
             <Bar dataKey="value" barSize={16} radius={[0, 4, 4, 0]}>

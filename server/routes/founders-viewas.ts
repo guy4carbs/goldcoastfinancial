@@ -133,6 +133,11 @@ router.post("/session/end", async (req, res) => {
 });
 
 // GET /session — current state
+// Wave AE1: previously returned active:true purely from req.session.viewingAs,
+// even when the DB row was closed or the target user was deleted. That caused
+// the page to show "Active as session" with empty fields after cleanup runs
+// or after view_as_sessions was orphaned. Now we authoritatively join the
+// session+target and clear the stale cookie when neither exists.
 router.get("/session", async (req, res) => {
   try {
     const founderId = req.user!.id;
@@ -153,11 +158,30 @@ router.get("/session", async (req, res) => {
       [founderId]
     );
 
+    // Stale cookie guard: if the DB has no open session OR the target user
+    // was deleted, clear the cookie state and report idle. The blockWrites
+    // middleware also keys off req.session.viewingAs, so leaving it set
+    // would force the founder into a phantom read-only mode.
+    if (row.rowCount === 0 || target.rowCount === 0) {
+      delete (req.session as any).viewingAs;
+      delete (req.session as any).viewAsSessionId;
+      delete (req.session as any).viewAsStartedAt;
+      // If the DB has an open row but the target is gone, close it so the
+      // sweeper doesn't keep finding it.
+      if (row.rowCount && row.rowCount > 0) {
+        await pool.query(
+          `UPDATE view_as_sessions SET ended_at = NOW() WHERE id = $1 AND ended_at IS NULL`,
+          [row.rows[0].id],
+        );
+      }
+      return res.json({ active: false });
+    }
+
     res.json({
       active: true,
       startedAt,
-      target: target.rows[0] ?? null,
-      session: row.rows[0] ?? null,
+      target: target.rows[0],
+      session: row.rows[0],
     });
   } catch (e: any) {
     console.error("Founders view-as session error:", e.message);
@@ -165,14 +189,18 @@ router.get("/session", async (req, res) => {
   }
 });
 
-// GET /targets?q= — search users (limit 20) for the target picker
+// GET /targets?q= — search users (limit 20) for the target picker.
+// Wave AE2: filter by IMPERSONATION_DENYLIST (founder/owner/system_admin) so
+// the visible targets match what /session/start will accept. Founder-as-self
+// and owner/sysadmin lateral impersonation are blocked at the start endpoint
+// — listing them here would be a confusing bait-and-switch.
 router.get("/targets", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim().toLowerCase();
 
     const like = q ? `%${q}%` : null;
     const params: any[] = [];
-    let where = `is_active = true AND role != 'founder'`;
+    let where = `is_active = true AND role NOT IN ('founder','owner','system_admin')`;
     if (like) {
       where += ` AND (LOWER(email) LIKE $1 OR LOWER(first_name) LIKE $1 OR LOWER(last_name) LIKE $1)`;
       params.push(like);

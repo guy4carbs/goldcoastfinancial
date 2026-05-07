@@ -82,6 +82,7 @@ import foundersBookRouter from "./routes/founders-book";
 import bookOfBusinessRouter from "./routes/book-of-business";
 import foundersTeamsRouter from "./routes/founders-teams";
 import foundersLeadsRouter from "./routes/founders-leads";
+import foundersMembersRouter from "./routes/founders-members";
 import foundersAgenciesRouter from "./routes/founders-agencies";
 import {
   leadRevenueFoundersRouter,
@@ -644,7 +645,33 @@ export async function registerRoutes(
       res.json({ message: "Logged out successfully" });
     });
   });
-  
+
+  // Auth: Log out OTHER device sessions (Wave AF3) — keeps the current session
+  // intact so the founder doesn't bounce themselves out. Targets connect-pg-
+  // simple's `sessions` table, scoping by sess->>'userId' = current user.
+  app.post("/api/auth/sessions/logout-others", async (req, res) => {
+    const userId = req.session.userId;
+    const currentSid = req.sessionID;
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    if (!currentSid) {
+      return res.status(400).json({ error: "No current session id" });
+    }
+    try {
+      const result = await pool.query(
+        `DELETE FROM sessions
+          WHERE sid != $1
+            AND sess->>'userId' = $2`,
+        [currentSid, userId],
+      );
+      res.json({ ok: true, destroyed: result.rowCount ?? 0 });
+    } catch (e: any) {
+      console.error("[/api/auth/sessions/logout-others] error:", e?.message);
+      res.status(500).json({ error: "Failed to log out other sessions" });
+    }
+  });
+
   // Auth: Get current user
   app.get("/api/auth/user", async (req, res) => {
     if (!req.session.userId) {
@@ -1689,6 +1716,10 @@ export async function registerRoutes(
   app.use("/api/founders/book", foundersBookRouter);
   app.use("/api/founders/teams", foundersTeamsRouter);
   app.use("/api/founders/leads", foundersLeadsRouter);
+  // Members router — backs the Founders Lounge Access page. Mounted at
+  // /api/members (not /api/founders/members) to match heritage-app's URL
+  // semantics so cross-deployment audits stay consistent.
+  app.use("/api/members", attachUser, foundersMembersRouter);
   // Agency Management — sub-agencies, carrier contracts, entity formation.
   // The router uses NESTED paths shaped /agencies/... and /carriers/..., so
   // mounting at /api/founders gives final URLs like

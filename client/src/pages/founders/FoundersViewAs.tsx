@@ -724,7 +724,7 @@ export default function FoundersViewAs() {
                   fontSize: "var(--gc-text-sm)",
                 }}
               >
-                Couldn't load targets. The /api/founders/viewas/targets endpoint is not reachable yet.
+                Couldn't load targets. {(targetsQuery.error as Error | undefined)?.message || "Try refreshing in a moment."}
               </div>
             ) : filteredTargets.length === 0 ? (
               <div
@@ -735,7 +735,9 @@ export default function FoundersViewAs() {
                   fontSize: "var(--gc-text-sm)",
                 }}
               >
-                {debounced ? "No matches" : "No targets found. Search for a user by name or email."}
+                {debounced
+                  ? `No matches for "${debounced}".`
+                  : "No impersonation-eligible users yet. Approve agents from /founders/access to populate this list. (Founders, owners, and system admins are excluded by the denylist.)"}
               </div>
             ) : (
               <>
@@ -975,6 +977,31 @@ function ActiveSessionView({
     ? `${basePath}&viewas=1`
     : `${basePath}?viewas=1`;
 
+  // Wave AD3: live countdown to the 4-hour hard cap enforced by the
+  // server-side viewAsSweeper. Updates every 30s so the banner reflects
+  // remaining time without burning render cycles. Color shifts to the
+  // warning palette when under 60 minutes remain.
+  const SESSION_HARD_CAP_MS = 4 * 60 * 60 * 1000;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const h = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(h);
+  }, []);
+  const startedMs = new Date(session.started_at).getTime();
+  const remainingMs = Number.isNaN(startedMs)
+    ? null
+    : Math.max(0, SESSION_HARD_CAP_MS - (now - startedMs));
+  const remainingLabel = (() => {
+    if (remainingMs === null) return null;
+    const totalMin = Math.floor(remainingMs / 60_000);
+    if (totalMin <= 0) return "expiring now";
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  })();
+  const isWarning = remainingMs !== null && remainingMs < 60 * 60 * 1000;
+
   return (
     <div>
       {/* ─── SESSION META + IN-PAGE END BUTTON ───
@@ -1002,9 +1029,28 @@ function ActiveSessionView({
           <span>{ROLE_LABEL[session.target_role] || session.target_role}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" />
+          <Clock className="w-3.5 h-3.5" aria-hidden="true" />
           <span>Started {formatDate(session.started_at, "datetime")}</span>
         </div>
+        {remainingLabel && (
+          <div
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full"
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              border: `1px solid ${isWarning ? "var(--gc-status-terminated, #E07060)" : "var(--gc-gold)"}`,
+              color: isWarning ? "var(--gc-status-terminated, #E07060)" : "var(--gc-gold)",
+              backgroundColor: isWarning
+                ? "color-mix(in srgb, var(--gc-status-terminated, #E07060) 12%, transparent)"
+                : "color-mix(in srgb, var(--gc-gold) 12%, transparent)",
+            }}
+            title={`Hard cap: 4h. Auto-expires at ${formatDate(new Date(startedMs + SESSION_HARD_CAP_MS).toISOString(), "datetime")}.`}
+          >
+            Expires in {remainingLabel}
+          </div>
+        )}
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <span style={{ color: "var(--gc-text-muted)" }}>Reason:</span>
           <span

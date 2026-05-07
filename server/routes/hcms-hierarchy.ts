@@ -8,6 +8,7 @@ import {
   onHierarchyChanged,
 } from "../services/foundersEventBus";
 import { titleToRole, ROLE_PRIVILEGE_RANK } from "../services/hierarchyRoleMap";
+import { reinitializeLoungeAccess } from "../services/loungeAccessSync";
 import { resolveAgentAgency } from "../services/agencyResolver";
 
 const router = Router();
@@ -90,21 +91,33 @@ router.get("/tree", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) 
     const agencyId = scopeId(scope);
     const agentIds = await scopedAgentIds(agencyId);
 
+    // Wave AB: dedupe duplicate active hierarchy rows per agent. If the same
+    // agent has multiple agent_hierarchy rows with overlapping effective_from
+    // windows, the tree renders one node per row — leading to duplicate
+    // "Gold Coast Financial Partners LLC" nodes at the top. DISTINCT ON
+    // (agent_user_id) ordered by latest effective_from picks the canonical
+    // active row.
     const result = await pool.query(
       agentIds
-        ? `SELECT ${HIERARCHY_NAME_SELECT}
-             FROM agent_hierarchy ah
-             JOIN users u ON u.id = ah.agent_user_id
-             LEFT JOIN agent_profiles ap ON ap.user_id::text = ah.agent_user_id::text
-            WHERE (ah.effective_to IS NULL OR ah.effective_to > NOW())
-              AND ah.agent_user_id::text = ANY($1::text[])
-            ORDER BY ah.hierarchy_level ASC`
-        : `SELECT ${HIERARCHY_NAME_SELECT}
-             FROM agent_hierarchy ah
-             JOIN users u ON u.id = ah.agent_user_id
-             LEFT JOIN agent_profiles ap ON ap.user_id::text = ah.agent_user_id::text
-            WHERE ah.effective_to IS NULL OR ah.effective_to > NOW()
-            ORDER BY ah.hierarchy_level ASC`,
+        ? `SELECT * FROM (
+             SELECT DISTINCT ON (ah.agent_user_id) ${HIERARCHY_NAME_SELECT}
+               FROM agent_hierarchy ah
+               JOIN users u ON u.id = ah.agent_user_id
+               LEFT JOIN agent_profiles ap ON ap.user_id::text = ah.agent_user_id::text
+              WHERE (ah.effective_to IS NULL OR ah.effective_to > NOW())
+                AND ah.agent_user_id::text = ANY($1::text[])
+              ORDER BY ah.agent_user_id, ah.effective_from DESC NULLS LAST
+           ) dedup
+           ORDER BY hierarchy_level ASC`
+        : `SELECT * FROM (
+             SELECT DISTINCT ON (ah.agent_user_id) ${HIERARCHY_NAME_SELECT}
+               FROM agent_hierarchy ah
+               JOIN users u ON u.id = ah.agent_user_id
+               LEFT JOIN agent_profiles ap ON ap.user_id::text = ah.agent_user_id::text
+              WHERE ah.effective_to IS NULL OR ah.effective_to > NOW()
+              ORDER BY ah.agent_user_id, ah.effective_from DESC NULLS LAST
+           ) dedup
+           ORDER BY hierarchy_level ASC`,
       agentIds ? [agentIds] : [],
     );
     res.json(result.rows);
@@ -150,38 +163,45 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
     const agencyId = scopeId(scope);
     const agentIds = await scopedAgentIds(agencyId);
 
+    // Wave AC patch: include 'founder' in the eligible role list. Without it,
+    // a fresh founder (guy4carbs) doesn't show up as a selectable upline even
+    // though they're the canonical top of the hierarchy. Bypass clause also
+    // extended to founder so they appear even before agent_hierarchy is seeded.
     const result = await pool.query(
       agentIds
         ? `SELECT u.id, u.first_name, u.last_name, u.email, u.role,
-                  COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 120 ELSE 80 END) as contract_level,
+                  COALESCE(ah.contract_level, CASE WHEN u.role IN ('founder', 'owner') THEN 120 ELSE 80 END) as contract_level,
                   ah.hierarchy_level, ah.hierarchy_title
              FROM users u
              LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
-            WHERE u.role IN ('owner', 'system_admin', 'director', 'agency_manager', 'sales_agent')
+            WHERE u.role IN ('founder', 'owner', 'system_admin', 'director', 'agency_manager', 'manager', 'sales_agent')
               AND u.is_active = true
-              AND (ah.id IS NOT NULL OR u.role = 'owner')
+              AND (ah.id IS NOT NULL OR u.role IN ('founder', 'owner'))
               AND u.id::text = ANY($1::text[])
             ORDER BY contract_level DESC, u.last_name ASC`
         : `SELECT u.id, u.first_name, u.last_name, u.email, u.role,
-                  COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 120 ELSE 80 END) as contract_level,
+                  COALESCE(ah.contract_level, CASE WHEN u.role IN ('founder', 'owner') THEN 120 ELSE 80 END) as contract_level,
                   ah.hierarchy_level, ah.hierarchy_title
              FROM users u
              LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
-            WHERE u.role IN ('owner', 'system_admin', 'director', 'agency_manager', 'sales_agent')
+            WHERE u.role IN ('founder', 'owner', 'system_admin', 'director', 'agency_manager', 'manager', 'sales_agent')
               AND u.is_active = true
-              AND (ah.id IS NOT NULL OR u.role = 'owner')
+              AND (ah.id IS NOT NULL OR u.role IN ('founder', 'owner'))
             ORDER BY contract_level DESC, u.last_name ASC`,
       agentIds ? [agentIds] : [],
     );
     res.json(result.rows.map((r: any) => {
-      const isOwner = r.role === "owner";
-      const firstName = isOwner ? "Gold Coast Financial Partners LLC" : r.first_name;
-      const lastName = isOwner ? "" : r.last_name;
+      // Display founder + owner as the Gold Coast brand entity rather than
+      // their personal name (Gaetano gets shown as "Gold Coast Financial
+      // Partners LLC" in upline pickers, matching the hierarchy graph).
+      const isBrandTier = r.role === "owner" || r.role === "founder";
+      const firstName = isBrandTier ? "Gold Coast Financial Partners LLC" : r.first_name;
+      const lastName = isBrandTier ? "" : r.last_name;
       return {
         id: r.id,
         firstName,
         lastName,
-        displayName: isOwner ? firstName : `${firstName} ${lastName}`.trim(),
+        displayName: isBrandTier ? firstName : `${firstName} ${lastName}`.trim(),
         email: r.email,
         role: r.role,
         contractLevel: parseFloat(r.contract_level),
@@ -487,14 +507,24 @@ router.patch("/agents/:agentId", requireAuth, requireRole(...ADMIN_PLUS), async 
       newHierarchyLevel = chain.length; // direct upline at level 0 -> this agent at level 1, etc.
     }
 
-    // ---- 6b. Update users.role when it actually changes ------------------
-    // The IS DISTINCT FROM guard keeps the row write idempotent — no UPDATE
-    // fires when role is already correct, so the audit log stays clean.
+    // ---- 6b. Update users.role + propagate lounge access when it changes -
+    // Goes through the shared `reinitializeLoungeAccess` service so the same
+    // audit row (access_change_log) + lounge-grant refresh that heritage-app
+    // performs on every role mutation also fires from the goldcoast side.
+    // Without this, heritage-app's `user_lounge_access` table stays stale
+    // after a goldcoast hierarchy promotion. The service is idempotent — a
+    // no-op when oldRole === newRole, so the legacy IS DISTINCT FROM guard
+    // is enforced inside the service.
     if (oldRole !== newRole) {
-      await client.query(
-        `UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2 AND role IS DISTINCT FROM $1`,
-        [newRole, agentId],
-      );
+      await reinitializeLoungeAccess({
+        userId: agentId,
+        newRole,
+        performedByUserId: req.user!.id,
+        reason: hasTitle
+          ? `hierarchy_title → ${newTitle} (role derived via titleToRole)`
+          : "hierarchy mutation",
+        client, // join the existing transaction
+      });
     }
 
     // ---- 7. Soft-end the old row -----------------------------------------

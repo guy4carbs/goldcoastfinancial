@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { pool } from "../db";
-import { requireAuth, requireRole, ADMIN_PLUS } from "../middleware/auth";
+import { requireAuth, requireRole, FOUNDERS_ONLY } from "../middleware/auth";
 import { listTeams, listTeamAgents } from "../services/teamDerivation";
 import { getDateRange } from "../utils/dateRange";
 import {
@@ -13,8 +13,9 @@ import {
 
 const router = Router();
 
-// Founders Lounge is founders-only. ADMIN_PLUS = [FOUNDER, OWNER, SYSTEM_ADMIN].
-router.use(requireAuth, requireRole(...ADMIN_PLUS));
+// Founders Lounge is founders-only. Wave Y tightened from ADMIN_PLUS → FOUNDERS_ONLY
+// (Owner + System Admin no longer access /founders/* per founder mandate).
+router.use(requireAuth, requireRole(...FOUNDERS_ONLY));
 
 // Per-agent monthly quota used for tier classification + on-track scoring.
 // Static for now; future: pull from `commission_targets` if/when team-level

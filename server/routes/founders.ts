@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { pool } from "../db";
-import { requireAuth, requireRole, FOUNDERS_ONLY } from "../middleware/auth";
+import {
+  requireAuth,
+  requireRole,
+  FOUNDERS_ONLY,
+  blockWritesDuringViewAs,
+} from "../middleware/auth";
 import { DEMO_FALLBACK_ENABLED, demoDashboardActivity } from "../services/foundersDemoData";
+import { logFounderAction } from "../services/founderAudit";
 
 const router = Router();
 
@@ -208,5 +214,152 @@ router.get("/dashboard", requireAuth, requireRole(...FOUNDERS_ONLY), async (_req
 router.get("/health", requireAuth, requireRole(...FOUNDERS_ONLY), (req, res) => {
   res.json({ ok: true, as: req.user?.email });
 });
+
+// =============================================================================
+// FOUNDER SETTINGS (Wave AF1) — per-founder UI prefs persisted server-side.
+// One JSONB blob per founder so adding a new toggle doesn't require a schema
+// change. 16KB cap on the blob to prevent abuse.
+// =============================================================================
+router.get("/settings", requireAuth, requireRole(...FOUNDERS_ONLY), async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const r = await pool.query<{ settings: any; updated_at: Date }>(
+      `INSERT INTO founder_settings (user_id, settings)
+         VALUES ($1::uuid, '{}'::jsonb)
+       ON CONFLICT (user_id) DO UPDATE SET updated_at = founder_settings.updated_at
+       RETURNING settings, updated_at`,
+      [userId],
+    );
+    res.json({ settings: r.rows[0].settings ?? {}, updatedAt: r.rows[0].updated_at });
+  } catch (e: any) {
+    console.error("[founders /settings GET] error:", e?.message);
+    res.status(500).json({ error: "Failed to load settings" });
+  }
+});
+
+router.put(
+  "/settings",
+  requireAuth,
+  requireRole(...FOUNDERS_ONLY),
+  blockWritesDuringViewAs,
+  async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const settings = (req.body || {}).settings;
+      if (
+        typeof settings !== "object" ||
+        settings === null ||
+        Array.isArray(settings)
+      ) {
+        return res
+          .status(400)
+          .json({ error: "settings must be a JSON object" });
+      }
+      const json = JSON.stringify(settings);
+      if (json.length > 16 * 1024) {
+        return res
+          .status(413)
+          .json({ error: "settings JSON too large (max 16KB)" });
+      }
+
+      await pool.query(
+        `INSERT INTO founder_settings (user_id, settings, updated_at)
+           VALUES ($1::uuid, $2::jsonb, NOW())
+         ON CONFLICT (user_id) DO UPDATE
+           SET settings = EXCLUDED.settings, updated_at = NOW()`,
+        [userId, json],
+      );
+
+      try {
+        await logFounderAction({
+          actorUserId: userId,
+          action: "settings.updated",
+          entityType: "founder_settings",
+          entityId: userId,
+          payload: { keys: Object.keys(settings) },
+        });
+      } catch (auditErr: any) {
+        console.error("[founders /settings PUT] audit failed:", auditErr?.message);
+      }
+
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[founders /settings PUT] error:", e?.message);
+      res.status(500).json({ error: "Failed to save settings" });
+    }
+  },
+);
+
+// =============================================================================
+// AUDIT LOG EXPORT (Wave AF2) — unified founder_audit_log + access_change_log
+// stream as CSV (default) or JSON. Date-range scoped via ?since= and ?until=
+// (YYYY-MM-DD only — strict format to prevent SQL injection on the cast).
+// =============================================================================
+router.get(
+  "/activity/feed",
+  requireAuth,
+  requireRole(...FOUNDERS_ONLY),
+  async (req, res) => {
+    try {
+      const since = String(req.query.since || "1900-01-01");
+      const until = String(req.query.until || "2999-12-31");
+      const format = String(req.query.format || "csv").toLowerCase();
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(since) || !/^\d{4}-\d{2}-\d{2}$/.test(until)) {
+        return res.status(400).json({ error: "since/until must be YYYY-MM-DD" });
+      }
+
+      const rows = await pool.query(
+        `SELECT created_at, action AS event, actor_user_id::text AS actor_id,
+                entity_id::text AS target_id, payload AS details, 'founder_audit_log' AS source
+           FROM founder_audit_log
+          WHERE created_at >= $1::date AND created_at < ($2::date + INTERVAL '1 day')
+         UNION ALL
+         SELECT created_at, action_type AS event, performed_by::text AS actor_id,
+                target_user_id::text AS target_id,
+                jsonb_build_object('previous', previous_value, 'new', new_value, 'reason', reason) AS details,
+                'access_change_log' AS source
+           FROM access_change_log
+          WHERE created_at >= $1::date AND created_at < ($2::date + INTERVAL '1 day')
+         ORDER BY created_at DESC`,
+        [since, until],
+      );
+
+      const filenameStem = `founder-audit-${since}-${until}`;
+
+      if (format === "json") {
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${filenameStem}.json"`,
+        );
+        return res.json(rows.rows);
+      }
+
+      // CSV stream — double-quote every cell, escape internal quotes.
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filenameStem}.csv"`,
+      );
+      res.write("timestamp,source,event,actor_id,target_id,details\n");
+      const cell = (v: any) =>
+        `"${String(v ?? "").replace(/"/g, '""')}"`;
+      for (const r of rows.rows) {
+        const ts =
+          r.created_at instanceof Date
+            ? r.created_at.toISOString()
+            : String(r.created_at);
+        res.write(
+          `${cell(ts)},${cell(r.source)},${cell(r.event)},${cell(r.actor_id)},${cell(r.target_id)},${cell(JSON.stringify(r.details))}\n`,
+        );
+      }
+      res.end();
+    } catch (e: any) {
+      console.error("[founders /activity/feed] error:", e?.message);
+      res.status(500).json({ error: "Failed to export audit feed" });
+    }
+  },
+);
 
 export default router;

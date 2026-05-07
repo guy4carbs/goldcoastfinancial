@@ -4,7 +4,7 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { z } from "zod";
 import { pool } from "../db";
-import { requireAuth, requireRole, ADMIN_PLUS, blockWritesDuringViewAs } from "../middleware/auth";
+import { requireAuth, requireRole, FOUNDERS_ONLY, blockWritesDuringViewAs } from "../middleware/auth";
 import { logFounderAction } from "../services/founderAudit";
 import { foundersEventBus } from "../services/foundersEventBus";
 import { listTeams, listTeamAgents } from "../services/teamDerivation";
@@ -32,8 +32,9 @@ const upload = multer({
 });
 
 // SSE route is intentionally NOT gated by viewAs write blocker (it's a GET).
-// Founders Lounge is founders-only. ADMIN_PLUS = [FOUNDER, OWNER, SYSTEM_ADMIN].
-router.use(requireAuth, requireRole(...ADMIN_PLUS));
+// Founders Lounge is founders-only. Wave Y tightened from ADMIN_PLUS → FOUNDERS_ONLY
+// (Owner + System Admin no longer access /founders/* per founder mandate).
+router.use(requireAuth, requireRole(...FOUNDERS_ONLY));
 
 // Column auto-detect regex map
 const COLUMN_PATTERNS: Record<string, RegExp> = {

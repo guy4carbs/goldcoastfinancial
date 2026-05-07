@@ -124,6 +124,10 @@ const SECTION_LABEL_STYLE: React.CSSProperties = {
   color: "var(--gc-text-muted)",
 };
 
+// Gold focus + hover ring for KPI tiles. Mirrors Revenue / Growth / Book / Team Performance / Lead Distribution.
+const KPI_LINK_CLASS =
+  "block rounded-md transition-shadow hover:ring-2 hover:ring-[var(--gc-gold-bright,var(--gc-gold))] focus-visible:ring-2 focus-visible:ring-[var(--gc-gold)]";
+
 const PILL_STYLE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -761,59 +765,63 @@ export default function FoundersAgencyManagement() {
       />
 
       {/* KPI strip — 4 tiles, each linked to a tab via #tab=<name> */}
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+      <section
+        aria-labelledby="founders-agencies-kpi-heading"
+        className="mb-6"
         data-tour-id={TOUR.FOUNDERS.AGENCY_MGMT.KPI_GRID}
       >
-        {kpiQ.isLoading || !kpiQ.data ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[116px] w-full" />
-          ))
-        ) : (
-          <>
-            <Link
-              href="#tab=agencies"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard label="Agencies" value={formatNumber(kpiQ.data.agenciesCount)} accentTop />
-            </Link>
-            <Link
-              href="#tab=carriers"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="Carriers Contracted"
-                value={formatNumber(kpiQ.data.carriersContractedCount)}
-                accentTop
-              />
-            </Link>
-            <Link
-              href="#tab=entities"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="Agents With Entity"
-                value={formatNumber(kpiQ.data.agentsWithEntity)}
-                accentTop
-              />
-            </Link>
-            <Link
-              href="#tab=carriers?filter=pending"
-              style={{ textDecoration: "none", cursor: "pointer" }}
-              className="block transition-transform hover:-translate-y-[1px]"
-            >
-              <GCKPICard
-                label="Pending Carrier Requests"
-                value={formatNumber(kpiQ.data.pendingCarrierRequests)}
-                accentTop
-              />
-            </Link>
-          </>
-        )}
-      </div>
+        <h2 id="founders-agencies-kpi-heading" className="sr-only">Agency Management KPIs</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {kpiQ.isLoading || !kpiQ.data ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[116px] w-full" />
+            ))
+          ) : (
+            <>
+              <Link
+                href="#tab=agencies"
+                aria-label={`Agencies: ${formatNumber(kpiQ.data.agenciesCount)} — jump to Agencies tab`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard label="Agencies" value={formatNumber(kpiQ.data.agenciesCount)} accentTop />
+              </Link>
+              <Link
+                href="#tab=carriers"
+                aria-label={`Carriers contracted: ${formatNumber(kpiQ.data.carriersContractedCount)} — jump to Carriers tab`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Carriers Contracted"
+                  value={formatNumber(kpiQ.data.carriersContractedCount)}
+                  accentTop
+                />
+              </Link>
+              <Link
+                href="#tab=entities"
+                aria-label={`Agents with entity: ${formatNumber(kpiQ.data.agentsWithEntity)} — jump to Entities tab`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Agents With Entity"
+                  value={formatNumber(kpiQ.data.agentsWithEntity)}
+                  accentTop
+                />
+              </Link>
+              <Link
+                href="#tab=carriers?filter=pending"
+                aria-label={`Pending carrier requests: ${formatNumber(kpiQ.data.pendingCarrierRequests)} — jump to Carriers tab filtered to pending`}
+                className={KPI_LINK_CLASS}
+              >
+                <GCKPICard
+                  label="Pending Carrier Requests"
+                  value={formatNumber(kpiQ.data.pendingCarrierRequests)}
+                  accentTop
+                />
+              </Link>
+            </>
+          )}
+        </div>
+      </section>
 
       {/* Tabs */}
       <div data-tour-id={TOUR.FOUNDERS.AGENCY_MGMT.TABS}>
@@ -912,7 +920,7 @@ export default function FoundersAgencyManagement() {
                   contracts query is hardcoded to ROOT_AGENCY_ID. */}
               <div data-tour-id={TOUR.FOUNDERS.AGENCY_MGMT.AGENCY_CONTRACTS}>
                 <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                  <div style={SECTION_LABEL_STYLE}>Agency Carrier Contracts</div>
+                  <h3 style={{ ...SECTION_LABEL_STYLE, margin: 0 }}>Agency Carrier Contracts</h3>
                   <div className="flex items-center gap-2">
                     {carrierFilter && (
                       <span
@@ -1008,7 +1016,7 @@ export default function FoundersAgencyManagement() {
                   contracts panel (Axiom MED 2). */}
               <div data-tour-id={TOUR.FOUNDERS.AGENCY_MGMT.CARRIER_DIRECTORY}>
                 <div className="flex items-center justify-between mb-2">
-                  <div style={SECTION_LABEL_STYLE}>Master Carrier Directory</div>
+                  <h3 style={{ ...SECTION_LABEL_STYLE, margin: 0 }}>Master Carrier Directory</h3>
                   <div data-tour-id={TOUR.FOUNDERS.AGENCY_MGMT.ADD_CARRIER_BUTTON}>
                     <GCPrimaryButton
                       onClick={() => setAddCarrierModalOpen(true)}
@@ -1074,20 +1082,13 @@ export default function FoundersAgencyManagement() {
               </div>
 
               <div data-tour-id={TOUR.FOUNDERS.AGENCY_MGMT.ENTITY_CHART}>
-                <div style={{ ...SECTION_LABEL_STYLE, marginBottom: 8 }}>
+                <h3 style={{ ...SECTION_LABEL_STYLE, margin: 0, marginBottom: 8 }}>
                   Agents by Company Type
-                </div>
+                </h3>
                 {entityStatsQ.isLoading ? (
-                  <Skeleton className="h-[260px] w-full" />
+                  <Skeleton className="h-[180px] w-full" />
                 ) : entityStatsQ.data && Object.keys(entityStatsQ.data.byCompanyType || {}).length > 0 ? (
-                  <GCBarChart
-                    title=""
-                    data={Object.entries(entityStatsQ.data.byCompanyType).map(([k, v]) => ({
-                      name: k,
-                      value: Number(v),
-                    }))}
-                    valueFormatter={(v) => `${v} agents`}
-                  />
+                  <CompanyTypeRollup byCompanyType={entityStatsQ.data.byCompanyType} />
                 ) : (
                   <EmptyTableBlock
                     title="No entity data yet."
@@ -1151,6 +1152,10 @@ export default function FoundersAgencyManagement() {
           onSubmit={async (payload) => {
             if (!contractModal.agencyId) return;
             if (contractModal.mode === "edit" && contractModal.contractId) {
+              const ok = window.confirm(
+                `Save changes to the ${contractModal.initial?.carrierName ?? "carrier"} contract? Edits to commission %, override %, or writing number will affect future commission calculations.`,
+              );
+              if (!ok) return;
               await updateContractMut.mutateAsync({
                 agencyId: contractModal.agencyId,
                 contractId: contractModal.contractId,
@@ -1191,6 +1196,10 @@ export default function FoundersAgencyManagement() {
           }}
           onTerminate={async (overrideId) => {
             if (!overridesModal.agencyId) return;
+            const ok = window.confirm(
+              `Terminate the override on ${overridesModal.carrierName ?? "this carrier"}? This is reversible from the audit log.`,
+            );
+            if (!ok) return;
             await terminateOverrideMut.mutateAsync({
               agencyId: overridesModal.agencyId,
               overrideId,
@@ -1209,6 +1218,10 @@ export default function FoundersAgencyManagement() {
             await addRequirementMut.mutateAsync({ carrierId: complianceModal.carrierId, payload });
           }}
           onRemove={async (reqId) => {
+            const ok = window.confirm(
+              `Remove this compliance requirement from ${complianceModal.carrierName ?? "this carrier"}? Agents will no longer see it on their contracting checklist.`,
+            );
+            if (!ok) return;
             await removeRequirementMut.mutateAsync({ carrierId: complianceModal.carrierId, reqId });
           }}
         />
@@ -1648,6 +1661,120 @@ const iconBtnStyle: React.CSSProperties = {
   alignItems: "center",
 };
 
+// ─── Agents-by-company-type rollup (Entities tab) ─────────────────────────
+// Compact stat-tile grid (2-3-4-col responsive). Each tile = one entity type
+// with the count as the hero number, share % subdued, and a small color-dot
+// + thin bottom accent stroke in a per-type color so multiple types are
+// instantly distinguishable. Replaces the prior GCBarChart use that rendered
+// a single stretched bar with ugly decimal x-axis ticks for the 1-type case.
+const COMPANY_TYPE_COLORS: Record<string, string> = {
+  LLC: "var(--gc-gold)",
+  Corporation: "var(--gc-chart-2)",      // violet
+  "S-Corp": "var(--gc-chart-3)",          // green
+  "C-Corp": "var(--gc-chart-4)",          // blue
+  Partnership: "var(--gc-chart-5)",       // amber
+  "Sole Proprietor": "var(--gc-status-review)",
+  Other: "var(--gc-text-muted)",
+};
+function colorForType(type: string): string {
+  return COMPANY_TYPE_COLORS[type] || "var(--gc-text-muted)";
+}
+
+function CompanyTypeRollup({
+  byCompanyType,
+}: {
+  byCompanyType: Record<string, number>;
+}) {
+  const entries = Object.entries(byCompanyType)
+    .map(([k, v]) => ({ type: k, count: Number(v) || 0 }))
+    .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
+  const totalCount = entries.reduce((s, e) => s + e.count, 0);
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {entries.map(({ type, count }) => {
+        const sharePct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+        const accent = colorForType(type);
+        return (
+          <div
+            key={type}
+            style={{
+              backgroundColor: "var(--gc-surface)",
+              border: "1px solid var(--gc-border)",
+              borderRadius: "var(--gc-radius-md)",
+              padding: "var(--gc-space-4)",
+              position: "relative",
+              overflow: "hidden",
+            }}
+            aria-label={`${type}: ${count} ${count === 1 ? "agent" : "agents"} (${sharePct}% of total)`}
+          >
+            {/* Accent stripe along the bottom — per-type color */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 3,
+                backgroundColor: accent,
+              }}
+            />
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: accent,
+                  display: "inline-block",
+                  flexShrink: 0,
+                }}
+              />
+              <div
+                style={{
+                  fontFamily: "var(--gc-font-body)",
+                  fontSize: "var(--gc-text-xs)",
+                  fontWeight: 500,
+                  letterSpacing: "var(--gc-tracking-wider)",
+                  textTransform: "uppercase",
+                  color: "var(--gc-text-muted)",
+                }}
+              >
+                {type}
+              </div>
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--gc-font-display)",
+                fontSize: "var(--gc-text-3xl)",
+                fontWeight: 600,
+                color: "var(--gc-text-primary)",
+                lineHeight: 1,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {count}
+            </div>
+            <div
+              className="mt-1 flex items-baseline justify-between"
+              style={{
+                fontFamily: "var(--gc-font-body)",
+                fontSize: "var(--gc-text-xs)",
+                color: "var(--gc-text-muted)",
+              }}
+            >
+              <span>{count === 1 ? "agent" : "agents"}</span>
+              <span style={{ fontVariantNumeric: "tabular-nums" }}>{sharePct}%</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Entity roster table (Entities tab) ──────────────────────────────────
 function EntityRosterTable({ rows }: { rows: EntityRosterRow[] }) {
   const cols: Column<EntityRosterRow>[] = [
@@ -1710,7 +1837,10 @@ function EntityRosterTable({ rows }: { rows: EntityRosterRow[] }) {
 
 // ─── Formation Guide tab ─────────────────────────────────────────────────
 function FormationGuideTab() {
-  const [stateCode, setStateCode] = useState<string>("CA");
+  // Illinois is the founder's home state and the most common formation
+  // jurisdiction for new agents on the platform — defaulting here saves the
+  // visit-then-select round-trip on first load.
+  const [stateCode, setStateCode] = useState<string>("IL");
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const guide = STATE_LLC_GUIDE[stateCode];
   const stateName = STATES_LIST.find((s) => s.code === stateCode)?.name || stateCode;

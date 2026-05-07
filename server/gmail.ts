@@ -852,3 +852,220 @@ Log in to the Agent HCMS to read the full message and take any requested action.
 
   await gmail.users.messages.send({ userId: 'me', requestBody: { raw: encoded } });
 }
+
+// =============================================================================
+// REGISTRATION + ROLE LIFECYCLE EMAILS (Wave AA)
+// =============================================================================
+// Brand-matched to sendApplicationInvite. Fired by founders-members.ts /approve
+// + /reject and by loungeAccessSync.ts on role change. Best-effort — caller
+// catches and logs failures without rolling back the underlying mutation.
+
+const BRAND_HEADER = `
+<tr><td style="background:linear-gradient(135deg,#4A1420 0%,#6B2030 100%);padding:40px 40px 30px;border-radius:12px 12px 0 0;text-align:center;">
+<div style="width:60px;height:60px;margin:0 auto 16px;background:linear-gradient(135deg,#C4975A,#D4A55A);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+<table role="presentation"><tr><td style="width:60px;height:60px;text-align:center;vertical-align:middle;background:linear-gradient(135deg,#C4975A,#D4A55A);border-radius:50%;">
+<span style="font-size:24px;font-weight:bold;color:#4A1420;font-family:Georgia,serif;">GC</span>
+</td></tr></table>
+</div>
+__HEADLINE__
+<p style="margin:0;font-size:14px;color:#C4975A;letter-spacing:1px;">GOLD COAST FINANCIAL PARTNERS, LLC</p>
+</td></tr>
+<tr><td style="height:3px;background:linear-gradient(90deg,#C4975A,#D4A55A,#C4975A);"></td></tr>`;
+
+const BRAND_FOOTER = `
+<tr><td style="background:#4A1420;padding:28px 40px 20px;border-radius:0 0 12px 12px;text-align:center;">
+<p style="margin:0 0 4px;font-size:13px;color:#C4975A;font-weight:600;letter-spacing:0.5px;">Gold Coast Financial Partners, LLC</p>
+<p style="margin:0 0 16px;font-size:12px;color:#A89080;">Naperville, Illinois</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+<tr><td style="height:1px;background-color:rgba(196,151,90,0.2);"></td></tr>
+</table>
+<p style="margin:0 0 8px;font-size:10px;color:#6B5548;line-height:1.5;">Gold Coast Financial Partners, LLC is a licensed insurance agency. All agents are independent contractors and not employees of Gold Coast Financial Partners, LLC. Insurance products are offered through licensed carriers.</p>
+<p style="margin:0;font-size:10px;color:#6B5548;line-height:1.5;">&copy; __YEAR__ Gold Coast Financial Partners, LLC. All rights reserved.<br>
+<a href="https://goldcoastfinancial.co/terms" style="color:#C4975A;text-decoration:none;">Terms of Service</a> &nbsp;|&nbsp; <a href="https://goldcoastfinancial.co/privacy" style="color:#C4975A;text-decoration:none;">Privacy Policy</a></p>
+</td></tr>`;
+
+const BRAND_PAGE_OPEN = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#F5EEE6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5EEE6;padding:40px 20px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">`;
+
+const BRAND_PAGE_CLOSE = `</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+function brandedHtml(headline: string, bodyInner: string): string {
+  const header = BRAND_HEADER.replace(
+    "__HEADLINE__",
+    `<h1 style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:400;color:#F0E8DE;letter-spacing:0.5px;">${headline}</h1>`,
+  );
+  const footer = BRAND_FOOTER.replace("__YEAR__", String(new Date().getFullYear()));
+  return `${BRAND_PAGE_OPEN}
+${header}
+<tr><td style="background-color:#FFFFFF;padding:40px;">
+${bodyInner}
+</td></tr>
+${footer}
+${BRAND_PAGE_CLOSE}`;
+}
+
+function assertNoHeaderInjection(value: string, label: string) {
+  if (/[\r\n]/.test(value)) {
+    throw new Error(`Invalid ${label}: header injection attempt detected`);
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+async function sendBrandedHtml(toEmail: string, subject: string, html: string): Promise<void> {
+  assertNoHeaderInjection(toEmail, "recipient email");
+  assertNoHeaderInjection(subject, "subject");
+  const gmail = await getGmailClient();
+  const message = [
+    'Content-Type: text/html; charset="UTF-8"',
+    "MIME-Version: 1.0",
+    "Content-Transfer-Encoding: base64",
+    `To: ${toEmail}`,
+    `From: Gold Coast Financial Partners <${process.env.GMAIL_FROM_EMAIL || "contact@goldcoastfnl.com"}>`,
+    `Subject: =?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`,
+    "",
+    Buffer.from(html).toString("base64"),
+  ].join("\n");
+  const encoded = Buffer.from(message)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  await gmail.users.messages.send({ userId: "me", requestBody: { raw: encoded } });
+}
+
+const ROLE_LABELS_EMAIL: Record<string, string> = {
+  founder: "Founder",
+  owner: "Owner",
+  system_admin: "System Admin",
+  director: "Director",
+  agency_manager: "Agency Manager",
+  manager: "Manager",
+  sales_agent: "Sales Agent",
+  marketing_staff: "Marketing Staff",
+  client: "Client",
+  investor: "Investor",
+};
+
+/**
+ * Approval email — sent when a founder approves a pending registration.
+ * Branded as Gold Coast Financial Partners and links to the goldcoast portal.
+ */
+export async function sendRegistrationApprovalEmail(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  loginUrl?: string;
+}): Promise<void> {
+  const loginUrl =
+    data.loginUrl ||
+    process.env.GC_LOGIN_URL ||
+    "https://goldcoastfinancial.co/login";
+  const firstName = escapeHtml(data.firstName || "");
+  const html = brandedHtml(
+    "Welcome to the Team",
+    `<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${firstName},</p>
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">Your application has been <strong>approved</strong>. Welcome to <strong>Gold Coast Financial Partners, LLC</strong>.</p>
+<p style="margin:0 0 24px;font-size:14px;color:#6B5548;line-height:1.5;">You can now log in to your agent portal to access your CRM, training resources, and onboarding checklist.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+<tr><td align="center">
+<a href="${loginUrl}" target="_blank" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#C4975A,#D4A55A);color:#4A1420;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;letter-spacing:0.5px;">Log in to your portal</a>
+</td></tr>
+<tr><td align="center" style="padding-top:12px;">
+<p style="margin:0;font-size:11px;color:#8A7060;line-height:1.4;">Or copy this link into your browser:<br><a href="${loginUrl}" style="color:#C4975A;text-decoration:none;word-break:break-all;font-size:11px;">${loginUrl}</a></p>
+</td></tr>
+</table>
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">Questions? Reach us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a> or call <strong style="color:#2D1810;">(630) 778-0888</strong>.</p>`,
+  );
+  await sendBrandedHtml(
+    data.email,
+    "Welcome to Gold Coast Financial Partners — your application is approved",
+    html,
+  );
+}
+
+/**
+ * Rejection email — sent when a founder rejects a pending registration.
+ * Includes the founder's reason (HTML-escaped to prevent injection).
+ */
+export async function sendRegistrationRejectionEmail(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  reason?: string | null;
+}): Promise<void> {
+  const firstName = escapeHtml(data.firstName || "");
+  const reasonBlock = data.reason
+    ? `<div style="background:#F5EEE6;border-radius:8px;padding:20px;margin:0 0 24px;border-left:3px solid #C4975A;">
+<p style="margin:0 0 6px;font-size:13px;color:#8A7060;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Reason</p>
+<p style="margin:0;font-size:14px;color:#2D1810;line-height:1.5;">${escapeHtml(data.reason)}</p>
+</div>`
+    : "";
+  const html = brandedHtml(
+    "Application Update",
+    `<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${firstName},</p>
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">Thank you for applying to <strong>Gold Coast Financial Partners</strong>. After reviewing your application, we've decided not to move forward at this time.</p>
+${reasonBlock}
+<p style="margin:0 0 24px;font-size:14px;color:#6B5548;line-height:1.6;">We appreciate the time and effort you put into your application. If your circumstances change in the future, you're welcome to reapply.</p>
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">Questions? Reach us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a>.</p>`,
+  );
+  await sendBrandedHtml(data.email, "Update on your Gold Coast Financial Partners application", html);
+}
+
+/**
+ * Role-change email — sent when a founder updates a member's role via the
+ * Founders Lounge Access page.
+ */
+export async function sendRoleChangeEmail(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  oldRole: string;
+  newRole: string;
+  reason?: string | null;
+}): Promise<void> {
+  const loginUrl = process.env.GC_LOGIN_URL || "https://goldcoastfinancial.co/login";
+  const firstName = escapeHtml(data.firstName || "");
+  const oldLabel = escapeHtml(ROLE_LABELS_EMAIL[data.oldRole] || data.oldRole);
+  const newLabel = escapeHtml(ROLE_LABELS_EMAIL[data.newRole] || data.newRole);
+  const reasonBlock = data.reason
+    ? `<div style="background:#F5EEE6;border-radius:8px;padding:20px;margin:0 0 24px;border-left:3px solid #C4975A;">
+<p style="margin:0 0 6px;font-size:13px;color:#8A7060;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Reason</p>
+<p style="margin:0;font-size:14px;color:#2D1810;line-height:1.5;">${escapeHtml(data.reason)}</p>
+</div>`
+    : "";
+  const html = brandedHtml(
+    "Role Updated",
+    `<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${firstName},</p>
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">Your role at <strong>Gold Coast Financial Partners</strong> has been updated.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;width:100%;">
+<tr><td style="padding:12px 0;font-size:14px;color:#8A7060;width:40%;">Previous role</td><td style="padding:12px 0;font-size:14px;color:#2D1810;font-weight:500;">${oldLabel}</td></tr>
+<tr><td style="padding:12px 0;font-size:14px;color:#8A7060;border-top:1px solid #EDE4D8;">New role</td><td style="padding:12px 0;font-size:16px;color:#4A1420;font-weight:700;border-top:1px solid #EDE4D8;">${newLabel}</td></tr>
+</table>
+${reasonBlock}
+<p style="margin:0 0 24px;font-size:14px;color:#6B5548;line-height:1.5;">Your access has been refreshed to match the new role. Log in to your portal to see your updated dashboard.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+<tr><td align="center">
+<a href="${loginUrl}" target="_blank" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#C4975A,#D4A55A);color:#4A1420;font-size:16px;font-weight:700;text-decoration:none;border-radius:8px;letter-spacing:0.5px;">Open your portal</a>
+</td></tr>
+</table>
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">Questions? Reach us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a>.</p>`,
+  );
+  await sendBrandedHtml(data.email, "Your Gold Coast Financial Partners role has been updated", html);
+}

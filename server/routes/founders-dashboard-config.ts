@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { pool } from "../db";
-import { requireAuth, requireRole, ADMIN_PLUS } from "../middleware/auth";
+import { requireAuth, requireRole, FOUNDERS_ONLY } from "../middleware/auth";
 import { logFounderAction } from "../services/founderAudit";
 import { resolveAgentAgency, ROOT_AGENCY_ID } from "../services/agencyResolver";
 import { currentQuarterStart } from "./founders-oversight";
@@ -13,14 +13,15 @@ import { currentQuarterStart } from "./founders-oversight";
  *   - PUT  /goals/:metricKey  — upsert one quarterly goal for the viewer's agency
  *   - POST /cash-balance      — record a manual cash-balance snapshot
  *
- * Both routes are gated to ADMIN_PLUS (founders/owner/system_admin) and audit-
- * log every successful mutation through `logFounderAction` (soft-fail audit so
- * the action itself isn't blocked by an audit-write hiccup).
+ * Both routes are gated to FOUNDERS_ONLY (Wave Y tightening — Owner +
+ * SystemAdmin no longer access /founders/* per founder mandate) and audit-log
+ * every successful mutation through `logFounderAction` (soft-fail audit so the
+ * action itself isn't blocked by an audit-write hiccup).
  */
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole(...ADMIN_PLUS));
+router.use(requireRole(...FOUNDERS_ONLY));
 
 // ─── Goals ────────────────────────────────────────────────────────────────────
 // Per-metric quarterly target. The viewer's agency is resolved server-side via
