@@ -471,18 +471,7 @@
 
 </div>
 
-<script>
-  (function () {
-    var sms = document.getElementById('sms-link');
-    var msg = document.getElementById('msg');
-    if (!sms || !msg) return;
-    function update() {
-      sms.href = 'sms:+13125608885?body=' + encodeURIComponent(msg.value);
-    }
-    msg.addEventListener('input', update);
-    update();
-  })();
-</script>
+<script src="/covenant/veterans/app.js" defer></script>
 
 </body>
 </html>
