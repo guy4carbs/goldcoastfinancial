@@ -5,6 +5,7 @@ import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { ClaudeChatInput, type AvatarOption } from "@/components/ui/claude-style-chat-input";
 import { useAgentStore } from "@/lib/agentStore";
 import ReactMarkdown from "react-markdown";
+import { TOUR } from "@/lib/tour/selectors";
 // Simple fade-in-up animation props for motion elements
 const fadeUp = {
   initial: { opacity: 0, y: 20 } as const,
@@ -198,7 +199,7 @@ export default function AgentAvatarCouncil() {
 
   return (
     <AgentLoungeLayout>
-      <div className="flex flex-col min-h-[calc(100vh-120px)]">
+      <div data-tour-id={TOUR.AGENT.AVATAR_COUNCIL.HEADER} className="flex flex-col min-h-[calc(100vh-120px)]">
         {!hasMessages ? (
           /* ============ EMPTY STATE — Claude-style centered layout ============ */
           <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
@@ -235,6 +236,7 @@ export default function AgentAvatarCouncil() {
             </motion.p>
 
             {/* Chat Input */}
+            <div data-tour-id={TOUR.AGENT.AVATAR_COUNCIL.AVATAR_SELECTOR} className="w-full">
             <ClaudeChatInput
               onSendMessage={handleSendMessage}
               avatars={avatarOptions}
@@ -243,6 +245,7 @@ export default function AgentAvatarCouncil() {
               placeholder="Ask your AI advisors anything..."
               isLoading={isWaiting}
             />
+            </div>
 
             {/* Quick Prompts */}
             <motion.div
@@ -271,7 +274,7 @@ export default function AgentAvatarCouncil() {
         ) : (
           /* ============ CHAT VIEW — messages + input at bottom ============ */
           <>
-            <div className="flex-1 overflow-y-auto px-4 py-6 max-w-3xl mx-auto w-full">
+            <div data-tour-id={TOUR.AGENT.AVATAR_COUNCIL.MESSAGES} className="flex-1 overflow-y-auto px-4 py-6 max-w-3xl mx-auto w-full">
               <AnimatePresence>
                 {messages.map((msg) => (
                   <motion.div

@@ -32,10 +32,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
+import { Pagination, usePagination } from "@/components/agent/primitives/Pagination";
 import { CreateQuoteModal } from "@/components/agent/CreateQuoteModal";
 import { QuoteDetailDrawer } from "@/components/agent/QuoteDetailDrawer";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { CARRIER_BRANDING } from "@shared/carrierBranding";
 
 // ─── Carrier Helpers ────────────────────────────────────────────────────────
@@ -509,6 +511,19 @@ export default function AgentQuotes() {
     const matchesStatus = filterStatus === 'all' || quote.status === filterStatus;
     return matchesSearch && matchesStatus;
   }), [quotes, searchQuery, filterStatus]);
+
+  // Paginate the quote list at 10 per page. Server already scopes to the
+  // requesting agent (agent_user_id = req.user.id), so this is purely a UX
+  // wrapper on top of the already-filtered list.
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedItems: paginatedQuotes,
+    totalItems: totalQuotes,
+    goToPage,
+    changeItemsPerPage,
+  } = usePagination(filteredQuotes, 10);
 
   const stats = useMemo(() => ({
     total: quotes.length,
@@ -1005,7 +1020,7 @@ export default function AgentQuotes() {
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6 pb-20 lg:pb-0">
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.QUOTES.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={FileText}
             title="Policy Quotes & Proposals"
@@ -1025,7 +1040,7 @@ export default function AgentQuotes() {
         </motion.div>
 
         {/* Main Tabs */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.QUOTES.TABS} variants={fadeInUp}>
           <Tabs defaultValue="send" className="space-y-4">
             <TabsList className="bg-gray-100 border-0 p-1 gap-1" style={{ borderRadius: RADIUS.button }}>
               <TabsTrigger value="send" className="data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-sm" style={{ borderRadius: RADIUS.button - 2 }}>
@@ -1043,7 +1058,7 @@ export default function AgentQuotes() {
             {/* ═══════════════════════════════════════════════════════════ */}
             <TabsContent value="send" className="space-y-6">
               {/* Quote Type Cards */}
-              <div>
+              <div data-tour-id={TOUR.AGENT.QUOTES.CREATE}>
                 <h2 className="text-lg font-semibold mb-4">Select Quote Type</h2>
                 <div className="grid md:grid-cols-5 gap-4">
                   {QUOTE_DOCUMENT_TYPES.map((docType) => (
@@ -1090,7 +1105,7 @@ export default function AgentQuotes() {
               </div>
 
               {/* Recent Sent Quote Documents */}
-              <div>
+              <div data-tour-id={TOUR.AGENT.QUOTES.STATS}>
                 <h2 className="text-lg font-semibold mb-4">Recently Sent Quotes</h2>
                 <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card, background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(20px)' }}>
                   <CardContent className="p-0">
@@ -1257,7 +1272,7 @@ export default function AgentQuotes() {
                     )
                   ) : (
                     <div className="divide-y divide-gray-100">
-                      {filteredQuotes.map((quote) => {
+                      {paginatedQuotes.map((quote) => {
                         const status = statusConfig[quote.status];
                         const StatusIcon = status.icon;
                         const expired = isExpired(quote.expiresDate);
@@ -1296,6 +1311,18 @@ export default function AgentQuotes() {
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+                  {totalQuotes > 0 && (
+                    <div className="px-5 py-3 border-t border-gray-100">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalQuotes}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={goToPage}
+                        onItemsPerPageChange={changeItemsPerPage}
+                      />
                     </div>
                   )}
                 </CardContent>

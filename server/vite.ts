@@ -42,6 +42,20 @@ export async function setupVite(server: Server, app: Express) {
     res.status(200).set({ "Content-Type": "text/html" }).sendFile(filePath);
   });
 
+  // Serve Covenant for Veterans vanity landing page (Frank's outreach URL)
+  app.get(["/covenant/veterans", "/covenant/veterans/"], (_req, res) => {
+    const filePath = path.resolve(
+      import.meta.dirname,
+      "..",
+      "client",
+      "public",
+      "covenant",
+      "veterans",
+      "index.html",
+    );
+    res.status(200).set({ "Content-Type": "text/html" }).sendFile(filePath);
+  });
+
   app.use(vite.middlewares);
 
   app.use("*", async (req, res, next) => {
@@ -57,8 +71,8 @@ export async function setupVite(server: Server, app: Express) {
       return next();
     }
 
-    // Skip Covenant Risk routes — served as static vanilla site
-    if (url.startsWith("/covenant-risk")) {
+    // Skip Covenant Risk + Covenant for Veterans routes — served as static vanilla sites
+    if (url.startsWith("/covenant-risk") || url.startsWith("/covenant/veterans")) {
       return next();
     }
 

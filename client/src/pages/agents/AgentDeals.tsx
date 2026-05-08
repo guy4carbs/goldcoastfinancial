@@ -11,6 +11,7 @@ import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives";
 import { SubmitDealDialog } from "@/components/agent/SubmitDealDialog";
 import { RADIUS, SHADOW, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -185,7 +186,7 @@ export default function AgentDeals() {
         {/* ----------------------------------------------------------------- */}
         {/* HERO                                                              */}
         {/* ----------------------------------------------------------------- */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DEALS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Trophy}
             title="Agency Deals"
@@ -205,7 +206,7 @@ export default function AgentDeals() {
         {/* ----------------------------------------------------------------- */}
         {/* STATS ROW                                                         */}
         {/* ----------------------------------------------------------------- */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DEALS.STATS} variants={fadeInUp}>
           {statsLoading ? (
             <StatsSkeleton />
           ) : (
@@ -235,7 +236,7 @@ export default function AgentDeals() {
         {/* ----------------------------------------------------------------- */}
         {/* TIME PERIOD FILTER                                                */}
         {/* ----------------------------------------------------------------- */}
-        <motion.div variants={fadeInUp} className="flex gap-2">
+        <motion.div data-tour-id={TOUR.AGENT.DEALS.PERIOD} variants={fadeInUp} className="flex gap-2">
           {PERIOD_OPTIONS.map((opt) => (
             <Button
               key={opt.value}
@@ -260,6 +261,7 @@ export default function AgentDeals() {
         <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* ---- LEFT: Live Deal Feed ---- */}
           <Card
+            data-tour-id={TOUR.AGENT.DEALS.FEED}
             className="border-0"
             style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
           >
@@ -333,6 +335,7 @@ export default function AgentDeals() {
 
           {/* ---- RIGHT: Top 20 Leaderboard ---- */}
           <Card
+            data-tour-id={TOUR.AGENT.DEALS.LEADERBOARD}
             className="border-0"
             style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
           >

@@ -32,6 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 interface Lesson {
   id: string;
@@ -186,6 +187,7 @@ export default function AgentStudyFundamentals() {
       >
         {/* Hero Card */}
         <motion.div
+          data-tour-id={TOUR.AGENT.STUDY_FUNDAMENTALS.HEADER}
           variants={fadeInUp}
           whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
           transition={{ duration: MOTION.duration.hover }}
@@ -244,7 +246,7 @@ export default function AgentStudyFundamentals() {
         </motion.div>
 
         {/* Main Content */}
-        <motion.div variants={fadeInUp} className="grid lg:grid-cols-3 gap-6">
+        <motion.div data-tour-id={TOUR.AGENT.STUDY_FUNDAMENTALS.MODULES} variants={fadeInUp} className="grid lg:grid-cols-3 gap-6">
           {/* Video Player / Content Area */}
           <div className="lg:col-span-2 space-y-4">
             <motion.div

@@ -18,7 +18,10 @@ import { Network, Search, X } from 'lucide-react';
 import { COLORS, RADIUS, SHADOW } from '@/lib/heritageDesignSystem';
 import { HierarchyNode } from './HierarchyNode';
 import { SpreadEdge } from './SpreadEdge';
-import type { HierarchyTheme, HierarchyNodeData } from './types';
+import { HierarchyDetailDrawer } from './HierarchyDetailDrawer';
+import type { HierarchyTheme, HierarchyNodeData, HierarchyMember } from './types';
+
+const AMBER = COLORS.accent.amber;
 
 const nodeTypes = { hierarchy: HierarchyNode };
 const edgeTypes = { spread: SpreadEdge };
@@ -52,6 +55,21 @@ function FlowInner({
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const prevNodesRef = useRef<string>('');
   const [search, setSearch] = useState('');
+  // Click → open detail drawer (mirrors Gold Coast's AgentDetailDrawer
+  // pattern). We track the clicked member separately from React Flow's
+  // built-in `selected` so the drawer can persist after the node loses
+  // selection (e.g., when the user pans).
+  const [drawerMember, setDrawerMember] = useState<HierarchyMember | null>(null);
+  const [drawerIsYou, setDrawerIsYou] = useState(false);
+  const [drawerParentLevel, setDrawerParentLevel] = useState<number | null>(null);
+
+  const handleNodeClick = (_e: React.MouseEvent, node: Node<HierarchyNodeData>) => {
+    const d = node.data as HierarchyNodeData;
+    setDrawerMember(d.member);
+    setDrawerIsYou(d.isYou);
+    setDrawerParentLevel(d.parentContractLevel);
+  };
+  const closeDrawer = () => setDrawerMember(null);
 
   // Sync external nodes/edges into state
   useEffect(() => {
@@ -186,6 +204,7 @@ function FlowInner({
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
@@ -219,7 +238,9 @@ function FlowInner({
         <MiniMap
           nodeColor={(node) => {
             const d = node.data as HierarchyNodeData;
-            return d.isYou ? theme.colors[500] : theme.colors[300];
+            if (d.isRoot) return AMBER[600];
+            if (d.isYou) return AMBER[400];
+            return COLORS.gray[300];
           }}
           maskColor="rgba(255, 255, 255, 0.85)"
           style={{
@@ -233,7 +254,7 @@ function FlowInner({
         />
       </ReactFlow>
 
-      {/* Legend — top-right to avoid overlapping controls + minimap */}
+      {/* Legend — top-right; amber across the board to match the new connectors */}
       <div
         className="absolute top-3 right-3 z-10 flex items-center gap-4 px-3 py-2"
         style={{
@@ -247,17 +268,13 @@ function FlowInner({
         }}
       >
         <span className="flex items-center gap-1.5">
-          <span className="w-4 h-0.5" style={{ backgroundColor: theme.strokeColor }} />
+          <span className="w-4 h-0.5" style={{ backgroundColor: AMBER[500], opacity: 0.4 }} />
           Connection
         </span>
         <span className="flex items-center gap-1.5">
           <span
-            className="px-1.5 py-0 text-[9px] font-semibold"
-            style={{
-              borderRadius: RADIUS.pill,
-              backgroundColor: `${COLORS.semantic.success}12`,
-              color: '#047857',
-            }}
+            className="text-[9px] font-bold"
+            style={{ color: AMBER[700] }}
           >
             10%
           </span>
@@ -266,14 +283,18 @@ function FlowInner({
         <span className="flex items-center gap-1.5">
           <span
             className="w-2.5 h-2.5"
-            style={{
-              background: theme.youBadgeGradient,
-              borderRadius: '50%',
-            }}
+            style={{ background: AMBER[600], borderRadius: 3 }}
           />
-          You
+          Top tier
         </span>
       </div>
+
+      <HierarchyDetailDrawer
+        member={drawerMember}
+        isYou={drawerIsYou}
+        parentContractLevel={drawerParentLevel}
+        onClose={closeDrawer}
+      />
     </div>
   );
 }

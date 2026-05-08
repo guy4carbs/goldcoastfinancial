@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { AgentLoungeLayout } from '@/components/agent/AgentLoungeLayout';
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from '@/components/agent/primitives';
+import { TOUR } from "@/lib/tour/selectors";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -494,7 +495,7 @@ export default function AgentClaims() {
       className="space-y-6"
     >
       {/* ─── HERO ─────────────────────────────────────────── */}
-      <motion.div variants={fadeInUp}>
+      <motion.div data-tour-id={TOUR.AGENT.CLAIMS.HEADER} variants={fadeInUp}>
         <AgentPageHero
           icon={ClipboardList}
           title="Claims Management"
@@ -503,7 +504,7 @@ export default function AgentClaims() {
       </motion.div>
 
       {/* ─── STAT CARDS ───────────────────────────────────── */}
-      <motion.div variants={fadeInUp}>
+      <motion.div data-tour-id={TOUR.AGENT.CLAIMS.STATS} variants={fadeInUp}>
         <AgentStatCardGrid>
           <AgentStatCard icon={ClipboardList} value={totalClaims} label="Total Claims" gradient="from-violet-500 to-purple-600" />
           <AgentStatCard icon={Clock} value={activeClaims} label="Active / Under Review" gradient="from-blue-500 to-indigo-600" />
@@ -513,7 +514,7 @@ export default function AgentClaims() {
       </motion.div>
 
       {/* ─── FILTER BAR ───────────────────────────────────── */}
-      <motion.div variants={fadeInUp} className="flex flex-wrap gap-3 items-center">
+      <motion.div data-tour-id={TOUR.AGENT.CLAIMS.SEARCH} variants={fadeInUp} className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -574,7 +575,7 @@ export default function AgentClaims() {
       </motion.div>
 
       {/* ─── CLAIMS LIST ──────────────────────────────────── */}
-      <motion.div variants={fadeInUp} className="space-y-3">
+      <motion.div data-tour-id={TOUR.AGENT.CLAIMS.TABLE} variants={fadeInUp} className="space-y-3">
         <AnimatePresence mode="popLayout">
           {isLoading ? (
             <motion.div

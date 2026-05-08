@@ -1,10 +1,14 @@
 /**
- * Custom React Flow edge — clean step connector with override spread label
+ * Hierarchy connector edge — mirrors the Gold Coast convention: a default
+ * Bezier curve in the accent color (Heritage amber, GCF would use gold) at
+ * 1.5px / 40% opacity, with the override-spread % rendered as a small
+ * accent-color label inline on the edge (no pill background).
  */
-import { BaseEdge, getSmoothStepPath, EdgeLabelRenderer } from '@xyflow/react';
+import { BaseEdge, getBezierPath, EdgeLabelRenderer } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import { RADIUS, COLORS } from '@/lib/heritageDesignSystem';
-import type { HierarchyTheme } from './types';
+import { COLORS } from '@/lib/heritageDesignSystem';
+
+const AMBER = COLORS.accent.amber;
 
 export function SpreadEdge(props: EdgeProps) {
   const {
@@ -12,12 +16,9 @@ export function SpreadEdge(props: EdgeProps) {
     sourcePosition, targetPosition, data,
   } = props;
 
-  const theme = data?.theme as HierarchyTheme | undefined;
-
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX, sourceY, targetX, targetY,
     sourcePosition, targetPosition,
-    borderRadius: 8,
   });
 
   const spread = data?.spread as number | undefined;
@@ -27,8 +28,9 @@ export function SpreadEdge(props: EdgeProps) {
       <BaseEdge
         path={edgePath}
         style={{
-          stroke: theme?.colors[300] || COLORS.gray[300],
+          stroke: AMBER[500],
           strokeWidth: 1.5,
+          strokeOpacity: 0.4,
           strokeLinecap: 'round',
         }}
       />
@@ -38,15 +40,15 @@ export function SpreadEdge(props: EdgeProps) {
             style={{
               position: 'absolute',
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              pointerEvents: 'all',
-              borderRadius: RADIUS.pill,
-              backgroundColor: `${COLORS.semantic.success}15`,
-              color: '#047857',
-              fontSize: 9,
+              pointerEvents: 'none',
+              fontSize: 10,
               fontWeight: 700,
-              padding: '1px 6px',
+              color: AMBER[700],
+              padding: '1px 4px',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              borderRadius: 3,
               whiteSpace: 'nowrap',
-              border: '1px solid #04785715',
+              letterSpacing: '0.01em',
             }}
             className="nodrag nopan"
           >

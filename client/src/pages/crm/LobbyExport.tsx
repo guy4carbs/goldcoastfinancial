@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import {
   Download,
   FileSpreadsheet,
@@ -259,6 +260,7 @@ export function LobbyExport() {
         {/* Hero Card */}
         <motion.div
           variants={fadeInUp}
+          data-tour-id={TOUR.CRM.LOBBY_EXPORT.HEADER}
           className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 text-white p-8"
           style={{
             borderRadius: RADIUS.hero,
@@ -282,7 +284,7 @@ export function LobbyExport() {
           {/* Main Export Area */}
           <div className="lg:col-span-2 space-y-6">
             {/* Step 1: Select Data Type */}
-            <motion.div variants={fadeInUp}>
+            <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.LOBBY_EXPORT.TYPE_SELECTOR}>
               <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
@@ -319,7 +321,7 @@ export function LobbyExport() {
             </motion.div>
 
             {/* Step 2: Select Fields */}
-            <motion.div variants={fadeInUp}>
+            <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.LOBBY_EXPORT.FIELDS}>
               <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -369,7 +371,7 @@ export function LobbyExport() {
 
             {/* Step 3: Filters (for contacts) */}
             {exportType === 'contacts' && (
-              <motion.div variants={fadeInUp}>
+              <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.LOBBY_EXPORT.FILTERS}>
                 <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
@@ -440,7 +442,7 @@ export function LobbyExport() {
           {/* Sidebar */}
           <motion.div className="space-y-6" variants={staggerContainer}>
             {/* Format Selection */}
-            <motion.div variants={fadeInUp}>
+            <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.LOBBY_EXPORT.FORMAT}>
               <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>
                   <CardTitle className="text-base">File Format</CardTitle>

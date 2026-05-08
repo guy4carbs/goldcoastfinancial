@@ -240,7 +240,7 @@ import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AgentProtectedRoute } from "@/components/AgentProtectedRoute";
 import { RoleProtectedRoute, SuperAdminRoute, AdminRoute, StaffRoute } from "@/components/auth/RoleProtectedRoute";
-import { Roles } from "@/types/permissions";
+import { Roles, RoleGroups } from "@/types/permissions";
 import { CelebrationProvider } from "@/lib/celebrationContext";
 import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
 import { AnalyticsProvider } from "@/hooks/useAnalytics";
@@ -603,7 +603,7 @@ function Router() {
         {/* AI Lounge - Super Admin only with 2FA */}
         <Route path="/ai/dashboard">
           <RoleProtectedRoute
-            allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]}
+            allowedRoles={RoleGroups.ADMINS}
             require2FA={true}
             loungeKey="ai_lounge"
           >
@@ -612,7 +612,7 @@ function Router() {
         </Route>
         <Route path="/ai/:rest*">
           <RoleProtectedRoute
-            allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]}
+            allowedRoles={RoleGroups.ADMINS}
             require2FA={true}
             loungeKey="ai_lounge"
           >
@@ -622,12 +622,12 @@ function Router() {
 
         {/* Manager Lounge - Manager and above */}
         <Route path="/manager/dashboard">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerDashboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/team">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerTeam />
           </RoleProtectedRoute>
         </Route>
@@ -635,7 +635,7 @@ function Router() {
           <Redirect to="/manager/commissions" />
         </Route>
         <Route path="/manager/performance">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerPerformance />
           </RoleProtectedRoute>
         </Route>
@@ -643,37 +643,37 @@ function Router() {
           <Redirect to="/manager/compliance" />
         </Route>
         <Route path="/manager/coaching">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerCoaching />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/escalations">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerEscalations />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/reports">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerReports />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/communications">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerCommunications />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/lead-distribution">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerLeadDistribution />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/settings">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerSettings />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/guide">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerGuide />
           </RoleProtectedRoute>
         </Route>
@@ -681,37 +681,37 @@ function Router() {
           <Redirect to="/manager/escalations" />
         </Route>
         <Route path="/manager/scorecard/:id?">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerScorecard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/leaderboard">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerLeaderboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/team-performance">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerTeamPerformance />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/development">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerMeetingsDev />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/compliance">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerComplianceHub />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/approvals">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerApprovals />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/director">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerDirectorOverview />
           </RoleProtectedRoute>
         </Route>
@@ -722,213 +722,213 @@ function Router() {
           <ManagerActivityMonitor />
         </Route>
         <Route path="/manager/commissions">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerCommissions />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/one-on-ones">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerOneOnOnes />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/goals">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerGoals />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/onboarding-tracker">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerOnboardingTracker />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/client-health">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerClientHealth />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/hierarchy">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerHierarchy />
           </RoleProtectedRoute>
         </Route>
         <Route path="/manager/:rest*">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER]} loungeKey="manager_lounge">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
             <ManagerDashboard />
           </RoleProtectedRoute>
         </Route>
 
         {/* Executive Lounge - Owner/Admin/Investor */}
         <Route path="/executive/dashboard">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveDashboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/kpis">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveKPIs />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/revenue">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveRevenue />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/commissions">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveCommissions />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/sales">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveSales />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/pipeline">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutivePipeline />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/recruiting">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveRecruiting />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/recruiting-pipeline">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveRecruitingPipeline />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/team">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveTeamPerformance />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/hierarchy">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveHierarchy />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/growth">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveGrowthAnalytics />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/reports">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveReports />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/investor">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveInvestorView />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/agent-management">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveAgentManagement />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/agency-management">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveAgencyManagement />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/lounge-access">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS}>
             <ExecutiveLoungeAccess />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/book-of-business">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveBookOfBusiness />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/lead-distribution">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveLeadDistribution />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/settings">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveSettings />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/support">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveSupport />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/call-monitoring">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveCallMonitoring />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/lead-revenue">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveLeadRevenue />
           </RoleProtectedRoute>
         </Route>
         <Route path="/executive/:rest*">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.INVESTOR]} loungeKey="executive_lounge">
             <ExecutiveDashboard />
           </RoleProtectedRoute>
         </Route>
 
         {/* CRM Lobby - The welcoming entrance (accessible to all authenticated employees) */}
         <Route path="/crm">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <LobbyLanding />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/dashboard">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <CRMDashboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/contacts">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <ContactDatabase />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/pipeline">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <PipelineBoard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/leads/:id">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <LeadProfile />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/clients">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <ClientManagement />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/segments">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <SegmentsTags />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/history">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <ActivityHistory />
           </RoleProtectedRoute>
         </Route>
         <Route path="/crm/:rest*">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT, Roles.MARKETING_STAFF, Roles.CLIENT]}>
+          <RoleProtectedRoute allowedRoles={RoleGroups.STAFF}>
             <LobbyLanding />
           </RoleProtectedRoute>
         </Route>
 
         {/* Marketing Lounge - Marketing staff and above */}
         <Route path="/marketing/dashboard">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.MARKETING_STAFF]} loungeKey="marketing_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MARKETING_STAFF]} loungeKey="marketing_lounge">
             <MarketingDashboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/marketing/:rest*">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.MARKETING_STAFF]} loungeKey="marketing_lounge">
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.DIRECTOR, Roles.AGENCY_MANAGER, Roles.MARKETING_STAFF]} loungeKey="marketing_lounge">
             <MarketingDashboard />
           </RoleProtectedRoute>
         </Route>
@@ -954,77 +954,77 @@ function Router() {
 
         {/* Client Lounge - Protected */}
         <Route path="/client/dashboard">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientDashboard />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/policies/:id">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientPolicyDetail />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/policies">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientPolicies />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/documents">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientDocuments />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/beneficiaries">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientBeneficiaries />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/billing">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientBilling />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/claims">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientClaims />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/messages">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientMessages />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/appointments">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientAppointments />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/referral">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientReferral />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/profile">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientProfile />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/settings">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientProfile />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/help">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientHelp />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/support">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientHelp />
           </RoleProtectedRoute>
         </Route>
         <Route path="/client/:rest*">
-          <RoleProtectedRoute allowedRoles={[Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
+          <RoleProtectedRoute allowedRoles={[Roles.FOUNDER, Roles.CLIENT, Roles.OWNER, Roles.SYSTEM_ADMIN]}>
             <ClientDashboard />
           </RoleProtectedRoute>
         </Route>
@@ -1034,102 +1034,102 @@ function Router() {
         ═══════════════════════════════════════════════════════════════════ */}
         <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/submissions">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminSubmissions />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/analytics">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminAnalytics />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/images">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminImages />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/videos">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminVideos />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/products">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminProducts />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminContent />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/blog/new">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminBlogEditor />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/blog/:id">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminBlogEditor />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/faqs/new">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminFAQEditor />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/faqs/:id">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminFAQEditor />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/pages/new">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminPageEditor />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/content/pages/:id">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminPageEditor />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/settings">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminSettings />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/testimonials">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminTestimonials />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/newsletter">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminNewsletter />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/avatar-council">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminAvatarCouncil />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/agent-ops">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AgentOps />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/members">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminMemberDirectory />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/lead-revenue">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminLeadRevenue />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin">
-          <RoleProtectedRoute allowedRoles={[Roles.OWNER, Roles.SYSTEM_ADMIN]} loungeKey="admin_panel">
+          <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminDashboard />
           </RoleProtectedRoute>
         </Route>

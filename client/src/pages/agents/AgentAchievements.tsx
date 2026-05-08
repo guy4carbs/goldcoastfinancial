@@ -26,6 +26,7 @@ import type { LucideIcon } from "lucide-react";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { AchievementUnlock } from "@/components/agent/celebrations/AchievementUnlock";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 type AchievementCategory = 'sales' | 'onboarding' | 'consistency' | 'referral' | 'revenue' | 'calls' | 'level' | 'satisfaction' | 'activity' | 'training';
 type FilterKey = 'all' | 'unlocked' | 'in_progress' | 'locked';
@@ -182,7 +183,7 @@ export default function AgentAchievements() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card with Violet Gradient */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.ACHIEVEMENTS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Trophy}
             title="Achievements"
@@ -207,6 +208,7 @@ export default function AgentAchievements() {
 
         {/* Filters */}
         <motion.div
+          data-tour-id={TOUR.AGENT.ACHIEVEMENTS.FILTER_TABS}
           variants={fadeInUp}
           className="flex gap-1 p-1 w-fit"
           style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
@@ -252,7 +254,7 @@ export default function AgentAchievements() {
 
         {/* Achievements Grid */}
         {filteredAchievements.length > 0 && (
-          <motion.div variants={fadeInUp}>
+          <motion.div data-tour-id={TOUR.AGENT.ACHIEVEMENTS.GRID} variants={fadeInUp}>
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAchievements.map((achievement, index) => {
                 const Icon = achievement.icon;

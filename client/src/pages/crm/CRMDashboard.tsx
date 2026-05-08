@@ -41,6 +41,7 @@ import {
   scaleIn,
   spacing,
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 
 // =============================================================================
 // TYPES
@@ -546,7 +547,7 @@ export function CRMDashboard() {
         style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.lg }}
       >
         {/* Hero Header */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.DASHBOARD.HEADER}>
           <Card
             className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 text-white border-0 overflow-hidden relative"
             style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
@@ -624,6 +625,7 @@ export function CRMDashboard() {
         {/* Stats Grid */}
         <motion.div
           variants={fadeInUp}
+          data-tour-id={TOUR.CRM.DASHBOARD.KPI_GRID}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5"
           style={{ gap: GRID.spacing.sm }}
         >
@@ -680,7 +682,7 @@ export function CRMDashboard() {
           style={{ gap: GRID.spacing.lg }}
         >
           {/* Funnel Visualization */}
-          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level2 }}>
+          <Card data-tour-id={TOUR.CRM.DASHBOARD.FUNNEL} style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level2 }}>
             <CardHeader style={{ padding: GRID.spacing.md }}>
               <CardTitle className="flex items-center" style={{ fontSize: TYPE.title, gap: GRID.spacing.xs }}>
                 <Sparkles className="text-violet-500" style={{ width: LAYOUT.icon.md, height: LAYOUT.icon.md }} />
@@ -762,7 +764,7 @@ export function CRMDashboard() {
         </motion.div>
 
         {/* Source Effectiveness */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.DASHBOARD.SOURCE_TABLE}>
           <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level2 }}>
             <CardHeader style={{ padding: GRID.spacing.md }}>
               <CardTitle className="flex items-center" style={{ fontSize: TYPE.title, gap: GRID.spacing.xs }}>
@@ -797,7 +799,7 @@ export function CRMDashboard() {
         </motion.div>
 
         {/* Performance Summary */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.DASHBOARD.MONTHLY_GRID}>
           <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.level2 }}>
             <CardHeader style={{ padding: GRID.spacing.md }}>
               <CardTitle className="flex items-center" style={{ fontSize: TYPE.title, gap: GRID.spacing.xs }}>

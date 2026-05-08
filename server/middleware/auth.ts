@@ -217,19 +217,20 @@ export function requireRoleGroup(group: RoleGroup) {
 }
 
 /**
- * Require admin role (Owner, SystemAdmin, or Manager)
+ * Require admin role (Founder, Owner, SystemAdmin, Director, or Manager)
  */
-export const requireAdmin = requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER);
+export const requireAdmin = requireRole(...RoleGroups.MANAGEMENT);
 
 /**
- * Require super admin role (Owner or SystemAdmin)
+ * Require super admin role (Founder, Owner, or SystemAdmin)
  */
-export const requireSuperAdmin = requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN);
+export const requireSuperAdmin = requireRole(...RoleGroups.ADMINS);
 
 /**
- * Require owner role only
+ * Require owner role only (Founder or Owner — founder is the canonical top
+ * tier introduced by the goldcoast deployment; owner is its peer alias)
  */
-export const requireOwner = requireRole(Roles.OWNER);
+export const requireOwner = requireRole(Roles.FOUNDER, Roles.OWNER);
 
 // =============================================================================
 // PERMISSION-BASED ACCESS CONTROL

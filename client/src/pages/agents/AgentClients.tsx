@@ -25,6 +25,7 @@ import {
   fadeInUp, staggerContainer, scaleIn,
   COLORS,
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import {
   Users, Search, Phone, Mail, FileText, Shield, Clock,
   CheckCircle, AlertTriangle, Loader2, ChevronRight, User,
@@ -131,7 +132,7 @@ export default function AgentClients() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.CLIENTS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Users}
             title="My Clients"
@@ -140,7 +141,7 @@ export default function AgentClients() {
         </motion.div>
 
         {/* Stat Cards */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.CLIENTS.STATS} variants={fadeInUp}>
           <AgentStatCardGrid>
             <AgentStatCard
               icon={Users}
@@ -170,7 +171,7 @@ export default function AgentClients() {
         </motion.div>
 
         {/* Search Bar */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.CLIENTS.SEARCH} variants={fadeInUp}>
           <Card className="border-0" style={glassCard}>
             <CardContent className="p-4">
               <div className="relative">
@@ -219,7 +220,7 @@ export default function AgentClients() {
             </Card>
           </motion.div>
         ) : (
-          <motion.div variants={fadeInUp} className="space-y-3">
+          <motion.div data-tour-id={TOUR.AGENT.CLIENTS.GRID} variants={fadeInUp} className="space-y-3">
             {filteredClients.map((client) => {
               const statusColor = getStatusColor(client.onboardingStatus);
               return (

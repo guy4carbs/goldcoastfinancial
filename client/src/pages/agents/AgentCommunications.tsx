@@ -27,6 +27,7 @@ import {
   staggerContainer,
   spacing
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 // Import Email and Chat content components
 import AgentEmailContent from "@/components/agent/communications/EmailContent";
@@ -75,13 +76,14 @@ export default function AgentCommunications() {
         style={{ gap: spacing(2) }}
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.COMMUNICATIONS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={MessageSquare}
             title="Communications"
             subtitle="Email, chat, and connect with your team and clients"
           >
             <Button
+              data-tour-id={TOUR.AGENT.COMMUNICATIONS.COMPOSE}
               className="gap-2 bg-white/20 backdrop-blur hover:bg-white/30 text-white border-0"
               style={{ borderRadius: RADIUS.button }}
               onClick={() => setActiveTab('email')}
@@ -94,6 +96,7 @@ export default function AgentCommunications() {
 
         {/* Tabs Container */}
         <motion.div
+          data-tour-id={TOUR.AGENT.COMMUNICATIONS.TABS}
           variants={fadeInUp}
           className="flex-1 min-h-0"
         >
@@ -157,6 +160,7 @@ export default function AgentCommunications() {
             </TabsList>
 
             <TabsContent
+              data-tour-id={TOUR.AGENT.COMMUNICATIONS.INBOX}
               value="email"
               className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden"
             >

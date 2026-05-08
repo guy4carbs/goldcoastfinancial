@@ -59,6 +59,7 @@ import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS, TABLE,
   fadeInUp, staggerContainer, fadeIn
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 
 // =============================================================================
 // TYPES
@@ -713,7 +714,7 @@ export function ContactDatabase() {
         variants={staggerContainer}
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.CONTACTS.HEADER}>
           <Card
             className="border-0 overflow-hidden"
             style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
@@ -738,12 +739,12 @@ export function ContactDatabase() {
         </motion.div>
 
         {/* Search & Filters */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.CONTACTS.FILTERS}>
           <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="py-4">
               <div className="flex flex-wrap gap-4">
                 {/* Search */}
-                <div className="flex-1 min-w-[300px]">
+                <div className="flex-1 min-w-[300px]" data-tour-id={TOUR.CRM.CONTACTS.SEARCH}>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
@@ -816,7 +817,7 @@ export function ContactDatabase() {
 
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
-          <motion.div variants={fadeIn}>
+          <motion.div variants={fadeIn} data-tour-id={TOUR.CRM.CONTACTS.BULK}>
             <Card
               className="border-indigo-200 bg-gradient-to-r from-indigo-50 to-violet-50"
               style={{ borderRadius: RADIUS.card }}
@@ -860,7 +861,7 @@ export function ContactDatabase() {
         )}
 
         {/* Table */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.CONTACTS.TABLE}>
           <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-0">
               <ContactTable

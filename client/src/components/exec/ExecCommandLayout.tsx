@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { useLocation, Link } from "wouter";
+import { PersistedScrollNav } from "@/components/layout/PersistedScrollNav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -126,7 +127,7 @@ export default function ExecCommandLayout({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <PersistedScrollNav className="flex-1 p-4 space-y-1 overflow-y-auto">
               {navItems.map((item) => {
                 const isActive = item.id === activeNav;
                 const showRiskBadge = item.id === 'risk' && alertCount > 0;
@@ -155,7 +156,7 @@ export default function ExecCommandLayout({
                   </Link>
                 );
               })}
-            </nav>
+            </PersistedScrollNav>
 
             {/* User Section */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">

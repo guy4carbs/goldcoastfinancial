@@ -36,12 +36,14 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  envDir: path.resolve(import.meta.dirname),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
     host: "0.0.0.0",
+    port: 4500,
     allowedHosts: true,
     strictPort: false,
     fs: {

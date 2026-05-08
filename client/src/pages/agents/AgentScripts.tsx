@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, fadeInUp, staggerContainer, scaleIn } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 interface Script {
   id: string;
@@ -143,7 +144,7 @@ export default function AgentScripts() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SCRIPTS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={FileText}
             title="Sales Scripts"
@@ -152,7 +153,7 @@ export default function AgentScripts() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={fadeInUp} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <motion.div data-tour-id={TOUR.AGENT.SCRIPTS.CATEGORIES} variants={fadeInUp} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {[
             { label: 'Total Scripts', value: isLoading ? '...' : stats.total, icon: BookOpen },
             { label: 'Favorites', value: isLoading ? '...' : stats.favorites, icon: Star },
@@ -199,7 +200,7 @@ export default function AgentScripts() {
         </motion.div>
 
         {/* Search */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SCRIPTS.SEARCH} variants={fadeInUp}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
             <Input
@@ -261,7 +262,7 @@ export default function AgentScripts() {
 
         {/* Scripts List */}
         {!isLoading && !error && (
-          <motion.div variants={fadeInUp} className="space-y-4">
+          <motion.div data-tour-id={TOUR.AGENT.SCRIPTS.LIST} variants={fadeInUp} className="space-y-4">
             {filteredScripts.length === 0 ? (
               <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardContent className="p-0">

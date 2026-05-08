@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 // Licensing steps checklist with real links
 interface LicensingStep {
@@ -284,13 +285,13 @@ export default function AgentGettingStarted() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Header */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.GETTING_STARTED.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={GraduationCap}
             title="Getting Started"
             subtitle="Your roadmap to becoming a licensed insurance agent with Heritage Life"
           >
-            <div className="flex items-center gap-4">
+            <div data-tour-id={TOUR.AGENT.GETTING_STARTED.PROGRESS} className="flex items-center gap-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-white">{progress}%</p>
                 <p className="text-xs text-white/70">Complete</p>
@@ -403,7 +404,7 @@ export default function AgentGettingStarted() {
         </motion.div>
 
         {/* Tabs */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.GETTING_STARTED.CHECKLIST} variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
               <TabsTrigger value="checklist" className="gap-2">

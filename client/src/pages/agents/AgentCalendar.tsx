@@ -64,6 +64,7 @@ import { toast } from "sonner";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { useAgentStore } from "@/lib/agentStore";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 // Calendar provider configs
 const calendarProviders = [
@@ -667,13 +668,14 @@ export default function AgentCalendar() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.CALENDAR.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={CalendarIcon}
             title="Calendar"
             subtitle="Manage your schedule and sync with your email calendar"
           >
             <Button
+              data-tour-id={TOUR.AGENT.CALENDAR.NEW_EVENT}
               className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
               style={{ borderRadius: RADIUS.button }}
               onClick={() => setShowAddEvent(true)}
@@ -686,6 +688,7 @@ export default function AgentCalendar() {
 
         {/* Calendar Integrations */}
         <motion.div
+          data-tour-id={TOUR.AGENT.CALENDAR.PROVIDER_CONNECT}
           variants={fadeInUp}
           transition={MOTION.spring}
         >
@@ -820,6 +823,7 @@ export default function AgentCalendar() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar */}
           <motion.div
+            data-tour-id={TOUR.AGENT.CALENDAR.WEEK_VIEW}
             variants={fadeInUp}
             transition={MOTION.spring}
             className="lg:col-span-2"
@@ -1242,6 +1246,7 @@ export default function AgentCalendar() {
 
           {/* Selected Day Events */}
           <motion.div
+            data-tour-id={TOUR.AGENT.CALENDAR.EVENT_LIST}
             variants={fadeInUp}
             transition={MOTION.spring}
           >

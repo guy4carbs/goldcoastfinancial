@@ -25,6 +25,7 @@ import {
   Phone as PhoneIcon, Save, Loader2,
 } from "lucide-react";
 import { RADIUS, SHADOW, COLORS } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 
 const SERIF = "'Playfair Display', serif";
 
@@ -208,6 +209,7 @@ export default function AgentWebsite() {
     <AgentLoungeLayout>
       <div className="space-y-6">
         {/* ─── HERO ─── */}
+        <div data-tour-id={TOUR.AGENT.WEBSITE.HEADER}>
         <AgentPageHero
           icon={Globe}
           title="Your Website"
@@ -231,9 +233,10 @@ export default function AgentWebsite() {
             </Button>
           </div>
         </AgentPageHero>
+        </div>
 
         {/* ─── SHARE & QR CODE ─── */}
-        <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <Card data-tour-id={TOUR.AGENT.WEBSITE.SETTINGS} style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(124,58,237,0.1)" }}>
@@ -307,7 +310,7 @@ export default function AgentWebsite() {
         </Card>
 
         {/* ─── LIVE PREVIEW ─── */}
-        <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+        <Card data-tour-id={TOUR.AGENT.WEBSITE.PREVIEW} style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -478,7 +481,7 @@ export default function AgentWebsite() {
             </div>
 
             {/* Primary Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div data-tour-id={TOUR.AGENT.WEBSITE.STATS} className="grid grid-cols-3 gap-4 mb-4">
               {[
                 { label: "Page Views", value: websiteStats?.pageViews ?? 0, icon: Eye, bg: "bg-violet-50", iconColor: "text-violet-600", valueColor: "text-violet-700" },
                 { label: "Leads Generated", value: websiteStats?.leadsGenerated ?? 0, icon: User, bg: "bg-violet-50", iconColor: "text-violet-600", valueColor: "text-violet-700" },

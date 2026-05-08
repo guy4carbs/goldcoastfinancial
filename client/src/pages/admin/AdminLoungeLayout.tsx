@@ -48,7 +48,9 @@ import {
   HeadphonesIcon,
   Briefcase,
   type LucideIcon,
+  Crown
 } from 'lucide-react';
+import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -99,6 +101,7 @@ const LOUNGE_OPTIONS = [
   { id: 'manager', name: 'Manager Lounge', icon: Briefcase, path: '/manager/dashboard', description: 'Team coaching & pipeline oversight', gradient: 'from-emerald-500 to-emerald-700' },
   { id: 'executive', name: 'Executive Lounge', icon: BarChart3, path: '/executive/dashboard', description: 'Strategic insights', gradient: 'from-orange-500 to-orange-700' },
   { id: 'admin', name: 'Admin Lounge', icon: Shield, path: '/admin', description: 'System settings & users', gradient: 'from-slate-500 to-blue-700' },
+  { id: 'goldcoast', name: 'Gold Coast', icon: Crown, path: '#GOLD_COAST_PLACEHOLDER#', description: 'Founders Lounge — agency oversight ↗', gradient: 'from-amber-600 to-orange-700', external: true },
 ] as const;
 
 // ============================================
@@ -222,8 +225,9 @@ export function AdminLoungeLayout({ children, breadcrumbs }: AdminLoungeLayoutPr
   const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
 
   const visibleLounges = LOUNGE_OPTIONS.filter(
-    lounge => lounge.id === 'admin' || loungeAccessLoading || hasAccess(lounge.id)
-  );
+    lounge => lounge.id === 'admin' || (lounge as any).external || loungeAccessLoading || hasAccess(lounge.id)
+  )
+    .map((lounge) => lounge.path === '#GOLD_COAST_PLACEHOLDER#' ? { ...lounge, path: goldCoastUrlForRole(user?.role) } : lounge);
 
   // Persist sidebar state
   useEffect(() => {
@@ -786,14 +790,11 @@ export function AdminLoungeLayout({ children, breadcrumbs }: AdminLoungeLayoutPr
                     const isActive = lounge.id === 'admin';
                     return (
                       <DropdownMenuItem key={lounge.id} asChild>
-                        <Link
-                          href={lounge.path}
-                          className={cn(
+                        {(lounge as any).external ? (
+                          <a href={lounge.path} target="_blank" rel="noopener noreferrer" className={cn(
                             'flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors',
                             isActive ? 'bg-slate-50' : 'hover:bg-gray-50'
-                          )}
-                          style={{ borderRadius: RADIUS.button }}
-                        >
+                          )} style={{ borderRadius: RADIUS.button }}>
                           <div
                             className={cn(
                               'w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-to-br',
@@ -815,7 +816,35 @@ export function AdminLoungeLayout({ children, breadcrumbs }: AdminLoungeLayoutPr
                               style={{ borderRadius: RADIUS.pill, backgroundColor: SLATE[500] }}
                             />
                           )}
-                        </Link>
+                          </a>
+                        ) : (
+                          <Link href={lounge.path} className={cn(
+                            'flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors',
+                            isActive ? 'bg-slate-50' : 'hover:bg-gray-50'
+                          )} style={{ borderRadius: RADIUS.button }}>
+                          <div
+                            className={cn(
+                              'w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-to-br',
+                              lounge.gradient
+                            )}
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            <Icon className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn('text-sm font-medium', isActive ? 'text-slate-700' : 'text-gray-900')}>
+                              {lounge.name}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{lounge.description}</p>
+                          </div>
+                          {isActive && (
+                            <div
+                              className="w-2 h-2 flex-shrink-0"
+                              style={{ borderRadius: RADIUS.pill, backgroundColor: SLATE[500] }}
+                            />
+                          )}
+                          </Link>
+                        )}
                       </DropdownMenuItem>
                     );
                   })}

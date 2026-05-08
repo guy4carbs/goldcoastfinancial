@@ -6,7 +6,7 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, attachUser } from "../middleware/auth";
-import { Roles, Permission, hasPermission } from "../types/permissions";
+import { Roles, RoleGroups, Permission, hasPermission } from "../types/permissions";
 import { HIERARCHY_LEVELS, HIERARCHY_TITLES } from "@shared/models/enterprise";
 
 const router = Router();
@@ -14,7 +14,7 @@ const router = Router();
 // Apply auth middleware to all routes
 router.use(attachUser);
 router.use(requireAuth);
-router.use(requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT));
+router.use(requireRole(...RoleGroups.STAFF));
 
 // =============================================================================
 // TYPES

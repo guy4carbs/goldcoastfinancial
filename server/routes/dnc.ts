@@ -5,6 +5,7 @@
 
 import { Router, type Request, type Response } from "express";
 import { requireAuth, requireRole } from "../middleware/auth";
+import { RoleGroups } from "../types/permissions";
 import { storage } from "../storage";
 
 const router = Router();
@@ -56,7 +57,7 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
 });
 
 // DELETE /api/dnc/:phoneNumber — Remove from DNC (manager+ only)
-router.delete("/:phoneNumber", requireAuth, requireRole("manager"), async (req: Request, res: Response) => {
+router.delete("/:phoneNumber", requireAuth, requireRole(...RoleGroups.MANAGEMENT), async (req: Request, res: Response) => {
   try {
     const phoneNumber = decodeURIComponent(req.params.phoneNumber);
     const normalized = normalizePhone(phoneNumber);

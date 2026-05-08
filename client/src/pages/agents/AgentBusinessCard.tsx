@@ -5,6 +5,7 @@ import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { BusinessCard3D } from "@/components/agent/BusinessCard3D";
 import { RADIUS, SHADOW, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -280,14 +281,16 @@ export default function AgentBusinessCard() {
         className="space-y-6"
       >
         {/* ═══ HERO ═══ */}
+        <div data-tour-id={TOUR.AGENT.BUSINESS_CARD.HEADER}>
         <AgentPageHero
           icon={CreditCard}
           title="Business Card"
           subtitle="Your digital business card — customize it and share it anywhere"
         />
+        </div>
 
         {/* ═══ CARD PREVIEW ═══ */}
-        <motion.div variants={fadeInUp} className="flex flex-col items-center">
+        <motion.div data-tour-id={TOUR.AGENT.BUSINESS_CARD.PREVIEW} variants={fadeInUp} className="flex flex-col items-center">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
               <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
@@ -318,6 +321,7 @@ export default function AgentBusinessCard() {
               {/* Action buttons */}
               <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
                 <Button
+                  data-tour-id={TOUR.AGENT.BUSINESS_CARD.SHARE}
                   onClick={handleNativeShare}
                   variant="outline"
                   className="gap-2"
@@ -360,7 +364,7 @@ export default function AgentBusinessCard() {
         {cardData && (
           <>
             {/* ═══ SECTION 1: PROFILE & IDENTITY ═══ */}
-            <motion.div variants={fadeInUp}>
+            <motion.div data-tour-id={TOUR.AGENT.BUSINESS_CARD.EDIT_FORM} variants={fadeInUp}>
               <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-5">

@@ -45,6 +45,7 @@ import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
   fadeInUp, staggerContainer, scaleIn
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import {
   Upload,
   Download,
@@ -820,7 +821,7 @@ export function ImportExport() {
         className="space-y-6"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.IMPORT_EXPORT.HEADER}>
           <Card className="border-0 overflow-hidden mb-6" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
             <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -863,7 +864,7 @@ export function ImportExport() {
             </TabsList>
 
           {/* Import Tab */}
-          <TabsContent value="import" className="mt-6">
+          <TabsContent value="import" className="mt-6" data-tour-id={TOUR.CRM.IMPORT_EXPORT.IMPORT_TAB}>
             <motion.div
               variants={staggerContainer}
               initial="hidden"
@@ -884,7 +885,7 @@ export function ImportExport() {
                           Upload a CSV or Excel file to import leads
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent data-tour-id={TOUR.CRM.IMPORT_EXPORT.UPLOAD}>
                         <FileUploadZone
                           onFileSelect={handleFileSelect}
                           isUploading={uploadMutation.isPending}
@@ -999,7 +1000,7 @@ export function ImportExport() {
                             Remove
                           </Button>
                         </CardHeader>
-                        <CardContent className="pt-6">
+                        <CardContent className="pt-6" data-tour-id={TOUR.CRM.IMPORT_EXPORT.MAPPER}>
                           <ColumnMapper
                             headers={uploadData.headers}
                             sampleRows={uploadData.sampleRows}
@@ -1104,7 +1105,7 @@ export function ImportExport() {
           </TabsContent>
 
           {/* Export Tab */}
-          <TabsContent value="export" className="mt-6">
+          <TabsContent value="export" className="mt-6" data-tour-id={TOUR.CRM.IMPORT_EXPORT.EXPORT_TAB}>
             <motion.div
               variants={fadeInUp}
               initial="hidden"
@@ -1121,7 +1122,7 @@ export function ImportExport() {
                     Download your CRM data as CSV or Excel
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-6" data-tour-id={TOUR.CRM.IMPORT_EXPORT.FIELD_SELECT}>
                   <ExportBuilder
                     onExport={handleExport}
                     isExporting={exportMutation.isPending}

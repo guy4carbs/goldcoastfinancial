@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { PersistedScrollNav } from "@/components/layout/PersistedScrollNav";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -63,7 +64,10 @@ import {
   UserPlus,
   Globe,
   GraduationCap,
+  Crown,
 } from "lucide-react";
+import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,6 +80,11 @@ import { NotificationDropdown } from "./NotificationDropdown";
 import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
 import { ErrorBoundary } from "./primitives/ErrorBoundary";
+import { TourProvider } from "@/lib/tour/TourProvider";
+import { TourButton } from "@/components/tour/TourButton";
+import { ResumeTourBanner } from "@/components/tour/ResumeTourBanner";
+import { TourCompletionCelebration } from "@/components/tour/TourCompletionCelebration";
+import { TourAutoStart } from "@/lib/tour/TourAutoStart";
 
 // Import centralized design system
 import {
@@ -107,6 +116,7 @@ const LOUNGE_OPTIONS = [
   { id: 'executive', name: 'Executive Lounge', icon: BarChart3, path: '/executive/dashboard', description: 'Strategic insights', gradient: 'from-orange-500 to-orange-700' },
   { id: 'admin', name: 'Admin Lounge', icon: Shield, path: '/admin', description: 'System settings & users', gradient: 'from-slate-500 to-blue-700' },
   { id: 'investor', name: 'Investor Lounge', icon: BarChart3, path: '/investor/dashboard', description: 'KPIs & executive dashboards', gradient: 'from-amber-500 to-yellow-600' },
+  { id: 'goldcoast', name: 'Gold Coast', icon: Crown, path: '#GOLD_COAST_PLACEHOLDER#', description: 'Founders Lounge — agency oversight ↗', gradient: 'from-amber-600 to-orange-700', external: true },
 ] as const;
 
 interface NavItem {
@@ -180,11 +190,15 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
+  const { user: authUserForGoldCoast } = useAuth();
 
-  // Filter LOUNGE_OPTIONS by DB access (current lounge always visible)
+  // Filter LOUNGE_OPTIONS by DB access (current lounge always visible).
+  // External lounges (Gold Coast) bypass user_lounge_access — they're cross-app
+  // jumps, not heritage lounges, so role-based access only.
   const visibleLounges = LOUNGE_OPTIONS.filter(
-    lounge => lounge.id === 'agent' || loungeAccessLoading || hasAccess(lounge.id)
-  );
+    lounge => lounge.id === 'agent' || (lounge as any).external || loungeAccessLoading || hasAccess(lounge.id)
+  )
+    .map((lounge) => lounge.path === '#GOLD_COAST_PLACEHOLDER#' ? { ...lounge, path: goldCoastUrlForRole(authUserForGoldCoast?.role) } : lounge);
 
   // Persist sidebar state
   useEffect(() => {
@@ -495,7 +509,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
       )}
 
       {/* Navigation */}
-      <nav
+      <PersistedScrollNav
         className="flex-1 overflow-y-auto scrollbar-none"
         style={{ padding: `0 ${GRID.spacing.xs}px` }}
       >
@@ -504,7 +518,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         <NavSection title="Outreach" items={outreachItems} />
         <NavSection title="Sales Toolkit" items={toolkitItems} />
         <NavSection title="Growth" items={growthItems} />
-      </nav>
+      </PersistedScrollNav>
 
       {/* Bottom Actions */}
       <div
@@ -558,6 +572,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
   );
 
   return (
+    <TourProvider>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex">
       {/* Command Palette */}
       <CommandPalette
@@ -752,38 +767,58 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
                   {visibleLounges.map((lounge) => {
                     const Icon = lounge.icon;
                     const isActive = lounge.id === 'agent';
-                    return (
-                      <DropdownMenuItem key={lounge.id} asChild>
-                        <Link
-                          href={lounge.path}
+                    const isExternal = (lounge as any).external === true;
+                    const inner = (
+                      <>
+                        <div
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
-                            isActive ? "bg-violet-50" : "hover:bg-gray-50"
+                            "w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-to-br",
+                            lounge.gradient
                           )}
                           style={{ borderRadius: RADIUS.button }}
                         >
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn("text-sm font-medium", isActive ? "text-violet-700" : "text-gray-900")}>
+                            {lounge.name}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">{lounge.description}</p>
+                        </div>
+                        {isActive && (
                           <div
+                            className="w-2 h-2 bg-violet-500 flex-shrink-0"
+                            style={{ borderRadius: RADIUS.pill }}
+                          />
+                        )}
+                      </>
+                    );
+                    return (
+                      <DropdownMenuItem key={lounge.id} asChild>
+                        {isExternal ? (
+                          <a
+                            href={lounge.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className={cn(
-                              "w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-to-br",
-                              lounge.gradient
+                              "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-gray-50"
                             )}
                             style={{ borderRadius: RADIUS.button }}
                           >
-                            <Icon className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={cn("text-sm font-medium", isActive ? "text-violet-700" : "text-gray-900")}>
-                              {lounge.name}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">{lounge.description}</p>
-                          </div>
-                          {isActive && (
-                            <div
-                              className="w-2 h-2 bg-violet-500 flex-shrink-0"
-                              style={{ borderRadius: RADIUS.pill }}
-                            />
-                          )}
-                        </Link>
+                            {inner}
+                          </a>
+                        ) : (
+                          <Link
+                            href={lounge.path}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
+                              isActive ? "bg-violet-50" : "hover:bg-gray-50"
+                            )}
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            {inner}
+                          </Link>
+                        )}
                       </DropdownMenuItem>
                     );
                   })}
@@ -864,6 +899,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
           className="flex-1 pb-24 lg:pb-6"
           style={{ padding: GRID.spacing.md }}
         >
+          <ResumeTourBanner />
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
@@ -872,6 +908,11 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
 
       {/* Onboarding for new agents */}
       <Onboarding />
+
+      {/* Tour system */}
+      <TourButton />
+      <TourCompletionCelebration />
+      <TourAutoStart role="agent" />
 
       {/* Mobile Bottom Navigation - Glass Material */}
       <nav
@@ -937,5 +978,6 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
         </div>
       </nav>
     </div>
+    </TourProvider>
   );
 }

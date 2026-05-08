@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 // Import Social Learning Components
 import {
@@ -850,6 +851,7 @@ export default function AgentChat({ embedded }: AgentChatProps = {}) {
         {/* Desktop Sidebar */}
         {/* #89: Responsive sidebar width - narrower on tablets */}
         <motion.div
+          data-tour-id={TOUR.AGENT.CHAT.CHANNELS}
           variants={fadeInUp}
           className="hidden lg:flex lg:w-64 xl:w-72 flex-col bg-white border-r border-gray-200"
           style={{ borderRadius: `${RADIUS.card}px 0 0 ${RADIUS.card}px` }}
@@ -859,6 +861,7 @@ export default function AgentChat({ embedded }: AgentChatProps = {}) {
 
         {/* Chat Area */}
         <motion.div
+          data-tour-id={TOUR.AGENT.CHAT.MESSAGES}
           variants={fadeInUp}
           className="flex-1 flex flex-col bg-white"
           style={{
@@ -1122,7 +1125,7 @@ export default function AgentChat({ embedded }: AgentChatProps = {}) {
           </ScrollArea>
 
           {/* Message Input */}
-          <div className="p-4 border-t border-gray-200">
+          <div data-tour-id={TOUR.AGENT.CHAT.COMPOSER} className="p-4 border-t border-gray-200">
             {/* Hidden file input */}
             <input
               type="file"
@@ -1262,6 +1265,7 @@ export default function AgentChat({ embedded }: AgentChatProps = {}) {
     <AgentLoungeLayout>
       {/* Hero Card - Agent Lounge Theme */}
       <motion.div
+        data-tour-id={TOUR.AGENT.CHAT.HEADER}
         variants={fadeInUp}
         initial="hidden"
         animate="visible"

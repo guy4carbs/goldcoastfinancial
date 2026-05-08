@@ -63,6 +63,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SubmitDealDialog } from "@/components/agent/SubmitDealDialog";
 import { RADIUS, SHADOW, MOTION, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { useTelnyxDevice, type DeviceStatus, type CallStatus } from '@/hooks/useTelnyxDevice';
 import { usePowerDialer, type PowerDialerLead } from '@/hooks/usePowerDialer';
 import { apiRequest } from "@/lib/queryClient";
@@ -1245,7 +1246,7 @@ export default function AgentDialer() {
         className="space-y-6"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DIALER.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Phone}
             title="Dialer"
@@ -1334,6 +1335,7 @@ export default function AgentDialer() {
             <AnimatePresence mode="wait">
           {powerDialerMode ? (
             <motion.div
+              data-tour-id={TOUR.AGENT.DIALER.POWER_QUEUE}
               key="power-dialer"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1671,7 +1673,7 @@ export default function AgentDialer() {
               {/* Main Content Grid */}
               <div className="grid lg:grid-cols-2 gap-6 items-stretch">
                 {/* Left Column: Dialpad + Lead Profile */}
-                <motion.div variants={fadeInUp} className="space-y-6 flex flex-col">
+                <motion.div data-tour-id={TOUR.AGENT.DIALER.DIALPAD} variants={fadeInUp} className="space-y-6 flex flex-col">
                   <Card
                     className="border-0"
                     style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
@@ -1887,7 +1889,7 @@ export default function AgentDialer() {
                 </motion.div>
 
                 {/* Right Column: Lead Inbox + Recent Calls */}
-                <motion.div variants={fadeInUp} className="space-y-6 flex flex-col">
+                <motion.div data-tour-id={TOUR.AGENT.DIALER.CONTACT_SEARCH} variants={fadeInUp} className="space-y-6 flex flex-col">
                   {/* Lead Inbox */}
                   <Card
                     className="border-0"
@@ -2000,6 +2002,7 @@ export default function AgentDialer() {
 
                   {/* Recent Calls */}
                   <Card
+                    data-tour-id={TOUR.AGENT.DIALER.CALL_HISTORY}
                     className="border-0 flex-1 flex flex-col"
                     style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
                   >
@@ -2210,7 +2213,7 @@ export default function AgentDialer() {
           </TabsContent>
 
           {/* ── RECORDINGS TAB ── */}
-          <TabsContent value="recordings" className="mt-4">
+          <TabsContent data-tour-id={TOUR.AGENT.DIALER.RECORDINGS} value="recordings" className="mt-4">
             <RecordingsTab />
           </TabsContent>
 

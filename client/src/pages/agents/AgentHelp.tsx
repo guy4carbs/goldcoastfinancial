@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { AgentPageHero } from "@/components/agent/primitives";
 
 // Type definitions
@@ -151,13 +152,13 @@ export default function AgentHelp() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.HELP.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={HelpCircle}
             title="Help & Support"
             subtitle="Find answers to your questions or contact our support team"
           >
-            <div className="relative w-full max-w-md">
+            <div data-tour-id={TOUR.AGENT.HELP.SEARCH} className="relative w-full max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" aria-hidden="true" />
               <Input
                 placeholder="Search help articles..."
@@ -172,7 +173,7 @@ export default function AgentHelp() {
         </motion.div>
 
         {/* Quick Links */}
-        <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <motion.div data-tour-id={TOUR.AGENT.HELP.CATEGORIES} variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {QUICK_LINKS.map((link) => (
             <motion.a
               key={link.label}
@@ -206,7 +207,7 @@ export default function AgentHelp() {
         </motion.div>
 
         {/* Help Categories */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.HELP.ARTICLES} variants={fadeInUp}>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Browse by Topic</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {filteredCategories.length === 0 ? (

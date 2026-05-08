@@ -42,6 +42,7 @@ import { useAgentStore } from "@/lib/agentStore";
 import { toast } from "sonner";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { FileUploadZone } from '@/components/onboarding-intake/shared/FileUploadZone';
 
 // Type definitions
@@ -492,7 +493,7 @@ export default function AgentSettings() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SETTINGS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Settings}
             title="Settings"
@@ -517,7 +518,7 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Profile Section */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SETTINGS.PROFILE} variants={fadeInUp}>
           <Card className="border-0" style={glassCard}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-3">
@@ -793,7 +794,7 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Notifications Section */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SETTINGS.NOTIFICATIONS} variants={fadeInUp}>
           <Card className="border-0" style={glassCard}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-3">
@@ -899,7 +900,7 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Bank / Direct Deposit Section */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SETTINGS.BANK} variants={fadeInUp}>
           <Card className="border-0" style={glassCard}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-3">
@@ -1391,7 +1392,7 @@ export default function AgentSettings() {
         </motion.div>
 
         {/* Danger Zone */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.SETTINGS.DANGER} variants={fadeInUp}>
           <Card className="border-0" style={glassCard}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-3">

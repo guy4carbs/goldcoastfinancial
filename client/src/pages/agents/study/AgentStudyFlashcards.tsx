@@ -41,6 +41,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 interface Flashcard {
   id: string;
@@ -219,7 +220,7 @@ export default function AgentStudyFlashcards() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.STUDY_FLASHCARDS.HEADER} variants={fadeInUp}>
           <motion.div
             whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
             transition={{ duration: MOTION.duration.hover }}
@@ -359,7 +360,7 @@ export default function AgentStudyFlashcards() {
                   Starred Only
                 </Button>
 
-                <Button variant="outline" onClick={handleShuffle} className="gap-2">
+                <Button data-tour-id={TOUR.AGENT.STUDY_FLASHCARDS.SHUFFLE} variant="outline" onClick={handleShuffle} className="gap-2">
                   <Shuffle className="w-4 h-4" />
                   Shuffle
                 </Button>
@@ -383,7 +384,7 @@ export default function AgentStudyFlashcards() {
         </motion.div>
 
         {/* Flashcard */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.STUDY_FLASHCARDS.DECK} variants={fadeInUp}>
           {filteredCards.length === 0 ? (
             <Card className="p-12 text-center" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <Layers className="w-16 h-16 text-gray-300 mx-auto mb-4" />

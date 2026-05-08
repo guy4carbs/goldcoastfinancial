@@ -5,7 +5,7 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
-import { Roles } from "../types/permissions";
+import { Roles, RoleGroups } from "../types/permissions";
 import { recordCommissions } from "../services/commissionRecordService";
 
 const router = Router();
@@ -303,7 +303,7 @@ router.get("/stats", async (req: Request, res: Response) => {
 // PATCH /:id/verify — Verify or reject a deal (manager/owner only)
 // =============================================================================
 router.patch("/:id/verify",
-  requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER),
+  requireRole(...RoleGroups.MANAGEMENT),
   async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user?.id;

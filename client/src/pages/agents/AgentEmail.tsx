@@ -46,6 +46,7 @@ import { toast } from "sonner";
 import { useAgentStore } from "@/lib/agentStore";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 // Email folder types
 type FolderType = 'inbox' | 'sent' | 'drafts' | 'trash' | 'starred' | 'archive';
@@ -368,7 +369,7 @@ export default function AgentEmail() {
         style={{ height: 'calc(100vh - 4rem)', gap: spacing(2) }}
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.EMAIL.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Mail}
             title="Agent Email"
@@ -376,6 +377,7 @@ export default function AgentEmail() {
 
           >
             <Button
+              data-tour-id={TOUR.AGENT.EMAIL.COMPOSE}
               onClick={() => setShowCompose(true)}
               className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
               variant="outline"
@@ -397,6 +399,7 @@ export default function AgentEmail() {
         >
           {/* Sidebar - Folders */}
           <nav
+            data-tour-id={TOUR.AGENT.EMAIL.FOLDERS}
             className={cn(
               "w-56 border-r bg-gray-50 flex-col",
               "hidden md:flex"
@@ -470,6 +473,7 @@ export default function AgentEmail() {
 
           {/* Email List */}
           <motion.div
+            data-tour-id={TOUR.AGENT.EMAIL.LIST}
             variants={fadeInUp}
             className={cn(
               "w-80 border-r flex flex-col",
@@ -608,6 +612,7 @@ export default function AgentEmail() {
 
           {/* Email Detail */}
           <motion.div
+            data-tour-id={TOUR.AGENT.EMAIL.DETAIL}
             variants={fadeInUp}
             className={cn(
               "flex-1 flex flex-col",

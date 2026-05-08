@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 // Core values
 const CORE_VALUES = [
@@ -208,7 +209,7 @@ export default function AgentGuidelines() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Header - Agent Lounge violet gradient */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.GUIDELINES.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Scale}
             title="Guidelines & Expectations"
@@ -262,7 +263,7 @@ export default function AgentGuidelines() {
             </TabsList>
 
             {/* Core Values Tab */}
-            <TabsContent value="values" className="space-y-4">
+            <TabsContent data-tour-id={TOUR.AGENT.GUIDELINES.CORE_VALUES} value="values" className="space-y-4">
               <motion.div
                 className="grid md:grid-cols-2 gap-4"
                 variants={staggerContainer}
@@ -338,7 +339,7 @@ export default function AgentGuidelines() {
             </TabsContent>
 
             {/* Performance Tab */}
-            <TabsContent value="performance" className="space-y-4">
+            <TabsContent data-tour-id={TOUR.AGENT.GUIDELINES.EXPECTATIONS} value="performance" className="space-y-4">
               {/* Daily Expectations */}
               <Card
                 className="border-0"
@@ -448,7 +449,7 @@ export default function AgentGuidelines() {
             </TabsContent>
 
             {/* Commission Tab */}
-            <TabsContent value="commission" className="space-y-4">
+            <TabsContent data-tour-id={TOUR.AGENT.GUIDELINES.SCHEDULE} value="commission" className="space-y-4">
               {/* Comp Guidelines — top, gradient */}
               <Card
                 className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"

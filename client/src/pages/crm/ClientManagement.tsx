@@ -13,6 +13,7 @@ import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
   fadeInUp, staggerContainer, fadeIn
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -1232,7 +1233,7 @@ export function ClientManagement() {
             className="p-6 border-b"
           >
             {/* Hero Card */}
-            <motion.div variants={fadeInUp}>
+            <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.CLIENTS.HEADER}>
               <Card className="border-0 overflow-hidden mb-6" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
                 <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -1252,6 +1253,7 @@ export function ClientManagement() {
                 variants={staggerContainer}
                 initial="hidden"
                 animate="visible"
+                data-tour-id={TOUR.CRM.CLIENTS.SUMMARY}
                 className="grid grid-cols-5 gap-4 mb-6"
               >
                 <motion.div
@@ -1408,6 +1410,7 @@ export function ClientManagement() {
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.3 }}
+            data-tour-id={TOUR.CRM.CLIENTS.TABLE}
             className="flex-1 overflow-auto p-6"
           >
             <ClientTable
@@ -1457,6 +1460,7 @@ export function ClientManagement() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: MOTION.duration.normal, ease: MOTION.easing, delay: 0.2 }}
+          data-tour-id={TOUR.CRM.CLIENTS.RENEWALS}
           className="w-96 border-l bg-gradient-to-b from-gray-50 to-white p-6"
         >
           <div className="flex items-center gap-3 mb-4">

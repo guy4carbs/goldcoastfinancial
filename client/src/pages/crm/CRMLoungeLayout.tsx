@@ -12,6 +12,11 @@
 import { type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { LoungeLayout, type SidebarSection } from '@/components/layout/LoungeLayout';
+import { TourProvider } from '@/lib/tour/TourProvider';
+import { TourButton } from '@/components/tour/TourButton';
+import { ResumeTourBanner } from '@/components/tour/ResumeTourBanner';
+import { TourCompletionCelebration } from '@/components/tour/TourCompletionCelebration';
+import { TourAutoStart } from '@/lib/tour/TourAutoStart';
 import {
   RADIUS,
   SHADOW,
@@ -131,34 +136,40 @@ const containerVariants = {
 
 export function CRMLoungeLayout({ children, breadcrumbs }: CRMLoungeLayoutProps) {
   return (
-    <LoungeLayout
-      loungeName="CRM Lounge"
-      loungeColor="indigo"
-      sidebarSections={sidebarSections}
-      showSearch={true}
-      showLoungeSwitcher={true}
-      showNotifications={true}
-      showAgentIndicator={false}
-      breadcrumbs={breadcrumbs}
-    >
-      {/* Animated content wrapper with Heritage Design System motion */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={pageContentVariants}
-        style={{
-          minHeight: '100%',
-        }}
+    <TourProvider>
+      <LoungeLayout
+        loungeName="CRM Lounge"
+        loungeColor="indigo"
+        sidebarSections={sidebarSections}
+        showSearch={true}
+        showLoungeSwitcher={true}
+        showNotifications={true}
+        showAgentIndicator={false}
+        breadcrumbs={breadcrumbs}
       >
+        {/* Animated content wrapper with Heritage Design System motion */}
         <motion.div
-          variants={containerVariants}
           initial="hidden"
           animate="visible"
+          variants={pageContentVariants}
+          style={{
+            minHeight: '100%',
+          }}
         >
-          {children}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {children}
+          </motion.div>
         </motion.div>
-      </motion.div>
-    </LoungeLayout>
+      </LoungeLayout>
+      <ResumeTourBanner />
+      <TourButton />
+      <TourCompletionCelebration />
+      <TourAutoStart role="crm" />
+    </TourProvider>
   );
 }
 

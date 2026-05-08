@@ -49,6 +49,7 @@ import {
   staggerContainer,
   scaleIn,
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { getNextTier } from '@/lib/commissionTiers';
 
 interface HierarchyRequest {
@@ -248,6 +249,7 @@ export function AgentCommissions() {
         {/* ================================================================= */}
         {/* HERO SECTION */}
         {/* ================================================================= */}
+        <div data-tour-id={TOUR.AGENT.COMMISSIONS.HEADER}>
         <AgentPageHero
           icon={DollarSign}
           title="My Commissions"
@@ -263,11 +265,12 @@ export function AgentCommissions() {
             </div>
           </div>
         </AgentPageHero>
+        </div>
 
         {/* ================================================================= */}
         {/* EARNINGS OVERVIEW STAT CARDS */}
         {/* ================================================================= */}
-        <motion.section variants={fadeInUp}>
+        <motion.section data-tour-id={TOUR.AGENT.COMMISSIONS.STATS} variants={fadeInUp}>
           <AgentStatCardGrid>
             <AgentStatCard
               icon={DollarSign}
@@ -295,7 +298,7 @@ export function AgentCommissions() {
         {/* ================================================================= */}
         {/* CONTRACT LEVEL & AP PROGRESS */}
         {/* ================================================================= */}
-        <motion.section variants={fadeInUp}>
+        <motion.section data-tour-id={TOUR.AGENT.COMMISSIONS.TIER_BAR} variants={fadeInUp}>
           <Card
             className="border-0 overflow-hidden"
             style={{
@@ -318,6 +321,7 @@ export function AgentCommissions() {
                   </p>
                 </div>
                 <Button
+                  data-tour-id={TOUR.AGENT.COMMISSIONS.REQUEST}
                   onClick={() => {
                     setRequestedLevel(nextLevel);
                     setShowRequestModal(true);
@@ -415,7 +419,7 @@ export function AgentCommissions() {
               </div>
 
               {/* Monthly AP Bar Chart */}
-              <div className="mt-6">
+              <div data-tour-id={TOUR.AGENT.COMMISSIONS.HISTORY} className="mt-6">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Monthly AP Trend</h3>
                 {monthlyApData.length > 0 ? (
                   <div className="flex items-end gap-3 h-32">

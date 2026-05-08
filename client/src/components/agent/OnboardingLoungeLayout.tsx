@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
+import { PersistedScrollNav } from "@/components/layout/PersistedScrollNav";
 import { useAgentStore } from "@/lib/agentStore";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { cn } from "@/lib/utils";
@@ -326,10 +327,10 @@ export function OnboardingLoungeLayout({ children }: OnboardingLoungeLayoutProps
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto" style={{ padding: `0 ${GRID.spacing.xs}px` }}>
+      <PersistedScrollNav className="flex-1 overflow-y-auto" style={{ padding: `0 ${GRID.spacing.xs}px` }}>
         <NavSection title="Your Path" items={journeyNavItems} />
         <NavSection title="Learn & Grow" items={resourcesNavItems} />
-      </nav>
+      </PersistedScrollNav>
 
       {/* Bottom Actions — matches AgentLoungeLayout */}
       <div

@@ -52,6 +52,7 @@ import { cn } from "@/lib/utils";
 import { EmptyState, AgentPageHero } from "@/components/agent/primitives";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, GLASS, MOTION, COLORS, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -1488,7 +1489,7 @@ export default function AgentMemberCards() {
         animate="visible"
       >
         {/* Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.MEMBER_CARDS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={CreditCard}
             title="Member Cards"
@@ -1509,7 +1510,9 @@ export default function AgentMemberCards() {
         </motion.div>
 
         {/* Stats */}
-        <StatsCards stats={stats} />
+        <div data-tour-id={TOUR.AGENT.MEMBER_CARDS.STATS}>
+          <StatsCards stats={stats} />
+        </div>
 
         {/* Search & Filter */}
         <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
@@ -1550,7 +1553,7 @@ export default function AgentMemberCards() {
         </motion.div>
 
         {/* Cards List */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.MEMBER_CARDS.GRID} variants={fadeInUp}>
           <Card
             className="border-0 overflow-hidden"
             style={{

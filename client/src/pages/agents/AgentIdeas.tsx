@@ -10,6 +10,7 @@ import {
   fadeInUp, staggerContainer, scaleIn
 } from '@/lib/heritageDesignSystem';
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives";
+import { TOUR } from "@/lib/tour/selectors";
 import {
   Lightbulb, ThumbsUp, Filter, Plus, Send, Search,
   CheckCircle, Clock, Eye, XCircle, Rocket, Bug,
@@ -199,13 +200,14 @@ export default function AgentIdeas() {
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
         {/* Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.IDEAS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Lightbulb}
             title="Ideas & Feedback"
             subtitle="Share ideas, report bugs, and help improve the platform"
           >
             <Button
+              data-tour-id={TOUR.AGENT.IDEAS.FORM}
               onClick={() => setShowSubmitDialog(true)}
               className="gap-2 text-white border-0 backdrop-blur-sm hover:scale-105 transition-transform"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius: RADIUS.button }}
@@ -216,7 +218,7 @@ export default function AgentIdeas() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.IDEAS.STATS} variants={fadeInUp}>
           <AgentStatCardGrid>
             {stats.map((stat) => (
               <AgentStatCard key={stat.label} icon={stat.icon} value={stat.value} label={stat.label} gradient={stat.gradient} />
@@ -250,7 +252,7 @@ export default function AgentIdeas() {
         </motion.div>
 
         {/* Ideas Feed */}
-        <motion.div variants={fadeInUp} className="space-y-3">
+        <motion.div data-tour-id={TOUR.AGENT.IDEAS.LIST} variants={fadeInUp} className="space-y-3">
           <AnimatePresence mode="popLayout">
             {filteredIdeas.map((idea) => {
               const cat = categoryConfig[idea.category];

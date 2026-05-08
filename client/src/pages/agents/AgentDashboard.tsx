@@ -58,6 +58,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn, formatProductLabel } from "@/lib/utils";
+import { TOUR } from "@/lib/tour/selectors";
 
 // Static announcements and events removed — now wired to real API data
 
@@ -415,6 +416,7 @@ function AgentDashboardInner() {
       </div>
 
       <motion.div
+        data-tour-id={TOUR.AGENT.DASHBOARD.HEADER}
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
@@ -427,7 +429,7 @@ function AgentDashboardInner() {
         }}
       >
         {/* Command Center Banner - Premium Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DASHBOARD.HERO} variants={fadeInUp}>
           <Card
             className="border-0 overflow-hidden relative"
             style={{
@@ -615,7 +617,7 @@ function AgentDashboardInner() {
         </motion.div>
 
         {/* Your Progress Section */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DASHBOARD.LEAD_STATS} variants={fadeInUp}>
           <motion.div
             variants={staggerContainer}
             className="grid grid-cols-2 lg:grid-cols-4"
@@ -711,10 +713,12 @@ function AgentDashboardInner() {
           {/* Left Column - φ proportion (≈61.8% on desktop) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: GRID.spacing.md }}>
             {/* State Coverage Map */}
-            <StateMapWidget agentId={currentUser?.id} />
+            <div data-tour-id={TOUR.AGENT.DASHBOARD.STATE_MAP}>
+              <StateMapWidget agentId={currentUser?.id} />
+            </div>
 
             {/* Daily Challenges */}
-            <motion.div variants={fadeInUp}>
+            <motion.div data-tour-id={TOUR.AGENT.DASHBOARD.DAILY_CHALLENGE} variants={fadeInUp}>
               <DailyChallenge challenges={dailyChallenges} />
             </motion.div>
 
@@ -1082,7 +1086,7 @@ function AgentDashboardInner() {
             </motion.div>
 
             {/* Team Activity */}
-            <motion.div variants={fadeInUp}>
+            <motion.div data-tour-id={TOUR.AGENT.DASHBOARD.ACTIVITY_FEED} variants={fadeInUp}>
               <Card
                 className="overflow-hidden border-0"
                 style={{

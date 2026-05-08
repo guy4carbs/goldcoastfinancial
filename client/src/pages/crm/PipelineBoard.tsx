@@ -12,6 +12,7 @@ import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
   fadeInUp, staggerContainer, fadeIn
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -1019,7 +1020,7 @@ export function PipelineBoard() {
         className="space-y-6"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.PIPELINE.HEADER}>
           <Card className="border-0 overflow-hidden" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
             <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
               {/* Background decorations */}
@@ -1035,14 +1036,16 @@ export function PipelineBoard() {
         </motion.div>
 
         {/* Summary Bar */}
-        <PipelineSummaryBar
-          data={pipelineData}
-          forecast={forecastData}
-          isLoading={pipelineLoading || forecastLoading}
-        />
+        <div data-tour-id={TOUR.CRM.PIPELINE.SUMMARY_BAR}>
+          <PipelineSummaryBar
+            data={pipelineData}
+            forecast={forecastData}
+            isLoading={pipelineLoading || forecastLoading}
+          />
+        </div>
 
         {/* Filters */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.PIPELINE.VIEW_TOGGLE}>
           <PipelineFilters
             search={search}
             onSearchChange={setSearch}
@@ -1062,7 +1065,7 @@ export function PipelineBoard() {
             ))}
           </div>
         ) : view === 'kanban' ? (
-          <motion.div variants={fadeInUp}>
+          <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.PIPELINE.BOARD}>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCorners}
@@ -1096,7 +1099,7 @@ export function PipelineBoard() {
           </DndContext>
         </motion.div>
         ) : (
-          <motion.div variants={fadeInUp}>
+          <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.PIPELINE.BOARD}>
             <TableView
               data={pipelineData}
               onLeadClick={(lead) => setSelectedLead(lead)}

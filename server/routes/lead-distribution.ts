@@ -6,7 +6,7 @@
 import { Router, Request, Response } from "express";
 import { storage } from "../storage";
 import { attachUser, requireAuth, requireRole } from "../middleware/auth";
-import { Roles } from "../types/permissions";
+import { Roles, RoleGroups } from "../types/permissions";
 
 const router = Router();
 
@@ -17,7 +17,7 @@ router.use(requireAuth);
 // =============================================================================
 // GET /pool — Get leads in the user's undistributed pool
 // =============================================================================
-router.get("/pool", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER), async (req: Request, res: Response) => {
+router.get("/pool", requireRole(...RoleGroups.MANAGEMENT), async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const { page, limit, search, priority, source, sortBy } = req.query;
@@ -90,7 +90,7 @@ router.get("/stats", async (req: Request, res: Response) => {
 // =============================================================================
 // GET /recipients — Get available recipients for distribution (direct reports)
 // =============================================================================
-router.get("/recipients", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER), async (req: Request, res: Response) => {
+router.get("/recipients", requireRole(...RoleGroups.MANAGEMENT), async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const reports = await storage.getDirectReports(userId);
@@ -104,7 +104,7 @@ router.get("/recipients", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGE
 // =============================================================================
 // POST /distribute — Distribute leads evenly to direct reports
 // =============================================================================
-router.post("/distribute", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER), async (req: Request, res: Response) => {
+router.post("/distribute", requireRole(...RoleGroups.MANAGEMENT), async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const userRole = req.user!.role;
@@ -179,7 +179,7 @@ router.post("/distribute", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AG
 // =============================================================================
 // POST /assign-single — Manually assign one lead to a specific recipient
 // =============================================================================
-router.post("/assign-single", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER), async (req: Request, res: Response) => {
+router.post("/assign-single", requireRole(...RoleGroups.MANAGEMENT), async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
     const userRole = req.user!.role;
@@ -249,7 +249,7 @@ router.get("/history", async (req: Request, res: Response) => {
 // =============================================================================
 // GET /website-leads — Get leads from website quote submissions
 // =============================================================================
-router.get("/website-leads", requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN), async (req: Request, res: Response) => {
+router.get("/website-leads", requireRole(...RoleGroups.ADMINS), async (req: Request, res: Response) => {
   try {
     const quoteRequests = await storage.getQuoteRequests();
     const now = new Date().toISOString().slice(0, 10);

@@ -16,6 +16,7 @@ import {
   Check, X, Loader2, Plus, User, MessageSquare, CheckCircle, CheckCircle2, XCircle, AlertCircle,
 } from "lucide-react";
 import { RADIUS, SHADOW, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 import { apiRequest } from "@/lib/queryClient";
 import { useAgentStore } from "@/lib/agentStore";
 import { toast } from "sonner";
@@ -189,12 +190,14 @@ export default function AgentTrainingSessions() {
   return (
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
+        <div data-tour-id={TOUR.AGENT.TRAINING.HEADER}>
         <AgentPageHero
           icon={GraduationCap}
           title="Training Sessions"
           subtitle="Schedule 1:1 coaching with your upline"
         >
           <Button
+            data-tour-id={TOUR.AGENT.TRAINING.SCHEDULE}
             onClick={() => setShowSchedule(true)}
             className="gap-2 text-white border-0 backdrop-blur-sm"
             style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: RADIUS.button }}
@@ -202,10 +205,11 @@ export default function AgentTrainingSessions() {
             <Plus className="w-4 h-4" /> Schedule 1:1
           </Button>
         </AgentPageHero>
+        </div>
 
         {/* Pending requests (for trainers to accept/decline) */}
         {pendingSessions.length > 0 && (
-          <motion.div variants={fadeInUp}>
+          <motion.div data-tour-id={TOUR.AGENT.TRAINING.STATS} variants={fadeInUp}>
             <Card className="border-0 border-l-4 border-l-amber-400" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardContent className="p-6">
                 <h2 className="text-sm font-bold text-amber-700 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -257,7 +261,7 @@ export default function AgentTrainingSessions() {
         )}
 
         {/* Upcoming sessions */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.TRAINING.TABLE} variants={fadeInUp}>
           <Card className="border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-6">
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">

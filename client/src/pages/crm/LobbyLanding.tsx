@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, GRID, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import {
   Users,
   Bot,
@@ -36,8 +37,10 @@ import {
   Sparkles,
   CheckCircle2,
   Bell,
+  Crown,
   type LucideIcon,
 } from 'lucide-react';
+import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
 import { LobbyConcierge } from '@/components/crm/LobbyConcierge';
 
 // =============================================================================
@@ -52,6 +55,8 @@ interface LoungeCard {
   gradient: string;
   path: string;
   requiredRoles: string[];
+  /** When true, the card opens the path in a new tab (cross-app jump). */
+  external?: boolean;
   stat?: { label: string; value: string | number; trend?: 'up' | 'down' };
 }
 
@@ -87,7 +92,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Users,
     gradient: 'from-violet-500 to-purple-600',
     path: '/agents/dashboard',
-    requiredRoles: ['owner', 'system_admin', 'manager', 'sales_agent', 'client'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent', 'client'],
   },
   {
     id: 'finance',
@@ -96,7 +101,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: DollarSign,
     gradient: 'from-blue-800 to-blue-950',
     path: '/finance/dashboard',
-    requiredRoles: ['owner', 'system_admin', 'manager', 'investor'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
   },
   {
     id: 'marketing',
@@ -105,7 +110,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Megaphone,
     gradient: 'from-rose-500 to-pink-600',
     path: '/marketing/dashboard',
-    requiredRoles: ['owner', 'system_admin', 'manager', 'marketing_staff'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
   },
   {
     id: 'ai',
@@ -114,7 +119,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Bot,
     gradient: 'from-cyan-500 to-blue-600',
     path: '/ai/dashboard',
-    requiredRoles: ['owner', 'system_admin'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
   },
   {
     id: 'manager',
@@ -123,7 +128,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Briefcase,
     gradient: 'from-emerald-500 to-emerald-700',
     path: '/manager/dashboard',
-    requiredRoles: ['owner', 'system_admin', 'manager'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
   },
   {
     id: 'director',
@@ -132,7 +137,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Building2,
     gradient: 'from-blue-700 to-slate-900',
     path: '/manager/director',
-    requiredRoles: ['owner', 'system_admin', 'manager'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
   },
   {
     id: 'support',
@@ -141,7 +146,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: HeadphonesIcon,
     gradient: 'from-gray-700 to-gray-900',
     path: '/support/dashboard',
-    requiredRoles: ['owner', 'system_admin', 'manager'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
   },
   {
     id: 'executive',
@@ -150,7 +155,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: BarChart3,
     gradient: 'from-orange-500 to-orange-700',
     path: '/executive/dashboard',
-    requiredRoles: ['owner', 'system_admin', 'investor'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'investor'],
   },
   {
     id: 'admin',
@@ -159,7 +164,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Shield,
     gradient: 'from-slate-500 to-blue-700',
     path: '/admin',
-    requiredRoles: ['owner', 'system_admin'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
   },
   {
     id: 'investor',
@@ -168,7 +173,17 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: BarChart3,
     gradient: 'from-amber-500 to-yellow-600',
     path: '/investor/dashboard',
-    requiredRoles: ['owner', 'investor'],
+    requiredRoles: ['founder', 'director', 'owner', 'investor'],
+  },
+  {
+    id: 'goldcoast',
+    name: 'Gold Coast',
+    description: 'Founders Lounge — agency oversight',
+    icon: Crown,
+    gradient: 'from-amber-600 to-orange-700',
+    path: '#GOLD_COAST_PLACEHOLDER#',
+    external: true,
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
   },
 ];
 
@@ -248,21 +263,21 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
         {
           label: 'Deals Closed',
           value: crm.performance?.wonThisMonth || 0,
-          change: crm.performance?.wonThisMonth > 0 ? 8 : 0,
+          change: 0,
           changeLabel: 'this month',
           icon: CheckCircle2,
         },
         {
           label: 'Revenue',
           value: revenueFormatted,
-          change: revenueThisMonth > 0 ? 15 : 0,
+          change: 0,
           changeLabel: 'vs last month',
           icon: DollarSign,
         },
         {
           label: 'Conversion',
           value: `${conversionRate.toFixed(1)}%`,
-          change: conversionRate > 0 ? 3 : 0,
+          change: 0,
           changeLabel: 'overall rate',
           icon: TrendingUp,
         },
@@ -280,11 +295,7 @@ async function fetchBusinessHealth(): Promise<LobbyDashboardData> {
         ai: { label: 'Agents Active', value: activeAgents },
         support: { label: 'Open Tickets', value: crm.summary?.staleLeadsCount || 0 },
       },
-      announcements: [
-        { id: '1', title: 'New carrier partnership announced', type: 'success', date: '2 hours ago' },
-        { id: '2', title: 'Q1 kickoff meeting tomorrow at 9am', type: 'info', date: '1 day ago' },
-        { id: '3', title: 'Updated compliance guidelines available', type: 'warning', date: '3 days ago' },
-      ],
+      announcements: crm.announcements || [],
     };
   } catch (err) {
     console.error('[Lobby] Failed to fetch dashboard data:', err);
@@ -337,7 +348,7 @@ function MetricCard({ metric }: { metric: BusinessMetric }) {
             <div>
               <p className="text-sm text-white/70 mb-1">{metric.label}</p>
               <p className="text-3xl font-bold text-white">{metric.value}</p>
-              {metric.change !== undefined && (
+              {metric.change !== undefined && metric.change !== 0 && (
                 <div className="flex items-center gap-1 mt-2">
                   <span className={cn(
                     "text-xs font-medium flex items-center gap-0.5",
@@ -424,6 +435,20 @@ function LoungeNavigationCard({ lounge, onCustomClick }: { lounge: LoungeCard; o
     );
   }
 
+  if (lounge.external) {
+    return (
+      <motion.div
+        variants={scaleIn}
+        whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
+        transition={{ duration: MOTION.duration.hover }}
+      >
+        <a href={lounge.path} target="_blank" rel="noopener noreferrer">
+          {cardContent}
+        </a>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       variants={scaleIn}
@@ -498,9 +523,14 @@ export function LobbyLanding() {
     refetchInterval: 60000,
   });
 
-  // Filter lounges by user role and merge in real stats
+  // Filter lounges by user role and merge in real stats. Resolve the Gold
+  // Coast placeholder with a role-aware URL (founders → /founders, others → /hcms).
   const accessibleLounges: LoungeCard[] = LOUNGES
     .filter((lounge) => lounge.requiredRoles.includes(user?.role || ''))
+    .map((lounge) => lounge.path === '#GOLD_COAST_PLACEHOLDER#'
+      ? { ...lounge, path: goldCoastUrlForRole(user?.role) }
+      : lounge
+    )
     .map((lounge) => {
       // Merge in dynamic stats based on lounge ID
       const stats = data?.loungeStats;
@@ -550,7 +580,7 @@ export function LobbyLanding() {
         animate="visible"
       >
         {/* Hero Section */}
-        <motion.section variants={fadeInUp}>
+        <motion.section variants={fadeInUp} data-tour-id={TOUR.CRM.LOBBY_LANDING.HEADER}>
           <div
             className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500 text-white"
             style={{
@@ -630,7 +660,7 @@ export function LobbyLanding() {
         </motion.section>
 
         {/* Business Metrics */}
-        <motion.section variants={fadeInUp}>
+        <motion.section variants={fadeInUp} data-tour-id={TOUR.CRM.LOBBY_LANDING.METRICS}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Business Health</h2>
             <Badge
@@ -664,7 +694,7 @@ export function LobbyLanding() {
         {/* Main Grid */}
         <motion.div variants={fadeInUp} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Lounges Section */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2" data-tour-id={TOUR.CRM.LOBBY_LANDING.LOUNGE_GRID}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Your Lounges</h2>
               <p className="text-sm text-gray-500">{accessibleLounges.length} available</p>
@@ -755,7 +785,7 @@ export function LobbyLanding() {
               </CardContent>
             </Card>
 
-            {/* Performance Snapshot */}
+            {/* Performance Snapshot — This Week */}
             <Card
               className="border-0 overflow-hidden relative bg-gradient-to-br from-violet-600 via-purple-600 to-amber-500"
               style={{
@@ -792,7 +822,7 @@ export function LobbyLanding() {
                     <p className="text-2xl font-bold text-white">
                       {data?.performance?.dealsThisMonth || 0}
                     </p>
-                    <p className="text-xs text-white/70">Deals Closed</p>
+                    <p className="text-xs text-white/70">Deals This Month</p>
                   </div>
                 </div>
                 <div
@@ -802,7 +832,7 @@ export function LobbyLanding() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-white/80">Conversion Rate</span>
                     <span className="text-sm font-semibold text-amber-200">
-                      {data?.performance?.conversionRate || 0}%
+                      {data?.performance?.conversionRate?.toFixed(1) || 0}%
                     </span>
                   </div>
                   <div
@@ -820,6 +850,7 @@ export function LobbyLanding() {
                 </div>
               </CardContent>
             </Card>
+
           </div>
         </motion.div>
       </motion.div>

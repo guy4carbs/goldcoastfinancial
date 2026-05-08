@@ -71,7 +71,10 @@ import {
   Send,
   Network,
   type LucideIcon,
+  Crown
 } from 'lucide-react';
+import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   GRID,
   TYPE,
@@ -122,6 +125,7 @@ const LOUNGE_OPTIONS = [
   { id: 'executive', name: 'Executive Lounge', icon: BarChart3, path: '/executive/dashboard', description: 'Strategic insights', gradient: 'from-orange-500 to-orange-700' },
   { id: 'admin', name: 'Admin Lounge', icon: Shield, path: '/admin', description: 'System settings & users', gradient: 'from-slate-500 to-blue-700' },
   { id: 'investor', name: 'Investor Lounge', icon: BarChart3, path: '/investor/dashboard', description: 'KPIs & executive dashboards', gradient: 'from-amber-500 to-yellow-600' },
+  { id: 'goldcoast', name: 'Gold Coast', icon: Crown, path: '#GOLD_COAST_PLACEHOLDER#', description: 'Founders Lounge — agency oversight ↗', gradient: 'from-amber-600 to-orange-700', external: true },
 ] as const;
 
 // ─── NAV ITEMS ───
@@ -195,11 +199,13 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
   const [contactSupportOpen, setContactSupportOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { hasAccess, isLoading: loungeAccessLoading } = useLoungeAccess();
+  const { user: authUserForGoldCoast } = useAuth();
 
   // Filter LOUNGE_OPTIONS by DB access (current lounge always visible)
   const visibleLounges = LOUNGE_OPTIONS.filter(
-    lounge => lounge.id === 'manager' || loungeAccessLoading || hasAccess(lounge.id)
-  );
+    lounge => lounge.id === 'manager' || (lounge as any).external || loungeAccessLoading || hasAccess(lounge.id)
+  )
+    .map((lounge) => lounge.path === '#GOLD_COAST_PLACEHOLDER#' ? { ...lounge, path: goldCoastUrlForRole(authUserForGoldCoast?.role) } : lounge);
 
   const {
     currentUser,
@@ -744,14 +750,11 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                     const isActive = lounge.id === 'manager';
                     return (
                       <DropdownMenuItem key={lounge.id} asChild>
-                        <Link
-                          href={lounge.path}
-                          className={cn(
+                        {(lounge as any).external ? (
+                          <a href={lounge.path} target="_blank" rel="noopener noreferrer" className={cn(
                             'flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors',
                             isActive ? 'bg-emerald-50' : 'hover:bg-gray-50',
-                          )}
-                          style={{ borderRadius: RADIUS.button }}
-                        >
+                          )} style={{ borderRadius: RADIUS.button }}>
                           <div
                             className={cn('flex items-center justify-center flex-shrink-0 bg-gradient-to-br', lounge.gradient)}
                             style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
@@ -767,7 +770,29 @@ export function ManagerLoungeLayout({ children }: ManagerLoungeLayoutProps) {
                           {isActive && (
                             <div className="bg-emerald-500 flex-shrink-0" style={{ width: 8, height: 8, borderRadius: RADIUS.pill }} />
                           )}
-                        </Link>
+                          </a>
+                        ) : (
+                          <Link href={lounge.path} className={cn(
+                            'flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors',
+                            isActive ? 'bg-emerald-50' : 'hover:bg-gray-50',
+                          )} style={{ borderRadius: RADIUS.button }}>
+                          <div
+                            className={cn('flex items-center justify-center flex-shrink-0 bg-gradient-to-br', lounge.gradient)}
+                            style={{ width: LAYOUT.icon.xl, height: LAYOUT.icon.xl, borderRadius: RADIUS.button }}
+                          >
+                            <Icon className="text-white" size={LAYOUT.icon.sm} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn('font-medium', isActive ? 'text-emerald-700' : 'text-gray-900')} style={{ fontSize: TYPE.meta }}>
+                              {lounge.name}
+                            </p>
+                            <p className="text-gray-500 truncate" style={{ fontSize: TYPE.caption }}>{lounge.description}</p>
+                          </div>
+                          {isActive && (
+                            <div className="bg-emerald-500 flex-shrink-0" style={{ width: 8, height: 8, borderRadius: RADIUS.pill }} />
+                          )}
+                          </Link>
+                        )}
                       </DropdownMenuItem>
                     );
                   })}

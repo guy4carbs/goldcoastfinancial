@@ -47,6 +47,7 @@ import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
   fadeInUp, staggerContainer
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 
 // =============================================================================
 // TYPES
@@ -466,7 +467,7 @@ export function ActivityHistory() {
         animate="visible"
       >
         {/* Hero Header */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.HISTORY.HEADER}>
           <Card
             className="border-0 overflow-hidden"
             style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}
@@ -500,7 +501,7 @@ export function ActivityHistory() {
         </motion.div>
 
         {/* Summary Cards */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.HISTORY.SUMMARY}>
           <SummaryCards summary={summaryData} />
         </motion.div>
 
@@ -508,7 +509,7 @@ export function ActivityHistory() {
           {/* Main Activity Feed */}
           <div className="lg:col-span-3 space-y-4">
             {/* Filters */}
-            <motion.div variants={fadeInUp}>
+            <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.HISTORY.FILTERS}>
               <Card
                 className="border-0"
                 style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}
@@ -560,11 +561,13 @@ export function ActivityHistory() {
             </motion.div>
 
             {/* Activity Feed */}
-            <ActivityFeed
-              activities={activitiesData?.activities || []}
-              isLoading={activitiesLoading}
-              onLeadClick={handleLeadClick}
-            />
+            <div data-tour-id={TOUR.CRM.HISTORY.FEED}>
+              <ActivityFeed
+                activities={activitiesData?.activities || []}
+                isLoading={activitiesLoading}
+                onLeadClick={handleLeadClick}
+              />
+            </div>
 
             {/* Pagination */}
             {activitiesData && activitiesData.pagination.totalPages > 1 && (
@@ -607,7 +610,7 @@ export function ActivityHistory() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Activity Trend */}
-            <motion.div variants={fadeInUp}>
+            <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.HISTORY.TREND_CHART}>
               <Card
                 className="border-0"
                 style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}

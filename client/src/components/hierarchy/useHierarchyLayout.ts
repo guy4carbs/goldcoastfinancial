@@ -7,14 +7,17 @@ import type { HierarchyMember, HierarchyNodeData, HierarchyTheme } from './types
 
 import dagre from '@dagrejs/dagre';
 
-const NODE_WIDTH = 220;
-const NODE_HEIGHT_COLLAPSED = 70;
-const NODE_HEIGHT_EXPANDED = 220;
+// Match Gold Coast layout dimensions: 240×80 cards, dagre TB direction,
+// 50px horizontal node sep, 120px vertical rank sep. Click now opens the
+// drawer instead of expanding the node, so we don't need a separate
+// "expanded" height.
+const NODE_WIDTH = 240;
+const NODE_HEIGHT = 80;
 
 export function getLayoutedElements(
   nodes: Node<HierarchyNodeData>[],
   edges: Edge[],
-  selectedId: string | null = null,
+  _selectedId: string | null = null,
 ): { nodes: Node<HierarchyNodeData>[]; edges: Edge[] } {
   if (!nodes || nodes.length === 0) {
     return { nodes: [], edges: [] };
@@ -25,15 +28,14 @@ export function getLayoutedElements(
     g.setDefaultEdgeLabel(() => ({}));
     g.setGraph({
       rankdir: 'TB',
-      nodesep: 40,
-      ranksep: 100,
+      nodesep: 50,
+      ranksep: 120,
       marginx: 40,
       marginy: 40,
     });
 
     for (const node of nodes) {
-      const h = node.id === selectedId ? NODE_HEIGHT_EXPANDED : NODE_HEIGHT_COLLAPSED;
-      g.setNode(node.id, { width: NODE_WIDTH, height: h });
+      g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
     }
 
     for (const edge of edges) {
@@ -45,10 +47,9 @@ export function getLayoutedElements(
     const layoutedNodes = nodes.map((node) => {
       const pos = g.node(node.id);
       if (!pos) return { ...node, position: { x: 0, y: 0 } };
-      const h = node.id === selectedId ? NODE_HEIGHT_EXPANDED : NODE_HEIGHT_COLLAPSED;
       return {
         ...node,
-        position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - h / 2 },
+        position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 },
       };
     });
 
@@ -58,7 +59,7 @@ export function getLayoutedElements(
     return {
       nodes: nodes.map((node, i) => ({
         ...node,
-        position: { x: 0, y: i * (NODE_HEIGHT_COLLAPSED + 40) },
+        position: { x: 0, y: i * (NODE_HEIGHT + 40) },
       })),
       edges,
     };
@@ -77,7 +78,9 @@ export function buildFlowFromAgentData(
   const nodes: Node<HierarchyNodeData>[] = [];
   const edges: Edge[] = [];
 
-  // Upline chain (top-to-bottom by seniority: owner first)
+  // Upline chain (top-to-bottom by seniority: owner first). The first
+  // entry — the agent's most-senior upline — is rendered as the visual
+  // root (amber fill, white text) per the Gold Coast convention.
   const sortedUpline = [...upline].reverse();
   for (let i = 0; i < sortedUpline.length; i++) {
     const m = sortedUpline[i];
@@ -85,7 +88,7 @@ export function buildFlowFromAgentData(
       id: m.id,
       type: 'hierarchy',
       position: { x: 0, y: 0 },
-      data: { member: m, isYou: false, theme, parentContractLevel: null },
+      data: { member: m, isYou: false, isRoot: i === 0, theme, parentContractLevel: null },
     });
     if (i > 0) {
       const parent = sortedUpline[i - 1];
@@ -99,13 +102,19 @@ export function buildFlowFromAgentData(
     }
   }
 
-  // Agent (YOU) node
+  // Agent (YOU) node — only the visual root if there's no upline at all.
   const lastUpline = sortedUpline[sortedUpline.length - 1] || null;
   nodes.push({
     id: agent.id,
     type: 'hierarchy',
     position: { x: 0, y: 0 },
-    data: { member: agent, isYou: true, theme, parentContractLevel: lastUpline?.contractLevel ?? null },
+    data: {
+      member: agent,
+      isYou: true,
+      isRoot: sortedUpline.length === 0,
+      theme,
+      parentContractLevel: lastUpline?.contractLevel ?? null,
+    },
   });
   if (lastUpline) {
     edges.push({
@@ -117,13 +126,13 @@ export function buildFlowFromAgentData(
     });
   }
 
-  // Downline
+  // Downline — never root.
   for (const m of downline) {
     nodes.push({
       id: m.id,
       type: 'hierarchy',
       position: { x: 0, y: 0 },
-      data: { member: m, isYou: false, theme, parentContractLevel: agent.contractLevel },
+      data: { member: m, isYou: false, isRoot: false, theme, parentContractLevel: agent.contractLevel },
     });
     edges.push({
       id: `e-${agent.id}-${m.id}`,
@@ -164,12 +173,12 @@ export function buildFlowFromFlatTree(
   for (const m of flatMembers) memberMap.set(m.id, m);
   memberMap.set(rootId, rootMember);
 
-  // Root node
+  // Root node — top of the visible tree, rendered with the amber accent.
   nodes.push({
     id: rootId,
     type: 'hierarchy',
     position: { x: 0, y: 0 },
-    data: { member: rootMember, isYou: rootId === myId, theme, parentContractLevel: null },
+    data: { member: rootMember, isYou: rootId === myId, isRoot: true, theme, parentContractLevel: null },
   });
 
   // BFS to build all nodes and edges
@@ -189,6 +198,7 @@ export function buildFlowFromFlatTree(
         data: {
           member: child,
           isYou: child.id === myId,
+          isRoot: false,
           theme,
           parentContractLevel: parent?.contractLevel ?? null,
         },

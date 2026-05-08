@@ -54,6 +54,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 interface StudyTopic {
   id: string;
@@ -267,7 +268,7 @@ export default function AgentStudyExamPrep() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.STUDY_EXAM_PREP.HEADER} variants={fadeInUp}>
           <motion.div
             className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-6 md:p-8"
             style={{
@@ -306,7 +307,7 @@ export default function AgentStudyExamPrep() {
         </motion.div>
 
         {/* Stats Cards */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.STUDY_EXAM_PREP.TOPICS} variants={fadeInUp}>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             <motion.div
               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}

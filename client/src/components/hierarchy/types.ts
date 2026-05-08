@@ -45,6 +45,10 @@ export interface HierarchyTheme {
 export interface HierarchyNodeData extends Record<string, unknown> {
   member: HierarchyMember;
   isYou: boolean;
+  /** True for the topmost node in the visible tree (no upline above it).
+   *  Renders with the amber accent fill + white text, mirroring Gold Coast's
+   *  gold-root convention. */
+  isRoot: boolean;
   theme: HierarchyTheme;
   parentContractLevel: number | null;
 }

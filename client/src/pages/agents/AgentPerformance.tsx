@@ -43,6 +43,7 @@ import {
 import { cn, daysSinceDate, formatRelativeDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 const STALE_DAYS = 7;
 
@@ -226,13 +227,13 @@ export default function AgentPerformance() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Header */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.PERFORMANCE.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Activity}
             title="Performance"
             subtitle="Track your pipeline, earnings, and analytics"
           >
-            <div className="flex items-center gap-3">
+            <div data-tour-id={TOUR.AGENT.PERFORMANCE.TIME_PERIOD} className="flex items-center gap-3">
               <Select value={timePeriod} onValueChange={(v) => setTimePeriod(v as TimePeriod)}>
                 <SelectTrigger
                   className="w-[150px] text-white font-medium transition-all hover:bg-white/30"
@@ -256,6 +257,7 @@ export default function AgentPerformance() {
               </Select>
               {activeTab === 'earnings' && (
                 <Button
+                  data-tour-id={TOUR.AGENT.PERFORMANCE.DOWNLOAD}
                   variant="ghost"
                   onClick={handleExport}
                   className="text-white font-medium transition-all hover:bg-white/30"
@@ -301,7 +303,7 @@ export default function AgentPerformance() {
         )}
 
         {/* Tab Navigation */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.PERFORMANCE.TABS} variants={fadeInUp}>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div
               className="flex gap-1 p-1 w-fit"
@@ -646,7 +648,7 @@ export default function AgentPerformance() {
               </div>
 
               <div className="grid lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
+                <div data-tour-id={TOUR.AGENT.PERFORMANCE.CHART} className="lg:col-span-2 space-y-6">
                   {/* Monthly Trend */}
                   <Card className="overflow-hidden border-0" style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                     <CardHeader className="pb-2">

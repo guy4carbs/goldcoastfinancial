@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { useAgentStore } from "@/lib/agentStore";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { AgentPageHero } from "@/components/agent/primitives";
 
 // Product guides data with detailed content
@@ -354,7 +355,7 @@ export default function AgentResources() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.RESOURCES.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Folder}
             title="Resources"
@@ -411,7 +412,7 @@ export default function AgentResources() {
         </motion.div>
 
         {/* Tabs */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.RESOURCES.PRODUCT_TABS} variants={fadeInUp}>
           <Tabs defaultValue="guides" className="space-y-6">
             <TabsList
               className="p-1 gap-1"
@@ -436,7 +437,7 @@ export default function AgentResources() {
             </TabsList>
 
             {/* Product Guides Tab */}
-            <TabsContent value="guides">
+            <TabsContent data-tour-id={TOUR.AGENT.RESOURCES.DETAIL} value="guides">
               <Card
                 className="border-0 overflow-hidden"
                 style={{

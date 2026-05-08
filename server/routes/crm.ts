@@ -6,7 +6,7 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, attachUser } from "../middleware/auth";
-import { Roles } from "../types/permissions";
+import { Roles, RoleGroups } from "../types/permissions";
 import multer from "multer";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
@@ -47,7 +47,7 @@ const importSessions: Map<string, {
 // Apply auth middleware to all routes
 router.use(attachUser);
 router.use(requireAuth);
-router.use(requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT));
+router.use(requireRole(...RoleGroups.STAFF));
 
 // =============================================================================
 // CRM DASHBOARD

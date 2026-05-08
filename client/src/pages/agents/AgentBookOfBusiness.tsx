@@ -10,6 +10,7 @@ import {
   fadeInUp, staggerContainer, scaleIn
 } from '@/lib/heritageDesignSystem';
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives";
+import { TOUR } from "@/lib/tour/selectors";
 import {
   Briefcase, Users, CheckCircle, DollarSign, AlertTriangle,
   Clock, Search, Mail, MessageSquare, Phone, ChevronRight,
@@ -377,7 +378,7 @@ export default function AgentBookOfBusiness() {
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
         {/* Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.BOOK.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Briefcase}
             title="Book of Business"
@@ -442,7 +443,7 @@ export default function AgentBookOfBusiness() {
         )}
 
         {/* Stats */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.BOOK.STATS} variants={fadeInUp}>
           <AgentStatCardGrid>
             {statCards.map((stat) => (
               <AgentStatCard key={stat.label} icon={stat.icon} value={stat.value} label={stat.label} gradient={stat.gradient} />
@@ -451,7 +452,7 @@ export default function AgentBookOfBusiness() {
         </motion.div>
 
         {/* Filters */}
-        <motion.div variants={fadeInUp} className="flex flex-wrap gap-3 items-center">
+        <motion.div data-tour-id={TOUR.AGENT.BOOK.SEARCH} variants={fadeInUp} className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input placeholder="Search clients, policies, carriers..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" style={{ borderRadius: RADIUS.input }} />
@@ -471,7 +472,7 @@ export default function AgentBookOfBusiness() {
         </motion.div>
 
         {/* Client List */}
-        <motion.div variants={fadeInUp} className="space-y-3">
+        <motion.div data-tour-id={TOUR.AGENT.BOOK.TABLE} variants={fadeInUp} className="space-y-3">
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400">
               <Loader2 className="w-8 h-8 animate-spin mb-3 text-violet-500" />

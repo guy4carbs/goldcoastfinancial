@@ -6,7 +6,7 @@
 
 import { Router, type Request, type Response } from "express";
 import { requireAuth, requireRole } from "../middleware/auth";
-import { Roles } from "../types/permissions";
+import { Roles, RoleGroups } from "../types/permissions";
 import { storage } from "../storage";
 import {
   createConference,
@@ -30,7 +30,7 @@ router.use(requireAuth);
 // =============================================================================
 router.get(
   "/active-calls",
-  requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER),
+  requireRole(...RoleGroups.MANAGEMENT),
   async (req: Request, res: Response) => {
     try {
       const calls = await storage.getActiveCalls();
@@ -62,7 +62,7 @@ router.get(
 // =============================================================================
 router.post(
   "/start",
-  requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER),
+  requireRole(...RoleGroups.MANAGEMENT),
   async (req: Request, res: Response) => {
     try {
       const supervisor = req.user!;
@@ -214,7 +214,7 @@ router.post(
 // =============================================================================
 router.post(
   "/stop",
-  requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER),
+  requireRole(...RoleGroups.MANAGEMENT),
   async (req: Request, res: Response) => {
   try {
     const supervisor = req.user!;
@@ -269,7 +269,7 @@ router.post(
 // =============================================================================
 router.post(
   "/switch-role",
-  requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER),
+  requireRole(...RoleGroups.MANAGEMENT),
   async (req: Request, res: Response) => {
     try {
       const supervisor = req.user!;

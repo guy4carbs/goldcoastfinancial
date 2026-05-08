@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import {
   Home,
   Users,
@@ -32,13 +33,20 @@ import {
   Leaf,
   Sparkles,
   Building2,
+  Crown,
   type LucideIcon,
 } from "lucide-react";
+import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UnifiedNotificationSystem } from "@/components/notifications/UnifiedNotificationSystem";
+import { NotificationBell } from "@/components/tour/NotificationBell";
 import { UniversalSearch } from "@/components/search/UniversalSearch";
 import { AgentLoungeSelectorModal } from "@/components/agent/AgentLoungeSelectorModal";
+import { TourProvider } from "@/lib/tour/TourProvider";
+import { TourButton } from "@/components/tour/TourButton";
+import { ResumeTourBanner } from "@/components/tour/ResumeTourBanner";
+import { TourCompletionCelebration } from "@/components/tour/TourCompletionCelebration";
+import { TourAutoStart } from "@/lib/tour/TourAutoStart";
 
 // =============================================================================
 // CONSTANTS
@@ -59,6 +67,8 @@ interface LoungeItem {
   gradient: string;
   description: string;
   requiredRoles: string[];
+  /** When true, the sidebar entry opens href in a new tab (cross-app jump). */
+  external?: boolean;
 }
 
 // =============================================================================
@@ -73,7 +83,7 @@ const lounges: LoungeItem[] = [
     href: "/agents/dashboard",
     gradient: "from-violet-500 to-purple-600",
     description: "Leads, quotes, pipeline",
-    requiredRoles: ['owner', 'system_admin', 'manager', 'sales_agent', 'client'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent', 'client'],
   },
   {
     id: 'finance',
@@ -82,7 +92,7 @@ const lounges: LoungeItem[] = [
     href: "/finance/dashboard",
     gradient: "from-blue-800 to-blue-950",
     description: "Commissions, revenue",
-    requiredRoles: ['owner', 'system_admin', 'manager', 'investor'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
   },
   {
     id: 'marketing',
@@ -91,7 +101,7 @@ const lounges: LoungeItem[] = [
     href: "/marketing/dashboard",
     gradient: "from-rose-500 to-pink-600",
     description: "Campaigns, content",
-    requiredRoles: ['owner', 'system_admin', 'manager', 'marketing_staff'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
   },
   {
     id: 'ai',
@@ -100,7 +110,7 @@ const lounges: LoungeItem[] = [
     href: "/ai/dashboard",
     gradient: "from-cyan-500 to-blue-600",
     description: "AI agents, automation",
-    requiredRoles: ['owner', 'system_admin'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
   },
   {
     id: 'manager',
@@ -109,7 +119,7 @@ const lounges: LoungeItem[] = [
     href: "/manager/dashboard",
     gradient: "from-emerald-500 to-emerald-700",
     description: "Team oversight",
-    requiredRoles: ['owner', 'system_admin', 'manager'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
   },
   {
     id: 'director',
@@ -118,7 +128,7 @@ const lounges: LoungeItem[] = [
     href: "/manager/director",
     gradient: "from-blue-700 to-slate-900",
     description: "Multi-team oversight",
-    requiredRoles: ['owner', 'system_admin', 'manager'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
   },
   {
     id: 'support',
@@ -127,7 +137,7 @@ const lounges: LoungeItem[] = [
     href: "/support/dashboard",
     gradient: "from-gray-700 to-gray-900",
     description: "Tickets, help desk",
-    requiredRoles: ['owner', 'system_admin', 'manager'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
   },
   {
     id: 'executive',
@@ -136,7 +146,7 @@ const lounges: LoungeItem[] = [
     href: "/executive/dashboard",
     gradient: "from-orange-500 to-orange-700",
     description: "KPIs, forecasting",
-    requiredRoles: ['owner', 'system_admin', 'investor'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'investor'],
   },
   {
     id: 'admin',
@@ -145,7 +155,7 @@ const lounges: LoungeItem[] = [
     href: "/admin",
     gradient: "from-slate-500 to-blue-700",
     description: "System settings",
-    requiredRoles: ['owner', 'system_admin'],
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
   },
   {
     id: 'investor',
@@ -154,7 +164,17 @@ const lounges: LoungeItem[] = [
     href: "/investor/dashboard",
     gradient: "from-amber-500 to-yellow-600",
     description: "KPIs & dashboards",
-    requiredRoles: ['owner', 'investor'],
+    requiredRoles: ['founder', 'director', 'owner', 'investor'],
+  },
+  {
+    id: 'goldcoast',
+    icon: Crown,
+    label: "Gold Coast",
+    href: '#GOLD_COAST_PLACEHOLDER#',
+    gradient: "from-amber-600 to-orange-700",
+    description: "Founders Lounge ↗",
+    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
+    external: true,
   },
 ];
 
@@ -208,7 +228,8 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
   // Filter lounges by user role
   const accessibleLounges = lounges.filter((lounge) =>
     lounge.requiredRoles.includes(user?.role || '')
-  );
+  )
+    .map((lounge) => lounge.href === '#GOLD_COAST_PLACEHOLDER#' ? { ...lounge, href: goldCoastUrlForRole(user?.role) } : lounge);
 
   // ==========================================================================
   // SIDEBAR CONTENT
@@ -242,7 +263,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
 
       {/* Welcome Card */}
       {!sidebarCollapsed && (
-        <div className="px-4 mb-6">
+        <div className="px-4 mb-6" data-tour-id={TOUR.CRM.LOBBY_LAYOUT.WELCOME}>
           <motion.div
             initial="hidden"
             animate="visible"
@@ -368,38 +389,45 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
             }
 
             // Default: regular Link navigation for other lounges
-            return (
-              <Link key={lounge.id} href={lounge.href}>
-                <motion.div
-                  variants={fadeInUp}
-                  whileHover={{
-                    x: 4,
-                    y: MOTION.hover.y / 2,
-                    boxShadow: SHADOW.level2,
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{
-                    type: 'spring',
-                    damping: MOTION.spring.damping,
-                    stiffness: MOTION.spring.stiffness,
-                  }}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
-                    "text-gray-600 hover:bg-indigo-50/80"
-                  )}
+            const tile = (
+              <motion.div
+                variants={fadeInUp}
+                whileHover={{
+                  x: 4,
+                  y: MOTION.hover.y / 2,
+                  boxShadow: SHADOW.level2,
+                }}
+                whileTap={{ scale: 0.98 }}
+                transition={{
+                  type: 'spring',
+                  damping: MOTION.spring.damping,
+                  stiffness: MOTION.spring.stiffness,
+                }}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors",
+                  "text-gray-600 hover:bg-indigo-50/80"
+                )}
+                style={{ borderRadius: RADIUS.button }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div
+                  className={cn("w-8 h-8 flex items-center justify-center bg-gradient-to-br", lounge.gradient)}
                   style={{ borderRadius: RADIUS.button }}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  <div
-                    className={cn("w-8 h-8 flex items-center justify-center bg-gradient-to-br", lounge.gradient)}
-                    style={{ borderRadius: RADIUS.button }}
-                  >
-                    <lounge.icon className="w-4 h-4 text-white" />
-                  </div>
-                  {!sidebarCollapsed && (
-                    <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
-                  )}
-                </motion.div>
+                  <lounge.icon className="w-4 h-4 text-white" />
+                </div>
+                {!sidebarCollapsed && (
+                  <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
+                )}
+              </motion.div>
+            );
+            return lounge.external ? (
+              <a key={lounge.id} href={lounge.href} target="_blank" rel="noopener noreferrer">
+                {tile}
+              </a>
+            ) : (
+              <Link key={lounge.id} href={lounge.href}>
+                {tile}
               </Link>
             );
           })}
@@ -448,6 +476,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
   // ==========================================================================
 
   return (
+    <TourProvider>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50/50 flex">
       {/* Universal Search Modal */}
       <UniversalSearch open={searchOpen} onOpenChange={setSearchOpen} />
@@ -455,11 +484,18 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
       {/* Agent Lounge Selector Modal */}
       <AgentLoungeSelectorModal open={agentSelectorOpen} onOpenChange={setAgentSelectorOpen} />
 
+      {/* Tour system — banner sits top-right, FAB bottom-right, celebration as modal */}
+      <ResumeTourBanner />
+      <TourButton />
+      <TourCompletionCelebration />
+      <TourAutoStart role="crm" />
+
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
         transition={{ duration: MOTION.duration.expand, ease: MOTION.easing as unknown as [number, number, number, number] }}
+        data-tour-id={TOUR.CRM.LOBBY_LAYOUT.SIDEBAR}
         className="hidden lg:flex flex-col border-r border-gray-200/60 py-6 fixed h-screen z-30"
         style={{ boxShadow: SHADOW.level1, backgroundColor: '#ffffff' }}
       >
@@ -539,6 +575,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                 whileHover={{ scale: 1.02, boxShadow: SHADOW.level2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: MOTION.duration.hover }}
+                data-tour-id={TOUR.CRM.LOBBY_LAYOUT.SEARCH}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100/80 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                 style={{ borderRadius: RADIUS.button }}
               >
@@ -552,7 +589,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
 
             {/* Right: Notifications + User */}
             <div className="flex items-center gap-3">
-              <UnifiedNotificationSystem />
+              <NotificationBell />
 
               <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
                 <div className="text-right">
@@ -635,18 +672,25 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
               );
             }
 
-            return (
+            const tile = (
+              <motion.div
+                whileHover={{ y: MOTION.hover.y / 2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: MOTION.duration.hover }}
+                className="flex flex-col items-center gap-1 px-3 py-2 transition-colors text-gray-500 hover:text-indigo-600"
+                style={{ borderRadius: RADIUS.input }}
+              >
+                <lounge.icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{lounge.label.split(' ')[0]}</span>
+              </motion.div>
+            );
+            return lounge.external ? (
+              <a key={lounge.id} href={lounge.href} target="_blank" rel="noopener noreferrer">
+                {tile}
+              </a>
+            ) : (
               <Link key={lounge.id} href={lounge.href}>
-                <motion.div
-                  whileHover={{ y: MOTION.hover.y / 2 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: MOTION.duration.hover }}
-                  className="flex flex-col items-center gap-1 px-3 py-2 transition-colors text-gray-500 hover:text-indigo-600"
-                  style={{ borderRadius: RADIUS.input }}
-                >
-                  <lounge.icon className="w-5 h-5" />
-                  <span className="text-[10px] font-medium">{lounge.label.split(' ')[0]}</span>
-                </motion.div>
+                {tile}
               </Link>
             );
           })}
@@ -664,6 +708,7 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
         </div>
       </nav>
     </div>
+    </TourProvider>
   );
 }
 

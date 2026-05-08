@@ -55,6 +55,7 @@ import {
   GRID, TYPE, RADIUS, SHADOW, MOTION, LAYOUT, COLORS,
   fadeInUp, staggerContainer, scaleIn
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 
 // =============================================================================
 // TYPES
@@ -479,7 +480,7 @@ export function SegmentsTags() {
         animate="visible"
       >
         {/* Hero Header */}
-        <motion.div variants={fadeInUp}>
+        <motion.div variants={fadeInUp} data-tour-id={TOUR.CRM.SEGMENTS.HEADER}>
           <Card className="border-0 overflow-hidden mb-6" style={{ borderRadius: RADIUS.hero, boxShadow: SHADOW.hero }}>
             <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 p-6 lg:p-8 relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -494,7 +495,7 @@ export function SegmentsTags() {
 
         <div className="grid grid-cols-3 gap-6">
           {/* Segments Column */}
-          <motion.div className="col-span-2 space-y-6" variants={fadeInUp}>
+          <motion.div className="col-span-2 space-y-6" variants={fadeInUp} data-tour-id={TOUR.CRM.SEGMENTS.SEGMENT_GRID}>
             <Card style={{ borderRadius: RADIUS.card }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -552,7 +553,7 @@ export function SegmentsTags() {
           </motion.div>
 
           {/* Tags Column */}
-          <motion.div className="space-y-6" variants={fadeInUp}>
+          <motion.div className="space-y-6" variants={fadeInUp} data-tour-id={TOUR.CRM.SEGMENTS.TAG_CLOUD}>
             <Card style={{ borderRadius: RADIUS.card }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

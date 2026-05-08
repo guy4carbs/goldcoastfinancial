@@ -7,7 +7,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { pool } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
-import { Roles } from "../types/permissions";
+import { Roles, RoleGroups } from "../types/permissions";
 import { sendPortalMessage, sendPostCloseWelcomeEmail } from "../gmail";
 import { sendSms, isSmsAvailable } from "../services/smsService";
 import { recordCommissions } from "../services/commissionRecordService";
@@ -19,7 +19,7 @@ import { storage } from "../storage";
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN, Roles.AGENCY_MANAGER, Roles.SALES_AGENT));
+router.use(requireRole(...RoleGroups.STAFF));
 
 // =============================================================================
 // HELPERS

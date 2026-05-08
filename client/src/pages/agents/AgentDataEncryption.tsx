@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { AgentPageHero } from "@/components/agent/primitives";
+import { Pagination, usePagination } from "@/components/agent/primitives/Pagination";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, GLASS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -197,11 +199,23 @@ export default function AgentDataEncryption() {
   const [sentLinks, setSentLinks] = useState<SentLink[]>([]);
   const [isLoadingLinks, setIsLoadingLinks] = useState(true);
 
+  // Paginate the secure-link history at 10 rows per page (server already
+  // scopes the response to the requesting agent only).
+  const {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    paginatedItems: paginatedLinks,
+    totalItems: totalLinks,
+    goToPage,
+    changeItemsPerPage,
+  } = usePagination(sentLinks, 10);
+
   // Fetch sent forms from server on mount
   useEffect(() => {
     const fetchForms = async () => {
       try {
-        const response = await fetch('/api/secure-forms');
+        const response = await fetch('/api/secure-forms', { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
           // Map server response to SentLink format
@@ -306,9 +320,11 @@ export default function AgentDataEncryption() {
         }
       };
 
-      // Call the API to send the secure form
+      // Call the API to send the secure form. credentials:'include' so the
+      // session cookie reaches the server (POST is now requireAuth-gated).
       const response = await fetch('/api/secure-forms/send', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formPayload)
       });
@@ -1622,7 +1638,7 @@ export default function AgentDataEncryption() {
         className="space-y-6"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DATA_ENCRYPTION.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Shield}
             title="Secure Data Collection"
@@ -1644,7 +1660,7 @@ export default function AgentDataEncryption() {
 
 
         {/* Send Secure Form Cards */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.DATA_ENCRYPTION.SECURE_FIELDS} variants={fadeInUp}>
           <h2 className="text-lg font-semibold mb-4">Send Secure Form</h2>
           <div className="grid md:grid-cols-4 gap-4">
             {SECURE_FORM_TYPES.map((formType) => (
@@ -1721,7 +1737,7 @@ export default function AgentDataEncryption() {
                 </div>
               ) : (
               <div className="divide-y divide-gray-100">
-                {sentLinks.map((link) => (
+                {paginatedLinks.map((link) => (
                   <div key={link.id} className="px-5 py-4 hover:bg-violet-50/40 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -1818,6 +1834,18 @@ export default function AgentDataEncryption() {
                   </div>
                 ))}
               </div>
+              )}
+              {totalLinks > 0 && (
+                <div className="px-5 py-3 border-t border-gray-100">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalLinks}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                    onItemsPerPageChange={changeItemsPerPage}
+                  />
+                </div>
               )}
             </CardContent>
           </Card>

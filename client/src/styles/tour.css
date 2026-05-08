@@ -1,0 +1,206 @@
+/* ============================================================
+   Heritage Walkthrough — driver.js theme overrides.
+
+   Violet primary surface with amber CTA buttons. driver.js
+   appends the popover to <body> outside any themed subtree, so
+   styles here use literal Heritage hex values rather than CSS
+   variables.
+
+   Palette (mirrors heritageDesignSystem.ts):
+     primary:    #7c3aed  (violet-600)
+     primary-hi: #5b21b6  (violet-800)
+     primary-lo: #ede9fe  (violet-100)
+     accent:     #f59e0b  (amber-500)
+     accent-hi:  #d97706  (amber-600)
+     accent-lo:  #fef3c7  (amber-100)
+     surface:    #faf5ff  (violet-tinted neutral)
+     text-light: #ffffff  (on violet)
+     text-dark:  #1f2937  (on amber + neutral surfaces)
+   ============================================================ */
+
+/* Popover surface — solid violet gradient with white text */
+.driver-popover.heritage-tour-popover {
+  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+  color: #ffffff;
+  border: 1px solid rgba(91, 33, 182, 0.45);
+  border-radius: 12px;
+  box-shadow:
+    0 20px 48px rgba(91, 33, 182, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 0 4px rgba(124, 58, 237, 0.2);
+  font-family: 'Montserrat', system-ui, sans-serif;
+  padding: 22px 24px 20px;
+  max-width: 440px;
+  min-width: 320px;
+}
+
+/* Arrow follows the popover background in all 4 side variants */
+.driver-popover.heritage-tour-popover .driver-popover-arrow-side-left {
+  border-left-color: #7c3aed;
+}
+.driver-popover.heritage-tour-popover .driver-popover-arrow-side-right {
+  border-right-color: #7c3aed;
+}
+.driver-popover.heritage-tour-popover .driver-popover-arrow-side-top {
+  border-top-color: #7c3aed;
+}
+.driver-popover.heritage-tour-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: #6d28d9;
+}
+
+/* Typography */
+.driver-popover.heritage-tour-popover .driver-popover-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-description {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: #ffffff;
+  margin: 0 0 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-description strong {
+  font-weight: 700;
+  color: #fef3c7; /* amber-100 — highlights key terms */
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-description em {
+  color: #fef3c7;
+  font-style: italic;
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-progress-text {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fef3c7; /* amber-100, full opacity */
+  font-weight: 700;
+}
+
+/* Footer / buttons */
+.driver-popover.heritage-tour-popover .driver-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 0;
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-navigation-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-next-btn,
+.driver-popover.heritage-tour-popover .driver-popover-prev-btn {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-shadow: none;
+  transition:
+    transform 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease,
+    filter 150ms ease;
+  cursor: pointer;
+}
+
+/* Primary "Next" / "Done" button — amber on violet popover */
+.driver-popover.heritage-tour-popover .driver-popover-next-btn {
+  background: #f59e0b;
+  color: #1f2937;
+  border: 1px solid #d97706;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-next-btn:hover {
+  background: #fbbf24;
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(245, 158, 11, 0.5);
+}
+
+/* Secondary "Previous" — ghost button on violet */
+.driver-popover.heritage-tour-popover .driver-popover-prev-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-prev-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-prev-btn:disabled,
+.driver-popover.heritage-tour-popover .driver-popover-next-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Close button */
+.driver-popover.heritage-tour-popover .driver-popover-close-btn {
+  color: rgba(255, 255, 255, 0.65);
+  top: 8px;
+  right: 8px;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.75;
+  transition:
+    opacity 150ms ease,
+    color 150ms ease;
+}
+
+.driver-popover.heritage-tour-popover .driver-popover-close-btn:hover {
+  color: #ffffff;
+  opacity: 1;
+}
+
+/* Highlight ring around the active element — amber accent so it pops on any
+   page background while staying on-brand. */
+.driver-active-element {
+  box-shadow:
+    0 0 0 3px rgba(245, 158, 11, 0.6),
+    0 0 0 9px rgba(245, 158, 11, 0.18) !important;
+  border-radius: 8px !important;
+  transition: box-shadow 220ms ease !important;
+}
+
+/* Overlay — respect the stage cut-out driver.js creates */
+.driver-overlay {
+  transition: opacity 180ms ease;
+}
+
+/* Animation polish — driver.js toggles .driver-popover-animated when animate:true */
+.driver-popover.heritage-tour-popover.driver-popover-animated {
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+/* Reduced motion — honor the user's preference */
+@media (prefers-reduced-motion: reduce) {
+  .driver-popover.heritage-tour-popover.driver-popover-animated,
+  .driver-active-element,
+  .driver-overlay {
+    transition: none !important;
+  }
+}

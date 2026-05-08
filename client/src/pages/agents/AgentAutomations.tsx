@@ -47,6 +47,7 @@ import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, COLORS, fadeInUp, staggerContainer, scaleIn } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 import { AutomationCard } from "@/components/agent/automations/AutomationCard";
 import { AutomationWizard } from "@/components/agent/automations/AutomationWizard";
 import { ExecutionDetailDialog } from "@/components/agent/automations/ExecutionDetailDialog";
@@ -227,7 +228,7 @@ export default function AgentAutomations() {
         className="space-y-6"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.AUTOMATIONS.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Zap}
             title="Automations"
@@ -257,7 +258,7 @@ export default function AgentAutomations() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.AUTOMATIONS.STATS} variants={fadeInUp}>
           <AgentStatCardGrid>
             <AgentStatCard
               icon={Activity}
@@ -287,7 +288,7 @@ export default function AgentAutomations() {
         </motion.div>
 
         {/* Tabs */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.AUTOMATIONS.TABS} variants={fadeInUp}>
           <Tabs
             value={activeTab}
             onValueChange={(v) => setActiveTab(v as typeof activeTab)}
@@ -340,7 +341,7 @@ export default function AgentAutomations() {
             </TabsList>
 
             {/* My Automations Tab */}
-            <TabsContent value="automations" className="mt-0">
+            <TabsContent data-tour-id={TOUR.AGENT.AUTOMATIONS.LIST} value="automations" className="mt-0">
               {loadingAutomations ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-6 h-6 animate-spin text-violet-500" />

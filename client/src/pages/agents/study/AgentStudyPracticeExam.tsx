@@ -52,6 +52,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 interface Question {
   id: string;
@@ -511,7 +512,7 @@ export default function AgentStudyPracticeExam() {
           className="space-y-6 pb-20 lg:pb-0"
         >
           {/* Hero Card */}
-          <motion.div variants={fadeInUp}>
+          <motion.div data-tour-id={TOUR.AGENT.STUDY_PRACTICE.HEADER} variants={fadeInUp}>
             <Card
               className="border-0 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white overflow-hidden"
               style={{
@@ -677,7 +678,7 @@ export default function AgentStudyPracticeExam() {
           </div>
           <div className="flex items-center gap-3">
             {timeRemaining !== null && (
-              <div className={cn(
+              <div data-tour-id={TOUR.AGENT.STUDY_PRACTICE.TIMER} className={cn(
                 "flex items-center gap-2 px-3 py-1.5 rounded-lg",
                 timeRemaining < 300 ? "bg-red-100 text-red-700" : "bg-gray-100"
               )}>
@@ -717,7 +718,7 @@ export default function AgentStudyPracticeExam() {
 
         {/* Question */}
         {currentQuestion && (
-          <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
+          <Card data-tour-id={TOUR.AGENT.STUDY_PRACTICE.QUESTION} style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <Badge className={cn(

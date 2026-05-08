@@ -14,6 +14,7 @@ import {
   fadeInUp,
   staggerContainer,
 } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import {
   HierarchyFlow,
   buildFlowFromAgentData,
@@ -94,6 +95,7 @@ export default function AgentHierarchy() {
   return (
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-5">
+        <div data-tour-id={TOUR.AGENT.HIERARCHY.HEADER}>
         <AgentPageHero
           icon={Network}
           title="My Hierarchy"
@@ -114,10 +116,11 @@ export default function AgentHierarchy() {
             </div>
           )}
         </AgentPageHero>
+        </div>
 
         {/* Stat Cards */}
         {agent && (
-          <motion.section variants={fadeInUp}>
+          <motion.section data-tour-id={TOUR.AGENT.HIERARCHY.STATS} variants={fadeInUp}>
             <AgentStatCardGrid>
               <AgentStatCard
                 icon={Crown}
@@ -144,7 +147,7 @@ export default function AgentHierarchy() {
         )}
 
         {/* Hierarchy Flow */}
-        <motion.div variants={fadeInUp} className="px-1">
+        <motion.div data-tour-id={TOUR.AGENT.HIERARCHY.TREE} variants={fadeInUp} className="px-1">
           <HierarchyFlow
             nodes={layouted.nodes}
             edges={layouted.edges}

@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CRMLoungeLayout } from './CRMLoungeLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -830,6 +831,7 @@ export function LeadProfile() {
           initial="hidden"
           animate="visible"
           variants={scaleIn}
+          data-tour-id={TOUR.CRM.LEAD_PROFILE.HEADER}
         >
           <Card
             className="overflow-hidden border-0"
@@ -928,6 +930,7 @@ export function LeadProfile() {
               variants={fadeInUp}
               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
               transition={{ duration: MOTION.duration.hover }}
+              data-tour-id={TOUR.CRM.LEAD_PROFILE.CONTACT_INFO}
             >
               <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader>
@@ -1040,6 +1043,7 @@ export function LeadProfile() {
               variants={fadeInUp}
               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
               transition={{ duration: MOTION.duration.hover }}
+              data-tour-id={TOUR.CRM.LEAD_PROFILE.TIMELINE}
             >
               <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -1150,6 +1154,7 @@ export function LeadProfile() {
               variants={fadeInUp}
               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
               transition={{ duration: MOTION.duration.hover }}
+              data-tour-id={TOUR.CRM.LEAD_PROFILE.AI_RECS}
             >
               <AiRecommendationCard />
             </motion.div>
@@ -1314,11 +1319,13 @@ export function LeadProfile() {
         </motion.div>
 
         {/* Action Bar */}
-        <LeadActionBar
-          lead={lead}
-          onAction={handleAction}
-          onStatusChange={handleStatusChange}
-        />
+        <div data-tour-id={TOUR.CRM.LEAD_PROFILE.ACTION_BAR}>
+          <LeadActionBar
+            lead={lead}
+            onAction={handleAction}
+            onStatusChange={handleStatusChange}
+          />
+        </div>
 
         {/* Log Activity Dialog */}
         <Dialog open={activityDialogOpen} onOpenChange={setActivityDialogOpen}>

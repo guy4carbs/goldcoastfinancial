@@ -36,6 +36,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from '@/lib/tour/selectors';
 import {
   Upload,
   FileSpreadsheet,
@@ -508,6 +509,7 @@ export function LobbyImport() {
         {/* Hero Card */}
         <motion.div
           variants={fadeInUp}
+          data-tour-id={TOUR.CRM.LOBBY_IMPORT.HEADER}
           className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 text-white p-8"
           style={{
             borderRadius: RADIUS.hero,
@@ -559,7 +561,7 @@ export function LobbyImport() {
                       Upload a CSV or Excel file to import contacts
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent data-tour-id={TOUR.CRM.LOBBY_IMPORT.DROP_ZONE}>
                     <FileUploadZone
                       onFileSelect={handleFileSelect}
                       isUploading={uploadMutation.isPending}
@@ -651,7 +653,7 @@ export function LobbyImport() {
                         Remove
                       </Button>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent data-tour-id={TOUR.CRM.LOBBY_IMPORT.MAPPING}>
                       <ColumnMapper
                         headers={uploadData.headers}
                         sampleRows={uploadData.sampleRows}
@@ -759,6 +761,7 @@ export function LobbyImport() {
               variants={fadeInUp}
               whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
               transition={{ duration: MOTION.duration.hover }}
+              data-tour-id={TOUR.CRM.LOBBY_IMPORT.HISTORY}
             >
               <Card style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}>
                 <CardHeader>

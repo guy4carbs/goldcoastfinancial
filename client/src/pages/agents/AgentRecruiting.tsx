@@ -15,6 +15,7 @@ import {
   fadeInUp, staggerContainer,
 } from '@/lib/heritageDesignSystem';
 import { AgentPageHero, AgentStatCard, AgentStatCardGrid } from "@/components/agent/primitives";
+import { TOUR } from "@/lib/tour/selectors";
 import {
   UserPlus, Users, Clock, CheckCircle, DollarSign, TrendingUp,
   Copy, Eye, Send, Calendar, ArrowRight, Share2, Mail,
@@ -263,13 +264,14 @@ export default function AgentRecruiting() {
     <AgentLoungeLayout>
       <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6">
         {/* Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.RECRUITING.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={UserPlus}
             title="Recruit New Agents"
             subtitle="Build your team, grow your downline, and earn override commissions"
           >
             <Button
+              data-tour-id={TOUR.AGENT.RECRUITING.REFERRAL_LINK}
               onClick={handleCopyLink}
               className="gap-2 text-white border-0 backdrop-blur-sm hover:scale-105 transition-transform"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius: RADIUS.button }}
@@ -288,7 +290,7 @@ export default function AgentRecruiting() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.RECRUITING.STATS} variants={fadeInUp}>
           <AgentStatCardGrid className="grid-cols-2 lg:grid-cols-5">
             {statCards.map((stat) => (
               <AgentStatCard key={stat.label} icon={stat.icon} value={stat.value} label={stat.label} gradient={stat.gradient} />
@@ -410,7 +412,7 @@ export default function AgentRecruiting() {
             </TabsContent>
 
             {/* Funnel Tab */}
-            <TabsContent value="funnel">
+            <TabsContent data-tour-id={TOUR.AGENT.RECRUITING.FUNNEL} value="funnel">
               <RecruitingFunnel
                 funnelData={funnelData}
                 stats={{
@@ -422,7 +424,7 @@ export default function AgentRecruiting() {
             </TabsContent>
 
             {/* Downline Tab */}
-            <TabsContent value="downline">
+            <TabsContent data-tour-id={TOUR.AGENT.RECRUITING.DOWNLINE} value="downline">
               <DownlineTable agents={downlineAgents} />
             </TabsContent>
 

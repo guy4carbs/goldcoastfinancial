@@ -6,14 +6,14 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, attachUser } from "../middleware/auth";
-import { Roles } from "../types/permissions";
+import { Roles, RoleGroups } from "../types/permissions";
 
 const router = Router();
 
 // Executive-only access
 router.use(attachUser);
 router.use(requireAuth);
-router.use(requireRole(Roles.OWNER, Roles.SYSTEM_ADMIN));
+router.use(requireRole(...RoleGroups.ADMINS));
 
 // =============================================================================
 // GET /api/executive/dashboard — Org-wide executive metrics

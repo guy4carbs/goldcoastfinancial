@@ -27,6 +27,7 @@ import { AddLeadModal } from "@/components/agent/AddLeadModal";
 import { LeadImportDialog } from "@/components/agent/LeadImportDialog";
 import { EnhancedActivityModal } from "@/components/agent/EnhancedActivityModal";
 import { RADIUS, SHADOW, MOTION, TYPE, fadeInUp, staggerContainer } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 import { useLeadInbox } from '@/hooks/useLeadDistribution';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -435,7 +436,7 @@ export default function AgentLeadInbox() {
         className="space-y-6"
       >
         {/* Hero */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.INBOX.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Inbox}
             title="Lead Inbox"
@@ -463,7 +464,7 @@ export default function AgentLeadInbox() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.INBOX.STATS} variants={fadeInUp}>
           <AgentStatCardGrid>
             <AgentStatCard icon={Sparkles} value={counts.new} label="New Leads" gradient="from-purple-500 to-violet-600" />
             <AgentStatCard icon={Send} value={counts.distributed} label="Distributed" gradient="from-blue-500 to-indigo-600" />
@@ -473,7 +474,7 @@ export default function AgentLeadInbox() {
         </motion.div>
 
         {/* Search + Sort */}
-        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
+        <motion.div data-tour-id={TOUR.AGENT.INBOX.FILTERS} variants={fadeInUp} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -499,6 +500,7 @@ export default function AgentLeadInbox() {
 
         {/* Lead List Card */}
         <motion.div
+          data-tour-id={TOUR.AGENT.INBOX.LIST}
           variants={fadeInUp}
           className="border bg-white overflow-hidden"
           style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}

@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { WorkflowBuilder } from "@/components/workflow-builder";
 import { fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 
 export default function AgentWorkflowBuilder() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function AgentWorkflowBuilder() {
   return (
     <AgentLoungeLayout>
       <motion.div
+        data-tour-id={TOUR.AGENT.WORKFLOWS.HEADER}
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
@@ -26,7 +28,7 @@ export default function AgentWorkflowBuilder() {
           height: 'calc(100vh - 64px)',
         }}
       >
-        <motion.div variants={fadeInUp} className="h-full">
+        <motion.div data-tour-id={TOUR.AGENT.WORKFLOWS.CANVAS} variants={fadeInUp} className="h-full">
           <WorkflowBuilder workflowId={workflowId} />
         </motion.div>
       </motion.div>

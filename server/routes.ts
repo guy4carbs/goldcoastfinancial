@@ -15,6 +15,7 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { Pool } from "pg";
+import agentNotificationsRouter from "./routes/agent-notifications";
 import adminProductsRouter from "./routes/admin-products";
 import adminContentRouter from "./routes/admin-content";
 import adminCrmRouter from "./routes/admin-crm";
@@ -1145,7 +1146,7 @@ export async function registerRoutes(
   });
 
   // Secure data collection - Send encrypted form link via email
-  app.post("/api/secure-forms/send", async (req, res) => {
+  app.post("/api/secure-forms/send", requireAuth, async (req, res) => {
     try {
       const {
         clientName,
@@ -1155,21 +1156,30 @@ export async function registerRoutes(
         carrierId,
         customMessage,
         sendMethod,
-        agent
       } = req.body;
 
       // Validate required fields
-      if (!clientName || !clientEmail || !formType || !agent) {
+      if (!clientName || !clientEmail || !formType) {
         return res.status(400).json({ error: "Missing required fields" });
-      }
-
-      if (!agent.name || !agent.email) {
-        return res.status(400).json({ error: "Agent information is required" });
       }
 
       if (!carrierId) {
         return res.status(400).json({ error: "Carrier selection is required" });
       }
+
+      // Sender identity comes from the session, NOT the request body. Trusting
+      // body-supplied agent fields would let any authenticated user spoof
+      // another agent's email and write rows under their identity, defeating
+      // the per-user filter on GET /api/secure-forms.
+      const senderId = req.user?.id;
+      const senderEmail = req.user?.email;
+      if (!senderId || !senderEmail) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const senderName =
+        `${req.user?.firstName ?? ''} ${req.user?.lastName ?? ''}`.trim() || senderEmail;
+      const senderPhone = (req.user as any)?.phone || '';
+      const agent = { name: senderName, email: senderEmail, phone: senderPhone };
 
       // Generate a unique secure link
       const linkId = crypto.randomBytes(16).toString('hex');
@@ -1182,12 +1192,14 @@ export async function registerRoutes(
       // Set expiration to 24 hours from now
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      // Store form metadata in database
+      // Store form metadata in database. agent_id is the authoritative
+      // owner reference (FK to users.id); agent_name/email/phone are kept
+      // as denormalized display copy for carrier emails and SMS rendering.
       await pool.query(
-        `INSERT INTO secure_forms (link_id, form_type, carrier_id, carrier_name, client_name, client_email, agent_name, agent_email, agent_phone, status, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-         ON CONFLICT (link_id) DO UPDATE SET status = $10, expires_at = $11`,
-        [linkId, formType, carrierId, carrier, clientName, clientEmail, agent.name, agent.email, agent.phone || '', 'pending', expiresAt]
+        `INSERT INTO secure_forms (link_id, form_type, carrier_id, carrier_name, client_name, client_email, agent_id, agent_name, agent_email, agent_phone, status, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         ON CONFLICT (link_id) DO UPDATE SET status = $11, expires_at = $12`,
+        [linkId, formType, carrierId, carrier, clientName, clientEmail, senderId, agent.name, agent.email, agent.phone || '', 'pending', expiresAt]
       );
 
       console.log(`[SecureForm] Form created: ${linkId} for ${carrierId} - ${formType}`);
@@ -1260,13 +1272,22 @@ export async function registerRoutes(
     }
   });
 
-  // List all secure forms (for agent dashboard) - MUST be before :linkId routes
-  app.get("/api/secure-forms", async (req, res) => {
+  // List secure forms for the requesting agent only — was previously
+  // company-wide because the route had no auth gate and no WHERE clause.
+  // Filters by agent_id (FK to users.id), the authoritative owner column
+  // introduced in migration 0005. MUST be declared before the :linkId routes.
+  app.get("/api/secure-forms", requireAuth, async (req, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
       const result = await pool.query(
         `SELECT link_id, form_type, carrier_id, carrier_name, client_name, client_email,
                 agent_name, agent_email, status, created_at, expires_at, submitted_data
-         FROM secure_forms ORDER BY created_at DESC`
+           FROM secure_forms
+          WHERE agent_id = $1
+          ORDER BY created_at DESC`,
+        [userId]
       );
 
       const forms = result.rows.map((row: any) => ({
@@ -2136,22 +2157,33 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/quotes/send", async (req, res) => {
+  app.post("/api/quotes/send", requireAuth, async (req, res) => {
     try {
       const {
         clientName, clientEmail, clientPhone,
         quoteType, quoteTypeName, carrierId, carrierName,
         coverageAmount, premium, premiumFrequency,
         termLength, healthClass, benefits, additionalNotes,
-        sendMethod, agent
+        sendMethod,
       } = req.body;
 
       if (!clientName || !clientEmail || !carrierId || !quoteType || !coverageAmount || !premium) {
         return res.status(400).json({ error: "Missing required fields" });
       }
-      if (!agent?.name || !agent?.email) {
-        return res.status(400).json({ error: "Agent information is required" });
+
+      // Sender identity comes from the session, NOT the request body. A
+      // body-supplied agent.email could be any value the client wants — we'd
+      // be re-introducing the same spoofing window we closed on secure_forms.
+      const senderId = req.user?.id;
+      const senderEmail = req.user?.email;
+      if (!senderId || !senderEmail) {
+        return res.status(401).json({ error: "Unauthorized" });
       }
+      const senderName =
+        `${req.user?.firstName ?? ''} ${req.user?.lastName ?? ''}`.trim() || senderEmail;
+      const senderPhone = (req.user as any)?.phone || '';
+      const senderNpn = (req.user as any)?.npn || null;
+      const agent = { name: senderName, email: senderEmail, phone: senderPhone, npn: senderNpn };
 
       const now = new Date();
       const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
@@ -2162,20 +2194,23 @@ export async function registerRoutes(
       const coverageNum = parseInt(String(coverageAmount).replace(/[^0-9]/g, '')) || 0;
       const premiumNum = parseFloat(String(premium).replace(/[^0-9.]/g, '')) || 0;
 
-      // Insert into PostgreSQL quotes table
+      // Insert into PostgreSQL quotes table. agent_user_id is the
+      // authoritative owner FK (matches the read-side filter); the
+      // agent_name/email/phone/npn columns stay as denormalized display
+      // copy used by sendPolicyQuoteEmail() and the SMS rendering.
       const insertResult = await pool.query(
         `INSERT INTO quotes (
           quote_number, carrier, product_type, coverage_amount, monthly_premium,
           status, sent_at, client_name, client_email, client_phone,
           send_method, premium_frequency, carrier_id, quote_type, quote_type_name,
-          benefits, additional_notes, agent_name, agent_email, agent_phone, agent_npn,
+          benefits, additional_notes, agent_user_id, agent_name, agent_email, agent_phone, agent_npn,
           risk_class
         ) VALUES (
           $1, $2, $3, $4, $5,
           'sent', NOW(), $6, $7, $8,
           $9, $10, $11, $12, $13,
-          $14, $15, $16, $17, $18, $19,
-          $20
+          $14, $15, $16, $17, $18, $19, $20,
+          $21
         ) RETURNING id`,
         [
           quoteRef, carrierName, quoteType, coverageNum, premiumNum,
@@ -2183,7 +2218,7 @@ export async function registerRoutes(
           sendMethod || 'email', premiumFrequency || 'monthly',
           carrierId, quoteType, quoteTypeName || quoteType,
           benefits || '', additionalNotes || null,
-          agent.name, agent.email, agent.phone || '', agent.npn || null,
+          senderId, agent.name, agent.email, agent.phone || '', agent.npn || null,
           healthClass || null
         ]
       );
@@ -2232,8 +2267,15 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/quotes", async (_req, res) => {
+  // List quotes for the requesting agent only. Filters by agent_user_id
+  // (the FK to users.id) — was previously company-wide because the route
+  // had no auth gate and no WHERE clause. agent_email is kept as
+  // denormalized display copy but no longer authoritative for ownership.
+  app.get("/api/quotes", requireAuth, async (req, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
       const result = await pool.query(
         `SELECT id, quote_number, carrier, product_type, coverage_amount, monthly_premium,
                 status, sent_at, client_name, client_email, client_phone,
@@ -2241,7 +2283,9 @@ export async function registerRoutes(
                 benefits, additional_notes, agent_name, agent_email, agent_phone, agent_npn,
                 risk_class, opened_at, expires_at, sms_sent, created_at, updated_at
          FROM quotes
-         ORDER BY created_at DESC`
+         WHERE agent_user_id = $1
+         ORDER BY created_at DESC`,
+        [userId]
       );
       const quotes = result.rows.map((row: any) => ({
         quoteId: row.id,
@@ -2353,18 +2397,26 @@ export async function registerRoutes(
     }
   });
 
-  // Resend a previously sent quote
-  app.post("/api/quotes/:quoteId/resend", async (req, res) => {
+  // Resend a previously sent quote. Auth-gated AND ownership-checked: the
+  // requesting agent must own the quote (agent_user_id = req.user.id),
+  // otherwise we 404 — same response shape as a missing quote so we don't
+  // leak existence to a probing client.
+  app.post("/api/quotes/:quoteId/resend", requireAuth, async (req, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
       const { quoteId } = req.params;
       const result = await pool.query(
         `SELECT id, quote_number, carrier, product_type, coverage_amount, monthly_premium,
                 client_name, client_email, client_phone, send_method, premium_frequency,
                 carrier_id, quote_type, quote_type_name, benefits, additional_notes,
-                agent_name, agent_email, agent_phone, agent_npn, risk_class
-         FROM quotes WHERE id::text = $1 OR quote_number = $1
+                agent_user_id, agent_name, agent_email, agent_phone, agent_npn, risk_class
+         FROM quotes
+         WHERE (id::text = $1 OR quote_number = $1)
+           AND agent_user_id = $2
          LIMIT 1`,
-        [quoteId]
+        [quoteId, userId]
       );
 
       if (result.rows.length === 0) {
@@ -2705,6 +2757,21 @@ export async function registerRoutes(
   app.get("/api/my-lounge-access", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
+      const role = req.user?.role;
+
+      // Founders and owners always have full lounge access regardless of
+      // user_lounge_access seed rows. The goldcoast deployment treats founder
+      // role as the canonical top tier; without this short-circuit a fresh
+      // founder logging in to heritage sees zero lounges in the lobby.
+      if (role === Roles.FOUNDER || role === Roles.OWNER) {
+        const { LOUNGE_MAP } = await import("@shared/loungeKeys");
+        const accessMap: Record<string, boolean> = {};
+        for (const dbKey of Object.keys(LOUNGE_MAP)) {
+          accessMap[dbKey] = true;
+        }
+        return res.json({ access: accessMap });
+      }
+
       const access = await storage.getUserLoungeAccess(userId);
       const accessMap: Record<string, boolean> = {};
       for (const row of access) {
@@ -3283,6 +3350,11 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to fetch onboarding status" });
     }
   });
+
+  // Agent portal notifications — auto-seeds welcome + computes virtual E&O/license
+  // expiration warnings. Mirrors /Users/guy4carbs/gcf/server/routes/agent-notifications.ts
+  // so both apps share notification UX over the same notifications table.
+  app.use("/api/agent-portal/notifications", agentNotificationsRouter);
 
   // Admin: Products management (requires admin role)
   app.use("/api/admin/products", requireAuth, requireAdmin, adminProductsRouter);

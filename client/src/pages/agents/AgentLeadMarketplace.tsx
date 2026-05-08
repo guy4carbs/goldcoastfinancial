@@ -6,6 +6,7 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 import { AgentLoungeLayout } from "@/components/agent/AgentLoungeLayout";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { TOUR } from "@/lib/tour/selectors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -247,14 +248,17 @@ export default function AgentLeadMarketplace() {
         className="space-y-8"
       >
         {/* ── Hero ── */}
-        <AgentPageHero
-          icon={ShoppingBag}
-          title="Lead Marketplace"
-          subtitle="Purchase qualified leads to grow your book of business"
-        />
+        <div data-tour-id={TOUR.AGENT.LEAD_MARKETPLACE.HEADER}>
+          <AgentPageHero
+            icon={ShoppingBag}
+            title="Lead Marketplace"
+            subtitle="Purchase qualified leads to grow your book of business"
+          />
+        </div>
 
         {/* ── Product Cards Grid ── */}
         <motion.div
+          data-tour-id={TOUR.AGENT.LEAD_MARKETPLACE.GRID}
           variants={staggerContainer}
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
         >
@@ -335,7 +339,7 @@ export default function AgentLeadMarketplace() {
         </motion.div>
 
         {/* ── Purchase History ── */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.LEAD_MARKETPLACE.CART} variants={fadeInUp}>
           <Card
             className="border-0 overflow-hidden"
             style={{ borderRadius: RADIUS.card, boxShadow: SHADOW.card }}

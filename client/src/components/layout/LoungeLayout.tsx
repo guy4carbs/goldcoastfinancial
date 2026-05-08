@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { PersistedScrollNav } from './PersistedScrollNav';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -32,10 +33,11 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { LoungeSwitcher } from '@/components/navigation/LoungeSwitcher';
-import { UnifiedNotificationSystem } from '@/components/notifications/UnifiedNotificationSystem';
+import { NotificationBell } from '@/components/tour/NotificationBell';
 import { UniversalSearch } from '@/components/search/UniversalSearch';
 import { AgentActivityIndicator } from '@/components/agents/AgentActivityIndicator';
 import { useAuth } from '@/contexts/AuthContext';
+import { TOUR } from '@/lib/tour/selectors';
 
 // =============================================================================
 // HERITAGE COMMAND LOUNGE DESIGN SYSTEM
@@ -465,14 +467,14 @@ export function LoungeLayout({
       )}
 
       {/* Navigation Sections */}
-      <nav
+      <PersistedScrollNav
         className="flex-1 overflow-y-auto"
         style={{ padding: `0 ${GRID.spacing.xs}px` }}
       >
         {sidebarSections.map((section, idx) => (
           <SidebarSectionComponent key={idx} section={section} />
         ))}
-      </nav>
+      </PersistedScrollNav>
 
       {/* Footer */}
       {footer && (
@@ -501,6 +503,7 @@ export function LoungeLayout({
 
       {/* Desktop Sidebar - Glass Material */}
       <motion.aside
+        data-tour-id={TOUR.SHELL.SIDEBAR}
         initial={false}
         animate={{ width: sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED }}
         transition={{ duration: MOTION.duration.expand, ease: MOTION.easing }}
@@ -599,6 +602,7 @@ export function LoungeLayout({
       >
         {/* Header - Glass Material */}
         <header
+          data-tour-id={TOUR.SHELL.TOPBAR}
           className="sticky top-0 z-20"
           style={{
             backgroundColor: GLASS.background,
@@ -647,6 +651,7 @@ export function LoungeLayout({
               {/* Search Button - Glass Style */}
               {showSearch && (
                 <motion.button
+                  data-tour-id={TOUR.SHELL.SEARCH}
                   onClick={() => setSearchOpen(true)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -686,11 +691,11 @@ export function LoungeLayout({
               {headerActions}
 
               {/* Notifications */}
-              {showNotifications && <UnifiedNotificationSystem />}
+              {showNotifications && <NotificationBell />}
 
               {/* Lounge Switcher (dropdown in header) */}
               {showLoungeSwitcher && (
-                <div className="hidden lg:block">
+                <div data-tour-id={TOUR.SHELL.APP_SWITCHER} className="hidden lg:block">
                   <LoungeSwitcher variant="dropdown" />
                 </div>
               )}
@@ -698,6 +703,7 @@ export function LoungeLayout({
               {/* User Menu */}
               {userInfo || (
                 <div
+                  data-tour-id={TOUR.SHELL.USER_MENU}
                   className="hidden sm:flex items-center border-l"
                   style={{
                     gap: GRID.spacing.sm - 4,

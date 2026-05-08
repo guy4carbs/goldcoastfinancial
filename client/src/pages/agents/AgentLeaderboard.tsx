@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { AgentPageHero } from "@/components/agent/primitives";
 import { RADIUS, SHADOW, MOTION, TYPE, COLORS, fadeInUp, staggerContainer, scaleIn, spacing } from '@/lib/heritageDesignSystem';
+import { TOUR } from "@/lib/tour/selectors";
 
 interface SalesLeaderboardEntry {
   rank: number;
@@ -144,7 +145,7 @@ export default function AgentLeaderboard() {
         className="space-y-6 pb-20 lg:pb-0"
       >
         {/* Hero Card */}
-        <motion.div variants={fadeInUp}>
+        <motion.div data-tour-id={TOUR.AGENT.LEADERBOARD.HEADER} variants={fadeInUp}>
           <AgentPageHero
             icon={Crown}
             title="Leaderboard"
@@ -154,6 +155,7 @@ export default function AgentLeaderboard() {
 
         {/* Time Range Filter */}
         <motion.div
+          data-tour-id={TOUR.AGENT.LEADERBOARD.TIME_RANGE}
           variants={fadeInUp}
           className="flex gap-1 p-1 w-fit"
           style={{ backgroundColor: COLORS.gray[100], borderRadius: RADIUS.button }}
@@ -269,7 +271,7 @@ export default function AgentLeaderboard() {
         ) : (
           <>
             {/* Top 3 Podium */}
-            <motion.div variants={fadeInUp}>
+            <motion.div data-tour-id={TOUR.AGENT.LEADERBOARD.PODIUM} variants={fadeInUp}>
               <ol className="grid grid-cols-3 gap-3">
                 {sortedLeaderboard.slice(0, 3).map((entry, index) => {
                   const Icon = PODIUM_ICONS[index];
@@ -317,7 +319,7 @@ export default function AgentLeaderboard() {
 
             {/* Full Leaderboard */}
             {sortedLeaderboard.length > 3 && (
-              <motion.div variants={fadeInUp}>
+              <motion.div data-tour-id={TOUR.AGENT.LEADERBOARD.TABLE} variants={fadeInUp}>
                 <motion.div
                   whileHover={{ y: MOTION.hover.y, scale: MOTION.hover.scale }}
                   transition={{ duration: MOTION.duration.hover, ease: MOTION.easing }}
