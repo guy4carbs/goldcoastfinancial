@@ -132,3 +132,22 @@ export const insertFounderSettingsSchema = createInsertSchema(founderSettings).o
 
 export type FounderSettings = typeof founderSettings.$inferSelect;
 export type InsertFounderSettings = z.infer<typeof insertFounderSettingsSchema>;
+
+// =============================================================================
+// AUTH EMAIL OTP (Wave AH2) — 6-digit codes for the Touch ID fallback. Codes
+// are bcrypt-hashed before insert (never stored plaintext). Rate-limit policy
+// enforced server-side in services/emailOtp.ts.
+// =============================================================================
+export const authEmailOtp = pgTable("auth_email_otp", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type AuthEmailOtp = typeof authEmailOtp.$inferSelect;

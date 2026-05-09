@@ -1069,3 +1069,37 @@ ${reasonBlock}
   );
   await sendBrandedHtml(data.email, "Your Gold Coast Financial Partners role has been updated", html);
 }
+
+/**
+ * Verification code email — Wave AH4. Sent when user requests an email OTP
+ * fallback (Touch ID failed/unavailable). Big readable 6-digit code in the
+ * Gold Coast brand frame, "expires in N minutes" copy, security warning.
+ */
+export async function sendVerificationCodeEmail(data: {
+  firstName: string;
+  email: string;
+  code: string;
+  ttlMinutes: number;
+}): Promise<void> {
+  const firstName = escapeHtml(data.firstName || "");
+  const code = escapeHtml(data.code);
+  const ttl = Math.max(1, Math.floor(data.ttlMinutes || 5));
+  const html = brandedHtml(
+    "Verification Code",
+    `<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${firstName || "there"},</p>
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">Use the code below to finish signing in to <strong>Gold Coast Financial Partners</strong>.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+<tr><td align="center" style="padding:24px;background:#F5EEE6;border-radius:12px;border:1px solid #EDE4D8;">
+<div style="font-family:'SF Mono','Menlo','Consolas',monospace;font-size:40px;font-weight:700;letter-spacing:12px;color:#4A1420;line-height:1;">
+${code}
+</div>
+<p style="margin:12px 0 0;font-size:11px;color:#8A7060;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;">expires in ${ttl} ${ttl === 1 ? "minute" : "minutes"}</p>
+</td></tr>
+</table>
+<div style="background:#FFF8F0;border-left:3px solid #C4975A;border-radius:6px;padding:14px 18px;margin:0 0 20px;">
+<p style="margin:0;font-size:13px;color:#6B5548;line-height:1.5;"><strong style="color:#2D1810;">Security note:</strong> Gold Coast Financial Partners staff will never call, text, or email asking for this code. If you didn't try to sign in, ignore this email and consider rotating your password.</p>
+</div>
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">Questions? Reach us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a> or call <strong style="color:#2D1810;">(630) 778-0888</strong>.</p>`,
+  );
+  await sendBrandedHtml(data.email, `${data.code} is your Gold Coast Financial sign-in code`, html);
+}

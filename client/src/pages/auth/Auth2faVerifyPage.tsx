@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { ShieldCheck, KeyRound, Loader2, Fingerprint, Shield, X } from "lucide-react";
+import {
+  ShieldCheck,
+  KeyRound,
+  Loader2,
+  Fingerprint,
+  Shield,
+  X,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { csrfHeaders } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -8,10 +17,12 @@ import { useToast } from "@/hooks/use-toast";
 const SUPPRESS_FALLBACK_KEY = "gc.2fa.suppressFallbackPopup";
 const FALLBACK_DELAY_MS = 4500;
 
+type FallbackMode = "email" | "recovery";
+
 export default function Auth2faVerifyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [mode, setMode] = useState<"totp" | "recovery">("totp");
+  const [mode, setMode] = useState<FallbackMode>("email");
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState<boolean | null>(null);
@@ -20,6 +31,8 @@ export default function Auth2faVerifyPage() {
   const [popupOpen, setPopupOpen] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [requestingEmail, setRequestingEmail] = useState(false);
   const autoTriggered = useRef(false);
 
   const verifyPasskey = async () => {
@@ -46,14 +59,17 @@ export default function Auth2faVerifyPage() {
         const data = await finishRes.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${finishRes.status}`);
       }
-      toast({ title: "Verified with passkey" });
+      toast({ title: "Verified with Touch ID" });
       window.location.assign("/founders");
     } catch (e: any) {
       toast({
-        title: "Passkey verification failed",
+        title: "Touch ID verification failed",
         description: e?.message,
         variant: "destructive",
       });
+      // Wave AH5: surface the email-OTP fallback immediately on biometric
+      // failure (don't wait for the 4.5s timeout).
+      setShowFallback(true);
     } finally {
       setPasskeyBusy(false);
     }
@@ -88,7 +104,7 @@ export default function Auth2faVerifyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Schedule the soft "use authenticator app" popup after a short delay,
+  // Schedule the soft "use email code" popup after a short delay,
   // unless the user has previously dismissed it permanently.
   useEffect(() => {
     if (passkeyAvailable !== true) return;
@@ -99,7 +115,6 @@ export default function Auth2faVerifyPage() {
     if (suppressed) return;
     const t = window.setTimeout(() => {
       setPopupVisible(true);
-      // Trigger fade-in transition on the next frame.
       requestAnimationFrame(() => setPopupOpen(true));
     }, FALLBACK_DELAY_MS);
     return () => window.clearTimeout(t);
@@ -116,9 +131,45 @@ export default function Auth2faVerifyPage() {
     }, 220);
   };
 
+  // Wave AH5: request a 6-digit code via Gold Coast branded email.
+  const requestEmailCode = async () => {
+    setRequestingEmail(true);
+    try {
+      const res = await fetch("/api/auth/2fa/email/request", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      setEmailSent(true);
+      setCode("");
+      if (data?.rateLimited) {
+        toast({
+          title: "Hold on — try again shortly",
+          description: "You can request a new code in a moment.",
+        });
+      } else {
+        toast({
+          title: "Code sent",
+          description: "Check your email for a 6-digit code (5-min expiry).",
+        });
+      }
+    } catch (e: any) {
+      toast({
+        title: "Couldn't send code",
+        description: e?.message,
+        variant: "destructive",
+      });
+    } finally {
+      setRequestingEmail(false);
+    }
+  };
+
   const submit = async () => {
     setSubmitting(true);
-    const path = mode === "totp" ? "/api/auth/2fa/verify" : "/api/auth/2fa/recovery";
+    const path =
+      mode === "email" ? "/api/auth/2fa/email/verify" : "/api/auth/2fa/recovery";
     try {
       const res = await fetch(path, {
         method: "POST",
@@ -182,7 +233,7 @@ export default function Auth2faVerifyPage() {
                 borderRadius: "var(--gc-radius-md)",
               }}
             >
-              <Shield className="w-5 h-5" style={{ color: "var(--gc-btn-primary-text)" }} />
+              <Shield className="w-5 h-5" style={{ color: "var(--gc-btn-primary-text)" }} aria-hidden="true" />
             </div>
             <span
               style={{
@@ -229,7 +280,7 @@ export default function Auth2faVerifyPage() {
               marginInline: "auto",
             }}
           >
-            Confirm with the passkey on this device to continue.
+            Confirm with Touch ID or Face ID on this device.
           </p>
         </div>
 
@@ -240,7 +291,7 @@ export default function Auth2faVerifyPage() {
               className="flex items-center justify-center"
               style={{ padding: "var(--gc-space-10) 0" }}
             >
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--gc-gold)" }} />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--gc-gold)" }} aria-hidden="true" />
             </div>
           )}
 
@@ -279,14 +330,14 @@ export default function Auth2faVerifyPage() {
                 }}
               >
                 {passkeyBusy ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Fingerprint className="w-5 h-5" />
+                  <Fingerprint className="w-5 h-5" aria-hidden="true" />
                 )}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: "var(--gc-text-md)", fontWeight: 600 }}>
-                  {passkeyBusy ? "Awaiting Touch ID…" : "Authenticate with passkey"}
+                  {passkeyBusy ? "Awaiting Touch ID…" : "Authenticate with Touch ID"}
                 </div>
                 <div
                   style={{
@@ -297,7 +348,7 @@ export default function Auth2faVerifyPage() {
                     marginTop: 2,
                   }}
                 >
-                  Touch ID · Face ID · Hardware key
+                  Touch ID · Face ID
                 </div>
               </div>
             </button>
@@ -313,7 +364,7 @@ export default function Auth2faVerifyPage() {
                 borderRadius: "var(--gc-radius-md)",
               }}
             >
-              {mode === "totp" ? (
+              {mode === "email" ? (
                 <>
                   <div
                     style={{
@@ -325,44 +376,123 @@ export default function Auth2faVerifyPage() {
                       marginBottom: "var(--gc-space-2)",
                     }}
                   >
-                    Authenticator App
+                    Verification Code
                   </div>
-                  <p
-                    style={{
-                      fontSize: "var(--gc-text-sm)",
-                      color: "var(--gc-text-secondary)",
-                      margin: 0,
-                      marginBottom: "var(--gc-space-3)",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Enter the 6-digit code from 1Password, Authy, or Google
-                    Authenticator.
-                  </p>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="\d{6}"
-                    maxLength={6}
-                    autoFocus
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="• • • • • •"
-                    style={{
-                      width: "100%",
-                      padding: "var(--gc-space-4)",
-                      background: "var(--gc-surface)",
-                      border: "1px solid var(--gc-border)",
-                      borderRadius: "var(--gc-radius-sm)",
-                      fontFamily: "monospace",
-                      fontSize: "var(--gc-text-2xl)",
-                      letterSpacing: "0.5em",
-                      textAlign: "center",
-                      color: "var(--gc-text-primary)",
-                      marginBottom: "var(--gc-space-3)",
-                      outline: "none",
-                    }}
-                  />
+                  {!emailSent ? (
+                    <>
+                      <p
+                        style={{
+                          fontSize: "var(--gc-text-sm)",
+                          color: "var(--gc-text-secondary)",
+                          margin: 0,
+                          marginBottom: "var(--gc-space-3)",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        We'll email you a 6-digit code that's good for 5 minutes.
+                      </p>
+                      <div className="flex flex-col gap-2 mb-3">
+                        <button
+                          onClick={requestEmailCode}
+                          disabled={requestingEmail}
+                          className="w-full flex items-center justify-center gap-2"
+                          style={{
+                            padding: "var(--gc-space-3) var(--gc-space-4)",
+                            backgroundColor: "var(--gc-btn-primary-bg)",
+                            color: "var(--gc-btn-primary-text)",
+                            borderRadius: "var(--gc-radius-sm)",
+                            border: "none",
+                            cursor: requestingEmail ? "wait" : "pointer",
+                            fontFamily: "var(--gc-font-body)",
+                            fontSize: "var(--gc-text-base)",
+                            fontWeight: 600,
+                            letterSpacing: "var(--gc-tracking-wide)",
+                            opacity: requestingEmail ? 0.7 : 1,
+                          }}
+                        >
+                          {requestingEmail ? (
+                            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Mail className="w-4 h-4" aria-hidden="true" />
+                          )}
+                          {requestingEmail ? "Sending…" : "Send code to my email"}
+                        </button>
+                        <button
+                          disabled
+                          aria-label="SMS verification — coming soon"
+                          className="w-full flex items-center justify-center gap-2"
+                          style={{
+                            padding: "var(--gc-space-3) var(--gc-space-4)",
+                            backgroundColor: "transparent",
+                            color: "var(--gc-text-muted)",
+                            borderRadius: "var(--gc-radius-sm)",
+                            border: "1px dashed var(--gc-border)",
+                            cursor: "not-allowed",
+                            fontFamily: "var(--gc-font-body)",
+                            fontSize: "var(--gc-text-sm)",
+                            fontWeight: 500,
+                            letterSpacing: "var(--gc-tracking-wide)",
+                          }}
+                          title="SMS verification — coming soon"
+                        >
+                          <MessageSquare className="w-4 h-4" aria-hidden="true" />
+                          Send via SMS
+                          <span
+                            style={{
+                              marginLeft: 6,
+                              fontSize: "10px",
+                              padding: "1px 6px",
+                              borderRadius: "var(--gc-radius-full)",
+                              border: "1px solid var(--gc-border)",
+                              color: "var(--gc-text-muted)",
+                              textTransform: "uppercase",
+                              letterSpacing: "var(--gc-tracking-wider)",
+                            }}
+                          >
+                            Coming soon
+                          </span>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p
+                        style={{
+                          fontSize: "var(--gc-text-sm)",
+                          color: "var(--gc-text-secondary)",
+                          margin: 0,
+                          marginBottom: "var(--gc-space-3)",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        Enter the 6-digit code we just emailed you. Codes expire in 5 minutes.
+                      </p>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        autoFocus
+                        value={code}
+                        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="• • • • • •"
+                        style={{
+                          width: "100%",
+                          padding: "var(--gc-space-4)",
+                          background: "var(--gc-surface)",
+                          border: "1px solid var(--gc-border)",
+                          borderRadius: "var(--gc-radius-sm)",
+                          fontFamily: "monospace",
+                          fontSize: "var(--gc-text-2xl)",
+                          letterSpacing: "0.5em",
+                          textAlign: "center",
+                          color: "var(--gc-text-primary)",
+                          marginBottom: "var(--gc-space-3)",
+                          outline: "none",
+                        }}
+                      />
+                    </>
+                  )}
                 </>
               ) : (
                 <>
@@ -387,8 +517,7 @@ export default function Auth2faVerifyPage() {
                       lineHeight: 1.5,
                     }}
                   >
-                    Enter one of the single-use recovery codes you saved during
-                    enrollment.
+                    Enter one of the single-use recovery codes you saved during enrollment.
                   </p>
                   <input
                     type="text"
@@ -413,36 +542,60 @@ export default function Auth2faVerifyPage() {
                 </>
               )}
 
-              <button
-                onClick={submit}
-                disabled={submitting || !code}
-                className="w-full flex items-center justify-center gap-2"
-                style={{
-                  padding: "var(--gc-space-3) var(--gc-space-4)",
-                  backgroundColor: "var(--gc-btn-primary-bg)",
-                  color: "var(--gc-btn-primary-text)",
-                  borderRadius: "var(--gc-radius-sm)",
-                  border: "none",
-                  cursor: submitting || !code ? "not-allowed" : "pointer",
-                  fontFamily: "var(--gc-font-body)",
-                  fontSize: "var(--gc-text-base)",
-                  fontWeight: 600,
-                  letterSpacing: "var(--gc-tracking-wide)",
-                  opacity: submitting || !code ? 0.5 : 1,
-                }}
-              >
-                {submitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <ShieldCheck className="w-4 h-4" />
-                )}
-                {submitting ? "Verifying…" : "Verify"}
-              </button>
+              {/* Verify button shown when there's a code to submit */}
+              {(mode === "recovery" || (mode === "email" && emailSent)) && (
+                <button
+                  onClick={submit}
+                  disabled={submitting || !code}
+                  className="w-full flex items-center justify-center gap-2"
+                  style={{
+                    padding: "var(--gc-space-3) var(--gc-space-4)",
+                    backgroundColor: "var(--gc-btn-primary-bg)",
+                    color: "var(--gc-btn-primary-text)",
+                    borderRadius: "var(--gc-radius-sm)",
+                    border: "none",
+                    cursor: submitting || !code ? "not-allowed" : "pointer",
+                    fontFamily: "var(--gc-font-body)",
+                    fontSize: "var(--gc-text-base)",
+                    fontWeight: 600,
+                    letterSpacing: "var(--gc-tracking-wide)",
+                    opacity: submitting || !code ? 0.5 : 1,
+                  }}
+                >
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                  )}
+                  {submitting ? "Verifying…" : "Verify"}
+                </button>
+              )}
+
+              {/* Re-send option after the email's been sent */}
+              {mode === "email" && emailSent && (
+                <button
+                  onClick={requestEmailCode}
+                  disabled={requestingEmail}
+                  className="flex items-center gap-2 mx-auto"
+                  style={{
+                    marginTop: "var(--gc-space-3)",
+                    background: "none",
+                    border: "none",
+                    color: "var(--gc-text-muted)",
+                    fontSize: "var(--gc-text-xs)",
+                    cursor: requestingEmail ? "wait" : "pointer",
+                    letterSpacing: "var(--gc-tracking-wide)",
+                  }}
+                >
+                  {requestingEmail ? "Sending…" : "Send a new code"}
+                </button>
+              )}
 
               <button
                 onClick={() => {
-                  setMode((m) => (m === "totp" ? "recovery" : "totp"));
+                  setMode((m) => (m === "email" ? "recovery" : "email"));
                   setCode("");
+                  setEmailSent(false);
                 }}
                 className="flex items-center gap-2 mx-auto"
                 style={{
@@ -455,10 +608,10 @@ export default function Auth2faVerifyPage() {
                   letterSpacing: "var(--gc-tracking-wide)",
                 }}
               >
-                <KeyRound className="w-3.5 h-3.5" />
-                {mode === "totp"
+                <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
+                {mode === "email"
                   ? "Use a recovery code instead"
-                  : "Use authenticator app instead"}
+                  : "Use email code instead"}
               </button>
             </div>
           )}
@@ -513,7 +666,7 @@ export default function Auth2faVerifyPage() {
               lineHeight: 0,
             }}
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
           <div
             style={{
@@ -538,7 +691,7 @@ export default function Auth2faVerifyPage() {
               lineHeight: 1.5,
             }}
           >
-            Use a code from your authenticator app instead.
+            Use a 6-digit code emailed to you instead.
           </p>
           <button
             onClick={() => dismissPopup(true)}
@@ -557,7 +710,7 @@ export default function Auth2faVerifyPage() {
               marginBottom: "var(--gc-space-3)",
             }}
           >
-            Use authenticator app
+            Use email code
           </button>
           <label
             className="flex items-center gap-2"

@@ -84,10 +84,16 @@ export async function buildRegistrationOptions(opts: {
     attestationType: "none",
     excludeCredentials,
     authenticatorSelection: {
-      // Prefer platform authenticators (Touch ID, Windows Hello, Android) but
-      // allow cross-platform (USB security keys) too.
-      residentKey: "preferred",
-      userVerification: "preferred",
+      // Wave AH1: lock to PLATFORM authenticators only (Touch ID / Face ID /
+      // Windows Hello / Android biometric). Without this, Safari shows the
+      // "scan QR with another device" iCloud Keychain cross-device flow when
+      // the user has no enrolled platform credential — which the founder
+      // explicitly does not want. requireResidentKey=true + userVerification
+      // required ensures discoverable creds + biometric prompt every time.
+      authenticatorAttachment: "platform",
+      residentKey: "required",
+      requireResidentKey: true,
+      userVerification: "required",
     },
     supportedAlgorithmIDs: [-7, -257], // ES256, RS256 — the broadly-supported pair
   };
@@ -157,7 +163,10 @@ export async function buildAuthenticationOptions(opts: { userId: string; req: an
   const generateOpts: GenerateAuthenticationOptionsOpts = {
     rpID: getRpID(opts.req),
     timeout: 60_000,
-    userVerification: "preferred",
+    // Wave AH1: require biometric on every authentication (not just
+    // "preferred") so Safari fires Touch ID / Face ID directly instead of
+    // offering the cross-device QR flow.
+    userVerification: "required",
     allowCredentials,
   };
   return generateAuthenticationOptions(generateOpts);

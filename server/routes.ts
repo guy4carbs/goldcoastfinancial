@@ -28,6 +28,7 @@ import {
   persistRecoveryCodes,
   consumeRecoveryCode,
 } from "./services/totp";
+import { requestEmailOtp, verifyEmailOtp } from "./services/emailOtp";
 import {
   buildRegistrationOptions,
   consumeRegistration,
@@ -513,6 +514,60 @@ export async function registerRoutes(
     } catch (e: any) {
       console.error("2FA recovery error:", e?.message || "recovery_failed");
       res.status(500).json({ error: "Recovery failed" });
+    }
+  });
+
+  // ─── Email OTP (Wave AH) — Touch ID fallback ────────────────────────
+  // POST /api/auth/2fa/email/request — generate + send a fresh 6-digit code
+  //   to the authenticated user's email. Rate-limited (1/60s, 5/hour).
+  // POST /api/auth/2fa/email/verify  — verify the code; sets
+  //   req.session.twoFactorVerified=true on success. 5 wrong tries lock the
+  //   code and the user must request a new one.
+  app.post("/api/auth/2fa/email/request", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      const result = await requestEmailOtp({
+        userId: req.user.id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+      });
+      // Always 200 to avoid enumeration; client treats rateLimited specially.
+      res.json({ ok: true, rateLimited: !!result.rateLimited });
+    } catch (e: any) {
+      console.error("Email OTP request error:", e?.message || "request_failed");
+      res.status(500).json({ error: "Failed to send code" });
+    }
+  });
+
+  app.post("/api/auth/2fa/email/verify", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const code = String((req.body as any)?.code || "").trim();
+    if (!code) return res.status(400).json({ error: "Code required" });
+    try {
+      const result = await verifyEmailOtp({ userId: req.user.id, code });
+      if (!result.ok) {
+        // Map service reason to a stable client-facing code.
+        const status =
+          result.reason === "too-many-attempts" || result.reason === "expired"
+            ? 410
+            : 401;
+        return res.status(status).json({
+          error:
+            result.reason === "expired"
+              ? "Code expired — request a new one"
+              : result.reason === "too-many-attempts"
+                ? "Too many wrong tries — request a new code"
+                : result.reason === "no-active-code"
+                  ? "No active code — request a new one"
+                  : "Invalid code",
+          code: result.reason,
+        });
+      }
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("Email OTP verify error:", e?.message || "verify_failed");
+      res.status(500).json({ error: "Verification failed" });
     }
   });
 

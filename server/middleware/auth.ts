@@ -45,6 +45,8 @@ const TWO_FA_EXEMPT_PATHS = [
   "/api/auth/2fa/enroll/verify",
   "/api/auth/2fa/verify",
   "/api/auth/2fa/recovery",
+  "/api/auth/2fa/email/request",
+  "/api/auth/2fa/email/verify",
   "/api/auth/webauthn/register/begin",
   "/api/auth/webauthn/register/finish",
   "/api/auth/webauthn/auth/begin",
