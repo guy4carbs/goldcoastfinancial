@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Check, Copy, Send } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 /**
  * Self-contained Send Application / Invite Member dialog.
@@ -24,6 +25,66 @@ interface Upline {
 }
 
 const LEGAL_ENTITY_NAME = "Gold Coast Financial Partners LLC";
+
+// Single source of truth for the role-seniority order. Mirrors
+// `ROLE_HIERARCHY` in `server/types/permissions.ts:17` — keep in sync.
+// Lower index = more senior. Used for the inviter-authority gate so an
+// inviter can only invite roles at or below their own seniority.
+const ROLE_SENIORITY: ReadonlyArray<string> = [
+  "founder",
+  "owner",
+  "system_admin",
+  "director",
+  "agency_manager",
+  "manager",
+  "sales_agent",
+  "marketing_staff",
+  "client",
+  "investor",
+];
+
+function isAtLeastSenior(viewerRole: string | undefined | null, candidateRole: string): boolean {
+  if (!viewerRole) return false;
+  const vi = ROLE_SENIORITY.indexOf(viewerRole);
+  const ci = ROLE_SENIORITY.indexOf(candidateRole);
+  return vi >= 0 && ci >= 0 && vi <= ci;
+}
+
+// Full role catalog shown in the Role dropdown. Hierarchy roles get an
+// upline + contract level on invite; non-hierarchy roles (system_admin,
+// marketing_staff, client, investor) only need a user record. Founder-only
+// roles can only be invited by an existing founder — owners cannot promote
+// peers/superiors.
+interface RoleOption {
+  value: string;
+  label: string;
+  hint: string;
+  /** True for production/staff roles that participate in the hierarchy. */
+  requiresHierarchy: boolean;
+  /** True for roles that only a founder can invite (founder, owner). */
+  founderOnly: boolean;
+}
+
+const ROLE_OPTIONS: ReadonlyArray<RoleOption> = [
+  { value: "founder",        label: "Founder",         hint: "Top-tier authority. Founder-only invite.",       requiresHierarchy: true,  founderOnly: true  },
+  { value: "owner",          label: "Owner",           hint: "Co-equal top tier. Founder-only invite.",        requiresHierarchy: true,  founderOnly: true  },
+  { value: "system_admin",   label: "System Admin",    hint: "Operational admin. Not part of the hierarchy.",  requiresHierarchy: false, founderOnly: false },
+  { value: "director",       label: "Director",        hint: "Executive tier. Multi-region oversight.",        requiresHierarchy: true,  founderOnly: false },
+  { value: "agency_manager", label: "Agency Manager",  hint: "Multi-team management.",                         requiresHierarchy: true,  founderOnly: false },
+  { value: "manager",        label: "Manager",         hint: "Team lead. Earns overrides on downline.",        requiresHierarchy: true,  founderOnly: false },
+  { value: "sales_agent",    label: "Sales Agent",     hint: "Writes business. Can recruit downline + earn overrides.", requiresHierarchy: true, founderOnly: false },
+  { value: "marketing_staff",label: "Marketing Staff", hint: "Marketing team. Not part of the hierarchy.",     requiresHierarchy: false, founderOnly: false },
+  { value: "client",         label: "Client",          hint: "External customer. No upline.",                  requiresHierarchy: false, founderOnly: false },
+  { value: "investor",       label: "Investor",        hint: "External investor. No upline.",                  requiresHierarchy: false, founderOnly: false },
+];
+
+function roleLabel(value: string): string {
+  return ROLE_OPTIONS.find((r) => r.value === value)?.label ?? "Sales Agent";
+}
+
+function roleRequiresHierarchy(value: string): boolean {
+  return ROLE_OPTIONS.find((r) => r.value === value)?.requiresHierarchy ?? false;
+}
 
 function uplineLabel(u: Upline): string {
   // Owner row always renders as the legal entity name. Server already does
@@ -57,6 +118,19 @@ export function SendApplicationDialog({
   title = "Send Application",
   subtitle = "Send the contracting application link to a prospective agent via email.",
 }: SendApplicationDialogProps) {
+  const { user } = useAuth();
+  const inviterRole = user?.role;
+  const isFounderInviter = inviterRole === "founder";
+  // Filter the dropdown to roles the inviter is allowed to grant.
+  // - founder/owner are gated to founder-only inviters
+  // - everything else uses seniority order so a manager can't grant director, etc.
+  const visibleRoleOptions = useMemo(() => {
+    return ROLE_OPTIONS.filter((opt) => {
+      if (opt.founderOnly && !isFounderInviter) return false;
+      return isAtLeastSenior(inviterRole, opt.value);
+    });
+  }, [inviterRole, isFounderInviter]);
+
   const [sendFirst, setSendFirst] = useState("");
   const [sendLast, setSendLast] = useState("");
   const [sendEmail, setSendEmail] = useState("");
@@ -66,8 +140,11 @@ export function SendApplicationDialog({
   const [uplines, setUplines] = useState<Upline[]>([]);
   const [sendUpline, setSendUpline] = useState("");
   const [sendContract, setSendContract] = useState("");
+  const [sendRole, setSendRole] = useState<string>("sales_agent");
   const [uplineOpen, setUplineOpen] = useState(false);
   const [contractOpen, setContractOpen] = useState(false);
+  const [roleOpen, setRoleOpen] = useState(false);
+  const isHierarchyRole = roleRequiresHierarchy(sendRole);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -98,8 +175,10 @@ export function SendApplicationDialog({
     setSendPhone("");
     setSendUpline("");
     setSendContract("");
+    setSendRole("sales_agent");
     setUplineOpen(false);
     setContractOpen(false);
+    setRoleOpen(false);
   }, [open]);
 
   if (!open) return null;
@@ -123,8 +202,13 @@ export function SendApplicationDialog({
     display: "block",
     marginBottom: "var(--gc-space-1)",
   };
-  const canSend =
-    sendFirst.trim() && sendLast.trim() && sendEmail.trim() && sendUpline && sendContract;
+  const canSend = Boolean(
+    sendFirst.trim() &&
+      sendLast.trim() &&
+      sendEmail.trim() &&
+      sendRole &&
+      (!isHierarchyRole || (sendUpline && sendContract)),
+  );
 
   const submit = async () => {
     setSending(true);
@@ -139,8 +223,11 @@ export function SendApplicationDialog({
           lastName: sendLast,
           email: sendEmail,
           phone: sendPhone || undefined,
-          uplineId: sendUpline,
-          contractLevel: parseInt(sendContract),
+          role: sendRole,
+          ...(isHierarchyRole && {
+            uplineId: sendUpline,
+            contractLevel: parseInt(sendContract),
+          }),
         }),
       });
       const data = await resp.json();
@@ -386,6 +473,118 @@ export function SendApplicationDialog({
                   style={inputStyle}
                 />
               </div>
+              <div style={{ position: "relative" }}>
+                <label style={labelStyle}>Role *</label>
+                <div
+                  onClick={() => {
+                    setRoleOpen(!roleOpen);
+                    setUplineOpen(false);
+                    setContractOpen(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "var(--gc-space-2) var(--gc-space-3)",
+                    backgroundColor: "var(--gc-surface-2)",
+                    border: `1px solid ${roleOpen ? "var(--gc-gold)" : "var(--gc-border)"}`,
+                    borderRadius: "var(--gc-radius-sm)",
+                    color: "var(--gc-text-primary)",
+                    fontFamily: "var(--gc-font-body)",
+                    fontSize: "var(--gc-text-md)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <span>{roleLabel(sendRole)}</span>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--gc-text-muted)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      flexShrink: 0,
+                      transform: roleOpen ? "rotate(180deg)" : "none",
+                      transition: "transform 0.2s",
+                    }}
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+                {roleOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      zIndex: 60,
+                      backgroundColor: "var(--gc-surface)",
+                      border: "1px solid var(--gc-border)",
+                      borderRadius: "var(--gc-radius-sm)",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {visibleRoleOptions.map((opt) => (
+                      <div
+                        key={opt.value}
+                        onClick={() => {
+                          setSendRole(opt.value);
+                          // If switching to a non-hierarchy role, clear any
+                          // stale upline/contract selections. Otherwise the
+                          // POST body shape and validator stay clean.
+                          if (!opt.requiresHierarchy) {
+                            setSendUpline("");
+                            setSendContract("");
+                          }
+                          setRoleOpen(false);
+                        }}
+                        style={{
+                          padding: "var(--gc-space-2) var(--gc-space-3)",
+                          cursor: "pointer",
+                          backgroundColor:
+                            sendRole === opt.value ? "var(--gc-surface-2)" : "transparent",
+                          borderBottom: "1px solid var(--gc-border-subtle)",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (sendRole !== opt.value)
+                            e.currentTarget.style.backgroundColor =
+                              "var(--gc-hover-overlay)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (sendRole !== opt.value)
+                            e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "var(--gc-text-primary)",
+                            fontSize: "var(--gc-text-md)",
+                            fontFamily: "var(--gc-font-body)",
+                          }}
+                        >
+                          {opt.label}
+                        </div>
+                        <div
+                          style={{
+                            color: "var(--gc-text-muted)",
+                            fontSize: "var(--gc-text-xs)",
+                            marginTop: 2,
+                          }}
+                        >
+                          {opt.hint}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {isHierarchyRole && (
               <div className="grid grid-cols-2 gap-3">
                 <div style={{ position: "relative" }}>
                   <label style={labelStyle}>Upline *</label>
@@ -610,6 +809,7 @@ export function SendApplicationDialog({
                     })()}
                 </div>
               </div>
+              )}
             </div>
             <div
               style={{

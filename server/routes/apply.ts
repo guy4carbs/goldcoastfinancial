@@ -1,10 +1,47 @@
 import { Router } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, MANAGER_PLUS } from "../middleware/auth";
+import { Roles, isRoleAtLeast } from "../types/permissions";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { db } from "../db";
 import { users } from "../../shared/models/auth";
+
+// Role-driven hierarchy placement for invites. EVERY hierarchy role —
+// including sales_agent — is override-eligible: any tier can recruit
+// downline and earn the waterfall spread on that downline's production.
+// Founder/owner are placed at the top; manager/sales_agent at lower tiers.
+// Non-hierarchy roles (system_admin, marketing_staff, client, investor)
+// are NOT in this map — they don't get an agent_hierarchy row, no upline,
+// no contract level. They only need a `users` row stamped with the role.
+const INVITE_ROLE_PLACEMENT: Record<
+  string,
+  { level: number; title: string; overrideEligible: boolean }
+> = {
+  founder:        { level: 0, title: "Founder",        overrideEligible: true },
+  owner:          { level: 0, title: "Owner",          overrideEligible: true },
+  director:       { level: 1, title: "Director",       overrideEligible: true },
+  agency_manager: { level: 3, title: "Agency Manager", overrideEligible: true },
+  manager:        { level: 4, title: "Manager",        overrideEligible: true },
+  sales_agent:    { level: 6, title: "Agent",          overrideEligible: true },
+};
+
+// Roles that participate in the production hierarchy (need upline + contract).
+const HIERARCHY_ROLES = new Set<string>(Object.keys(INVITE_ROLE_PLACEMENT));
+
+// Founder-gated roles. Only an existing founder can invite into these — an
+// owner cannot promote peers or superiors via the invite flow.
+const FOUNDER_GATED_ROLES = new Set<string>(["founder", "owner"]);
+
+// All roles that can be invited via this endpoint. Hierarchy roles plus
+// the four operational/external roles that don't need an upline.
+const VALID_INVITE_ROLES = new Set<string>([
+  ...Object.keys(INVITE_ROLE_PLACEMENT),
+  "system_admin",
+  "marketing_staff",
+  "client",
+  "investor",
+]);
 import { agentProfiles } from "../../shared/models/agentProfiles";
 import { contractingChecklists } from "../../shared/models/contracting";
 import { eq } from "drizzle-orm";
@@ -42,18 +79,40 @@ async function findByToken(token: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, uplineId, contractLevel } = req.body;
+    const { firstName, lastName, email, phone, uplineId, contractLevel, role: rawRole } = req.body;
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ error: "firstName, lastName, and email are required" });
     }
 
-    // Validate upline and contract level
-    if (uplineId && contractLevel !== undefined) {
-      // Contract level must be a multiple of 5
+    // Resolve invitee role. Default to sales_agent if missing/invalid.
+    const inviteeRole: string = typeof rawRole === "string" && VALID_INVITE_ROLES.has(rawRole)
+      ? rawRole
+      : "sales_agent";
+    const inviterRole = req.user?.role;
+    if (!inviterRole) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    // Founder gate — only an existing founder can invite founder/owner.
+    if (FOUNDER_GATED_ROLES.has(inviteeRole) && inviterRole !== Roles.FOUNDER) {
+      return res.status(403).json({ error: "Only a founder can invite founder/owner roles" });
+    }
+    // General authority — inviter must be at least as senior as invitee.
+    if (!isRoleAtLeast(inviterRole, inviteeRole as Roles)) {
+      return res.status(403).json({ error: "You cannot invite someone at or above your own role" });
+    }
+    const isHierarchyRole = HIERARCHY_ROLES.has(inviteeRole);
+    const placement = isHierarchyRole ? INVITE_ROLE_PLACEMENT[inviteeRole] : null;
+
+    // Validate upline and contract level — only required for hierarchy roles.
+    // Non-hierarchy roles (system_admin, marketing_staff, client, investor)
+    // ignore any uplineId/contractLevel sent by the client.
+    if (isHierarchyRole) {
+      if (!uplineId || contractLevel === undefined || contractLevel === null) {
+        return res.status(400).json({ error: "Upline and contract level are required for this role" });
+      }
       if (contractLevel % 5 !== 0) {
         return res.status(400).json({ error: "Contract level must be in increments of 5%" });
       }
-      // Verify upline exists and get their contract level
       const uplineResult = await pool.query(
         `SELECT u.id, u.role, COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 120 ELSE 80 END) as contract_level
          FROM users u LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
@@ -77,30 +136,37 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
 
     if (existing.rows.length > 0) {
       userId = existing.rows[0].id;
-      await pool.query("UPDATE users SET first_name = $1, last_name = $2, phone = COALESCE($3, phone), invite_token = $4, invite_token_expires_at = $5, onboarding_status = 'invited', password_reset_required = true, updated_at = NOW() WHERE id = $6",
-        [firstName, lastName, phone || null, inviteToken, expiresAt, userId]);
-      const ep = await pool.query("SELECT id FROM agent_profiles WHERE user_id::text = $1", [userId]);
-      if (ep.rows.length > 0) {
-        await pool.query("UPDATE agent_profiles SET onboarding_token = $1, onboarding_token_expires_at = $2, onboarding_step = 0, updated_at = NOW() WHERE user_id::text = $3", [inviteToken, expiresAt, userId]);
-      } else {
-        await pool.query("INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at) VALUES ($1, $2, $3, $4, $5)", [userId, "pending_review", 0, inviteToken, expiresAt]);
+      await pool.query("UPDATE users SET first_name = $1, last_name = $2, phone = COALESCE($3, phone), role = $4, invite_token = $5, invite_token_expires_at = $6, onboarding_status = 'invited', password_reset_required = true, updated_at = NOW() WHERE id = $7",
+        [firstName, lastName, phone || null, inviteeRole, inviteToken, expiresAt, userId]);
+      // agent_profiles + contracting_checklists are for production staff only.
+      // Skip both for non-hierarchy roles (system_admin, marketing, client, investor).
+      if (isHierarchyRole) {
+        const ep = await pool.query("SELECT id FROM agent_profiles WHERE user_id::text = $1", [userId]);
+        if (ep.rows.length > 0) {
+          await pool.query("UPDATE agent_profiles SET onboarding_token = $1, onboarding_token_expires_at = $2, onboarding_step = 0, updated_at = NOW() WHERE user_id::text = $3", [inviteToken, expiresAt, userId]);
+        } else {
+          await pool.query("INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at) VALUES ($1, $2, $3, $4, $5)", [userId, "pending_review", 0, inviteToken, expiresAt]);
+        }
+        const ec = await pool.query("SELECT id FROM contracting_checklists WHERE agent_user_id::text = $1", [userId]);
+        if (ec.rows.length === 0) await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [userId]);
       }
-      const ec = await pool.query("SELECT id FROM contracting_checklists WHERE agent_user_id::text = $1", [userId]);
-      if (ec.rows.length === 0) await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [userId]);
     } else {
       const [user] = await db.insert(users).values({
         email, password: tempPassword, firstName, lastName, phone: phone || null,
-        role: "sales_agent", onboardingStatus: "invited", inviteToken, inviteTokenExpiresAt: expiresAt, passwordResetRequired: true,
+        role: inviteeRole, onboardingStatus: "invited", inviteToken, inviteTokenExpiresAt: expiresAt, passwordResetRequired: true,
       }).returning();
       userId = user.id;
-      await pool.query("INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at) VALUES ($1, $2, $3, $4, $5)", [userId, "pending_review", 0, inviteToken, expiresAt]);
-      await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [userId]);
+      if (isHierarchyRole) {
+        await pool.query("INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at) VALUES ($1, $2, $3, $4, $5)", [userId, "pending_review", 0, inviteToken, expiresAt]);
+        await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [userId]);
+      }
     }
     const profile = { id: userId };
 
-    // Create hierarchy placement if upline and contract level provided
-    if (uplineId && contractLevel !== undefined) {
-      // Build upline chain
+    // Create hierarchy placement only for hierarchy roles. Non-hierarchy
+    // roles (system_admin, marketing_staff, client, investor) skip this
+    // entirely — they don't get an agent_hierarchy row at all.
+    if (isHierarchyRole && placement && uplineId && contractLevel !== undefined) {
       const chainResult = await pool.query(
         `SELECT upline_chain, agent_user_id FROM agent_hierarchy WHERE agent_user_id::text = $1 AND (effective_to IS NULL OR effective_to > NOW())`,
         [uplineId]
@@ -110,9 +176,9 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
 
       await pool.query(
         `INSERT INTO agent_hierarchy (agent_user_id, direct_upline_id, hierarchy_level, hierarchy_title, upline_chain, contract_level, override_eligible, override_percentage, effective_from)
-         VALUES ($1, $2, 6, 'Agent', $3, $4, false, 0, NOW())
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 0, NOW())
          ON CONFLICT DO NOTHING`,
-        [userId, uplineId, JSON.stringify(newChain), contractLevel]
+        [userId, uplineId, placement.level, placement.title, JSON.stringify(newChain), contractLevel, placement.overrideEligible]
       );
 
       try {
@@ -124,10 +190,30 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
           payload: {
             invitedAgentUserId: userId,
             directUplineId: uplineId,
-            hierarchyLevel: 6,
-            hierarchyTitle: "Agent",
+            hierarchyLevel: placement.level,
+            hierarchyTitle: placement.title,
             contractLevel,
+            inviteeRole,
+            overrideEligible: placement.overrideEligible,
             uplineChain: newChain,
+            seededVia: "POST /api/apply/invite",
+          },
+        });
+      } catch (auditErr: any) {
+        console.error("[Apply] Audit log failed:", auditErr?.message);
+      }
+    } else {
+      // Audit non-hierarchy invites too — different action so it's filterable.
+      try {
+        await logFounderAction({
+          actorUserId: req.user?.id ?? null,
+          action: "user.invite_non_hierarchy",
+          entityType: "users",
+          entityId: userId,
+          payload: {
+            invitedUserId: userId,
+            inviteeRole,
+            isHierarchyRole: false,
             seededVia: "POST /api/apply/invite",
           },
         });
