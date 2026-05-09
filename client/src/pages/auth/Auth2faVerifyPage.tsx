@@ -6,16 +6,12 @@ import {
   Loader2,
   Fingerprint,
   Shield,
-  X,
   Mail,
   MessageSquare,
 } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { csrfHeaders } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
-const SUPPRESS_FALLBACK_KEY = "gc.2fa.suppressFallbackPopup";
-const FALLBACK_DELAY_MS = 4500;
 
 type FallbackMode = "email" | "recovery";
 
@@ -27,9 +23,6 @@ export default function Auth2faVerifyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [passkeyAvailable, setPasskeyAvailable] = useState<boolean | null>(null);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [popupOpen, setPopupOpen] = useState(false);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [requestingEmail, setRequestingEmail] = useState(false);
@@ -88,10 +81,10 @@ export default function Auth2faVerifyPage() {
             autoTriggered.current = true;
             setTimeout(() => verifyPasskey(), 250);
           }
-          if (!has) {
-            // No passkey at all — show fallback inline; no popup needed.
-            setShowFallback(true);
-          }
+          // Wave AI: always show the email-OTP fallback inline (no popup).
+          // Touch ID button is on top; the email card sits below it so the
+          // user always has both options visible.
+          setShowFallback(true);
         } else {
           setPasskeyAvailable(false);
           setShowFallback(true);
@@ -103,33 +96,6 @@ export default function Auth2faVerifyPage() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Schedule the soft "use email code" popup after a short delay,
-  // unless the user has previously dismissed it permanently.
-  useEffect(() => {
-    if (passkeyAvailable !== true) return;
-    let suppressed = false;
-    try {
-      suppressed = localStorage.getItem(SUPPRESS_FALLBACK_KEY) === "1";
-    } catch { /* localStorage may be blocked */ }
-    if (suppressed) return;
-    const t = window.setTimeout(() => {
-      setPopupVisible(true);
-      requestAnimationFrame(() => setPopupOpen(true));
-    }, FALLBACK_DELAY_MS);
-    return () => window.clearTimeout(t);
-  }, [passkeyAvailable]);
-
-  const dismissPopup = (useNow: boolean) => {
-    if (dontShowAgain) {
-      try { localStorage.setItem(SUPPRESS_FALLBACK_KEY, "1"); } catch { /* ignore */ }
-    }
-    setPopupOpen(false);
-    setTimeout(() => {
-      setPopupVisible(false);
-      if (useNow) setShowFallback(true);
-    }, 220);
-  };
 
   // Wave AH5: request a 6-digit code via Gold Coast branded email.
   const requestEmailCode = async () => {
@@ -631,107 +597,6 @@ export default function Auth2faVerifyPage() {
         </div>
       </div>
 
-      {/* ─── Soft fallback popup ─── */}
-      {popupVisible && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 32,
-            right: 32,
-            maxWidth: 360,
-            background: "var(--gc-surface)",
-            border: "1px solid var(--gc-border)",
-            borderLeft: "3px solid var(--gc-gold)",
-            borderRadius: "var(--gc-radius-md)",
-            boxShadow: "var(--gc-shadow-lg)",
-            padding: "var(--gc-space-4) var(--gc-space-5)",
-            opacity: popupOpen ? 1 : 0,
-            transform: popupOpen ? "translateY(0)" : "translateY(12px)",
-            transition: "opacity 220ms ease, transform 220ms ease",
-            zIndex: 50,
-          }}
-        >
-          <button
-            onClick={() => dismissPopup(false)}
-            aria-label="Dismiss"
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              background: "transparent",
-              border: "none",
-              color: "var(--gc-text-muted)",
-              cursor: "pointer",
-              padding: 4,
-              lineHeight: 0,
-            }}
-          >
-            <X className="w-4 h-4" aria-hidden="true" />
-          </button>
-          <div
-            style={{
-              fontSize: "var(--gc-text-xs)",
-              letterSpacing: "var(--gc-tracking-wider)",
-              textTransform: "uppercase",
-              color: "var(--gc-gold)",
-              fontWeight: 600,
-              marginBottom: 6,
-            }}
-          >
-            Trouble with Touch ID?
-          </div>
-          <p
-            style={{
-              fontFamily: "var(--gc-font-display)",
-              fontStyle: "italic",
-              fontSize: "var(--gc-text-md)",
-              color: "var(--gc-text-secondary)",
-              margin: 0,
-              marginBottom: "var(--gc-space-3)",
-              lineHeight: 1.5,
-            }}
-          >
-            Use a 6-digit code emailed to you instead.
-          </p>
-          <button
-            onClick={() => dismissPopup(true)}
-            className="w-full"
-            style={{
-              padding: "var(--gc-space-2) var(--gc-space-3)",
-              background: "var(--gc-btn-primary-bg)",
-              color: "var(--gc-btn-primary-text)",
-              border: "none",
-              borderRadius: "var(--gc-radius-sm)",
-              fontFamily: "var(--gc-font-body)",
-              fontSize: "var(--gc-text-sm)",
-              fontWeight: 600,
-              letterSpacing: "var(--gc-tracking-wide)",
-              cursor: "pointer",
-              marginBottom: "var(--gc-space-3)",
-            }}
-          >
-            Use email code
-          </button>
-          <label
-            className="flex items-center gap-2"
-            style={{
-              fontSize: "var(--gc-text-xs)",
-              color: "var(--gc-text-muted)",
-              cursor: "pointer",
-              userSelect: "none",
-              letterSpacing: "var(--gc-tracking-wide)",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
-              style={{ accentColor: "var(--gc-gold)", cursor: "pointer" }}
-            />
-            Don't show this again on this device
-          </label>
-        </div>
-      )}
     </div>
   );
 }
