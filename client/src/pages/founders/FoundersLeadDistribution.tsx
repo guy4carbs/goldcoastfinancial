@@ -547,6 +547,7 @@ export default function FoundersLeadDistribution() {
             style={{
               fontFamily: "var(--gc-font-display)",
               fontSize: "var(--gc-text-xl)",
+              color: "var(--gc-text-primary)",
               margin: 0,
               marginBottom: "var(--gc-space-4)",
             }}
@@ -623,6 +624,7 @@ export default function FoundersLeadDistribution() {
             style={{
               fontFamily: "var(--gc-font-display)",
               fontSize: "var(--gc-text-xl)",
+              color: "var(--gc-text-primary)",
               margin: 0,
               marginBottom: "var(--gc-space-4)",
             }}

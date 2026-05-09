@@ -154,16 +154,25 @@ export async function buildAuthenticationOptions(opts: { userId: string; req: an
     [opts.userId],
   );
   if (existing.rowCount === 0) return null;
-  // Wave AH1: force transports to ["internal"] only. Even if the credential
-  // was originally enrolled with hybrid (iCloud Keychain syncs across
-  // devices), telling Safari only "internal" is a valid transport hides the
-  // cross-device QR flow and fires Touch ID / Face ID directly. The
-  // credential still works the same way locally — we're just not advertising
-  // the cross-device pathway.
-  const allowCredentials = existing.rows.map((r: any) => ({
-    id: r.credential_id as string,
-    transports: ["internal"] as ("usb" | "nfc" | "ble" | "internal" | "hybrid" | "smart-card")[],
-  }));
+  // Pass through the actual stored transports — Safari needs to know all
+  // valid transports for the credential to find a match. Forcing
+  // ["internal"] when the credential was iCloud-synced (hybrid) made Safari
+  // throw "no matching passkeys saved." If "internal" isn't already present,
+  // we add it so Touch ID is suggested first when the credential is local.
+  const allowCredentials = existing.rows.map((r: any) => {
+    const stored = r.transports
+      ? (String(r.transports)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean) as ("usb" | "nfc" | "ble" | "internal" | "hybrid" | "smart-card")[])
+      : [];
+    const transports = stored.length === 0
+      ? undefined
+      : stored.includes("internal")
+        ? stored
+        : (["internal", ...stored] as typeof stored);
+    return { id: r.credential_id as string, transports };
+  });
   const generateOpts: GenerateAuthenticationOptionsOpts = {
     rpID: getRpID(opts.req),
     timeout: 60_000,
