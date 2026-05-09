@@ -50,6 +50,7 @@ import { generateSignedPdf } from "../services/documentSigningService";
 import { uploadFile, validateFile } from "../services/s3Service";
 import { sendApplicationInvite } from "../gmail";
 import { logFounderAction } from "../services/founderAudit";
+import { reinitializeLoungeAccess } from "../services/loungeAccessSync";
 
 const router = Router();
 
@@ -162,6 +163,26 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
       }
     }
     const profile = { id: userId };
+
+    // Sync lounge access for the invitee's role. Without this the user gets
+    // a `users` row stamped with the role but ZERO `user_lounge_access` rows,
+    // which means they can't access anything in Heritage on first login.
+    // `force: true` so a re-invite of an existing user with the same role
+    // still re-grants the canonical defaults (wipes any stale grants).
+    try {
+      await reinitializeLoungeAccess({
+        userId,
+        newRole: inviteeRole,
+        performedByUserId: req.user?.id ?? userId,
+        reason: `Invite by ${req.user?.email || "system"} via /api/apply/invite`,
+        brand: "both",
+        force: true,
+      });
+    } catch (loungeErr: any) {
+      // Non-fatal: the user record + hierarchy still exist. Surface in logs
+      // so an admin can re-run /reset-lounge-access if needed.
+      console.error("[Apply] Lounge access sync failed:", loungeErr?.message);
+    }
 
     // Create hierarchy placement only for hierarchy roles. Non-hierarchy
     // roles (system_admin, marketing_staff, client, investor) skip this
