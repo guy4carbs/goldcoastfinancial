@@ -1424,7 +1424,6 @@ function DirectoryTable({
 }) {
   const cols: Column<CarrierDirectoryRow>[] = [
     { key: "name", label: "Carrier", sortable: true },
-    { key: "naic", label: "Writing #", width: 110, render: (v) => v || "—" },
     { key: "am_best", label: "AM Best", width: 100, render: (v) => v || "—" },
     {
       key: "product_types",
