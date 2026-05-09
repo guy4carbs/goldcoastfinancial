@@ -4,8 +4,14 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
+import { LIFEOS_VERSION } from "./shared/lifeos";
 
 export default defineConfig({
+  // Inject the deployed bundle's lifeOS version so the client can detect
+  // stale-bundle mismatches without an extra network call.
+  define: {
+    __LIFEOS_VERSION__: JSON.stringify(LIFEOS_VERSION),
+  },
   plugins: [
     react(),
     ...(process.env.REPL_ID ? [runtimeErrorOverlay()] : []),

@@ -3383,6 +3383,10 @@ export async function registerRoutes(
   // App version and configuration (for iOS/Android apps)
   app.use("/api/app", appRouter);
 
+  // lifeOS — system update + release notes (read-only on Heritage; authoring lives on Gold Coast)
+  const { default: lifeosRouter } = await import("./routes/lifeos");
+  app.use("/api/lifeos", lifeosRouter);
+
   // Member Cards (Heritage Life Solutions digital insurance cards)
   app.use("/api/member-cards", memberCardsRouter);
 

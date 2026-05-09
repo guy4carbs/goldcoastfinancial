@@ -243,6 +243,10 @@ import { RoleProtectedRoute, SuperAdminRoute, AdminRoute, StaffRoute } from "@/c
 import { Roles, RoleGroups } from "@/types/permissions";
 import { CelebrationProvider } from "@/lib/celebrationContext";
 import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
+
+// lifeOS — system update + release notes (read-only on Heritage)
+import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
+import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
 import { AnalyticsProvider } from "@/hooks/useAnalytics";
 import { WebSocketProvider } from "@/providers/WebSocketProvider";
 
@@ -281,6 +285,9 @@ function Router() {
         <Route path="/card/:agentId" component={PublicBusinessCard} />
         <Route path="/refer/:clientId" component={ReferralLandingPage} />
         <Route path="/refer" component={ReferralLandingPage} />
+
+        {/* lifeOS — release notes archive (authoring lives on Gold Coast) */}
+        <Route path="/lifeos/whats-new" component={WhatsNewArchive} />
         <Route path="/llfg">
           <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A]" />}>
             <LLFGPage />
@@ -1156,9 +1163,11 @@ function App() {
               <ConfirmProvider>
                 <TooltipProvider>
                   <AnalyticsProvider>
-                    <Toaster />
-                    <Router />
-                    <LindyChat />
+                    <LifeOSUpdateProvider>
+                      <Toaster />
+                      <Router />
+                      <LindyChat />
+                    </LifeOSUpdateProvider>
                   </AnalyticsProvider>
                 </TooltipProvider>
               </ConfirmProvider>
