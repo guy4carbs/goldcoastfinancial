@@ -95,6 +95,12 @@ export async function buildRegistrationOptions(opts: {
       requireResidentKey: true,
       userVerification: "required",
     },
+    // WebAuthn Level 3 hint via SimpleWebAuthn's wrapper. "localDevice" maps
+    // to hints: ["client-device"] in the generated options, which tells
+    // Safari 17+ / Chrome / Firefox to PREFER the local platform authenticator
+    // (Touch ID / Face ID) and SUPPRESS the cross-device QR / hybrid flow.
+    // Older browsers ignore the hint (graceful fallback).
+    preferredAuthenticatorType: "localDevice",
     supportedAlgorithmIDs: [-7, -257], // ES256, RS256 — the broadly-supported pair
   };
   const options = await generateRegistrationOptions(generateOpts);
@@ -181,7 +187,16 @@ export async function buildAuthenticationOptions(opts: { userId: string; req: an
     userVerification: "required",
     allowCredentials,
   };
-  return generateAuthenticationOptions(generateOpts);
+  const options = await generateAuthenticationOptions(generateOpts);
+  // SimpleWebAuthn v13's GenerateAuthenticationOptionsOpts doesn't expose the
+  // WebAuthn Level 3 `hints` field directly, but the spec allows it on the
+  // options object passed to navigator.credentials.get(). Injecting it
+  // post-generation tells Safari 17+ to PREFER the local platform
+  // authenticator and suppress the cross-device QR popup. Older browsers
+  // ignore unknown fields, so this is a graceful enhancement.
+  return { ...options, hints: ["client-device"] } as typeof options & {
+    hints: string[];
+  };
 }
 
 export async function consumeAuthentication(opts: {
