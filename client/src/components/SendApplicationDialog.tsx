@@ -527,7 +527,9 @@ export function SendApplicationDialog({
                       border: "1px solid var(--gc-border)",
                       borderRadius: "var(--gc-radius-sm)",
                       boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-                      overflow: "hidden",
+                      maxHeight: 280,
+                      overflowY: "auto",
+                      overscrollBehavior: "contain",
                     }}
                   >
                     {visibleRoleOptions.map((opt) => (
