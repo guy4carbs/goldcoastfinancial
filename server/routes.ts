@@ -80,6 +80,9 @@ import foundersViewasRouter from "./routes/founders-viewas";
 import foundersOversightRouter from "./routes/founders-oversight";
 import foundersDashboardConfigRouter from "./routes/founders-dashboard-config";
 import foundersBookRouter from "./routes/founders-book";
+
+// lifeOS — system update + release notes (cross-app, shared DB)
+import lifeosRouter from "./routes/lifeos";
 import bookOfBusinessRouter from "./routes/book-of-business";
 import foundersTeamsRouter from "./routes/founders-teams";
 import foundersLeadsRouter from "./routes/founders-leads";
@@ -1792,6 +1795,13 @@ export async function registerRoutes(
   // /api/founders/dashboard/* paths win over any catch-alls below.
   app.use("/api/founders/dashboard", foundersDashboardConfigRouter);
   app.use("/api/founders", foundersRouter);
+
+  // ============================================
+  // lifeOS ROUTES — system update + release notes
+  // Cross-app, shared DB. Both Gold Coast and Heritage hit the same surface.
+  // ============================================
+  app.use("/api/lifeos", attachUser);
+  app.use("/api/lifeos", lifeosRouter);
 
   // Sentinel H3: start the view-as sweeper (auto-ends sessions older than 4h).
   startViewAsSweeper();
