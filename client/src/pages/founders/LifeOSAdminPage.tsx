@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2, ArrowUpRight } from "lucide-react";
+import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2, ArrowUpRight, Sparkles, Code, Rocket } from "lucide-react";
 import { GCModal } from "@/components/gc/GCModal";
 import {
   GCPageHeader,
@@ -261,9 +261,9 @@ export default function LifeOSAdminPage() {
       />
 
       {/* KPI band — matches FoundersAgencyManagement rhythm */}
-      <section aria-labelledby="lifeos-kpi-heading" className="mb-6">
+      <section aria-labelledby="lifeos-kpi-heading" className="mb-4">
         <h2 id="lifeos-kpi-heading" className="sr-only">lifeOS Release KPIs</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <GCKPICard label="Latest version" value={latestVersion} accentTop />
           <GCKPICard label="Published releases" value={formatNumber(publishedCount)} accentTop />
           <GCKPICard label="Drafts" value={formatNumber(draftCount)} accentTop />
@@ -312,29 +312,32 @@ export default function LifeOSAdminPage() {
       )}
 
       {/* Releases table — same shape as Agency Management's Carriers table */}
+      {/* Section label — matches the "Agency Tree" / "Agency Detail" pattern */}
+      <div
+        style={{
+          fontFamily: "var(--gc-font-body)",
+          fontSize: "var(--gc-text-xs)",
+          letterSpacing: "var(--gc-tracking-wider)",
+          textTransform: "uppercase",
+          color: "var(--gc-text-muted)",
+          fontWeight: 600,
+          marginBottom: "var(--gc-space-2)",
+        }}
+      >
+        Release Log
+      </div>
+
       {loading ? (
         <div
           style={{
-            height: 280,
+            height: 200,
             backgroundColor: "var(--gc-surface)",
             border: "1px solid var(--gc-border)",
             borderRadius: "var(--gc-radius-md)",
           }}
         />
       ) : rows.length === 0 ? (
-        <div
-          style={{
-            padding: "32px 24px",
-            textAlign: "center",
-            backgroundColor: "var(--gc-surface)",
-            border: "1px dashed var(--gc-border)",
-            borderRadius: "var(--gc-radius-md)",
-          }}
-        >
-          <p style={{ color: "var(--gc-text-muted)", fontSize: 14, margin: 0 }}>
-            No releases yet. Click <strong>New release</strong> to write the first one.
-          </p>
-        </div>
+        <EmptyReleaseConsole onNewRelease={() => setCreating(true)} />
       ) : (
         <GCDataTable<AdminRelease>
           columns={columns}
@@ -361,6 +364,180 @@ export default function LifeOSAdminPage() {
           onClose={() => setPreviewVersion(null)}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * EmptyReleaseConsole — rich onboarding panel that fills the space the
+ * release table would occupy when there's no data. Replaces the previous
+ * thin dashed band (which left a 60vh dead zone). Sparkles hero, three
+ * numbered steps, primary CTA, public-archive preview link.
+ */
+function EmptyReleaseConsole({ onNewRelease }: { onNewRelease: () => void }) {
+  const steps = [
+    {
+      icon: <Code className="w-4 h-4" />,
+      title: "Bump LIFEOS_VERSION",
+      detail: "Edit shared/lifeos.ts in both repos to the next semver number (e.g. 1.0.1).",
+    },
+    {
+      icon: <Rocket className="w-4 h-4" />,
+      title: "Deploy through Railway",
+      detail: "Merge to main on Gold Coast and push heritage-app for Heritage. Wait for green builds.",
+    },
+    {
+      icon: <Sparkles className="w-4 h-4" />,
+      title: "Publish notes here",
+      detail: "Click New release, paste your git log into Generate from commits, and publish.",
+    },
+  ];
+  return (
+    <div
+      style={{
+        padding: "var(--gc-space-6)",
+        backgroundColor: "var(--gc-surface)",
+        border: "1px solid var(--gc-border)",
+        borderRadius: "var(--gc-radius-md)",
+        backgroundImage:
+          "linear-gradient(135deg, color-mix(in srgb, var(--gc-gold) 6%, transparent), transparent 55%)",
+      }}
+    >
+      <div className="flex items-center gap-3" style={{ marginBottom: "var(--gc-space-4)" }}>
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "var(--gc-radius-full, 999px)",
+            background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 14px color-mix(in srgb, var(--gc-gold) 40%, transparent)",
+            flexShrink: 0,
+          }}
+        >
+          <Sparkles className="w-5 h-5" style={{ color: "var(--gc-ink)" }} />
+        </div>
+        <div>
+          <div
+            style={{
+              fontFamily: "var(--gc-font-display)",
+              fontSize: 20,
+              fontWeight: 600,
+              color: "var(--gc-text-primary)",
+              lineHeight: 1.2,
+            }}
+          >
+            Let's ship your first release.
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--gc-font-body)",
+              fontSize: 13,
+              color: "var(--gc-text-secondary)",
+              marginTop: 2,
+            }}
+          >
+            Three steps from a code change to every user seeing the Update Now popup.
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3" style={{ marginBottom: "var(--gc-space-4)" }}>
+        {steps.map((step, idx) => (
+          <div
+            key={idx}
+            style={{
+              padding: "var(--gc-space-3) var(--gc-space-4)",
+              backgroundColor: "var(--gc-surface-2)",
+              border: "1px solid var(--gc-border-subtle)",
+              borderRadius: "var(--gc-radius-sm)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "var(--gc-radius-full, 999px)",
+                  backgroundColor: "color-mix(in srgb, var(--gc-gold) 22%, transparent)",
+                  color: "var(--gc-gold)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "var(--gc-font-mono, monospace)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                {idx + 1}
+              </div>
+              <div style={{ color: "var(--gc-text-secondary)" }}>{step.icon}</div>
+              <div
+                style={{
+                  fontFamily: "var(--gc-font-body)",
+                  fontWeight: 600,
+                  color: "var(--gc-text-primary)",
+                  fontSize: "var(--gc-text-sm)",
+                }}
+              >
+                {step.title}
+              </div>
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--gc-font-body)",
+                fontSize: 12,
+                color: "var(--gc-text-muted)",
+                lineHeight: 1.5,
+                marginLeft: 28,
+              }}
+            >
+              {step.detail}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onNewRelease}
+          className="flex items-center gap-2"
+          style={{
+            padding: "var(--gc-space-2) var(--gc-space-4)",
+            background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
+            color: "var(--gc-ink)",
+            border: "none",
+            borderRadius: "var(--gc-radius-sm)",
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 2px 8px color-mix(in srgb, var(--gc-gold) 30%, transparent)",
+            fontFamily: "var(--gc-font-body)",
+            fontSize: "var(--gc-text-sm)",
+          }}
+        >
+          <Plus className="w-4 h-4" /> Write the first release
+        </button>
+        <a
+          href="/lifeos/whats-new"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontFamily: "var(--gc-font-body)",
+            fontSize: "var(--gc-text-sm)",
+            color: "var(--gc-text-secondary)",
+            textDecoration: "none",
+          }}
+        >
+          Preview the public archive →
+        </a>
+      </div>
     </div>
   );
 }
