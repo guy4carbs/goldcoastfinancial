@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { LIFEOS_VERSION, getRuntimeLifeOSVersion } from "@shared/lifeos";
+import { triggerLifeOSUpdate } from "@/lib/lifeos-sw-register";
 import { UpdateAvailableModal } from "./UpdateAvailableModal";
 import { WhatsNewModal } from "./WhatsNewModal";
 
@@ -170,7 +171,11 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyUpdate = useCallback(async () => {
-    if (!status?.latest_release) return;
+    if (!status?.latest_release) {
+      // No release context — still let them update via the SW cache wipe.
+      await triggerLifeOSUpdate();
+      return;
+    }
     try {
       await fetch("/api/lifeos/me/ack", {
         method: "POST",
@@ -181,8 +186,10 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
     } catch {
       // Continue even if ack fails — better to update than to hang
     }
-    // Cache-bust so any intermediate proxy / stale SW re-fetches index.html.
-    window.location.href = window.location.pathname + "?lifeos=" + Date.now();
+    // Strict bundle lock: wipe the SW cache so the next page load fetches
+    // the new bundle. Without this, a hard refresh would re-serve the
+    // cached old bundle.
+    await triggerLifeOSUpdate();
   }, [status]);
 
   const dismissUpdate = useCallback(async () => {
