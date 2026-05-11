@@ -25,6 +25,7 @@ import {
 
 const router = Router();
 const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 router.get("/version", (_req, res) => {
   res.json({ deployed_version: LIFEOS_VERSION });
@@ -34,7 +35,7 @@ router.get("/releases/latest", async (_req, res) => {
   try {
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
-              highlight_label, published_at, published_by
+              highlight_label, published_at
          FROM lifeos_releases
         WHERE status = 'published'
         ORDER BY published_at DESC NULLS LAST
@@ -54,7 +55,7 @@ router.get("/releases", async (req, res) => {
     const offset = Math.max(parseInt(String(req.query.offset ?? "0"), 10) || 0, 0);
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, highlight_label,
-              published_at, published_by
+              published_at
          FROM lifeos_releases
         WHERE status = 'published'
         ORDER BY published_at DESC NULLS LAST
@@ -74,7 +75,7 @@ router.get("/releases/:version", async (req, res) => {
   try {
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
-              highlight_label, status, published_at, published_by
+              highlight_label, status, published_at
          FROM lifeos_releases
         WHERE version = $1 AND status = 'published'`,
       [v],
@@ -143,8 +144,8 @@ router.get("/me/status", requireAuth, async (req, res) => {
 router.post("/me/ack", requireAuth, async (req, res) => {
   try {
     const { release_id, state } = req.body ?? {};
-    if (!release_id || typeof release_id !== "string") {
-      return res.status(400).json({ error: "release_id required" });
+    if (!release_id || typeof release_id !== "string" || !UUID_RE.test(release_id)) {
+      return res.status(400).json({ error: "Invalid release_id" });
     }
     if (!LIFEOS_ACK_STATES.includes(state as LifeOSAckState)) {
       return res.status(400).json({ error: "Invalid ack state" });

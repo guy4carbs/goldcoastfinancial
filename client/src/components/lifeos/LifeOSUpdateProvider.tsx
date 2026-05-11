@@ -16,6 +16,13 @@ const POLL_MS = 60_000;
 const FIRST_POPUP_DELAY_MS = 5_000;
 const WHATS_NEW_IDLE_MS = 800;
 const SESSION_DISMISS_KEY = "lifeos.session_dismissed_releases";
+const BROADCAST_CHANNEL = "lifeos";
+
+interface LifeOSBroadcast {
+  type: "update_applied";
+  releaseId: string;
+  at: number;
+}
 
 interface LatestRelease {
   id: string;
@@ -94,6 +101,31 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   const initialPopupShownRef = useRef<boolean>(false);
   const whatsNewShownRef = useRef<boolean>(false);
 
+  // Reset per-user grace flags so a new sign-in on the same device gets
+  // a fresh first-popup delay.
+  const prevUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const id = user?.id ?? null;
+    if (id !== prevUserIdRef.current) {
+      initialPopupShownRef.current = false;
+      whatsNewShownRef.current = false;
+      prevUserIdRef.current = id;
+    }
+  }, [user?.id]);
+
+  // BroadcastChannel — when one tab updates, others reload too so they
+  // don't sit on a now-defunct bundle that will chunk-404 on next nav.
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") return;
+    const channel = new BroadcastChannel(BROADCAST_CHANNEL);
+    channel.onmessage = (e: MessageEvent<LifeOSBroadcast>) => {
+      if (e.data?.type === "update_applied") {
+        window.location.href = window.location.pathname + "?lifeos=" + Date.now();
+      }
+    };
+    return () => channel.close();
+  }, []);
+
   const fetchStatus = useCallback(async () => {
     if (!user) return;
     try {
@@ -154,7 +186,8 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   const openWhatsNew = useCallback(() => setWhatsNewOpen(true), []);
 
   const applyUpdate = useCallback(async () => {
-    if (!status?.latest_release) {
+    const releaseId = status?.latest_release?.id;
+    if (!releaseId) {
       await triggerLifeOSUpdate();
       return;
     }
@@ -163,8 +196,15 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ release_id: status.latest_release.id, state: "updated" }),
+        body: JSON.stringify({ release_id: releaseId, state: "updated" }),
       });
+    } catch { /* ignore */ }
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        const ch = new BroadcastChannel(BROADCAST_CHANNEL);
+        ch.postMessage({ type: "update_applied", releaseId, at: Date.now() } satisfies LifeOSBroadcast);
+        ch.close();
+      }
     } catch { /* ignore */ }
     // Strict bundle lock: wipe SW cache + reload onto the new bundle.
     await triggerLifeOSUpdate();

@@ -22,7 +22,16 @@
  *   the user's back — opposite of what the user asked for.
  */
 
-const CACHE_NAME = "lifeos-bundle-v1";
+// Cache name is versioned so each deploy gets its own namespace and old
+// caches are reaped on activate. The version comes from a query param
+// on the SW script URL — registration passes `?v=<LIFEOS_VERSION>`. When
+// the version bumps, the SW URL changes, the browser fetches a new SW,
+// the new SW gets a new CACHE_NAME, and the activate handler deletes
+// every namespace that doesn't match.
+const SW_URL = new URL(self.location.href);
+const CACHE_VERSION = SW_URL.searchParams.get("v") || "fallback";
+const CACHE_PREFIX = "lifeos-bundle-";
+const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 const APP_SHELL = ["/", "/index.html"];
 
 // URL prefixes that should NEVER be cached (always hit the network).
@@ -55,7 +64,12 @@ self.addEventListener("install", (event) => {
   // Skip the waiting state so we take over immediately on first install.
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL).catch(() => {})),
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(APP_SHELL).catch((err) => {
+        // Don't crash install — but DO log so failures are visible.
+        console.warn("[lifeOS SW] APP_SHELL precache failed:", err);
+      }),
+    ),
   );
 });
 
@@ -64,8 +78,24 @@ self.addEventListener("activate", (event) => {
     (async () => {
       // Take control of any open clients right now.
       await self.clients.claim();
-      // Don't auto-delete old caches — we keep them so the user stays on
-      // their bundle. We only wipe on explicit LIFEOS_UPDATE message.
+      // Reap any cache namespaces from OLDER lifeOS versions. New version
+      // = new CACHE_NAME, so anything else under CACHE_PREFIX is stale.
+      try {
+        const names = await caches.keys();
+        await Promise.all(
+          names
+            .filter((n) => n.startsWith(CACHE_PREFIX) && n !== CACHE_NAME)
+            .map(async (n) => {
+              try {
+                await caches.delete(n);
+              } catch (err) {
+                console.warn("[lifeOS SW] failed to delete stale cache", n, err);
+              }
+            }),
+        );
+      } catch (err) {
+        console.warn("[lifeOS SW] cache enumeration failed on activate:", err);
+      }
     })(),
   );
 });
@@ -113,9 +143,20 @@ self.addEventListener("message", (event) => {
   if (data.type === "LIFEOS_UPDATE") {
     event.waitUntil(
       (async () => {
-        // Wipe every cache key so the next load is fully fresh.
-        const names = await caches.keys();
-        await Promise.all(names.map((n) => caches.delete(n)));
+        // Wipe every cache key sequentially so partial-failure doesn't leave
+        // a half-populated namespace. Errors are logged but don't block.
+        try {
+          const names = await caches.keys();
+          for (const n of names) {
+            try {
+              await caches.delete(n);
+            } catch (err) {
+              console.warn("[lifeOS SW] LIFEOS_UPDATE failed to delete cache", n, err);
+            }
+          }
+        } catch (err) {
+          console.warn("[lifeOS SW] LIFEOS_UPDATE cache enumeration failed:", err);
+        }
         // Acknowledge so the page can perform the hard reload.
         if (event.source && "postMessage" in event.source) {
           event.source.postMessage({ type: "LIFEOS_UPDATE_READY" });
