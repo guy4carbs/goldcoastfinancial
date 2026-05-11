@@ -323,11 +323,19 @@ function PublicReleaseModal({
  */
 function SimpleMarkdownLight({ source }: { source: string }) {
   const escape = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  // http(s) or root-relative single-slash only. Blocks `//evil.com` and
+  // `javascript:` outright.
+  const SAFE_URL = /^(https?:\/\/[^/]|\/[^/])/;
   const inline = (s: string) => {
     let out = escape(s);
     out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, u) => {
-      const safe = /^(https?:\/\/|\/)/.test(u) ? u : "#";
+      const safe = SAFE_URL.test(u) ? u : "#";
       return `<a href="${safe}" target="_blank" rel="noopener noreferrer" style="color:hsl(42,60%,40%);text-decoration:underline;">${t}</a>`;
     });
     out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");

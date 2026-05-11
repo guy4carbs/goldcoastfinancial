@@ -39,6 +39,16 @@ const ADMIN_ROLES = [Roles.FOUNDER, Roles.SYSTEM_ADMIN];
 
 // Semver validation — server-side guard against malformed inputs.
 const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)$/;
+// UUID v4 (Postgres gen_random_uuid) — cheap pre-DB guard so we don't
+// surface "invalid input syntax for type uuid" errors to clients.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Body size caps — founders authoring, but caps prevent self-DoS / DB bloat
+// and surface a clean 400 rather than a Postgres TOAST limit error.
+const TITLE_MAX = 255;
+const SUMMARY_MAX = 10_000;
+const BODY_MARKDOWN_MAX = 200_000; // ~200KB of markdown is more than any sane release
+const HIGHLIGHT_MAX = 20;
 
 // ─────────────────────────────────────────────────────────────────────────
 // PUBLIC (no auth required)
@@ -53,9 +63,10 @@ router.get("/version", (_req, res) => {
 
 router.get("/releases/latest", async (_req, res) => {
   try {
+    // No published_by UUID in public response — drop the raw user-id leak.
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
-              highlight_label, published_at, published_by
+              highlight_label, published_at
          FROM lifeos_releases
         WHERE status = 'published'
         ORDER BY published_at DESC NULLS LAST
@@ -75,7 +86,7 @@ router.get("/releases", async (req, res) => {
     const offset = Math.max(parseInt(String(req.query.offset ?? "0"), 10) || 0, 0);
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, highlight_label,
-              published_at, published_by
+              published_at
          FROM lifeos_releases
         WHERE status = 'published'
         ORDER BY published_at DESC NULLS LAST
@@ -95,7 +106,7 @@ router.get("/releases/:version", async (req, res) => {
   try {
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
-              highlight_label, status, published_at, published_by
+              highlight_label, status, published_at
          FROM lifeos_releases
         WHERE version = $1 AND status = 'published'`,
       [v],
@@ -167,8 +178,8 @@ router.get("/me/status", requireAuth, async (req, res) => {
 router.post("/me/ack", requireAuth, async (req, res) => {
   try {
     const { release_id, state } = req.body ?? {};
-    if (!release_id || typeof release_id !== "string") {
-      return res.status(400).json({ error: "release_id required" });
+    if (!release_id || typeof release_id !== "string" || !UUID_RE.test(release_id)) {
+      return res.status(400).json({ error: "Invalid release_id" });
     }
     if (!LIFEOS_ACK_STATES.includes(state as LifeOSAckState)) {
       return res.status(400).json({ error: "Invalid ack state" });
@@ -214,8 +225,16 @@ router.post("/releases", requireAuth, requireRole(...ADMIN_ROLES), async (req, r
     if (!LIFEOS_RELEASE_TYPES.includes(release_type as LifeOSReleaseType)) {
       return res.status(400).json({ error: "release_type must be major | minor | patch" });
     }
-    if (!title || !summary || !body_markdown) {
-      return res.status(400).json({ error: "title, summary, body_markdown required" });
+    if (typeof title !== "string" || !title.trim() ||
+        typeof summary !== "string" || !summary.trim() ||
+        typeof body_markdown !== "string" || !body_markdown.trim()) {
+      return res.status(400).json({ error: "title, summary, body_markdown required (strings)" });
+    }
+    if (title.length > TITLE_MAX) return res.status(400).json({ error: `title exceeds ${TITLE_MAX} chars` });
+    if (summary.length > SUMMARY_MAX) return res.status(400).json({ error: `summary exceeds ${SUMMARY_MAX} chars` });
+    if (body_markdown.length > BODY_MARKDOWN_MAX) return res.status(400).json({ error: `body_markdown exceeds ${BODY_MARKDOWN_MAX} chars` });
+    if (highlight_label != null && (typeof highlight_label !== "string" || highlight_label.length > HIGHLIGHT_MAX)) {
+      return res.status(400).json({ error: `highlight_label must be a string under ${HIGHLIGHT_MAX} chars` });
     }
     const r = await pool.query(
       `INSERT INTO lifeos_releases (version, release_type, title, summary, body_markdown, highlight_label, status)
@@ -233,7 +252,7 @@ router.post("/releases", requireAuth, requireRole(...ADMIN_ROLES), async (req, r
     });
     res.json(row);
   } catch (e: any) {
-    if (String(e?.message || "").toLowerCase().includes("duplicate")) {
+    if (e?.code === "23505") {
       return res.status(409).json({ error: "A release with this version already exists" });
     }
     console.error("[lifeOS] create error:", e?.message);
@@ -243,6 +262,7 @@ router.post("/releases", requireAuth, requireRole(...ADMIN_ROLES), async (req, r
 
 router.patch("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (req, res) => {
   const id = String(req.params.id || "");
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: "Invalid release id" });
   const { title, summary, body_markdown, highlight_label, release_type } = req.body ?? {};
   try {
     // Drafts only — published rows are immutable per the SOC 2 audit contract.
@@ -253,11 +273,31 @@ router.patch("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (r
     }
     const sets: string[] = [];
     const vals: any[] = [id];
-    if (title !== undefined)        { vals.push(title);        sets.push(`title = $${vals.length}`); }
-    if (summary !== undefined)      { vals.push(summary);      sets.push(`summary = $${vals.length}`); }
-    if (body_markdown !== undefined){ vals.push(body_markdown); sets.push(`body_markdown = $${vals.length}`); }
-    if (highlight_label !== undefined) { vals.push(highlight_label || null); sets.push(`highlight_label = $${vals.length}`); }
-    if (release_type !== undefined && LIFEOS_RELEASE_TYPES.includes(release_type as LifeOSReleaseType)) {
+    if (title !== undefined) {
+      if (typeof title !== "string" || !title.trim()) return res.status(400).json({ error: "title must be a non-empty string" });
+      if (title.length > TITLE_MAX) return res.status(400).json({ error: `title exceeds ${TITLE_MAX} chars` });
+      vals.push(title); sets.push(`title = $${vals.length}`);
+    }
+    if (summary !== undefined) {
+      if (typeof summary !== "string" || !summary.trim()) return res.status(400).json({ error: "summary must be a non-empty string" });
+      if (summary.length > SUMMARY_MAX) return res.status(400).json({ error: `summary exceeds ${SUMMARY_MAX} chars` });
+      vals.push(summary); sets.push(`summary = $${vals.length}`);
+    }
+    if (body_markdown !== undefined) {
+      if (typeof body_markdown !== "string" || !body_markdown.trim()) return res.status(400).json({ error: "body_markdown must be a non-empty string" });
+      if (body_markdown.length > BODY_MARKDOWN_MAX) return res.status(400).json({ error: `body_markdown exceeds ${BODY_MARKDOWN_MAX} chars` });
+      vals.push(body_markdown); sets.push(`body_markdown = $${vals.length}`);
+    }
+    if (highlight_label !== undefined) {
+      if (highlight_label !== null && (typeof highlight_label !== "string" || highlight_label.length > HIGHLIGHT_MAX)) {
+        return res.status(400).json({ error: `highlight_label must be a string under ${HIGHLIGHT_MAX} chars` });
+      }
+      vals.push(highlight_label || null); sets.push(`highlight_label = $${vals.length}`);
+    }
+    if (release_type !== undefined) {
+      if (!LIFEOS_RELEASE_TYPES.includes(release_type as LifeOSReleaseType)) {
+        return res.status(400).json({ error: "release_type must be major | minor | patch" });
+      }
       vals.push(release_type); sets.push(`release_type = $${vals.length}`);
     }
     if (sets.length === 0) return res.json({ success: true, noop: true });
@@ -279,11 +319,27 @@ router.patch("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (r
 
 router.post("/releases/:id/publish", requireAuth, requireRole(...ADMIN_ROLES), async (req, res) => {
   const id = String(req.params.id || "");
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: "Invalid release id" });
+  // Transactional: SELECT FOR UPDATE serializes two founders clicking
+  // Publish on the same draft simultaneously.
+  const client = await pool.connect();
   try {
-    const cur = await pool.query(`SELECT status, version FROM lifeos_releases WHERE id = $1`, [id]);
-    if (cur.rowCount === 0) return res.status(404).json({ error: "Release not found" });
-    if (cur.rows[0].status === "published") return res.json({ success: true, noop: true });
-    await pool.query(
+    await client.query("BEGIN");
+    const cur = await client.query(`SELECT status, version FROM lifeos_releases WHERE id = $1 FOR UPDATE`, [id]);
+    if (cur.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Release not found" });
+    }
+    const status = cur.rows[0].status;
+    if (status === "published") {
+      await client.query("ROLLBACK");
+      return res.json({ success: true, noop: true });
+    }
+    if (status !== "draft") {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Only drafts can be published" });
+    }
+    await client.query(
       `UPDATE lifeos_releases
           SET status = 'published',
               published_at = NOW(),
@@ -292,6 +348,7 @@ router.post("/releases/:id/publish", requireAuth, requireRole(...ADMIN_ROLES), a
         WHERE id = $1`,
       [id, req.user!.id],
     );
+    await client.query("COMMIT");
     await logFounderAction({
       actorUserId: req.user!.id,
       action: "lifeos.release_published",
@@ -301,43 +358,107 @@ router.post("/releases/:id/publish", requireAuth, requireRole(...ADMIN_ROLES), a
     });
     res.json({ success: true });
   } catch (e: any) {
+    try { await client.query("ROLLBACK"); } catch { /* ignore */ }
     console.error("[lifeOS] publish error:", e?.message);
     res.status(500).json({ error: "Failed to publish release" });
+  } finally {
+    client.release();
   }
 });
 
 router.post("/releases/:id/archive", requireAuth, requireRole(...ADMIN_ROLES), async (req, res) => {
   const id = String(req.params.id || "");
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: "Invalid release id" });
+  const client = await pool.connect();
   try {
-    const r = await pool.query(
-      `UPDATE lifeos_releases SET status = 'archived', updated_at = NOW()
-        WHERE id = $1 RETURNING version`,
+    await client.query("BEGIN");
+    const cur = await client.query(`SELECT status, version FROM lifeos_releases WHERE id = $1 FOR UPDATE`, [id]);
+    if (cur.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Release not found" });
+    }
+    if (cur.rows[0].status !== "published") {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Only published releases can be archived" });
+    }
+    await client.query(
+      `UPDATE lifeos_releases SET status = 'archived', updated_at = NOW() WHERE id = $1`,
       [id],
     );
-    if (r.rowCount === 0) return res.status(404).json({ error: "Release not found" });
+    await client.query("COMMIT");
     await logFounderAction({
       actorUserId: req.user!.id,
       action: "lifeos.release_archived",
       entityType: "lifeos_release",
       entityId: id,
-      payload: { version: r.rows[0].version },
+      payload: { version: cur.rows[0].version },
     });
     res.json({ success: true });
   } catch (e: any) {
+    try { await client.query("ROLLBACK"); } catch { /* ignore */ }
     console.error("[lifeOS] archive error:", e?.message);
     res.status(500).json({ error: "Failed to archive release" });
+  } finally {
+    client.release();
+  }
+});
+
+// Unarchive — restores an archived release to published. Disaster-recovery
+// path for an accidental archive click. Founder-only audit-logged.
+router.post("/releases/:id/unarchive", requireAuth, requireRole(...ADMIN_ROLES), async (req, res) => {
+  const id = String(req.params.id || "");
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: "Invalid release id" });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const cur = await client.query(`SELECT status, version FROM lifeos_releases WHERE id = $1 FOR UPDATE`, [id]);
+    if (cur.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Release not found" });
+    }
+    if (cur.rows[0].status !== "archived") {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "Only archived releases can be unarchived" });
+    }
+    await client.query(
+      `UPDATE lifeos_releases SET status = 'published', updated_at = NOW() WHERE id = $1`,
+      [id],
+    );
+    await client.query("COMMIT");
+    await logFounderAction({
+      actorUserId: req.user!.id,
+      action: "lifeos.release_unarchived",
+      entityType: "lifeos_release",
+      entityId: id,
+      payload: { version: cur.rows[0].version },
+    });
+    res.json({ success: true });
+  } catch (e: any) {
+    try { await client.query("ROLLBACK"); } catch { /* ignore */ }
+    console.error("[lifeOS] unarchive error:", e?.message);
+    res.status(500).json({ error: "Failed to unarchive release" });
+  } finally {
+    client.release();
   }
 });
 
 router.delete("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (req, res) => {
   const id = String(req.params.id || "");
+  if (!UUID_RE.test(id)) return res.status(400).json({ error: "Invalid release id" });
+  const client = await pool.connect();
   try {
-    const cur = await pool.query(`SELECT status, version FROM lifeos_releases WHERE id = $1`, [id]);
-    if (cur.rowCount === 0) return res.status(404).json({ error: "Release not found" });
+    await client.query("BEGIN");
+    const cur = await client.query(`SELECT status, version FROM lifeos_releases WHERE id = $1 FOR UPDATE`, [id]);
+    if (cur.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Release not found" });
+    }
     if (cur.rows[0].status !== "draft") {
+      await client.query("ROLLBACK");
       return res.status(403).json({ error: "Only draft releases are deletable. Archive published releases instead." });
     }
-    await pool.query(`DELETE FROM lifeos_releases WHERE id = $1`, [id]);
+    await client.query(`DELETE FROM lifeos_releases WHERE id = $1`, [id]);
+    await client.query("COMMIT");
     await logFounderAction({
       actorUserId: req.user!.id,
       action: "lifeos.release_deleted",
@@ -347,8 +468,11 @@ router.delete("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (
     });
     res.json({ success: true });
   } catch (e: any) {
+    try { await client.query("ROLLBACK"); } catch { /* ignore */ }
     console.error("[lifeOS] delete error:", e?.message);
     res.status(500).json({ error: "Failed to delete release" });
+  } finally {
+    client.release();
   }
 });
 
