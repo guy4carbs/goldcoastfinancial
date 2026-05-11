@@ -14,6 +14,7 @@ import FoundersProfitSplit from "./FoundersProfitSplit";
 import FoundersLoungeAccess from "./FoundersLoungeAccess";
 import FoundersViewAs from "./FoundersViewAs";
 import FoundersSettings from "./FoundersSettings";
+import LifeOSAdminPage from "./LifeOSAdminPage";
 import {
   FoundersCommandPalette,
   useFoundersCommandPaletteToggle,
@@ -76,6 +77,7 @@ export default function FoundersLoungeLayout() {
           <Route path="/founders/access" component={FoundersLoungeAccess} />
           <Route path="/founders/view-as" component={FoundersViewAs} />
           <Route path="/founders/settings" component={FoundersSettings} />
+          <Route path="/founders/lifeos" component={LifeOSAdminPage} />
           <Route><FoundersDashboard /></Route>
         </Switch>
         {/* Must live inside GCShell so it can call useGCTheme() */}

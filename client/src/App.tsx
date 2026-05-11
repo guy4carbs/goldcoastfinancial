@@ -56,7 +56,6 @@ import FoundersLoungeLayout from "@/pages/founders/FoundersLoungeLayout";
 import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
 import { ChunkLoadGuard } from "@/components/lifeos/ChunkLoadGuard";
 import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
-import LifeOSAdminPage from "@/pages/founders/LifeOSAdminPage";
 
 // Auth / Public
 import AgentApplication from "@/pages/apply/AgentApplication";
@@ -122,9 +121,8 @@ function Router() {
         <Route path="/blog/:slug" component={InstitutionalBlogArticle} />
         <Route path="/media" component={InstitutionalMedia} />
 
-        {/* lifeOS — system update + release notes */}
+        {/* lifeOS public archive — /founders/lifeos lives inside FoundersLoungeLayout */}
         <Route path="/lifeos/whats-new" component={WhatsNewArchive} />
-        <Route path="/founders/lifeos">{() => <FoundersOnly><LifeOSAdminPage /></FoundersOnly>}</Route>
 
         {/* HCMS — Agent Portal (sales_agent + owner) */}
         <Route path="/hcms/my/dashboard">{() => <AgentOnly><AgentDashboardPage /></AgentOnly>}</Route>
