@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Shield, Menu, Leaf, ChevronDown, Linkedin, Twitter, Mail, MapPin, Phone, Clock, Search } from "lucide-react";
+import { Shield, Menu, Leaf, ChevronDown, Linkedin, Twitter, Mail, MapPin, Phone, Clock, Search, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -321,6 +321,12 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
                 <li>
                   <Link href="/media" className="text-white/60 hover:text-white transition-colors cursor-pointer">
                     Media Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/lifeos/whats-new" className="text-white/60 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-[hsl(42,60%,55%)]" />
+                    What's New
                   </Link>
                 </li>
                 <li>

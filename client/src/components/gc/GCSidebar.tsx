@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert, UserPlus, ArrowLeftRight, Banknote, RotateCcw, Receipt, FileCheck, Crown, Network, Rocket, Eye, Send, Coins } from "lucide-react";
+import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert, UserPlus, ArrowLeftRight, Banknote, RotateCcw, Receipt, FileCheck, Crown, Network, Rocket, Eye, Send, Coins, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -141,6 +141,9 @@ const foundersNav: NavSection[] = [
     { label: "Access", href: "/founders/access", icon: Shield },
     { label: "View As", href: "/founders/view-as", icon: Eye },
     { label: "Settings", href: "/founders/settings", icon: Settings },
+  ]},
+  { title: "SYSTEM", items: [
+    { label: "lifeOS Releases", href: "/founders/lifeos", icon: Sparkles },
   ]},
 ];
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2 } from "lucide-react";
+import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2, Sparkles } from "lucide-react";
 import { GCModal } from "@/components/gc/GCModal";
+import { GCPageHeader } from "@/components/gc/GCPageHeader";
 import { SimpleMarkdown } from "@/components/lifeos/SimpleMarkdown";
 import { generateDraftFromCommits } from "@/lib/lifeos-commit-parser";
 
@@ -52,51 +53,89 @@ export default function LifeOSAdminPage() {
 
   return (
     <div style={{ padding: "var(--gc-space-6)", maxWidth: 1200, margin: "0 auto" }}>
-      <div className="flex items-center justify-between" style={{ marginBottom: "var(--gc-space-5)" }}>
-        <div>
-          <div
+      <GCPageHeader
+        title="lifeOS Releases"
+        subtitle="Author release notes, bump the version, and publish updates the whole organization sees."
+        accentUnderline
+        actions={
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2"
             style={{
-              fontSize: "var(--gc-text-xs)",
-              letterSpacing: "var(--gc-tracking-wider)",
-              textTransform: "uppercase",
-              color: "var(--gc-gold)",
+              padding: "var(--gc-space-2) var(--gc-space-4)",
+              background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
+              color: "var(--gc-ink)",
+              border: "none",
+              borderRadius: "var(--gc-radius-sm)",
               fontWeight: 600,
-              marginBottom: 4,
+              cursor: "pointer",
+              boxShadow: "0 2px 8px color-mix(in srgb, var(--gc-gold) 30%, transparent)",
+              fontFamily: "var(--gc-font-body)",
+              fontSize: "var(--gc-text-sm)",
             }}
           >
-            Founders only
-          </div>
-          <h1
-            style={{
-              fontFamily: "var(--gc-font-display)",
-              fontSize: 28,
-              color: "var(--gc-text-primary)",
-              margin: 0,
-            }}
-          >
-            lifeOS releases
-          </h1>
-          <p style={{ color: "var(--gc-text-secondary)", margin: "6px 0 0", fontSize: "var(--gc-text-sm)" }}>
-            Author release notes, pick a version, publish when the deploy lands.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setCreating(true)}
-          className="flex items-center gap-2"
+            <Plus className="w-4 h-4" /> New release
+          </button>
+        }
+      />
+
+      {/* Hero summary card — gives the page a "this is the lifeOS console" feel */}
+      <div
+        style={{
+          padding: "var(--gc-space-5)",
+          backgroundColor: "var(--gc-surface)",
+          border: "1px solid var(--gc-border)",
+          borderRadius: "var(--gc-radius-md)",
+          marginBottom: "var(--gc-space-5)",
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--gc-space-4)",
+          backgroundImage: "linear-gradient(135deg, color-mix(in srgb, var(--gc-gold) 6%, transparent), transparent 60%)",
+        }}
+      >
+        <div
           style={{
-            padding: "var(--gc-space-2) var(--gc-space-4)",
+            width: 48,
+            height: 48,
+            borderRadius: "var(--gc-radius-full, 999px)",
             background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
-            color: "var(--gc-ink)",
-            border: "none",
-            borderRadius: "var(--gc-radius-sm)",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 2px 8px color-mix(in srgb, var(--gc-gold) 30%, transparent)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            boxShadow: "0 4px 14px color-mix(in srgb, var(--gc-gold) 40%, transparent)",
           }}
         >
-          <Plus className="w-4 h-4" /> New release
-        </button>
+          <Sparkles className="w-5 h-5" style={{ color: "var(--gc-ink)" }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: "var(--gc-font-display)", fontSize: 18, fontWeight: 600, color: "var(--gc-text-primary)", marginBottom: 2 }}>
+            How releases ship
+          </div>
+          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: 13, color: "var(--gc-text-secondary)", lineHeight: 1.5 }}>
+            Bump <code style={{ fontFamily: "var(--gc-font-mono, monospace)", backgroundColor: "var(--gc-surface-2)", padding: "1px 6px", borderRadius: 4 }}>LIFEOS_VERSION</code> in code, deploy, then publish notes here.
+            Every user sees a single "Update Now" popup within 60 seconds. No one is updated automatically — only the button reloads their bundle.
+          </div>
+        </div>
+        <a
+          href="/lifeos/whats-new"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            padding: "var(--gc-space-2) var(--gc-space-3)",
+            backgroundColor: "transparent",
+            color: "var(--gc-text-secondary)",
+            border: "1px solid var(--gc-border)",
+            borderRadius: "var(--gc-radius-sm)",
+            fontFamily: "var(--gc-font-body)",
+            fontSize: 12,
+            textDecoration: "none",
+            flexShrink: 0,
+          }}
+        >
+          View public archive →
+        </a>
       </div>
 
       {loading ? (
