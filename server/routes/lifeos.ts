@@ -41,14 +41,17 @@ const ADMIN_ROLES = [Roles.FOUNDER, Roles.SYSTEM_ADMIN];
 const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)$/;
 
 // ─────────────────────────────────────────────────────────────────────────
-// PUBLIC (any authenticated user)
+// PUBLIC (no auth required)
+// Release notes are founder-authored marketing copy; we want unauthenticated
+// website visitors to be able to browse the lifeOS archive from the footer.
+// Auth still required for /me/status and /me/ack (per-user tracking).
 // ─────────────────────────────────────────────────────────────────────────
 
-router.get("/version", requireAuth, (_req, res) => {
+router.get("/version", (_req, res) => {
   res.json({ deployed_version: LIFEOS_VERSION });
 });
 
-router.get("/releases/latest", requireAuth, async (_req, res) => {
+router.get("/releases/latest", async (_req, res) => {
   try {
     const r = await pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
@@ -66,7 +69,7 @@ router.get("/releases/latest", requireAuth, async (_req, res) => {
   }
 });
 
-router.get("/releases", requireAuth, async (req, res) => {
+router.get("/releases", async (req, res) => {
   try {
     const limit = Math.min(parseInt(String(req.query.limit ?? "20"), 10) || 20, 100);
     const offset = Math.max(parseInt(String(req.query.offset ?? "0"), 10) || 0, 0);
@@ -86,7 +89,7 @@ router.get("/releases", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/releases/:version", requireAuth, async (req, res) => {
+router.get("/releases/:version", async (req, res) => {
   const v = String(req.params.version || "");
   if (!SEMVER_RE.test(v)) return res.status(400).json({ error: "Invalid version" });
   try {
