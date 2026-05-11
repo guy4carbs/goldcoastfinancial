@@ -20,7 +20,17 @@
 import { type ReactNode } from "react";
 
 const ESC = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+// Match http(s) absolute URLs OR a root-relative path that does NOT start
+// with `//` (which would be a protocol-relative URL → potential
+// cross-origin redirect). Anything else collapses to "#".
+const SAFE_URL_RE = /^(https?:\/\/[^/]|\/[^/])/;
 
 function renderInline(line: string): string {
   let out = ESC(line);
@@ -28,7 +38,10 @@ function renderInline(line: string): string {
   out = out.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     (_, txt, url) => {
-      const safeUrl = /^(https?:\/\/|\/)/.test(url) ? url : "#";
+      // ESC already ran over `url`, but a `"` becoming `&quot;` is still
+      // a quote when re-decoded — we keep it escaped in the href
+      // attribute to prevent attribute-context escape via fake URLs.
+      const safeUrl = SAFE_URL_RE.test(url) ? url : "#";
       return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--gc-gold, #c4975a); text-decoration: underline;">${txt}</a>`;
     },
   );

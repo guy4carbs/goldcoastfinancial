@@ -23,6 +23,13 @@ const POLL_MS = 60_000;
 const FIRST_POPUP_DELAY_MS = 5_000;
 const WHATS_NEW_IDLE_MS = 800;
 const SESSION_DISMISS_KEY = "lifeos.session_dismissed_releases";
+const BROADCAST_CHANNEL = "lifeos";
+
+interface LifeOSBroadcast {
+  type: "update_applied";
+  releaseId: string;
+  at: number;
+}
 
 interface LatestRelease {
   id: string;
@@ -102,6 +109,34 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   const initialPopupShownRef = useRef<boolean>(false);
   const whatsNewShownRef = useRef<boolean>(false);
 
+  // Reset per-user grace flags so a NEW user signing in on the same device
+  // gets the full 5s first-popup delay (otherwise the previous user's
+  // initialPopupShownRef leaks into the new session).
+  const prevUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const id = user?.id ?? null;
+    if (id !== prevUserIdRef.current) {
+      initialPopupShownRef.current = false;
+      whatsNewShownRef.current = false;
+      prevUserIdRef.current = id;
+    }
+  }, [user?.id]);
+
+  // BroadcastChannel — when one tab updates, others reload too so they
+  // don't sit on a now-defunct bundle that will chunk-404 on next nav.
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") return;
+    const channel = new BroadcastChannel(BROADCAST_CHANNEL);
+    channel.onmessage = (e: MessageEvent<LifeOSBroadcast>) => {
+      if (e.data?.type === "update_applied") {
+        // Another tab applied the update. Reload here too — the SW cache
+        // is already wiped, so this load fetches the fresh bundle.
+        window.location.href = window.location.pathname + "?lifeos=" + Date.now();
+      }
+    };
+    return () => channel.close();
+  }, []);
+
   const fetchStatus = useCallback(async () => {
     if (!user) return;
     try {
@@ -171,7 +206,8 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyUpdate = useCallback(async () => {
-    if (!status?.latest_release) {
+    const releaseId = status?.latest_release?.id;
+    if (!releaseId) {
       // No release context — still let them update via the SW cache wipe.
       await triggerLifeOSUpdate();
       return;
@@ -181,11 +217,20 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ release_id: status.latest_release.id, state: "updated" }),
+        body: JSON.stringify({ release_id: releaseId, state: "updated" }),
       });
     } catch {
       // Continue even if ack fails — better to update than to hang
     }
+    // Tell other tabs in this profile to reload too — otherwise they stay
+    // on a now-stale bundle and may chunk-404 on next navigation.
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        const ch = new BroadcastChannel(BROADCAST_CHANNEL);
+        ch.postMessage({ type: "update_applied", releaseId, at: Date.now() } satisfies LifeOSBroadcast);
+        ch.close();
+      }
+    } catch { /* ignore */ }
     // Strict bundle lock: wipe the SW cache so the next page load fetches
     // the new bundle. Without this, a hard refresh would re-serve the
     // cached old bundle.

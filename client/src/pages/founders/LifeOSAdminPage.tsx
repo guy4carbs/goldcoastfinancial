@@ -40,6 +40,9 @@ export default function LifeOSAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [previewVersion, setPreviewVersion] = useState<string | null>(null);
+  // The actual bundle version the server is running. Distinct from "latest
+  // published note" — they can diverge if you publish before deploy lands.
+  const [deployedVersion, setDeployedVersion] = useState<string | null>(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -54,8 +57,19 @@ export default function LifeOSAdminPage() {
     }
   };
 
+  const refreshDeployedVersion = async () => {
+    try {
+      const r = await fetch("/api/lifeos/version", { credentials: "include" });
+      if (r.ok) {
+        const data = await r.json();
+        if (data?.deployed_version) setDeployedVersion(data.deployed_version);
+      }
+    } catch { /* ignore */ }
+  };
+
   useEffect(() => {
     refresh();
+    refreshDeployedVersion();
   }, []);
 
   // Stats derived from the same `rows` we fetch for the table — zero extra calls.
@@ -271,27 +285,51 @@ export default function LifeOSAdminPage() {
         </div>
       </section>
 
-      {/* Thin ribbon — only shown when there's a published release. Pinned right. */}
-      {latestPublished && (
+      {/* Status ribbon — separates "what's running on prod" from "what's
+          published as notes". When they diverge (e.g. notes ahead of
+          bundle), an amber warning appears so the founder doesn't ship
+          a popup that can't be satisfied. */}
+      {(latestPublished || deployedVersion) && (() => {
+        const noteVersion = latestPublished?.version ?? null;
+        const prodVersion = deployedVersion;
+        const mismatched = noteVersion && prodVersion && noteVersion !== prodVersion;
+        return (
         <div
-          className="flex items-center justify-between mb-3"
+          className="flex items-center justify-between mb-3 flex-wrap gap-2"
           style={{
             padding: "8px 12px",
-            backgroundColor: "var(--gc-surface)",
-            border: "1px solid var(--gc-border-subtle)",
+            backgroundColor: mismatched
+              ? "color-mix(in srgb, var(--gc-gold) 8%, var(--gc-surface))"
+              : "var(--gc-surface)",
+            border: `1px solid ${mismatched ? "color-mix(in srgb, var(--gc-gold) 50%, transparent)" : "var(--gc-border-subtle)"}`,
             borderRadius: "var(--gc-radius-sm)",
           }}
         >
           <div
+            className="flex items-center gap-4 flex-wrap"
             style={{
               fontFamily: "var(--gc-font-body)",
               fontSize: "var(--gc-text-xs)",
               color: "var(--gc-text-muted)",
             }}
           >
-            Latest deployed: <strong style={{ color: "var(--gc-text-primary)" }}>lifeOS {latestPublished.version}</strong>
-            {latestPublished.published_at && (
-              <span> · {formatDate(latestPublished.published_at)}</span>
+            {prodVersion && (
+              <span>
+                Live on prod: <strong style={{ color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-mono, monospace)" }}>lifeOS {prodVersion}</strong>
+              </span>
+            )}
+            {noteVersion && (
+              <span>
+                Latest published note: <strong style={{ color: "var(--gc-text-primary)", fontFamily: "var(--gc-font-mono, monospace)" }}>lifeOS {noteVersion}</strong>
+                {latestPublished?.published_at && (
+                  <span style={{ color: "var(--gc-text-muted)" }}> · {formatDate(latestPublished.published_at)}</span>
+                )}
+              </span>
+            )}
+            {mismatched && (
+              <span style={{ color: "var(--gc-gold)", fontWeight: 600 }}>
+                ⚠ Notes are ahead of the deployed bundle — users will see a popup that can't load.
+              </span>
             )}
           </div>
           <a
@@ -309,7 +347,8 @@ export default function LifeOSAdminPage() {
             View public archive <ArrowUpRight className="w-3 h-3" />
           </a>
         </div>
-      )}
+        );
+      })()}
 
       {/* Releases table — same shape as Agency Management's Carriers table */}
       {/* Section label — matches the "Agency Tree" / "Agency Detail" pattern */}

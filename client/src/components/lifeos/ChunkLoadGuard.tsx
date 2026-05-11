@@ -2,6 +2,18 @@ import { Component, type ReactNode } from "react";
 import { triggerLifeOSUpdate } from "@/lib/lifeos-sw-register";
 import { Sparkles } from "lucide-react";
 
+// Vite HMR can throw "Failed to fetch dynamically imported module" when a
+// developer's network blips or a module is replaced mid-import — that's
+// not a real chunk-404 deploy mismatch, so the Guard short-circuits in dev.
+function isDev(): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return !!(import.meta as any).env?.DEV;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * ChunkLoadGuard — catches "Failed to load chunk" errors that happen when
  * a user on an old bundle navigates to a route whose JS chunk no longer
@@ -73,6 +85,9 @@ export class ChunkLoadGuard extends Component<{ children: ReactNode }, State> {
   };
 
   render(): ReactNode {
+    // In dev mode, chunk-load errors are usually HMR noise, not a deploy
+    // mismatch. Short-circuit so the Guard never force-screens a developer.
+    if (isDev()) return this.props.children;
     if (!this.state.hit) return this.props.children;
 
     return (

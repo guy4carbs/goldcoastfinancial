@@ -268,6 +268,17 @@ export async function registerRoutes(
     skip: (req) => ["GET", "HEAD", "OPTIONS"].includes(req.method),
     message: { error: "Too many view-as operations", code: "RATE_LIMITED" },
   });
+
+  // lifeOS — /me/status polls every 60s from every authenticated tab; this
+  // limiter is generous on GETs but caps abusive write-bursts on /me/ack
+  // and the admin write paths.
+  const lifeosLimiter = rateLimit({
+    windowMs: 60_000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many lifeOS requests", code: "RATE_LIMITED" },
+  });
   app.use("/api/founders", foundersWriteLimiter);
   app.use("/api/founders/viewas", foundersViewAsLimiter);
 
@@ -1801,6 +1812,7 @@ export async function registerRoutes(
   // Cross-app, shared DB. Both Gold Coast and Heritage hit the same surface.
   // ============================================
   app.use("/api/lifeos", attachUser);
+  app.use("/api/lifeos", lifeosLimiter);
   app.use("/api/lifeos", lifeosRouter);
 
   // Sentinel H3: start the view-as sweeper (auto-ends sessions older than 4h).

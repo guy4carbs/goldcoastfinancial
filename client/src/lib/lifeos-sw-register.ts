@@ -11,7 +11,13 @@
  * Production-only registration keeps DX clean while still locking prod.
  */
 
-const SW_PATH = "/lifeos-sw.js";
+// Pass the current bundle's LIFEOS_VERSION in the SW URL query so each
+// deploy registers a distinct SW (the URL change forces a fresh fetch),
+// which means each deploy gets its own cache namespace and the activate
+// handler in lifeos-sw.js can reap stale ones.
+import { LIFEOS_VERSION } from "@shared/lifeos";
+
+const SW_PATH = `/lifeos-sw.js?v=${encodeURIComponent(LIFEOS_VERSION)}`;
 const SW_SCOPE = "/";
 
 let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
