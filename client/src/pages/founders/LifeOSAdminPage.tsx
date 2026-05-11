@@ -232,7 +232,7 @@ export default function LifeOSAdminPage() {
   ];
 
   return (
-    <div style={{ padding: "var(--gc-space-6)", maxWidth: 1200, margin: "0 auto" }}>
+    <div>
       <GCPageHeader
         title="lifeOS Releases"
         subtitle="Author release notes, bump the version, and publish updates the whole organization sees."
@@ -261,9 +261,9 @@ export default function LifeOSAdminPage() {
       />
 
       {/* KPI band — matches FoundersAgencyManagement rhythm */}
-      <section aria-labelledby="lifeos-kpi-heading" className="mb-4">
+      <section aria-labelledby="lifeos-kpi-heading" className="mb-6">
         <h2 id="lifeos-kpi-heading" className="sr-only">lifeOS Release KPIs</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <GCKPICard label="Latest version" value={latestVersion} accentTop />
           <GCKPICard label="Published releases" value={formatNumber(publishedCount)} accentTop />
           <GCKPICard label="Drafts" value={formatNumber(draftCount)} accentTop />
