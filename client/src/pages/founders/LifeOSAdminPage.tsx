@@ -1,9 +1,16 @@
-import { useEffect, useState } from "react";
-import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2, ArrowUpRight } from "lucide-react";
 import { GCModal } from "@/components/gc/GCModal";
-import { GCPageHeader } from "@/components/gc/GCPageHeader";
+import {
+  GCPageHeader,
+  GCKPICard,
+  GCDataTable,
+  GCStatusBadge,
+  type Column,
+} from "@/components/gc";
 import { SimpleMarkdown } from "@/components/lifeos/SimpleMarkdown";
 import { generateDraftFromCommits } from "@/lib/lifeos-commit-parser";
+import { formatDate, formatNumber } from "./utils/format";
 
 interface AdminRelease {
   id: string;
@@ -51,6 +58,179 @@ export default function LifeOSAdminPage() {
     refresh();
   }, []);
 
+  // Stats derived from the same `rows` we fetch for the table — zero extra calls.
+  const publishedRows = useMemo(() => rows.filter((r) => r.status === "published"), [rows]);
+  const draftRows = useMemo(() => rows.filter((r) => r.status === "draft"), [rows]);
+  const latestPublished = useMemo(() => {
+    if (publishedRows.length === 0) return null;
+    return [...publishedRows].sort((a, b) => {
+      const ta = a.published_at ? new Date(a.published_at).getTime() : 0;
+      const tb = b.published_at ? new Date(b.published_at).getTime() : 0;
+      return tb - ta;
+    })[0];
+  }, [publishedRows]);
+  const shippedThisMonth = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    return publishedRows.filter((r) => {
+      if (!r.published_at) return false;
+      return new Date(r.published_at).getTime() >= monthStart;
+    }).length;
+  }, [publishedRows]);
+  const latestVersion = latestPublished?.version ?? "—";
+  const publishedCount = publishedRows.length;
+  const draftCount = draftRows.length;
+
+  // Columns for GCDataTable — matches the Agency Management Carriers tab shape.
+  const columns: Column<AdminRelease>[] = [
+    {
+      key: "version",
+      label: "Version",
+      width: 110,
+      render: (v) => (
+        <span
+          style={{
+            fontFamily: "var(--gc-font-mono, ui-monospace, monospace)",
+            fontSize: 12,
+            padding: "2px 10px",
+            borderRadius: "var(--gc-radius-full, 999px)",
+            backgroundColor: "var(--gc-surface-2)",
+            color: "var(--gc-text-muted)",
+            border: "1px solid var(--gc-border-subtle)",
+            display: "inline-block",
+          }}
+        >
+          {String(v)}
+        </span>
+      ),
+    },
+    {
+      key: "title",
+      label: "Title",
+      render: (v, r) => (
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontFamily: "var(--gc-font-display)",
+              fontWeight: 600,
+              color: "var(--gc-text-primary)",
+              fontSize: "var(--gc-text-md)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              lineHeight: 1.3,
+            }}
+          >
+            {r.title}
+          </div>
+          <div
+            style={{
+              color: "var(--gc-text-muted)",
+              fontSize: "var(--gc-text-xs)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              marginTop: 2,
+            }}
+          >
+            {r.summary}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      width: 110,
+      render: (v) => <GCStatusBadge status={String(v)} />,
+    },
+    {
+      key: "release_type",
+      label: "Type",
+      width: 90,
+      render: (v) => (
+        <span
+          style={{
+            fontFamily: "var(--gc-font-body)",
+            fontSize: "var(--gc-text-xs)",
+            color: "var(--gc-text-secondary)",
+            textTransform: "capitalize",
+          }}
+        >
+          {String(v)}
+        </span>
+      ),
+    },
+    {
+      key: "published_at",
+      label: "Published",
+      width: 130,
+      render: (v) => (
+        <span
+          style={{
+            fontFamily: "var(--gc-font-body)",
+            fontSize: "var(--gc-text-xs)",
+            color: "var(--gc-text-muted)",
+          }}
+        >
+          {v ? formatDate(String(v)) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "id",
+      label: "",
+      width: 200,
+      align: "right",
+      render: (_v, r) => (
+        <div className="flex items-center justify-end gap-1">
+          <IconButton title="Preview" onClick={() => setPreviewVersion(r.version)}>
+            <Eye className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            title="Edit"
+            disabled={r.status !== "draft"}
+            onClick={() => setEditingId(r.id)}
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            title={r.status === "published" ? "Already published" : "Publish"}
+            disabled={r.status !== "draft"}
+            onClick={async () => {
+              await fetch(`/api/lifeos/releases/${r.id}/publish`, { method: "POST", credentials: "include" });
+              await refresh();
+            }}
+          >
+            <Send className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            title="Archive"
+            disabled={r.status !== "published"}
+            onClick={async () => {
+              if (!confirm(`Archive ${r.version}? It'll stop appearing in user-facing surfaces.`)) return;
+              await fetch(`/api/lifeos/releases/${r.id}/archive`, { method: "POST", credentials: "include" });
+              await refresh();
+            }}
+          >
+            <Archive className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            title="Delete (drafts only)"
+            disabled={r.status !== "draft"}
+            onClick={async () => {
+              if (!confirm(`Delete draft ${r.version}? This is permanent.`)) return;
+              await fetch(`/api/lifeos/releases/${r.id}`, { method: "DELETE", credentials: "include" });
+              await refresh();
+            }}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </IconButton>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div style={{ padding: "var(--gc-space-6)", maxWidth: 1200, margin: "0 auto" }}>
       <GCPageHeader
@@ -80,70 +260,71 @@ export default function LifeOSAdminPage() {
         }
       />
 
-      {/* Hero summary card — gives the page a "this is the lifeOS console" feel */}
-      <div
-        style={{
-          padding: "var(--gc-space-5)",
-          backgroundColor: "var(--gc-surface)",
-          border: "1px solid var(--gc-border)",
-          borderRadius: "var(--gc-radius-md)",
-          marginBottom: "var(--gc-space-5)",
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--gc-space-4)",
-          backgroundImage: "linear-gradient(135deg, color-mix(in srgb, var(--gc-gold) 6%, transparent), transparent 60%)",
-        }}
-      >
+      {/* KPI band — matches FoundersAgencyManagement rhythm */}
+      <section aria-labelledby="lifeos-kpi-heading" className="mb-6">
+        <h2 id="lifeos-kpi-heading" className="sr-only">lifeOS Release KPIs</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <GCKPICard label="Latest version" value={latestVersion} accentTop />
+          <GCKPICard label="Published releases" value={formatNumber(publishedCount)} accentTop />
+          <GCKPICard label="Drafts" value={formatNumber(draftCount)} accentTop />
+          <GCKPICard label="Shipped this month" value={formatNumber(shippedThisMonth)} accentTop />
+        </div>
+      </section>
+
+      {/* Thin ribbon — only shown when there's a published release. Pinned right. */}
+      {latestPublished && (
+        <div
+          className="flex items-center justify-between mb-3"
+          style={{
+            padding: "8px 12px",
+            backgroundColor: "var(--gc-surface)",
+            border: "1px solid var(--gc-border-subtle)",
+            borderRadius: "var(--gc-radius-sm)",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--gc-font-body)",
+              fontSize: "var(--gc-text-xs)",
+              color: "var(--gc-text-muted)",
+            }}
+          >
+            Latest deployed: <strong style={{ color: "var(--gc-text-primary)" }}>lifeOS {latestPublished.version}</strong>
+            {latestPublished.published_at && (
+              <span> · {formatDate(latestPublished.published_at)}</span>
+            )}
+          </div>
+          <a
+            href="/lifeos/whats-new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1"
+            style={{
+              fontFamily: "var(--gc-font-body)",
+              fontSize: "var(--gc-text-xs)",
+              color: "var(--gc-gold)",
+              textDecoration: "none",
+            }}
+          >
+            View public archive <ArrowUpRight className="w-3 h-3" />
+          </a>
+        </div>
+      )}
+
+      {/* Releases table — same shape as Agency Management's Carriers table */}
+      {loading ? (
         <div
           style={{
-            width: 48,
-            height: 48,
-            borderRadius: "var(--gc-radius-full, 999px)",
-            background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            boxShadow: "0 4px 14px color-mix(in srgb, var(--gc-gold) 40%, transparent)",
-          }}
-        >
-          <Sparkles className="w-5 h-5" style={{ color: "var(--gc-ink)" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "var(--gc-font-display)", fontSize: 18, fontWeight: 600, color: "var(--gc-text-primary)", marginBottom: 2 }}>
-            How releases ship
-          </div>
-          <div style={{ fontFamily: "var(--gc-font-body)", fontSize: 13, color: "var(--gc-text-secondary)", lineHeight: 1.5 }}>
-            Bump <code style={{ fontFamily: "var(--gc-font-mono, monospace)", backgroundColor: "var(--gc-surface-2)", padding: "1px 6px", borderRadius: 4 }}>LIFEOS_VERSION</code> in code, deploy, then publish notes here.
-            Every user sees a single "Update Now" popup within 60 seconds. No one is updated automatically — only the button reloads their bundle.
-          </div>
-        </div>
-        <a
-          href="/lifeos/whats-new"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            padding: "var(--gc-space-2) var(--gc-space-3)",
-            backgroundColor: "transparent",
-            color: "var(--gc-text-secondary)",
+            height: 280,
+            backgroundColor: "var(--gc-surface)",
             border: "1px solid var(--gc-border)",
-            borderRadius: "var(--gc-radius-sm)",
-            fontFamily: "var(--gc-font-body)",
-            fontSize: 12,
-            textDecoration: "none",
-            flexShrink: 0,
+            borderRadius: "var(--gc-radius-md)",
           }}
-        >
-          View public archive →
-        </a>
-      </div>
-
-      {loading ? (
-        <p style={{ color: "var(--gc-text-muted)", fontSize: 14 }}>Loading…</p>
+        />
       ) : rows.length === 0 ? (
         <div
           style={{
-            padding: "48px 24px",
+            padding: "32px 24px",
             textAlign: "center",
             backgroundColor: "var(--gc-surface)",
             border: "1px dashed var(--gc-border)",
@@ -155,120 +336,10 @@ export default function LifeOSAdminPage() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {rows.map((r) => (
-            <div
-              key={r.id}
-              style={{
-                padding: "14px 18px",
-                backgroundColor: "var(--gc-surface)",
-                border: "1px solid var(--gc-border)",
-                borderRadius: "var(--gc-radius-sm)",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--gc-font-mono, monospace)",
-                  fontSize: 12,
-                  padding: "3px 10px",
-                  borderRadius: "var(--gc-radius-full, 999px)",
-                  backgroundColor: "var(--gc-surface-2)",
-                  color: "var(--gc-text-muted)",
-                  border: "1px solid var(--gc-border-subtle)",
-                  flexShrink: 0,
-                }}
-              >
-                {r.version}
-              </span>
-              <span
-                style={{
-                  flexShrink: 0,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                  textTransform: "uppercase",
-                  padding: "2px 8px",
-                  borderRadius: "var(--gc-radius-full, 999px)",
-                  color:
-                    r.status === "published" ? "var(--gc-status-active, #6cd1a5)"
-                    : r.status === "draft" ? "var(--gc-gold)"
-                    : "var(--gc-text-muted)",
-                  backgroundColor:
-                    r.status === "published" ? "color-mix(in srgb, var(--gc-status-active, #6cd1a5) 14%, transparent)"
-                    : r.status === "draft" ? "color-mix(in srgb, var(--gc-gold) 14%, transparent)"
-                    : "var(--gc-surface-2)",
-                  border: "1px solid var(--gc-border-subtle)",
-                }}
-              >
-                {r.status}
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontWeight: 600,
-                    color: "var(--gc-text-primary)",
-                    fontSize: "var(--gc-text-md)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {r.title}
-                </div>
-                <div
-                  style={{
-                    color: "var(--gc-text-muted)",
-                    fontSize: "var(--gc-text-xs)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {r.summary}
-                </div>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <IconButton title="Preview" onClick={() => setPreviewVersion(r.version)}><Eye className="w-3.5 h-3.5" /></IconButton>
-                <IconButton title="Edit" disabled={r.status !== "draft"} onClick={() => setEditingId(r.id)}><Edit2 className="w-3.5 h-3.5" /></IconButton>
-                <IconButton
-                  title={r.status === "published" ? "Already published" : "Publish"}
-                  disabled={r.status !== "draft"}
-                  onClick={async () => {
-                    await fetch(`/api/lifeos/releases/${r.id}/publish`, { method: "POST", credentials: "include" });
-                    await refresh();
-                  }}
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </IconButton>
-                <IconButton
-                  title="Archive"
-                  disabled={r.status !== "published"}
-                  onClick={async () => {
-                    if (!confirm(`Archive ${r.version}? It'll stop appearing in user-facing surfaces.`)) return;
-                    await fetch(`/api/lifeos/releases/${r.id}/archive`, { method: "POST", credentials: "include" });
-                    await refresh();
-                  }}
-                >
-                  <Archive className="w-3.5 h-3.5" />
-                </IconButton>
-                <IconButton
-                  title="Delete (drafts only)"
-                  disabled={r.status !== "draft"}
-                  onClick={async () => {
-                    if (!confirm(`Delete draft ${r.version}? This is permanent.`)) return;
-                    await fetch(`/api/lifeos/releases/${r.id}`, { method: "DELETE", credentials: "include" });
-                    await refresh();
-                  }}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </IconButton>
-              </div>
-            </div>
-          ))}
-        </div>
+        <GCDataTable<AdminRelease>
+          columns={columns}
+          data={rows}
+        />
       )}
 
       {creating && (
