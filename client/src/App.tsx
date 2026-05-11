@@ -54,6 +54,7 @@ import FoundersLoungeLayout from "@/pages/founders/FoundersLoungeLayout";
 
 // lifeOS — system update + release notes
 import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
+import { ChunkLoadGuard } from "@/components/lifeos/ChunkLoadGuard";
 import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
 import LifeOSAdminPage from "@/pages/founders/LifeOSAdminPage";
 
@@ -207,9 +208,11 @@ function App() {
             <GlobalViewAsBanner />
             <InstitutionalWrapper />
             <Toaster />
-            <LifeOSUpdateProvider>
-              <Router />
-            </LifeOSUpdateProvider>
+            <ChunkLoadGuard>
+              <LifeOSUpdateProvider>
+                <Router />
+              </LifeOSUpdateProvider>
+            </ChunkLoadGuard>
           </AnalyticsProvider>
         </TooltipProvider>
       </RealtimeBridge>

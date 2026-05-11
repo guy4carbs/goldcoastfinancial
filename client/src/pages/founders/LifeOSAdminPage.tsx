@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Plus, Edit2, Send, Archive, Trash2, Eye } from "lucide-react";
+import { Plus, Edit2, Send, Archive, Trash2, Eye, Wand2 } from "lucide-react";
 import { GCModal } from "@/components/gc/GCModal";
 import { SimpleMarkdown } from "@/components/lifeos/SimpleMarkdown";
+import { generateDraftFromCommits } from "@/lib/lifeos-commit-parser";
 
 interface AdminRelease {
   id: string;
@@ -285,6 +286,7 @@ function ReleaseEditor({ editId, onClose, onSaved }: { editId?: string; onClose:
   const [highlight, setHighlight] = useState("");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [draftModalOpen, setDraftModalOpen] = useState(false);
 
   // Pre-fill if editing.
   useEffect(() => {
@@ -376,6 +378,46 @@ function ReleaseEditor({ editId, onClose, onSaved }: { editId?: string; onClose:
         </div>
       }
     >
+      {/* Generate from commits — top-of-form CTA */}
+      <div
+        style={{
+          padding: "10px 14px",
+          backgroundColor: "color-mix(in srgb, var(--gc-gold) 8%, var(--gc-surface-2))",
+          border: "1px solid color-mix(in srgb, var(--gc-gold) 30%, transparent)",
+          borderRadius: "var(--gc-radius-sm)",
+          marginBottom: 14,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <Wand2 className="w-4 h-4" style={{ color: "var(--gc-gold)", flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ color: "var(--gc-text-primary)", fontWeight: 600, fontSize: 13, marginBottom: 2 }}>
+            Generate from commits
+          </div>
+          <div style={{ color: "var(--gc-text-muted)", fontSize: 12, lineHeight: 1.4 }}>
+            Paste your <code style={{ fontFamily: "var(--gc-font-mono, monospace)" }}>git log</code> output — we'll turn it into plain-English notes for you to review and edit.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDraftModalOpen(true)}
+          style={{
+            padding: "6px 14px",
+            backgroundColor: "var(--gc-gold)",
+            color: "var(--gc-ink)",
+            border: "none",
+            borderRadius: "var(--gc-radius-sm)",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            flexShrink: 0,
+          }}
+        >
+          Generate
+        </button>
+      </div>
       <div className="grid grid-cols-2 gap-3" style={{ marginBottom: 12 }}>
         <Field label="Version (X.Y.Z)" hint="Semver. Bump major / minor / patch.">
           <input
@@ -432,6 +474,134 @@ function ReleaseEditor({ editId, onClose, onSaved }: { editId?: string; onClose:
           </div>
         </div>
       </Field>
+
+      {draftModalOpen && (
+        <CommitDraftModal
+          versionHint={version}
+          onClose={() => setDraftModalOpen(false)}
+          onApply={(draft) => {
+            // Only overwrite fields if they're empty so we don't clobber edits.
+            if (!title.trim() || confirm("Replace the current title?")) setTitle(draft.title);
+            if (!summary.trim() || confirm("Replace the current summary?")) setSummary(draft.summary);
+            setBody(draft.bodyMarkdown);
+            setDraftModalOpen(false);
+          }}
+        />
+      )}
+    </GCModal>
+  );
+}
+
+function CommitDraftModal({
+  versionHint,
+  onClose,
+  onApply,
+}: {
+  versionHint: string;
+  onClose: () => void;
+  onApply: (draft: { title: string; summary: string; bodyMarkdown: string }) => void;
+}) {
+  const [pasted, setPasted] = useState("");
+  const [draft, setDraft] = useState<ReturnType<typeof generateDraftFromCommits> | null>(null);
+
+  const generate = () => {
+    const result = generateDraftFromCommits(pasted, versionHint || undefined);
+    setDraft(result);
+  };
+
+  return (
+    <GCModal
+      title="Generate from commits"
+      subtitle="Paste your commits (one per line) — we'll turn them into plain-English release notes. Nothing leaves this browser."
+      onClose={onClose}
+      width={780}
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ padding: "8px 16px", backgroundColor: "transparent", color: "var(--gc-text-secondary)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", cursor: "pointer" }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!pasted.trim()}
+            onClick={generate}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: !pasted.trim() ? "var(--gc-surface-2)" : "var(--gc-surface)",
+              color: !pasted.trim() ? "var(--gc-text-muted)" : "var(--gc-text-primary)",
+              border: "1px solid var(--gc-border)",
+              borderRadius: "var(--gc-radius-sm)",
+              fontWeight: 600,
+              cursor: !pasted.trim() ? "not-allowed" : "pointer",
+            }}
+          >
+            Generate draft
+          </button>
+          <button
+            type="button"
+            disabled={!draft}
+            onClick={() => draft && onApply({ title: draft.title, summary: draft.summary, bodyMarkdown: draft.bodyMarkdown })}
+            style={{
+              padding: "8px 22px",
+              background: !draft ? "var(--gc-surface-2)" : "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
+              color: !draft ? "var(--gc-text-muted)" : "var(--gc-ink)",
+              border: "none",
+              borderRadius: "var(--gc-radius-sm)",
+              fontWeight: 600,
+              cursor: !draft ? "not-allowed" : "pointer",
+            }}
+          >
+            Apply to editor
+          </button>
+        </div>
+      }
+    >
+      <Field
+        label="Commits"
+        hint={`Run "git log --oneline" (or copy from your PR description) and paste the lines here. We'll categorize them by area automatically.`}
+      >
+        <textarea
+          value={pasted}
+          onChange={(e) => setPasted(e.target.value)}
+          rows={8}
+          placeholder={`Examples:\nCarriers: drop Writing # column from master directory; clear leads\nInvite: full-role selector with founder gate\nlifeOS: system update + release notes`}
+          style={{ ...inputStyle(), fontFamily: "var(--gc-font-mono, monospace)", fontSize: 12, resize: "vertical" }}
+        />
+      </Field>
+
+      {draft && (
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              fontSize: "var(--gc-text-xs)",
+              letterSpacing: "var(--gc-tracking-wider)",
+              textTransform: "uppercase",
+              color: "var(--gc-text-muted)",
+              marginBottom: 8,
+              fontWeight: 600,
+            }}
+          >
+            Preview — {draft.recognizedCount} of {draft.totalCount} lines categorized
+          </div>
+          <div
+            style={{
+              padding: 16,
+              backgroundColor: "var(--gc-surface-2)",
+              border: "1px solid var(--gc-border-subtle)",
+              borderRadius: "var(--gc-radius-sm)",
+              maxHeight: 360,
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 4, color: "var(--gc-text-primary)" }}>{draft.title}</div>
+            <div style={{ color: "var(--gc-text-secondary)", marginBottom: 12, fontSize: 14, lineHeight: 1.5 }}>{draft.summary}</div>
+            <SimpleMarkdown source={draft.bodyMarkdown} />
+          </div>
+        </div>
+      )}
     </GCModal>
   );
 }
