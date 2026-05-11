@@ -52,6 +52,11 @@ import InvestorsLayout from "@/pages/investors/InvestorsLayout";
 import MarketingLayout from "@/pages/marketing/MarketingLayout";
 import FoundersLoungeLayout from "@/pages/founders/FoundersLoungeLayout";
 
+// lifeOS — system update + release notes
+import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
+import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
+import LifeOSAdminPage from "@/pages/founders/LifeOSAdminPage";
+
 // Auth / Public
 import AgentApplication from "@/pages/apply/AgentApplication";
 import LoginPage from "@/pages/auth/LoginPage";
@@ -115,6 +120,10 @@ function Router() {
         <Route path="/blog" component={InstitutionalBlog} />
         <Route path="/blog/:slug" component={InstitutionalBlogArticle} />
         <Route path="/media" component={InstitutionalMedia} />
+
+        {/* lifeOS — system update + release notes */}
+        <Route path="/lifeos/whats-new" component={WhatsNewArchive} />
+        <Route path="/founders/lifeos">{() => <FoundersOnly><LifeOSAdminPage /></FoundersOnly>}</Route>
 
         {/* HCMS — Agent Portal (sales_agent + owner) */}
         <Route path="/hcms/my/dashboard">{() => <AgentOnly><AgentDashboardPage /></AgentOnly>}</Route>
@@ -198,7 +207,9 @@ function App() {
             <GlobalViewAsBanner />
             <InstitutionalWrapper />
             <Toaster />
-            <Router />
+            <LifeOSUpdateProvider>
+              <Router />
+            </LifeOSUpdateProvider>
           </AnalyticsProvider>
         </TooltipProvider>
       </RealtimeBridge>

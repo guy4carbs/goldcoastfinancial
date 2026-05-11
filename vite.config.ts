@@ -5,8 +5,14 @@ import path from "path";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import _runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
+import { LIFEOS_VERSION } from "./shared/lifeos";
 
 export default defineConfig({
+  // Inject the deployed bundle's lifeOS version as a global so the client
+  // can detect stale-bundle mismatches without an extra network call.
+  define: {
+    __LIFEOS_VERSION__: JSON.stringify(LIFEOS_VERSION),
+  },
   plugins: [
     react(),
     // Replit's runtime-error-plugin opens a full-screen overlay on every
