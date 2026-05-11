@@ -232,7 +232,7 @@ export default function LifeOSAdminPage() {
   ];
 
   return (
-    <div style={{ padding: "var(--gc-space-6)", maxWidth: 1200, margin: "0 auto" }}>
+    <div>
       <GCPageHeader
         title="lifeOS Releases"
         subtitle="Author release notes, bump the version, and publish updates the whole organization sees."
