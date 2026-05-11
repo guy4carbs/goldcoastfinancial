@@ -246,6 +246,7 @@ import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
 
 // lifeOS — system update + release notes (read-only on Heritage)
 import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
+import { ChunkLoadGuard } from "@/components/lifeos/ChunkLoadGuard";
 import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
 import { AnalyticsProvider } from "@/hooks/useAnalytics";
 import { WebSocketProvider } from "@/providers/WebSocketProvider";
@@ -1163,11 +1164,13 @@ function App() {
               <ConfirmProvider>
                 <TooltipProvider>
                   <AnalyticsProvider>
-                    <LifeOSUpdateProvider>
-                      <Toaster />
-                      <Router />
-                      <LindyChat />
-                    </LifeOSUpdateProvider>
+                    <ChunkLoadGuard>
+                      <LifeOSUpdateProvider>
+                        <Toaster />
+                        <Router />
+                        <LindyChat />
+                      </LifeOSUpdateProvider>
+                    </ChunkLoadGuard>
                   </AnalyticsProvider>
                 </TooltipProvider>
               </ConfirmProvider>

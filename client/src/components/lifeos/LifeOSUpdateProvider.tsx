@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LIFEOS_VERSION, getRuntimeLifeOSVersion } from "@shared/lifeos";
+import { triggerLifeOSUpdate } from "@/lib/lifeos-sw-register";
 import { UpdateAvailableModal } from "./UpdateAvailableModal";
 import { WhatsNewModal } from "./WhatsNewModal";
 
@@ -153,7 +154,10 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   const openWhatsNew = useCallback(() => setWhatsNewOpen(true), []);
 
   const applyUpdate = useCallback(async () => {
-    if (!status?.latest_release) return;
+    if (!status?.latest_release) {
+      await triggerLifeOSUpdate();
+      return;
+    }
     try {
       await fetch("/api/lifeos/me/ack", {
         method: "POST",
@@ -162,7 +166,8 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ release_id: status.latest_release.id, state: "updated" }),
       });
     } catch { /* ignore */ }
-    window.location.href = window.location.pathname + "?lifeos=" + Date.now();
+    // Strict bundle lock: wipe SW cache + reload onto the new bundle.
+    await triggerLifeOSUpdate();
   }, [status]);
 
   const dismissUpdate = useCallback(async () => {
