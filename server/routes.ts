@@ -73,6 +73,7 @@ import financeReportsRouter from "./routes/finance-reports";
 
 // Founders Lounge
 import { startViewAsSweeper } from "./services/viewAsSweeper";
+import { startLifeOSReminderSweeper } from "./services/lifeosNotifications";
 import foundersRouter from "./routes/founders";
 import foundersProfitRouter from "./routes/founders-profit";
 import foundersPlaidRouter from "./routes/founders-plaid";
@@ -1817,6 +1818,9 @@ export async function registerRoutes(
 
   // Sentinel H3: start the view-as sweeper (auto-ends sessions older than 4h).
   startViewAsSweeper();
+  // lifeOS reminder sweeper — every hour, drop a softer bell row for any
+  // user who dismissed an update more than 24h ago but hasn't installed it.
+  startLifeOSReminderSweeper();
 
   // Apply route — attachUser needed so /invite can use requireAuth
   app.use("/api/apply", attachUser);

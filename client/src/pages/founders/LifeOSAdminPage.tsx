@@ -6,6 +6,7 @@ import {
   GCKPICard,
   GCDataTable,
   GCStatusBadge,
+  GCSelect,
   type Column,
 } from "@/components/gc";
 import { SimpleMarkdown } from "@/components/lifeos/SimpleMarkdown";
@@ -755,15 +756,16 @@ function ReleaseEditor({ editId, onClose, onSaved }: { editId?: string; onClose:
           />
         </Field>
         <Field label="Type">
-          <select
+          <GCSelect
             value={releaseType}
-            onChange={(e) => setReleaseType(e.target.value as "major" | "minor" | "patch")}
-            style={inputStyle()}
-          >
-            <option value="patch">Patch — bug fixes</option>
-            <option value="minor">Minor — new features</option>
-            <option value="major">Major — flagship</option>
-          </select>
+            onValueChange={(v) => setReleaseType(v as "major" | "minor" | "patch")}
+            fullWidth
+            options={[
+              { value: "patch", label: "Patch — bug fixes" },
+              { value: "minor", label: "Minor — new features" },
+              { value: "major", label: "Major — flagship" },
+            ]}
+          />
         </Field>
       </div>
       <Field label="Title" hint="Sentence case, no exclamation marks.">

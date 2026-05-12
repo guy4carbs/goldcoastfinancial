@@ -52,6 +52,11 @@ export const notifications = pgTable("notifications", {
   type: varchar("type").notNull(),
   isRead: boolean("is_read").default(false),
   actionUrl: varchar("action_url"),
+  // Optional pointer at the entity this notification is about. Used for
+  // idempotency lookups (e.g. "has this user been notified about
+  // lifeos_release X already?") without parsing actionUrl substrings.
+  relatedTable: varchar("related_table"),
+  relatedId: varchar("related_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
