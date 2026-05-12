@@ -287,7 +287,9 @@ export async function registerRoutes(
         consentedAt: new Date(),
       });
 
-      console.log(`[Registration] New agent application from ${validatedData.email}`);
+      // M-4 (audit 2026-05-12): don't log raw email — it's PII and ends up
+      // in centralized log aggregators. The user_id is enough for forensics.
+      console.log(`[Registration] New agent application user_id=${user.id}`);
 
       res.status(201).json({
         success: true,

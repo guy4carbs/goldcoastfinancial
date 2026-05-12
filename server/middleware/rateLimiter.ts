@@ -23,7 +23,7 @@ export const loginLimiter = rateLimit({
   // Use default key generator (req.ip)
   handler: createRateLimitResponse('Too many login attempts. Please try again in 15 minutes.'),
   skip: (req) => process.env.NODE_ENV === 'test',
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**
@@ -38,7 +38,7 @@ export const registrationLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitResponse('Too many registration attempts. Please try again later.'),
   skip: (req) => process.env.NODE_ENV === 'test',
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**
@@ -53,7 +53,7 @@ export const quoteLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitResponse('Too many quote requests. Please wait a moment.'),
   skip: (req) => process.env.NODE_ENV === 'test',
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**
@@ -68,7 +68,7 @@ export const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitResponse('Too many password reset requests. Please try again later.'),
   skip: (req) => process.env.NODE_ENV === 'test',
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**
@@ -102,7 +102,7 @@ export const generalApiLimiter = rateLimit({
     // Skip rate limiting for health checks and static assets
     return req.path === '/api/health' || !req.path.startsWith('/api');
   },
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**
@@ -133,7 +133,7 @@ export const contactFormLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitResponse('Too many contact form submissions. Please try again later.'),
   skip: (req) => process.env.NODE_ENV === 'test',
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**
@@ -148,7 +148,7 @@ export const referralFormLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitResponse('Too many referral submissions. Please try again later.'),
   skip: (req) => process.env.NODE_ENV === 'test',
-  validate: { xForwardedForHeader: false },
+  validate: { xForwardedForHeader: true },
 });
 
 /**

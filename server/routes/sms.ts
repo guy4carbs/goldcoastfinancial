@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { requireAuth } from "../middleware/auth";
 import { sendSms, isSmsAvailable, validatePhoneNumber } from "../services/smsService";
+import { storage } from "../storage";
 import { db } from "../db";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import {
@@ -95,6 +96,28 @@ router.post("/send", requireAuth, async (req: Request, res: Response) => {
 
     if (!isSmsAvailable()) {
       return res.status(503).json({ error: "SMS service not configured" });
+    }
+
+    // HIGH (audit 2026-05-12): TCPA compliance — block any send to a number
+    // on the DNC list. Sending to DNC numbers exposes the company to FCC
+    // fines of $500–$43,000 per violation. The DNC table is populated via
+    // the /api/dnc/* routes.
+    try {
+      const onDnc = await storage.isOnDnc(to);
+      if (onDnc) {
+        return res.status(403).json({
+          error: "This number is on the Do Not Call list. The message was NOT sent.",
+          code: "DNC_BLOCKED",
+        });
+      }
+    } catch (dncErr: any) {
+      // If the DNC lookup itself fails, fail-closed (refuse to send) — it's
+      // safer to drop a legitimate message than to spam a DNC number.
+      console.error("[SMS] DNC check failed, blocking send:", dncErr?.message);
+      return res.status(503).json({
+        error: "Could not verify DNC status. Please try again in a moment.",
+        code: "DNC_CHECK_FAILED",
+      });
     }
 
     // Send via Telnyx

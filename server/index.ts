@@ -96,15 +96,20 @@ app.use('/api', generalApiLimiter);
 // REQUEST PARSING
 // =============================================================================
 
+// M-15 (audit 2026-05-12): explicit body limit. Express default is 100KB
+// which is too small for some legitimate uploads (CRM imports etc.) but
+// 50MB on raw JSON is a compression-bomb risk. 10MB is the sweet spot —
+// multipart/file uploads go through multer with their own per-route caps.
 app.use(
   express.json({
+    limit: "10mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -243,9 +248,10 @@ app.use(sentryUserMiddleware);
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    // P0 (audit 2026-05-12): previously `throw err` here re-raised the error
+    // as an uncaughtException, crashing the process on every handled error.
+    // Sentry middleware above already captured it; just respond and return.
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after

@@ -10,6 +10,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import DOMPurify from "isomorphic-dompurify";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -1310,12 +1311,23 @@ export default function AgentEmailContent({
                   <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                 </div>
               ) : activeEmail.bodyHtml ? (
+                // P0 (audit 2026-05-12): bodyHtml from external IMAP/Gmail/
+                // Outlook providers is attacker-controlled. DOMPurify strips
+                // scripts, event handlers, javascript: URLs, and other XSS
+                // vectors. SAFE_FOR_TEMPLATES is OFF (we WANT the email's
+                // formatting); FORBID_TAGS removes only the dangerous ones.
                 <div
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: activeEmail.bodyHtml }}
+                  className="prose prose-sm max-w-none break-words"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(activeEmail.bodyHtml, {
+                      FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "input", "button"],
+                      FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur", "onsubmit", "formaction"],
+                      ALLOW_DATA_ATTR: false,
+                    }),
+                  }}
                 />
               ) : (
-                <article className="prose prose-sm max-w-none whitespace-pre-wrap">
+                <article className="prose prose-sm max-w-none whitespace-pre-wrap break-words">
                   {activeEmail.body ||
                     activeEmail.bodyText ||
                     activeEmail.snippet ||

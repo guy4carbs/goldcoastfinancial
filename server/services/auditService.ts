@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { auditLogs, type InsertAuditLog, type AuditAction } from '@shared/schema';
 import type { Request } from 'express';
+import type { PoolClient } from 'pg';
 
 /**
  * Audit Service
@@ -39,23 +40,47 @@ export async function logAudit(
   status: 'success' | 'failure' | 'blocked',
   context: AuditContext,
   resourceId?: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  client?: PoolClient,
 ): Promise<void> {
-  try {
-    const auditEntry: InsertAuditLog = {
-      action,
-      resource,
-      resourceId,
-      status,
-      userId: context.userId,
-      ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
-      metadata: { ...context.metadata, ...metadata },
-    };
+  const auditEntry: InsertAuditLog = {
+    action,
+    resource,
+    resourceId,
+    status,
+    userId: context.userId,
+    ipAddress: context.ipAddress,
+    userAgent: context.userAgent,
+    metadata: { ...context.metadata, ...metadata },
+  };
 
+  // H-19 (audit 2026-05-12): if a transactional pg client is provided, run
+  // the insert on that client so the audit row commits or rolls back with
+  // the caller's transaction. Errors propagate intentionally — caller's
+  // catch should ROLLBACK and surface the failure (SOX / SOC 2 control).
+  if (client) {
+    await client.query(
+      `INSERT INTO audit_logs (action, resource, resource_id, status, user_id, ip_address, user_agent, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
+      [
+        auditEntry.action,
+        auditEntry.resource,
+        auditEntry.resourceId ?? null,
+        auditEntry.status,
+        auditEntry.userId ?? null,
+        auditEntry.ipAddress ?? null,
+        auditEntry.userAgent ?? null,
+        auditEntry.metadata ? JSON.stringify(auditEntry.metadata) : null,
+      ],
+    );
+    return;
+  }
+
+  // Non-transactional path — best-effort, errors logged but never propagated
+  // so non-critical audit writes can't break the request.
+  try {
     await db.insert(auditLogs).values(auditEntry);
   } catch (error) {
-    // Log to console as backup - never let audit logging break the app
     console.error('[AUDIT] Failed to write audit log:', error);
     console.log('[AUDIT] Event:', { action, resource, resourceId, status, context });
   }

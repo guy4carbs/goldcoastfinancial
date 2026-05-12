@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import DOMPurify from "isomorphic-dompurify";
 import { Link, useParams, useLocation } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -207,12 +208,26 @@ export default function BlogPost() {
           <div className="max-w-4xl mx-auto">
             <div className="grid lg:grid-cols-[1fr_200px] gap-12">
               {/* Main Content */}
+              {/*
+                P0 (audit 2026-05-12): post.content is admin-authored HTML.
+                DOMPurify sanitizes it on render so a compromised admin
+                account (or DB-side injection) can't plant <script> tags
+                that execute in every visitor's browser. Layout/formatting
+                tags are preserved; script + event handlers + iframes are
+                stripped.
+              */}
               <motion.article
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className="article-content"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(post.content, {
+                    FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "input", "button"],
+                    FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur", "onsubmit", "formaction"],
+                    ALLOW_DATA_ATTR: false,
+                  }),
+                }}
               />
               <style>{`
                 .article-content {

@@ -17,11 +17,44 @@ import { recordCommissions } from "../services/commissionRecordService";
 
 const router = Router();
 
-// File upload configuration (memory storage for S3 upload)
+// File upload configuration (memory storage for S3 upload).
+// HIGH H-20 (audit 2026-05-12): 50MB was an OOM risk under burst load and
+// the missing `fileFilter` allowed any MIME → potential RCE if downloaded
+// as the wrong type. Whitelist + 25MB cap closes both gaps. multer parses
+// the multipart stream INTO memory before the route handler runs, so the
+// limit must live here (not in a downstream validateFile() call).
+const ALLOWED_UPLOAD_MIMES = new Set<string>([
+  // Images
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/heic",
+  // Documents
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+]);
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 25 * 1024 * 1024, // 25MB
+    files: 5, // per request
+  },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_UPLOAD_MIMES.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      // Reject — multer will surface this as an error in the route handler.
+      cb(new Error(`Disallowed file type: ${file.mimetype}. Allowed: PDF, Word, Excel, PowerPoint, images, plain text, CSV.`));
+    }
   },
 });
 
@@ -549,13 +582,23 @@ router.get("/:clientId/documents/:docId/download", requireAuth, requireClientAss
       return res.status(404).json({ error: "Document has no associated file in storage" });
     }
 
-    const signedUrl = await s3Service.getSignedDownloadUrl(document.s3Key);
-    if (!signedUrl.success) {
-      return res.status(500).json({ error: signedUrl.error || "Failed to generate download URL" });
+    // P1 (audit 2026-05-12): previously this issued a 302 redirect to a
+    // Firebase signed URL that exposed the (non-expiring) download token in
+    // browser history, referer logs, and could be replayed indefinitely.
+    // Now we stream the bytes server-side after the auth + assignment
+    // middleware has cleared the request. Token never leaves the server.
+    const fileResult = await s3Service.getFile(document.s3Key);
+    if (!fileResult.success || !fileResult.data) {
+      return res.status(500).json({ error: fileResult.error || "Failed to fetch document bytes" });
     }
-
-    // Redirect to the actual file URL
-    res.redirect(signedUrl.url!);
+    res.setHeader("Content-Type", (document as any).type || "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${String(document.name || "document").replace(/["\\\r\n]/g, "_")}"`,
+    );
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.send(fileResult.data);
   } catch (error: any) {
     console.error("[AgentClients] Failed to get download URL:", error);
     res.status(500).json({ error: "Failed to get download URL" });
