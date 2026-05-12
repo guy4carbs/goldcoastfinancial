@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from "@/contexts/AuthContext";
 import { LIFEOS_VERSION, getRuntimeLifeOSVersion } from "@shared/lifeos";
 import { triggerLifeOSUpdate } from "@/lib/lifeos-sw-register";
+import { toast } from "sonner";
 import { UpdateAvailableModal } from "./UpdateAvailableModal";
 import { WhatsNewModal } from "./WhatsNewModal";
 
@@ -184,6 +185,33 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   }, [status]);
 
   const openWhatsNew = useCallback(() => setWhatsNewOpen(true), []);
+
+  // Post-update toast — fires once after the reload triggered by Update Now.
+  const postUpdateToastFiredRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (postUpdateToastFiredRef.current) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("lifeos")) return;
+    if (!status?.latest_release) return;
+    postUpdateToastFiredRef.current = true;
+    const r = status.latest_release;
+    toast.success(`Updated to lifeOS ${r.version}`, {
+      description: r.summary,
+      duration: 5000,
+      action: {
+        label: "See what's new",
+        onClick: () => setWhatsNewOpen(true),
+      },
+    });
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("lifeos");
+      window.history.replaceState({}, "", url.toString());
+    } catch {
+      // ignore
+    }
+  }, [status]);
 
   const applyUpdate = useCallback(async () => {
     const releaseId = status?.latest_release?.id;

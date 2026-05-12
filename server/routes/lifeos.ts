@@ -141,6 +141,27 @@ router.get("/me/status", requireAuth, async (req, res) => {
   }
 });
 
+// Inline notification helpers — Heritage doesn't share gcf's services
+// directory, so we duplicate the small bits we need here.
+async function notifyUpdateCompleteHeritage(userId: string, release: { id: string; version: string; summary: string; title: string }) {
+  try {
+    await pool.query(
+      `UPDATE notifications SET is_read = true
+        WHERE user_id = $1 AND related_id = $2
+          AND type IN ('lifeos.update_available', 'lifeos.update_reminder')
+          AND is_read = false`,
+      [userId, release.id],
+    );
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, message, type, is_read, action_url, related_table, related_id)
+       VALUES ($1, $2, $3, 'lifeos.update_complete', false, '/lifeos/whats-new', 'lifeos_releases', $4)`,
+      [userId, `Updated to lifeOS ${release.version}`, `You're on the latest. ${release.summary}`, release.id],
+    );
+  } catch (err: any) {
+    console.error("[lifeOS heritage] update_complete notif failed:", err?.message);
+  }
+}
+
 router.post("/me/ack", requireAuth, async (req, res) => {
   try {
     const { release_id, state } = req.body ?? {};
@@ -156,6 +177,17 @@ router.post("/me/ack", requireAuth, async (req, res) => {
        ON CONFLICT (user_id, release_id, state) DO UPDATE SET acked_at = NOW()`,
       [(req as any).user!.id, release_id, state],
     );
+    if (state === "updated") {
+      try {
+        const r = await pool.query(
+          `SELECT id, version, title, summary FROM lifeos_releases WHERE id = $1`,
+          [release_id],
+        );
+        if (r.rows[0]) await notifyUpdateCompleteHeritage((req as any).user!.id, r.rows[0]);
+      } catch (err: any) {
+        console.error("[lifeOS heritage] post-ack notify failed:", err?.message);
+      }
+    }
     res.json({ success: true });
   } catch (e: any) {
     console.error("[lifeOS] ack error:", e?.message);
