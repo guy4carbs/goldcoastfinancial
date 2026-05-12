@@ -234,22 +234,38 @@ function PublicReleaseModal({
       aria-labelledby="public-whats-new-title"
       onClick={onClose}
       className="fixed inset-0 z-[60] flex items-center justify-center px-4"
-      style={{ backgroundColor: "rgba(20, 8, 14, 0.62)", backdropFilter: "blur(6px)" }}
+      // Solid scrim — burgundy at 88% so the modal feels firmly anchored
+      // over the page rather than floating through it. No blur (was making
+      // the page bleed through).
+      style={{ backgroundColor: "rgba(20, 8, 14, 0.88)" }}
     >
       <motion.div
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.96, y: 14 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col"
-        style={{ width: 640, maxWidth: "94vw", maxHeight: "88vh" }}
+        // Solid white body, generous rounded-2xl (16px) corners, layered
+        // shadow that anchors the modal on the burgundy page.
+        className="bg-white rounded-2xl overflow-hidden flex flex-col"
+        style={{
+          width: 640,
+          maxWidth: "94vw",
+          maxHeight: "88vh",
+          // Layered shadow — soft outer + tighter inner so the radius reads
+          // crisp against any background. Matches the institutional card
+          // shadow language.
+          boxShadow:
+            "0 32px 64px -16px rgba(20, 8, 14, 0.55), 0 0 0 1px rgba(20, 8, 14, 0.08)",
+        }}
       >
-        {/* Hero strip */}
+        {/* Hero strip — burgundy → deeper burgundy → gold sweep, matches
+            the hero-gradient class used on InstitutionalAbout and the home
+            page. Solid (no transparency on the gradient). */}
         <div
-          className="relative px-7 py-6"
+          className="relative px-8 py-7"
           style={{
             background:
-              "linear-gradient(135deg, hsl(348,65%,18%), hsl(348,65%,28%) 60%, hsl(42, 60%, 35%))",
+              "linear-gradient(135deg, hsl(348, 65%, 16%) 0%, hsl(348, 65%, 22%) 55%, hsl(42, 60%, 32%) 100%)",
             color: "white",
           }}
         >
@@ -257,35 +273,60 @@ function PublicReleaseModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-3 right-3 rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/10 transition"
+            className="absolute top-4 right-4 rounded-full p-2 text-white/80 hover:text-white hover:bg-white/15 transition"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 border border-white/25">
-              <Sparkles className="h-4 w-4" />
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 border border-white/30 shadow-sm">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
             <span
-              className="font-mono text-xs px-2.5 py-1 rounded-full bg-white/15 border border-white/25"
+              className="font-mono text-xs px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white"
             >
               lifeOS {versionString}
             </span>
           </div>
-          <div className="text-xs font-medium uppercase tracking-[0.18em] text-secondary mb-1">
+          <div
+            className="text-[11px] font-semibold uppercase tracking-[0.22em] mb-2"
+            style={{ color: "hsl(42, 75%, 70%)" }}
+          >
             What's new
           </div>
-          <h2 id="public-whats-new-title" className="text-2xl md:text-3xl font-serif leading-tight">
+          <h2
+            id="public-whats-new-title"
+            className="font-serif leading-tight"
+            style={{
+              fontSize: "clamp(22px, 3.5vw, 30px)",
+              color: "#ffffff",
+              fontWeight: 600,
+              textShadow: "0 1px 2px rgba(0, 0, 0, 0.18)",
+              margin: 0,
+            }}
+          >
             {release?.title ?? "Release notes"}
           </h2>
           {release?.summary && (
-            <p className="mt-3 text-white/85 leading-relaxed text-sm md:text-base">
+            <p
+              className="mt-3 leading-relaxed text-sm md:text-base"
+              style={{
+                color: "rgba(255, 255, 255, 0.92)",
+                margin: "12px 0 0",
+              }}
+            >
               {release.summary}
             </p>
           )}
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-7 py-6 prose-public">
+        {/* Body — solid cream-white surface, dark burgundy text */}
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{
+            backgroundColor: "#ffffff",
+            padding: "24px 32px 12px",
+          }}
+        >
           {loading ? (
             <p className="text-muted-foreground text-center py-8">Loading release notes…</p>
           ) : release ? (
@@ -297,14 +338,40 @@ function PublicReleaseModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-7 py-4 border-t border-border/60 flex items-center justify-end">
+        {/* Footer — solid white, gold pill primary, archive link secondary */}
+        <div
+          className="flex items-center justify-between"
+          style={{
+            padding: "14px 32px",
+            backgroundColor: "#ffffff",
+            borderTop: "1px solid hsl(348, 8%, 88%)",
+          }}
+        >
+          <a
+            href="/lifeos/whats-new"
+            className="inline-flex items-center gap-1 text-sm"
+            style={{
+              color: "hsl(348, 25%, 35%)",
+              textDecoration: "none",
+              fontFamily: "'Inter', -apple-system, sans-serif",
+            }}
+          >
+            Open archive
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </a>
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 rounded-md font-medium text-white shadow"
+            className="font-medium text-white"
             style={{
-              background: "linear-gradient(135deg, hsl(42, 60%, 35%), hsl(42, 60%, 50%))",
+              padding: "10px 26px",
+              borderRadius: 8,
+              background: "linear-gradient(135deg, hsl(42, 60%, 32%), hsl(42, 60%, 48%))",
+              boxShadow: "0 2px 8px rgba(154, 117, 64, 0.35)",
+              border: "none",
+              fontFamily: "'Inter', -apple-system, sans-serif",
+              fontSize: 14,
+              cursor: "pointer",
             }}
           >
             Got it
