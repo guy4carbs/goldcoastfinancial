@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
+import FocusTrap from "focus-trap-react";
 
 /**
  * GCModal — bespoke fixed-overlay dialog matching the HCMS Send Application
@@ -31,6 +32,7 @@ export function GCModal({
   width = 480,
   children,
   footer,
+  titleId,
 }: {
   title: string;
   subtitle?: string | null;
@@ -39,6 +41,7 @@ export function GCModal({
   width?: number;
   children: ReactNode;
   footer?: ReactNode;
+  titleId?: string;
 }) {
   // Lock background scroll while open + close on Esc.
   useEffect(() => {
@@ -55,10 +58,26 @@ export function GCModal({
   }, [onClose]);
 
   return (
+    // HIGH H-11 (audit 2026-05-12): focus-trap-react locks tab navigation
+    // inside the modal until it closes. WCAG 2.1.3.1 / 2.4.3 / 4.1.2.
+    // `clickOutsideDeactivates` lets click-on-scrim still close the modal
+    // (preserves existing behaviour); `escapeDeactivates: false` keeps Esc
+    // close in our hands (already wired in useEffect above).
+    <FocusTrap
+      focusTrapOptions={{
+        clickOutsideDeactivates: true,
+        escapeDeactivates: false,
+        returnFocusOnDeactivate: true,
+        allowOutsideClick: true,
+      }}
+    >
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -88,6 +107,7 @@ export function GCModal({
             <div className="flex items-center gap-2 flex-1 min-w-0">
               {icon}
               <div
+                id={titleId}
                 style={{
                   fontFamily: "var(--gc-font-display)",
                   fontSize: "var(--gc-text-xl)",
@@ -164,6 +184,7 @@ export function GCModal({
         )}
       </div>
     </div>
+    </FocusTrap>
   );
 }
 

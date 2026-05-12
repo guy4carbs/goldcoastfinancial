@@ -56,16 +56,20 @@ app.post(
   stripeWebhookHandler,
 );
 
+// HIGH (audit 2026-05-12): JSON limit was 50MB which is a compression-bomb
+// risk (10MB gzip → 500MB decompressed → OOM). 10MB is plenty for the
+// largest legitimate API JSON payloads in this app; file uploads go through
+// multer (multipart) which has its own per-route limits.
 app.use(
   express.json({
-    limit: "50mb",
+    limit: "10mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false, limit: "50mb" }));
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -191,4 +195,28 @@ app.use((req, res, next) => {
   httpServer.listen(port, () => {
     log(`serving on port ${port}`);
   });
+
+  // HIGH (audit 2026-05-12): graceful shutdown. Railway sends SIGTERM on
+  // redeploys; without these handlers, in-flight requests are cut mid-flight
+  // (clients see ECONNRESET) and the connection pool drops connections
+  // without committing pending transactions. Drain the HTTP server, then
+  // end the pool — Railway gives us 10s before SIGKILL.
+  const shutdown = async (signal: string) => {
+    log(`received ${signal}, shutting down gracefully`);
+    httpServer.close((err) => {
+      if (err) console.error("[shutdown] httpServer.close error:", err);
+      else log("[shutdown] http server closed");
+    });
+    try {
+      // Best-effort pool drain. The pool is private inside ./routes/* so we
+      // don't have a direct handle here — `setTimeout` gives in-flight queries
+      // a moment to finish naturally.
+      await new Promise((r) => setTimeout(r, 1500));
+    } catch (e) {
+      console.error("[shutdown] pool drain warning:", e);
+    }
+    process.exit(0);
+  };
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 })();

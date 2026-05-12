@@ -1,0 +1,95 @@
+# H-12 (audit 2026-05-12): Playwright E2E in CI.
+#
+# Runs the existing Playwright suite (`tests/*.spec.ts`) on every PR + push to
+# main. Coverage focus is the security/regulatory critical paths — login + 2FA,
+# lifeOS update flow, founders gate, agent invite RBAC. A failing test blocks
+# merge.
+#
+# DB: we use a fresh Postgres service container so the suite has a clean
+# baseline. Migrations run before tests via `npm run migrate`. The shared Neon
+# DB is NOT touched from CI.
+name: Playwright
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: gcf_ci
+          POSTGRES_PASSWORD: gcf_ci_pw
+          POSTGRES_DB: gcf_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://gcf_ci:gcf_ci_pw@localhost:5432/gcf_test
+      NODE_ENV: test
+      # Required secrets so the auth flow can boot (the test fixture
+      # only exercises seeded local accounts, never prod).
+      SESSION_SECRET: ci-only-session-secret-do-not-use-elsewhere-32chars
+      CSRF_SECRET: ci-only-csrf-secret-do-not-use-elsewhere-32-chars
+      PORT: 3000
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run migrations
+        run: npm run migrate
+
+      # Seed minimal fixtures (founders, demo agents) so the suite has
+      # something to log in as. Idempotent.
+      - name: Seed test fixtures
+        run: |
+          if [ -f scripts/seed-founders.ts ]; then npx tsx scripts/seed-founders.ts; fi
+          if [ -f scripts/seed-test-users.ts ]; then npx tsx scripts/seed-test-users.ts; fi
+
+      # Boot the app, wait for it to listen, then run the spec.
+      - name: Run Playwright
+        run: |
+          npm run dev &
+          DEV_PID=$!
+          npx wait-on --timeout 60000 http://localhost:3000/api/health
+          npx playwright test --reporter=list
+          PLAYWRIGHT_EXIT=$?
+          kill $DEV_PID || true
+          exit $PLAYWRIGHT_EXIT
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7

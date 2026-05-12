@@ -184,5 +184,31 @@ test.describe("lifeOS update + notification flow", () => {
     // The reload may or may not produce a new bundle in test; just confirm
     // the URL now carries the ?lifeos= cache-bust param.
     await page.waitForURL((url) => url.searchParams.has("lifeos"), { timeout: 5_000 });
+    // Give the post-update toast a moment to mount; capture if present.
+    await page.waitForLoadState("domcontentloaded");
+    const toast = page.locator('[data-sonner-toast], li[role="status"]').first();
+    if (await toast.count()) {
+      await toast.waitFor({ state: "visible", timeout: 5_000 }).catch(() => {});
+      await page.screenshot({ path: "test-results/lifeos-toast.png", fullPage: false }).catch(() => {});
+    }
+    // Open the notification bell and capture the dropdown.
+    const bell = page.locator('[data-testid="notification-bell"], [aria-label*="otification" i]').first();
+    if (await bell.count()) {
+      await bell.click({ timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: "test-results/lifeos-bell.png", fullPage: false }).catch(() => {});
+    }
+  });
+
+  test("UI: public archive modal uses institutional design", async ({ page }) => {
+    await page.goto("/lifeos/whats-new", { waitUntil: "domcontentloaded" });
+    // Click the first release card.
+    const firstCard = page.locator('button:has-text("lifeOS")').first();
+    await firstCard.waitFor({ timeout: 10_000 });
+    await firstCard.click();
+    await page.waitForSelector('[role="dialog"][aria-labelledby="public-whats-new-title"]', {
+      timeout: 5_000,
+    });
+    await page.screenshot({ path: "test-results/lifeos-archive-modal.png", fullPage: false });
   });
 });

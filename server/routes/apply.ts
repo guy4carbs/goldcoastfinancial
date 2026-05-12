@@ -302,27 +302,39 @@ router.post("/register", async (req, res) => {
       return res.json({ success: true, token: inviteToken, userId });
     }
 
-    const [user] = await db.insert(users).values({
-      email,
-      password: hash,
-      firstName: firstName || null,
-      lastName: lastName || null,
-      phone: phone || null,
-      role: "sales_agent",
-      onboardingStatus: "in_progress",
-      inviteToken,
-      inviteTokenExpiresAt: expiresAt,
-    }).returning();
+    // P0 (audit 2026-05-12): the three-row create (users + agent_profiles +
+    // contracting_checklists) had no transaction wrapper — a mid-flight
+    // failure left a user row without a profile or checklist, and the next
+    // retry would find the orphan via email lookup at line 284 but never
+    // recreate the missing rows. Now wrapped so it's all-or-nothing.
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
 
-    const profileResult = await pool.query(
-      `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [user.id, "pending_review", 1, inviteToken, expiresAt]
-    );
+      const userInsert = await client.query(
+        `INSERT INTO users (email, password, first_name, last_name, phone, role, onboarding_status, invite_token, invite_token_expires_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, 'sales_agent', 'in_progress', $6, $7, NOW(), NOW())
+         RETURNING id`,
+        [email, hash, firstName || null, lastName || null, phone || null, inviteToken, expiresAt],
+      );
+      const newUserId: string = userInsert.rows[0].id;
 
-    await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [user.id]);
+      const profileResult = await client.query(
+        `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [newUserId, "pending_review", 1, inviteToken, expiresAt],
+      );
 
-    res.json({ success: true, token: inviteToken, userId: user.id, profileId: profileResult.rows[0].id });
+      await client.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [newUserId]);
+
+      await client.query("COMMIT");
+      res.json({ success: true, token: inviteToken, userId: newUserId, profileId: profileResult.rows[0].id });
+    } catch (txErr: any) {
+      try { await client.query("ROLLBACK"); } catch { /* noop */ }
+      throw txErr;
+    } finally {
+      client.release();
+    }
   } catch (e: any) {
     console.error("[Apply] Register error:", e.message);
     res.status(500).json({ error: e.message });
@@ -519,6 +531,16 @@ router.post("/save-progress", async (req, res) => {
       [...vals, token]
     );
 
+    // P0 (audit 2026-05-12): previously the route returned success even when
+    // zero rows matched the onboarding_token → silent data loss. Now we
+    // verify the UPDATE actually touched a row before responding success.
+    if (!result.rowCount || result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Save failed — token does not match any active application. Please refresh and try again.",
+        code: "INVALID_ONBOARDING_TOKEN",
+      });
+    }
+
     res.json({ success: true, step });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
@@ -696,46 +718,58 @@ router.post("/submit", async (req, res) => {
       return res.json({ success: true, profileId: profile.id, userId: user.id });
     }
 
-    // Token-based submit — finalize existing skeleton
+    // Token-based submit — finalize existing skeleton.
+    // P0 (audit 2026-05-12): previously this ran 4+ writes WITHOUT a
+    // transaction. A failure mid-flight (e.g. license INSERT) left password
+    // already updated but onboarding_status / profile / token state
+    // inconsistent. Now wrapped in BEGIN/COMMIT with ROLLBACK on any error.
     const profile = await findByToken(token);
     if (!profile) return res.status(404).json({ error: "Invalid or expired token" });
 
-    // Set real password
-    if (password) {
-      const hash = await bcrypt.hash(password, 10);
-      await pool.query(
-        "UPDATE users SET password = $1, onboarding_status = 'submitted', password_reset_required = false, updated_at = NOW() WHERE id = $2",
-        [hash, profile.uid]
-      );
-    }
-
-    // Finalize profile
-    await pool.query(
-      `UPDATE agent_profiles SET
-        approval_status = 'pending_review',
-        agreed_to_terms = $1,
-        agreed_to_privacy = $2,
-        consented_at = NOW(),
-        onboarding_completed_at = NOW(),
-        updated_at = NOW()
-      WHERE user_id = $3`,
-      [agreedToTerms || false, agreedToPrivacy || false, profile.uid]
-    );
-
-    // Clear invite token on user
-    await pool.query(
-      "UPDATE users SET invite_token = NULL, invite_token_expires_at = NULL, updated_at = NOW() WHERE id = $1",
-      [profile.uid]
-    );
-
-    // Create license records from licensed_states entered during application
+    const client = await pool.connect();
     try {
-      const profileData = await pool.query("SELECT licensed_states, state, is_licensed FROM agent_profiles WHERE user_id::text = $1", [profile.uid]);
+      await client.query("BEGIN");
+
+      // Set real password
+      if (password) {
+        const hash = await bcrypt.hash(password, 10);
+        await client.query(
+          "UPDATE users SET password = $1, onboarding_status = 'submitted', password_reset_required = false, updated_at = NOW() WHERE id = $2",
+          [hash, profile.uid]
+        );
+      }
+
+      // Finalize profile
+      await client.query(
+        `UPDATE agent_profiles SET
+          approval_status = 'pending_review',
+          agreed_to_terms = $1,
+          agreed_to_privacy = $2,
+          consented_at = NOW(),
+          onboarding_completed_at = NOW(),
+          updated_at = NOW()
+        WHERE user_id = $3`,
+        [agreedToTerms || false, agreedToPrivacy || false, profile.uid]
+      );
+
+      // Clear invite token on user
+      await client.query(
+        "UPDATE users SET invite_token = NULL, invite_token_expires_at = NULL, updated_at = NOW() WHERE id = $1",
+        [profile.uid]
+      );
+
+      // Create license records from licensed_states entered during application.
+      // P0 (audit): the license INSERT was inside its own try/catch that
+      // silently swallowed errors → submitted users could have zero licenses
+      // and nobody knew. Now it's part of the same transaction; failure
+      // rolls back everything (so user is NOT marked submitted with
+      // partial state).
+      const profileData = await client.query("SELECT licensed_states, state, is_licensed FROM agent_profiles WHERE user_id::text = $1", [profile.uid]);
       const ap = profileData.rows[0];
       if (ap?.licensed_states && ap.is_licensed) {
         const states = ap.licensed_states.split(",").filter(Boolean);
         for (const stateCode of states) {
-          await pool.query(
+          await client.query(
             `INSERT INTO agent_licenses (user_id, state_code, license_type, status, is_resident, last_synced_at, sync_source)
              VALUES ($1, $2, 'life_health', 'active', $3, NOW(), 'application')
              ON CONFLICT DO NOTHING`,
@@ -744,11 +778,16 @@ router.post("/submit", async (req, res) => {
         }
         console.log(`[Apply] Created ${states.length} license records for ${profile.uid}`);
       }
-    } catch (licErr: any) {
-      console.error("[Apply] License creation error:", licErr.message);
-    }
 
-    res.json({ success: true, userId: profile.uid });
+      await client.query("COMMIT");
+      res.json({ success: true, userId: profile.uid });
+    } catch (txErr: any) {
+      try { await client.query("ROLLBACK"); } catch { /* noop */ }
+      console.error("[Apply] Submit transaction failed:", txErr?.message);
+      throw txErr;
+    } finally {
+      client.release();
+    }
   } catch (e: any) {
     console.error("[Apply] Submit error:", e.message);
     res.status(500).json({ error: e.message });
