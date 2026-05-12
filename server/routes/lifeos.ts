@@ -24,6 +24,7 @@ import { pool } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { Roles } from "../types/permissions";
 import { logFounderAction } from "../services/founderAudit";
+import { fanoutPublishedNotifications, notifyUpdateComplete } from "../services/lifeosNotifications";
 import {
   LIFEOS_VERSION,
   LIFEOS_RELEASE_TYPES,
@@ -190,6 +191,21 @@ router.post("/me/ack", requireAuth, async (req, res) => {
        ON CONFLICT (user_id, release_id, state) DO UPDATE SET acked_at = NOW()`,
       [req.user!.id, release_id, state],
     );
+    // On 'updated' ack: log an `update_complete` notification + clear any
+    // pending `update_available`/`update_reminder` rows for this release.
+    if (state === "updated") {
+      try {
+        const r = await pool.query(
+          `SELECT id, version, title, summary FROM lifeos_releases WHERE id = $1`,
+          [release_id],
+        );
+        if (r.rows[0]) {
+          await notifyUpdateComplete(req.user!.id, r.rows[0]);
+        }
+      } catch (notifErr: any) {
+        console.error("[lifeOS] update_complete notif failed:", notifErr?.message);
+      }
+    }
     res.json({ success: true });
   } catch (e: any) {
     console.error("[lifeOS] ack error:", e?.message);
@@ -356,6 +372,20 @@ router.post("/releases/:id/publish", requireAuth, requireRole(...ADMIN_ROLES), a
       entityId: id,
       payload: { version: cur.rows[0].version },
     });
+    // Fan out per-user notifications so the bell icon surfaces this release
+    // alongside the popup. Failures here don't block the publish response.
+    try {
+      const detail = await pool.query(
+        `SELECT id, version, title, summary FROM lifeos_releases WHERE id = $1`,
+        [id],
+      );
+      if (detail.rows[0]) {
+        const out = await fanoutPublishedNotifications(detail.rows[0]);
+        console.log(`[lifeOS] publish fan-out sent ${out.sent} notifications`);
+      }
+    } catch (notifErr: any) {
+      console.error("[lifeOS] publish fan-out failed:", notifErr?.message);
+    }
     res.json({ success: true });
   } catch (e: any) {
     try { await client.query("ROLLBACK"); } catch { /* ignore */ }
