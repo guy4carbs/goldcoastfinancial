@@ -192,9 +192,21 @@ export async function registerRoutes(
           directives: {
             "frame-ancestors": ["'self'"],
             // Plaid Link requires its own iframe + scripts when launched.
+            // Cloudflare Web Analytics injects beacon.min.js automatically on
+            // every Cloudflare-proxied origin — must be allowed in script-src
+            // and connect-src or every page logs a CSP violation.
             "frame-src": ["'self'", "https://cdn.plaid.com"],
-            "script-src": ["'self'", "https://cdn.plaid.com"],
-            "connect-src": ["'self'", "https://*.plaid.com"],
+            "script-src": [
+              "'self'",
+              "https://cdn.plaid.com",
+              "https://static.cloudflareinsights.com",
+            ],
+            "connect-src": [
+              "'self'",
+              "https://*.plaid.com",
+              "https://cloudflareinsights.com",
+              "https://*.cloudflareinsights.com",
+            ],
           },
         },
         // Lock framing/embedding tighter than the default. COEP stays off
