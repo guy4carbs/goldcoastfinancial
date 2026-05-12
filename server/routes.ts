@@ -17,6 +17,7 @@ import rateLimit from "express-rate-limit";
 // HCMS Route Imports
 import { attachUser, blockWritesDuringViewAs, requireAuth as requireAuthMw, requireRole, FOUNDERS_ONLY } from "./middleware/auth";
 import { onRoleChanged } from "./services/foundersEventBus";
+import { logFounderAction } from "./services/founderAudit";
 import { ROLES_REQUIRING_2FA_SET } from "./types/permissions";
 import { csrfProtection, csrfTokenHandler } from "./middleware/csrf";
 import { setRlsContext } from "./middleware/rlsContext";
@@ -44,6 +45,7 @@ import hcmsLicensingRouter from "./routes/hcms-licensing";
 import hcmsCarriersRouter from "./routes/hcms-carriers";
 import hcmsDocumentsRouter from "./routes/hcms-documents";
 import applyRouter from "./routes/apply";
+import accountRouter from "./routes/account";
 import agentPortalRouter from "./routes/agent-portal";
 import agentNotificationsRouter from "./routes/agent-notifications";
 import agentLicensesRouter from "./routes/agent-licenses";
@@ -106,6 +108,23 @@ const pool = new Pool({
 
 const PgSession = connectPgSimple(session);
 
+// P0 (audit 2026-05-12): in production, refuse to boot without a session
+// secret. The previous hardcoded fallback ("gold-coast-financial-secret-key")
+// meant a misconfigured deploy with SESSION_SECRET unset would silently use a
+// public-source string for cookie signing, enabling trivial session forgery.
+function requireSecret(name: string): string {
+  const v = process.env[name];
+  if (v && v.length >= 16) return v;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      `[security] ${name} is required in production and must be ≥16 chars. Refusing to boot with a fallback.`,
+    );
+  }
+  return v || "gc-dev-fallback-DO-NOT-USE-IN-PRODUCTION-only-for-localhost";
+}
+
+const SESSION_SECRET = requireSecret("SESSION_SECRET");
+
 export function setupSession(app: Express) {
   app.set("trust proxy", 1);
   app.use(
@@ -115,16 +134,19 @@ export function setupSession(app: Express) {
         tableName: "sessions",
         createTableIfMissing: true,
       }),
-      secret: process.env.SESSION_SECRET || "gold-coast-financial-secret-key",
+      secret: SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       cookie: {
-        // In production both must be true for cross-site cookie use; in dev
-        // localhost has no TLS so `secure: true` would drop every cookie.
+        // HIGH (audit 2026-05-12): sameSite=none requires an explicit
+        // cross-site cookie use case. We don't have one — heritagels.org
+        // and the SPA share an origin. Use 'lax' in both prod and dev so
+        // cross-site CSRF is mitigated at the cookie layer (defense in
+        // depth on top of the double-submit CSRF token).
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        sameSite: "lax",
       },
     })
   );
@@ -150,7 +172,7 @@ export async function registerRoutes(
   // Mount cookie-parser BEFORE setupSession so the CSRF middleware (which is
   // mounted shortly after the session) can read its own cookie via req.cookies.
   // Sign cookies with the same secret as sessions so signature checks succeed.
-  app.use(cookieParser(process.env.SESSION_SECRET || "gold-coast-financial-secret-key"));
+  app.use(cookieParser(SESSION_SECRET));
 
   setupSession(app);
 
@@ -307,6 +329,21 @@ export async function registerRoutes(
   });
   app.use("/api/auth/login", loginRateLimiter);
   app.use("/api/auth/2fa/verify", loginRateLimiter);
+
+  // HIGH (audit 2026-05-12): account creation needs its own throttle to
+  // stop registration spam + email-enumeration brute force. 3 attempts per
+  // 15 minutes per IP — generous enough for the bumbling real user, low
+  // enough that a single attacker IP can't churn accounts.
+  const registerRateLimiter = rateLimit({
+    windowMs: 15 * 60_000,
+    max: 3,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.ip || "unknown",
+    skip: () => process.env.NODE_ENV !== "production",
+    message: { error: "Too many registration attempts. Please try again in 15 minutes.", code: "RATE_LIMITED" },
+  });
+  app.use("/api/auth/register", registerRateLimiter);
 
   // Auth: Register new user
   app.post("/api/auth/register", async (req, res) => {
@@ -719,12 +756,11 @@ export async function registerRoutes(
   // Auth: Log out OTHER device sessions (Wave AF3) — keeps the current session
   // intact so the founder doesn't bounce themselves out. Targets connect-pg-
   // simple's `sessions` table, scoping by sess->>'userId' = current user.
-  app.post("/api/auth/sessions/logout-others", async (req, res) => {
-    const userId = req.session.userId;
+  // P0 (audit 2026-05-12): requireAuth middleware added — previously the
+  // route only inline-checked req.session.userId and skipped the 2FA gate.
+  app.post("/api/auth/sessions/logout-others", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
     const currentSid = req.sessionID;
-    if (!userId) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
     if (!currentSid) {
       return res.status(400).json({ error: "No current session id" });
     }
@@ -1214,7 +1250,28 @@ export async function registerRoutes(
       
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       await storage.updateUser(req.session.userId!, { password: hashedPassword });
-      
+
+      // HIGH (audit 2026-05-12): password changes had no audit trail. Without
+      // this, an account-takeover via stolen session token leaves no forensic
+      // record of who/when changed the password.
+      try {
+        await logFounderAction({
+          actorUserId: req.session.userId!,
+          action: "password_changed",
+          entityType: "user",
+          entityId: req.session.userId!,
+          payload: {
+            ip: req.ip,
+            userAgent: req.get("user-agent") || null,
+            method: "self_service",
+          },
+        });
+      } catch (auditErr) {
+        // Audit failure should not block the user; the storage.updateUser
+        // already committed. Just log loudly.
+        console.error("[Password change] audit log failed:", auditErr);
+      }
+
       res.json({ success: true, message: "Password changed successfully" });
     } catch (error) {
       console.error("Error changing password:", error);
@@ -1676,6 +1733,11 @@ export async function registerRoutes(
 
   // Attach user to request for RBAC middleware (non-blocking — populates req.user if session exists)
   app.use("/api/hcms", attachUser);
+
+  // H-18 (audit 2026-05-12): GDPR/CCPA data-subject rights.
+  // Mounted under /api/account; requires auth (user authorizes to themselves).
+  app.use("/api/account", attachUser);
+  app.use("/api/account", accountRouter);
 
   app.use("/api/hcms/agents", hcmsAgentsRouter);
   app.use("/api/hcms/contracting", hcmsContractingRouter);

@@ -35,6 +35,7 @@ export type { GCPeriodSelectorProps, PeriodOption } from "./GCPeriodSelector";
 export type { GCSankeyChartProps, SankeyNodeData, SankeyLinkData } from "./GCSankeyChart";
 export { GCPrimaryButton, GCSecondaryButton } from "./GCButton";
 export { GCModal, GC_FORM_LABEL, GC_FORM_INPUT } from "./GCModal";
+export { GCInstitutionalModal } from "./GCInstitutionalModal";
 export { GCSwitch, GC_SWITCH_CLASS } from "./GCSwitch";
 export { GCSelect } from "./GCSelect";
 export type { GCSelectProps, GCSelectOption } from "./GCSelect";

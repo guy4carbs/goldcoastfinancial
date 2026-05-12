@@ -101,11 +101,32 @@ function addSessionDismissed(releaseId: string) {
 
 export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const yourVersion = getRuntimeLifeOSVersion();
+  // Dev/QA override: `?lifeos_force_version=0.0.1` makes /me/status report
+  // update_available=true so the founder can demo the popup. Persisted to
+  // sessionStorage so it survives the polling interval. Strip the param to
+  // disable.
+  const yourVersion = (() => {
+    if (typeof window === "undefined") return getRuntimeLifeOSVersion();
+    const url = new URLSearchParams(window.location.search);
+    const fromUrl = url.get("lifeos_force_version");
+    if (fromUrl) {
+      try { sessionStorage.setItem("lifeos_force_version", fromUrl); } catch { /* noop */ }
+      return fromUrl;
+    }
+    try {
+      const cached = sessionStorage.getItem("lifeos_force_version");
+      if (cached) return cached;
+    } catch { /* noop */ }
+    return getRuntimeLifeOSVersion();
+  })();
 
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  // `applying` is set the moment the user clicks Update Now. The modal stays
+  // open in a non-dismissable spinner state so the user sees the work happen
+  // before the bundle swaps. Cleared on unmount (effectively, by the reload).
+  const [applying, setApplying] = useState(false);
   const firstPaintRef = useRef<number>(Date.now());
   const initialPopupShownRef = useRef<boolean>(false);
   const whatsNewShownRef = useRef<boolean>(false);
@@ -240,6 +261,12 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   }, [status]);
 
   const applyUpdate = useCallback(async () => {
+    // Surface the "Updating…" state immediately so the click registers and
+    // the user sees forward progress before the reload kicks in.
+    setApplying(true);
+    // Clear the demo/QA override so the post-reload page doesn't re-fire
+    // the popup against the simulated stale version.
+    try { sessionStorage.removeItem("lifeos_force_version"); } catch { /* noop */ }
     const releaseId = status?.latest_release?.id;
     if (!releaseId) {
       // No release context — still let them update via the SW cache wipe.
@@ -247,6 +274,9 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
+      // Server inserts the `lifeos.update_complete` notification + marks
+      // any pending update_available/reminder rows as read (see
+      // server/services/lifeosNotifications.ts::notifyUpdateComplete).
       await fetch("/api/lifeos/me/ack", {
         method: "POST",
         credentials: "include",
@@ -265,6 +295,10 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
         ch.close();
       }
     } catch { /* ignore */ }
+    // Brief hold so the user actually sees the "Updating…" state instead
+    // of a 50ms flash before the reload (the ack + cache wipe complete
+    // faster than the eye can perceive).
+    await new Promise((r) => setTimeout(r, 600));
     // Strict bundle lock: wipe the SW cache so the next page load fetches
     // the new bundle. Without this, a hard refresh would re-serve the
     // cached old bundle.
@@ -324,6 +358,7 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
           release={status.latest_release}
           onUpdate={applyUpdate}
           onDismiss={dismissUpdate}
+          applying={applying}
         />
       )}
       {whatsNewOpen && status?.latest_release && (

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { LoadingScreen, NewsletterBanner } from "@/components/institutional";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { usePageTracking, useScrollTracking } from "@/hooks/useAnalytics";
 import { useRealtimeHierarchy } from "@/hooks/useRealtimeHierarchy";
 import { GlobalViewAsBanner } from "@/components/founders/GlobalViewAsBanner";
@@ -206,11 +207,20 @@ function App() {
             <GlobalViewAsBanner />
             <InstitutionalWrapper />
             <Toaster />
-            <ChunkLoadGuard>
-              <LifeOSUpdateProvider>
-                <Router />
-              </LifeOSUpdateProvider>
-            </ChunkLoadGuard>
+            {/*
+              P0 (audit 2026-05-12): wrap Router in a generic ErrorBoundary
+              so a render-time exception in any page component falls back to
+              a recoverable screen instead of unmounting the whole tree
+              (white-screen-of-death). ChunkLoadGuard inside still handles
+              chunk-load failures specifically.
+            */}
+            <ErrorBoundary>
+              <ChunkLoadGuard>
+                <LifeOSUpdateProvider>
+                  <Router />
+                </LifeOSUpdateProvider>
+              </ChunkLoadGuard>
+            </ErrorBoundary>
           </AnalyticsProvider>
         </TooltipProvider>
       </RealtimeBridge>

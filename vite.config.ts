@@ -64,6 +64,14 @@ export default defineConfig({
           ],
           'vendor-motion': ['framer-motion'],
           'vendor-dnd': ['@hello-pangea/dnd'],
+          // M-14 (audit 2026-05-12): lucide-react and date-fns ship 800+
+          // icons / utility tree-shaken modules. Split into their own
+          // chunks so the main index.js stays cacheable across releases
+          // that don't touch icons.
+          'vendor-icons': ['lucide-react'],
+          'vendor-date': ['date-fns'],
+          'vendor-form': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-query': ['@tanstack/react-query'],
         },
       },
     },

@@ -376,13 +376,16 @@ export class DatabaseStorage implements IStorage {
         lastName: "Client",
         phone: "(630) 555-0123",
       });
-      console.log("Demo user created: demo@goldcoastfnl.com / demo1234");
-      
+      // M-4 (audit 2026-05-12): never log credentials, even for the demo
+      // account. Log lines flow to centralized aggregators (Railway, Sentry,
+      // ELK) and surface in incident reports.
+      console.log("Demo user created.");
+
       await this.initializeDemoData(demoUser.id);
     } else {
       const hashedPassword = await bcrypt.hash("demo1234", 10);
       await db.update(users).set({ password: hashedPassword }).where(eq(users.email, demoEmail));
-      console.log("Demo user password updated: demo@goldcoastfnl.com / demo1234");
+      console.log("Demo user password rotated.");
       
       const existingPolicies = await this.getPoliciesByUserId(existingUser.id);
       if (existingPolicies.length === 0) {

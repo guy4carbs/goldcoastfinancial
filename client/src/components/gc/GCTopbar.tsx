@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { useGCTheme, type GCThemeId } from "./GCThemeProvider";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/tour/NotificationBell";
+import { LifeOSVersionBadge } from "@/components/lifeos/LifeOSVersionBadge";
 import type { ReactNode } from "react";
 
 const themeIcons: Record<GCThemeId, typeof Moon> = { "gc-dark": Moon, "gc-light": Sun, "gc-maroon": Palette };
@@ -21,9 +22,13 @@ const GC_APPS = [
   { id: "ai", name: "AI Council", desc: "Avatar Debate", href: "#", icon: Lock, available: false },
 ];
 
+// Roles permitted to flip the HCMS admin/agent view toggle (audit 2026-05-12).
+// Founders + owners + directors only — managers and below stay in their lane.
+const VIEW_MODE_TOGGLE_ROLES = new Set<string>(["founder", "owner", "director"]);
+
 function ViewModeToggle() {
   const { user } = useAuth();
-  if (user?.role !== "owner" && user?.role !== "founder") return null;
+  if (!user?.role || !VIEW_MODE_TOGGLE_ROLES.has(user.role)) return null;
 
   const isAgentView = typeof window !== "undefined" && window.location.pathname.startsWith("/hcms/my");
 
@@ -251,6 +256,9 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
 
         {/* View Mode Toggle (owner only) */}
         <ViewModeToggle />
+
+        {/* lifeOS version badge — proof of which bundle is loaded */}
+        <LifeOSVersionBadge />
 
         {/* Theme Toggle */}
         <button data-tour-id="hcms-shell-theme-toggle" onClick={cycle} className="p-2 rounded-sm" style={{ color: "var(--gc-text-secondary)", transition: "color var(--gc-transition-fast)" }}

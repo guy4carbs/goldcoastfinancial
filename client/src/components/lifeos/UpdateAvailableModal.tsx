@@ -1,141 +1,188 @@
-import { useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Sparkles, Loader2 } from "lucide-react";
+import { GCModal } from "@/components/gc/GCModal";
+import { GCPrimaryButton, GCSecondaryButton } from "@/components/gc/GCButton";
 
 /**
- * UpdateAvailableModal — Apple-style "lifeOS X.Y.Z is ready" popup.
+ * UpdateAvailableModal — "lifeOS X.Y.Z is ready" popup, rendered through
+ * the canonical GCModal wrapper so it matches every other Founders Lounge
+ * dialog (SendApplicationDialog, ManageGoalsModal, AgencyEditModal, etc.).
  *
- * Shows a tasteful, restrained card centered over a 50% scrim. Two CTAs:
- *   - Update Now (primary, gold) → window.location reload via parent
- *   - Later (text-only) → 24h dismissal recorded server-side
+ * Two CTAs in the pinned footer:
+ *   - Update Now (GCPrimaryButton) → window.location reload via parent
+ *   - Later (GCSecondaryButton)    → 24h dismissal recorded server-side
  *
- * Sentence-case copy. No exclamation marks. No marketing-speak. The
- * dismissable popup + persistent badge model mirrors iOS Settings'
- * software-update flow.
+ * Sentence-case copy. No exclamation marks. The dismissable popup +
+ * persistent badge model mirrors iOS Settings' software-update flow.
  */
 export function UpdateAvailableModal({
   release,
   onUpdate,
   onDismiss,
+  applying = false,
 }: {
-  release: { version: string; title: string; summary: string; release_type: "major" | "minor" | "patch"; highlight_label: string | null };
+  release: {
+    version: string;
+    title: string;
+    summary: string;
+    release_type: "major" | "minor" | "patch";
+    highlight_label: string | null;
+  };
   onUpdate: () => void | Promise<void>;
   onDismiss: () => void | Promise<void>;
+  applying?: boolean;
 }) {
-  // Esc dismisses.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onDismiss();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onDismiss]);
-
   const accentLabel =
     release.highlight_label ||
-    (release.release_type === "major" ? "Major release"
-      : release.release_type === "minor" ? "New features"
-      : "Improvements");
+    (release.release_type === "major"
+      ? "Major release"
+      : release.release_type === "minor"
+        ? "New features"
+        : "Improvements");
 
-  return (
+  const icon = (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center"
-      style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-      onClick={onDismiss}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="lifeos-update-title"
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "999px",
+        background: "var(--gc-btn-primary-bg)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 460,
-          maxWidth: "92vw",
-          backgroundColor: "var(--gc-surface)",
-          border: "1px solid var(--gc-border)",
-          borderRadius: "var(--gc-radius-md)",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
-          padding: "var(--gc-space-6)",
-          animation: "lifeos-pop-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both",
-        }}
-      >
-        {/* Hero — small gradient circle with sparkle, never a giant graphic */}
-        <div className="flex items-center gap-3" style={{ marginBottom: "var(--gc-space-4)" }}>
+      <Sparkles className="w-4 h-4" style={{ color: "var(--gc-btn-primary-text)" }} />
+    </div>
+  );
+
+  // Render in a portal under a self-themed div. The LifeOSUpdateProvider
+  // sits above GCShell in App.tsx, so without this wrapper the
+  // `var(--gc-surface)` lookup misses (tokens are scoped to [data-theme])
+  // and the modal renders with a transparent background.
+  if (typeof document === "undefined") return null;
+
+  // While applying, the modal transitions to a non-dismissable "Updating…"
+  // view. Esc / scrim click are no-ops so the user can't accidentally close
+  // mid-reload. Buttons are disabled. A spinner makes it clear work is in
+  // flight before the page swaps to the new bundle.
+  const handleClose = applying ? () => {} : () => void onDismiss();
+  const handlePrimary = applying ? () => {} : () => void onUpdate();
+
+  return createPortal(
+    <div data-theme="gc-dark" style={{ position: "relative", zIndex: 9999 }}>
+      <GCModal
+        title={applying ? `Updating to lifeOS ${release.version}` : release.title}
+        subtitle={applying
+          ? "Refreshing the bundle and reopening this page — your work, settings, and conversations stay exactly where they are."
+          : release.summary}
+        icon={applying ? (
           <div
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: "var(--gc-radius-full)",
-              background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
+              width: 36,
+              height: 36,
+              borderRadius: "999px",
+              background: "var(--gc-btn-primary-bg)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 14px color-mix(in srgb, var(--gc-gold) 40%, transparent)",
               flexShrink: 0,
             }}
           >
-            <Sparkles className="w-5 h-5" style={{ color: "var(--gc-ink)" }} />
+            <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--gc-btn-primary-text)" }} />
           </div>
-          <div className="flex flex-col">
-            <span
+        ) : icon}
+        onClose={handleClose}
+        width={460}
+        titleId="lifeos-update-title"
+        footer={
+        <div className="flex items-center justify-end gap-2">
+          <GCSecondaryButton onClick={handleClose} disabled={applying}>Later</GCSecondaryButton>
+          <GCPrimaryButton onClick={handlePrimary} disabled={applying} icon={applying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : undefined}>
+            {applying ? "Updating…" : "Update Now"}
+          </GCPrimaryButton>
+        </div>
+      }
+    >
+      {/* Accent row — release tag + version chip */}
+      <div className="flex items-center gap-2" style={{ marginBottom: "var(--gc-space-3)" }}>
+        <span
+          style={{
+            fontSize: "var(--gc-text-xs)",
+            letterSpacing: "var(--gc-tracking-wider)",
+            textTransform: "uppercase",
+            color: "var(--gc-gold)",
+            fontWeight: 600,
+          }}
+        >
+          {accentLabel}
+        </span>
+        <span style={{ color: "var(--gc-text-muted)", fontSize: "var(--gc-text-xs)" }}>·</span>
+        <span
+          style={{
+            fontFamily: "var(--gc-font-mono, monospace)",
+            fontSize: "var(--gc-text-xs)",
+            color: "var(--gc-text-muted)",
+          }}
+        >
+          lifeOS {release.version}
+        </span>
+      </div>
+
+      {/* Safety callout — mirrors Apple's "your data won't be lost" assurance.
+          While applying, swap to a step-by-step progress note so the user
+          isn't staring at a blank-feeling spinner alone. */}
+      {applying ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--gc-space-3)",
+            padding: "var(--gc-space-3) var(--gc-space-3)",
+            backgroundColor: "var(--gc-surface-2)",
+            borderRadius: "var(--gc-radius-sm)",
+            border: "1px solid var(--gc-border-subtle, var(--gc-border))",
+          }}
+        >
+          <Loader2
+            className="animate-spin"
+            style={{ width: 18, height: 18, color: "var(--gc-gold)", flexShrink: 0 }}
+          />
+          <div>
+            <p
               style={{
-                fontSize: "var(--gc-text-xs)",
-                letterSpacing: "var(--gc-tracking-wider)",
-                textTransform: "uppercase",
-                color: "var(--gc-gold)",
+                fontFamily: "var(--gc-font-body)",
+                fontSize: "var(--gc-text-sm)",
+                color: "var(--gc-text-primary)",
+                margin: 0,
                 fontWeight: 600,
+                lineHeight: 1.4,
               }}
             >
-              {accentLabel}
-            </span>
-            <span
+              Installing lifeOS {release.version}
+            </p>
+            <p
               style={{
-                fontFamily: "var(--gc-font-mono, monospace)",
+                fontFamily: "var(--gc-font-body)",
                 fontSize: "var(--gc-text-xs)",
                 color: "var(--gc-text-muted)",
+                margin: 0,
+                marginTop: 2,
+                lineHeight: 1.5,
               }}
             >
-              lifeOS {release.version}
-            </span>
+              Wiping the cached bundle and pulling the new one. The page will reopen here in a moment.
+            </p>
           </div>
         </div>
-
-        {/* Title — Playfair, sentence case */}
-        <h2
-          id="lifeos-update-title"
-          style={{
-            fontFamily: "var(--gc-font-display)",
-            fontSize: "var(--gc-text-2xl)",
-            color: "var(--gc-text-primary)",
-            margin: 0,
-            marginBottom: "var(--gc-space-2)",
-            lineHeight: 1.2,
-          }}
-        >
-          {release.title}
-        </h2>
-
-        {/* Summary — body font, restrained */}
-        <p
-          style={{
-            fontFamily: "var(--gc-font-body)",
-            fontSize: "var(--gc-text-md)",
-            color: "var(--gc-text-secondary)",
-            lineHeight: 1.5,
-            margin: 0,
-            marginBottom: "var(--gc-space-5)",
-          }}
-        >
-          {release.summary}
-        </p>
-
-        {/* Note about safety — mirrors Apple's "your data won't be lost" assurance */}
+      ) : (
         <div
           style={{
             padding: "var(--gc-space-2) var(--gc-space-3)",
             backgroundColor: "var(--gc-surface-2)",
             borderRadius: "var(--gc-radius-sm)",
-            border: "1px solid var(--gc-border-subtle)",
-            marginBottom: "var(--gc-space-5)",
+            border: "1px solid var(--gc-border-subtle, var(--gc-border))",
           }}
         >
           <p
@@ -151,53 +198,9 @@ export function UpdateAvailableModal({
             The page will refresh and reopen here.
           </p>
         </div>
-
-        {/* CTAs — Update Now primary, Later text-only */}
-        <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onDismiss}
-            style={{
-              padding: "var(--gc-space-2) var(--gc-space-4)",
-              backgroundColor: "transparent",
-              color: "var(--gc-text-secondary)",
-              border: "none",
-              borderRadius: "var(--gc-radius-sm)",
-              fontFamily: "var(--gc-font-body)",
-              fontSize: "var(--gc-text-md)",
-              cursor: "pointer",
-            }}
-          >
-            Later
-          </button>
-          <button
-            type="button"
-            onClick={onUpdate}
-            style={{
-              padding: "var(--gc-space-2) var(--gc-space-5)",
-              background: "linear-gradient(135deg, var(--gc-gold), var(--gc-gold-bright))",
-              color: "var(--gc-ink)",
-              border: "none",
-              borderRadius: "var(--gc-radius-sm)",
-              fontFamily: "var(--gc-font-body)",
-              fontSize: "var(--gc-text-md)",
-              fontWeight: 600,
-              cursor: "pointer",
-              boxShadow: "0 2px 8px color-mix(in srgb, var(--gc-gold) 30%, transparent)",
-            }}
-          >
-            Update Now
-          </button>
-        </div>
-      </div>
-
-      {/* Entrance animation */}
-      <style>{`
-        @keyframes lifeos-pop-in {
-          from { opacity: 0; transform: scale(0.96) translateY(14px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
-    </div>
+      )}
+      </GCModal>
+    </div>,
+    document.body,
   );
 }
