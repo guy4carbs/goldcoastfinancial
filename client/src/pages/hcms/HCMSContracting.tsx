@@ -3,6 +3,7 @@ import { GCPageHeader, GCKPICard, GCDataTable, type Column } from "@/components/
 import { TOUR } from "@/lib/tour/selectors";
 import { CheckCircle, Clock, X as XIcon, Minus, Send, Copy, Check, Eye, Loader2, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
+import { csrfHeaders } from "@/lib/queryClient";
 
 const LEGAL_ENTITY_NAME = "Gold Coast Financial Partners LLC";
 function uplineLabel(u: { firstName: string; lastName: string; displayName?: string; role?: string; contractLevel: number }): string {
@@ -478,7 +479,7 @@ export default function HCMSContracting() {
                   <button onClick={async () => {
                     setSending(true); setSendError("");
                     try {
-                      const resp = await fetch("/api/apply/invite", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ firstName: sendFirst, lastName: sendLast, email: sendEmail, phone: sendPhone || undefined, uplineId: sendUpline, contractLevel: parseInt(sendContract) }) });
+                      const resp = await fetch("/api/apply/invite", { method: "POST", headers: { "Content-Type": "application/json", ...(await csrfHeaders()) }, credentials: "include", body: JSON.stringify({ firstName: sendFirst, lastName: sendLast, email: sendEmail, phone: sendPhone || undefined, uplineId: sendUpline, contractLevel: parseInt(sendContract) }) });
                       const data = await resp.json();
                       if (resp.ok) {
                         const selectedUpline = uplines.find(u => u.id === sendUpline);

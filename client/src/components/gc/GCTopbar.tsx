@@ -5,6 +5,7 @@ import { useGCTheme, type GCThemeId } from "./GCThemeProvider";
 import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/tour/NotificationBell";
 import { LifeOSVersionBadge } from "@/components/lifeos/LifeOSVersionBadge";
+import { csrfHeaders } from "@/lib/queryClient";
 import type { ReactNode } from "react";
 
 const themeIcons: Record<GCThemeId, typeof Moon> = { "gc-dark": Moon, "gc-light": Sun, "gc-maroon": Palette };
@@ -65,7 +66,11 @@ function UserMenu() {
   }, [open]);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      headers: await csrfHeaders(),
+    });
     window.location.href = "/login";
   };
 

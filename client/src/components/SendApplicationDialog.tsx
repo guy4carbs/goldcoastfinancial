@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Check, Copy, Send } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { csrfHeaders } from "@/lib/queryClient";
 
 /**
  * Self-contained Send Application / Invite Member dialog.
@@ -216,7 +217,7 @@ export function SendApplicationDialog({
     try {
       const resp = await fetch("/api/apply/invite", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
         credentials: "include",
         body: JSON.stringify({
           firstName: sendFirst,
