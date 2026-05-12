@@ -438,11 +438,16 @@ export function useApplicationForm() {
     return true;
   }, [step, steps, form, backgroundAnswers, signing, uploads]);
 
-  // Save progress
-  const saveProgress = useCallback(async (nextStep: number) => {
-    if (!token) return;
+  // Save progress.
+  // P0-DP-4 (audit 2026-05-12): previously this fire-and-forgot the response
+  // and the caller advanced the step BEFORE the save settled. If the server
+  // returned 4xx/5xx, the user moved to the next step locally but the data
+  // never persisted. Now we return success/failure and the caller awaits +
+  // checks before advancing.
+  const saveProgress = useCallback(async (nextStep: number): Promise<boolean> => {
+    if (!token) return false;
     try {
-      await fetch("/api/apply/save-progress", {
+      const resp = await fetch("/api/apply/save-progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -450,7 +455,15 @@ export function useApplicationForm() {
           data: { ...form, backgroundAnswers, licensedStates: form.licensedStates },
         }),
       });
-    } catch (e) { console.error("Save progress failed:", e); }
+      if (!resp.ok) {
+        console.error("Save progress failed: HTTP", resp.status);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.error("Save progress failed:", e);
+      return false;
+    }
   }, [token, form, backgroundAnswers]);
 
   // For organic users: create skeleton account after Step 1 to get a token
@@ -487,9 +500,16 @@ export function useApplicationForm() {
     }
 
     const nextStep = step + 1;
+    // P0-DP-4 (audit 2026-05-12): save FIRST, then advance — previously the
+    // order was reversed so a failed save still moved the UI forward and
+    // the user lost in-progress data on refresh.
+    const saved = await saveProgress(nextStep);
+    if (!saved && token) {
+      setErrors({ _form: "Couldn't save your progress. Please refresh and try again." });
+      return;
+    }
     setStep(nextStep);
-    await saveProgress(nextStep);
-  }, [step, validateStep, saveProgress, token, registerOrganic]);
+  }, [step, currentStepId, validateStep, saveProgress, token, registerOrganic]);
 
   const prev = useCallback(() => setStep(s => Math.max(0, s - 1)), []);
   const goTo = useCallback((s: number) => setStep(s), []);

@@ -242,6 +242,18 @@ export async function fileExists(key: string): Promise<boolean> {
   }
 }
 
+/**
+ * @deprecated DO NOT USE for any user-supplied download. The returned URL
+ * embeds a Firebase `downloadToken` that NEVER expires — the
+ * `_expiresInSeconds` parameter is a lie carried over from the v1 API. Any
+ * leak (referer logs, browser history, screenshare) → indefinite access.
+ *
+ * Instead, stream the file server-side via `getFile(key)` and pipe the bytes
+ * after re-checking auth. The canonical pattern lives at
+ * `server/routes/book-of-business.ts:980-1050` (gcf) and
+ * `server/routes/agent-clients.ts` GET `/:clientId/documents/:docId/download`
+ * (heritage, fixed in audit pass 3, 2026-05-12).
+ */
 export async function getSignedDownloadUrl(
   key: string,
   _expiresInSeconds: number = 3600

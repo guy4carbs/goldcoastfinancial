@@ -29,9 +29,16 @@ const {
   doubleCsrfProtection,
   generateCsrfToken,
 } = doubleCsrf({
-  // 32-byte secret used to sign the cookie. Falls back to SESSION_SECRET to
-  // keep dev simple; production should set CSRF_SECRET explicitly.
-  getSecret: () => process.env.CSRF_SECRET || process.env.SESSION_SECRET || "gc-dev-csrf-secret",
+  // P0 (audit 2026-05-12): in production, require an explicit secret. Dev
+  // falls back to SESSION_SECRET (still env-driven, no source-code fallback).
+  getSecret: () => {
+    const v = process.env.CSRF_SECRET || process.env.SESSION_SECRET;
+    if (v && v.length >= 16) return v;
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("[security] CSRF_SECRET (or SESSION_SECRET) is required in production and must be ≥16 chars.");
+    }
+    return v || "gc-dev-csrf-fallback-DO-NOT-USE-IN-PRODUCTION";
+  },
   // Session-stable id — for cookie sessions we tie it to the session id so
   // tokens issued under one session can't replay under another.
   getSessionIdentifier: (req: Request) => {

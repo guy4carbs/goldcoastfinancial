@@ -4,9 +4,16 @@ import { test, expect } from '@playwright/test';
 // with a `/get-quote` route and a `/contact` page heading "Send us a Message".
 // The current institutional contact page reads "Corporate & Partnership
 // Inquiries" and `/get-quote` is no longer a route in `client/src/App.tsx`.
-// Whole file skipped until the marketing flows are rebuilt or the assertions
-// are rewritten against the institutional copy.
-test.skip(true, "Legacy marketing surface — /get-quote route removed and /contact heading changed; rewrite assertions before re-enabling.");
+//
+// M-12 (audit 2026-05-12 Pass 4): triaged as PERMANENTLY SKIPPED. The
+// referenced routes/copy were intentionally removed when the institutional
+// site was rebuilt; the form coverage should follow the new InstitutionalContact
+// page if/when we want this back. Don't re-enable without first rewriting the
+// selectors against the current page.
+//
+// TODO: replace with a fresh institutional-contact form spec OR delete this
+// file when the gate to re-enable is closed. Tracking: docs/audit-2026-05-12.md
+test.skip(true, "Legacy marketing surface — see comment + audit doc.");
 
 const BASE_URL = 'http://localhost:3000';
 

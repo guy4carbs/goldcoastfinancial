@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
+import { GCInstitutionalModal } from "@/components/gc/GCInstitutionalModal";
 
 interface ReleaseRow {
   id: string;
@@ -182,9 +183,9 @@ export default function WhatsNewArchive() {
 }
 
 /**
- * Light-themed release-notes modal that matches the institutional site.
- * The Gold Coast WhatsNewModal exists but uses dark Founders-Lounge
- * tokens, so we render a parallel light variant for the public archive.
+ * Light-themed release-notes modal for the public archive. Uses
+ * GCInstitutionalModal so it matches the rest of the institutional shell
+ * (cream surface, burgundy text, gold border, 8px radius).
  */
 function PublicReleaseModal({
   versionString,
@@ -214,139 +215,34 @@ function PublicReleaseModal({
     };
   }, [versionString]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
+  const icon = (
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "999px",
+        background: "linear-gradient(135deg, hsl(348, 65%, 22%), hsl(348, 65%, 28%))",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        boxShadow: "0 1px 3px rgba(20, 8, 14, 0.15)",
+      }}
+    >
+      <Sparkles className="h-4 w-4 text-white" />
+    </div>
+  );
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="public-whats-new-title"
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex items-center justify-center px-4"
-      // Solid scrim — burgundy at 88% so the modal feels firmly anchored
-      // over the page rather than floating through it. No blur (was making
-      // the page bleed through).
-      style={{ backgroundColor: "rgba(20, 8, 14, 0.88)" }}
-    >
-      <motion.div
-        onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.96, y: 14 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        // Solid white body, generous rounded-2xl (16px) corners, layered
-        // shadow that anchors the modal on the burgundy page.
-        className="bg-white rounded-2xl overflow-hidden flex flex-col"
-        style={{
-          width: 640,
-          maxWidth: "94vw",
-          maxHeight: "88vh",
-          // Layered shadow — soft outer + tighter inner so the radius reads
-          // crisp against any background. Matches the institutional card
-          // shadow language.
-          boxShadow:
-            "0 32px 64px -16px rgba(20, 8, 14, 0.55), 0 0 0 1px rgba(20, 8, 14, 0.08)",
-        }}
-      >
-        {/* Hero strip — burgundy → deeper burgundy → gold sweep, matches
-            the hero-gradient class used on InstitutionalAbout and the home
-            page. Solid (no transparency on the gradient). */}
-        <div
-          className="relative px-8 py-7"
-          style={{
-            background:
-              "linear-gradient(135deg, hsl(348, 65%, 16%) 0%, hsl(348, 65%, 22%) 55%, hsl(42, 60%, 32%) 100%)",
-            color: "white",
-          }}
-        >
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="absolute top-4 right-4 rounded-full p-2 text-white/80 hover:text-white hover:bg-white/15 transition"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-          </button>
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 border border-white/30 shadow-sm">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <span
-              className="font-mono text-xs px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white"
-            >
-              lifeOS {versionString}
-            </span>
-          </div>
-          <div
-            className="text-[11px] font-semibold uppercase tracking-[0.22em] mb-2"
-            style={{ color: "hsl(42, 75%, 70%)" }}
-          >
-            What's new
-          </div>
-          <h2
-            id="public-whats-new-title"
-            className="font-serif leading-tight"
-            style={{
-              fontSize: "clamp(22px, 3.5vw, 30px)",
-              color: "#ffffff",
-              fontWeight: 600,
-              textShadow: "0 1px 2px rgba(0, 0, 0, 0.18)",
-              margin: 0,
-            }}
-          >
-            {release?.title ?? "Release notes"}
-          </h2>
-          {release?.summary && (
-            <p
-              className="mt-3 leading-relaxed text-sm md:text-base"
-              style={{
-                color: "rgba(255, 255, 255, 0.92)",
-                margin: "12px 0 0",
-              }}
-            >
-              {release.summary}
-            </p>
-          )}
-        </div>
-
-        {/* Body — solid cream-white surface, dark burgundy text */}
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{
-            backgroundColor: "#ffffff",
-            padding: "24px 32px 12px",
-          }}
-        >
-          {loading ? (
-            <p className="text-muted-foreground text-center py-8">Loading release notes…</p>
-          ) : release ? (
-            <SimpleMarkdownLight source={release.body_markdown} />
-          ) : (
-            <p className="text-muted-foreground text-center py-8">
-              Couldn't load these notes. Try again in a moment.
-            </p>
-          )}
-        </div>
-
-        {/* Footer — solid white, gold pill primary, archive link secondary */}
-        <div
-          className="flex items-center justify-between"
-          style={{
-            padding: "14px 32px",
-            backgroundColor: "#ffffff",
-            borderTop: "1px solid hsl(348, 8%, 88%)",
-          }}
-        >
+    <GCInstitutionalModal
+      title={release?.title ?? "Release notes"}
+      subtitle={release?.summary ?? null}
+      icon={icon}
+      onClose={onClose}
+      width={560}
+      titleId="public-whats-new-title"
+      footer={
+        <div className="flex items-center justify-between gap-3">
           <a
             href="/lifeos/whats-new"
             className="inline-flex items-center gap-1 text-sm"
@@ -356,18 +252,16 @@ function PublicReleaseModal({
               fontFamily: "'Inter', -apple-system, sans-serif",
             }}
           >
-            Open archive
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+            Open archive <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
           <button
             type="button"
             onClick={onClose}
             className="font-medium text-white"
             style={{
-              padding: "10px 26px",
-              borderRadius: 8,
-              background: "linear-gradient(135deg, hsl(42, 60%, 32%), hsl(42, 60%, 48%))",
-              boxShadow: "0 2px 8px rgba(154, 117, 64, 0.35)",
+              padding: "8px 22px",
+              borderRadius: "var(--gc-radius-sm, 6px)",
+              backgroundColor: "hsl(348, 65%, 22%)",
               border: "none",
               fontFamily: "'Inter', -apple-system, sans-serif",
               fontSize: 14,
@@ -377,8 +271,38 @@ function PublicReleaseModal({
             Got it
           </button>
         </div>
-      </motion.div>
-    </div>
+      }
+    >
+      {/* Accent row — what's new + version chip */}
+      <div className="flex items-center gap-2" style={{ marginBottom: 16 }}>
+        <span
+          className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+          style={{ color: "hsl(42, 60%, 35%)" }}
+        >
+          What's new
+        </span>
+        <span style={{ color: "hsl(348, 15%, 60%)", fontSize: 12 }}>·</span>
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 12,
+            color: "hsl(348, 25%, 35%)",
+          }}
+        >
+          lifeOS {versionString}
+        </span>
+      </div>
+
+      {loading ? (
+        <p className="text-muted-foreground text-center py-8">Loading release notes…</p>
+      ) : release ? (
+        <SimpleMarkdownLight source={release.body_markdown} />
+      ) : (
+        <p className="text-muted-foreground text-center py-8">
+          Couldn't load these notes. Try again in a moment.
+        </p>
+      )}
+    </GCInstitutionalModal>
   );
 }
 

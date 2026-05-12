@@ -323,6 +323,39 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
       });
     }
 
+    // P0 (audit 2026-05-12): regulatory — the agent must hold an active,
+    // unexpired license in the policy's state before placing the policy.
+    // Insurance regs in all 50 states require this; unlicensed policy
+    // placement → carrier rescission, regulatory action, voided policies.
+    // System admins and founders are exempt (they manage on behalf of
+    // others and use this surface for back-office data entry).
+    const STATE_LICENSE_EXEMPT_ROLES = new Set(["founder", "system_admin"]);
+    if (state && !STATE_LICENSE_EXEMPT_ROLES.has(agent.role)) {
+      const upperState = String(state).trim().toUpperCase();
+      if (upperState.length !== 2) {
+        return res.status(400).json({
+          error: `Invalid state code: "${state}". Use the 2-letter USPS abbreviation (e.g. "FL", "CA").`,
+        });
+      }
+      const lic = await pool.query<{ id: string; expiration_date: Date | null; status: string }>(
+        `SELECT id, expiration_date, status
+           FROM agent_licenses
+          WHERE user_id::text = $1
+            AND state_code = $2
+            AND (status IS NULL OR status = 'active')
+            AND (expiration_date IS NULL OR expiration_date > NOW())
+          LIMIT 1`,
+        [agent.id, upperState],
+      );
+      if (!lic.rowCount) {
+        return res.status(403).json({
+          error: `You do not have an active license in ${upperState}. Add the license under HCMS → Licenses and try again, or have an admin write the policy on your behalf.`,
+          code: "MISSING_STATE_LICENSE",
+          state: upperState,
+        });
+      }
+    }
+
     // 1. Find or create the client user
     let clientUser: any = null;
     if (email) {
@@ -454,12 +487,39 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
       console.error("[BookOfBusiness] Audit log failed:", auditErr?.message);
     }
 
-    // 4. Record waterfall commissions (currently stubbed)
+    // 4. Record waterfall commissions.
+    // P1 (audit 2026-05-12): commission recording was fire-and-forget here.
+    // If it failed, the policy was persisted but the agent earned zero comp
+    // and nobody knew. Now AWAITED, with failure recorded to the audit log
+    // (but does NOT roll back the policy itself — policy + comp are linked
+    // by deal_id, so a follow-up cron can re-run recordCommissions safely).
     const annualPremium = Number(monthlyPremium) * 12;
     if (annualPremium > 0) {
-      recordCommissions(policy.id, agent.id, annualPremium).catch((err) =>
-        console.error("[BookOfBusiness] Commission recording failed:", err),
-      );
+      try {
+        // gcf's local recordCommissions is a no-op stub today (see TODO(Ledger)
+        // above) so we just await it for symmetry. When the real waterfall
+        // implementation lands the return value will be the WaterfallResult
+        // and we'll start logging the recorded total here.
+        await recordCommissions(policy.id, agent.id, annualPremium);
+      } catch (commErr: any) {
+        console.error(
+          "[BookOfBusiness] Commission recording threw:",
+          commErr?.message,
+          { policyId: policy.id, agentId: agent.id, annualPremium },
+        );
+        // Best-effort audit so this never disappears silently.
+        try {
+          await logFounderAction({
+            actorUserId: agent.id,
+            action: "commission_recording_failed",
+            entityType: "policy",
+            entityId: policy.id,
+            payload: { error: String(commErr?.message ?? commErr), annualPremium },
+          });
+        } catch {
+          /* swallow — already logged to console */
+        }
+      }
     }
 
     // 5. Notify client
@@ -651,6 +711,20 @@ router.put("/:policyId", requireAuth, async (req: Request, res: Response) => {
         const fetched = await dbClient.query(`SELECT * FROM policies WHERE id = $1`, [policyId]);
         updatedRow = fetched.rows[0];
       }
+
+      // P1 (audit 2026-05-12): chargeback clear was previously outside the
+      // transaction → a transient failure could leave status='active' on
+      // the row but the chargeback metadata still populated, or vice versa.
+      // Folded into the same transaction so the policy never sees a
+      // chargeback/status mismatch.
+      if (req.body.clientStatus === "active") {
+        await dbClient.query(
+          `UPDATE policies SET chargeback_at = NULL, chargeback_reason = NULL, status = 'active', updated_at = NOW()
+           WHERE id = $1`,
+          [policyId],
+        );
+      }
+
       await dbClient.query("COMMIT");
     } catch (txErr: any) {
       await dbClient.query("ROLLBACK").catch(() => {});
@@ -661,22 +735,29 @@ router.put("/:policyId", requireAuth, async (req: Request, res: Response) => {
       dbClient.release();
     }
 
-    // Status side-effect: chargeback clears + active re-set
-    if (req.body.clientStatus === "active") {
-      await pool.query(
-        `UPDATE policies SET chargeback_at = NULL, chargeback_reason = NULL, status = 'active', updated_at = NOW()
-         WHERE id = $1`,
-        [policyId],
-      );
-    }
-
-    // Recalculate commissions if premium changed
+    // Recalculate commissions if premium changed.
+    // P1 (audit 2026-05-12): previously fire-and-forget. Now awaited so a
+    // failure surfaces in logs + audit trail rather than silently dropping
+    // commission rows after a premium update.
     if (req.body.monthlyPremium != null) {
       const annualPremium = Number(req.body.monthlyPremium) * 12;
       if (annualPremium > 0) {
-        recordCommissions(policyId, agent.id, annualPremium).catch((err) =>
-          console.error("[BookOfBusiness] Commission recalc failed:", err),
-        );
+        try {
+          await recordCommissions(policyId, agent.id, annualPremium);
+        } catch (commErr: any) {
+          console.error("[BookOfBusiness] Commission recalc failed:", commErr?.message);
+          try {
+            await logFounderAction({
+              actorUserId: agent.id,
+              action: "commission_recalc_failed",
+              entityType: "policy",
+              entityId: policyId,
+              payload: { error: String(commErr?.message ?? commErr), annualPremium },
+            });
+          } catch {
+            /* swallow */
+          }
+        }
       }
     }
 
