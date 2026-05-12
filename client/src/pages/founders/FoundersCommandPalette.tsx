@@ -39,6 +39,7 @@ import {
 import { useGCTheme } from "@/components/gc";
 import { useToast } from "@/hooks/use-toast";
 import { TOUR } from "@/lib/tour/selectors";
+import { csrfHeaders } from "@/lib/queryClient";
 
 interface CommandAction {
   label: string;
@@ -101,7 +102,11 @@ export function FoundersCommandPalette({ open, onOpenChange }: FoundersCommandPa
   const doLogout = async () => {
     onOpenChange(false);
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: await csrfHeaders(),
+      });
     } catch {
       // ignore
     }

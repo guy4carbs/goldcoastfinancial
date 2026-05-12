@@ -66,10 +66,18 @@ const {
  */
 const EXEMPT_PATH_PREFIXES = [
   "/api/founders/plaid/webhook",
-  "/api/webhooks/stripe",   // signature-verified by Stripe-Signature header
-  "/api/auth/login",        // pre-session, no token to issue yet
+  "/api/webhooks/stripe",     // signature-verified by Stripe-Signature header
+  "/api/auth/login",          // pre-session, no token to issue yet
   "/api/auth/register",
   "/api/auth/password-reset",
+  // Public agent application flow — no session exists at submit time. The
+  // admin-side /apply/invite is NOT exempt (session-authenticated).
+  "/api/apply/register",
+  "/api/apply/submit",
+  "/api/apply/save-progress",
+  "/api/apply/sign",
+  "/api/apply/upload",
+  "/api/apply/prefill",
   "/api/health",
 ];
 
