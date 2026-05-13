@@ -190,6 +190,43 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
             ORDER BY contract_level DESC, u.last_name ASC`,
       agentIds ? [agentIds] : [],
     );
+
+    // 2026-05-13 fix: a fresh org with only the founder has nobody on
+    // agency_teams as a manager, so scopedAgentIds() returns []. The main
+    // query then returns no rows and the Send Application dialog shows
+    // "No uplines available", blocking the very first agent invite.
+    //
+    // Always include the viewer themselves if they're an eligible inviter
+    // role and not already in the result. They are by definition a valid
+    // upline for any agent they invite (they're at least as senior as the
+    // invitee — that's what `requireRole(...MANAGER_PLUS)` enforces).
+    const VIEWER_INCLUDES = new Set([
+      "founder",
+      "owner",
+      "system_admin",
+      "director",
+      "agency_manager",
+      "manager",
+    ]);
+    const viewerId = req.user?.id;
+    const viewerRole = req.user?.role;
+    if (viewerId && viewerRole && VIEWER_INCLUDES.has(viewerRole) && !result.rows.some((r: any) => r.id === viewerId)) {
+      const viewerRow = await pool.query(
+        `SELECT u.id, u.first_name, u.last_name, u.email, u.role,
+                COALESCE(ah.contract_level, CASE WHEN u.role IN ('founder', 'owner') THEN 120 ELSE 80 END) as contract_level,
+                ah.hierarchy_level, ah.hierarchy_title
+           FROM users u
+           LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+          WHERE u.id = $1 AND u.is_active = true
+          LIMIT 1`,
+        [viewerId],
+      );
+      if (viewerRow.rows[0]) {
+        // Prepend so founder/owner bubble to the top of the picker.
+        result.rows.unshift(viewerRow.rows[0]);
+      }
+    }
+
     res.json(result.rows.map((r: any) => {
       // Display founder + owner as the Gold Coast brand entity rather than
       // their personal name (Gaetano gets shown as "Gold Coast Financial
