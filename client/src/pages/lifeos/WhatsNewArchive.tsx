@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowUpRight } from "lucide-react";
+import { Sparkles, ArrowUpRight, Loader2 } from "lucide-react";
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { GCInstitutionalModal } from "@/components/gc/GCInstitutionalModal";
+
+const PAGE_SIZE = 10;
 
 interface ReleaseRow {
   id: string;
@@ -30,22 +32,56 @@ interface FullRelease extends ReleaseRow {
 export default function WhatsNewArchive() {
   const [rows, setRows] = useState<ReleaseRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadMoreError, setLoadMoreError] = useState("");
   const [openVersion, setOpenVersion] = useState<string | null>(null);
 
+  // First page on mount. Each "Load more" click fetches the next PAGE_SIZE
+  // releases via the same /releases?limit=&offset= endpoint. We infer
+  // hasMore from the page size — if the API returned fewer rows than we
+  // asked for, we're at the tail.
   useEffect(() => {
     (async () => {
       try {
         // No `credentials` — release notes are public marketing content.
-        const r = await fetch("/api/lifeos/releases?limit=50");
+        const r = await fetch(`/api/lifeos/releases?limit=${PAGE_SIZE}&offset=0`);
         if (r.ok) {
           const data = await r.json();
-          setRows(Array.isArray(data.releases) ? data.releases : []);
+          const list = Array.isArray(data.releases) ? data.releases : [];
+          setRows(list);
+          setHasMore(list.length === PAGE_SIZE);
         }
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    setLoadMoreError("");
+    try {
+      const r = await fetch(`/api/lifeos/releases?limit=${PAGE_SIZE}&offset=${rows.length}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      const next = Array.isArray(data.releases) ? data.releases : [];
+      // De-dupe by id in case a new release was published since the first
+      // fetch and shifted the pagination window.
+      setRows((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const merged = [...prev];
+        for (const row of next) if (!seen.has(row.id)) merged.push(row);
+        return merged;
+      });
+      setHasMore(next.length === PAGE_SIZE);
+    } catch (e: any) {
+      setLoadMoreError(e?.message || "Couldn't load more");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   return (
     <InstitutionalLayout>
@@ -117,58 +153,100 @@ export default function WhatsNewArchive() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {rows.map((r, idx) => (
-                    <motion.button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setOpenVersion(r.version)}
-                      initial={{ opacity: 0, y: 16 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.4, delay: idx * 0.04 }}
-                      className="group w-full text-left rounded-lg border border-border/40 bg-white p-6 md:p-7 transition-all duration-200 hover:border-secondary/60 hover:shadow-lg hover:-translate-y-0.5"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <span
-                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                          style={{
-                            backgroundColor: "hsl(42, 60%, 95%)",
-                            color: "hsl(42, 60%, 25%)",
-                            border: "1px solid hsl(42, 60%, 80%)",
-                          }}
-                        >
-                          <Sparkles className="h-3 w-3" />
-                          lifeOS {r.version}
-                        </span>
-                        <span className="text-xs uppercase tracking-[0.15em] font-medium text-secondary">
-                          {r.highlight_label ||
-                            (r.release_type === "major"
-                              ? "Major release"
-                              : r.release_type === "minor"
-                                ? "New features"
-                                : "Improvements")}
-                        </span>
-                        {r.published_at && (
-                          <span className="ml-auto text-xs text-muted-foreground">
-                            {new Date(r.published_at).toLocaleDateString(undefined, {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
+                <>
+                  <div className="space-y-4">
+                    {rows.map((r, idx) => (
+                      <motion.button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setOpenVersion(r.version)}
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: Math.min(idx, 5) * 0.04 }}
+                        className="group w-full text-left rounded-lg border border-border/40 bg-white p-6 md:p-7 transition-all duration-200 hover:border-secondary/60 hover:shadow-lg hover:-translate-y-0.5"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <span
+                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                            style={{
+                              backgroundColor: "hsl(42, 60%, 95%)",
+                              color: "hsl(42, 60%, 25%)",
+                              border: "1px solid hsl(42, 60%, 80%)",
+                            }}
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            lifeOS {r.version}
                           </span>
+                          <span className="text-xs uppercase tracking-[0.15em] font-medium text-secondary">
+                            {r.highlight_label ||
+                              (r.release_type === "major"
+                                ? "Major release"
+                                : r.release_type === "minor"
+                                  ? "New features"
+                                  : "Improvements")}
+                          </span>
+                          {r.published_at && (
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {new Date(r.published_at).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-xl md:text-2xl font-serif text-primary mb-2 leading-tight group-hover:text-secondary transition-colors">
+                          {r.title}
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">{r.summary}</p>
+                        <div className="mt-4 flex items-center gap-1 text-sm font-medium text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+                          Read full notes <ArrowUpRight className="h-3.5 w-3.5" />
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {/* Pager: Load more if there's more to fetch, end-of-archive label otherwise. */}
+                  <div className="mt-10 flex flex-col items-center gap-3">
+                    {loadMoreError && (
+                      <p className="text-sm text-destructive">{loadMoreError}</p>
+                    )}
+                    {hasMore ? (
+                      <button
+                        type="button"
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        className="inline-flex items-center gap-2 rounded-full border px-6 py-2.5 text-sm font-medium transition-all"
+                        style={{
+                          borderColor: "hsl(42, 60%, 80%)",
+                          color: "hsl(348, 65%, 22%)",
+                          backgroundColor: "hsl(42, 60%, 98%)",
+                          cursor: loadingMore ? "wait" : "pointer",
+                          opacity: loadingMore ? 0.7 : 1,
+                          letterSpacing: "0.04em",
+                          fontFamily: "'Inter', -apple-system, sans-serif",
+                        }}
+                      >
+                        {loadingMore ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading…
+                          </>
+                        ) : (
+                          <>
+                            Load more releases
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                          </>
                         )}
-                      </div>
-                      <h3 className="text-xl md:text-2xl font-serif text-primary mb-2 leading-tight group-hover:text-secondary transition-colors">
-                        {r.title}
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed">{r.summary}</p>
-                      <div className="mt-4 flex items-center gap-1 text-sm font-medium text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
-                        Read full notes <ArrowUpRight className="h-3.5 w-3.5" />
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
+                      </button>
+                    ) : (
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                        End of archive · {rows.length} {rows.length === 1 ? "release" : "releases"}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
