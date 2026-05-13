@@ -156,6 +156,42 @@ router.get("/levels", requireAuth, requireRole(...MANAGER_PLUS), async (_req, re
   res.json({ levels: HIERARCHY_LEVELS, titles: HIERARCHY_TITLES });
 });
 
+/**
+ * GET /my-subtree — viewer-scoped hierarchy. Returns the viewer's own row
+ * plus every row whose `upline_chain` JSONB array contains the viewer's id.
+ * Result: viewer is the root, only their downlines are visible — never
+ * their upline. Used by managers and agents so they don't see anyone above
+ * them in the hierarchy page.
+ *
+ * Founders / owners / system_admins continue to call /tree for the full
+ * org view.
+ *
+ * Shape matches /tree so the client tree-builder works unchanged.
+ */
+router.get("/my-subtree", requireAuth, async (req, res) => {
+  try {
+    const viewerId = req.user!.id;
+    const result = await pool.query(
+      `SELECT * FROM (
+         SELECT DISTINCT ON (ah.agent_user_id) ${HIERARCHY_NAME_SELECT}
+           FROM agent_hierarchy ah
+           JOIN users u ON u.id = ah.agent_user_id
+           LEFT JOIN agent_profiles ap ON ap.user_id::text = ah.agent_user_id::text
+          WHERE (ah.effective_to IS NULL OR ah.effective_to > NOW())
+            AND (ah.agent_user_id::text = $1
+                 OR ah.upline_chain ? $1)
+          ORDER BY ah.agent_user_id, ah.effective_from DESC NULLS LAST
+       ) dedup
+       ORDER BY hierarchy_level ASC`,
+      [viewerId],
+    );
+    res.json(result.rows);
+  } catch (e: any) {
+    console.error("[hcms-hierarchy /my-subtree] DB error:", e?.message);
+    res.status(500).json({ error: "Hierarchy subtree query failed" });
+  }
+});
+
 router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
   try {
     const scope = await viewerAgencyScope(req);

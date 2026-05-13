@@ -435,11 +435,19 @@ export default function HCMSHierarchy({ variant: variantProp }: HCMSHierarchyPro
   // team production instead of $0K. Loaded in parallel with the tree itself.
   const [aipMap, setAipMap] = useState<Map<string, number>>(new Map());
 
+  // Founders / owners / system_admins see the full agency tree.
+  // Everyone else sees only themselves + their downlines (no upline visible).
+  const FULL_TREE_ROLES = ["founder", "owner", "system_admin"];
+  const isFullTreeRole = !!(user?.role && FULL_TREE_ROLES.includes(user.role));
+  const hierarchyEndpoint = isFullTreeRole
+    ? "/api/hcms/hierarchy/tree"
+    : "/api/hcms/hierarchy/my-subtree";
+
   const loadData = () => {
     setLoading(true);
     setError("");
     Promise.all([
-      fetch("/api/hcms/hierarchy/tree", { credentials: "include" }).then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch(hierarchyEndpoint, { credentials: "include" }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch("/api/hcms/agents/", { credentials: "include" }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch("/api/hcms/hierarchy/aip-rollup", { credentials: "include" }).then(r => r.ok ? r.json() : []).catch(() => []),
     ]).then(([hierarchyRecords, _agents, aipRows]) => {
@@ -455,7 +463,7 @@ export default function HCMSHierarchy({ variant: variantProp }: HCMSHierarchyPro
     }).catch(() => { setError("Failed to load hierarchy"); setLoading(false); });
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [hierarchyEndpoint]);
 
   // Apply cohort filter to the raw records. When `created_at` is absent on
   // every record, fall back to "all" gracefully (filter has no effect).
