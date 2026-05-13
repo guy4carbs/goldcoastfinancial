@@ -21,8 +21,8 @@ export function StepWelcome({ firstName, onBegin }: Props) {
       </h1>
       <p style={{ fontSize: "var(--gc-text-lg)", color: "var(--gc-text-secondary)", maxWidth: 520, margin: "0 auto var(--gc-space-8)" }}>
         {firstName
-          ? "Your application has been pre-started. Complete the steps below to join Heritage Life Solutions."
-          : "Apply to join Heritage Life Solutions as a contracted insurance agent."}
+          ? "Your application has been pre-started. Complete the steps below to join Gold Coast Financial."
+          : "Apply to join Gold Coast Financial as a contracted insurance agent."}
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--gc-space-3)", maxWidth: 480, margin: "0 auto var(--gc-space-8)" }}>
