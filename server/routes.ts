@@ -572,7 +572,7 @@ export async function registerRoutes(
         [user.id],
       );
       await pool.query(
-        `INSERT INTO password_reset_tokens (user_id, token, expires_at)
+        `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
          VALUES ($1, $2, $3)`,
         [user.id, tokenHash, expiresAt],
       );
@@ -613,7 +613,7 @@ export async function registerRoutes(
       const tokenRow = await pool.query<{ id: string; user_id: string; expires_at: string; used_at: string | null }>(
         `SELECT id, user_id, expires_at, used_at
            FROM password_reset_tokens
-          WHERE token = $1
+          WHERE token_hash = $1
           LIMIT 1`,
         [tokenHash],
       );
@@ -657,86 +657,6 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to reset password" });
     }
   });
-
-  // ─── Founder-only diagnostic: trace the password-reset flow ───────
-  // The public /password-reset/request handler always returns 200 (no email
-  // enumeration). When a founder reports "the reset email never arrives,"
-  // this endpoint surfaces what's actually happening: was the user found?
-  // Did Gmail throw? It also returns the raw resetUrl so the founder can
-  // manually share it with the user if email delivery is the failure.
-  app.get(
-    "/api/auth/_debug/reset",
-    requireAuthMw,
-    requireRole(...FOUNDERS_ONLY),
-    async (req, res) => {
-      const rawEmail = String(req.query.email || "").trim();
-      if (!rawEmail) return res.status(400).json({ error: "?email= is required" });
-      const result: any = {
-        input_email: rawEmail,
-        normalized_email: rawEmail.toLowerCase(),
-        user_found: false,
-        user_id: null,
-        user_email_stored: null,
-        token_inserted: false,
-        email_sent: false,
-        email_error: null,
-        reset_url: null,
-      };
-      try {
-        const user = await storage.getUserByEmail(rawEmail);
-        if (!user) {
-          return res.json({ ...result, note: "No user matched (case-insensitive)." });
-        }
-        result.user_found = true;
-        result.user_id = user.id;
-        result.user_email_stored = user.email;
-
-        const rawToken = crypto.randomBytes(32).toString("hex");
-        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-        const expiresAt = new Date(Date.now() + 60 * 60_000);
-        await pool.query(
-          `UPDATE password_reset_tokens SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL`,
-          [user.id],
-        );
-        await pool.query(
-          `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
-          [user.id, tokenHash, expiresAt],
-        );
-        result.token_inserted = true;
-
-        const origin = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get("host")}`;
-        result.reset_url = `${origin}/reset-password?token=${rawToken}`;
-
-        try {
-          await sendPasswordResetEmail({
-            firstName: user.firstName || undefined,
-            email: user.email,
-            resetUrl: result.reset_url,
-            ttlMinutes: 60,
-          });
-          result.email_sent = true;
-        } catch (mailErr: any) {
-          result.email_error = {
-            message: mailErr?.message,
-            code: mailErr?.code,
-            response_status: mailErr?.response?.status,
-            response_data: mailErr?.response?.data,
-            stack: mailErr?.stack?.split("\n").slice(0, 3).join(" | "),
-          };
-        }
-        res.json(result);
-      } catch (e: any) {
-        res.status(500).json({
-          ...result,
-          fatal_error: {
-            message: e?.message,
-            code: e?.code,
-            stack: e?.stack?.split("\n").slice(0, 3).join(" | "),
-          },
-        });
-      }
-    },
-  );
 
   // ─── 2FA (TOTP) routes ─────────────────────────────────────────────
   // Mandatory for FOUNDER/OWNER/SYSTEM_ADMIN. Other roles can opt-in.
