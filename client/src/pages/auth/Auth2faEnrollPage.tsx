@@ -1,26 +1,38 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { ShieldCheck, Loader2, Fingerprint, Shield, Mail } from "lucide-react";
+import {
+  ShieldCheck,
+  Loader2,
+  Fingerprint,
+  Shield,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { csrfHeaders } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 /**
- * /auth/2fa/enroll — 2FA setup. Two options only:
- *   1. Passkey (Touch ID / Face ID / hardware key) — recommended
- *   2. Email verification code
+ * /auth/2fa/enroll — first-time 2FA setup.
  *
- * TOTP authenticator apps were retired in 1.0.16: simpler choice, fewer
- * support questions, and email is already verified for every account.
+ * Renders the SAME shell as Auth2faVerifyPage so the user gets a
+ * consistent "Verify your identity" surface whether they're enrolling
+ * or signing in. Different backend endpoints:
+ *   - Touch ID:    webauthn/register/begin + register/finish
+ *   - Email code:  2fa/email/enroll/begin + enroll/verify (flips
+ *                  users.two_factor_enabled = true on success)
+ *
+ * TOTP authenticator apps are intentionally absent. Passkey or email.
  */
 export default function Auth2faEnrollPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [passkeyBusy, setPasskeyBusy] = useState(false);
-  const [emailMode, setEmailMode] = useState<"idle" | "sending" | "code">("idle");
-  const [sentToEmail, setSentToEmail] = useState("");
   const [code, setCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [requestingEmail, setRequestingEmail] = useState(false);
+  const autoTriggered = useRef(false);
 
   const enrolPasskey = async () => {
     setPasskeyBusy(true);
@@ -51,50 +63,69 @@ export default function Auth2faEnrollPage() {
         const data = await finishRes.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${finishRes.status}`);
       }
-      toast({ title: "Passkey registered" });
+      toast({ title: "Verified with Touch ID" });
       window.location.assign("/founders");
     } catch (e: any) {
-      toast({ title: "Passkey registration failed", description: e?.message, variant: "destructive" });
+      toast({
+        title: "Touch ID verification failed",
+        description: e?.message,
+        variant: "destructive",
+      });
     } finally {
       setPasskeyBusy(false);
     }
   };
 
+  // Auto-prompt Touch ID once on mount, mirroring the verify page UX.
+  useEffect(() => {
+    if (autoTriggered.current) return;
+    autoTriggered.current = true;
+    const t = window.setTimeout(() => enrolPasskey(), 250);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const requestEmailCode = async () => {
-    setEmailMode("sending");
+    setRequestingEmail(true);
     try {
       const res = await fetch("/api/auth/2fa/email/enroll/begin", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
       });
+      const data = await res.json().catch(() => ({}));
       if (res.status === 409) {
         toast({ title: "2FA already enabled" });
         setLocation("/founders");
         return;
       }
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      setSentToEmail(data?.email || "");
-      setEmailMode("code");
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      setEmailSent(true);
+      setCode("");
       if (data?.rateLimited) {
         toast({
-          title: "Code already sent",
-          description: "Check your email — we just sent one. Wait a moment before requesting another.",
+          title: "Hold on — try again shortly",
+          description: "You can request a new code in a moment.",
+        });
+      } else {
+        toast({
+          title: "Code sent",
+          description: "Check your email for a 6-digit code (5-min expiry).",
         });
       }
     } catch (e: any) {
-      toast({ title: "Couldn't send code", description: e?.message, variant: "destructive" });
-      setEmailMode("idle");
+      toast({
+        title: "Couldn't send code",
+        description: e?.message,
+        variant: "destructive",
+      });
+    } finally {
+      setRequestingEmail(false);
     }
   };
 
-  const verifyEmailCode = async () => {
-    if (code.length !== 6) return;
-    setVerifying(true);
+  const submit = async () => {
+    setSubmitting(true);
     try {
       const res = await fetch("/api/auth/2fa/email/enroll/verify", {
         method: "POST",
@@ -106,12 +137,16 @@ export default function Auth2faEnrollPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${res.status}`);
       }
-      toast({ title: "Email verification enabled" });
+      toast({ title: "Verified" });
       window.location.assign("/founders");
     } catch (e: any) {
-      toast({ title: "Verification failed", description: e?.message, variant: "destructive" });
+      toast({
+        title: "Verification failed",
+        description: e?.message,
+        variant: "destructive",
+      });
     } finally {
-      setVerifying(false);
+      setSubmitting(false);
     }
   };
 
@@ -123,12 +158,13 @@ export default function Auth2faEnrollPage() {
         backgroundColor: "var(--gc-bg)",
         fontFamily: "var(--gc-font-body)",
         padding: "var(--gc-space-6) var(--gc-space-4)",
+        position: "relative",
       }}
     >
       <div
         style={{
           width: "100%",
-          maxWidth: 540,
+          maxWidth: 480,
           backgroundColor: "var(--gc-surface)",
           border: "1px solid var(--gc-border)",
           borderRadius: "var(--gc-radius-md)",
@@ -136,6 +172,7 @@ export default function Auth2faEnrollPage() {
           boxShadow: "var(--gc-shadow-lg)",
         }}
       >
+        {/* Hero */}
         <div
           style={{
             padding: "var(--gc-space-8) var(--gc-space-6) var(--gc-space-5)",
@@ -152,7 +189,7 @@ export default function Auth2faEnrollPage() {
                 borderRadius: "var(--gc-radius-md)",
               }}
             >
-              <Shield className="w-5 h-5" style={{ color: "var(--gc-btn-primary-text)" }} />
+              <Shield className="w-5 h-5" style={{ color: "var(--gc-btn-primary-text)" }} aria-hidden="true" />
             </div>
             <span
               style={{
@@ -168,7 +205,10 @@ export default function Auth2faEnrollPage() {
           </div>
           <div
             className="h-[2px] mx-auto mb-5"
-            style={{ width: 64, background: "linear-gradient(90deg, var(--gc-gold), var(--gc-gold-bright))" }}
+            style={{
+              width: 64,
+              background: "linear-gradient(90deg, var(--gc-gold), var(--gc-gold-bright))",
+            }}
           />
           <h1
             style={{
@@ -182,7 +222,7 @@ export default function Auth2faEnrollPage() {
               marginBottom: "var(--gc-space-2)",
             }}
           >
-            Secure your account
+            Verify your identity
           </h1>
           <p
             style={{
@@ -192,23 +232,24 @@ export default function Auth2faEnrollPage() {
               color: "var(--gc-text-secondary)",
               lineHeight: 1.55,
               margin: 0,
-              maxWidth: 420,
+              maxWidth: 380,
               marginInline: "auto",
             }}
           >
-            Two-factor authentication is required for founders, owners, and system admins. Pick the method that fits.
+            Confirm with Touch ID or Face ID on this device.
           </p>
         </div>
 
+        {/* Body */}
         <div style={{ padding: "var(--gc-space-6)" }}>
-          {/* PRIMARY: Passkey */}
           <button
             onClick={enrolPasskey}
             disabled={passkeyBusy}
             className="w-full flex items-center gap-3"
             style={{
               padding: "var(--gc-space-4) var(--gc-space-5)",
-              background: "linear-gradient(135deg, var(--gc-gold) 0%, var(--gc-gold-bright) 100%)",
+              background:
+                "linear-gradient(135deg, var(--gc-gold) 0%, var(--gc-gold-bright) 100%)",
               color: "var(--gc-btn-primary-text)",
               border: "none",
               borderRadius: "var(--gc-radius-md)",
@@ -217,7 +258,7 @@ export default function Auth2faEnrollPage() {
               fontSize: "var(--gc-text-md)",
               fontWeight: 600,
               letterSpacing: "var(--gc-tracking-wide)",
-              opacity: passkeyBusy ? 0.7 : 1,
+              opacity: passkeyBusy ? 0.85 : 1,
               textAlign: "left",
               boxShadow: "var(--gc-shadow-sm)",
             }}
@@ -234,11 +275,15 @@ export default function Auth2faEnrollPage() {
                 flexShrink: 0,
               }}
             >
-              {passkeyBusy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Fingerprint className="w-5 h-5" />}
+              {passkeyBusy ? (
+                <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Fingerprint className="w-5 h-5" aria-hidden="true" />
+              )}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: "var(--gc-text-md)", fontWeight: 600 }}>
-                {passkeyBusy ? "Registering passkey…" : "Use a passkey"}
+                {passkeyBusy ? "Awaiting Touch ID…" : "Authenticate with Touch ID"}
               </div>
               <div
                 style={{
@@ -249,207 +294,189 @@ export default function Auth2faEnrollPage() {
                   marginTop: 2,
                 }}
               >
-                Touch ID · Face ID · Hardware key — recommended
+                Touch ID · Face ID
               </div>
             </div>
           </button>
 
-          {/* DIVIDER */}
-          <div className="flex items-center gap-3" style={{ margin: "var(--gc-space-5) 0" }}>
-            <div style={{ flex: 1, height: 1, background: "var(--gc-border)" }} />
-            <span
+          <div
+            style={{
+              marginTop: "var(--gc-space-5)",
+              padding: "var(--gc-space-5)",
+              background: "var(--gc-surface-2)",
+              border: "1px solid var(--gc-border)",
+              borderRadius: "var(--gc-radius-md)",
+            }}
+          >
+            <div
               style={{
                 fontSize: "var(--gc-text-xs)",
                 letterSpacing: "var(--gc-tracking-wider)",
                 textTransform: "uppercase",
-                color: "var(--gc-text-muted)",
-                fontWeight: 500,
+                color: "var(--gc-gold)",
+                fontWeight: 600,
+                marginBottom: "var(--gc-space-2)",
               }}
             >
-              or
-            </span>
-            <div style={{ flex: 1, height: 1, background: "var(--gc-border)" }} />
-          </div>
-
-          {/* SECONDARY: Email verification */}
-          {emailMode === "idle" && (
-            <button
-              onClick={requestEmailCode}
-              className="w-full flex items-center gap-3"
-              style={{
-                padding: "var(--gc-space-4) var(--gc-space-5)",
-                background: "transparent",
-                color: "var(--gc-text-primary)",
-                border: "1px solid var(--gc-border)",
-                borderRadius: "var(--gc-radius-md)",
-                cursor: "pointer",
-                fontFamily: "var(--gc-font-body)",
-                fontSize: "var(--gc-text-md)",
-                fontWeight: 500,
-                letterSpacing: "var(--gc-tracking-wide)",
-                textAlign: "left",
-                transition: "border-color var(--gc-transition-fast)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--gc-gold)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--gc-border)";
-              }}
-            >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "var(--gc-radius-sm)",
-                  background: "var(--gc-surface-2)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Mail className="w-5 h-5" style={{ color: "var(--gc-gold)" }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "var(--gc-text-md)", fontWeight: 600 }}>Use email verification</div>
-                <div
+              Verification Code
+            </div>
+            {!emailSent ? (
+              <>
+                <p
                   style={{
-                    fontSize: "var(--gc-text-xs)",
-                    fontWeight: 400,
-                    letterSpacing: "var(--gc-tracking-wide)",
-                    color: "var(--gc-text-muted)",
-                    marginTop: 2,
+                    fontSize: "var(--gc-text-sm)",
+                    color: "var(--gc-text-secondary)",
+                    margin: 0,
+                    marginBottom: "var(--gc-space-3)",
+                    lineHeight: 1.5,
                   }}
                 >
-                  We'll email a 6-digit code each time you sign in
+                  We'll email you a 6-digit code that's good for 5 minutes.
+                </p>
+                <div className="flex flex-col gap-2 mb-3">
+                  <button
+                    onClick={requestEmailCode}
+                    disabled={requestingEmail}
+                    className="w-full flex items-center justify-center gap-2"
+                    style={{
+                      padding: "var(--gc-space-3) var(--gc-space-4)",
+                      backgroundColor: "var(--gc-btn-primary-bg)",
+                      color: "var(--gc-btn-primary-text)",
+                      borderRadius: "var(--gc-radius-sm)",
+                      border: "none",
+                      cursor: requestingEmail ? "wait" : "pointer",
+                      fontFamily: "var(--gc-font-body)",
+                      fontSize: "var(--gc-text-base)",
+                      fontWeight: 600,
+                      letterSpacing: "var(--gc-tracking-wide)",
+                      opacity: requestingEmail ? 0.7 : 1,
+                    }}
+                  >
+                    {requestingEmail ? (
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Mail className="w-4 h-4" aria-hidden="true" />
+                    )}
+                    {requestingEmail ? "Sending…" : "Send code to my email"}
+                  </button>
+                  <button
+                    disabled
+                    aria-label="SMS verification — coming soon"
+                    className="w-full flex items-center justify-center gap-2"
+                    style={{
+                      padding: "var(--gc-space-3) var(--gc-space-4)",
+                      backgroundColor: "transparent",
+                      color: "var(--gc-text-muted)",
+                      borderRadius: "var(--gc-radius-sm)",
+                      border: "1px dashed var(--gc-border)",
+                      cursor: "not-allowed",
+                      fontFamily: "var(--gc-font-body)",
+                      fontSize: "var(--gc-text-sm)",
+                      fontWeight: 500,
+                      letterSpacing: "var(--gc-tracking-wide)",
+                    }}
+                    title="SMS verification — coming soon"
+                  >
+                    <MessageSquare className="w-4 h-4" aria-hidden="true" />
+                    Send via SMS
+                    <span
+                      style={{
+                        marginLeft: 6,
+                        fontSize: "10px",
+                        padding: "1px 6px",
+                        borderRadius: "var(--gc-radius-full)",
+                        border: "1px solid var(--gc-border)",
+                        color: "var(--gc-text-muted)",
+                        textTransform: "uppercase",
+                        letterSpacing: "var(--gc-tracking-wider)",
+                      }}
+                    >
+                      Coming soon
+                    </span>
+                  </button>
                 </div>
-              </div>
-            </button>
-          )}
-
-          {emailMode === "sending" && (
-            <div
-              className="flex items-center justify-center"
-              style={{
-                padding: "var(--gc-space-5)",
-                background: "var(--gc-surface-2)",
-                border: "1px solid var(--gc-border)",
-                borderRadius: "var(--gc-radius-md)",
-                color: "var(--gc-text-secondary)",
-                fontSize: "var(--gc-text-sm)",
-              }}
-            >
-              <Loader2 className="w-5 h-5 animate-spin mr-2" style={{ color: "var(--gc-gold)" }} />
-              Sending code...
-            </div>
-          )}
-
-          {emailMode === "code" && (
-            <div
-              style={{
-                padding: "var(--gc-space-5)",
-                background: "var(--gc-surface-2)",
-                border: "1px solid var(--gc-border)",
-                borderRadius: "var(--gc-radius-md)",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Mail className="w-4 h-4" style={{ color: "var(--gc-gold)" }} />
-                <div
+              </>
+            ) : (
+              <>
+                <p
                   style={{
-                    fontSize: "var(--gc-text-xs)",
-                    letterSpacing: "var(--gc-tracking-wider)",
-                    textTransform: "uppercase",
-                    color: "var(--gc-gold)",
+                    fontSize: "var(--gc-text-sm)",
+                    color: "var(--gc-text-secondary)",
+                    margin: 0,
+                    marginBottom: "var(--gc-space-3)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Enter the 6-digit code we just emailed you. Codes expire in 5 minutes.
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  autoFocus
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="• • • • • •"
+                  style={{
+                    width: "100%",
+                    padding: "var(--gc-space-4)",
+                    background: "var(--gc-surface)",
+                    border: "1px solid var(--gc-border)",
+                    borderRadius: "var(--gc-radius-sm)",
+                    fontFamily: "monospace",
+                    fontSize: "var(--gc-text-2xl)",
+                    letterSpacing: "0.5em",
+                    textAlign: "center",
+                    color: "var(--gc-text-primary)",
+                    marginBottom: "var(--gc-space-3)",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  onClick={submit}
+                  disabled={submitting || !code}
+                  className="w-full flex items-center justify-center gap-2"
+                  style={{
+                    padding: "var(--gc-space-3) var(--gc-space-4)",
+                    backgroundColor: "var(--gc-btn-primary-bg)",
+                    color: "var(--gc-btn-primary-text)",
+                    borderRadius: "var(--gc-radius-sm)",
+                    border: "none",
+                    cursor: submitting || !code ? "not-allowed" : "pointer",
+                    fontFamily: "var(--gc-font-body)",
+                    fontSize: "var(--gc-text-base)",
                     fontWeight: 600,
+                    letterSpacing: "var(--gc-tracking-wide)",
+                    opacity: submitting || !code ? 0.5 : 1,
                   }}
                 >
-                  Check your email
-                </div>
-              </div>
-              <p
-                style={{
-                  fontSize: "var(--gc-text-sm)",
-                  color: "var(--gc-text-secondary)",
-                  margin: 0,
-                  marginBottom: "var(--gc-space-4)",
-                  lineHeight: 1.5,
-                }}
-              >
-                We sent a 6-digit code to{" "}
-                <strong style={{ color: "var(--gc-text-primary)" }}>{sentToEmail || "your email"}</strong>. Enter it below to enable 2FA.
-              </p>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="\d{6}"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="• • • • • •"
-                autoFocus
-                style={{
-                  width: "100%",
-                  padding: "var(--gc-space-4)",
-                  background: "var(--gc-surface)",
-                  border: "1px solid var(--gc-border)",
-                  borderRadius: "var(--gc-radius-sm)",
-                  fontFamily: "monospace",
-                  fontSize: "var(--gc-text-2xl)",
-                  letterSpacing: "0.5em",
-                  textAlign: "center",
-                  color: "var(--gc-text-primary)",
-                  marginBottom: "var(--gc-space-4)",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  (e.currentTarget as HTMLInputElement).style.borderColor = "var(--gc-gold)";
-                }}
-                onBlur={(e) => {
-                  (e.currentTarget as HTMLInputElement).style.borderColor = "var(--gc-border)";
-                }}
-              />
-              <button
-                onClick={verifyEmailCode}
-                disabled={verifying || code.length !== 6}
-                className="w-full flex items-center justify-center gap-2"
-                style={{
-                  padding: "var(--gc-space-3) var(--gc-space-4)",
-                  backgroundColor: "var(--gc-btn-primary-bg)",
-                  color: "var(--gc-btn-primary-text)",
-                  borderRadius: "var(--gc-radius-sm)",
-                  border: "none",
-                  cursor: verifying || code.length !== 6 ? "not-allowed" : "pointer",
-                  fontFamily: "var(--gc-font-body)",
-                  fontSize: "var(--gc-text-base)",
-                  fontWeight: 600,
-                  letterSpacing: "var(--gc-tracking-wide)",
-                  opacity: verifying || code.length !== 6 ? 0.5 : 1,
-                }}
-              >
-                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                {verifying ? "Verifying…" : "Confirm and enable 2FA"}
-              </button>
-              <button
-                onClick={requestEmailCode}
-                style={{
-                  marginTop: "var(--gc-space-3)",
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--gc-text-muted)",
-                  fontSize: "var(--gc-text-xs)",
-                  cursor: "pointer",
-                  width: "100%",
-                  textAlign: "center",
-                  fontFamily: "var(--gc-font-body)",
-                  letterSpacing: "var(--gc-tracking-wide)",
-                }}
-              >
-                Didn't get it? Resend code
-              </button>
-            </div>
-          )}
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                  )}
+                  {submitting ? "Verifying…" : "Verify"}
+                </button>
+                <button
+                  onClick={requestEmailCode}
+                  disabled={requestingEmail}
+                  className="flex items-center gap-2 mx-auto"
+                  style={{
+                    marginTop: "var(--gc-space-3)",
+                    background: "none",
+                    border: "none",
+                    color: "var(--gc-text-muted)",
+                    fontSize: "var(--gc-text-xs)",
+                    cursor: requestingEmail ? "wait" : "pointer",
+                    letterSpacing: "var(--gc-tracking-wide)",
+                  }}
+                >
+                  {requestingEmail ? "Sending…" : "Send a new code"}
+                </button>
+              </>
+            )}
+          </div>
 
           <p
             style={{
