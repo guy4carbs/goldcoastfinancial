@@ -211,6 +211,15 @@ router.post("/:id/approve", blockWritesDuringViewAs, async (req, res) => {
     }
     const { email, first_name, last_name } = userRow.rows[0];
 
+    // Capture the truthful prior approval_status so the audit log reflects
+    // reality (re-approve from 'rejected' / 'pending' / etc., not just the
+    // hardcoded 'pending_review').
+    const priorRow = await c.query<{ approval_status: string | null }>(
+      `SELECT approval_status FROM agent_profiles WHERE user_id = $1`,
+      [targetId],
+    );
+    const priorApprovalStatus = priorRow.rows[0]?.approval_status ?? "pending_review";
+
     await c.query(
       `UPDATE agent_profiles SET approval_status = 'approved', approved_at = NOW(), approved_by = $2 WHERE user_id = $1`,
       [targetId, performedBy],
@@ -242,9 +251,16 @@ router.post("/:id/approve", blockWritesDuringViewAs, async (req, res) => {
       }
     }
 
-    // Insert OR update if a row already exists (upserts handle re-approve
-    // edge cases; the partial unique index on (agent_user_id) WHERE
-    // effective_to IS NULL is the canonical guard if present).
+    // Idempotent re-approve: close any active hierarchy row for this user
+    // before inserting the new one. Without this, the partial-unique index
+    // on (agent_user_id) WHERE effective_to IS NULL throws on re-approve
+    // and rolls the entire transaction back.
+    await c.query(
+      `UPDATE agent_hierarchy
+          SET effective_to = NOW()
+        WHERE agent_user_id = $1::uuid AND effective_to IS NULL`,
+      [targetId],
+    );
     await c.query(
       `INSERT INTO agent_hierarchy (
          agent_user_id, direct_upline_id, hierarchy_level, hierarchy_title,
@@ -261,10 +277,11 @@ router.post("/:id/approve", blockWritesDuringViewAs, async (req, res) => {
 
     await c.query(
       `INSERT INTO access_change_log (target_user_id, performed_by, action_type, previous_value, new_value, reason)
-       VALUES ($1::uuid, $2::uuid, 'registration_approved', '{"approval_status":"pending_review"}'::jsonb, $3::jsonb, $4)`,
+       VALUES ($1::uuid, $2::uuid, 'registration_approved', $3::jsonb, $4::jsonb, $5)`,
       [
         targetId,
         performedBy,
+        JSON.stringify({ approval_status: priorApprovalStatus }),
         JSON.stringify({
           approval_status: "approved",
           upline_id: uplineId,
@@ -310,8 +327,10 @@ router.post("/:id/approve", blockWritesDuringViewAs, async (req, res) => {
     res.json({ ok: true });
   } catch (e: any) {
     await c.query("ROLLBACK").catch(() => {});
-    console.error("[founders-members] /approve error:", e?.message);
-    res.status(500).json(genericError("Failed to approve"));
+    console.error("[founders-members] /approve error:", e?.code, e?.message);
+    const code = e?.code ? ` (${e.code})` : "";
+    const msg = typeof e?.message === "string" ? `: ${e.message.slice(0, 160)}` : "";
+    res.status(500).json(genericError(`Failed to approve${code}${msg}`));
   } finally {
     c.release();
   }
@@ -337,14 +356,27 @@ router.post("/:id/reject", blockWritesDuringViewAs, async (req, res) => {
       return res.status(404).json(genericError("User not found"));
     }
     const { email, first_name, last_name } = userRow.rows[0];
+
+    // Truthful prior approval_status for the audit log.
+    const priorRow = await c.query<{ approval_status: string | null }>(
+      `SELECT approval_status FROM agent_profiles WHERE user_id = $1`,
+      [targetId],
+    );
+    const priorApprovalStatus = priorRow.rows[0]?.approval_status ?? "pending_review";
+
     await c.query(
       `UPDATE agent_profiles SET approval_status = 'rejected', approved_at = NOW(), approved_by = $2 WHERE user_id = $1`,
       [targetId, performedBy],
     );
     await c.query(
       `INSERT INTO access_change_log (target_user_id, performed_by, action_type, previous_value, new_value, reason)
-       VALUES ($1::uuid, $2::uuid, 'registration_rejected', '{"approval_status":"pending_review"}'::jsonb, '{"approval_status":"rejected"}'::jsonb, $3)`,
-      [targetId, performedBy, reason],
+       VALUES ($1::uuid, $2::uuid, 'registration_rejected', $3::jsonb, '{"approval_status":"rejected"}'::jsonb, $4)`,
+      [
+        targetId,
+        performedBy,
+        JSON.stringify({ approval_status: priorApprovalStatus }),
+        reason,
+      ],
     );
     await c.query("COMMIT");
 
@@ -385,8 +417,10 @@ router.post("/:id/reject", blockWritesDuringViewAs, async (req, res) => {
     res.json({ ok: true });
   } catch (e: any) {
     await c.query("ROLLBACK").catch(() => {});
-    console.error("[founders-members] /reject error:", e?.message);
-    res.status(500).json(genericError("Failed to reject"));
+    console.error("[founders-members] /reject error:", e?.code, e?.message);
+    const code = e?.code ? ` (${e.code})` : "";
+    const msg = typeof e?.message === "string" ? `: ${e.message.slice(0, 160)}` : "";
+    res.status(500).json(genericError(`Failed to reject${code}${msg}`));
   } finally {
     c.release();
   }
