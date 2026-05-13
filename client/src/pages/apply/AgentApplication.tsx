@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, Mail } from "lucide-react";
 import { useApplicationForm } from "./useApplicationForm";
 import { ApplicationHeader } from "./components/ApplicationHeader";
 import { ApplicationNav } from "./components/ApplicationNav";
@@ -85,21 +85,31 @@ export default function AgentApplication() {
   if (submitted) {
     return (
       <div data-theme="gc-dark" className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--gc-bg)" }}>
-        <div className="text-center p-8" style={{ maxWidth: 520 }}>
+        <div className="text-center p-8" style={{ maxWidth: 560 }}>
           <CheckCircle className="w-16 h-16 mx-auto mb-4" style={{ color: "var(--gc-status-active)" }} />
           <h1 style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-4xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-4)" }}>Application Submitted</h1>
           <p style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-lg)", color: "var(--gc-text-secondary)", marginBottom: "var(--gc-space-6)" }}>
-            Thank you for applying to Gold Coast Financial Partners. Our team will review your application and contact you within 48 hours.
+            Thank you for applying to Gold Coast Financial Partners. Our team is reviewing your application now.
           </p>
+          <div style={{
+            display: "flex", alignItems: "flex-start", gap: "var(--gc-space-3)",
+            padding: "var(--gc-space-4)", marginBottom: "var(--gc-space-4)",
+            backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)",
+            borderRadius: "var(--gc-radius-md)", textAlign: "left",
+          }}>
+            <Mail className="w-6 h-6 flex-shrink-0" style={{ color: "var(--gc-gold)" }} />
+            <div>
+              <div style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-md)", color: "var(--gc-text-primary)", fontWeight: 600, marginBottom: "var(--gc-space-1)" }}>
+                Check your email
+              </div>
+              <div style={{ fontFamily: "var(--gc-font-body)", fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", lineHeight: 1.55 }}>
+                You'll receive a message about your approval status as soon as our team finishes reviewing — typically within 48 hours.
+              </div>
+            </div>
+          </div>
           <p style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-muted)" }}>
-            You can now log in to your agent portal using the email and password you created.
+            You can safely close this window.
           </p>
-          <a href="/login" style={{
-            display: "inline-block", marginTop: "var(--gc-space-4)",
-            padding: "var(--gc-space-2) var(--gc-space-6)",
-            backgroundColor: "var(--gc-btn-primary-bg)", color: "var(--gc-btn-primary-text)",
-            borderRadius: "var(--gc-radius-sm)", textDecoration: "none", fontWeight: 500,
-          }}>Go to Login</a>
         </div>
       </div>
     );
