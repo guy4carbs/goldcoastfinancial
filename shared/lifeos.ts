@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.22";
+export const LIFEOS_VERSION = "1.0.23";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,14 +34,14 @@ export const LIFEOS_VERSION = "1.0.22";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "What's New archive now paginates";
+export const LIFEOS_RELEASE_TITLE = "What's New: featured latest + sectioned archive";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The public release archive at /lifeos/whats-new loads 10 releases at a time with a Load more button — the page no longer grows unbounded as we ship.";
+  "/lifeos/whats-new now shows only the latest release as a featured card, with a Look at past updates button that opens the full archive grouped by month.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Paginated /lifeos/whats-new.** First page renders the 10 newest releases. Hit Load more at the bottom to fetch the next batch. When you've reached the tail, the page shows an "End of archive" marker with the total release count.
-- **De-duped pagination.** If a new release ships mid-scroll, the next page doesn't re-show a release you already saw.
-- **Snappier scrolling.** First paint is faster (10 cards instead of 50) and the staggered fade-in only applies to the first six cards so subsequent pages don't feel sluggish.`;
+- **Focused landing.** /lifeos/whats-new shows just the latest release as a prominent featured card. No more scrolling past every old version to find what just shipped.
+- **Look at past updates.** A clear CTA below the featured card jumps to /lifeos/whats-new/all — the full archive, sectioned by month.
+- **Sectioned archive.** Each month is its own block with the release count, newest first. Load more fetches the next 12 releases at a time; an end-of-archive marker shows the total when there's nothing left.`;
 
 
 /**

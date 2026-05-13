@@ -57,6 +57,7 @@ import FoundersLoungeLayout from "@/pages/founders/FoundersLoungeLayout";
 import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
 import { ChunkLoadGuard } from "@/components/lifeos/ChunkLoadGuard";
 import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
+import WhatsNewAll from "@/pages/lifeos/WhatsNewAll";
 
 // Auth / Public
 import AgentApplication from "@/pages/apply/AgentApplication";
@@ -126,6 +127,7 @@ function Router() {
 
         {/* lifeOS public archive — /founders/lifeos lives inside FoundersLoungeLayout */}
         <Route path="/lifeos/whats-new" component={WhatsNewArchive} />
+        <Route path="/lifeos/whats-new/all" component={WhatsNewAll} />
 
         {/* HCMS — Agent Portal (sales_agent + owner) */}
         <Route path="/hcms/my/dashboard">{() => <AgentOnly><AgentDashboardPage /></AgentOnly>}</Route>
