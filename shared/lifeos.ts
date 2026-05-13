@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.21";
+export const LIFEOS_VERSION = "1.0.22";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,17 +34,14 @@ export const LIFEOS_VERSION = "1.0.21";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Re-upload missing documents from the portal";
+export const LIFEOS_RELEASE_TITLE = "What's New archive now paginates";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Approved agents can now upload any missing documents straight from My Documents — no more re-applying just to attach a PDF.";
+  "The public release archive at /lifeos/whats-new loads 10 releases at a time with a Load more button — the page no longer grows unbounded as we ship.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Upload button on every missing document.** /hcms/my/documents now shows an Upload button next to each missing tile. Click, pick a PDF/JPG/PNG, and the file goes straight into your profile. The tile flips to "View" the moment it lands.
-- **Built for fixing pre-fix uploads.** Earlier application uploads that orphaned because of the WHERE-clause bug (fixed in 1.0.x earlier) can now be replaced in 30 seconds without touching the application flow.
-
-## Heads up
-
-10 MB max per file. Supported types: PDF, JPG, PNG.`;
+- **Paginated /lifeos/whats-new.** First page renders the 10 newest releases. Hit Load more at the bottom to fetch the next batch. When you've reached the tail, the page shows an "End of archive" marker with the total release count.
+- **De-duped pagination.** If a new release ships mid-scroll, the next page doesn't re-show a release you already saw.
+- **Snappier scrolling.** First paint is faster (10 cards instead of 50) and the staggered fade-in only applies to the first six cards so subsequent pages don't feel sluggish.`;
 
 
 /**
