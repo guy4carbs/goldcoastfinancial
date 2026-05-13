@@ -31,6 +31,7 @@ import { storage } from "./storage";
 import { initializeDatabase } from "./db";
 import { setupWebSocket } from "./websocket";
 import { stripeWebhookHandler } from "./routes/stripe-webhook";
+import { ensureLifeOSReleaseSeed } from "./routes/lifeos";
 
 const app = express();
 const httpServer = createServer(app);
@@ -195,9 +196,9 @@ app.use((req, res, next) => {
 
   // Idempotent boot-time seed: guarantee a `lifeos_releases` row exists for the
   // current LIFEOS_VERSION so the update + whats-new popups always have notes
-  // to render. No-op if a founder has already published richer notes.
+  // to render. No-op if a founder has already published richer notes. Static
+  // import — the dynamic-import variant didn't survive the esbuild bundle.
   try {
-    const { ensureLifeOSReleaseSeed } = await import("./routes/lifeos");
     await ensureLifeOSReleaseSeed();
   } catch (e: any) {
     console.error("[boot] ensureLifeOSReleaseSeed failed:", e?.message);
