@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.19";
+export const LIFEOS_VERSION = "1.0.20";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,16 +34,18 @@ export const LIFEOS_VERSION = "1.0.19";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Recovery page button works";
+export const LIFEOS_RELEASE_TITLE = "Per-user hierarchy view";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Fixed the Reset and reload button on /lifeos-recover.html — it was being blocked by our Content Security Policy.";
+  "Managers and agents now see themselves at the top of the Hierarchy page with only their downlines below — never their upline.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Recovery page button works.** The Reset and reload button on /lifeos-recover.html was silently failing because our CSP blocked the inline script tag. The script is now a separate file (allowed by CSP), so the click handler registers and the cache-wipe actually runs.
+- **Hierarchy page is now per-user.** When a manager or agent opens the Hierarchy page, they see themselves as the root and only their downlines — uplines and anyone above them are hidden. Founders and owners still see the full org tree.
+- **Document upload reliability.** The /apply/upload endpoint now surfaces real DB errors instead of pretending success when the S3 key couldn't persist to your profile. Self-heal INSERT for missing profile rows is logged so we can see in the Railway logs whether a given upload landed.
+- **Founder-only diagnostic.** New /api/hcms/agents/_debug/agent-profile?email=... returns the raw application/document state for any applicant so we can verify exactly what's stored without guessing.
 
 ## Heads up
 
-If you tried the recovery page before and the button did nothing, it'll work now after this deploys.`;
+The Founders Lounge → Members table is still the place to see everyone in the org. The Hierarchy page is now scoped to "my team."`;
 
 
 /**

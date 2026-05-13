@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { pool } from "../db";
-import { requireAuth, requireRole, MANAGER_PLUS, ADMIN_PLUS } from "../middleware/auth";
+import { requireAuth, requireRole, MANAGER_PLUS, ADMIN_PLUS, FOUNDERS_ONLY } from "../middleware/auth";
 import { logFounderAction } from "../services/founderAudit";
 import { decryptField, isEncrypted } from "../services/encryptionService";
 import { storage } from "../storage";
@@ -62,6 +62,91 @@ function maskField(encrypted: string | null): string | null {
     return "****";
   } catch { return "****"; }
 }
+
+// GET /api/hcms/agents/_debug/agent-profile?email=... — founder-only diagnostic.
+// Returns the raw users + agent_profiles row for a given email so we can see
+// exactly what's stored (or missing). Use to debug "the application data
+// isn't showing in HCMS" claims — tells us whether the row exists, which
+// columns are populated, and which S3 keys are NULL (orphaned uploads).
+//
+// Remove in a follow-up after the application-persistence audit is complete.
+router.get("/_debug/agent-profile", requireAuth, requireRole(...FOUNDERS_ONLY), async (req, res) => {
+  const rawEmail = String(req.query.email || "").trim().toLowerCase();
+  if (!rawEmail) return res.status(400).json({ error: "?email= is required" });
+  try {
+    const r = await pool.query(
+      `SELECT
+         u.id::text AS user_id,
+         u.email,
+         u.first_name,
+         u.last_name,
+         u.is_active,
+         u.onboarding_status,
+         ap.id::text AS agent_profile_id,
+         ap.approval_status,
+         ap.is_licensed,
+         ap.license_number,
+         ap.npn,
+         ap.licensed_states,
+         ap.years_experience,
+         ap.street_address,
+         ap.city,
+         ap.state,
+         ap.zip_code,
+         ap.dba_type,
+         ap.company_name,
+         ap.dba_name,
+         ap.ein,
+         ap.bank_name,
+         ap.eo_provider,
+         ap.eo_policy_number,
+         -- Document S3 keys (NULL = orphaned or never uploaded)
+         ap.eo_certificate_s3_key,
+         ap.drivers_license_s3_key,
+         ap.aml_certificate_s3_key,
+         ap.direct_deposit_form_s3_key,
+         ap.articles_s3_key,
+         ap.onboarding_step,
+         ap.onboarding_completed_at,
+         ap.created_at AS ap_created_at,
+         ap.updated_at AS ap_updated_at
+       FROM users u
+       LEFT JOIN agent_profiles ap ON ap.user_id::text = u.id::text
+       WHERE LOWER(u.email) = $1
+       LIMIT 1`,
+      [rawEmail],
+    );
+    if (r.rowCount === 0) return res.json({ found: false, email: rawEmail });
+    const row = r.rows[0];
+    res.json({
+      found: true,
+      email: rawEmail,
+      user_exists: !!row.user_id,
+      agent_profile_exists: !!row.agent_profile_id,
+      documents: {
+        eo_certificate: row.eo_certificate_s3_key,
+        drivers_license: row.drivers_license_s3_key,
+        aml_certificate: row.aml_certificate_s3_key,
+        direct_deposit: row.direct_deposit_form_s3_key,
+        articles: row.articles_s3_key,
+      },
+      uploaded_count: [
+        row.eo_certificate_s3_key,
+        row.drivers_license_s3_key,
+        row.aml_certificate_s3_key,
+        row.direct_deposit_form_s3_key,
+        row.articles_s3_key,
+      ].filter(Boolean).length,
+      raw: row,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      error: e?.message,
+      code: e?.code,
+      detail: e?.detail,
+    });
+  }
+});
 
 // GET /api/hcms/agents/stats — Count agents by approval status
 router.get("/stats", requireAuth, requireRole(...MANAGER_PLUS), async (_req, res) => {

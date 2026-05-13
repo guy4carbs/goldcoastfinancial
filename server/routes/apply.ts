@@ -705,6 +705,7 @@ router.post("/upload", async (req, res) => {
     };
 
     const column = columnMap[documentType];
+    let persisted = false;
     if (column) {
       // 2026-05-13: key on user_id, not onboarding_token. Same fix as
       // save-progress — findByToken has a users.invite_token fallback so
@@ -712,23 +713,48 @@ router.post("/upload", async (req, res) => {
       // Without this, the file uploads to Firebase but the S3 key
       // reference is never written to the user's profile → looks
       // successful but the document is orphaned.
-      const r = await pool.query(
-        `UPDATE agent_profiles SET ${column} = $1, updated_at = NOW() WHERE user_id::text = $2`,
-        [result.key, profile.uid],
-      );
-      if (!r.rowCount || r.rowCount === 0) {
-        // Self-heal: missing agent_profiles row. Create + retry.
-        await pool.query(
-          `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at, ${column}, updated_at)
-           VALUES ($1, 'pending_review', 1, $2, NOW() + INTERVAL '30 days', $3, NOW())`,
-          [profile.uid, token, result.key],
+      try {
+        const r = await pool.query(
+          `UPDATE agent_profiles SET ${column} = $1, updated_at = NOW() WHERE user_id::text = $2`,
+          [result.key, profile.uid],
         );
+        if (!r.rowCount || r.rowCount === 0) {
+          // Self-heal: no agent_profiles row matched. Create one carrying
+          // this upload's S3 key. agent_profiles has no UNIQUE on user_id
+          // so we can't ON CONFLICT — the UPDATE above is the
+          // already-exists branch. If somehow a row was created between
+          // our UPDATE and this INSERT, the duplicate is a pre-existing
+          // data-quality issue, not this handler's problem.
+          const ins = await pool.query(
+            `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at, ${column}, updated_at)
+             VALUES ($1, 'pending_review', 1, $2, NOW() + INTERVAL '30 days', $3, NOW())
+             RETURNING id`,
+            [profile.uid, token, result.key],
+          );
+          persisted = (ins.rowCount ?? 0) > 0;
+          console.log(`[Apply] /upload self-heal INSERT for user=${profile.uid} column=${column} → ${persisted ? "ok" : "still-missing"}`);
+        } else {
+          persisted = true;
+        }
+      } catch (pgErr: any) {
+        // Surface the actual DB error to the SPA so the upload step doesn't
+        // pretend success when persistence failed (orphaned S3 file). Same
+        // pattern as /api/members/:id/approve in PR #39.
+        console.error(`[Apply] /upload persist error for user=${profile.uid} column=${column}:`, pgErr?.code, pgErr?.message);
+        return res.status(500).json({
+          error: `Failed to save document reference (${pgErr?.code || "DB"})`,
+          detail: pgErr?.message?.slice(0, 200),
+          uploadedKey: result.key,
+        });
       }
+    } else {
+      console.warn(`[Apply] /upload unknown documentType="${documentType}" — file uploaded to S3 but no column to write into`);
     }
 
-    res.json({ success: true, key: result.key, url: result.url });
+    res.json({ success: true, key: result.key, url: result.url, persisted });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    console.error("[Apply] /upload error:", e?.code, e?.message);
+    res.status(500).json({ error: e.message, code: e?.code });
   }
 });
 
