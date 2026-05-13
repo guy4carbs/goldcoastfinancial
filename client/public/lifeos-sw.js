@@ -50,6 +50,11 @@ const NETWORK_ONLY = [
   // is a public landing for new agents with no such flow, so any stale
   // cache here turns into "Begin Application doesn't work" for invitees.
   "/apply",
+  // Recovery escape hatch — if a user is stuck on a bundle whose update flow
+  // is broken, they navigate to /lifeos-recover.html. The page is static
+  // HTML with inline JS that wipes all SW caches and unregisters the SW.
+  // Must bypass the cache so a stuck user always reaches the latest copy.
+  "/lifeos-recover",
 ];
 
 function isNetworkOnly(url) {

@@ -27,6 +27,10 @@ import { logFounderAction } from "../services/founderAudit";
 import { fanoutPublishedNotifications, notifyUpdateComplete } from "../services/lifeosNotifications";
 import {
   LIFEOS_VERSION,
+  LIFEOS_RELEASE_TYPE,
+  LIFEOS_RELEASE_TITLE,
+  LIFEOS_RELEASE_SUMMARY,
+  LIFEOS_RELEASE_BODY_MARKDOWN,
   LIFEOS_RELEASE_TYPES,
   LIFEOS_ACK_STATES,
   compareLifeOSVersions,
@@ -523,13 +527,14 @@ export async function ensureLifeOSReleaseSeed(): Promise<void> {
     await pool.query(
       `INSERT INTO lifeos_releases
          (version, release_type, title, summary, body_markdown, status, published_at)
-       SELECT $1, 'patch', $2, $3, $4, 'published', NOW()
+       SELECT $1, $2, $3, $4, $5, 'published', NOW()
         WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1)`,
       [
         LIFEOS_VERSION,
-        `lifeOS ${LIFEOS_VERSION}`,
-        "Performance improvements and bug fixes.",
-        "## What's New\n\n- Performance improvements\n- Bug fixes and reliability work",
+        LIFEOS_RELEASE_TYPE,
+        LIFEOS_RELEASE_TITLE,
+        LIFEOS_RELEASE_SUMMARY,
+        LIFEOS_RELEASE_BODY_MARKDOWN,
       ],
     );
   } catch (e: any) {

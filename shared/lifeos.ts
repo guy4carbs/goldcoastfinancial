@@ -16,7 +16,38 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.11";
+export const LIFEOS_VERSION = "1.0.12";
+
+/**
+ * Release notes that ship with this version. The server's
+ * `ensureLifeOSReleaseSeed()` boot hook publishes a `lifeos_releases` row
+ * using these constants when none already exists for this version, so the
+ * Update Available + What's New popups always have customer-readable content
+ * to display. Founders can still author richer notes later in the admin UI;
+ * the seed leaves manually-authored rows untouched.
+ *
+ * Bumping LIFEOS_VERSION on a deploy:
+ *   1. Set LIFEOS_VERSION to the new version
+ *   2. Set LIFEOS_RELEASE_TYPE to "major" | "minor" | "patch"
+ *   3. Set LIFEOS_RELEASE_TITLE — short customer-readable headline
+ *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
+ *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
+ */
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
+export const LIFEOS_RELEASE_TITLE = "Smoother system updates";
+export const LIFEOS_RELEASE_SUMMARY =
+  "We've made updating lifeOS more reliable — and every release now ships with proper notes.";
+export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
+
+- **Updates always show a popup.** Clicking the gold "Update" badge now reliably opens the confirm modal, even immediately after a deploy.
+- **Release notes come with every version.** Each update now publishes proper notes automatically, so you'll always see what changed.
+- **A "what just got updated" view appears after every update.** No more guessing what changed under the hood.
+- **Recovery for stuck browsers.** If your browser ever cached a broken bundle, you can now reach a recovery page that resets it cleanly.
+
+## Heads up for the next release
+
+Per-deploy release notes are now authored alongside the version bump, so you can expect every future "What's New" to actually describe what shipped.`;
+
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
