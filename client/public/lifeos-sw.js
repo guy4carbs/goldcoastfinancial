@@ -44,6 +44,12 @@ const NETWORK_ONLY = [
   "/@fs/",
   "/__open-in-editor",
   "/__inspect/",
+  // Public agent application — must always fetch fresh. The strict
+  // bundle-lock semantics are intended for authenticated lifeOS surfaces
+  // (HCMS, Founders, etc.) where an in-session update flow exists. /apply
+  // is a public landing for new agents with no such flow, so any stale
+  // cache here turns into "Begin Application doesn't work" for invitees.
+  "/apply",
 ];
 
 function isNetworkOnly(url) {

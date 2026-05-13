@@ -500,12 +500,27 @@ export function useApplicationForm() {
     }
 
     const nextStep = step + 1;
+
+    // 2026-05-13 fix: the welcome step has zero user-entered data — calling
+    // save-progress here is a network round-trip that contributes nothing
+    // and historically blocked the Begin Application button when the save
+    // failed for transient reasons. Just advance immediately. The next
+    // step (account) is where real data lands and saveProgress matters.
+    if (currentStepId === "welcome") {
+      setStep(nextStep);
+      return;
+    }
+
     // P0-DP-4 (audit 2026-05-12): save FIRST, then advance — previously the
     // order was reversed so a failed save still moved the UI forward and
     // the user lost in-progress data on refresh.
     const saved = await saveProgress(nextStep);
     if (!saved && token) {
-      setErrors({ _form: "Couldn't save your progress. Please refresh and try again." });
+      // 2026-05-13 fix: use the `_` error key (the global step-error slot
+      // the renderer in AgentApplication.tsx actually shows). Previously
+      // this set `_form` which was never displayed → silent failure looked
+      // like the button was broken.
+      setErrors({ _: "Couldn't save your progress. Please refresh and try again." });
       return;
     }
     setStep(nextStep);
