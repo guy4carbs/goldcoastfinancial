@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.18";
+export const LIFEOS_VERSION = "1.0.19";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,17 +34,16 @@ export const LIFEOS_VERSION = "1.0.18";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Unified 2FA setup and sign-in surface";
+export const LIFEOS_RELEASE_TITLE = "Recovery page button works";
 export const LIFEOS_RELEASE_SUMMARY =
-  "/auth/2fa/enroll now looks identical to /auth/2fa — one surface, two endpoints under the hood. Touch ID auto-prompts, email code is one click away.";
+  "Fixed the Reset and reload button on /lifeos-recover.html — it was being blocked by our Content Security Policy.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **One look for setup + verify.** The 2FA setup page now renders the same view as the verify page — Touch ID auto-prompts, and the "Send code to my email" button is right there if you'd rather use a code.
-- **Cleaner copy.** "Verify your identity. Confirm with Touch ID or Face ID on this device." across both surfaces.
+- **Recovery page button works.** The Reset and reload button on /lifeos-recover.html was silently failing because our CSP blocked the inline script tag. The script is now a separate file (allowed by CSP), so the click handler registers and the cache-wipe actually runs.
 
 ## Heads up
 
-Behind the scenes the two pages still call different endpoints (registration vs authentication) so existing 2FA sessions keep working. The visible UX is the same in both flows.`;
+If you tried the recovery page before and the button did nothing, it'll work now after this deploys.`;
 
 
 /**

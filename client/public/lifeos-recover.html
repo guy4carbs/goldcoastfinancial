@@ -102,76 +102,9 @@
       <button id="reset">Reset and reload</button>
       <pre id="log" hidden></pre>
     </div>
-    <script>
-      (function () {
-        const btn = document.getElementById("reset");
-        const status = document.getElementById("status");
-        const log = document.getElementById("log");
-        const lines = [];
-
-        function setStatus(html, cls) {
-          status.innerHTML = '<span>Status</span><strong class="' + (cls || "") + '">' + html + "</strong>";
-        }
-        function tee(line) {
-          lines.push(line);
-          log.hidden = false;
-          log.textContent = lines.join("\n");
-        }
-
-        async function reset() {
-          btn.disabled = true;
-          setStatus("Working...");
-          try {
-            // 1. Unregister all service workers on this origin.
-            if ("serviceWorker" in navigator) {
-              const regs = await navigator.serviceWorker.getRegistrations();
-              tee("Found " + regs.length + " service worker(s).");
-              for (const reg of regs) {
-                try {
-                  // Best-effort: tell the SW to wipe its caches before unregister.
-                  if (reg.active) {
-                    reg.active.postMessage({ type: "LIFEOS_UPDATE" });
-                  }
-                  await reg.unregister();
-                  tee("Unregistered: " + (reg.scope || "(scope?)"));
-                } catch (err) {
-                  tee("Unregister failed: " + (err && err.message ? err.message : err));
-                }
-              }
-            } else {
-              tee("Browser has no Service Worker support — proceeding to cache wipe.");
-            }
-
-            // 2. Delete every Cache API namespace on this origin.
-            if ("caches" in window) {
-              const names = await caches.keys();
-              tee("Found " + names.length + " cache namespace(s).");
-              for (const name of names) {
-                try {
-                  await caches.delete(name);
-                  tee("Deleted cache: " + name);
-                } catch (err) {
-                  tee("Cache delete failed: " + name + " :: " + (err && err.message ? err.message : err));
-                }
-              }
-            }
-
-            setStatus("Done. Reloading...", "success");
-            // 3. Hard reload with a cache-busting query string so the browser
-            //    doesn't pull from the HTTP cache either.
-            setTimeout(function () {
-              const ts = Date.now();
-              window.location.href = "/?lifeos_recovered=" + ts;
-            }, 800);
-          } catch (err) {
-            setStatus("Reset failed. Try clearing site data in your browser settings.", "error");
-            tee("Top-level error: " + (err && err.message ? err.message : err));
-            btn.disabled = false;
-          }
-        }
-
-        btn.addEventListener("click", reset);
-      })();
-    </script>
+    <!-- External script so the global helmet CSP (script-src 'self', no
+         'unsafe-inline') doesn't block the click handler. The /lifeos-recover
+         prefix is in the SW's NETWORK_ONLY list, so this loads fresh. -->
+    <script src="/lifeos-recover.js"></script>
   </body>
 </html>
