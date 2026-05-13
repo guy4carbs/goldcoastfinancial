@@ -206,6 +206,11 @@ export async function registerRoutes(
               "https://*.plaid.com",
               "https://cloudflareinsights.com",
               "https://*.cloudflareinsights.com",
+              // Public address-autocomplete services used in the agent
+              // application's StepAddress + AddressAutocomplete component.
+              // Both are free, no-auth, no-PII-leak (street strings only).
+              "https://nominatim.openstreetmap.org",
+              "https://geocoding.geo.census.gov",
             ],
           },
         },
