@@ -762,6 +762,60 @@ export async function registerRoutes(
   // POST /api/auth/2fa/email/verify  — verify the code; sets
   //   req.session.twoFactorVerified=true on success. 5 wrong tries lock the
   //   code and the user must request a new one.
+  // Email-as-2FA enrollment: sends a code to the user's verified email and,
+  // on successful verify, flips users.two_factor_enabled = true so the
+  // account is enrolled with email as the second factor. Used by the
+  // /auth/2fa/enroll page as the alternative to passkeys; TOTP has been
+  // retired from the enrollment surface.
+  app.post("/api/auth/2fa/email/enroll/begin", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    if (req.user.twoFactorEnabled) {
+      return res.status(409).json({ error: "2FA is already enabled" });
+    }
+    try {
+      const result = await requestEmailOtp({
+        userId: req.user.id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+      });
+      res.json({ ok: true, rateLimited: !!result.rateLimited, email: req.user.email });
+    } catch (e: any) {
+      console.error("[2fa/email/enroll/begin]:", e?.message);
+      res.status(500).json({ error: "Failed to send code" });
+    }
+  });
+
+  app.post("/api/auth/2fa/email/enroll/verify", requireAuthMw, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const code = String((req.body as any)?.code || "").trim();
+    if (!code) return res.status(400).json({ error: "Code required" });
+    try {
+      const result = await verifyEmailOtp({ userId: req.user.id, code });
+      if (!result.ok) {
+        const status = result.reason === "too-many-attempts" || result.reason === "expired" ? 410 : 401;
+        return res.status(status).json({
+          error:
+            result.reason === "expired"
+              ? "Code expired — request a new one"
+              : result.reason === "too-many-attempts"
+                ? "Too many wrong tries — request a new code"
+                : result.reason === "no-active-code"
+                  ? "No active code — request a new one"
+                  : "Invalid code",
+          code: result.reason,
+        });
+      }
+      // Enrollment success: flip the user's 2FA flag + mark this session
+      // already-verified so they don't get bounced back to /auth/2fa.
+      await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[2fa/email/enroll/verify]:", e?.message);
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
   app.post("/api/auth/2fa/email/request", requireAuthMw, async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Authentication required" });
     try {
