@@ -94,7 +94,22 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)", display: "block", marginBottom: "var(--gc-space-1)" }}>Password</label>
+            <div className="flex items-baseline justify-between" style={{ marginBottom: "var(--gc-space-1)" }}>
+              <label style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "var(--gc-tracking-wider)", textTransform: "uppercase" as const, color: "var(--gc-text-muted)" }}>Password</label>
+              {tab === "login" && (
+                <a
+                  href="/forgot-password"
+                  style={{
+                    fontSize: "var(--gc-text-xs)",
+                    color: "var(--gc-gold)",
+                    textDecoration: "none",
+                    letterSpacing: "var(--gc-tracking-wide)",
+                  }}
+                >
+                  Forgot password?
+                </a>
+              )}
+            </div>
             <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required className="w-full" style={{ padding: "var(--gc-space-2) var(--gc-space-3)", backgroundColor: "var(--gc-surface-2)", border: "1px solid var(--gc-border)", borderRadius: "var(--gc-radius-sm)", color: "var(--gc-text-primary)", fontSize: "var(--gc-text-md)" }} />
           </div>
 

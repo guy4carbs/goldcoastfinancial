@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.12";
+export const LIFEOS_VERSION = "1.0.13";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,19 +34,18 @@ export const LIFEOS_VERSION = "1.0.12";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Smoother system updates";
+export const LIFEOS_RELEASE_TITLE = "Account recovery";
 export const LIFEOS_RELEASE_SUMMARY =
-  "We've made updating lifeOS more reliable — and every release now ships with proper notes.";
+  "Forgot your password? Reset it yourself. Pending applicants now see a friendlier 'under review' message on sign-in.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Updates always show a popup.** Clicking the gold "Update" badge now reliably opens the confirm modal, even immediately after a deploy.
-- **Release notes come with every version.** Each update now publishes proper notes automatically, so you'll always see what changed.
-- **A "what just got updated" view appears after every update.** No more guessing what changed under the hood.
-- **Recovery for stuck browsers.** If your browser ever cached a broken bundle, you can now reach a recovery page that resets it cleanly.
+- **Forgot password, self-serve.** New /forgot-password page sends a branded reset email with a one-hour link. /reset-password lets you choose a new password and sends you back to sign in.
+- **Sign-in tells the truth.** Applicants who haven't been approved yet now see "Your application is still being reviewed. We'll email you when it's approved." instead of a generic 401.
+- **Brand-consistent reset email.** Same Gold Coast Financial frame as the verification-code and approval emails.
 
-## Heads up for the next release
+## Heads up
 
-Per-deploy release notes are now authored alongside the version bump, so you can expect every future "What's New" to actually describe what shipped.`;
+Reset links expire in 60 minutes. Old reset links are invalidated automatically whenever you request a new one.`;
 
 
 /**
