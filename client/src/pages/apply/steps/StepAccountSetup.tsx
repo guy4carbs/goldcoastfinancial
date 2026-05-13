@@ -17,7 +17,7 @@ export function StepAccountSetup({ form, set, errors, isInvite, inputStyle, labe
   return (
     <div>
       <h2 style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-2xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-2)" }}>Account Setup</h2>
-      <p style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", marginBottom: "var(--gc-space-6)" }}>Create your login credentials. You'll use these to access the Heritage agent portal.</p>
+      <p style={{ fontSize: "var(--gc-text-sm)", color: "var(--gc-text-secondary)", marginBottom: "var(--gc-space-6)" }}>Create your login credentials. You'll use these to access the Gold Coast Financial agent portal.</p>
 
       <div className="flex flex-col gap-4">
         <div>

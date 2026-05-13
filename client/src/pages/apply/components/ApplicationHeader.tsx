@@ -12,7 +12,7 @@ export function ApplicationHeader({ step, totalSteps, labels }: { step: number; 
             <Shield className="w-4 h-4" style={{ color: "var(--gc-btn-primary-text)" }} />
           </div>
           <div className="flex flex-col">
-            <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", fontWeight: 600, color: "var(--gc-text-primary)", lineHeight: 1.1 }}>HERITAGE LIFE SOLUTIONS</span>
+            <span style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-lg)", fontWeight: 600, color: "var(--gc-text-primary)", lineHeight: 1.1 }}>GOLD COAST FINANCIAL</span>
             <span style={{ fontFamily: "var(--gc-font-body)", fontSize: "10px", color: "var(--gc-gold)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Agent Application</span>
           </div>
         </div>

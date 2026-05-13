@@ -532,6 +532,7 @@ export function useApplicationForm() {
   const submit = useCallback(async () => {
     if (!validateStep()) return;
     setSubmitting(true);
+    setErrors({});
     try {
       const body = token
         ? { token, password: form.password, agreedToTerms: true, agreedToPrivacy: true }
@@ -539,10 +540,29 @@ export function useApplicationForm() {
       const resp = await fetch("/api/apply/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
-      if (resp.ok) setSubmitted(true);
-    } catch (e) { console.error("Submit failed:", e); }
+      if (resp.ok) {
+        setSubmitted(true);
+      } else {
+        // Surface a real error so the user doesn't sit on the review screen
+        // wondering if anything happened. The button stays clickable so they
+        // can retry.
+        let serverErr = "Submission failed. Please try again or contact support.";
+        try {
+          const data = await resp.json();
+          if (data?.error) serverErr = String(data.error);
+        } catch {
+          /* response wasn't JSON — keep the default message */
+        }
+        console.error("Submit failed:", resp.status, serverErr);
+        setErrors({ _: serverErr });
+      }
+    } catch (e) {
+      console.error("Submit network error:", e);
+      setErrors({ _: "Network error. Check your connection and try again." });
+    }
     setSubmitting(false);
   }, [token, form, validateStep]);
 
