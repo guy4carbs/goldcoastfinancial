@@ -506,4 +506,37 @@ router.delete("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (
   }
 });
 
+/**
+ * ensureLifeOSReleaseSeed — idempotent boot-time guarantee that a published
+ * `lifeos_releases` row exists for the current `LIFEOS_VERSION`. Without it,
+ * `/me/status` returns `latest_release: null` and both the UpdateAvailableModal
+ * + WhatsNewModal silently refuse to render (their JSX guards require a release
+ * row). Auto-seeding with a generic stub keeps the popup affordances working
+ * even when nobody manually publishes notes in the admin UI before a deploy.
+ *
+ * The `WHERE NOT EXISTS` clause makes this safe to call on every boot — if a
+ * founder has already authored richer notes at `/founders/lifeos`, the seed
+ * is a no-op and their content stays untouched.
+ */
+export async function ensureLifeOSReleaseSeed(): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO lifeos_releases
+         (version, release_type, title, summary, body_markdown, status, published_at)
+       SELECT $1, 'patch', $2, $3, $4, 'published', NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1)`,
+      [
+        LIFEOS_VERSION,
+        `lifeOS ${LIFEOS_VERSION}`,
+        "Performance improvements and bug fixes.",
+        "## What's New\n\n- Performance improvements\n- Bug fixes and reliability work",
+      ],
+    );
+  } catch (e: any) {
+    // Non-fatal — the soft-fail in LifeOSUpdateProvider keeps the popup working
+    // even if the seed can't run (e.g. fresh DB before migrations ran).
+    console.error("[lifeOS] ensureLifeOSReleaseSeed failed:", e?.message);
+  }
+}
+
 export default router;
