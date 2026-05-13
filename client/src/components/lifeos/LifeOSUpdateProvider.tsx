@@ -351,20 +351,37 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
     applyUpdate,
   }), [yourVersion, status, openWhatsNew, openUpdate, applyUpdate]);
 
+  // Defensive fallback so the badge click ALWAYS produces a popup, even if
+  // `lifeos_releases` somehow has no row for the deployed version. The server
+  // boot-time seed (server/routes/lifeos.ts::ensureLifeOSReleaseSeed) should
+  // make this branch unused — this is the "never let click do nothing" floor.
+  const fallbackRelease: LatestRelease = {
+    id: "fallback",
+    version: status?.deployed_version ?? LIFEOS_VERSION,
+    release_type: "patch",
+    title: `lifeOS ${status?.deployed_version ?? LIFEOS_VERSION}`,
+    summary: "A newer version of lifeOS is available.",
+    highlight_label: null,
+    published_at: null,
+    notes_viewed: false,
+    dismissed_recently: false,
+  };
+  const renderRelease = status?.latest_release ?? fallbackRelease;
+
   return (
     <LifeOSContext.Provider value={value}>
       {children}
-      {updateModalOpen && status?.latest_release && (
+      {updateModalOpen && (
         <UpdateAvailableModal
-          release={status.latest_release}
+          release={renderRelease}
           onUpdate={applyUpdate}
           onDismiss={dismissUpdate}
           applying={applying}
         />
       )}
-      {whatsNewOpen && status?.latest_release && (
+      {whatsNewOpen && (
         <WhatsNewModal
-          versionString={status.latest_release.version}
+          versionString={renderRelease.version}
           onClose={closeWhatsNew}
         />
       )}

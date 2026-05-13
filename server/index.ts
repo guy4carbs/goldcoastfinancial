@@ -192,6 +192,17 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
+
+  // Idempotent boot-time seed: guarantee a `lifeos_releases` row exists for the
+  // current LIFEOS_VERSION so the update + whats-new popups always have notes
+  // to render. No-op if a founder has already published richer notes.
+  try {
+    const { ensureLifeOSReleaseSeed } = await import("./routes/lifeos");
+    await ensureLifeOSReleaseSeed();
+  } catch (e: any) {
+    console.error("[boot] ensureLifeOSReleaseSeed failed:", e?.message);
+  }
+
   httpServer.listen(port, () => {
     log(`serving on port ${port}`);
   });
