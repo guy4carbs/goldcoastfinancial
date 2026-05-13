@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GCPageHeader } from "@/components/gc";
-import { CheckCircle, Clock, FileText, Eye, Loader2, X, ExternalLink, AlertTriangle } from "lucide-react";
+import { CheckCircle, Clock, FileText, Eye, Loader2, X, ExternalLink, AlertTriangle, Upload } from "lucide-react";
 import { DOCUMENT_CONTENT } from "@shared/documentContent";
+import { csrfHeaders } from "@/lib/queryClient";
 
 function fmtDate(d: string | null): string {
   if (!d) return "";
@@ -107,6 +108,110 @@ function PDFViewerModal({ docKey, signedAt, pdfUrl, signatureUrl, onClose }: { d
   );
 }
 
+/**
+ * UploadDocButton — agent-side affordance for filling in a missing document
+ * post-approval. Reads the file as base64 and POSTs to
+ * /api/agent-portal/upload, which writes the S3 key to the matching
+ * agent_profiles column. On success the parent reloads /me so the
+ * tile flips from Missing → View.
+ */
+function UploadDocButton({
+  docType,
+  label,
+  onUploaded,
+}: {
+  docType: string;
+  label: string;
+  onUploaded: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const onPick = () => inputRef.current?.click();
+
+  const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError("");
+    setBusy(true);
+    try {
+      // 10 MB cap aligns with /api/agent-portal/upload's validateFile.
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error("File is too large (max 10 MB)");
+      }
+      const reader = new FileReader();
+      const fileData: string = await new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const dataUrl = String(reader.result || "");
+          const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+          resolve(base64);
+        };
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+      const r = await fetch("/api/agent-portal/upload", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+        body: JSON.stringify({
+          documentType: docType,
+          fileName: file.name,
+          fileData,
+          mimeType: file.type || "application/pdf",
+          fileSize: file.size,
+        }),
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error(data?.error || `HTTP ${r.status}`);
+      }
+      onUploaded();
+    } catch (err: any) {
+      setError(err?.message || "Upload failed");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      {error && (
+        <span style={{ fontSize: "10px", color: "var(--gc-status-terminated)" }}>{error}</span>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,image/jpeg,image/png,image/jpg"
+        style={{ display: "none" }}
+        onChange={onChange}
+        aria-label={`Upload ${label}`}
+      />
+      <button
+        onClick={onPick}
+        disabled={busy}
+        className="flex items-center gap-1"
+        style={{
+          padding: "3px 10px",
+          backgroundColor: "var(--gc-gold)",
+          color: "var(--gc-btn-primary-text)",
+          border: "none",
+          borderRadius: "var(--gc-radius-sm)",
+          cursor: busy ? "wait" : "pointer",
+          fontSize: "var(--gc-text-xs)",
+          fontWeight: 600,
+          letterSpacing: "var(--gc-tracking-wide)",
+          opacity: busy ? 0.7 : 1,
+        }}
+      >
+        {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+        {busy ? "Uploading…" : "Upload"}
+      </button>
+    </div>
+  );
+}
+
 // Uploaded document view button with inline iframe modal
 function ViewDocButton({ docType, label }: { docType: string; label: string }) {
   const [loading, setLoading] = useState(false);
@@ -157,12 +262,14 @@ export default function AgentDocuments() {
   const [viewing, setViewing] = useState<{ key: string; signedAt: string | null; pdfUrl: string | null; signatureUrl: string | null } | null>(null);
   const [loadingPdf, setLoadingPdf] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProfile = () => {
     fetch("/api/agent-portal/me", { credentials: "include" })
       .then(r => { if (!r.ok) throw new Error("Failed to load"); return r.json(); })
       .then(d => { if (d?.user) setData(d); else setError("Profile data unavailable"); })
       .catch(e => setError(e.message || "Network error"));
-  }, []);
+  };
+
+  useEffect(() => { loadProfile(); }, []);
 
   const viewSignedDoc = async (docKey: string, signedAt: string | null) => {
     setLoadingPdf(docKey);
@@ -273,7 +380,10 @@ export default function AgentDocuments() {
               {doc.uploaded ? (
                 <ViewDocButton docType={doc.docType} label={doc.label} />
               ) : (
-                <span style={{ padding: "3px 8px", fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", backgroundColor: "color-mix(in srgb, var(--gc-status-terminated) 10%, transparent)", borderRadius: "var(--gc-radius-sm)", fontWeight: 500 }}>Missing</span>
+                <div className="flex items-center gap-2">
+                  <span style={{ padding: "3px 8px", fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", backgroundColor: "color-mix(in srgb, var(--gc-status-terminated) 10%, transparent)", borderRadius: "var(--gc-radius-sm)", fontWeight: 500 }}>Missing</span>
+                  <UploadDocButton docType={doc.docType} label={doc.label} onUploaded={loadProfile} />
+                </div>
               )}
             </div>
           ))}
