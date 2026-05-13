@@ -373,7 +373,13 @@ router.get("/prefill", async (req, res) => {
       previousAgency: profile.previous_agency || "",
       isLicensed: profile.is_licensed ? "yes" : "no",
       licenseNumber: profile.license_number || "",
-      licensedStates: profile.licensed_states || "",
+      // 2026-05-13 fix: licensed_states column is text[] in production.
+      // Client expects a comma-joined string (it splits on `,` in
+      // useApplicationForm.ts). Normalize both shapes to a comma-joined
+      // string before sending so the client doesn't blow up.
+      licensedStates: Array.isArray(profile.licensed_states)
+        ? profile.licensed_states.join(",")
+        : (profile.licensed_states || ""),
       companyName: profile.company_name || "",
       title: profile.title || "",
       bankName: profile.bank_name || "",
@@ -816,13 +822,22 @@ router.post("/submit", async (req, res) => {
       const profileData = await client.query("SELECT licensed_states, state, is_licensed FROM agent_profiles WHERE user_id::text = $1", [profile.uid]);
       const ap = profileData.rows[0];
       if (ap?.licensed_states && ap.is_licensed) {
-        const states = ap.licensed_states.split(",").filter(Boolean);
+        // 2026-05-13 fix: licensed_states column is text[] in production.
+        // pg-node returns it as a JS array. Older rows that were written
+        // with the (now-removed) comma-join code path may be strings, so
+        // handle both shapes defensively.
+        const rawStates: unknown = ap.licensed_states;
+        const states: string[] = Array.isArray(rawStates)
+          ? rawStates.map((s) => String(s).trim()).filter(Boolean)
+          : typeof rawStates === "string"
+            ? rawStates.split(",").map((s) => s.trim()).filter(Boolean)
+            : [];
         for (const stateCode of states) {
           await client.query(
             `INSERT INTO agent_licenses (user_id, state_code, license_type, status, is_resident, last_synced_at, sync_source)
              VALUES ($1, $2, 'life_health', 'active', $3, NOW(), 'application')
              ON CONFLICT DO NOTHING`,
-            [profile.uid, stateCode.trim(), stateCode.trim() === (ap.state || "")]
+            [profile.uid, stateCode, stateCode === (ap.state || "")]
           );
         }
         console.log(`[Apply] Created ${states.length} license records for ${profile.uid}`);

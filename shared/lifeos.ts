@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.6";
+export const LIFEOS_VERSION = "1.0.7";
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
