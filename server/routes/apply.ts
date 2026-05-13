@@ -526,19 +526,50 @@ router.post("/save-progress", async (req, res) => {
 
     console.log(`[Apply] save-progress step=${step}, fields=${keys.filter(k => k !== 'onboarding_step' && k !== 'updated_at').join(',')}`);
 
+    // 2026-05-13 fix: previously the UPDATE filtered on
+    // `WHERE onboarding_token = $token`. But findByToken (line 58) has a
+    // FALLBACK that resolves the profile via `users.invite_token` when the
+    // profile's own onboarding_token is null (which happens for users
+    // invited via /api/apply/invite OR /founders-members.ts /invite when
+    // the token was only stamped on users, not also on agent_profiles).
+    // In that fallback case the UPDATE matched 0 rows → 404 → Begin
+    // Application button "did nothing".
+    //
+    // Now we resolve to the user_id via findByToken (already done above
+    // on line 441) and key the UPDATE on user_id. The token still gates
+    // access; only the matching column for the UPDATE changed.
     const result = await pool.query(
-      `UPDATE agent_profiles SET ${sets} WHERE onboarding_token = $${keys.length + 1}`,
-      [...vals, token]
+      `UPDATE agent_profiles SET ${sets} WHERE user_id::text = $${keys.length + 1}`,
+      [...vals, profile.uid]
     );
 
     // P0 (audit 2026-05-12): previously the route returned success even when
-    // zero rows matched the onboarding_token → silent data loss. Now we
-    // verify the UPDATE actually touched a row before responding success.
+    // zero rows matched → silent data loss. If we couldn't update an
+    // existing profile, self-heal by creating one — happens when the
+    // invite path stamped invite_token on `users` but never seeded a
+    // matching agent_profiles row.
     if (!result.rowCount || result.rowCount === 0) {
-      return res.status(404).json({
-        error: "Save failed — token does not match any active application. Please refresh and try again.",
-        code: "INVALID_ONBOARDING_TOKEN",
-      });
+      const existing = await pool.query(
+        `SELECT id FROM agent_profiles WHERE user_id::text = $1 LIMIT 1`,
+        [profile.uid],
+      );
+      if (existing.rowCount === 0) {
+        await pool.query(
+          `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at)
+           VALUES ($1, 'pending_review', $2, $3, NOW() + INTERVAL '30 days')`,
+          [profile.uid, step, token],
+        );
+      }
+      const retry = await pool.query(
+        `UPDATE agent_profiles SET ${sets} WHERE user_id::text = $${keys.length + 1}`,
+        [...vals, profile.uid],
+      );
+      if (!retry.rowCount || retry.rowCount === 0) {
+        return res.status(500).json({
+          error: "Save failed — could not write progress for this application. Please contact support.",
+          code: "PROFILE_WRITE_FAILED",
+        });
+      }
     }
 
     res.json({ success: true, step });
