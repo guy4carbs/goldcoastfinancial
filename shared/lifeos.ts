@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.17";
+export const LIFEOS_VERSION = "1.0.18";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,19 +34,17 @@ export const LIFEOS_VERSION = "1.0.17";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Simpler 2FA: passkey or email";
+export const LIFEOS_RELEASE_TITLE = "Unified 2FA setup and sign-in surface";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Setting up two-factor authentication now offers exactly two options: a passkey (Touch ID, Face ID, hardware key) or a 6-digit email code.";
+  "/auth/2fa/enroll now looks identical to /auth/2fa — one surface, two endpoints under the hood. Touch ID auto-prompts, email code is one click away.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Two clear options for 2FA.** The /auth/2fa/enroll page now shows just two methods — a passkey (Touch ID, Face ID, or hardware key) for the fastest sign-in, or a 6-digit email code if you'd rather not store a passkey.
-- **Email-code 2FA, end to end.** Choosing email sends a code to your verified address in seconds, you enter it, and 2FA is enabled. Same code style as our verification emails — Gold Coast Financial branded.
-- **TOTP authenticator apps retired from setup.** The QR code + recovery codes flow has been removed to simplify the experience. Existing TOTP-enrolled users keep working; only new setups use the new flow.
-- **Deploy reliability.** Verified the new bundle reaches production. If you were stuck on an older bundle, this build forces the cache to rotate.
+- **One look for setup + verify.** The 2FA setup page now renders the same view as the verify page — Touch ID auto-prompts, and the "Send code to my email" button is right there if you'd rather use a code.
+- **Cleaner copy.** "Verify your identity. Confirm with Touch ID or Face ID on this device." across both surfaces.
 
 ## Heads up
 
-If you were halfway through setting up an authenticator app and didn't finish, just revisit /auth/2fa/enroll and pick passkey or email instead.`;
+Behind the scenes the two pages still call different endpoints (registration vs authentication) so existing 2FA sessions keep working. The visible UX is the same in both flows.`;
 
 
 /**
