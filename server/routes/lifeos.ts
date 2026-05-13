@@ -69,7 +69,7 @@ router.get("/version", (_req, res) => {
 router.get("/releases/latest", async (_req, res) => {
   try {
     // No published_by UUID in public response — drop the raw user-id leak.
-    const r = await pool.query(
+    const latestQuery = () => pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
               highlight_label, published_at
          FROM lifeos_releases
@@ -77,6 +77,14 @@ router.get("/releases/latest", async (_req, res) => {
         ORDER BY published_at DESC NULLS LAST
         LIMIT 1`,
     );
+    let r = await latestQuery();
+    // Self-heal: if the boot-time seed didn't run (e.g. import order race),
+    // fire it lazily on first miss and re-query. Idempotent — no-op if a
+    // row already exists.
+    if (r.rowCount === 0) {
+      await ensureLifeOSReleaseSeed();
+      r = await latestQuery();
+    }
     if (r.rowCount === 0) return res.status(404).json({ error: "No published releases" });
     res.json(r.rows[0]);
   } catch (e: any) {
@@ -109,13 +117,21 @@ router.get("/releases/:version", async (req, res) => {
   const v = String(req.params.version || "");
   if (!SEMVER_RE.test(v)) return res.status(400).json({ error: "Invalid version" });
   try {
-    const r = await pool.query(
+    const versionQuery = () => pool.query(
       `SELECT id, version, release_type, title, summary, body_markdown,
               highlight_label, status, published_at
          FROM lifeos_releases
         WHERE version = $1 AND status = 'published'`,
       [v],
     );
+    let r = await versionQuery();
+    // Self-heal: if asking for the currently-deployed version and no row
+    // exists, fire the seed and re-query. Covers the boot-seed failure mode
+    // where /releases/<deployed_version> 404s right after a deploy.
+    if (r.rowCount === 0 && v === LIFEOS_VERSION) {
+      await ensureLifeOSReleaseSeed();
+      r = await versionQuery();
+    }
     if (r.rowCount === 0) return res.status(404).json({ error: "Release not found" });
     res.json(r.rows[0]);
   } catch (e: any) {
@@ -131,7 +147,7 @@ router.get("/me/status", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const clientVersion = String(req.query.client_version ?? "");
-    const r = await pool.query(
+    const statusQuery = () => pool.query(
       `SELECT lr.id, lr.version, lr.release_type, lr.title, lr.summary,
               lr.highlight_label, lr.published_at,
               EXISTS (
@@ -151,6 +167,14 @@ router.get("/me/status", requireAuth, async (req, res) => {
         LIMIT 1`,
       [userId],
     );
+    let r = await statusQuery();
+    // Self-heal: if no published release exists, the boot-time seed didn't
+    // run for some reason. Fire it lazily and re-query so the update + whats-
+    // new popups always have content to render.
+    if (r.rowCount === 0) {
+      await ensureLifeOSReleaseSeed();
+      r = await statusQuery();
+    }
     const latest = r.rows[0] || null;
     const validClientVersion = SEMVER_RE.test(clientVersion) ? clientVersion : null;
     const updateAvailable = validClientVersion
@@ -524,11 +548,12 @@ router.delete("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (
  */
 export async function ensureLifeOSReleaseSeed(): Promise<void> {
   try {
-    await pool.query(
+    const result = await pool.query(
       `INSERT INTO lifeos_releases
          (version, release_type, title, summary, body_markdown, status, published_at)
        SELECT $1, $2, $3, $4, $5, 'published', NOW()
-        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1)`,
+        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1)
+       RETURNING id`,
       [
         LIFEOS_VERSION,
         LIFEOS_RELEASE_TYPE,
@@ -537,10 +562,22 @@ export async function ensureLifeOSReleaseSeed(): Promise<void> {
         LIFEOS_RELEASE_BODY_MARKDOWN,
       ],
     );
+    if (result.rowCount && result.rowCount > 0) {
+      console.log(`[lifeOS] seeded release row for ${LIFEOS_VERSION}: ${LIFEOS_RELEASE_TITLE}`);
+    }
   } catch (e: any) {
     // Non-fatal — the soft-fail in LifeOSUpdateProvider keeps the popup working
-    // even if the seed can't run (e.g. fresh DB before migrations ran).
-    console.error("[lifeOS] ensureLifeOSReleaseSeed failed:", e?.message);
+    // even if the seed can't run (e.g. fresh DB before migrations ran). Log
+    // the full error so we can spot constraint failures in Railway logs.
+    console.error("[lifeOS] ensureLifeOSReleaseSeed failed:", {
+      message: e?.message,
+      code: e?.code,
+      detail: e?.detail,
+      hint: e?.hint,
+      table: e?.table,
+      column: e?.column,
+      constraint: e?.constraint,
+    });
   }
 }
 
