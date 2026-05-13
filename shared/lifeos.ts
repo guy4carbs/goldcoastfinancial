@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.16";
+export const LIFEOS_VERSION = "1.0.17";
 
 /**
  * Release notes that ship with this version. The server's
@@ -42,6 +42,7 @@ export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 - **Two clear options for 2FA.** The /auth/2fa/enroll page now shows just two methods — a passkey (Touch ID, Face ID, or hardware key) for the fastest sign-in, or a 6-digit email code if you'd rather not store a passkey.
 - **Email-code 2FA, end to end.** Choosing email sends a code to your verified address in seconds, you enter it, and 2FA is enabled. Same code style as our verification emails — Gold Coast Financial branded.
 - **TOTP authenticator apps retired from setup.** The QR code + recovery codes flow has been removed to simplify the experience. Existing TOTP-enrolled users keep working; only new setups use the new flow.
+- **Deploy reliability.** Verified the new bundle reaches production. If you were stuck on an older bundle, this build forces the cache to rotate.
 
 ## Heads up
 

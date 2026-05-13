@@ -238,6 +238,7 @@ app.use((req, res, next) => {
 
   httpServer.listen(port, () => {
     log(`serving on port ${port}`);
+    log(`[boot] lifeOS bundle version 1.0.17 active`);
   });
 
   // HIGH (audit 2026-05-12): graceful shutdown. Railway sends SIGTERM on
