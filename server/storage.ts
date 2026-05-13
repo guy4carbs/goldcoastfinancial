@@ -49,7 +49,7 @@ import {
   institutionalMeetings,
 } from "@shared/schema";
 import { db, pool } from "./db";
-import { eq, desc, and, inArray, asc } from "drizzle-orm";
+import { eq, desc, and, inArray, asc, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { encryptField } from "./services/encryptionService";
 
@@ -130,7 +130,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+    // Case-insensitive lookup — emails are written by humans and apps in
+    // every casing imaginable (`Gaetanocarbs@iCloud.com` from an invite
+    // form, `gaetanocarbs@icloud.com` from a login). Without normalization
+    // here, the same person can't sign in or reset their password just
+    // because their browser autofilled a different case. Match Postgres'
+    // citext behavior without requiring the extension.
+    const normalized = (email || "").trim().toLowerCase();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`LOWER(${users.email}) = ${normalized}`);
     return user || null;
   }
 

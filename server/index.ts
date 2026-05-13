@@ -135,6 +135,38 @@ app.use((req, res, next) => {
     console.error("Failed to initialize database:", error);
   }
 
+  // One-shot backfill: normalize every users.email to lowercase so the new
+  // case-insensitive lookup in storage.getUserByEmail can match rows that
+  // were inserted before normalization landed (e.g. invites that stored
+  // "Gaetanocarbs@iCloud.com" verbatim). Idempotent — the WHERE filters out
+  // already-lowercased rows so subsequent boots are zero-row no-ops.
+  try {
+    const { pool: dbPool } = await import("./db");
+    const collision = await dbPool.query<{ n: number }>(
+      `SELECT COUNT(*)::int AS n
+         FROM (
+           SELECT LOWER(email) AS le, COUNT(*) AS c
+             FROM users
+            GROUP BY LOWER(email)
+           HAVING COUNT(*) > 1
+         ) g`,
+    );
+    if ((collision.rows[0]?.n ?? 0) > 0) {
+      console.warn(
+        `[boot] email-case backfill skipped: ${collision.rows[0]?.n} distinct lowercase collisions; reconcile manually`,
+      );
+    } else {
+      const r = await dbPool.query(
+        `UPDATE users SET email = LOWER(email), updated_at = NOW() WHERE email != LOWER(email)`,
+      );
+      if ((r.rowCount ?? 0) > 0) {
+        console.log(`[boot] lowercased ${r.rowCount} user emails`);
+      }
+    }
+  } catch (e: any) {
+    console.error("[boot] email lowercase backfill failed:", e?.message);
+  }
+
   await registerRoutes(httpServer, app);
   
   // Setup WebSocket for real-time chat
