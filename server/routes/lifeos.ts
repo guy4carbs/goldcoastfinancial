@@ -534,6 +534,52 @@ router.delete("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (
   }
 });
 
+// Temporary diagnostic endpoint — surfaces the actual seed error so we can
+// figure out why ensureLifeOSReleaseSeed has been silently failing in
+// production. Remove after the root cause is identified and fixed.
+router.get("/_debug/seed", async (_req, res) => {
+  try {
+    const before = await pool.query(`SELECT COUNT(*)::int AS n FROM lifeos_releases`);
+    const result = await pool.query(
+      `INSERT INTO lifeos_releases
+         (version, release_type, title, summary, body_markdown, status, published_at)
+       SELECT $1, $2, $3, $4, $5, 'published', NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1)
+       RETURNING id, version`,
+      [
+        LIFEOS_VERSION,
+        LIFEOS_RELEASE_TYPE,
+        LIFEOS_RELEASE_TITLE,
+        LIFEOS_RELEASE_SUMMARY,
+        LIFEOS_RELEASE_BODY_MARKDOWN,
+      ],
+    );
+    const after = await pool.query(`SELECT COUNT(*)::int AS n FROM lifeos_releases`);
+    res.json({
+      ok: true,
+      before: before.rows[0]?.n,
+      after: after.rows[0]?.n,
+      inserted: result.rowCount,
+      inserted_row: result.rows[0] || null,
+      version: LIFEOS_VERSION,
+      title: LIFEOS_RELEASE_TITLE,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      ok: false,
+      error: e?.message,
+      code: e?.code,
+      detail: e?.detail,
+      hint: e?.hint,
+      table: e?.table,
+      column: e?.column,
+      constraint: e?.constraint,
+      where: e?.where,
+      schema: e?.schema,
+    });
+  }
+});
+
 /**
  * ensureLifeOSReleaseSeed — idempotent boot-time guarantee that a published
  * `lifeos_releases` row exists for the current `LIFEOS_VERSION`. Without it,
