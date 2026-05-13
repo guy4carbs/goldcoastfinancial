@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.15";
+export const LIFEOS_VERSION = "1.0.16";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,17 +34,18 @@ export const LIFEOS_VERSION = "1.0.15";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Password reset emails now work";
+export const LIFEOS_RELEASE_TITLE = "Simpler 2FA: passkey or email";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The forgot-password flow now actually sends the reset email. A schema mismatch was silently swallowing every request.";
+  "Setting up two-factor authentication now offers exactly two options: a passkey (Touch ID, Face ID, hardware key) or a 6-digit email code.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Reset emails actually send.** The /forgot-password flow was hitting a column-name mismatch on the reset-token table and failing to insert the row — the success screen showed but no email ever went out. Fixed at the source. Request a reset and the branded email arrives within seconds.
-- **Internal cleanup.** Aligned the Drizzle schema model to the production column name so future code can't accidentally regress to the same bug.
+- **Two clear options for 2FA.** The /auth/2fa/enroll page now shows just two methods — a passkey (Touch ID, Face ID, or hardware key) for the fastest sign-in, or a 6-digit email code if you'd rather not store a passkey.
+- **Email-code 2FA, end to end.** Choosing email sends a code to your verified address in seconds, you enter it, and 2FA is enabled. Same code style as our verification emails — Gold Coast Financial branded.
+- **TOTP authenticator apps retired from setup.** The QR code + recovery codes flow has been removed to simplify the experience. Existing TOTP-enrolled users keep working; only new setups use the new flow.
 
 ## Heads up
 
-If you previously requested a reset and never got the email, try /forgot-password again. It works now.`;
+If you were halfway through setting up an authenticator app and didn't finish, just revisit /auth/2fa/enroll and pick passkey or email instead.`;
 
 
 /**
