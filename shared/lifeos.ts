@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.20";
+export const LIFEOS_VERSION = "1.0.21";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,18 +34,17 @@ export const LIFEOS_VERSION = "1.0.20";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Per-user hierarchy view";
+export const LIFEOS_RELEASE_TITLE = "Re-upload missing documents from the portal";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Managers and agents now see themselves at the top of the Hierarchy page with only their downlines below — never their upline.";
+  "Approved agents can now upload any missing documents straight from My Documents — no more re-applying just to attach a PDF.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Hierarchy page is now per-user.** When a manager or agent opens the Hierarchy page, they see themselves as the root and only their downlines — uplines and anyone above them are hidden. Founders and owners still see the full org tree.
-- **Document upload reliability.** The /apply/upload endpoint now surfaces real DB errors instead of pretending success when the S3 key couldn't persist to your profile. Self-heal INSERT for missing profile rows is logged so we can see in the Railway logs whether a given upload landed.
-- **Founder-only diagnostic.** New /api/hcms/agents/_debug/agent-profile?email=... returns the raw application/document state for any applicant so we can verify exactly what's stored without guessing.
+- **Upload button on every missing document.** /hcms/my/documents now shows an Upload button next to each missing tile. Click, pick a PDF/JPG/PNG, and the file goes straight into your profile. The tile flips to "View" the moment it lands.
+- **Built for fixing pre-fix uploads.** Earlier application uploads that orphaned because of the WHERE-clause bug (fixed in 1.0.x earlier) can now be replaced in 30 seconds without touching the application flow.
 
 ## Heads up
 
-The Founders Lounge → Members table is still the place to see everyone in the org. The Hierarchy page is now scoped to "my team."`;
+10 MB max per file. Supported types: PDF, JPG, PNG.`;
 
 
 /**
