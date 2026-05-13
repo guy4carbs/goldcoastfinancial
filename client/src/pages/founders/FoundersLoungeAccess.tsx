@@ -227,6 +227,10 @@ interface PendingRegistration {
   is_licensed?: boolean;
   referral_source?: string | null;
   applied_at: string;
+  // Seeded by POST /api/apply/invite when the founder picked an upline +
+  // contract level at invite time. Null for organic /apply applicants.
+  invited_upline_id?: string | null;
+  invited_contract_level?: number | string | null;
 }
 
 interface MemberRow {
@@ -636,17 +640,22 @@ export default function FoundersLoungeAccess() {
   // Wave AC2: uplines list, used by the approve modal so the founder can
   // place the new agent in the hierarchy. Only fetches when the modal opens.
   // Same endpoint the SendApplicationDialog uses.
+  // Server returns camelCase (see server/routes/hcms-hierarchy.ts /uplines).
+  // SendApplicationDialog consumes the same shape — the founders-lounge type
+  // was previously snake_case which caused every entry to render as
+  // "undefined undefined — Founder (—%)".
   const uplinesQuery = useQuery({
     queryKey: ["/api/hcms/hierarchy/uplines"],
     queryFn: () =>
       fetchJSON<
         Array<{
           id: string;
-          first_name: string;
-          last_name: string;
+          firstName: string;
+          lastName: string;
+          displayName?: string;
           email: string;
           role: string;
-          contract_level: number | string | null;
+          contractLevel: number | string | null;
         }>
       >(`/api/hcms/hierarchy/uplines`),
     enabled: !!approveTarget,
@@ -1755,8 +1764,18 @@ export default function FoundersLoungeAccess() {
                       icon={<Check className="w-4 h-4" />}
                       onClick={() => {
                         setApproveTarget(reg);
-                        setApproveUplineId("__none__");
-                        setApproveContractPct(80);
+                        // Prefill the modal with whatever the founder picked
+                        // at invite time (POST /api/apply/invite seeds the
+                        // agent_hierarchy row). Falls back to defaults for
+                        // organic /apply applicants.
+                        setApproveUplineId(reg.invited_upline_id ?? "__none__");
+                        const invitedPct =
+                          reg.invited_contract_level === null || reg.invited_contract_level === undefined
+                            ? 80
+                            : Number(reg.invited_contract_level);
+                        setApproveContractPct(
+                          Number.isFinite(invitedPct) ? Math.max(0, Math.min(120, invitedPct)) : 80,
+                        );
                         setApproveReason("");
                       }}
                       disabled={approveMutation.isPending}
@@ -1998,10 +2017,13 @@ export default function FoundersLoungeAccess() {
               width="100%"
               options={[
                 { value: "__none__", label: "(Top of tree — no upline)" },
-                ...((uplinesQuery.data ?? []).map((u) => ({
-                  value: u.id,
-                  label: `${u.first_name} ${u.last_name} — ${ROLE_LABEL[u.role] || u.role} (${u.contract_level ?? "—"}%)`,
-                }))),
+                ...((uplinesQuery.data ?? []).map((u) => {
+                  const name = u.displayName || `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email;
+                  return {
+                    value: u.id,
+                    label: `${name} — ${ROLE_LABEL[u.role] || u.role} (${u.contractLevel ?? "—"}%)`,
+                  };
+                })),
               ]}
             />
             {uplinesQuery.data && uplinesQuery.data.length === 0 && (

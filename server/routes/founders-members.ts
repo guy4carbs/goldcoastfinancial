@@ -53,10 +53,15 @@ const VALID_LOUNGE_KEYS = new Set<string>(LOUNGE_KEYS);
 // ──────────────────────────────────────────────────────────────────────────
 router.get("/pending", async (_req, res) => {
   try {
+    // LEFT JOIN agent_hierarchy so the approve modal can prefill the upline
+    // + contract level that the founder picked at invite time (seeded by
+    // POST /api/apply/invite). If the invitee was created without an invite
+    // hierarchy row (organic applicant), invited_upline_id and
+    // invited_contract_level are NULL and the modal falls back to defaults.
     const r = await pool.query(`
       SELECT
         ap.id,
-        u.id::text         AS user_id,
+        u.id::text                  AS user_id,
         u.email,
         u.first_name,
         u.last_name,
@@ -66,9 +71,14 @@ router.get("/pending", async (_req, res) => {
         ap.licensed_states,
         ap.years_experience,
         ap.referral_source,
-        ap.created_at      AS applied_at
+        ap.created_at               AS applied_at,
+        ah.direct_upline_id::text   AS invited_upline_id,
+        ah.contract_level           AS invited_contract_level
       FROM agent_profiles ap
       JOIN users u ON u.id::text = ap.user_id
+      LEFT JOIN agent_hierarchy ah
+             ON ah.agent_user_id = u.id
+            AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
       WHERE ap.approval_status IN ('pending_review','pending')
       ORDER BY ap.created_at DESC
     `);
