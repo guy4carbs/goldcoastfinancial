@@ -702,10 +702,24 @@ router.post("/upload", async (req, res) => {
 
     const column = columnMap[documentType];
     if (column) {
-      await pool.query(
-        `UPDATE agent_profiles SET ${column} = $1, updated_at = NOW() WHERE onboarding_token = $2`,
-        [result.key, token]
+      // 2026-05-13: key on user_id, not onboarding_token. Same fix as
+      // save-progress — findByToken has a users.invite_token fallback so
+      // not every valid token matches agent_profiles.onboarding_token.
+      // Without this, the file uploads to Firebase but the S3 key
+      // reference is never written to the user's profile → looks
+      // successful but the document is orphaned.
+      const r = await pool.query(
+        `UPDATE agent_profiles SET ${column} = $1, updated_at = NOW() WHERE user_id::text = $2`,
+        [result.key, profile.uid],
       );
+      if (!r.rowCount || r.rowCount === 0) {
+        // Self-heal: missing agent_profiles row. Create + retry.
+        await pool.query(
+          `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at, ${column}, updated_at)
+           VALUES ($1, 'pending_review', 1, $2, NOW() + INTERVAL '30 days', $3, NOW())`,
+          [profile.uid, token, result.key],
+        );
+      }
     }
 
     res.json({ success: true, key: result.key, url: result.url });
