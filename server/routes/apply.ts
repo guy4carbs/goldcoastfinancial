@@ -80,7 +80,10 @@ async function findByToken(token: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, uplineId, contractLevel, role: rawRole } = req.body;
+    const { firstName, lastName, phone, uplineId, contractLevel, role: rawRole } = req.body;
+    // Normalize email to lowercase on write so future case-insensitive
+    // lookups (login, password-reset) always match what was stored.
+    const email = String(req.body?.email || "").trim().toLowerCase();
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ error: "firstName, lastName, and email are required" });
     }
@@ -271,7 +274,8 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/register", async (req, res) => {
   try {
-    const { email, password, firstName, lastName, phone } = req.body;
+    const { password, firstName, lastName, phone } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password required" });
     }

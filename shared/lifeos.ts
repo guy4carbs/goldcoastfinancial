@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.13";
+export const LIFEOS_VERSION = "1.0.14";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,18 +34,18 @@ export const LIFEOS_VERSION = "1.0.13";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Account recovery";
+export const LIFEOS_RELEASE_TITLE = "Sign-in works regardless of email case";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Forgot your password? Reset it yourself. Pending applicants now see a friendlier 'under review' message on sign-in.";
+  "Email lookups for sign-in and password reset are now case-insensitive — no more silent failures when your browser autofills a different case.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Forgot password, self-serve.** New /forgot-password page sends a branded reset email with a one-hour link. /reset-password lets you choose a new password and sends you back to sign in.
-- **Sign-in tells the truth.** Applicants who haven't been approved yet now see "Your application is still being reviewed. We'll email you when it's approved." instead of a generic 401.
-- **Brand-consistent reset email.** Same Gold Coast Financial frame as the verification-code and approval emails.
+- **Case-insensitive email matching everywhere.** Sign-in and password reset now find your account no matter how the email was capitalized at invite time vs. how you're typing it now.
+- **Existing accounts auto-normalized.** Every existing email got lowercased at boot, so prior mixed-case rows now match the new lookups.
+- **Invites + organic signups now store lowercase.** Future accounts are normalized on the way in, so this can't bite us again.
 
 ## Heads up
 
-Reset links expire in 60 minutes. Old reset links are invalidated automatically whenever you request a new one.`;
+If you previously couldn't reset your password and the email never arrived, try /forgot-password again now. The case issue was the root cause.`;
 
 
 /**
