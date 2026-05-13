@@ -523,7 +523,9 @@ export default function FoundersLoungeAccess() {
   // Wave AC2: approve modal state. Founder picks upline + contract level
   // before the agent_hierarchy row gets inserted.
   const [approveTarget, setApproveTarget] = useState<PendingRegistration | null>(null);
-  const [approveUplineId, setApproveUplineId] = useState<string>("");
+  // Sentinel for "no upline / top of tree" — Radix Select.Item forbids
+  // value="" so we use a non-empty token and translate to null when sending.
+  const [approveUplineId, setApproveUplineId] = useState<string>("__none__");
   const [approveContractPct, setApproveContractPct] = useState<number>(80);
   const [approveReason, setApproveReason] = useState<string>("");
 
@@ -1753,7 +1755,7 @@ export default function FoundersLoungeAccess() {
                       icon={<Check className="w-4 h-4" />}
                       onClick={() => {
                         setApproveTarget(reg);
-                        setApproveUplineId("");
+                        setApproveUplineId("__none__");
                         setApproveContractPct(80);
                         setApproveReason("");
                       }}
@@ -1995,7 +1997,7 @@ export default function FoundersLoungeAccess() {
               onValueChange={setApproveUplineId}
               width="100%"
               options={[
-                { value: "", label: "(Top of tree — no upline)" },
+                { value: "__none__", label: "(Top of tree — no upline)" },
                 ...((uplinesQuery.data ?? []).map((u) => ({
                   value: u.id,
                   label: `${u.first_name} ${u.last_name} — ${ROLE_LABEL[u.role] || u.role} (${u.contract_level ?? "—"}%)`,
@@ -2064,7 +2066,7 @@ export default function FoundersLoungeAccess() {
               onClick={() =>
                 approveMutation.mutate({
                   userId: approveTarget.user_id,
-                  uplineId: approveUplineId || null,
+                  uplineId: approveUplineId && approveUplineId !== "__none__" ? approveUplineId : null,
                   contractLevelPct: approveContractPct,
                   reason: approveReason.trim() || null,
                 })
