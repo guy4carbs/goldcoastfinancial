@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.14";
+export const LIFEOS_VERSION = "1.0.15";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,18 +34,17 @@ export const LIFEOS_VERSION = "1.0.14";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Sign-in works regardless of email case";
+export const LIFEOS_RELEASE_TITLE = "Password reset emails now work";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Email lookups for sign-in and password reset are now case-insensitive — no more silent failures when your browser autofills a different case.";
+  "The forgot-password flow now actually sends the reset email. A schema mismatch was silently swallowing every request.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Case-insensitive email matching everywhere.** Sign-in and password reset now find your account no matter how the email was capitalized at invite time vs. how you're typing it now.
-- **Existing accounts auto-normalized.** Every existing email got lowercased at boot, so prior mixed-case rows now match the new lookups.
-- **Invites + organic signups now store lowercase.** Future accounts are normalized on the way in, so this can't bite us again.
+- **Reset emails actually send.** The /forgot-password flow was hitting a column-name mismatch on the reset-token table and failing to insert the row — the success screen showed but no email ever went out. Fixed at the source. Request a reset and the branded email arrives within seconds.
+- **Internal cleanup.** Aligned the Drizzle schema model to the production column name so future code can't accidentally regress to the same bug.
 
 ## Heads up
 
-If you previously couldn't reset your password and the email never arrived, try /forgot-password again now. The case issue was the root cause.`;
+If you previously requested a reset and never got the email, try /forgot-password again. It works now.`;
 
 
 /**
