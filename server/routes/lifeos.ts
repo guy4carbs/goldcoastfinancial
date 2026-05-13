@@ -548,11 +548,16 @@ router.delete("/releases/:id", requireAuth, requireRole(...ADMIN_ROLES), async (
  */
 export async function ensureLifeOSReleaseSeed(): Promise<void> {
   try {
+    // Postgres 42P08: `$1` appears in both the SELECT (inferred as `text`)
+    // and the WHERE NOT EXISTS (`version = $1`, where the column is
+    // `varchar(20)`). Same param, conflicting type inference → INSERT throws
+    // every call. Cast every parameter to its target type explicitly so
+    // pg-node stops trying to deduce.
     const result = await pool.query(
       `INSERT INTO lifeos_releases
          (version, release_type, title, summary, body_markdown, status, published_at)
-       SELECT $1, $2, $3, $4, $5, 'published', NOW()
-        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1)
+       SELECT $1::varchar(20), $2::varchar(10), $3::varchar(255), $4::text, $5::text, 'published', NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1::varchar(20))
        RETURNING id`,
       [
         LIFEOS_VERSION,
