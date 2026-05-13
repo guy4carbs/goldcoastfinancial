@@ -465,7 +465,25 @@ router.post("/save-progress", async (req, res) => {
     if (data.npn) updates.npn = data.npn;
     if (data.isLicensed !== undefined) updates.is_licensed = data.isLicensed === "yes";
     if (data.licenseNumber) updates.license_number = data.licenseNumber;
-    if (data.licensedStates) updates.licensed_states = Array.isArray(data.licensedStates) ? data.licensedStates.join(",") : data.licensedStates;
+    // 2026-05-13 fix: production DB column `agent_profiles.licensed_states`
+    // is `text[]` (Postgres array), NOT the `text` declared in the Drizzle
+    // schema (shared/models/agentProfiles.ts:23). Schema drift. The prior
+    // code did `array.join(",")` which produced `""` for empty arrays and
+    // `"FL,CA"` for populated ones — both are invalid array literals.
+    // Now: send the native JS array; pg lib serializes to Postgres array
+    // literal automatically. Empty arrays become null so we don't write
+    // junk values.
+    if (data.licensedStates !== undefined && data.licensedStates !== null) {
+      if (Array.isArray(data.licensedStates)) {
+        if (data.licensedStates.length > 0) {
+          updates.licensed_states = data.licensedStates;
+        }
+        // else: skip — don't overwrite with empty
+      } else if (typeof data.licensedStates === "string" && data.licensedStates.trim().length > 0) {
+        const arr = data.licensedStates.split(",").map((s: string) => s.trim()).filter(Boolean);
+        if (arr.length > 0) updates.licensed_states = arr;
+      }
+    }
     if (data.yearsExperience) updates.years_experience = data.yearsExperience;
     if (data.previousAgency) updates.previous_agency = data.previousAgency;
     if (data.companyName) updates.company_name = data.companyName;
