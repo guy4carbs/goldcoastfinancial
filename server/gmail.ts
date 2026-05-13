@@ -1103,3 +1103,37 @@ ${code}
   );
   await sendBrandedHtml(data.email, `${data.code} is your Gold Coast Financial sign-in code`, html);
 }
+
+/**
+ * Password reset email — fires when a user requests a reset at /forgot-password.
+ * Token is raw (not the DB hash) and goes in the URL; backend validates by
+ * hashing and looking up. TTL is 1 hour. Same brand frame as the verification
+ * code email so the auth surface feels consistent.
+ */
+export async function sendPasswordResetEmail(data: {
+  firstName?: string;
+  email: string;
+  resetUrl: string;
+  ttlMinutes: number;
+}): Promise<void> {
+  const firstName = escapeHtml(data.firstName || "");
+  const url = escapeHtml(data.resetUrl);
+  const ttl = Math.max(1, Math.floor(data.ttlMinutes || 60));
+  const html = brandedHtml(
+    "Reset Your Password",
+    `<p style="margin:0 0 20px;font-size:16px;color:#2D1810;line-height:1.6;">Hi ${firstName || "there"},</p>
+<p style="margin:0 0 24px;font-size:16px;color:#2D1810;line-height:1.6;">We received a request to reset the password for your <strong>Gold Coast Financial Partners</strong> account. Tap the button below to choose a new one.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+<tr><td align="center" style="padding:8px 0;">
+<a href="${url}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#C4975A,#D4A55A);color:#2D1810;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:0.4px;">Reset password</a>
+</td></tr>
+</table>
+<p style="margin:0 0 16px;font-size:13px;color:#6B5548;line-height:1.6;">This link expires in <strong style="color:#2D1810;">${ttl} ${ttl === 1 ? "minute" : "minutes"}</strong>. If the button doesn't work, copy and paste this URL into your browser:</p>
+<p style="margin:0 0 24px;font-size:12px;color:#8A7060;line-height:1.5;word-break:break-all;background:#F5EEE6;padding:12px;border-radius:6px;">${url}</p>
+<div style="background:#FFF8F0;border-left:3px solid #C4975A;border-radius:6px;padding:14px 18px;margin:0 0 20px;">
+<p style="margin:0;font-size:13px;color:#6B5548;line-height:1.5;"><strong style="color:#2D1810;">Didn't request this?</strong> You can safely ignore this email — your password won't change unless you click the link and choose a new one. If you're seeing reset emails you didn't request repeatedly, please contact us.</p>
+</div>
+<p style="margin:0;font-size:14px;color:#6B5548;line-height:1.6;">Questions? Reach us at <a href="mailto:contact@goldcoastfnl.com" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@goldcoastfnl.com</a> or call <strong style="color:#2D1810;">(630) 778-0888</strong>.</p>`,
+  );
+  await sendBrandedHtml(data.email, "Reset your Gold Coast Financial password", html);
+}

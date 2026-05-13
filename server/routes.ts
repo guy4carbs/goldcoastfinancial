@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema, insertInstitutionalContactSchema, insertNewsletterSchema, insertPartnershipQuizSchema, insertInstitutionalMeetingSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
-import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPartnershipQuizNotification, sendNewsletterNotification, sendNewsletterWelcome } from "./gmail";
+import { sendContactNotification, sendQuoteNotification, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPartnershipQuizNotification, sendNewsletterNotification, sendNewsletterWelcome, sendPasswordResetEmail } from "./gmail";
+import crypto from "crypto";
 import { checkCalendarConnection, getCalendarEvents, getTodaysEvents, getUpcomingEvents, getConnectedEmail } from "./googleCalendar";
 import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
@@ -455,6 +456,36 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Invalid email or password" });
       }
 
+      // Approval gate — hierarchy-role applicants who have submitted but not
+      // been approved yet should see a helpful "under review" message instead
+      // of being dropped into a half-functional portal. Founders/owners/staff
+      // skip this check (they're created with approval_status='approved' or
+      // have no agent_profiles row at all).
+      try {
+        const approvalCheck = await pool.query<{ approval_status: string | null }>(
+          `SELECT approval_status FROM agent_profiles WHERE user_id::text = $1`,
+          [user.id],
+        );
+        const status = approvalCheck.rows[0]?.approval_status;
+        if (status === "pending_review" || status === "pending") {
+          return res.status(403).json({
+            error: "Your application is still being reviewed. We'll email you when it's approved.",
+            code: "APPROVAL_PENDING",
+          });
+        }
+        if (status === "rejected") {
+          return res.status(403).json({
+            error: "Your application was not approved. Please contact our team if you have questions.",
+            code: "APPROVAL_REJECTED",
+          });
+        }
+      } catch (e: any) {
+        // Non-fatal — if the approval check itself blows up, fall through to
+        // the normal login path (better to let approved users in than to lock
+        // everyone out on a DB hiccup).
+        console.error("[auth/login] approval check failed:", e?.message);
+      }
+
       // Successful login — record + set session
       await pool
         .query(
@@ -487,7 +518,146 @@ export async function registerRoutes(
       res.status(500).json({ error: "Failed to log in" });
     }
   });
-  
+
+  // ─── Password reset (forgot password) ──────────────────────────────
+  // Two-step flow:
+  //   1. POST /api/auth/password-reset/request — body { email }. Always
+  //      returns 200 (no enumeration). If the email matches a user, insert
+  //      a hashed token row and send a branded reset email.
+  //   2. POST /api/auth/password-reset/confirm — body { token, password }.
+  //      Hash the token, look up the row, validate expiry + used_at, update
+  //      users.password, mark the token used.
+  //
+  // Rate-limited by IP to stop email/token-bruteforce loops. CSRF is exempt
+  // on these paths because the user isn't authenticated yet (see
+  // middleware/csrf.ts::EXEMPT_PATH_PREFIXES).
+  const passwordResetRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: () => process.env.NODE_ENV !== "production",
+    message: { error: "Too many password reset requests. Try again in 15 minutes.", code: "RATE_LIMITED" },
+  });
+  app.use("/api/auth/password-reset/request", passwordResetRateLimiter);
+  app.use("/api/auth/password-reset/confirm", passwordResetRateLimiter);
+
+  app.post("/api/auth/password-reset/request", async (req, res) => {
+    try {
+      const email = String(req.body?.email || "").trim().toLowerCase();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        // Even malformed input returns 200 to avoid leaking validation state.
+        return res.json({ ok: true });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // No-op for unknown emails — same response shape so an attacker can't
+        // enumerate which addresses are registered.
+        return res.json({ ok: true });
+      }
+
+      // Generate a 32-byte random token. Send the RAW token to the user via
+      // email; store the SHA-256 hash in the DB so a leaked DB dump doesn't
+      // hand attackers usable reset tokens.
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const ttlMinutes = 60;
+      const expiresAt = new Date(Date.now() + ttlMinutes * 60_000);
+
+      // Invalidate any prior unused tokens for this user so a stale email
+      // can't be used after a fresh request.
+      await pool.query(
+        `UPDATE password_reset_tokens SET used_at = NOW()
+          WHERE user_id = $1 AND used_at IS NULL`,
+        [user.id],
+      );
+      await pool.query(
+        `INSERT INTO password_reset_tokens (user_id, token, expires_at)
+         VALUES ($1, $2, $3)`,
+        [user.id, tokenHash, expiresAt],
+      );
+
+      const origin = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get("host")}`;
+      const resetUrl = `${origin}/reset-password?token=${rawToken}`;
+      try {
+        await sendPasswordResetEmail({
+          firstName: user.firstName || undefined,
+          email: user.email,
+          resetUrl,
+          ttlMinutes,
+        });
+      } catch (mailErr: any) {
+        // Non-fatal: the token row still exists. Log and return 200 so the
+        // attacker can't distinguish "no email sent" from "no user."
+        console.error("[auth/password-reset] email send failed:", mailErr?.message);
+      }
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[auth/password-reset/request] error:", e?.message);
+      // Same 200 shape — never leak the failure to the client.
+      res.json({ ok: true });
+    }
+  });
+
+  app.post("/api/auth/password-reset/confirm", async (req, res) => {
+    try {
+      const rawToken = String(req.body?.token || "").trim();
+      const newPassword = String(req.body?.password || "");
+      if (!rawToken || rawToken.length < 32) {
+        return res.status(400).json({ error: "Invalid token" });
+      }
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
+      }
+      const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+      const tokenRow = await pool.query<{ id: string; user_id: string; expires_at: string; used_at: string | null }>(
+        `SELECT id, user_id, expires_at, used_at
+           FROM password_reset_tokens
+          WHERE token = $1
+          LIMIT 1`,
+        [tokenHash],
+      );
+      const row = tokenRow.rows[0];
+      if (!row) return res.status(400).json({ error: "Invalid or expired reset link" });
+      if (row.used_at) return res.status(400).json({ error: "This reset link has already been used" });
+      if (new Date(row.expires_at).getTime() < Date.now()) {
+        return res.status(400).json({ error: "This reset link has expired. Request a new one." });
+      }
+
+      const hash = await bcrypt.hash(newPassword, 10);
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        await client.query(
+          `UPDATE users SET password = $1, password_reset_required = false, updated_at = NOW() WHERE id = $2::uuid`,
+          [hash, row.user_id],
+        );
+        await client.query(
+          `UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1`,
+          [row.id],
+        );
+        // Invalidate any other outstanding tokens for this user so a parallel
+        // email link can't be used after this reset succeeds.
+        await client.query(
+          `UPDATE password_reset_tokens SET used_at = NOW()
+            WHERE user_id = $1 AND used_at IS NULL`,
+          [row.user_id],
+        );
+        await client.query("COMMIT");
+      } catch (txErr) {
+        await client.query("ROLLBACK").catch(() => {});
+        throw txErr;
+      } finally {
+        client.release();
+      }
+
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[auth/password-reset/confirm] error:", e?.message);
+      res.status(500).json({ error: "Failed to reset password" });
+    }
+  });
+
   // ─── 2FA (TOTP) routes ─────────────────────────────────────────────
   // Mandatory for FOUNDER/OWNER/SYSTEM_ADMIN. Other roles can opt-in.
   // Flow:
