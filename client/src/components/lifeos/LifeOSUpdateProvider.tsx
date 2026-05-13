@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from "@/hooks/use-auth";
 import { LIFEOS_VERSION, getRuntimeLifeOSVersion } from "@shared/lifeos";
 import { triggerLifeOSUpdate } from "@/lib/lifeos-sw-register";
-import { toast } from "sonner";
 import { UpdateAvailableModal } from "./UpdateAvailableModal";
 import { WhatsNewModal } from "./WhatsNewModal";
 
@@ -57,6 +56,7 @@ interface LifeOSContextValue {
   updateAvailable: boolean;
   latestRelease: LatestRelease | null;
   openWhatsNew: () => void;
+  openUpdate: () => void;
   applyUpdate: () => Promise<void>;
 }
 
@@ -72,6 +72,7 @@ export function useLifeOS(): LifeOSContextValue {
       updateAvailable: false,
       latestRelease: null,
       openWhatsNew: () => {},
+      openUpdate: () => {},
       applyUpdate: async () => {},
     };
   }
@@ -227,28 +228,27 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
     setWhatsNewOpen(true);
   }, []);
 
-  // Post-update toast — fires once on first paint after applyUpdate's
+  // Open the UpdateAvailableModal explicitly — used by the version-badge click
+  // affordance so the user gets the modal confirm step, not a silent reload.
+  const openUpdate = useCallback(() => {
+    setUpdateModalOpen(true);
+  }, []);
+
+  // Post-update auto-popup — fires once on first paint after applyUpdate's
   // reload. The `?lifeos=<ts>` query param is the unique signature; we
-  // strip it from the URL after toasting so a subsequent reload doesn't
-  // re-fire. Waits for the latest_release to load so the toast has the
-  // version number to surface.
-  const postUpdateToastFiredRef = useRef<boolean>(false);
+  // strip it from the URL after firing so a subsequent reload doesn't
+  // re-fire. Opens the WhatsNewModal directly so the user gets the full
+  // "what just got updated" view, not just a toast they might miss.
+  const postUpdateFiredRef = useRef<boolean>(false);
   useEffect(() => {
-    if (postUpdateToastFiredRef.current) return;
+    if (postUpdateFiredRef.current) return;
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (!params.has("lifeos")) return;
     if (!status?.latest_release) return;
-    postUpdateToastFiredRef.current = true;
-    const r = status.latest_release;
-    toast.success(`Updated to lifeOS ${r.version}`, {
-      description: r.summary,
-      duration: 5000,
-      action: {
-        label: "See what's new",
-        onClick: () => setWhatsNewOpen(true),
-      },
-    });
+    postUpdateFiredRef.current = true;
+    setWhatsNewOpen(true);
+    whatsNewShownRef.current = true; // suppress the idle auto-open below
     // Clean the URL so reload doesn't double-fire and so deep links don't
     // accumulate the param.
     try {
@@ -347,8 +347,9 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
     updateAvailable: !!status?.update_available,
     latestRelease: status?.latest_release ?? null,
     openWhatsNew,
+    openUpdate,
     applyUpdate,
-  }), [yourVersion, status, openWhatsNew, applyUpdate]);
+  }), [yourVersion, status, openWhatsNew, openUpdate, applyUpdate]);
 
   return (
     <LifeOSContext.Provider value={value}>

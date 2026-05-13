@@ -8,19 +8,18 @@ import { useLifeOS } from "./LifeOSUpdateProvider";
  * Behaviour:
  *   - No update available → click opens the WhatsNewModal for the user's
  *     current version (read-only "what's in this release").
- *   - Update available → click directly calls `applyUpdate()` which wipes
- *     the SW cache and reloads the page onto the fresh bundle. The label
- *     swaps to "Update" with a small download glyph so the affordance is
- *     unambiguous. This is the recovery path when a user has dismissed the
- *     auto-popup and the SW is still pinning a stale bundle — no DevTools
- *     spelunking required.
+ *   - Update available → click opens the UpdateAvailableModal so the user
+ *     gets a confirm step before the SW cache wipes + page reloads. The
+ *     label swaps to "Update" with a small download glyph so the
+ *     affordance is unambiguous. After the update completes the
+ *     WhatsNewModal auto-fires post-reload (see LifeOSUpdateProvider).
  */
 export function LifeOSVersionBadge() {
-  const { yourVersion, updateAvailable, openWhatsNew, applyUpdate } = useLifeOS();
+  const { yourVersion, updateAvailable, openWhatsNew, openUpdate } = useLifeOS();
 
   const handleClick = () => {
     if (updateAvailable) {
-      void applyUpdate();
+      openUpdate();
     } else {
       openWhatsNew();
     }
