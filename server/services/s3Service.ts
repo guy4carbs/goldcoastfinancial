@@ -47,15 +47,49 @@ function getAuthClient(): GoogleAuth {
   return _authClient as GoogleAuth;
 }
 
-async function getStorageAccessToken(): Promise<string | null> {
+interface AccessTokenResult {
+  token: string | null;
+  errorMessage: string | null;
+}
+
+async function getStorageAccessToken(): Promise<AccessTokenResult> {
   try {
     const auth = getAuthClient();
     const token = await auth.getAccessToken();
-    return typeof token === 'string' ? token : null;
+    if (typeof token === 'string') return { token, errorMessage: null };
+    return { token: null, errorMessage: 'GoogleAuth returned a non-string token' };
   } catch (e: any) {
-    console.error('[Storage] Failed to get access token:', e?.message);
-    return null;
+    const msg = e?.message || String(e);
+    console.error('[Storage] Failed to get access token:', msg);
+    return { token: null, errorMessage: msg };
   }
+}
+
+// Public diagnostic — returns auth state WITHOUT exposing the token or
+// credential JSON. Used by the founder-only /api/admin/_debug/storage-auth
+// endpoint so we can see whether the service-account env var is actually
+// present + usable in production.
+export async function probeStorageAuth(): Promise<{
+  credentials_inline_present: boolean;
+  credentials_path_present: boolean;
+  bucket_configured: boolean;
+  api_key_present: boolean;
+  can_get_token: boolean;
+  token_error: string | null;
+}> {
+  const credsInline = !!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  const credsPath = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  const bucket = !!getStorageBucket();
+  const apiKey = !!getApiKey();
+  const result = await getStorageAccessToken();
+  return {
+    credentials_inline_present: credsInline,
+    credentials_path_present: credsPath,
+    bucket_configured: bucket,
+    api_key_present: apiKey,
+    can_get_token: !!result.token,
+    token_error: result.errorMessage,
+  };
 }
 
 // =============================================================================
@@ -192,24 +226,28 @@ export async function uploadFile(
   let lastBody = "";
   let lastBucket = bucket;
 
-  const accessToken = await getStorageAccessToken();
-  if (!accessToken) {
-    return {
-      success: false,
-      error:
-        'Storage authentication not available — server is missing GOOGLE_APPLICATION_CREDENTIALS_JSON or the service account lacks the devstorage.read_write scope.',
-    };
+  // Try to get a Bearer token. If we can't, fall through to unauthenticated
+  // upload — Firebase Storage Rules are the authoritative gate. If rules
+  // permit anonymous writes to `applications/*` (the only path we use),
+  // the upload succeeds without auth. If rules deny, the per-bucket 404/403
+  // surfaces with a clear message and we know to fix one of: env var or rules.
+  const tokenResult = await getStorageAccessToken();
+  if (!tokenResult.token) {
+    console.warn(
+      `[Storage] No access token — attempting unauthenticated upload. Token error: ${tokenResult.errorMessage || "no creds"}`,
+    );
   }
 
   for (const candidate of bucketCandidates) {
     try {
       const uploadUrl = getUploadUrl(candidate, key);
+      const headers: Record<string, string> = {
+        'Content-Type': options?.contentType || 'application/octet-stream',
+      };
+      if (tokenResult.token) headers['Authorization'] = `Bearer ${tokenResult.token}`;
       const response = await fetch(uploadUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': options?.contentType || 'application/octet-stream',
-          'Authorization': `Bearer ${accessToken}`,
-        },
+        headers,
         body: buffer,
       });
 

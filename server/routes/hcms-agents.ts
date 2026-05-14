@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, MANAGER_PLUS, ADMIN_PLUS, FOUNDERS_ONLY } from "../middleware/auth";
+import { probeStorageAuth } from "../services/s3Service";
 import { logFounderAction } from "../services/founderAudit";
 import { decryptField, isEncrypted } from "../services/encryptionService";
 import { storage } from "../storage";
@@ -145,6 +146,27 @@ router.get("/_debug/agent-profile", requireAuth, requireRole(...FOUNDERS_ONLY), 
       code: e?.code,
       detail: e?.detail,
     });
+  }
+});
+
+// GET /api/hcms/agents/_debug/storage-auth — founder-only diagnostic that
+// reports the storage helper's auth state without exposing the actual
+// service-account JSON or token. Use it to confirm whether
+// GOOGLE_APPLICATION_CREDENTIALS_JSON is being injected on boot and whether
+// GoogleAuth can mint an access token.
+router.get("/_debug/storage-auth", requireAuth, requireRole(...FOUNDERS_ONLY), async (_req, res) => {
+  try {
+    const state = await probeStorageAuth();
+    res.json({
+      ...state,
+      hint: !state.credentials_inline_present && !state.credentials_path_present
+        ? "Neither GOOGLE_APPLICATION_CREDENTIALS_JSON nor GOOGLE_APPLICATION_CREDENTIALS is set in env. credentialLoader may have failed to fetch the Secret Manager blob. If the bucket Rules permit anonymous writes, uploads still work — but the authenticated path is preferable."
+        : !state.can_get_token
+          ? "Credentials are present but GoogleAuth couldn't mint a token. Check the service account's permissions and the devstorage.read_write scope."
+          : "Auth is working. If uploads still fail, the bucket Rules are denying the write — check Firebase Console → Storage → Rules.",
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message });
   }
 });
 
