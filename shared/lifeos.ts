@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.25";
+export const LIFEOS_VERSION = "1.0.26";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,15 +34,13 @@ export const LIFEOS_VERSION = "1.0.25";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "All application uploads persist now";
+export const LIFEOS_RELEASE_TITLE = "Upline picker shows real names";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Every document an agent attaches to their application — E&O, Government ID, AML, Direct Deposit, Articles, and per-owner photo IDs — now actually saves to their HCMS profile.";
+  "When you pick an upline for an invite or approval, the dropdown now shows each founder's real name — not just 'Gold Coast Financial Partners LLC' on every row.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Every upload reaches the server.** The Banking step (Direct Deposit form) and Trainings step (AML certificate + Government ID) used to only update local state — the files never POSTed anywhere. Now every document attaches to the applicant's profile the moment they pick it.
-- **Per-owner photo IDs for business entities.** Each owner on a business-entity application can now upload their own photo ID. The files persist to a new \`agent_profiles.owner_photos_json\` field keyed by ownerId, so multiple owners don't collide.
-- **One shared upload hook.** New \`useApplyUpload\` hook handles the file-read → POST → error-handling flow for every step, so no future step can quietly forget to wire the fetch call.
-- **Real error surfaces in the UI.** If a server-side write fails (DB drift, schema mismatch), the applicant now sees the actual error message instead of a silent "looks fine" success.`;
+- **Real names in the upline picker.** Previously, every founder and owner collapsed to "Gold Coast Financial Partners LLC (XX%)" in the dropdown, making it impossible to tell two founders apart. Now every row shows the actual person's first + last name plus their contract level.
+- **Same fix on the approve modal.** Approving a pending agent now also shows real upline names in the picker.`;
 
 
 /**

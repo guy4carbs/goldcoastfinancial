@@ -88,11 +88,12 @@ function roleRequiresHierarchy(value: string): boolean {
 }
 
 function uplineLabel(u: Upline): string {
-  // Owner row always renders as the legal entity name. Server already does
-  // this swap, but we re-apply it here so cached/in-flight responses still
-  // render correctly until the dev server picks up the change.
-  if (u.role === "owner" || u.contractLevel >= 120) return LEGAL_ENTITY_NAME;
-  return u.displayName || `${u.firstName} ${u.lastName}`.trim();
+  // Always show the real person's name. The owner/120%-rewrite to the legal
+  // entity name made every founder collapse to "Gold Coast Financial
+  // Partners LLC" — unselectable when multiple founders exist. Real name
+  // first; falls back to email if both first+last are blank.
+  const name = u.displayName || `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim();
+  return name || u.email || LEGAL_ENTITY_NAME;
 }
 
 interface SentInfo {
