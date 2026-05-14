@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { CustomSelect } from "./StepAddress";
 import { FileUploadZone } from "../components/FileUploadZone";
+import { useApplyUpload } from "../hooks/useApplyUpload";
 
 interface Props {
   form: Record<string, any>;
@@ -19,57 +20,7 @@ const COVERAGE_OPTIONS = [
 ];
 
 export function StepEOInsurance({ form, set, errors, inputStyle, labelStyle, token }: Props) {
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-
-  // Wire the E&O certificate file picker to POST /api/apply/upload so the
-  // S3 key actually persists to agent_profiles.eo_certificate_s3_key.
-  // Previously this step only set local form state and the file never
-  // reached the server — every applicant ended up with a NULL
-  // eo_certificate_s3_key in HCMS.
-  const uploadEoCert = async (file: File) => {
-    if (!token) {
-      setUploadError("Missing application token — refresh the page and try again.");
-      return;
-    }
-    setUploading(true);
-    setUploadError("");
-    try {
-      if (file.size > 10 * 1024 * 1024) throw new Error("File is too large (max 10 MB)");
-      const reader = new FileReader();
-      const fileData: string = await new Promise((resolve, reject) => {
-        reader.onload = () => {
-          const dataUrl = String(reader.result || "");
-          const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
-          resolve(base64);
-        };
-        reader.onerror = () => reject(new Error("Failed to read file"));
-        reader.readAsDataURL(file);
-      });
-      const r = await fetch("/api/apply/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token,
-          documentType: "eo_cert",
-          fileName: file.name,
-          fileData,
-          mimeType: file.type || "application/pdf",
-          fileSize: file.size,
-        }),
-      });
-      if (!r.ok) {
-        const data = await r.json().catch(() => ({}));
-        throw new Error(data?.error || `HTTP ${r.status}`);
-      }
-      set("eoCertUploaded", true);
-      set("eoCertFileName", file.name);
-    } catch (e: any) {
-      setUploadError(e?.message || "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
+  const { upload, uploading, error: uploadError } = useApplyUpload(token);
 
   useEffect(() => {
     if (form.eoEffectiveDate && !form.eoExpirationDate) {
@@ -135,11 +86,16 @@ export function StepEOInsurance({ form, set, errors, inputStyle, labelStyle, tok
       <div style={{ marginTop: "var(--gc-space-6)" }}>
         <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--gc-gold)", fontWeight: 600, marginBottom: "var(--gc-space-2)" }}>E&O Certificate</div>
         <FileUploadZone
-          label={uploading ? "Uploading..." : "Upload E&O Insurance Certificate"}
+          label={uploading === "eo_cert" ? "Uploading..." : "Upload E&O Insurance Certificate"}
           accept=".pdf"
           uploaded={form.eoCertUploaded || false}
           fileName={form.eoCertFileName}
-          onUpload={uploadEoCert}
+          onUpload={async file => {
+            if (await upload("eo_cert", file)) {
+              set("eoCertUploaded", true);
+              set("eoCertFileName", file.name);
+            }
+          }}
         />
         {uploadError && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", marginTop: 4, display: "block" }}>{uploadError}</span>}
         {errors.eoCertUploaded && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", marginTop: 4, display: "block" }}>{errors.eoCertUploaded}</span>}

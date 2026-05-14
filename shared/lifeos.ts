@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.24";
+export const LIFEOS_VERSION = "1.0.25";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,16 +34,15 @@ export const LIFEOS_VERSION = "1.0.24";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Cleanup pass";
+export const LIFEOS_RELEASE_TITLE = "All application uploads persist now";
 export const LIFEOS_RELEASE_SUMMARY =
-  "E&O uploads now actually save, pending-registrations hide invited-but-not-submitted users, What's New popups respect dismiss across reloads, app launcher tightens to 3x3, and signed documents always show a legible signature.";
+  "Every document an agent attaches to their application — E&O, Government ID, AML, Direct Deposit, Articles, and per-owner photo IDs — now actually saves to their HCMS profile.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **E&O certificate uploads actually save.** The Application's E&O step was only updating local state — files never reached the server. Now it POSTs straight to /api/apply/upload like every other document step, so every new applicant's certificate persists into HCMS.
-- **Signed documents always have a signature.** Older signed PDFs that showed an empty yellow box now render a script-styled typed-name signature as a fallback. New applicants signing on the canvas still get their actual hand-drawn signature embedded.
-- **What's New popup respects dismiss.** Closing the popup now persists across page reloads — it won't re-appear for the same release just because you hit refresh before the next status poll.
-- **Cleaner app launcher.** The Gold Coast Apps menu is now a clean 3×3 — HCMS, Founders, and Heritage are open, with Ops Hub, Finance, Investors, Marketing, Training, and AI Council showing "Coming soon" so the roadmap is obvious at a glance. CRM was retired (the Heritage CRM is the canonical surface).
-- **Pending Registrations stops including unsubmitted invites.** When you invite an agent, they no longer clutter the Pending Registrations tab until they actually complete and submit their application. Organic applicants from the public site still appear the moment they sign up.`;
+- **Every upload reaches the server.** The Banking step (Direct Deposit form) and Trainings step (AML certificate + Government ID) used to only update local state — the files never POSTed anywhere. Now every document attaches to the applicant's profile the moment they pick it.
+- **Per-owner photo IDs for business entities.** Each owner on a business-entity application can now upload their own photo ID. The files persist to a new \`agent_profiles.owner_photos_json\` field keyed by ownerId, so multiple owners don't collide.
+- **One shared upload hook.** New \`useApplyUpload\` hook handles the file-read → POST → error-handling flow for every step, so no future step can quietly forget to wire the fetch call.
+- **Real error surfaces in the UI.** If a server-side write fails (DB drift, schema mismatch), the applicant now sees the actual error message instead of a silent "looks fine" success.`;
 
 
 /**

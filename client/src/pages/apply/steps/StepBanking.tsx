@@ -1,5 +1,6 @@
 import { CustomSelect } from "./StepAddress";
 import { FileUploadZone } from "../components/FileUploadZone";
+import { useApplyUpload } from "../hooks/useApplyUpload";
 
 interface Props {
   form: Record<string, any>;
@@ -7,6 +8,7 @@ interface Props {
   errors: Record<string, string>;
   inputStyle: React.CSSProperties;
   labelStyle: React.CSSProperties;
+  token?: string;
 }
 
 const ACCOUNT_TYPES = [
@@ -14,7 +16,8 @@ const ACCOUNT_TYPES = [
   { value: "savings", label: "Savings" },
 ];
 
-export function StepBanking({ form, set, errors, inputStyle, labelStyle }: Props) {
+export function StepBanking({ form, set, errors, inputStyle, labelStyle, token }: Props) {
+  const { upload, uploading, error: uploadError } = useApplyUpload(token);
   return (
     <div>
       <h2 style={{ fontFamily: "var(--gc-font-display)", fontSize: "var(--gc-text-2xl)", color: "var(--gc-text-primary)", marginBottom: "var(--gc-space-2)" }}>Banking & Direct Deposit</h2>
@@ -57,12 +60,18 @@ export function StepBanking({ form, set, errors, inputStyle, labelStyle }: Props
       <div style={{ marginTop: "var(--gc-space-6)" }}>
         <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--gc-gold)", fontWeight: 600, marginBottom: "var(--gc-space-2)" }}>Direct Deposit Form</div>
         <FileUploadZone
-          label="Upload Direct Deposit Authorization Form"
+          label={uploading === "direct_deposit" ? "Uploading..." : "Upload Direct Deposit Authorization Form"}
           accept=".pdf"
           uploaded={form.ddFormUploaded || false}
           fileName={form.ddFormFileName}
-          onUpload={file => { set("ddFormUploaded", true); set("ddFormFileName", file.name); }}
+          onUpload={async file => {
+            if (await upload("direct_deposit", file)) {
+              set("ddFormUploaded", true);
+              set("ddFormFileName", file.name);
+            }
+          }}
         />
+        {uploadError && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", marginTop: 4, display: "block" }}>{uploadError}</span>}
         {errors.ddFormUploaded && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", marginTop: 4, display: "block" }}>{errors.ddFormUploaded}</span>}
       </div>
     </div>
