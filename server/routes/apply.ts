@@ -679,7 +679,12 @@ router.post("/upload", async (req, res) => {
     }
 
     const profile = await findByToken(token);
-    if (!profile) return res.status(404).json({ error: "Invalid or expired token" });
+    if (!profile) {
+      console.warn(`[Apply] /upload 404: token did not resolve (token prefix=${String(token).slice(0, 8)}..., docType=${documentType})`);
+      return res.status(404).json({
+        error: "We couldn't find your application — your invite link may have expired. Refresh /apply with your invite link, or request a new one.",
+      });
+    }
 
     // Validate file
     const validation = validateFile(fileName || "file.pdf", mimeType || "application/pdf", fileSize || 0);

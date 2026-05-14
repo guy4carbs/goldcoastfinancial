@@ -207,9 +207,11 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
       agentIds
         ? `SELECT u.id, u.first_name, u.last_name, u.email, u.role,
                   COALESCE(ah.contract_level, CASE WHEN u.role IN ('founder', 'owner') THEN 120 ELSE 80 END) as contract_level,
-                  ah.hierarchy_level, ah.hierarchy_title
+                  ah.hierarchy_level, ah.hierarchy_title,
+                  ap.dba_type, ap.company_name, ap.dba_name
              FROM users u
              LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+             LEFT JOIN agent_profiles ap ON ap.user_id::text = u.id::text
             WHERE u.role IN ('founder', 'owner', 'system_admin', 'director', 'agency_manager', 'manager', 'sales_agent')
               AND u.is_active = true
               AND (ah.id IS NOT NULL OR u.role IN ('founder', 'owner'))
@@ -217,9 +219,11 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
             ORDER BY contract_level DESC, u.last_name ASC`
         : `SELECT u.id, u.first_name, u.last_name, u.email, u.role,
                   COALESCE(ah.contract_level, CASE WHEN u.role IN ('founder', 'owner') THEN 120 ELSE 80 END) as contract_level,
-                  ah.hierarchy_level, ah.hierarchy_title
+                  ah.hierarchy_level, ah.hierarchy_title,
+                  ap.dba_type, ap.company_name, ap.dba_name
              FROM users u
              LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+             LEFT JOIN agent_profiles ap ON ap.user_id::text = u.id::text
             WHERE u.role IN ('founder', 'owner', 'system_admin', 'director', 'agency_manager', 'manager', 'sales_agent')
               AND u.is_active = true
               AND (ah.id IS NOT NULL OR u.role IN ('founder', 'owner'))
@@ -250,9 +254,11 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
       const viewerRow = await pool.query(
         `SELECT u.id, u.first_name, u.last_name, u.email, u.role,
                 COALESCE(ah.contract_level, CASE WHEN u.role IN ('founder', 'owner') THEN 120 ELSE 80 END) as contract_level,
-                ah.hierarchy_level, ah.hierarchy_title
+                ah.hierarchy_level, ah.hierarchy_title,
+                ap.dba_type, ap.company_name, ap.dba_name
            FROM users u
            LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+           LEFT JOIN agent_profiles ap ON ap.user_id::text = u.id::text
           WHERE u.id = $1 AND u.is_active = true
           LIMIT 1`,
         [viewerId],
@@ -264,15 +270,19 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
     }
 
     res.json(result.rows.map((r: any) => {
-      // Always return the real person's name. Earlier this endpoint
-      // rewrote founder/owner rows to "Gold Coast Financial Partners LLC",
-      // which collapsed every senior person into the same label and made
-      // the upline picker show "Gold Coast Financial Partners LLC (120%)"
-      // for every founder — unselectable in practice. The picker needs
-      // real names so multiple founders/owners can be distinguished.
+      // Display rule: if this upline is contracted as a business entity
+      // (dba_type='business_entity' and company_name is set), show the
+      // company name. Otherwise show the real person's first + last name.
+      // This mirrors HIERARCHY_NAME_SELECT used by /tree and /flat.
       const firstName = (r.first_name || "").trim();
       const lastName = (r.last_name || "").trim();
-      const displayName = `${firstName} ${lastName}`.trim() || r.email;
+      const isBusinessEntity =
+        r.dba_type === "business_entity" &&
+        ((r.company_name && r.company_name.trim()) || (r.dba_name && r.dba_name.trim()));
+      const personalName = `${firstName} ${lastName}`.trim();
+      const displayName = isBusinessEntity
+        ? String(r.company_name || r.dba_name).trim()
+        : personalName || r.email;
       return {
         id: r.id,
         firstName,

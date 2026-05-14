@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.26";
+export const LIFEOS_VERSION = "1.0.27";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,14 @@ export const LIFEOS_VERSION = "1.0.26";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Upline picker shows real names";
+export const LIFEOS_RELEASE_TITLE = "Business-entity uplines + clearer upload errors";
 export const LIFEOS_RELEASE_SUMMARY =
-  "When you pick an upline for an invite or approval, the dropdown now shows each founder's real name — not just 'Gold Coast Financial Partners LLC' on every row.";
+  "Upline picker now shows the company name for business-entity contracts, and the application upload step explains exactly what went wrong if a token has expired.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Real names in the upline picker.** Previously, every founder and owner collapsed to "Gold Coast Financial Partners LLC (XX%)" in the dropdown, making it impossible to tell two founders apart. Now every row shows the actual person's first + last name plus their contract level.
-- **Same fix on the approve modal.** Approving a pending agent now also shows real upline names in the picker.`;
+- **Business-entity uplines show the company name.** Yesterday's fix surfaced every founder's personal name, which was right for individuals but wrong for business-entity contracts. The picker now reads the upline's contracting type — business entities show the company name (e.g. "Gold Coast Financial Partners LLC"), individuals show their first + last name.
+- **Application upload errors are human-readable now.** If your invite link has expired or the token can't be resolved, the upload step explains exactly that ("your invite link may have expired — refresh /apply with your invite link, or request a new one") instead of just "Upload failed: 404."
+- **Server-side log on token misses.** Every 404 from /apply/upload now logs the token prefix and document type so we can trace expired/wrong-link issues from Railway logs.`;
 
 
 /**

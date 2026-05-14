@@ -83,7 +83,9 @@ export function useApplyUpload(token: string | undefined) {
         });
         if (!r.ok) {
           const data = await r.json().catch(() => ({}));
-          throw new Error(data?.error || `HTTP ${r.status}`);
+          // Prefer the server message — it's customer-readable. Only show
+          // the raw HTTP status as a last resort.
+          throw new Error(data?.error || data?.detail || `Upload failed (HTTP ${r.status})`);
         }
         return true;
       } catch (e: any) {
