@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.32";
+export const LIFEOS_VERSION = "1.0.33";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,17 +34,13 @@ export const LIFEOS_VERSION = "1.0.32";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Uploads via GCS direct REST API";
+export const LIFEOS_RELEASE_TITLE = "Storage env vars tolerant of surrounding quotes";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Document uploads now use the canonical Google Cloud Storage REST endpoint (storage.googleapis.com) instead of the Firebase Storage wrapper (firebasestorage.googleapis.com), which was returning 404 for authenticated server-to-server requests against .firebasestorage.app buckets.";
+  "Bucket name + API key env vars are now trimmed of whitespace and stripped of a single layer of surrounding quotes before use. Some env-var UIs treat quotes as part of the value, which GCS strict validation rejects as Invalid bucket name.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Switched uploads to the canonical GCS REST API.** The Firebase Storage wrapper at \`firebasestorage.googleapis.com\` accepts Bearer tokens but inexplicably returns 404 for authenticated writes against modern \`.firebasestorage.app\` buckets. The GCS direct endpoint at \`storage.googleapis.com/upload/storage/v1/b/<bucket>/o\` uses standard IAM and works reliably — same Bearer token, same bucket, same path.
-- **getFile / deleteFile / fileExists also routed through GCS.** All four storage operations now use the same authenticated GCS endpoint, so reads and deletes work consistently with writes.
-
-## What changed for operators
-
-Nothing — same service account, same env vars, same bucket Rules. The change is purely the API endpoint the server talks to under the hood. Existing files at their existing keys continue to work.`;
+- **Defensive env-var sanitization for storage config.** \`VITE_FIREBASE_STORAGE_BUCKET\` and \`VITE_FIREBASE_API_KEY\` (plus their non-\`VITE_\` aliases) are now trimmed of whitespace and have a single layer of surrounding double or single quotes stripped before use. Firebase's wrapper used to tolerate quoted bucket names; the canonical GCS endpoint does not, so the same env-var state that "worked" before was suddenly rejected with \`Invalid bucket name\`.
+- No operator action needed — the existing quoted env var in Railway is now accepted as-is. Cleaning up the env var to remove the quotes is still a good idea long-term, but no longer urgent.`;
 
 
 /**
