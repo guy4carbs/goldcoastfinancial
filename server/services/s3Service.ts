@@ -18,12 +18,37 @@ import { GoogleAuth } from 'google-auth-library';
 // FIREBASE STORAGE CONFIG
 // =============================================================================
 
+// Trim whitespace + strip a single layer of surrounding quotes. Env-var UIs
+// sometimes treat quotes as part of the value, so `"gold-coast-fnl.firebasestorage.app"`
+// gets stored as 38 chars instead of 36, and GCS's strict bucket-name validation
+// rejects it as Invalid bucket name. Firebase's wrapper used to tolerate this;
+// the canonical GCS endpoint does not.
+function sanitizeEnv(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed || null;
+}
+
 function getStorageBucket(): string | null {
-  return process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || null;
+  return (
+    sanitizeEnv(process.env.VITE_FIREBASE_STORAGE_BUCKET) ||
+    sanitizeEnv(process.env.FIREBASE_STORAGE_BUCKET) ||
+    null
+  );
 }
 
 function getApiKey(): string | null {
-  return process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || null;
+  return (
+    sanitizeEnv(process.env.VITE_FIREBASE_API_KEY) ||
+    sanitizeEnv(process.env.FIREBASE_API_KEY) ||
+    null
+  );
 }
 
 // Parse the service-account JSON out of the env var. Hosting platforms
