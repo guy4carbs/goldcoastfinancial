@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.33";
+export const LIFEOS_VERSION = "1.0.34";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,13 @@ export const LIFEOS_VERSION = "1.0.33";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Storage env vars tolerant of surrounding quotes";
+export const LIFEOS_RELEASE_TITLE = "Aggressive bucket-name sanitizer + diagnostic visibility";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Bucket name + API key env vars are now trimmed of whitespace and stripped of a single layer of surrounding quotes before use. Some env-var UIs treat quotes as part of the value, which GCS strict validation rejects as Invalid bucket name.";
+  "Strip all leading/trailing non-bucket-name characters from the storage bucket env var — handles straight quotes, curly Unicode quotes, backticks, whitespace, and any other wrapper junk. Diagnostic now exposes the sanitized bucket name so operators can verify what's actually being sent to GCS.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Defensive env-var sanitization for storage config.** \`VITE_FIREBASE_STORAGE_BUCKET\` and \`VITE_FIREBASE_API_KEY\` (plus their non-\`VITE_\` aliases) are now trimmed of whitespace and have a single layer of surrounding double or single quotes stripped before use. Firebase's wrapper used to tolerate quoted bucket names; the canonical GCS endpoint does not, so the same env-var state that "worked" before was suddenly rejected with \`Invalid bucket name\`.
-- No operator action needed — the existing quoted env var in Railway is now accepted as-is. Cleaning up the env var to remove the quotes is still a good idea long-term, but no longer urgent.`;
+- **Aggressive bucket-name sanitizer.** Previous version only caught a single layer of ASCII quotes. Now strips every leading/trailing character that isn't \`[a-z0-9]\` from the bucket env var — so curly quotes, backticks, brackets, stray whitespace, etc. all get scrubbed before the name goes to GCS.
+- **Diagnostic surfaces the sanitized bucket name.** \`/api/hcms/agents/_debug/storage-auth\` now returns \`bucket_name\`, \`bucket_name_length\`, and \`bucket_name_raw_length\`. If raw and sanitized lengths differ, the sanitizer stripped wrapper chars; if they're equal but the name still has weird chars, the env var needs manual fixing.`;
 
 
 /**

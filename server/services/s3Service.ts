@@ -18,21 +18,24 @@ import { GoogleAuth } from 'google-auth-library';
 // FIREBASE STORAGE CONFIG
 // =============================================================================
 
-// Trim whitespace + strip a single layer of surrounding quotes. Env-var UIs
-// sometimes treat quotes as part of the value, so `"gold-coast-fnl.firebasestorage.app"`
-// gets stored as 38 chars instead of 36, and GCS's strict bucket-name validation
-// rejects it as Invalid bucket name. Firebase's wrapper used to tolerate this;
-// the canonical GCS endpoint does not.
+// Aggressive env-var cleanup. Hosting platforms sometimes embed quotes in
+// the stored value (Railway is one offender) — straight double, straight
+// single, OR smart/curly quotes. The previous version of this function only
+// caught a single layer of straight ASCII quotes; if the platform converted
+// them to curly Unicode quotes during paste, the bucket name still went out
+// with `"..."` wrappers and GCS rejected it as Invalid bucket name.
+//
+// Strategy: strip every leading/trailing character that isn't a valid GCS
+// bucket-name char. GCS allows lowercase letters, digits, hyphens, dots,
+// and underscores. Anything outside that set at either end is decoration
+// and gets stripped — quotes (any kind), backticks, whitespace, brackets,
+// stray ASCII control chars, all gone.
 function sanitizeEnv(raw: string | undefined): string | null {
   if (!raw) return null;
-  const trimmed = raw.trim();
-  if (
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  ) {
-    return trimmed.slice(1, -1).trim();
-  }
-  return trimmed || null;
+  // Strip non-bucket-name chars from both ends. Inner chars are left alone
+  // because legitimate API keys etc. can contain symbols.
+  const cleaned = raw.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, '');
+  return cleaned || null;
 }
 
 function getStorageBucket(): string | null {
@@ -173,6 +176,9 @@ export async function probeStorageAuth(): Promise<{
   credentials_inline_present: boolean;
   credentials_path_present: boolean;
   bucket_configured: boolean;
+  bucket_name: string | null;
+  bucket_name_length: number;
+  bucket_name_raw_length: number;
   api_key_present: boolean;
   can_get_token: boolean;
   token_error: string | null;
@@ -183,7 +189,11 @@ export async function probeStorageAuth(): Promise<{
   const rawCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON || '';
   const credsInline = !!rawCreds;
   const credsPath = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const bucket = !!getStorageBucket();
+  const bucketName = getStorageBucket();
+  const rawBucket =
+    process.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    process.env.FIREBASE_STORAGE_BUCKET ||
+    '';
   const apiKey = !!getApiKey();
   // Warm up the auth client so _credsParseError gets populated.
   getAuthClient();
@@ -200,7 +210,12 @@ export async function probeStorageAuth(): Promise<{
   return {
     credentials_inline_present: credsInline,
     credentials_path_present: credsPath,
-    bucket_configured: bucket,
+    bucket_configured: !!bucketName,
+    // Sanitized bucket name being sent to GCS. Length mismatch with
+    // bucket_name_raw_length indicates the sanitizer stripped wrapper chars.
+    bucket_name: bucketName,
+    bucket_name_length: bucketName ? bucketName.length : 0,
+    bucket_name_raw_length: rawBucket.length,
     api_key_present: apiKey,
     can_get_token: !!result.token,
     token_error: result.errorMessage,
