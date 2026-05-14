@@ -157,14 +157,17 @@ router.get("/_debug/agent-profile", requireAuth, requireRole(...FOUNDERS_ONLY), 
 router.get("/_debug/storage-auth", requireAuth, requireRole(...FOUNDERS_ONLY), async (_req, res) => {
   try {
     const state = await probeStorageAuth();
-    res.json({
-      ...state,
-      hint: !state.credentials_inline_present && !state.credentials_path_present
-        ? "Neither GOOGLE_APPLICATION_CREDENTIALS_JSON nor GOOGLE_APPLICATION_CREDENTIALS is set in env. credentialLoader may have failed to fetch the Secret Manager blob. If the bucket Rules permit anonymous writes, uploads still work — but the authenticated path is preferable."
-        : !state.can_get_token
-          ? "Credentials are present but GoogleAuth couldn't mint a token. Check the service account's permissions and the devstorage.read_write scope."
-          : "Auth is working. If uploads still fail, the bucket Rules are denying the write — check Firebase Console → Storage → Rules.",
-    });
+    let hint: string;
+    if (!state.credentials_inline_present && !state.credentials_path_present) {
+      hint = "Neither GOOGLE_APPLICATION_CREDENTIALS_JSON nor GOOGLE_APPLICATION_CREDENTIALS is set in env. Add the service account JSON to Railway's Variables tab.";
+    } else if (state.creds_parse_error) {
+      hint = `GOOGLE_APPLICATION_CREDENTIALS_JSON is set (${state.creds_inline_length} chars) but the JSON couldn't be parsed: ${state.creds_parse_error}. The most reliable fix is to base64-encode the entire service-account file and store that instead — the parser auto-detects base64. Run: \`base64 -i path/to/service-account.json | pbcopy\` and paste the result into Railway.`;
+    } else if (!state.can_get_token) {
+      hint = `Credentials parsed OK (${state.service_account_email || 'unknown email'}) but GoogleAuth couldn't mint a token: ${state.token_error}. Check that the service account has the Firebase Admin or Storage Object Admin role in GCP Console → IAM.`;
+    } else {
+      hint = "Auth is working. If uploads still fail, the bucket Rules are denying the write — check Firebase Console → Storage → Rules.";
+    }
+    res.json({ ...state, hint });
   } catch (e: any) {
     res.status(500).json({ error: e?.message });
   }
