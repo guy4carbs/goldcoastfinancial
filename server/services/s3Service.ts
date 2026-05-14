@@ -137,52 +137,87 @@ export async function uploadFile(
   const key = generateFileKey(userId, filename, folder);
   const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content);
 
-  try {
-    const uploadUrl = getUploadUrl(bucket, key);
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': options?.contentType || 'application/octet-stream',
-      },
-      body: buffer,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Storage] Upload failed:', response.status, errorText);
-      return { success: false, error: `Upload failed: ${response.status}` };
-    }
-
-    const result = await response.json();
-    const downloadToken = result.downloadTokens || '';
-    const url = getDownloadUrl(bucket, key, downloadToken);
-
-    if (options?.metadata && Object.keys(options.metadata).length > 0) {
-      try {
-        const metadataUrl = getFileUrl(bucket, key);
-        await fetch(metadataUrl, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            metadata: {
-              userId,
-              originalFilename: filename,
-              uploadedAt: new Date().toISOString(),
-              ...options.metadata,
-            },
-          }),
-        });
-      } catch {
-        // Metadata update is non-critical
-      }
-    }
-
-    console.log(`[Storage] File uploaded: ${key}`);
-    return { success: true, key, url };
-  } catch (error: any) {
-    console.error('[Storage] Upload failed:', error.message);
-    return { success: false, error: 'Failed to upload file' };
+  // Bucket naming changed in newer Firebase projects — modern projects use
+  // <id>.firebasestorage.app, older ones use <id>.appspot.com. If the env
+  // var has the wrong format, Firebase returns 404 and the upload silently
+  // fails. Try both forms before giving up.
+  const bucketCandidates = [bucket];
+  if (bucket.endsWith(".firebasestorage.app")) {
+    bucketCandidates.push(bucket.replace(/\.firebasestorage\.app$/, ".appspot.com"));
+  } else if (bucket.endsWith(".appspot.com")) {
+    bucketCandidates.push(bucket.replace(/\.appspot\.com$/, ".firebasestorage.app"));
   }
+
+  let lastStatus = 0;
+  let lastBody = "";
+  let lastBucket = bucket;
+
+  for (const candidate of bucketCandidates) {
+    try {
+      const uploadUrl = getUploadUrl(candidate, key);
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': options?.contentType || 'application/octet-stream',
+        },
+        body: buffer,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        lastStatus = response.status;
+        lastBody = errorText.slice(0, 500);
+        lastBucket = candidate;
+        console.error(`[Storage] Upload failed bucket=${candidate} status=${response.status} body=${lastBody}`);
+        // 404 likely means wrong bucket name → try the next candidate.
+        if (response.status === 404 && candidate !== bucketCandidates[bucketCandidates.length - 1]) {
+          continue;
+        }
+        return {
+          success: false,
+          error: `Storage rejected the upload (bucket=${candidate}, status=${response.status}): ${lastBody.slice(0, 120) || "no body"}`,
+        };
+      }
+
+      const result = await response.json();
+      const downloadToken = result.downloadTokens || '';
+      const url = getDownloadUrl(candidate, key, downloadToken);
+
+      if (options?.metadata && Object.keys(options.metadata).length > 0) {
+        try {
+          const metadataUrl = getFileUrl(candidate, key);
+          await fetch(metadataUrl, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              metadata: {
+                userId,
+                originalFilename: filename,
+                uploadedAt: new Date().toISOString(),
+                ...options.metadata,
+              },
+            }),
+          });
+        } catch {
+          // Metadata update is non-critical
+        }
+      }
+
+      console.log(`[Storage] File uploaded: ${key} (bucket=${candidate})`);
+      return { success: true, key, url };
+    } catch (error: any) {
+      console.error(`[Storage] Upload threw on bucket=${candidate}:`, error?.message);
+      lastBucket = candidate;
+      lastBody = error?.message || "unknown";
+      // Network/runtime error — try the next bucket variant if any remain.
+      continue;
+    }
+  }
+
+  return {
+    success: false,
+    error: `All storage attempts failed (last bucket=${lastBucket}, status=${lastStatus || "n/a"}): ${lastBody.slice(0, 120) || "no body"}`,
+  };
 }
 
 export async function getFile(key: string): Promise<{ success: boolean; data?: Buffer; error?: string }> {
