@@ -23,6 +23,11 @@ const POLL_MS = 60_000;
 const FIRST_POPUP_DELAY_MS = 5_000;
 const WHATS_NEW_IDLE_MS = 800;
 const SESSION_DISMISS_KEY = "lifeos.session_dismissed_releases";
+// Persistent "I've seen this release's notes" key. Survives page reloads
+// so the WhatsNew modal doesn't re-fire before the 60s poll catches up
+// to the server-side notes_viewed ack. Keyed by release id, not version,
+// so a re-published release with the same version still counts as new.
+const NOTES_VIEWED_KEY = "lifeos.notes_viewed_releases";
 const BROADCAST_CHANNEL = "lifeos";
 
 interface LifeOSBroadcast {
@@ -97,6 +102,38 @@ function addSessionDismissed(releaseId: string) {
     sessionStorage.setItem(SESSION_DISMISS_KEY, JSON.stringify(Array.from(cur)));
   } catch {
     // sessionStorage may be disabled — silently ignore
+  }
+}
+
+// localStorage so this persists across reloads (sessionStorage would
+// reset on new-tab). The optimistic update + server ack also flips
+// status.latest_release.notes_viewed=true, but only after the next
+// /me/status poll round-trip — meanwhile a fast reload re-shows the
+// modal. This key short-circuits that.
+function hasViewedNotes(releaseId: string): boolean {
+  try {
+    const raw = localStorage.getItem(NOTES_VIEWED_KEY);
+    if (!raw) return false;
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) && arr.includes(releaseId);
+  } catch {
+    return false;
+  }
+}
+
+function markNotesViewed(releaseId: string) {
+  try {
+    const raw = localStorage.getItem(NOTES_VIEWED_KEY);
+    const arr: string[] = raw ? (JSON.parse(raw) as string[]) : [];
+    if (!arr.includes(releaseId)) {
+      arr.push(releaseId);
+      // Cap at 50 entries so we don't grow unbounded — only the most
+      // recent releases matter for the popup-suppression purpose.
+      while (arr.length > 50) arr.shift();
+      localStorage.setItem(NOTES_VIEWED_KEY, JSON.stringify(arr));
+    }
+  } catch {
+    // localStorage may be disabled — silently ignore
   }
 }
 
@@ -211,12 +248,18 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   }, [status]);
 
   // Drive WhatsNewModal — only when there's NO update pending AND there's
-  // a release the user hasn't seen yet.
+  // a release the user hasn't seen yet. Also short-circuit if localStorage
+  // says we've already viewed this release's notes (covers the gap where
+  // the server-side ack hasn't been re-fetched yet after a fast reload).
   useEffect(() => {
     if (!status || status.update_available) return;
     if (whatsNewShownRef.current) return;
     const r = status.latest_release;
     if (!r || r.notes_viewed) return;
+    if (hasViewedNotes(r.id)) {
+      whatsNewShownRef.current = true;
+      return;
+    }
     const t = window.setTimeout(() => {
       setWhatsNewOpen(true);
       whatsNewShownRef.current = true;
@@ -324,13 +367,17 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
       setWhatsNewOpen(false);
       return;
     }
+    const releaseId = status.latest_release.id;
+    // Persist the "I've seen this" flag BEFORE the network call so a
+    // fast reload mid-flight doesn't re-trigger the popup.
+    markNotesViewed(releaseId);
     setWhatsNewOpen(false);
     try {
       await fetch("/api/lifeos/me/ack", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ release_id: status.latest_release.id, state: "notes_viewed" }),
+        body: JSON.stringify({ release_id: releaseId, state: "notes_viewed" }),
       });
       // Optimistic local update so the badge clears immediately.
       setStatus((s) =>

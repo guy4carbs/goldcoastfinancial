@@ -132,7 +132,7 @@ export default function AgentApplication() {
         {currentStepId === "professional" && <StepProfessional form={form} set={set} errors={errors} inputStyle={inputStyle} labelStyle={labelStyle} />}
         {currentStepId === "questions" && <StepBackgroundQuestions answers={backgroundAnswers} setAnswers={setBackgroundAnswers} />}
         {currentStepId === "banking" && <StepBanking form={form} set={set} errors={errors} inputStyle={inputStyle} labelStyle={labelStyle} />}
-        {currentStepId === "eo" && <StepEOInsurance form={form} set={set} errors={errors} inputStyle={inputStyle} labelStyle={labelStyle} />}
+        {currentStepId === "eo" && <StepEOInsurance form={form} set={set} errors={errors} inputStyle={inputStyle} labelStyle={labelStyle} token={token || ""} />}
         {currentStepId === "trainings" && <StepTrainings form={form} set={set} errors={errors} inputStyle={inputStyle} labelStyle={labelStyle} />}
         {currentStepId === "signing" && <StepDocumentSigning token={token || ""} signing={signing} onSigned={handleSigned} />}
         {currentStepId === "review" && (

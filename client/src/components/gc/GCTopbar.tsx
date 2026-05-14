@@ -10,15 +10,19 @@ import type { ReactNode } from "react";
 
 const themeIcons: Record<GCThemeId, typeof Moon> = { "gc-dark": Moon, "gc-light": Sun, "gc-maroon": Palette };
 
+// 3x3 app grid. HCMS, Founders, Heritage are the lounges that ship today.
+// Ops Hub / Finance / Investors / Marketing are scaffolded but not ready for
+// founders to send agents into — locked with "coming soon" until they're
+// production-ready. Training + AI Council are always-locked future-state.
+// CRM was removed entirely (it duplicated the Heritage CRM affordance).
 const GC_APPS = [
   { id: "hcms", name: "HCMS", desc: "Agent Contracting", href: "/hcms", icon: Shield, available: true },
-  { id: "ops", name: "Ops Hub", desc: "Back-office Command", href: "/ops", icon: BarChart3, available: true },
-  { id: "finance", name: "Finance", desc: "Financial Operations", href: "/finance", icon: Wallet, available: true },
-  { id: "investors", name: "Investors", desc: "Investor Relations", href: "/investors/dashboard", icon: Landmark, available: true },
-  { id: "marketing", name: "Marketing", desc: "Growth Engine", href: "/marketing", icon: Megaphone, available: true },
+  { id: "ops", name: "Ops Hub", desc: "Back-office Command", href: "#", icon: Lock, available: false },
+  { id: "finance", name: "Finance", desc: "Financial Operations", href: "#", icon: Lock, available: false },
+  { id: "investors", name: "Investors", desc: "Investor Relations", href: "#", icon: Lock, available: false },
+  { id: "marketing", name: "Marketing", desc: "Growth Engine", href: "#", icon: Lock, available: false },
   { id: "founders", name: "Founders", desc: "Ownership Oversight", href: "/founders", icon: Crown, available: true },
   { id: "heritage", name: "Heritage", desc: "Agent CRM Login", href: "https://heritagels.org/agents/login", icon: Building2, available: true },
-  { id: "crm", name: "CRM", desc: "Customer Relations", href: "#", icon: Lock, available: false },
   { id: "training", name: "Training", desc: "Agent Academy", href: "#", icon: Lock, available: false },
   { id: "ai", name: "AI Council", desc: "Avatar Debate", href: "#", icon: Lock, available: false },
 ];
@@ -252,6 +256,21 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
                     }}>
                       {app.name}
                     </span>
+                    {!app.available && (
+                      <span style={{
+                        fontFamily: "var(--gc-font-body)",
+                        fontSize: 9,
+                        fontWeight: 500,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        color: "var(--gc-text-muted)",
+                        textAlign: "center",
+                        lineHeight: 1,
+                        marginTop: -2,
+                      }}>
+                        Coming soon
+                      </span>
+                    )}
                   </a>
                 ))}
               </div>
