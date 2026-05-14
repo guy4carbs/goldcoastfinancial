@@ -80,6 +80,13 @@ router.get("/pending", async (_req, res) => {
              ON ah.agent_user_id = u.id
             AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
       WHERE ap.approval_status IN ('pending_review','pending')
+        -- Hide invited-but-not-submitted users so founders don't see
+        -- placeholder rows for people they just sent an invite to. Once
+        -- the invitee opens the application and starts saving progress,
+        -- their onboarding_status transitions from 'invited' → 'in_progress'
+        -- and they appear here. Organic /apply/register users skip
+        -- 'invited' entirely and are visible immediately.
+        AND COALESCE(u.onboarding_status, '') NOT IN ('invited', '')
       ORDER BY ap.created_at DESC
     `);
     res.json(r.rows);

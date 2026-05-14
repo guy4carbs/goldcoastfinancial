@@ -143,7 +143,17 @@ export function generateSignedPdf(
 
     doc.moveDown(1);
 
-    // Embed signature image
+    // Embed the captured signature image if the SPA sent one. If not (older
+    // applications, canvas capture failed, etc.), fall back to a typed-name
+    // signature rendered in an italic script-feeling font so the document
+    // always shows SOMETHING legible instead of an empty yellow box.
+    const renderTypedFallback = () => {
+      const sigY = doc.y;
+      doc.font("Helvetica-Oblique").fontSize(28).fillColor(COLORS.sectionHeading)
+        .text(signerInfo.name, 60, sigY + 12, { width: 240, align: "left" });
+      doc.y = sigY + 60;
+    };
+
     if (signatureDataUrl) {
       try {
         const base64Data = signatureDataUrl.replace(/^data:image\/\w+;base64,/, "");
@@ -152,14 +162,10 @@ export function generateSignedPdf(
         doc.image(signatureBuffer, 60, sigY, { width: 200, height: 60 });
         doc.y = sigY + 65;
       } catch {
-        doc.font("Helvetica-Oblique").fontSize(9).fillColor(COLORS.lightGray)
-          .text("[Signature image could not be rendered]", 60, doc.y, { width: contentWidth });
-        doc.moveDown(1);
+        renderTypedFallback();
       }
     } else {
-      // Empty signature box
-      doc.rect(60, doc.y, 200, 60).fill("#FFFFCC");
-      doc.y += 65;
+      renderTypedFallback();
     }
 
     // Signature line
