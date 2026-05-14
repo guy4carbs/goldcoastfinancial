@@ -267,10 +267,25 @@ function encodeFirebasePath(filePath: string): string {
   return encodeURIComponent(filePath);
 }
 
-function getUploadUrl(bucket: string, filePath: string): string {
-  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodeFirebasePath(filePath)}`;
+// GCS direct REST API — canonical server-to-server upload pattern. Uses the
+// same Bearer token + the same bucket name, but talks to storage.googleapis.com
+// instead of firebasestorage.googleapis.com. The Firebase Storage wrapper
+// at firebasestorage.googleapis.com returns 404 for authenticated requests
+// against `.firebasestorage.app` buckets even when the SA has Storage Admin —
+// it's a wrapper meant primarily for Firebase Auth ID tokens, not GCS service
+// account tokens. The GCS direct endpoint bypasses the wrapper and goes
+// straight to the bucket via standard IAM, which actually works.
+function getGcsUploadUrl(bucket: string, filePath: string): string {
+  return `https://storage.googleapis.com/upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeFirebasePath(filePath)}`;
 }
 
+function getGcsObjectUrl(bucket: string, filePath: string): string {
+  return `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${encodeFirebasePath(filePath)}`;
+}
+
+// Firebase-style URLs retained for the legacy download-token download URL
+// returned to clients. The actual download path streams server-side via
+// `getFile()`, which uses the GCS endpoint — these are only for display.
 function getFileUrl(bucket: string, filePath: string): string {
   return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeFirebasePath(filePath)}`;
 }
@@ -333,7 +348,10 @@ export async function uploadFile(
 
   for (const candidate of bucketCandidates) {
     try {
-      const uploadUrl = getUploadUrl(candidate, key);
+      // GCS direct upload — the canonical server-to-server path. Works for
+      // both `.firebasestorage.app` and `.appspot.com` bucket names when the
+      // service account has Storage Object Admin (or Storage Admin).
+      const uploadUrl = getGcsUploadUrl(candidate, key);
       const headers: Record<string, string> = {
         'Content-Type': options?.contentType || 'application/octet-stream',
       };
@@ -360,16 +378,25 @@ export async function uploadFile(
         };
       }
 
+      // GCS returns object metadata (mediaLink, selfLink, etc.) on success.
+      // The Firebase-style downloadTokens URL is no longer minted by GCS, so
+      // the returned `url` field is the GCS mediaLink — server-side downloads
+      // via getFile(key) work unchanged because they re-fetch by key.
       const result = await response.json();
-      const downloadToken = result.downloadTokens || '';
-      const url = getDownloadUrl(candidate, key, downloadToken);
+      const url =
+        result.mediaLink ||
+        `https://storage.googleapis.com/${candidate}/${encodeFirebasePath(key)}`;
 
       if (options?.metadata && Object.keys(options.metadata).length > 0) {
         try {
-          const metadataUrl = getFileUrl(candidate, key);
+          // GCS metadata PATCH uses a different URL than the Firebase wrapper.
+          const metadataUrl = getGcsObjectUrl(candidate, key);
           await fetch(metadataUrl, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(tokenResult.token ? { Authorization: `Bearer ${tokenResult.token}` } : {}),
+            },
             body: JSON.stringify({
               metadata: {
                 userId,
@@ -384,7 +411,7 @@ export async function uploadFile(
         }
       }
 
-      console.log(`[Storage] File uploaded: ${key} (bucket=${candidate})`);
+      console.log(`[Storage] File uploaded: ${key} (bucket=${candidate}, via GCS)`);
       return { success: true, key, url };
     } catch (error: any) {
       console.error(`[Storage] Upload threw on bucket=${candidate}:`, error?.message);
@@ -408,8 +435,11 @@ export async function getFile(key: string): Promise<{ success: boolean; data?: B
   }
 
   try {
-    const url = `${getFileUrl(bucket, key)}?alt=media`;
-    const response = await fetch(url);
+    const url = `${getGcsObjectUrl(bucket, key)}?alt=media`;
+    const tokenResult = await getStorageAccessToken();
+    const headers: Record<string, string> = {};
+    if (tokenResult.token) headers['Authorization'] = `Bearer ${tokenResult.token}`;
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       return { success: false, error: `Failed to get file: ${response.status}` };
@@ -430,8 +460,11 @@ export async function deleteFile(key: string): Promise<{ success: boolean; error
   }
 
   try {
-    const url = getFileUrl(bucket, key);
-    const response = await fetch(url, { method: 'DELETE' });
+    const url = getGcsObjectUrl(bucket, key);
+    const tokenResult = await getStorageAccessToken();
+    const headers: Record<string, string> = {};
+    if (tokenResult.token) headers['Authorization'] = `Bearer ${tokenResult.token}`;
+    const response = await fetch(url, { method: 'DELETE', headers });
 
     if (!response.ok && response.status !== 404) {
       return { success: false, error: `Failed to delete: ${response.status}` };
@@ -450,8 +483,11 @@ export async function fileExists(key: string): Promise<boolean> {
   if (!bucket) return false;
 
   try {
-    const url = getFileUrl(bucket, key);
-    const response = await fetch(url);
+    const url = getGcsObjectUrl(bucket, key);
+    const tokenResult = await getStorageAccessToken();
+    const headers: Record<string, string> = {};
+    if (tokenResult.token) headers['Authorization'] = `Bearer ${tokenResult.token}`;
+    const response = await fetch(url, { headers });
     return response.ok;
   } catch {
     return false;

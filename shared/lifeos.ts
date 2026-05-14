@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.31";
+export const LIFEOS_VERSION = "1.0.32";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,14 +34,17 @@ export const LIFEOS_VERSION = "1.0.31";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Robust service-account credential parsing";
+export const LIFEOS_RELEASE_TITLE = "Uploads via GCS direct REST API";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Storage auth now accepts the service-account JSON in any format Railway's env-var system might mangle it into — raw, base64-encoded, or with literal-newline-broken private_key fields. The diagnostic endpoint surfaces the exact parse error so operators can see what went wrong.";
+  "Document uploads now use the canonical Google Cloud Storage REST endpoint (storage.googleapis.com) instead of the Firebase Storage wrapper (firebasestorage.googleapis.com), which was returning 404 for authenticated server-to-server requests against .firebasestorage.app buckets.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Three-tier credential parser.** \`GOOGLE_APPLICATION_CREDENTIALS_JSON\` is now parsed with three fallbacks: raw JSON, base64-decoded JSON, and a newline-repair pass for hosts that mangle the \`private_key\` field. Whichever format you paste, it parses.
-- **Diagnostic endpoint now surfaces the real parse error.** \`/api/hcms/agents/_debug/storage-auth\` returns \`creds_parse_error\`, \`creds_inline_length\`, and \`service_account_email\` so operators can see whether the issue is a mangled paste, a missing IAM role, or something else entirely.
-- **Better hints in the diagnostic response.** The \`hint\` field now points to the specific next action — base64-encoding the JSON, granting an IAM role, or checking bucket Rules — based on which failure mode the diagnostic detected.`;
+- **Switched uploads to the canonical GCS REST API.** The Firebase Storage wrapper at \`firebasestorage.googleapis.com\` accepts Bearer tokens but inexplicably returns 404 for authenticated writes against modern \`.firebasestorage.app\` buckets. The GCS direct endpoint at \`storage.googleapis.com/upload/storage/v1/b/<bucket>/o\` uses standard IAM and works reliably — same Bearer token, same bucket, same path.
+- **getFile / deleteFile / fileExists also routed through GCS.** All four storage operations now use the same authenticated GCS endpoint, so reads and deletes work consistently with writes.
+
+## What changed for operators
+
+Nothing — same service account, same env vars, same bucket Rules. The change is purely the API endpoint the server talks to under the hood. Existing files at their existing keys continue to work.`;
 
 
 /**
