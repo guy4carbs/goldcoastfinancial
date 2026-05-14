@@ -121,6 +121,7 @@ router.get("/me", async (req, res) => {
         driversLicenseKey: profile.drivers_license_s3_key,
         amlCertificateKey: profile.aml_certificate_s3_key,
         directDepositFormKey: profile.direct_deposit_form_s3_key,
+        ownerPhotos: profile.owner_photos_json || [],
         backgroundAnswers: profile.background_answers ? (typeof profile.background_answers === "string" ? JSON.parse(profile.background_answers) : profile.background_answers) : [],
       },
       checklist: {

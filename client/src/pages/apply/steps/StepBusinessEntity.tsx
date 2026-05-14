@@ -4,6 +4,7 @@ import { CustomSelect } from "./StepAddress";
 import { US_STATES } from "../applicationSchema";
 import { AddressAutocomplete } from "../components/AddressAutocomplete";
 import { FileUploadZone } from "../components/FileUploadZone";
+import { useApplyUpload } from "../hooks/useApplyUpload";
 
 export interface Owner {
   id: string;
@@ -54,6 +55,7 @@ function formatSSN(raw: string): string {
 export function StepBusinessEntity({ form, set, errors, inputStyle, labelStyle, token }: Props) {
   const stateOptions = US_STATES.map(s => ({ value: s, label: s }));
   const owners: Owner[] = form.owners || [];
+  const { upload, uploading, error: uploadError } = useApplyUpload(token);
 
   // Auto-populate first owner from personal info on mount
   useEffect(() => {
@@ -98,9 +100,13 @@ export function StepBusinessEntity({ form, set, errors, inputStyle, labelStyle, 
   };
 
   const handlePhotoUpload = async (ownerId: string, file: File) => {
-    // For now, just mark as uploaded with filename — real upload happens at document uploads step
-    updateOwner(ownerId, "photoIdFile", file.name);
-    updateOwner(ownerId, "photoIdUploaded", true);
+    // Owner photo IDs persist to agent_profiles.owner_photos_json on the
+    // server. Each owner's upload is keyed by ownerId so multiple owners
+    // can have separate photos without colliding.
+    if (await upload("owner_photo", file, { ownerId })) {
+      updateOwner(ownerId, "photoIdFile", file.name);
+      updateOwner(ownerId, "photoIdUploaded", true);
+    }
   };
 
   return (
@@ -156,28 +162,18 @@ export function StepBusinessEntity({ form, set, errors, inputStyle, labelStyle, 
         <div>
           <div style={{ fontSize: "var(--gc-text-xs)", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--gc-gold)", fontWeight: 600, marginBottom: "var(--gc-space-2)" }}>Articles of Incorporation</div>
           <FileUploadZone
-            label="Upload Articles of Incorporation"
+            label={uploading === "articles" ? "Uploading..." : "Upload Articles of Incorporation"}
             accept=".pdf,.jpg,.jpeg,.png"
             uploaded={form.articlesUploaded || false}
             fileName={form.articlesFileName}
-            onUpload={file => {
-              set("articlesFileName", file.name);
-              if (token) {
-                const reader = new FileReader();
-                reader.onload = async () => {
-                  const base64 = (reader.result as string).split(",")[1];
-                  const resp = await fetch("/api/apply/upload", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ token, documentType: "articles", fileName: file.name, fileData: base64, mimeType: file.type, fileSize: file.size }),
-                  });
-                  if (resp.ok) set("articlesUploaded", true);
-                };
-                reader.readAsDataURL(file);
-              } else {
+            onUpload={async file => {
+              if (await upload("articles", file)) {
                 set("articlesUploaded", true);
+                set("articlesFileName", file.name);
               }
             }}
           />
+          {uploadError && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)", marginTop: 4, display: "block" }}>{uploadError}</span>}
           {errors.articlesUploaded && <span style={{ fontSize: "var(--gc-text-xs)", color: "var(--gc-status-terminated)" }}>{errors.articlesUploaded}</span>}
         </div>
 

@@ -669,10 +669,13 @@ router.post("/sign/:documentType", async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 router.post("/upload", async (req, res) => {
   try {
-    const { token, documentType, fileName, fileData, mimeType, fileSize } = req.body;
+    const { token, documentType, fileName, fileData, mimeType, fileSize, ownerId } = req.body;
 
     if (!token || !documentType || !fileData) {
       return res.status(400).json({ error: "Token, documentType, and fileData required" });
+    }
+    if (documentType === "owner_photo" && (!ownerId || typeof ownerId !== "string")) {
+      return res.status(400).json({ error: "owner_photo requires ownerId" });
     }
 
     const profile = await findByToken(token);
@@ -703,6 +706,50 @@ router.post("/upload", async (req, res) => {
       direct_deposit: "direct_deposit_form_s3_key",
       articles: "articles_s3_key",
     };
+
+    // Owner photo IDs use a per-owner JSONB array (agent_profiles.owner_photos_json)
+    // instead of a single column, since a business entity can have multiple
+    // owners and each one needs its own photo keyed by ownerId.
+    if (documentType === "owner_photo") {
+      try {
+        // Filter out any existing entry for this ownerId (so re-uploads
+        // replace, not duplicate), then append the new entry.
+        const r = await pool.query(
+          `UPDATE agent_profiles
+              SET owner_photos_json = (
+                SELECT COALESCE(jsonb_agg(e), '[]'::jsonb)
+                  FROM jsonb_array_elements(COALESCE(owner_photos_json, '[]'::jsonb)) e
+                 WHERE e->>'ownerId' <> $3
+              ) || jsonb_build_array(jsonb_build_object(
+                'ownerId', $3::text,
+                's3Key', $1::text,
+                'fileName', $4::text,
+                'uploadedAt', NOW()
+              )),
+                  updated_at = NOW()
+            WHERE user_id::text = $2`,
+          [result.key, profile.uid, ownerId, fileName || `${ownerId}.jpg`],
+        );
+        if (!r.rowCount || r.rowCount === 0) {
+          // No agent_profiles row yet — create one carrying just this photo.
+          await pool.query(
+            `INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at, owner_photos_json, updated_at)
+             VALUES ($1, 'pending_review', 1, $2, NOW() + INTERVAL '30 days',
+                     jsonb_build_array(jsonb_build_object('ownerId', $3::text, 's3Key', $4::text, 'fileName', $5::text, 'uploadedAt', NOW())),
+                     NOW())`,
+            [profile.uid, token, ownerId, result.key, fileName || `${ownerId}.jpg`],
+          );
+        }
+        return res.json({ success: true, key: result.key, url: result.url, persisted: true });
+      } catch (pgErr: any) {
+        console.error(`[Apply] /upload owner_photo persist error for user=${profile.uid} owner=${ownerId}:`, pgErr?.code, pgErr?.message);
+        return res.status(500).json({
+          error: `Failed to save owner photo (${pgErr?.code || "DB"})`,
+          detail: pgErr?.message?.slice(0, 200),
+          uploadedKey: result.key,
+        });
+      }
+    }
 
     const column = columnMap[documentType];
     let persisted = false;

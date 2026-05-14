@@ -363,6 +363,7 @@ router.get("/:userId", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
         articlesKey: r.articles_s3_key,
         eoCertificateKey: r.eo_certificate_s3_key, driversLicenseKey: r.drivers_license_s3_key,
         amlCertificateKey: r.aml_certificate_s3_key, directDepositFormKey: r.direct_deposit_form_s3_key,
+        ownerPhotos: r.owner_photos_json || [],
         backgroundAnswers: r.background_answers ? (typeof r.background_answers === "string" ? JSON.parse(r.background_answers) : r.background_answers) : [],
       },
       checklist: {

@@ -538,6 +538,10 @@ export async function initializeDatabase() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_approval_status ON agent_profiles (approval_status);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_onboarding_token ON agent_profiles (onboarding_token);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_agent_profiles_onboarding_type ON agent_profiles (onboarding_type);`);
+    // Per-owner photo IDs for business-entity applicants. Stored as a JSONB
+    // array of { ownerId, s3Key, fileName, uploadedAt } so multiple owners
+    // can each have their own photo without colliding on a fixed column.
+    await client.query(`ALTER TABLE agent_profiles ADD COLUMN IF NOT EXISTS owner_photos_json JSONB DEFAULT '[]'::jsonb;`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS user_lounge_access (
