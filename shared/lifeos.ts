@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.28";
+export const LIFEOS_VERSION = "1.0.29";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,17 +34,17 @@ export const LIFEOS_VERSION = "1.0.28";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Storage bucket fallback fixes 404 uploads";
+export const LIFEOS_RELEASE_TITLE = "Authenticated document uploads to Firebase Storage";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Application uploads were failing with 'Upload failed: 404' because the Firebase Storage bucket env var had the wrong format. The service now tries both bucket-name variants automatically.";
+  "Application uploads were getting 404'd by Firebase because they weren't authenticated. The server now signs uploads with the existing Google service account so every document persists.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Application uploads work again.** Firebase Storage rejected our upload URL with 404 because the bucket env var was using the wrong domain format. The storage helper now tries both \`.firebasestorage.app\` and \`.appspot.com\` automatically, so the upload lands no matter which format the env var has.
-- **Better diagnostics on storage failures.** If both bucket variants fail, the error message now includes the bucket name, status code, and Firebase response body so we can fix it quickly instead of guessing.
+- **Service-account-authenticated uploads.** Firebase Storage was returning 404 because the upload URL was unauthenticated and the bucket's rules don't allow public writes. The server now mints a Google access token from \`GOOGLE_APPLICATION_CREDENTIALS_JSON\` and passes it as a Bearer token on every upload. The same credentials power our KMS + Secret Manager integrations, so no new env vars are needed.
+- **Bucket-format fallback retained.** If the configured bucket is \`.appspot.com\` and Firebase migrated it to \`.firebasestorage.app\` (or vice versa), the service tries both variants automatically.
 
 ## Heads up
 
-If you tried to upload a Direct Deposit / AML / Gov ID / E&O cert during the application and it failed, retry now — it should land in your HCMS profile.`;
+If a future storage failure surfaces, the error response now includes the bucket name, HTTP status, and the actual Firebase response body — much easier to diagnose than a bare "Upload failed."`;
 
 
 /**

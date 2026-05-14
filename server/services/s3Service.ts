@@ -1,10 +1,18 @@
 /**
  * Document Storage Service
- * Uses Firebase Storage REST API (no service account needed)
- * Same interface as the original S3 service — all callers work unchanged
+ * Uses Firebase Storage REST API authenticated with the same Google service
+ * account credentials the rest of the server uses for KMS / Secret Manager
+ * (GOOGLE_APPLICATION_CREDENTIALS_JSON). Same interface as the original S3
+ * service — all callers work unchanged.
+ *
+ * Unauthenticated upload attempts (the old behavior) get 404'd by the
+ * Firebase Storage REST API for buckets that haven't relaxed their rules,
+ * which is the case for our project. Bearer-token auth via the service
+ * account is the canonical server-to-server pattern.
  */
 import crypto from 'crypto';
 import path from 'path';
+import { GoogleAuth } from 'google-auth-library';
 
 // =============================================================================
 // FIREBASE STORAGE CONFIG
@@ -16,6 +24,38 @@ function getStorageBucket(): string | null {
 
 function getApiKey(): string | null {
   return process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || null;
+}
+
+// Cached GoogleAuth client + access token. The token has a ~1h TTL; the
+// GoogleAuth client refreshes it automatically on each getAccessToken() call.
+let _authClient: GoogleAuth | null = null;
+function getAuthClient(): GoogleAuth {
+  if (_authClient) return _authClient;
+  const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const opts: any = {
+    scopes: ['https://www.googleapis.com/auth/devstorage.read_write'],
+  };
+  if (credsJson) {
+    try {
+      opts.credentials = JSON.parse(credsJson);
+    } catch (e: any) {
+      console.error('[Storage] GOOGLE_APPLICATION_CREDENTIALS_JSON parse failed:', e?.message);
+    }
+  }
+  _authClient = new GoogleAuth(opts);
+  return _authClient as GoogleAuth;
+}
+
+async function getStorageAccessToken(): Promise<string | null> {
+  try {
+    const auth = getAuthClient();
+    const token = await auth.getAccessToken();
+    return typeof token === 'string' ? token : null;
+  } catch (e: any) {
+    console.error('[Storage] Failed to get access token:', e?.message);
+    return null;
+  }
 }
 
 // =============================================================================
@@ -152,6 +192,15 @@ export async function uploadFile(
   let lastBody = "";
   let lastBucket = bucket;
 
+  const accessToken = await getStorageAccessToken();
+  if (!accessToken) {
+    return {
+      success: false,
+      error:
+        'Storage authentication not available — server is missing GOOGLE_APPLICATION_CREDENTIALS_JSON or the service account lacks the devstorage.read_write scope.',
+    };
+  }
+
   for (const candidate of bucketCandidates) {
     try {
       const uploadUrl = getUploadUrl(candidate, key);
@@ -159,6 +208,7 @@ export async function uploadFile(
         method: 'POST',
         headers: {
           'Content-Type': options?.contentType || 'application/octet-stream',
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: buffer,
       });
