@@ -264,17 +264,20 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
     }
 
     res.json(result.rows.map((r: any) => {
-      // Display founder + owner as the Gold Coast brand entity rather than
-      // their personal name (Gaetano gets shown as "Gold Coast Financial
-      // Partners LLC" in upline pickers, matching the hierarchy graph).
-      const isBrandTier = r.role === "owner" || r.role === "founder";
-      const firstName = isBrandTier ? "Gold Coast Financial Partners LLC" : r.first_name;
-      const lastName = isBrandTier ? "" : r.last_name;
+      // Always return the real person's name. Earlier this endpoint
+      // rewrote founder/owner rows to "Gold Coast Financial Partners LLC",
+      // which collapsed every senior person into the same label and made
+      // the upline picker show "Gold Coast Financial Partners LLC (120%)"
+      // for every founder — unselectable in practice. The picker needs
+      // real names so multiple founders/owners can be distinguished.
+      const firstName = (r.first_name || "").trim();
+      const lastName = (r.last_name || "").trim();
+      const displayName = `${firstName} ${lastName}`.trim() || r.email;
       return {
         id: r.id,
         firstName,
         lastName,
-        displayName: isBrandTier ? firstName : `${firstName} ${lastName}`.trim(),
+        displayName,
         email: r.email,
         role: r.role,
         contractLevel: parseFloat(r.contract_level),
