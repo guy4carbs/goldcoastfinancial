@@ -18,8 +18,9 @@ interface Upline {
   id: string;
   firstName: string;
   lastName: string;
-  /** Server-resolved display label — collapses owner role to the legal entity name. */
+  /** Server-resolved display label. */
   displayName?: string;
+  email?: string;
   role?: string;
   contractLevel: number;
   title?: string;
