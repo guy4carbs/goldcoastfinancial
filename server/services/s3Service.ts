@@ -26,9 +26,80 @@ function getApiKey(): string | null {
   return process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || null;
 }
 
+// Parse the service-account JSON out of the env var. Hosting platforms
+// frequently mangle the raw JSON — Railway/Heroku in particular tend to
+// strip the literal `\n` escapes inside the private_key string, leaving
+// real newlines that break `JSON.parse`. We accept three formats so the
+// operator's first paste works regardless:
+//   1. Raw JSON (`{"type":"service_account",...}`)
+//   2. Base64-encoded JSON (recommended for hostile env-var systems)
+//   3. Raw JSON with literal newlines inside private_key — we repair it
+//
+// Returns the parsed credentials object or null, plus a parseError for
+// the diagnostic endpoint so operators can see exactly what went wrong.
+function parseServiceAccountCreds(raw: string): {
+  creds: Record<string, unknown> | null;
+  parseError: string | null;
+} {
+  const tried: string[] = [];
+
+  // 1. Direct parse — the happy path.
+  try {
+    const obj = JSON.parse(raw);
+    if (obj && typeof obj === 'object' && obj.type === 'service_account') {
+      return { creds: obj, parseError: null };
+    }
+    tried.push('direct: parsed but not a service_account object');
+  } catch (e: any) {
+    tried.push(`direct: ${e?.message || 'parse failed'}`);
+  }
+
+  // 2. Base64-decode then parse — recommended when the platform mangles
+  // newlines or quotes. Detect by checking the string only contains
+  // base64-safe chars.
+  if (/^[A-Za-z0-9+/=\s]+$/.test(raw)) {
+    try {
+      const decoded = Buffer.from(raw.replace(/\s/g, ''), 'base64').toString('utf-8');
+      const obj = JSON.parse(decoded);
+      if (obj && typeof obj === 'object' && obj.type === 'service_account') {
+        return { creds: obj, parseError: null };
+      }
+      tried.push('base64: parsed but not a service_account object');
+    } catch (e: any) {
+      tried.push(`base64: ${e?.message || 'decode/parse failed'}`);
+    }
+  } else {
+    tried.push('base64: skipped (contains non-base64 chars)');
+  }
+
+  // 3. Repair literal newlines inside the private_key field. When the env
+  // var system replaces `\n` with actual newlines, the JSON parser chokes
+  // because raw newlines aren't valid inside JSON string literals. Re-escape
+  // them and try again.
+  try {
+    const repaired = raw.replace(
+      /"private_key"\s*:\s*"([^"]*?)"/,
+      (_match, body: string) => {
+        const escaped = body.replace(/\r?\n/g, '\\n');
+        return `"private_key":"${escaped}"`;
+      },
+    );
+    const obj = JSON.parse(repaired);
+    if (obj && typeof obj === 'object' && obj.type === 'service_account') {
+      return { creds: obj, parseError: null };
+    }
+    tried.push('repair: parsed but not a service_account object');
+  } catch (e: any) {
+    tried.push(`repair: ${e?.message || 'parse failed'}`);
+  }
+
+  return { creds: null, parseError: tried.join(' | ') };
+}
+
 // Cached GoogleAuth client + access token. The token has a ~1h TTL; the
 // GoogleAuth client refreshes it automatically on each getAccessToken() call.
 let _authClient: GoogleAuth | null = null;
+let _credsParseError: string | null = null;
 function getAuthClient(): GoogleAuth {
   if (_authClient) return _authClient;
   const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
@@ -37,10 +108,12 @@ function getAuthClient(): GoogleAuth {
     scopes: ['https://www.googleapis.com/auth/devstorage.read_write'],
   };
   if (credsJson) {
-    try {
-      opts.credentials = JSON.parse(credsJson);
-    } catch (e: any) {
-      console.error('[Storage] GOOGLE_APPLICATION_CREDENTIALS_JSON parse failed:', e?.message);
+    const { creds, parseError } = parseServiceAccountCreds(credsJson);
+    if (creds) {
+      opts.credentials = creds;
+    } else {
+      _credsParseError = parseError;
+      console.error('[Storage] GOOGLE_APPLICATION_CREDENTIALS_JSON parse failed:', parseError);
     }
   }
   _authClient = new GoogleAuth(opts);
@@ -68,7 +141,9 @@ async function getStorageAccessToken(): Promise<AccessTokenResult> {
 // Public diagnostic — returns auth state WITHOUT exposing the token or
 // credential JSON. Used by the founder-only /api/admin/_debug/storage-auth
 // endpoint so we can see whether the service-account env var is actually
-// present + usable in production.
+// present + usable in production. Surfaces the JSON parse error separately
+// from the token-mint error so operators can tell whether the issue is a
+// mangled paste (parse_error) vs missing IAM role (token_error).
 export async function probeStorageAuth(): Promise<{
   credentials_inline_present: boolean;
   credentials_path_present: boolean;
@@ -76,12 +151,27 @@ export async function probeStorageAuth(): Promise<{
   api_key_present: boolean;
   can_get_token: boolean;
   token_error: string | null;
+  creds_parse_error: string | null;
+  creds_inline_length: number;
+  service_account_email: string | null;
 }> {
-  const credsInline = !!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  const rawCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON || '';
+  const credsInline = !!rawCreds;
   const credsPath = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const bucket = !!getStorageBucket();
   const apiKey = !!getApiKey();
+  // Warm up the auth client so _credsParseError gets populated.
+  getAuthClient();
   const result = await getStorageAccessToken();
+  // Re-parse to extract the service account email for the diagnostic. Email
+  // is safe to expose; private_key + token are not.
+  let saEmail: string | null = null;
+  if (rawCreds) {
+    const { creds } = parseServiceAccountCreds(rawCreds);
+    if (creds && typeof creds.client_email === 'string') {
+      saEmail = creds.client_email;
+    }
+  }
   return {
     credentials_inline_present: credsInline,
     credentials_path_present: credsPath,
@@ -89,6 +179,9 @@ export async function probeStorageAuth(): Promise<{
     api_key_present: apiKey,
     can_get_token: !!result.token,
     token_error: result.errorMessage,
+    creds_parse_error: _credsParseError,
+    creds_inline_length: rawCreds.length,
+    service_account_email: saEmail,
   };
 }
 
