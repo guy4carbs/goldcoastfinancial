@@ -113,6 +113,11 @@ const HIGH_TRUST_2FA_ROLES = new Set<string>([
 ]);
 
 // Endpoints exempt from the 2FA gate so a user can actually enroll/verify.
+// Also exempts the lifeOS status + ack endpoints — they're informational
+// (release notes + a per-user "I saw this" flag), not sensitive, and the
+// LifeOSUpdateProvider polls them to decide whether to show the WhatsNew or
+// Update Available popups. If those polls 403 before 2FA verification, no
+// modal ever fires for high-trust users on a fresh session.
 const TWO_FA_EXEMPT_PATHS = [
   '/api/auth/2fa/enroll/begin',
   '/api/auth/2fa/enroll/verify',
@@ -126,6 +131,8 @@ const TWO_FA_EXEMPT_PATHS = [
   '/api/auth/logout',
   '/api/auth/user',
   '/api/csrf-token',
+  '/api/lifeos/me/status',
+  '/api/lifeos/me/ack',
 ];
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {

@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.35";
+export const LIFEOS_VERSION = "1.0.36";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,17 +35,16 @@ export const LIFEOS_VERSION = "1.0.35";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Heritage backports the lifeOS release machinery";
+export const LIFEOS_RELEASE_TITLE = "What's New + Update Available modals now fire for everyone";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Heritage now auto-publishes release notes on every version bump, surfaces the What's New modal once per release per user, and stays in version lockstep with the Gold Coast app.";
+  "Exempts the lifeOS status + ack endpoints from Heritage's 2FA gate so high-trust users (founders, owners, managers, agents) actually see the popups on first sign-in. Previously the polls 403'd before 2FA verified and the modal silently never opened.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Auto-published release notes.** Every Heritage deploy now seeds a row in \`lifeos_releases\` from the constants in this file, so the What's New modal has real content to show on first sign-in after an update. Same pipeline Gold Coast has used for the last 15 patches.
-- **Locked-down lounges.** Finance, Marketing, AI, Manager, Director, Support, Executive, and Investor are now marked "Coming Soon" — only Agent, Admin, Gold Coast, and the Lobby itself are clickable. This is the soft-launch lounge set while the rest are still being built.
+- **WhatsNew + Update Available modals now reach high-trust users.** Heritage's 2FA gate was blocking \`/api/lifeos/me/status\` and \`/api/lifeos/me/ack\` for founders, owners, managers, agents, and other elevated roles before they completed 2FA on a session. The provider polled, got 403, silently failed, and no modal ever opened. Both endpoints are now in the exempt list — they're informational (release notes + a per-user "I saw this" flag), not sensitive, so the popup affordances finally work for everyone.
 
 ## Heads up
 
-This is the catch-up release that brings Heritage from 1.0.0 → 1.0.35 in one jump. Future bumps will roll out one patch at a time alongside Gold Coast.`;
+If you didn't see the What's New popup for 1.0.35, that's why. It'll fire on your next sign-in after this deploys (1.0.36) with the cumulative notes.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
