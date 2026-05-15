@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.39";
+export const LIFEOS_VERSION = "1.0.40";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,14 @@ export const LIFEOS_VERSION = "1.0.39";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "HCMS Agent Directory now shows legacy 'manager' role too";
+export const LIFEOS_RELEASE_TITLE = "First-time 2FA enrollment now works on every device";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Fully-onboarded agents invited with the legacy 'manager' role (the alias for 'agency_manager') were silently excluded from HCMS Agent Directory. Both names now surface side-by-side, so every contracted user appears regardless of which spelling the invite flow happened to assign.";
+  "Two long-standing bugs were blocking 2FA enrollment for new users: the email-code endpoint was gated behind the 2FA gate it was meant to let users past, and the Touch ID / Face ID prompt auto-fired on page mount, which iOS Safari rejects. Both fixed.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Legacy 'manager' role now visible in HCMS.** The Agent Directory + stats queries only accepted the canonical \`agency_manager\` role, but invite flows still write the legacy \`manager\` alias for some users. Those agents finished the entire application — uploaded every document, signed every form — and never appeared in the directory. Both spellings are now accepted (matching the pattern already in \`hcms-hierarchy.ts\`), so every contracted user surfaces correctly.`;
+- **Email-code 2FA enrollment works again.** \`/api/auth/2fa/email/enroll/begin\` and \`/enroll/verify\` were missing from the 2FA-exempt path list, so the very endpoint a first-time user needs to enroll in email-code 2FA was blocked by the 2FA gate they were trying to clear. A circular error ("Couldn't send code. 2FA enrollment required") is now gone — first-time users can request a code and enroll cleanly.
+- **Touch ID / Face ID enrollment + verify works on iPhone.** The 2FA enroll + verify pages used to auto-fire \`navigator.credentials.create()\` 250ms after mount, but iOS Safari 16+ requires WebAuthn to be called synchronously inside a user gesture (a tap), so it returned NotAllowedError every time. Both pages now render the Touch ID button as a tap-to-trigger CTA — the user gesture satisfies the requirement and the platform sheet shows up correctly on iPhone.
+- **Friendlier error copy.** When Touch ID rejects with NotAllowedError, the toast now nudges users toward the email-code fallback in plain language instead of surfacing the raw browser string.`;
 
 
 /**
