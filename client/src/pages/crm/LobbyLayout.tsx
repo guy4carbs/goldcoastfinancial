@@ -37,6 +37,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
+import {
+  FOUNDERS_ONLY,
+  ADMIN_PLUS,
+  DIRECTOR_PLUS,
+  MANAGER_PLUS,
+  ALL_AUTHENTICATED,
+} from '@/lib/roleTiers';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/tour/NotificationBell";
@@ -87,7 +94,7 @@ const lounges: LoungeItem[] = [
     href: "/agents/dashboard",
     gradient: "from-violet-500 to-purple-600",
     description: "Leads, quotes, pipeline",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent', 'client'],
+    requiredRoles: [...ALL_AUTHENTICATED],
   },
   {
     id: 'finance',
@@ -96,7 +103,7 @@ const lounges: LoungeItem[] = [
     href: "/finance/dashboard",
     gradient: "from-blue-800 to-blue-950",
     description: "Commissions, revenue",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -106,7 +113,7 @@ const lounges: LoungeItem[] = [
     href: "/marketing/dashboard",
     gradient: "from-rose-500 to-pink-600",
     description: "Campaigns, content",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
+    requiredRoles: [...ADMIN_PLUS, 'marketing_staff'],
     comingSoon: true,
   },
   {
@@ -116,7 +123,7 @@ const lounges: LoungeItem[] = [
     href: "/ai/dashboard",
     gradient: "from-cyan-500 to-blue-600",
     description: "AI agents, automation",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    requiredRoles: [...ADMIN_PLUS],
     comingSoon: true,
   },
   {
@@ -126,7 +133,7 @@ const lounges: LoungeItem[] = [
     href: "/manager/dashboard",
     gradient: "from-emerald-500 to-emerald-700",
     description: "Team oversight",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    requiredRoles: [...MANAGER_PLUS],
     comingSoon: true,
   },
   {
@@ -136,7 +143,7 @@ const lounges: LoungeItem[] = [
     href: "/manager/director",
     gradient: "from-blue-700 to-slate-900",
     description: "Multi-team oversight",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    requiredRoles: [...DIRECTOR_PLUS],
     comingSoon: true,
   },
   {
@@ -146,7 +153,7 @@ const lounges: LoungeItem[] = [
     href: "/support/dashboard",
     gradient: "from-gray-700 to-gray-900",
     description: "Tickets, help desk",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    requiredRoles: [...MANAGER_PLUS],
     comingSoon: true,
   },
   {
@@ -156,7 +163,7 @@ const lounges: LoungeItem[] = [
     href: "/executive/dashboard",
     gradient: "from-orange-500 to-orange-700",
     description: "KPIs, forecasting",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'investor'],
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -166,7 +173,7 @@ const lounges: LoungeItem[] = [
     href: "/admin",
     gradient: "from-slate-500 to-blue-700",
     description: "System settings",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    requiredRoles: [...ADMIN_PLUS],
   },
   {
     id: 'investor',
@@ -175,7 +182,7 @@ const lounges: LoungeItem[] = [
     href: "/investor/dashboard",
     gradient: "from-amber-500 to-yellow-600",
     description: "KPIs & dashboards",
-    requiredRoles: ['founder', 'director', 'owner', 'investor'],
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -185,7 +192,10 @@ const lounges: LoungeItem[] = [
     href: '#GOLD_COAST_PLACEHOLDER#',
     gradient: "from-amber-600 to-orange-700",
     description: "Founders Lounge ↗",
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
+    // Strict founder only — gcf's FoundersOnly route component blocks
+    // everyone else, so the link should match. No point showing it to
+    // someone who'll just get redirected away on click.
+    requiredRoles: [...FOUNDERS_ONLY],
     external: true,
   },
 ];

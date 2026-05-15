@@ -41,6 +41,13 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
+import {
+  FOUNDERS_ONLY,
+  ADMIN_PLUS,
+  DIRECTOR_PLUS,
+  MANAGER_PLUS,
+  ALL_AUTHENTICATED,
+} from '@/lib/roleTiers';
 import { LobbyConcierge } from '@/components/crm/LobbyConcierge';
 
 // =============================================================================
@@ -95,7 +102,9 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Users,
     gradient: 'from-violet-500 to-purple-600',
     path: '/agents/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent', 'client'],
+    // Agent Lounge surfaces every signed-in user's own onboarding +
+    // self-service. Sales agents, clients, managers, founders all need it.
+    requiredRoles: [...ALL_AUTHENTICATED],
   },
   {
     id: 'finance',
@@ -104,7 +113,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: DollarSign,
     gradient: 'from-blue-800 to-blue-950',
     path: '/finance/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
+    // Admin tier + investors (commissions reporting).
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -114,7 +124,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Megaphone,
     gradient: 'from-rose-500 to-pink-600',
     path: '/marketing/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
+    // Admin tier + marketing_staff (campaign + content creators).
+    requiredRoles: [...ADMIN_PLUS, 'marketing_staff'],
     comingSoon: true,
   },
   {
@@ -124,7 +135,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Bot,
     gradient: 'from-cyan-500 to-blue-600',
     path: '/ai/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    // Admin tier only — AI controls expose system-wide automation.
+    requiredRoles: [...ADMIN_PLUS],
     comingSoon: true,
   },
   {
@@ -134,7 +146,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Briefcase,
     gradient: 'from-emerald-500 to-emerald-700',
     path: '/manager/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    // Manager tier — team-level visibility.
+    requiredRoles: [...MANAGER_PLUS],
     comingSoon: true,
   },
   {
@@ -144,7 +157,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Building2,
     gradient: 'from-blue-700 to-slate-900',
     path: '/manager/director',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    // Director tier — multi-team oversight (excludes individual managers).
+    requiredRoles: [...DIRECTOR_PLUS],
     comingSoon: true,
   },
   {
@@ -154,7 +168,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: HeadphonesIcon,
     gradient: 'from-gray-700 to-gray-900',
     path: '/support/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    // Manager tier — support touches client data.
+    requiredRoles: [...MANAGER_PLUS],
     comingSoon: true,
   },
   {
@@ -164,7 +179,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: BarChart3,
     gradient: 'from-orange-500 to-orange-700',
     path: '/executive/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'investor'],
+    // Admin tier + investors (executive KPIs).
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -174,7 +190,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: Shield,
     gradient: 'from-slate-500 to-blue-700',
     path: '/admin',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    // Admin tier only.
+    requiredRoles: [...ADMIN_PLUS],
   },
   {
     id: 'investor',
@@ -183,7 +200,8 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     icon: BarChart3,
     gradient: 'from-amber-500 to-yellow-600',
     path: '/investor/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'investor'],
+    // Admin tier + investors (their primary surface).
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -194,7 +212,10 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-amber-600 to-orange-700',
     path: '#GOLD_COAST_PLACEHOLDER#',
     external: true,
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
+    // Strict founder only — matches gcf's FOUNDERS_ONLY server guard.
+    // No owner/system_admin/manager. Anyone else clicking would just
+    // get redirected away by gcf's FoundersOnly route component.
+    requiredRoles: [...FOUNDERS_ONLY],
   },
 ];
 
