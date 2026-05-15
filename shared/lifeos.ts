@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.38";
+export const LIFEOS_VERSION = "1.0.39";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.0.38";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.38";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.39";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Heritage-side changes in 1.0.38 — this bump exists to maintain version parity with Gold Coast, which shipped a small HCMS debug diagnostic improvement.";
+  "No Heritage-side changes in 1.0.39 — Gold Coast shipped a fix so legacy 'manager'-role agents surface in HCMS again. Heritage tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Heritage changes.** This bump keeps Heritage's version number paired with Gold Coast (1.0.38), which shipped a small founder-only HCMS diagnostic upgrade. The lockstep ritual ensures users never see one app ahead of the other.`;
+- **No functional Heritage changes.** Gold Coast's 1.0.39 fixes a bug where managers invited with the legacy role spelling silently disappeared from HCMS Agent Directory. Heritage tracks the version number to maintain lockstep parity.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
