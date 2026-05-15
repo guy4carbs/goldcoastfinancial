@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.40";
+export const LIFEOS_VERSION = "1.0.41";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,15 @@ export const LIFEOS_VERSION = "1.0.40";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.40";
+export const LIFEOS_RELEASE_TITLE = "Heritage role tiers — every lounge has a clear access policy";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Heritage-side changes in 1.0.40 — Gold Coast shipped two fixes for first-time 2FA enrollment on iPhone. Heritage's 2FA flow is different (TOTP-based) and isn't affected; the version bump keeps the apps paired.";
+  "Heritage's 12 lounges now share five canonical role tiers (FOUNDERS_ONLY, ADMIN_PLUS, DIRECTOR_PLUS, MANAGER_PLUS, ALL_AUTHENTICATED) defined in a single file. Sidebar, lobby grid, and dropdown switcher all read from the same source — no more drift between the three.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Heritage changes.** Gold Coast's 1.0.40 fixes a circular email-2FA-enrollment gate and an iOS-hostile WebAuthn auto-trigger that broke Touch ID/Face ID on iPhone. Heritage's 2FA flow uses a TOTP authenticator and isn't affected by either bug. Heritage tracks the version number to maintain lockstep parity.`;
+- **Role tiers live in one place.** New \`client/src/lib/roleTiers.ts\` exports \`FOUNDERS_ONLY\`, \`ADMIN_PLUS\`, \`DIRECTOR_PLUS\`, \`MANAGER_PLUS\`, and \`ALL_AUTHENTICATED\`. Each lounge in the Lobby grid, sidebar, and dropdown switcher references a tier instead of restating the role list inline. Mirrors the gcf server-side pattern so both apps think about access in the same shape.
+- **Gold Coast link is strict-founder-only.** The "Gold Coast" external link in every Heritage view (Lobby card, sidebar, dropdown) now only shows for the founder role itself. Matches the gcf Founders Lounge access policy — no point showing the link to someone who'd just bounce off the destination.
+- **Admin Lounge is admin-only.** Tighter than before: only \`founder\`, \`owner\`, and \`system_admin\` see the Admin Lounge. The previous role list also included directors and managers; that's gone.
+- **Manager and Director Lounges now properly tiered.** Manager Lounge requires the manager tier (founder/owner/system_admin/director/agency_manager/manager). Director Lounge tightens to director tier and above (excludes individual managers).`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

@@ -23,6 +23,12 @@ import {
 } from 'lucide-react';
 import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
 import {
+  FOUNDERS_ONLY,
+  ADMIN_PLUS,
+  MANAGER_PLUS,
+  ALL_AUTHENTICATED,
+} from '@/lib/roleTiers';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -62,7 +68,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: Users,
     color: 'violet',
     path: '/agents/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
+    requiredRoles: [...ALL_AUTHENTICATED],
   },
   {
     id: 'ai',
@@ -72,7 +78,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: Bot,
     color: 'cyan',
     path: '/ai/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    requiredRoles: [...ADMIN_PLUS],
     comingSoon: true,
   },
   {
@@ -83,7 +89,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: LayoutDashboard,
     color: 'indigo',
     path: '/crm',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
+    requiredRoles: [...ALL_AUTHENTICATED],
   },
   {
     id: 'finance',
@@ -93,7 +99,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: DollarSign,
     color: 'emerald',
     path: '/finance/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -104,7 +110,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: Megaphone,
     color: 'rose',
     path: '/marketing/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
+    requiredRoles: [...ADMIN_PLUS, 'marketing_staff'],
     comingSoon: true,
   },
   {
@@ -115,7 +121,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: HeadphonesIcon,
     color: 'amber',
     path: '/support/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    requiredRoles: [...MANAGER_PLUS],
     comingSoon: true,
   },
   {
@@ -126,7 +132,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: Shield,
     color: 'slate',
     path: '/admin',
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    requiredRoles: [...ADMIN_PLUS],
   },
   {
     id: 'investor',
@@ -136,7 +142,7 @@ export const LOUNGES: LoungeDefinition[] = [
     icon: BarChart3,
     color: 'indigo',
     path: '/investor/dashboard',
-    requiredRoles: ['founder', 'director', 'owner', 'investor'],
+    requiredRoles: [...ADMIN_PLUS, 'investor'],
     comingSoon: true,
   },
   {
@@ -148,7 +154,9 @@ export const LOUNGES: LoungeDefinition[] = [
     color: 'amber',
     path: '#GOLD_COAST_PLACEHOLDER#',
     external: true,
-    requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'sales_agent'],
+    // Strict founder only — gcf's FoundersOnly route component blocks
+    // everyone else, so the link should match.
+    requiredRoles: [...FOUNDERS_ONLY],
   },
 ];
 
