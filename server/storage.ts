@@ -523,52 +523,22 @@ export class DatabaseStorage implements IStorage {
         );
       }
 
-      // 4. Persist agency_carrier_contracts under the root agency so the
-      //    Carriers tab + drawer no longer rely on the demo fallback.
-      const seedContracts = [
-        {
-          carrierId: "carrier-mutual-omaha-001",
-          writingNumber: "GC-MOO-001",
-          statesAuthorized: null, // all states
-          notes: "Standard MPA — 9-month commission advance.",
-        },
-        {
-          carrierId: "carrier-foresters-001",
-          writingNumber: "GC-FOR-001",
-          statesAuthorized: ["FL", "GA", "NC", "SC", "TX"],
-          notes: "Term + final expense. Limited state authorization — 5 states.",
-        },
-        {
-          carrierId: "carrier-americo-001",
-          writingNumber: "GC-AMR-001",
-          statesAuthorized: null, // all states
-          notes: "Final expense + Mortgage Protection. Active in all 50 + DC.",
-        },
-      ];
-      for (const k of seedContracts) {
-        await pool.query(
-          `INSERT INTO agency_carrier_contracts
-              (agency_id, carrier_id, status, writing_number, states_authorized, notes,
-               mpa_effective_date, mpa_expiration_date, created_by_user_id)
-           VALUES ($1::uuid, $2, 'active', $3, $4::jsonb, $5,
-                   CURRENT_DATE - INTERVAL '8 months',
-                   CURRENT_DATE + INTERVAL '4 months',
-                   (SELECT id FROM users WHERE email = 'guy4carbs@gmail.com' LIMIT 1))
-           ON CONFLICT (agency_id, carrier_id) DO UPDATE SET
-             status = 'active',
-             writing_number = COALESCE(agency_carrier_contracts.writing_number, EXCLUDED.writing_number),
-             states_authorized = COALESCE(agency_carrier_contracts.states_authorized, EXCLUDED.states_authorized),
-             notes = COALESCE(agency_carrier_contracts.notes, EXCLUDED.notes),
-             updated_at = NOW()`,
-          [
-            ROOT_AGENCY_ID,
-            k.carrierId,
-            k.writingNumber,
-            k.statesAuthorized ? JSON.stringify(k.statesAuthorized) : null,
-            k.notes,
-          ],
-        );
-      }
+      // 4. One-time cleanup of the demo Mutual/Foresters/Americo contracts
+      //    we previously auto-seeded. Founders want a clean Active Agency
+      //    Carrier Contracts list — real contracts get added through the
+      //    Add Carrier flow. Idempotent: DELETE matches nothing on subsequent
+      //    boots once the rows are gone. Carrier directory entries remain
+      //    intact so adding a new contract still autocompletes the carrier.
+      await pool.query(
+        `DELETE FROM agency_carrier_contracts
+          WHERE agency_id = $1::uuid
+            AND carrier_id IN (
+              'carrier-mutual-omaha-001',
+              'carrier-foresters-001',
+              'carrier-americo-001'
+            )`,
+        [ROOT_AGENCY_ID],
+      );
 
       console.log(
         `Root agency seed complete: ${CANONICAL_NAME} + ${seedCarriers.length} carriers persisted.`,
