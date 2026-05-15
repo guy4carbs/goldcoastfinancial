@@ -27,9 +27,13 @@ const GC_APPS = [
   { id: "ai", name: "AI Council", desc: "Avatar Debate", href: "#", icon: Lock, available: false },
 ];
 
-// Roles permitted to flip the HCMS admin/agent view toggle (audit 2026-05-12).
-// Founders + owners + directors only — managers and below stay in their lane.
-const VIEW_MODE_TOGGLE_ROLES = new Set<string>(["founder", "owner", "director"]);
+// Roles permitted to flip the HCMS admin/agent view toggle. Strict
+// `founder` only — owner + director + system_admin no longer see the
+// ADMIN/AGENT pill in the topbar. They land on whichever view their role
+// dictates (admin tier on /hcms; everyone else on /hcms/my/dashboard) and
+// stay there. Founders alone need cross-view flexibility because they
+// build + dogfood every surface.
+const VIEW_MODE_TOGGLE_ROLES = new Set<string>(["founder"]);
 
 function ViewModeToggle() {
   const { user } = useAuth();
