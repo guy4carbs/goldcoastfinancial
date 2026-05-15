@@ -20,6 +20,34 @@
 export const LIFEOS_VERSION = "1.0.35";
 
 /**
+ * Release notes that ship with this version. The server's
+ * `ensureLifeOSReleaseSeed()` boot hook publishes a `lifeos_releases` row
+ * using these constants when none already exists for this version, so the
+ * Update Available + What's New popups always have customer-readable content
+ * to display. Founders can still author richer notes from the Gold Coast
+ * admin UI; the seed leaves manually-authored rows untouched.
+ *
+ * Bumping LIFEOS_VERSION on a deploy:
+ *   1. Set LIFEOS_VERSION to the new version
+ *   2. Set LIFEOS_RELEASE_TYPE to "major" | "minor" | "patch"
+ *   3. Set LIFEOS_RELEASE_TITLE — short customer-readable headline
+ *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
+ *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
+ */
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
+export const LIFEOS_RELEASE_TITLE = "Heritage backports the lifeOS release machinery";
+export const LIFEOS_RELEASE_SUMMARY =
+  "Heritage now auto-publishes release notes on every version bump, surfaces the What's New modal once per release per user, and stays in version lockstep with the Gold Coast app.";
+export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
+
+- **Auto-published release notes.** Every Heritage deploy now seeds a row in \`lifeos_releases\` from the constants in this file, so the What's New modal has real content to show on first sign-in after an update. Same pipeline Gold Coast has used for the last 15 patches.
+- **Locked-down lounges.** Finance, Marketing, AI, Manager, Director, Support, Executive, and Investor are now marked "Coming Soon" — only Agent, Admin, Gold Coast, and the Lobby itself are clickable. This is the soft-launch lounge set while the rest are still being built.
+
+## Heads up
+
+This is the catch-up release that brings Heritage from 1.0.0 → 1.0.35 in one jump. Future bumps will roll out one patch at a time alongside Gold Coast.`;
+
+/**
  * Runtime version reader — prefers the Vite-injected build-time constant
  * (`__LIFEOS_VERSION__`), falls back to the source export. Both ought to
  * match; the global lets us detect stale-bundle mismatches without a roundtrip.

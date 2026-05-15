@@ -18,6 +18,10 @@ import { pool } from "../db";
 import { requireAuth } from "../middleware/auth";
 import {
   LIFEOS_VERSION,
+  LIFEOS_RELEASE_TYPE,
+  LIFEOS_RELEASE_TITLE,
+  LIFEOS_RELEASE_SUMMARY,
+  LIFEOS_RELEASE_BODY_MARKDOWN,
   LIFEOS_ACK_STATES,
   compareLifeOSVersions,
   type LifeOSAckState,
@@ -194,5 +198,57 @@ router.post("/me/ack", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to record acknowledgement" });
   }
 });
+
+/**
+ * Boot-time seed for `lifeos_releases`. Idempotent: only inserts a row
+ * when none exists for the current `LIFEOS_VERSION`. Safe to call against
+ * the shared Neon DB even when Gold Coast also runs the same seed — only
+ * the first writer wins; the second is a no-op via `WHERE NOT EXISTS`.
+ *
+ * Why this exists: without an autoseed, `GET /releases/latest` returns
+ * null when nobody has manually published notes for this version. That
+ * breaks the WhatsNew + Update Available popups (their JSX guards
+ * require a release row). Auto-seeding with the constants from
+ * shared/lifeos.ts keeps the popups working on every Heritage boot.
+ *
+ * Postgres 42P08 prevention: explicit `::varchar(N)` / `::text` casts
+ * because `$1` appears in both the SELECT projection and the WHERE NOT
+ * EXISTS subquery; without casts, pg-node can't decide on a single
+ * inferred type and INSERT throws every call.
+ */
+export async function ensureLifeOSReleaseSeed(): Promise<void> {
+  try {
+    const result = await pool.query(
+      `INSERT INTO lifeos_releases
+         (version, release_type, title, summary, body_markdown, status, published_at)
+       SELECT $1::varchar(20), $2::varchar(10), $3::varchar(255), $4::text, $5::text, 'published', NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM lifeos_releases WHERE version = $1::varchar(20))
+       RETURNING id`,
+      [
+        LIFEOS_VERSION,
+        LIFEOS_RELEASE_TYPE,
+        LIFEOS_RELEASE_TITLE,
+        LIFEOS_RELEASE_SUMMARY,
+        LIFEOS_RELEASE_BODY_MARKDOWN,
+      ],
+    );
+    if (result.rowCount && result.rowCount > 0) {
+      console.log(`[lifeOS heritage] seeded release row for ${LIFEOS_VERSION}: ${LIFEOS_RELEASE_TITLE}`);
+    }
+  } catch (e: any) {
+    // Non-fatal — the soft-fail in LifeOSUpdateProvider keeps the popup
+    // working even if the seed can't run (e.g. fresh DB before migrations
+    // ran). Log full error so we can spot constraint failures in Railway logs.
+    console.error("[lifeOS heritage] ensureLifeOSReleaseSeed failed:", {
+      message: e?.message,
+      code: e?.code,
+      detail: e?.detail,
+      hint: e?.hint,
+      table: e?.table,
+      column: e?.column,
+      constraint: e?.constraint,
+    });
+  }
+}
 
 export default router;
