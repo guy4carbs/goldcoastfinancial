@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.42";
+export const LIFEOS_VERSION = "1.0.43";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,18 +34,13 @@ export const LIFEOS_VERSION = "1.0.42";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Login routing matches the role matrix + Admin/Agent toggle is founder-only";
+export const LIFEOS_RELEASE_TITLE = "Managers + directors now actually reach the agent HCMS";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Tightened login-time routing so every role lands on the surface they actually have access to. Only founder/owner/system_admin reach the admin HCMS directory; everyone else with HCMS access lands on /hcms/my/dashboard. Marketing, Client, and Investor roles go to their own surfaces. The Admin/Agent view toggle is now founder-only.";
+  "Two guards were undoing 1.0.42's login fix: the AgentOnly route guard rejected manager/director/agency_manager, and the /hcms bare route showed them the admin dashboard. Both now respect the role matrix — only founder/owner/system_admin see admin HCMS; everyone else with an HCMS role lands on /hcms/my/dashboard and stays there.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Login redirects match the role matrix.** The post-auth router now branches:
-  - \`founder\`, \`owner\`, \`system_admin\` → \`/hcms\` (admin agent directory)
-  - \`marketing_staff\` → \`/marketing\`
-  - \`client\` → \`/client/dashboard\`
-  - \`investor\` → \`/investor/dashboard\`
-  - everyone else (\`director\`, \`agency_manager\`, \`manager\`, \`sales_agent\`) → \`/hcms/my/dashboard\`
-- **Admin↔Agent view toggle is strict founder-only.** Previously owner + director + system_admin also saw the ADMIN/AGENT pill in the topbar. Now only the founder role can flip between views — every other role stays on whichever HCMS surface their landing routes them to.`;
+- **AgentOnly guard now allows manager + director + agency_manager.** Previously the route guard on every \`/hcms/my/*\` page only permitted \`sales_agent\`, \`owner\`, and \`founder\` — so even when login correctly routed a manager to \`/hcms/my/dashboard\`, the guard bounced them back to \`/hcms\` (admin view). Fix: AGENT_VIEW_ROLES now includes every HCMS-tier role.
+- **\`/hcms\` redirects non-admin roles.** If a manager or director navigates manually to \`/hcms\`, they're now redirected to \`/hcms/my/dashboard\` instead of seeing the admin dashboard. Only founder/owner/system_admin see the admin HCMS surface. Founders can still flip to admin view via the ADMIN/AGENT toggle in the topbar.`;
 
 
 /**

@@ -73,12 +73,30 @@ export function ManagerOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-// Blocks non-agents from agent pages — owner gets through for testing
+// Roles permitted to view the agent self-service surface at /hcms/my/*.
+// Every HCMS-tier role can view their OWN profile/docs/licenses here —
+// sales_agent uses it as their primary dashboard; director, agency_manager,
+// and manager all land here on login (per the auto-granted role matrix);
+// founder/owner/system_admin land on /hcms (admin directory) but can
+// navigate here manually to inspect their own profile or toggle (founder).
+// Niche roles (marketing_staff, client, investor) have their own surfaces
+// and don't belong here — they get redirected to /hcms (which then redirects
+// them appropriately via HCMSLayout).
+const AGENT_VIEW_ROLES = new Set<string>([
+  "founder",
+  "owner",
+  "system_admin",
+  "director",
+  "agency_manager",
+  "manager",
+  "sales_agent",
+]);
+
 export function AgentOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
   if (!user) return <Redirect to="/login" />;
-  if (user.role !== "sales_agent" && user.role !== "owner" && user.role !== "founder") return <Redirect to="/hcms" />;
+  if (!AGENT_VIEW_ROLES.has(user.role)) return <Redirect to="/hcms" />;
   return <>{children}</>;
 }
 
@@ -160,21 +178,22 @@ export function HCMSShell({ children, activePath }: { children: ReactNode; activ
 }
 
 // Default export — renders role-appropriate dashboard
-import { lazy, Suspense } from "react";
 import HCMSDashboard from "./HCMSDashboard";
 
-const AgentDashboardLazy = lazy(() => import("./agent/AgentDashboard"));
+// Admin tier sees the HCMSDashboard (agent directory + commission overview)
+// at /hcms. Every other HCMS-tier role (sales_agent, director,
+// agency_manager, manager) gets bounced to /hcms/my/dashboard so they only
+// ever see their own profile + docs. Founders can still navigate back to
+// /hcms via the ADMIN/AGENT toggle in the topbar.
+const ADMIN_DASHBOARD_ROLES = new Set<string>(["founder", "owner", "system_admin"]);
 
 function DashboardContent() {
   const { user } = useAuth();
-  const isAgent = user?.role === "sales_agent";
 
-  if (isAgent) {
-    return (
-      <Suspense fallback={<div style={{ padding: "var(--gc-space-8)", color: "var(--gc-text-muted)" }}>Loading...</div>}>
-        <AgentDashboardLazy />
-      </Suspense>
-    );
+  if (!user) return null;
+
+  if (!ADMIN_DASHBOARD_ROLES.has(user.role)) {
+    return <Redirect to="/hcms/my/dashboard" />;
   }
   return <HCMSDashboard />;
 }
