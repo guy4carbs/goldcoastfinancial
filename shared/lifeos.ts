@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.41";
+export const LIFEOS_VERSION = "1.0.42";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,15 +35,12 @@ export const LIFEOS_VERSION = "1.0.41";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Heritage role tiers — every lounge has a clear access policy";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.42";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Heritage's 12 lounges now share five canonical role tiers (FOUNDERS_ONLY, ADMIN_PLUS, DIRECTOR_PLUS, MANAGER_PLUS, ALL_AUTHENTICATED) defined in a single file. Sidebar, lobby grid, and dropdown switcher all read from the same source — no more drift between the three.";
+  "No Heritage-side changes in 1.0.42 — Gold Coast tightened login routing so every role lands on the surface they actually have access to. Heritage's login flow is unaffected; the version bump keeps the apps paired.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Role tiers live in one place.** New \`client/src/lib/roleTiers.ts\` exports \`FOUNDERS_ONLY\`, \`ADMIN_PLUS\`, \`DIRECTOR_PLUS\`, \`MANAGER_PLUS\`, and \`ALL_AUTHENTICATED\`. Each lounge in the Lobby grid, sidebar, and dropdown switcher references a tier instead of restating the role list inline. Mirrors the gcf server-side pattern so both apps think about access in the same shape.
-- **Gold Coast link is strict-founder-only.** The "Gold Coast" external link in every Heritage view (Lobby card, sidebar, dropdown) now only shows for the founder role itself. Matches the gcf Founders Lounge access policy — no point showing the link to someone who'd just bounce off the destination.
-- **Admin Lounge is admin-only.** Tighter than before: only \`founder\`, \`owner\`, and \`system_admin\` see the Admin Lounge. The previous role list also included directors and managers; that's gone.
-- **Manager and Director Lounges now properly tiered.** Manager Lounge requires the manager tier (founder/owner/system_admin/director/agency_manager/manager). Director Lounge tightens to director tier and above (excludes individual managers).`;
+- **No functional Heritage changes.** Gold Coast's 1.0.42 makes the login redirect match the role matrix exactly and restricts the Admin/Agent HCMS view toggle to the founder role only. Heritage's login flow doesn't use the same redirect chain and isn't affected. Heritage tracks the version number to maintain lockstep parity.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
