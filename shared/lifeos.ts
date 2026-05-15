@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.39";
+export const LIFEOS_VERSION = "1.0.40";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.0.39";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.39";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.40";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Heritage-side changes in 1.0.39 — Gold Coast shipped a fix so legacy 'manager'-role agents surface in HCMS again. Heritage tracks the version number for parity.";
+  "No Heritage-side changes in 1.0.40 — Gold Coast shipped two fixes for first-time 2FA enrollment on iPhone. Heritage's 2FA flow is different (TOTP-based) and isn't affected; the version bump keeps the apps paired.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Heritage changes.** Gold Coast's 1.0.39 fixes a bug where managers invited with the legacy role spelling silently disappeared from HCMS Agent Directory. Heritage tracks the version number to maintain lockstep parity.`;
+- **No functional Heritage changes.** Gold Coast's 1.0.40 fixes a circular email-2FA-enrollment gate and an iOS-hostile WebAuthn auto-trigger that broke Touch ID/Face ID on iPhone. Heritage's 2FA flow uses a TOTP authenticator and isn't affected by either bug. Heritage tracks the version number to maintain lockstep parity.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
