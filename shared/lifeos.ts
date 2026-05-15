@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.37";
+export const LIFEOS_VERSION = "1.0.38";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,12 @@ export const LIFEOS_VERSION = "1.0.37";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Heritage joins the version lockstep — both apps on 1.0.37";
+export const LIFEOS_RELEASE_TITLE = "HCMS diagnostic surfaces role + directory visibility";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Heritage was stuck at 1.0.0 for the last 35 patches and now catches up to Gold Coast at 1.0.37. Same lifeOS pipeline on both apps from here on — release notes, popups, version pill, update flow.";
+  "The founder-only /api/hcms/agents/_debug/agent-profile endpoint now returns the user's role and a `would_show_in_directory` flag, so when an agent unexpectedly disappears from the Agent Directory you can pinpoint the cause in one call.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Heritage is now in lockstep.** Heritage backported the lifeOS release pipeline (auto-publishing release notes, What's New + Update Available modals, in-header version pill, Update Now loading state) and jumped from 1.0.0 to 1.0.37 in a single bump. From here on, every release ships to both apps simultaneously so the version numbers stay aligned.
-- **No Gold Coast functional changes in 1.0.37.** This bump exists to keep the version numbers paired with Heritage. The next true Gold Coast feature ships at 1.0.38.`;
+- **Diagnostic now explains directory visibility.** \`/api/hcms/agents/_debug/agent-profile?email=...\` now returns the user's \`role\`, the list of roles the Agent Directory accepts, and a \`would_show_in_directory\` boolean. When an agent submits a complete application but doesn't appear in the directory, this tells you which check is excluding them and exactly what to fix.`;
 
 
 /**

@@ -82,6 +82,7 @@ router.get("/_debug/agent-profile", requireAuth, requireRole(...FOUNDERS_ONLY), 
          u.first_name,
          u.last_name,
          u.is_active,
+         u.role,
          u.onboarding_status,
          ap.id::text AS agent_profile_id,
          ap.approval_status,
@@ -119,11 +120,24 @@ router.get("/_debug/agent-profile", requireAuth, requireRole(...FOUNDERS_ONLY), 
     );
     if (r.rowCount === 0) return res.json({ found: false, email: rawEmail });
     const row = r.rows[0];
+    // Quick check: does the HCMS Agent Directory query include this user?
+    // The directory filters by `role IN ('sales_agent', 'founder',
+    // 'agency_manager', 'director')`. If `would_show_in_directory` is false,
+    // that's the most common reason an agent disappears from the list.
+    const ALLOWED_DIRECTORY_ROLES = ["sales_agent", "founder", "agency_manager", "director"];
+    const wouldShowInDirectory = !!row.role && ALLOWED_DIRECTORY_ROLES.includes(String(row.role));
+
     res.json({
       found: true,
       email: rawEmail,
       user_exists: !!row.user_id,
       agent_profile_exists: !!row.agent_profile_id,
+      role: row.role,
+      would_show_in_directory: wouldShowInDirectory,
+      directory_filter_roles: ALLOWED_DIRECTORY_ROLES,
+      directory_hint: wouldShowInDirectory
+        ? `Role '${row.role}' is in the allowed list. If the agent still doesn't appear in the UI, check that the bundle is fresh (hard-refresh) and that the HCMS Agent Directory page is reading the latest /api/hcms/agents/ response.`
+        : `Role '${row.role ?? "NULL"}' is NOT in the allowed list. Update u.role to 'sales_agent' to surface this user in the HCMS Agent Directory.`,
       documents: {
         eo_certificate: row.eo_certificate_s3_key,
         drivers_license: row.drivers_license_s3_key,
