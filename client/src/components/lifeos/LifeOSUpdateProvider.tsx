@@ -50,6 +50,7 @@ interface LifeOSContextValue {
   updateAvailable: boolean;
   latestRelease: LatestRelease | null;
   openWhatsNew: () => void;
+  openUpdate: () => void;
   applyUpdate: () => Promise<void>;
 }
 
@@ -64,6 +65,7 @@ export function useLifeOS(): LifeOSContextValue {
       updateAvailable: false,
       latestRelease: null,
       openWhatsNew: () => {},
+      openUpdate: () => {},
       applyUpdate: async () => {},
     };
   }
@@ -98,6 +100,10 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  // `applying` flips true the instant the user clicks Update Now and stays
+  // true until the page reloads. The modal reads this to switch into the
+  // non-dismissable "Updating…" state.
+  const [applying, setApplying] = useState(false);
   const firstPaintRef = useRef<number>(Date.now());
   const initialPopupShownRef = useRef<boolean>(false);
   const whatsNewShownRef = useRef<boolean>(false);
@@ -214,6 +220,9 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
   }, [status]);
 
   const applyUpdate = useCallback(async () => {
+    // Flip immediately so the modal switches to the non-dismissable
+    // "Updating…" state before any network round-trip starts.
+    setApplying(true);
     const releaseId = status?.latest_release?.id;
     if (!releaseId) {
       await triggerLifeOSUpdate();
@@ -236,6 +245,14 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
     // Strict bundle lock: wipe SW cache + reload onto the new bundle.
     await triggerLifeOSUpdate();
+  }, [status]);
+
+  // Open the Update Available modal manually (from the version badge in the
+  // header). Independent of the auto-popup that fires when status.update_available
+  // first becomes true.
+  const openUpdate = useCallback(() => {
+    if (!status?.latest_release) return;
+    setUpdateModalOpen(true);
   }, [status]);
 
   const dismissUpdate = useCallback(async () => {
@@ -277,8 +294,9 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
     updateAvailable: !!status?.update_available,
     latestRelease: status?.latest_release ?? null,
     openWhatsNew,
+    openUpdate,
     applyUpdate,
-  }), [yourVersion, status, openWhatsNew, applyUpdate]);
+  }), [yourVersion, status, openWhatsNew, openUpdate, applyUpdate]);
 
   return (
     <LifeOSContext.Provider value={value}>
@@ -288,6 +306,7 @@ export function LifeOSUpdateProvider({ children }: { children: ReactNode }) {
           release={status.latest_release}
           onUpdate={applyUpdate}
           onDismiss={dismissUpdate}
+          applying={applying}
         />
       )}
       {whatsNewOpen && status?.latest_release && (

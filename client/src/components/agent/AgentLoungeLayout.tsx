@@ -12,6 +12,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { PersistedScrollNav } from "@/components/layout/PersistedScrollNav";
+import { LifeOSVersionBadge } from "@/components/lifeos/LifeOSVersionBadge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -736,8 +737,9 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
               </motion.button>
             </div>
 
-            {/* Right: Lounge Switcher + Notifications + User */}
+            {/* Right: lifeOS badge + Lounge Switcher + Notifications + User */}
             <div className="flex items-center" style={{ gap: GRID.spacing.sm - 4 }}>
+              <LifeOSVersionBadge />
               {/* Lounge Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

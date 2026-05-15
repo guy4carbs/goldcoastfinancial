@@ -40,6 +40,7 @@ import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/tour/NotificationBell";
+import { LifeOSVersionBadge } from "@/components/lifeos/LifeOSVersionBadge";
 import { UniversalSearch } from "@/components/search/UniversalSearch";
 import { AgentLoungeSelectorModal } from "@/components/agent/AgentLoungeSelectorModal";
 import { TourProvider } from "@/lib/tour/TourProvider";
@@ -633,8 +634,9 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
               </motion.button>
             </div>
 
-            {/* Right: Notifications + User */}
+            {/* Right: lifeOS badge + Notifications + User */}
             <div className="flex items-center gap-3">
+              <LifeOSVersionBadge />
               <NotificationBell />
 
               <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">

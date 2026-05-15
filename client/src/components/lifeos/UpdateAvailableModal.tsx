@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { COLORS, RADIUS, SHADOW } from "@/lib/heritageDesignSystem";
 
 const VIOLET = COLORS.primary.violet;
@@ -10,11 +10,18 @@ const AMBER = COLORS.accent.amber;
  * Heritage's "lifeOS X.Y.Z is ready" popup. Same Apple-style restraint
  * as Gold Coast's version, just rendered with the violet/amber gradient
  * we use across hierarchy hero cards + KPI tiles.
+ *
+ * `applying` is set true the moment the user clicks Update Now. While
+ * applying, the modal becomes non-dismissable (escape disabled, backdrop
+ * click swallowed, Later button hidden) and the button + title transition
+ * to indicate progress. Mirrors gcf's UpdateAvailableModal exactly so the
+ * UX feels identical across both apps.
  */
 export function UpdateAvailableModal({
   release,
   onUpdate,
   onDismiss,
+  applying = false,
 }: {
   release: {
     version: string;
@@ -25,14 +32,16 @@ export function UpdateAvailableModal({
   };
   onUpdate: () => void | Promise<void>;
   onDismiss: () => void | Promise<void>;
+  applying?: boolean;
 }) {
   useEffect(() => {
+    if (applying) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onDismiss]);
+  }, [onDismiss, applying]);
 
   const accentLabel =
     release.highlight_label ||
@@ -54,7 +63,10 @@ export function UpdateAvailableModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.18 }}
-        onClick={() => onDismiss()}
+        onClick={() => {
+          if (applying) return;
+          onDismiss();
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="lifeos-update-title"
@@ -153,7 +165,7 @@ export function UpdateAvailableModal({
                 fontWeight: 600,
               }}
             >
-              {release.title}
+              {applying ? `Updating to lifeOS ${release.version}` : release.title}
             </h2>
             <p
               style={{
@@ -165,7 +177,9 @@ export function UpdateAvailableModal({
                 marginBottom: 18,
               }}
             >
-              {release.summary}
+              {applying
+                ? "Wiping the cached bundle and reloading the page on the new version. This takes about a second."
+                : release.summary}
             </p>
 
             <div
@@ -192,25 +206,31 @@ export function UpdateAvailableModal({
             </div>
 
             <div className="flex items-center justify-end gap-2">
+              {!applying && (
+                <button
+                  type="button"
+                  onClick={() => onDismiss()}
+                  style={{
+                    padding: "8px 14px",
+                    backgroundColor: "transparent",
+                    color: COLORS.gray[600],
+                    border: "none",
+                    borderRadius: RADIUS.input,
+                    fontFamily: "'Inter', -apple-system, sans-serif",
+                    fontSize: 14,
+                    cursor: "pointer",
+                  }}
+                >
+                  Later
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => onDismiss()}
-                style={{
-                  padding: "8px 14px",
-                  backgroundColor: "transparent",
-                  color: COLORS.gray[600],
-                  border: "none",
-                  borderRadius: RADIUS.input,
-                  fontFamily: "'Inter', -apple-system, sans-serif",
-                  fontSize: 14,
-                  cursor: "pointer",
+                onClick={() => {
+                  if (applying) return;
+                  onUpdate();
                 }}
-              >
-                Later
-              </button>
-              <button
-                type="button"
-                onClick={() => onUpdate()}
+                disabled={applying}
                 style={{
                   padding: "9px 22px",
                   background: COLORS.gradients.heroWithAccent,
@@ -220,11 +240,16 @@ export function UpdateAvailableModal({
                   fontFamily: "'Inter', -apple-system, sans-serif",
                   fontSize: 14,
                   fontWeight: 600,
-                  cursor: "pointer",
+                  cursor: applying ? "default" : "pointer",
+                  opacity: applying ? 0.85 : 1,
                   boxShadow: `0 4px 12px ${VIOLET[400]}55`,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                Update Now
+                {applying && <Loader2 className="w-4 h-4 animate-spin" />}
+                {applying ? "Updating…" : "Update Now"}
               </button>
             </div>
           </div>
