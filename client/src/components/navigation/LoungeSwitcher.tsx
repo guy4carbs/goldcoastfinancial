@@ -48,6 +48,9 @@ export interface LoungeDefinition {
   /** When true, opens path in a new tab (cross-app jump). Skipped in
    *  hasAccess() checks since it's not a heritage lounge. */
   external?: boolean;
+  /** When true, the lounge renders as a disabled "Coming Soon" entry —
+   *  visible but non-clickable. */
+  comingSoon?: boolean;
 }
 
 export const LOUNGES: LoungeDefinition[] = [
@@ -70,6 +73,7 @@ export const LOUNGES: LoungeDefinition[] = [
     color: 'cyan',
     path: '/ai/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    comingSoon: true,
   },
   {
     id: 'crm',
@@ -90,6 +94,7 @@ export const LOUNGES: LoungeDefinition[] = [
     color: 'emerald',
     path: '/finance/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'marketing',
@@ -100,6 +105,7 @@ export const LOUNGES: LoungeDefinition[] = [
     color: 'rose',
     path: '/marketing/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
+    comingSoon: true,
   },
   {
     id: 'support',
@@ -110,6 +116,7 @@ export const LOUNGES: LoungeDefinition[] = [
     color: 'amber',
     path: '/support/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'admin',
@@ -130,6 +137,7 @@ export const LOUNGES: LoungeDefinition[] = [
     color: 'indigo',
     path: '/investor/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'goldcoast',
@@ -224,15 +232,28 @@ export function LoungeSwitcher({ variant = 'dropdown', className }: LoungeSwitch
           {accessibleLounges.map((lounge) => {
             const Icon = lounge.icon;
             const isActive = currentLounge?.id === lounge.id;
+            const isLocked = !!lounge.comingSoon;
             const inner = (
               <>
-                <Icon className={cn('w-4 h-4', `text-${lounge.color}-500`)} />
-                <span>{lounge.name}</span>
+                <Icon className={cn('w-4 h-4', `text-${lounge.color}-500`, isLocked && 'opacity-60')} />
+                <span className={cn(isLocked && 'text-gray-500')}>{lounge.name}</span>
                 {isActive && (
                   <span className="ml-auto text-xs text-gray-400">(current)</span>
                 )}
+                {isLocked && (
+                  <span className="ml-auto text-[9px] font-semibold text-gray-400 uppercase tracking-wide">
+                    Soon
+                  </span>
+                )}
               </>
             );
+            if (isLocked) {
+              return (
+                <DropdownMenuItem key={lounge.id} disabled className="flex items-center gap-2">
+                  {inner}
+                </DropdownMenuItem>
+              );
+            }
             return (
               <DropdownMenuItem key={lounge.id} asChild disabled={isActive}>
                 {lounge.external ? (
@@ -262,13 +283,17 @@ export function LoungeSwitcher({ variant = 'dropdown', className }: LoungeSwitch
         {accessibleLounges.map((lounge) => {
           const Icon = lounge.icon;
           const isActive = currentLounge?.id === lounge.id;
+          const isLocked = !!lounge.comingSoon;
           const tile = (
             <div
               className={cn(
-                'flex flex-col items-center gap-2 p-4 rounded-xl border transition-all cursor-pointer',
+                'flex flex-col items-center gap-2 p-4 rounded-xl border transition-all relative',
+                isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
                 isActive
                   ? `border-${lounge.color}-500 bg-${lounge.color}-50`
-                  : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                  : isLocked
+                    ? 'border-gray-200 bg-gray-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
               )}
             >
               <div
@@ -282,8 +307,16 @@ export function LoungeSwitcher({ variant = 'dropdown', className }: LoungeSwitch
               <span className={cn('text-sm font-medium', isActive ? `text-${lounge.color}-700` : 'text-gray-700')}>
                 {lounge.shortName}
               </span>
+              {isLocked && (
+                <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide">
+                  Coming Soon
+                </span>
+              )}
             </div>
           );
+          if (isLocked) {
+            return <div key={lounge.id} aria-disabled="true">{tile}</div>;
+          }
           return lounge.external ? (
             <a key={lounge.id} href={lounge.path} target="_blank" rel="noopener noreferrer">
               {tile}
@@ -323,25 +356,39 @@ export function LoungeSwitcher({ variant = 'dropdown', className }: LoungeSwitch
         {accessibleLounges.map((lounge) => {
           const Icon = lounge.icon;
           const isActive = currentLounge?.id === lounge.id;
+          const isLocked = !!lounge.comingSoon;
           const inner = (
             <>
               <div
                 className={cn(
                   'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5',
-                  isActive ? `bg-${lounge.color}-500` : 'bg-gray-100'
+                  isActive ? `bg-${lounge.color}-500` : 'bg-gray-100',
+                  isLocked && 'opacity-60',
                 )}
               >
                 <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-gray-600')} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className={cn('text-sm font-medium', isActive && `text-${lounge.color}-700`)}>
-                  {lounge.name}
-                  {isActive && <span className="ml-2 text-xs text-gray-400">(current)</span>}
+                <p className={cn('text-sm font-medium flex items-center gap-2', isActive && `text-${lounge.color}-700`, isLocked && 'text-gray-500')}>
+                  <span>{lounge.name}</span>
+                  {isActive && <span className="text-xs text-gray-400">(current)</span>}
+                  {isLocked && (
+                    <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide ml-auto">
+                      Coming Soon
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-gray-500 truncate">{lounge.description}</p>
               </div>
             </>
           );
+          if (isLocked) {
+            return (
+              <DropdownMenuItem key={lounge.id} disabled className="flex items-start gap-3 py-2">
+                {inner}
+              </DropdownMenuItem>
+            );
+          }
           return (
             <DropdownMenuItem key={lounge.id} asChild disabled={isActive}>
               {lounge.external ? (
