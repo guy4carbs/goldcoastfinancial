@@ -503,46 +503,37 @@ export class DatabaseStorage implements IStorage {
         );
       }
 
-      // 3. Persist the three carrier directory entries (deterministic ids so
-      //    re-runs are idempotent and the IDs match wherever else they're used).
-      const seedCarriers = [
-        { id: "carrier-mutual-omaha-001",  name: "Mutual of Omaha",                short: "Mutual of Omaha", code: "MOO" },
-        { id: "carrier-foresters-001",     name: "Foresters Financial",            short: "Foresters",       code: "FOR" },
-        { id: "carrier-americo-001",       name: "Americo Financial Life",         short: "Americo",         code: "AMR" },
+      // 3. One-time cleanup of the demo Mutual/Foresters/Americo seed data.
+      //    Earlier versions auto-seeded these three carriers into both
+      //    carrier_directory and agency_carrier_contracts. Now founders are
+      //    building the real carrier book themselves; the demos pollute
+      //    the Master Directory and confuse the Add Carrier autocomplete.
+      //
+      //    Order matters — FK constraints from agency_carrier_contracts and
+      //    agency_carrier_commission_overrides require us to clear those
+      //    children before deleting the parent carrier_directory rows.
+      //    carrier_compliance_requirements has ON DELETE CASCADE and clears
+      //    automatically. All three DELETEs are idempotent — DELETE matches
+      //    nothing on subsequent boots once the rows are gone.
+      const DEMO_CARRIER_IDS = [
+        "carrier-mutual-omaha-001",
+        "carrier-foresters-001",
+        "carrier-americo-001",
       ];
-      for (const c of seedCarriers) {
-        await pool.query(
-          `INSERT INTO carrier_directory (id, name, short_name, code, is_active)
-           VALUES ($1, $2, $3, $4, true)
-           ON CONFLICT (id) DO UPDATE SET
-             name = EXCLUDED.name,
-             short_name = EXCLUDED.short_name,
-             code = EXCLUDED.code,
-             is_active = true`,
-          [c.id, c.name, c.short, c.code],
-        );
-      }
-
-      // 4. One-time cleanup of the demo Mutual/Foresters/Americo contracts
-      //    we previously auto-seeded. Founders want a clean Active Agency
-      //    Carrier Contracts list — real contracts get added through the
-      //    Add Carrier flow. Idempotent: DELETE matches nothing on subsequent
-      //    boots once the rows are gone. Carrier directory entries remain
-      //    intact so adding a new contract still autocompletes the carrier.
       await pool.query(
-        `DELETE FROM agency_carrier_contracts
-          WHERE agency_id = $1::uuid
-            AND carrier_id IN (
-              'carrier-mutual-omaha-001',
-              'carrier-foresters-001',
-              'carrier-americo-001'
-            )`,
-        [ROOT_AGENCY_ID],
+        `DELETE FROM agency_carrier_contracts WHERE carrier_id = ANY($1::text[])`,
+        [DEMO_CARRIER_IDS],
+      );
+      await pool.query(
+        `DELETE FROM agency_carrier_commission_overrides WHERE carrier_id = ANY($1::text[])`,
+        [DEMO_CARRIER_IDS],
+      );
+      await pool.query(
+        `DELETE FROM carrier_directory WHERE id = ANY($1::text[])`,
+        [DEMO_CARRIER_IDS],
       );
 
-      console.log(
-        `Root agency seed complete: ${CANONICAL_NAME} + ${seedCarriers.length} carriers persisted.`,
-      );
+      console.log(`Root agency seed complete: ${CANONICAL_NAME} (no auto-seeded carriers).`);
 
       // 5. Founder DBA profile — Gold Coast Financial Partners LLC is a
       //    business entity, not an individual. Force the DBA fields on the
