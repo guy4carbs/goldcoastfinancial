@@ -52,16 +52,15 @@ export function ExecutiveOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-// Blocks non-founders from the Founders Lounge — only role === "founder".
-// TODO(test-bypass): "owner" is temporarily allowed so the Founders walkthrough
-// can be exercised end-to-end before any account is promoted to the founder
-// role. Remove the owner branch once the founder role is provisioned in
-// production for the people who should actually be founders.
+// Blocks non-founders from the Founders Lounge — strictly `founder` only.
+// Owner, system_admin, manager, etc. all redirect to /hcms regardless of
+// their other privileges. The Founders Lounge surfaces founder-only revenue,
+// commission, and growth views; no other role should see them.
 export function FoundersOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
   if (!user) return <Redirect to="/login" />;
-  if (user.role !== "founder" && user.role !== "owner") return <Redirect to="/hcms" />;
+  if (user.role !== "founder") return <Redirect to="/hcms" />;
   return <>{children}</>;
 }
 

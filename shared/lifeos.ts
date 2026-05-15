@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.40";
+export const LIFEOS_VERSION = "1.0.41";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,14 +34,14 @@ export const LIFEOS_VERSION = "1.0.40";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "First-time 2FA enrollment now works on every device";
+export const LIFEOS_RELEASE_TITLE = "Founders Lounge is strict-founder-only + agents land on their own dashboard";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Two long-standing bugs were blocking 2FA enrollment for new users: the email-code endpoint was gated behind the 2FA gate it was meant to let users past, and the Touch ID / Face ID prompt auto-fired on page mount, which iOS Safari rejects. Both fixed.";
+  "Tightened role-based access: only the founder role sees the Founders Lounge card and its pages — managers, owners, and system_admins are all redirected away. Sales agents now land on their agent self-service dashboard at /hcms/my/dashboard instead of the admin HCMS directory.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Email-code 2FA enrollment works again.** \`/api/auth/2fa/email/enroll/begin\` and \`/enroll/verify\` were missing from the 2FA-exempt path list, so the very endpoint a first-time user needs to enroll in email-code 2FA was blocked by the 2FA gate they were trying to clear. A circular error ("Couldn't send code. 2FA enrollment required") is now gone — first-time users can request a code and enroll cleanly.
-- **Touch ID / Face ID enrollment + verify works on iPhone.** The 2FA enroll + verify pages used to auto-fire \`navigator.credentials.create()\` 250ms after mount, but iOS Safari 16+ requires WebAuthn to be called synchronously inside a user gesture (a tap), so it returned NotAllowedError every time. Both pages now render the Touch ID button as a tap-to-trigger CTA — the user gesture satisfies the requirement and the platform sheet shows up correctly on iPhone.
-- **Friendlier error copy.** When Touch ID rejects with NotAllowedError, the toast now nudges users toward the email-code fallback in plain language instead of surfacing the raw browser string.`;
+- **Founders Lounge is now strict-founder-only.** The temporary "owner" bypass on the client guard is gone — only the founder role can reach \`/founders\` pages, and the Founders card in the Gold Coast app switcher is hidden for everyone else. Matches the server-side \`FOUNDERS_ONLY\` rule that's been in place from the start.
+- **Sales agents land on their own dashboard.** When a user with role \`sales_agent\` logs in, they're now routed to \`/hcms/my/dashboard\` (their personal profile, documents, licenses) instead of \`/hcms\` (the admin agent directory). Manager + director + agency_manager still land on the admin view as before.
+- **Heritage role tiers, finally codified.** Heritage's 12 lounges now share five canonical role tiers — \`FOUNDERS_ONLY\`, \`ADMIN_PLUS\`, \`DIRECTOR_PLUS\`, \`MANAGER_PLUS\`, \`ALL_AUTHENTICATED\` — defined once in \`client/src/lib/roleTiers.ts\` and reused across the lobby grid, sidebar, and dropdown switcher. The Gold Coast external link is now strict-founder-only too (matches the lounge it points to).`;
 
 
 /**
