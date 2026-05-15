@@ -121,11 +121,23 @@ export interface GCTopbarProps { title?: string; subtitle?: string; actions?: Re
 
 export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
   const { theme, setTheme, themes } = useGCTheme();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const cycle = () => { const i = themes.findIndex(t => t.id === theme); setTheme(themes[(i + 1) % themes.length].id); };
   const Icon = themeIcons[theme];
+
+  // App switcher visibility is gated by role. The Founders Lounge card only
+  // shows for the founder role itself — owners, system_admins, managers,
+  // agents, etc. all stay out and don't see the card. Mirrors the strict
+  // server-side FOUNDERS_ONLY guard in /api/founders/* + the FoundersOnly
+  // route component in HCMSLayout. Other locked apps (Ops Hub, Finance, etc.)
+  // remain visible to all so users can see what's coming.
+  const visibleApps = GC_APPS.filter(app => {
+    if (app.id === "founders") return user?.role === "founder";
+    return true;
+  });
 
   // Close on outside click
   useEffect(() => {
@@ -194,7 +206,7 @@ export function GCTopbar({ title, subtitle, actions }: GCTopbarProps) {
 
               {/* App Grid */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--gc-space-2)" }}>
-                {GC_APPS.map(app => (
+                {visibleApps.map(app => (
                   <a
                     key={app.id}
                     href={app.available ? app.href : undefined}

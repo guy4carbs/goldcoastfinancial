@@ -24,10 +24,16 @@ export default function LoginPage() {
         setLocation("/auth/2fa");
         return;
       }
+      // Role-based landing page. sales_agent goes to the agent self-service
+      // dashboard, NOT the admin /hcms (admin view) — they only see their own
+      // profile/docs/licenses. Admin tier roles (founder/owner/system_admin)
+      // and management (director/agency_manager/manager) land on the admin
+      // HCMS directory which is the right view for them.
       const role = result.user?.role || "client";
-      if (role === "founder") setLocation("/hcms");
+      if (role === "sales_agent") setLocation("/hcms/my/dashboard");
+      else if (role === "founder") setLocation("/hcms");
       else if (role === "owner" || role === "system_admin") setLocation("/ops");
-      else if (role === "director" || role === "agency_manager" || role === "sales_agent") setLocation("/hcms");
+      else if (role === "director" || role === "agency_manager" || role === "manager") setLocation("/hcms");
       else setLocation("/");
     } catch (e: any) { setError(e.message || "Login failed"); }
   };
