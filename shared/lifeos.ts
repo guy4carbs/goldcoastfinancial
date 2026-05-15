@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.35";
+export const LIFEOS_VERSION = "1.0.37";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,13 @@ export const LIFEOS_VERSION = "1.0.35";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Cleared demo carrier contracts — clean slate";
+export const LIFEOS_RELEASE_TITLE = "Heritage joins the version lockstep — both apps on 1.0.37";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The auto-seeded Mutual of Omaha, Foresters Financial, and Americo Financial Life contracts are gone from Agency Carrier Contracts. Real contracts get added through the Add Carrier flow.";
+  "Heritage was stuck at 1.0.0 for the last 35 patches and now catches up to Gold Coast at 1.0.37. Same lifeOS pipeline on both apps from here on — release notes, popups, version pill, update flow.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Active Agency Carrier Contracts starts empty.** The three demo contracts (Mutual of Omaha GC-MOO-001, Foresters Financial GC-FOR-001, Americo Financial Life GC-AMR-001) auto-seeded on every boot. They're now deleted on this deploy and no longer re-inserted on subsequent boots — clean slate, founders can build the real carrier book from the Add Carrier flow.
-- The carrier directory entries remain intact (so adding a new Mutual of Omaha contract still autocompletes), but the contracts themselves are gone.`;
+- **Heritage is now in lockstep.** Heritage backported the lifeOS release pipeline (auto-publishing release notes, What's New + Update Available modals, in-header version pill, Update Now loading state) and jumped from 1.0.0 to 1.0.37 in a single bump. From here on, every release ships to both apps simultaneously so the version numbers stay aligned.
+- **No Gold Coast functional changes in 1.0.37.** This bump exists to keep the version numbers paired with Heritage. The next true Gold Coast feature ships at 1.0.38.`;
 
 
 /**
