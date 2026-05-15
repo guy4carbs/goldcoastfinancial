@@ -17,6 +17,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { LifeOSVersionBadge } from '@/components/lifeos/LifeOSVersionBadge';
 import { useLoungeAccess } from '@/hooks/useLoungeAccess';
 import { cn } from '@/lib/utils';
 import {
@@ -757,8 +758,9 @@ export function AdminLoungeLayout({ children, breadcrumbs }: AdminLoungeLayoutPr
               )}
             </div>
 
-            {/* Right: Lounge Switcher + Notifications + User + Logout */}
+            {/* Right: lifeOS badge + Lounge Switcher + Notifications + User + Logout */}
             <div className="flex items-center" style={{ gap: GRID.spacing.sm - 4 }}>
+              <LifeOSVersionBadge />
               {/* Lounge Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

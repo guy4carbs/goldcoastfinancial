@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.36";
+export const LIFEOS_VERSION = "1.0.37";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,16 +35,17 @@ export const LIFEOS_VERSION = "1.0.36";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "What's New + Update Available modals now fire for everyone";
+export const LIFEOS_RELEASE_TITLE = "lifeOS pill in the header + smoother Update Now flow";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Exempts the lifeOS status + ack endpoints from Heritage's 2FA gate so high-trust users (founders, owners, managers, agents) actually see the popups on first sign-in. Previously the polls 403'd before 2FA verified and the modal silently never opened.";
+  "A small lifeOS version pill now lives in every Heritage header — click it to view the latest release notes or trigger an update when one's ready. The Update Now button finally shows a proper loading state instead of going silent while the bundle reloads.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **WhatsNew + Update Available modals now reach high-trust users.** Heritage's 2FA gate was blocking \`/api/lifeos/me/status\` and \`/api/lifeos/me/ack\` for founders, owners, managers, agents, and other elevated roles before they completed 2FA on a session. The provider polled, got 403, silently failed, and no modal ever opened. Both endpoints are now in the exempt list — they're informational (release notes + a per-user "I saw this" flag), not sensitive, so the popup affordances finally work for everyone.
+- **lifeOS pill in every header.** The Lobby, Agent, and Admin lounges all now show a small "lifeOS X.Y.Z" pill in the top-right of the header. Click it to open the What's New popup with the latest release notes. When an update is ready, the pill turns amber, shows a download glyph, and the label switches to "Update · X.Y.Z" — clicking it opens the Update Available confirm popup.
+- **Update Now shows a loading state.** Previously the modal silently sat open while the service-worker cache wiped and the page reloaded. The button now flips to "Updating…" with a spinner, the title changes to "Updating to lifeOS X.Y.Z", and the modal becomes non-dismissable until the reload completes. Mirrors Gold Coast's exact UX.
 
 ## Heads up
 
-If you didn't see the What's New popup for 1.0.35, that's why. It'll fire on your next sign-in after this deploys (1.0.36) with the cumulative notes.`;
+Heritage and Gold Coast are now on synced versions — both deploy at 1.0.37. Future releases will bump both apps together so you never see one ahead of the other.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
