@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import {
   ShieldCheck,
@@ -23,6 +23,12 @@ import { useToast } from "@/hooks/use-toast";
  *                  users.two_factor_enabled = true on success)
  *
  * TOTP authenticator apps are intentionally absent. Passkey or email.
+ *
+ * Important: we do NOT auto-fire `navigator.credentials.create()` on mount.
+ * iOS Safari 16+ requires WebAuthn to be invoked synchronously inside a
+ * user gesture (a real tap), so auto-triggering from a setTimeout/useEffect
+ * rejects with NotAllowedError on iPhone every time. Both methods are
+ * presented as user-clickable buttons so the gesture handler wraps the API.
  */
 export default function Auth2faEnrollPage() {
   const [, setLocation] = useLocation();
@@ -32,7 +38,6 @@ export default function Auth2faEnrollPage() {
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [requestingEmail, setRequestingEmail] = useState(false);
-  const autoTriggered = useRef(false);
 
   const enrolPasskey = async () => {
     setPasskeyBusy(true);
@@ -66,24 +71,25 @@ export default function Auth2faEnrollPage() {
       toast({ title: "Verified with Touch ID" });
       window.location.assign("/founders");
     } catch (e: any) {
+      // Browser's NotAllowedError ("The request is not allowed by the user
+      // agent or the platform in the current context...") is the most common
+      // failure mode on iOS Safari. It usually means the user cancelled, the
+      // device blocked the prompt, or the call happened outside a gesture.
+      // Friendlier copy keeps users moving toward the email fallback instead
+      // of being scared by the raw browser string.
+      const rawMessage = String(e?.message || "");
+      const friendlyDescription = /not allowed|NotAllowedError|denied permission/i.test(rawMessage)
+        ? "Your device blocked the prompt, or the request was cancelled. Tap the button to try again — or use the email code option below."
+        : rawMessage || "Something went wrong. Try again, or use the email code option below.";
       toast({
         title: "Touch ID verification failed",
-        description: e?.message,
+        description: friendlyDescription,
         variant: "destructive",
       });
     } finally {
       setPasskeyBusy(false);
     }
   };
-
-  // Auto-prompt Touch ID once on mount, mirroring the verify page UX.
-  useEffect(() => {
-    if (autoTriggered.current) return;
-    autoTriggered.current = true;
-    const t = window.setTimeout(() => enrolPasskey(), 250);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const requestEmailCode = async () => {
     setRequestingEmail(true);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
   ShieldCheck,
@@ -22,7 +22,6 @@ export default function Auth2faVerifyPage() {
   const [showFallback, setShowFallback] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [requestingEmail, setRequestingEmail] = useState(false);
-  const autoTriggered = useRef(false);
 
   const verifyPasskey = async () => {
     setPasskeyBusy(true);
@@ -51,9 +50,16 @@ export default function Auth2faVerifyPage() {
       toast({ title: "Verified with Touch ID" });
       window.location.assign("/founders");
     } catch (e: any) {
+      // NotAllowedError is the iOS Safari "you didn't tap, or you cancelled"
+      // failure mode. Show friendlier copy that nudges users toward the
+      // email fallback instead of the raw browser string.
+      const rawMessage = String(e?.message || "");
+      const friendlyDescription = /not allowed|NotAllowedError|denied permission/i.test(rawMessage)
+        ? "Your device blocked the prompt, or the request was cancelled. Tap the button to try again — or use the email code option below."
+        : rawMessage || "Something went wrong. Try again, or use the email code option below.";
       toast({
         title: "Touch ID verification failed",
-        description: e?.message,
+        description: friendlyDescription,
         variant: "destructive",
       });
       // Wave AH5: surface the email-OTP fallback immediately on biometric
@@ -64,7 +70,13 @@ export default function Auth2faVerifyPage() {
     }
   };
 
-  // Probe for enrolled passkey + auto-trigger Touch ID prompt.
+  // Probe for enrolled passkey so we can render the Touch ID button when
+  // applicable. Important: we do NOT auto-fire verifyPasskey() — iOS Safari
+  // 16+ rejects WebAuthn calls outside a user gesture with NotAllowedError,
+  // so the previous setTimeout-on-mount pattern bricked every iPhone login.
+  // The user taps the Touch ID button to invoke the platform authenticator;
+  // the click event satisfies the gesture requirement. Email-OTP fallback
+  // is always rendered so users have both options visible from initial paint.
   useEffect(() => {
     (async () => {
       try {
@@ -73,24 +85,15 @@ export default function Auth2faVerifyPage() {
           const list = (await res.json()) as { id: string }[];
           const has = Array.isArray(list) && list.length > 0;
           setPasskeyAvailable(has);
-          if (has && !autoTriggered.current) {
-            autoTriggered.current = true;
-            setTimeout(() => verifyPasskey(), 250);
-          }
-          // Wave AI: always show the email-OTP fallback inline (no popup).
-          // Touch ID button is on top; the email card sits below it so the
-          // user always has both options visible.
-          setShowFallback(true);
         } else {
           setPasskeyAvailable(false);
-          setShowFallback(true);
         }
       } catch {
         setPasskeyAvailable(false);
+      } finally {
         setShowFallback(true);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Wave AH5: request a 6-digit code via Gold Coast branded email.

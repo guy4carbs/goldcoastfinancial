@@ -40,6 +40,11 @@ export async function attachUser(req: Request, _res: Response, next: NextFunctio
 const HIGH_TRUST_2FA_ROLES = ROLES_REQUIRING_2FA_SET;
 
 // Endpoints exempt from the 2FA gate so a user can actually enroll/verify.
+// The /email/enroll/* pair is how a fresh user transitions from "no 2FA" to
+// "2FA on" via the email-code path — gating those behind 2FA would mean the
+// user can never enroll (their first sign-in always 403s before they can ask
+// for a code). The /email/request + /email/verify pair is for returning users
+// re-confirming their session; both shapes have to be exempt.
 const TWO_FA_EXEMPT_PATHS = [
   "/api/auth/2fa/enroll/begin",
   "/api/auth/2fa/enroll/verify",
@@ -47,6 +52,8 @@ const TWO_FA_EXEMPT_PATHS = [
   "/api/auth/2fa/recovery",
   "/api/auth/2fa/email/request",
   "/api/auth/2fa/email/verify",
+  "/api/auth/2fa/email/enroll/begin",
+  "/api/auth/2fa/email/enroll/verify",
   "/api/auth/webauthn/register/begin",
   "/api/auth/webauthn/register/finish",
   "/api/auth/webauthn/auth/begin",
