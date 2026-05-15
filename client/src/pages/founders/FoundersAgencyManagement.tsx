@@ -338,12 +338,36 @@ export default function FoundersAgencyManagement() {
     retry: 1,
   });
 
+  // Hide carriers from the Master Directory once the agency has a
+  // non-terminated contract with them — they belong in Active Contracts
+  // now, not in the reference list. If a contract is later terminated the
+  // carrier reappears in the directory so the founder can re-add it under
+  // a fresh contract record. Status comparison is case-insensitive so a
+  // stored value of "Active" or "active" both filter the same.
+  const HIDDEN_CONTRACT_STATUSES = new Set(["active", "pending", "expired"]);
+
   const contractsQ = useQuery<AgencyCarrierContract[]>({
     queryKey: [`/api/founders/agencies/${carriersAgencyId}/carriers`, carriersAgencyId],
     enabled: !!carriersAgencyId,
     staleTime: 30_000,
     retry: 1,
   });
+
+  // Master Directory minus the carriers already contracted by this agency.
+  // Re-derives on every contractsQ refetch (after add/update/terminate), so
+  // newly-added carriers disappear from the directory + the Add Carrier
+  // modal's autocomplete in the same render. Termination puts them back.
+  const filteredDirectory = useMemo(() => {
+    const dir = directoryQ.data ?? [];
+    const contracts = contractsQ.data ?? [];
+    const claimedIds = new Set(
+      contracts
+        .filter((c) => HIDDEN_CONTRACT_STATUSES.has(String(c.status).toLowerCase()))
+        .map((c) => String(c.carrier_id)),
+    );
+    return dir.filter((row) => !claimedIds.has(String(row.id)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [directoryQ.data, contractsQ.data]);
 
   const overridesQ = useQuery<CommissionOverride[]>({
     queryKey: [
@@ -1029,9 +1053,9 @@ export default function FoundersAgencyManagement() {
                 </div>
                 {directoryQ.isLoading ? (
                   <Skeleton className="h-[260px] w-full" />
-                ) : directoryQ.data && directoryQ.data.length > 0 ? (
+                ) : filteredDirectory.length > 0 ? (
                   <DirectoryTable
-                    carriers={directoryQ.data}
+                    carriers={filteredDirectory}
                     onAddToAgency={(carrierId, carrierName) =>
                       setContractModal({
                         open: true,
@@ -1044,6 +1068,15 @@ export default function FoundersAgencyManagement() {
                     onCompliance={(carrierId, carrierName) =>
                       setComplianceModal({ open: true, carrierId, carrierName })
                     }
+                  />
+                ) : (directoryQ.data?.length ?? 0) > 0 ? (
+                  // Directory has carriers but every one is already under
+                  // contract with this agency. Different empty state copy so
+                  // the founder understands the directory isn't empty —
+                  // they just don't have anything left to add.
+                  <EmptyTableBlock
+                    title="All carriers are already under contract."
+                    subtext="Every carrier in the master directory is in your Active Contracts above. Terminate a contract to bring its carrier back here, or add a brand-new carrier to the directory."
                   />
                 ) : (
                   <EmptyTableBlock
@@ -1144,7 +1177,7 @@ export default function FoundersAgencyManagement() {
           open={contractModal.open}
           mode={contractModal.mode}
           agencyName={contractModal.agencyName}
-          carriers={(directoryQ.data || []).map((c) => ({ id: c.id, name: c.name }))}
+          carriers={filteredDirectory.map((c) => ({ id: c.id, name: c.name }))}
           initial={contractModal.initial}
           onClose={() =>
             setContractModal({ open: false, mode: "create", agencyId: null, agencyName: null })

@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.43";
+export const LIFEOS_VERSION = "1.0.44";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,14 @@ export const LIFEOS_VERSION = "1.0.43";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Managers + directors now actually reach the agent HCMS";
+export const LIFEOS_RELEASE_TITLE = "Master Carrier Directory hides carriers already under contract";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Two guards were undoing 1.0.42's login fix: the AgentOnly route guard rejected manager/director/agency_manager, and the /hcms bare route showed them the admin dashboard. Both now respect the role matrix — only founder/owner/system_admin see admin HCMS; everyone else with an HCMS role lands on /hcms/my/dashboard and stays there.";
+  "When you add a carrier from the Master Directory to Active Agency Carrier Contracts, the carrier now disappears from the directory below — so you don't accidentally re-add it. Terminate a contract and the carrier reappears in the directory, ready to be re-added under a fresh contract.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **AgentOnly guard now allows manager + director + agency_manager.** Previously the route guard on every \`/hcms/my/*\` page only permitted \`sales_agent\`, \`owner\`, and \`founder\` — so even when login correctly routed a manager to \`/hcms/my/dashboard\`, the guard bounced them back to \`/hcms\` (admin view). Fix: AGENT_VIEW_ROLES now includes every HCMS-tier role.
-- **\`/hcms\` redirects non-admin roles.** If a manager or director navigates manually to \`/hcms\`, they're now redirected to \`/hcms/my/dashboard\` instead of seeing the admin dashboard. Only founder/owner/system_admin see the admin HCMS surface. Founders can still flip to admin view via the ADMIN/AGENT toggle in the topbar.`;
+- **Master Directory hides contracted carriers.** In Founders Lounge → Agency Management → Carriers, the Master Carrier Directory section now filters out any carrier that already has an active, pending, or expired contract with the agency. The Add Carrier modal's autocomplete also hides them, so you can't accidentally pick a carrier you've already onboarded.
+- **Terminated contracts re-surface the carrier.** If you terminate a contract via the trash icon, the carrier flows back into the Master Directory automatically, available to be re-added under a fresh contract record.
+- **Clearer empty-state.** When every carrier in the directory is already under contract, the directory section now reads "All carriers are already under contract" instead of the previous "No carriers in the directory yet" — so it's clear the directory isn't empty, you just don't have anything left to add.`;
 
 
 /**
