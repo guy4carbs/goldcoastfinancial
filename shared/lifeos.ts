@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.44";
+export const LIFEOS_VERSION = "1.0.45";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.0.44";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.44";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.45";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Heritage-side changes in 1.0.44 — Gold Coast tightened the Master Carrier Directory so contracted carriers no longer appear in the list. Heritage doesn't have a Founders Agency Management page; the version bump keeps the apps paired.";
+  "No Heritage-side changes in 1.0.45 — Gold Coast permanently removed three demo carriers from the Master Directory. Heritage doesn't have a carrier directory page; the version bump keeps the apps paired.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Heritage changes.** Gold Coast's 1.0.44 hides carriers with active/pending/expired contracts from the Master Directory in Founders → Agency Management → Carriers. Heritage doesn't surface that view. Tracks the version for lockstep parity.`;
+- **No functional Heritage changes.** Gold Coast's 1.0.45 cleaned up the auto-seeded demo carriers (Mutual of Omaha, Foresters, Americo) from the carrier_directory table. Heritage doesn't surface that data. Tracks the version for lockstep parity.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
