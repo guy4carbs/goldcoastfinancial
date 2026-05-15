@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.34";
+export const LIFEOS_VERSION = "1.0.35";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,13 @@ export const LIFEOS_VERSION = "1.0.34";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Aggressive bucket-name sanitizer + diagnostic visibility";
+export const LIFEOS_RELEASE_TITLE = "Cleared demo carrier contracts — clean slate";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Strip all leading/trailing non-bucket-name characters from the storage bucket env var — handles straight quotes, curly Unicode quotes, backticks, whitespace, and any other wrapper junk. Diagnostic now exposes the sanitized bucket name so operators can verify what's actually being sent to GCS.";
+  "The auto-seeded Mutual of Omaha, Foresters Financial, and Americo Financial Life contracts are gone from Agency Carrier Contracts. Real contracts get added through the Add Carrier flow.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Aggressive bucket-name sanitizer.** Previous version only caught a single layer of ASCII quotes. Now strips every leading/trailing character that isn't \`[a-z0-9]\` from the bucket env var — so curly quotes, backticks, brackets, stray whitespace, etc. all get scrubbed before the name goes to GCS.
-- **Diagnostic surfaces the sanitized bucket name.** \`/api/hcms/agents/_debug/storage-auth\` now returns \`bucket_name\`, \`bucket_name_length\`, and \`bucket_name_raw_length\`. If raw and sanitized lengths differ, the sanitizer stripped wrapper chars; if they're equal but the name still has weird chars, the env var needs manual fixing.`;
+- **Active Agency Carrier Contracts starts empty.** The three demo contracts (Mutual of Omaha GC-MOO-001, Foresters Financial GC-FOR-001, Americo Financial Life GC-AMR-001) auto-seeded on every boot. They're now deleted on this deploy and no longer re-inserted on subsequent boots — clean slate, founders can build the real carrier book from the Add Carrier flow.
+- The carrier directory entries remain intact (so adding a new Mutual of Omaha contract still autocompletes), but the contracts themselves are gone.`;
 
 
 /**

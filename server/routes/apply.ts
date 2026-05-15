@@ -881,14 +881,28 @@ router.post("/submit", async (req, res) => {
     try {
       await client.query("BEGIN");
 
-      // Set real password
+      // Set real password (only when a new one is supplied — returning
+      // applicants who already set a password during save-progress can
+      // submit without re-entering it).
       if (password) {
         const hash = await bcrypt.hash(password, 10);
         await client.query(
-          "UPDATE users SET password = $1, onboarding_status = 'submitted', password_reset_required = false, updated_at = NOW() WHERE id = $2",
+          "UPDATE users SET password = $1, password_reset_required = false, updated_at = NOW() WHERE id = $2",
           [hash, profile.uid]
         );
       }
+
+      // ALWAYS flip onboarding_status to 'submitted' on a successful submit,
+      // independent of whether a password was supplied. Founders' Pending
+      // Registrations tab filters with `onboarding_status NOT IN ('invited','')`
+      // (see server/routes/founders-members.ts), so leaving this as 'invited'
+      // hides the applicant from approval queues. Single-row UPDATE inside
+      // the same transaction — rolls back atomically with everything else
+      // if a later step (license INSERT, etc.) fails.
+      await client.query(
+        "UPDATE users SET onboarding_status = 'submitted', updated_at = NOW() WHERE id = $1",
+        [profile.uid]
+      );
 
       // Finalize profile
       await client.query(
