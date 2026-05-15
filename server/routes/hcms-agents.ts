@@ -122,9 +122,10 @@ router.get("/_debug/agent-profile", requireAuth, requireRole(...FOUNDERS_ONLY), 
     const row = r.rows[0];
     // Quick check: does the HCMS Agent Directory query include this user?
     // The directory filters by `role IN ('sales_agent', 'founder',
-    // 'agency_manager', 'director')`. If `would_show_in_directory` is false,
-    // that's the most common reason an agent disappears from the list.
-    const ALLOWED_DIRECTORY_ROLES = ["sales_agent", "founder", "agency_manager", "director"];
+    // 'agency_manager', 'manager', 'director')`. If `would_show_in_directory`
+    // is false, that's the most common reason an agent disappears from the
+    // list. 'manager' is the legacy alias for 'agency_manager'.
+    const ALLOWED_DIRECTORY_ROLES = ["sales_agent", "founder", "agency_manager", "manager", "director"];
     const wouldShowInDirectory = !!row.role && ALLOWED_DIRECTORY_ROLES.includes(String(row.role));
 
     res.json({
@@ -194,7 +195,10 @@ router.get("/stats", requireAuth, requireRole(...MANAGER_PLUS), async (_req, res
       SELECT COALESCE(ap.approval_status, 'pending_review') as status, COUNT(*)::int as count
       FROM users u
       LEFT JOIN agent_profiles ap ON u.id::text = ap.user_id::text
-      WHERE u.role IN ('sales_agent', 'founder', 'agency_manager', 'director')
+      -- 'manager' is the legacy alias for 'agency_manager' (both still in use
+      -- because invite flows accept either). Including both keeps legacy
+      -- invitees visible alongside canonically-named users.
+      WHERE u.role IN ('sales_agent', 'founder', 'agency_manager', 'manager', 'director')
       GROUP BY COALESCE(ap.approval_status, 'pending_review')
     `);
     const stats = result.rows.reduce((acc: any, r: any) => {
@@ -233,7 +237,12 @@ router.get("/", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
       FROM users u
       LEFT JOIN agent_profiles ap ON u.id::text = ap.user_id::text
       LEFT JOIN contracting_checklists cc ON u.id::text = cc.agent_user_id::text
-      WHERE u.role IN ('sales_agent', 'founder', 'agency_manager', 'director')
+      -- 'manager' is the legacy alias for 'agency_manager'. Both names refer
+      -- to the same conceptual role; invite flows still accept either, so
+      -- the directory filter has to accept either too — otherwise legacy
+      -- managers silently disappear from HCMS even though they're fully
+      -- onboarded. See hcms-hierarchy.ts:215,227 for the matching pattern.
+      WHERE u.role IN ('sales_agent', 'founder', 'agency_manager', 'manager', 'director')
     `;
     const params: any[] = [];
     if (status && status !== "all") { params.push(status); sql += ` AND ap.approval_status = $${params.length}`; }

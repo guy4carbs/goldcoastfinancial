@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.38";
+export const LIFEOS_VERSION = "1.0.39";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.38";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "HCMS diagnostic surfaces role + directory visibility";
+export const LIFEOS_RELEASE_TITLE = "HCMS Agent Directory now shows legacy 'manager' role too";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The founder-only /api/hcms/agents/_debug/agent-profile endpoint now returns the user's role and a `would_show_in_directory` flag, so when an agent unexpectedly disappears from the Agent Directory you can pinpoint the cause in one call.";
+  "Fully-onboarded agents invited with the legacy 'manager' role (the alias for 'agency_manager') were silently excluded from HCMS Agent Directory. Both names now surface side-by-side, so every contracted user appears regardless of which spelling the invite flow happened to assign.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Diagnostic now explains directory visibility.** \`/api/hcms/agents/_debug/agent-profile?email=...\` now returns the user's \`role\`, the list of roles the Agent Directory accepts, and a \`would_show_in_directory\` boolean. When an agent submits a complete application but doesn't appear in the directory, this tells you which check is excluding them and exactly what to fix.`;
+- **Legacy 'manager' role now visible in HCMS.** The Agent Directory + stats queries only accepted the canonical \`agency_manager\` role, but invite flows still write the legacy \`manager\` alias for some users. Those agents finished the entire application — uploaded every document, signed every form — and never appeared in the directory. Both spellings are now accepted (matching the pattern already in \`hcms-hierarchy.ts\`), so every contracted user surfaces correctly.`;
 
 
 /**
