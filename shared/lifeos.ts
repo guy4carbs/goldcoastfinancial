@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.37";
+export const LIFEOS_VERSION = "1.0.38";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,17 +35,12 @@ export const LIFEOS_VERSION = "1.0.37";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "lifeOS pill in the header + smoother Update Now flow";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.38";
 export const LIFEOS_RELEASE_SUMMARY =
-  "A small lifeOS version pill now lives in every Heritage header — click it to view the latest release notes or trigger an update when one's ready. The Update Now button finally shows a proper loading state instead of going silent while the bundle reloads.";
+  "No Heritage-side changes in 1.0.38 — this bump exists to maintain version parity with Gold Coast, which shipped a small HCMS debug diagnostic improvement.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **lifeOS pill in every header.** The Lobby, Agent, and Admin lounges all now show a small "lifeOS X.Y.Z" pill in the top-right of the header. Click it to open the What's New popup with the latest release notes. When an update is ready, the pill turns amber, shows a download glyph, and the label switches to "Update · X.Y.Z" — clicking it opens the Update Available confirm popup.
-- **Update Now shows a loading state.** Previously the modal silently sat open while the service-worker cache wiped and the page reloaded. The button now flips to "Updating…" with a spinner, the title changes to "Updating to lifeOS X.Y.Z", and the modal becomes non-dismissable until the reload completes. Mirrors Gold Coast's exact UX.
-
-## Heads up
-
-Heritage and Gold Coast are now on synced versions — both deploy at 1.0.37. Future releases will bump both apps together so you never see one ahead of the other.`;
+- **No functional Heritage changes.** This bump keeps Heritage's version number paired with Gold Coast (1.0.38), which shipped a small founder-only HCMS diagnostic upgrade. The lockstep ritual ensures users never see one app ahead of the other.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
