@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.42";
+export const LIFEOS_VERSION = "1.0.43";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.0.42";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.42";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.43";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Heritage-side changes in 1.0.42 — Gold Coast tightened login routing so every role lands on the surface they actually have access to. Heritage's login flow is unaffected; the version bump keeps the apps paired.";
+  "No Heritage-side changes in 1.0.43 — Gold Coast fixed two HCMS route guards that were bouncing managers + directors back to admin HCMS even after the login redirect routed them correctly. Heritage uses a different HCMS surface and isn't affected; the version bump keeps the apps paired.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Heritage changes.** Gold Coast's 1.0.42 makes the login redirect match the role matrix exactly and restricts the Admin/Agent HCMS view toggle to the founder role only. Heritage's login flow doesn't use the same redirect chain and isn't affected. Heritage tracks the version number to maintain lockstep parity.`;
+- **No functional Heritage changes.** Gold Coast's 1.0.43 widens AgentOnly route access to every HCMS-tier role and redirects non-admin roles away from \`/hcms\` (admin view). Heritage's lounges have their own role-tier gating that's unaffected. Tracks the version for lockstep parity.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
