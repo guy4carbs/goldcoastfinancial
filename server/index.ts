@@ -3,6 +3,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { registerRoutes } from "./routes";
+import { ensureLifeOSReleaseSeed } from "./routes/lifeos";
+import { LIFEOS_VERSION } from "../shared/lifeos";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { storage } from "./storage";
@@ -277,9 +279,21 @@ app.use(sentryUserMiddleware);
     console.error("[SERVER] Document scheduler init failed:", err);
   }
 
+  // Idempotent boot-time seed: guarantee a `lifeos_releases` row exists for
+  // the current LIFEOS_VERSION so the update + whats-new popups always have
+  // notes to render. No-op if Gold Coast has already inserted the row for
+  // this version (shared Neon DB). Wrapped in try/catch so a seed failure
+  // never blocks the listen.
+  try {
+    await ensureLifeOSReleaseSeed();
+  } catch (e: any) {
+    console.error("[boot] ensureLifeOSReleaseSeed failed:", e?.message);
+  }
+
   const port = parseInt(process.env.PORT || "4500", 10);
   httpServer.listen(port, () => {
     log(`serving on port ${port}`);
+    log(`[boot] lifeOS bundle version ${LIFEOS_VERSION} active`);
   });
 
   // Graceful shutdown
