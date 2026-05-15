@@ -57,6 +57,9 @@ interface LoungeCard {
   requiredRoles: string[];
   /** When true, the card opens the path in a new tab (cross-app jump). */
   external?: boolean;
+  /** When true, the lounge is locked behind a "Coming Soon" treatment —
+   *  card renders disabled with a badge, no link, no click. */
+  comingSoon?: boolean;
   stat?: { label: string; value: string | number; trend?: 'up' | 'down' };
 }
 
@@ -102,6 +105,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-blue-800 to-blue-950',
     path: '/finance/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'marketing',
@@ -111,6 +115,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-rose-500 to-pink-600',
     path: '/marketing/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
+    comingSoon: true,
   },
   {
     id: 'ai',
@@ -120,6 +125,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-cyan-500 to-blue-600',
     path: '/ai/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    comingSoon: true,
   },
   {
     id: 'manager',
@@ -129,6 +135,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-emerald-500 to-emerald-700',
     path: '/manager/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'director',
@@ -138,6 +145,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-blue-700 to-slate-900',
     path: '/manager/director',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'support',
@@ -147,6 +155,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-gray-700 to-gray-900',
     path: '/support/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'executive',
@@ -156,6 +165,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-orange-500 to-orange-700',
     path: '/executive/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'admin',
@@ -174,6 +184,7 @@ const LOUNGES: Omit<LoungeCard, 'stat'>[] = [
     gradient: 'from-amber-500 to-yellow-600',
     path: '/investor/dashboard',
     requiredRoles: ['founder', 'director', 'owner', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'goldcoast',
@@ -376,33 +387,59 @@ function MetricCard({ metric }: { metric: BusinessMetric }) {
 
 function LoungeNavigationCard({ lounge, onCustomClick }: { lounge: LoungeCard; onCustomClick?: () => void }) {
   const Icon = lounge.icon;
+  const isLocked = !!lounge.comingSoon;
 
   const cardContent = (
     <Card
-      className="group h-full cursor-pointer border-0 transition-all overflow-hidden"
+      className={cn(
+        'group h-full border-0 transition-all overflow-hidden',
+        isLocked ? 'cursor-not-allowed' : 'cursor-pointer',
+      )}
       style={glassCard}
     >
-      <div className={cn('h-1.5 bg-gradient-to-r', lounge.gradient)} />
-      <CardContent className="p-5">
+      <div
+        className={cn(
+          'h-1.5 bg-gradient-to-r',
+          lounge.gradient,
+          isLocked && 'opacity-40',
+        )}
+      />
+      <CardContent className={cn('p-5', isLocked && 'opacity-60')}>
         <div className="flex items-start gap-4">
           <div
             className={cn(
-              'w-11 h-11 flex items-center justify-center bg-gradient-to-br flex-shrink-0 group-hover:scale-110 transition-transform',
-              lounge.gradient
+              'w-11 h-11 flex items-center justify-center bg-gradient-to-br flex-shrink-0 transition-transform',
+              lounge.gradient,
+              !isLocked && 'group-hover:scale-110',
             )}
             style={{ borderRadius: RADIUS.button }}
           >
             <Icon className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 group-hover:text-violet-700 transition-colors">
+            <div className="flex items-center justify-between gap-2">
+              <h3
+                className={cn(
+                  'font-semibold text-gray-900 transition-colors',
+                  !isLocked && 'group-hover:text-violet-700',
+                )}
+              >
                 {lounge.name}
               </h3>
-              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-violet-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+              {isLocked ? (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] font-semibold border-0 bg-gray-200 text-gray-600 uppercase tracking-wide whitespace-nowrap"
+                  style={{ borderRadius: RADIUS.pill }}
+                >
+                  Coming Soon
+                </Badge>
+              ) : (
+                <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-violet-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+              )}
             </div>
             <p className="text-sm text-gray-500 mt-0.5">{lounge.description}</p>
-            {lounge.stat && (
+            {!isLocked && lounge.stat && (
               <div className="flex items-center gap-2 mt-3">
                 <Badge
                   variant="secondary"
@@ -421,6 +458,16 @@ function LoungeNavigationCard({ lounge, onCustomClick }: { lounge: LoungeCard; o
       </CardContent>
     </Card>
   );
+
+  // Locked lounges render as static, non-clickable elements — no Link,
+  // no onClick, no hover lift.
+  if (isLocked) {
+    return (
+      <motion.div variants={scaleIn} aria-disabled="true">
+        {cardContent}
+      </motion.div>
+    );
+  }
 
   if (onCustomClick) {
     return (

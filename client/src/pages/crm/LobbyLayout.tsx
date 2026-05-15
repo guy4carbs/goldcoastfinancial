@@ -69,6 +69,9 @@ interface LoungeItem {
   requiredRoles: string[];
   /** When true, the sidebar entry opens href in a new tab (cross-app jump). */
   external?: boolean;
+  /** When true, the sidebar entry renders as a non-clickable, dimmed
+   *  row with a "Coming Soon" caption. */
+  comingSoon?: boolean;
 }
 
 // =============================================================================
@@ -93,6 +96,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-blue-800 to-blue-950",
     description: "Commissions, revenue",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'marketing',
@@ -102,6 +106,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-rose-500 to-pink-600",
     description: "Campaigns, content",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager', 'marketing_staff'],
+    comingSoon: true,
   },
   {
     id: 'ai',
@@ -111,6 +116,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-cyan-500 to-blue-600",
     description: "AI agents, automation",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin'],
+    comingSoon: true,
   },
   {
     id: 'manager',
@@ -120,6 +126,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-emerald-500 to-emerald-700",
     description: "Team oversight",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'director',
@@ -129,6 +136,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-blue-700 to-slate-900",
     description: "Multi-team oversight",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'support',
@@ -138,6 +146,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-gray-700 to-gray-900",
     description: "Tickets, help desk",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'manager'],
+    comingSoon: true,
   },
   {
     id: 'executive',
@@ -147,6 +156,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-orange-500 to-orange-700",
     description: "KPIs, forecasting",
     requiredRoles: ['founder', 'director', 'owner', 'system_admin', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'admin',
@@ -165,6 +175,7 @@ const lounges: LoungeItem[] = [
     gradient: "from-amber-500 to-yellow-600",
     description: "KPIs & dashboards",
     requiredRoles: ['founder', 'director', 'owner', 'investor'],
+    comingSoon: true,
   },
   {
     id: 'goldcoast',
@@ -383,6 +394,41 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
                   </div>
                   {!sidebarCollapsed && (
                     <span className="font-medium text-sm text-gray-900">{lounge.label}</span>
+                  )}
+                </motion.div>
+              );
+            }
+
+            // Coming-Soon lounges render as a non-clickable, dimmed row
+            // with a small caption. No Link, no onClick, no hover lift.
+            if (lounge.comingSoon) {
+              return (
+                <motion.div
+                  key={lounge.id}
+                  variants={fadeInUp}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 cursor-not-allowed opacity-60",
+                    "text-gray-500",
+                  )}
+                  style={{ borderRadius: RADIUS.button }}
+                  aria-disabled="true"
+                >
+                  <div
+                    className={cn(
+                      "w-8 h-8 flex items-center justify-center bg-gradient-to-br opacity-50",
+                      lounge.gradient,
+                    )}
+                    style={{ borderRadius: RADIUS.button }}
+                  >
+                    <lounge.icon className="w-4 h-4 text-white" />
+                  </div>
+                  {!sidebarCollapsed && (
+                    <div className="flex flex-col leading-tight">
+                      <span className="font-medium text-sm text-gray-700">{lounge.label}</span>
+                      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                        Coming Soon
+                      </span>
+                    </div>
                   )}
                 </motion.div>
               );
@@ -653,7 +699,10 @@ export function LobbyLayout({ children }: LobbyLayoutProps) {
               <span className="text-[10px] font-medium">Lobby</span>
             </motion.div>
           </Link>
-          {accessibleLounges.slice(0, 3).map((lounge) => {
+          {/* Mobile nav only surfaces unlocked lounges — locked ones are
+              hidden here because there's no room for "Coming Soon" captions
+              in a 3-icon bottom bar. They still appear in the full menu. */}
+          {accessibleLounges.filter((l) => !l.comingSoon).slice(0, 3).map((lounge) => {
             // Special handling for Agent Lounge in mobile nav
             if (lounge.id === 'agent') {
               return (
