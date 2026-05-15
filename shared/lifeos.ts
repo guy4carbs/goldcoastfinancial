@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.44";
+export const LIFEOS_VERSION = "1.0.45";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,14 +34,13 @@ export const LIFEOS_VERSION = "1.0.44";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Master Carrier Directory hides carriers already under contract";
+export const LIFEOS_RELEASE_TITLE = "Demo carriers permanently removed from the Master Directory";
 export const LIFEOS_RELEASE_SUMMARY =
-  "When you add a carrier from the Master Directory to Active Agency Carrier Contracts, the carrier now disappears from the directory below — so you don't accidentally re-add it. Terminate a contract and the carrier reappears in the directory, ready to be re-added under a fresh contract.";
+  "The Mutual of Omaha, Foresters Financial, and Americo Financial Life seed entries are now gone from carrier_directory on every boot, alongside any leftover overrides and compliance requirements. Founders build the real carrier book by adding new carriers themselves.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Master Directory hides contracted carriers.** In Founders Lounge → Agency Management → Carriers, the Master Carrier Directory section now filters out any carrier that already has an active, pending, or expired contract with the agency. The Add Carrier modal's autocomplete also hides them, so you can't accidentally pick a carrier you've already onboarded.
-- **Terminated contracts re-surface the carrier.** If you terminate a contract via the trash icon, the carrier flows back into the Master Directory automatically, available to be re-added under a fresh contract record.
-- **Clearer empty-state.** When every carrier in the directory is already under contract, the directory section now reads "All carriers are already under contract" instead of the previous "No carriers in the directory yet" — so it's clear the directory isn't empty, you just don't have anything left to add.`;
+- **Demo carriers deleted on boot.** Mutual of Omaha, Foresters Financial, and Americo Financial Life are no longer auto-seeded into the Master Carrier Directory. The boot hook now does a one-time cleanup that clears (in FK-safe order) any leftover contracts, commission overrides, and finally the directory rows themselves. Idempotent on subsequent boots.
+- **Master Directory starts clean.** Founders → Agency Management → Carriers now opens with an empty Master Directory by default; add real carriers via the "Add New Carrier" button as you onboard them.`;
 
 
 /**
