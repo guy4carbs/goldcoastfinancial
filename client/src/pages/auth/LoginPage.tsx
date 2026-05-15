@@ -24,17 +24,26 @@ export default function LoginPage() {
         setLocation("/auth/2fa");
         return;
       }
-      // Role-based landing page. sales_agent goes to the agent self-service
-      // dashboard, NOT the admin /hcms (admin view) — they only see their own
-      // profile/docs/licenses. Admin tier roles (founder/owner/system_admin)
-      // and management (director/agency_manager/manager) land on the admin
-      // HCMS directory which is the right view for them.
+      // Role-based landing page. Only the admin tier (founder + owner +
+      // system_admin) lands on the admin HCMS directory; every other role
+      // that touches HCMS lands on /hcms/my/dashboard (their own profile,
+      // docs, licenses). Niche roles with their own surfaces — marketing,
+      // client, investor — land on those directly per the auto-granted
+      // role matrix; they don't see HCMS at all.
       const role = result.user?.role || "client";
-      if (role === "sales_agent") setLocation("/hcms/my/dashboard");
-      else if (role === "founder") setLocation("/hcms");
-      else if (role === "owner" || role === "system_admin") setLocation("/ops");
-      else if (role === "director" || role === "agency_manager" || role === "manager") setLocation("/hcms");
-      else setLocation("/");
+      if (role === "founder" || role === "owner" || role === "system_admin") {
+        setLocation("/hcms");
+      } else if (role === "marketing_staff") {
+        setLocation("/marketing");
+      } else if (role === "client") {
+        setLocation("/client/dashboard");
+      } else if (role === "investor") {
+        setLocation("/investor/dashboard");
+      } else {
+        // director, agency_manager, manager, sales_agent — every other
+        // signed-in role goes to the agent self-service dashboard.
+        setLocation("/hcms/my/dashboard");
+      }
     } catch (e: any) { setError(e.message || "Login failed"); }
   };
 
