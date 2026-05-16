@@ -123,6 +123,15 @@ const TWO_FA_EXEMPT_PATHS = [
   '/api/auth/2fa/enroll/verify',
   '/api/auth/2fa/verify',
   '/api/auth/2fa/recovery',
+  // Heritage's TOTP enrollment + verify flow lives under /api/ai/2fa/*.
+  // Without exempting these, a fresh high-trust user can never enroll —
+  // the very endpoint they need to call gets 403'd by the 2FA gate it's
+  // designed to let them past. /status is included so the setup page can
+  // check current 2FA state before showing the QR.
+  '/api/ai/2fa/setup',
+  '/api/ai/2fa/verify',
+  '/api/ai/2fa/status',
+  '/api/ai/2fa',  // DELETE — let users remove their own 2FA
   '/api/auth/webauthn/register/begin',
   '/api/auth/webauthn/register/finish',
   '/api/auth/webauthn/auth/begin',

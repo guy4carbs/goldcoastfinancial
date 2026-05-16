@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.46";
+export const LIFEOS_VERSION = "1.0.47";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,14 +35,17 @@ export const LIFEOS_VERSION = "1.0.46";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Heritage lounge access falls back to role defaults";
+export const LIFEOS_RELEASE_TITLE = "Heritage 2FA enrollment + verification actually fire on login (Wave 1)";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Users created via gcf's /apply flow had zero rows in user_lounge_access, so signing into Heritage gave them 'no access to anything' even though their role permitted plenty. The /api/my-lounge-access endpoint now overlays role defaults under explicit DB grants/revokes — so every signed-in user sees the lounges their role allows.";
+  "High-trust users signing into Heritage now get routed to the TOTP enrollment page on first login, and to the verify page on subsequent logins — instead of landing on a broken lounge where every API call 403s. First of four waves cleaning up the agent lounge.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Role defaults now back-stop the lounge access check.** \`/api/my-lounge-access\` used to return an empty access map for any non-founder/owner user with no rows in the \`user_lounge_access\` table — and that was every user created via gcf's \`/apply\` flow. The endpoint now starts with the role's default lounge list (mirroring \`storage.initializeDefaultLoungeAccess\`) and overlays explicit DB rows on top, so admin grants/revokes still work AND fresh users get baseline access without needing a manual seed.
-- **What this means for agency_managers / managers:** they now see Agent Lounge, Manager Lounge, Lobby, and Onboarding in Heritage's lobby on first sign-in. Previously they saw nothing.
-- **What this means for sales_agents:** they now see Agent Lounge + Lobby + Onboarding. Previously: nothing.`;
+- **2FA enrollment endpoints exempted from the 2FA gate.** Heritage's \`/api/ai/2fa/setup\`, \`/verify\`, \`/status\`, and DELETE \`/api/ai/2fa\` were stuck in a circular dependency — the very endpoints a fresh user needed to enroll were gated by the 2FA gate they were trying to clear. All four are now in \`TWO_FA_EXEMPT_PATHS\`. Same circular fix we shipped on Gold Coast in 1.0.40.
+- **New \`Force2FAGate\` wrapper.** A top-level component now redirects authenticated high-trust users to \`/ai/2fa-setup\` (if not enrolled) or \`/ai/2fa-verify\` (if not yet session-verified). Before this, users would land on a lounge with every API call returning 403 and no clue why or where to go. The gate mirrors the server-side \`HIGH_TRUST_2FA_ROLES\` policy exactly.
+
+## Wave 1 of 4
+
+Console errors on the agent lounge had four root causes: 2FA gate (this wave), CSP, WebSocket, and a missing \`/metrics\` endpoint. Each ships in its own version + verification cycle.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
