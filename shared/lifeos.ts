@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.46";
+export const LIFEOS_VERSION = "1.0.47";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.46";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.46";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.47";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes in 1.0.46 — Heritage shipped a fix so non-founder users created via the /apply flow can actually see their lounges. Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes in 1.0.47 — Heritage shipped Wave 1 of its agent lounge debug sweep: 2FA enrollment + verification now actually fire on login. Gold Coast already had this behavior since 1.0.40.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage's 1.0.46 makes \`/api/my-lounge-access\` fall back to role defaults when a user has no rows in \`user_lounge_access\`. Gold Coast doesn't use that endpoint. Tracks the version for lockstep parity.`;
+- **No functional Gold Coast changes.** Heritage's 1.0.47 exempts \`/api/ai/2fa/*\` endpoints from its 2FA gate and adds a Force2FAGate wrapper that auto-redirects high-trust users to enroll or verify. Gold Coast already had equivalent behavior baked in since 1.0.40 (PR #82). Tracks the version for lockstep parity.`;
 
 
 /**
