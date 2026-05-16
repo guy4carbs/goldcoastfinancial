@@ -2774,8 +2774,39 @@ export async function registerRoutes(
         return res.json({ access: accessMap });
       }
 
-      const access = await storage.getUserLoungeAccess(userId);
+      // Role-based defaults. Users created via the gcf `/apply` flow (or any
+      // path that doesn't run `initializeDefaultLoungeAccess`) have zero rows
+      // in `user_lounge_access`. Without role defaults, the endpoint returns
+      // `{access: {}}` and every lounge filters out client-side — "no access
+      // to anything" for users who DO have legitimate role-based access.
+      //
+      // Source of truth lives in storage.initializeDefaultLoungeAccess; this
+      // table mirrors that exact matrix. Update both together when the
+      // role→lounge mapping changes.
+      const ALL_LOUNGES = ['agent_portal', 'manager_lounge', 'director_lounge', 'executive_lounge', 'crm_lounge', 'ai_lounge', 'admin_panel', 'client_lounge', 'onboarding_lounge', 'finance_lounge', 'support_lounge'];
+      const MANAGER_LOUNGES = ['agent_portal', 'manager_lounge', 'crm_lounge', 'onboarding_lounge'];
+      const roleDefaults: Record<string, string[]> = {
+        founder: ALL_LOUNGES,
+        owner: ALL_LOUNGES,
+        system_admin: ['admin_panel', 'ai_lounge', 'support_lounge', 'crm_lounge', 'onboarding_lounge'],
+        director: ['agent_portal', 'manager_lounge', 'director_lounge', 'crm_lounge', 'onboarding_lounge'],
+        agency_manager: MANAGER_LOUNGES,
+        manager: MANAGER_LOUNGES,
+        sales_agent: ['agent_portal', 'crm_lounge', 'onboarding_lounge'],
+        marketing_staff: [],
+        investor: [],
+        client: ['client_lounge'],
+      };
+
+      // Start with the role's default access map. Explicit DB rows overlay
+      // on top — admin grants can EXPAND beyond role defaults, admin
+      // revocations (granted=false rows) can CONTRACT below defaults.
       const accessMap: Record<string, boolean> = {};
+      const defaults = roleDefaults[role || ''] || [];
+      for (const dbKey of defaults) {
+        accessMap[dbKey] = true;
+      }
+      const access = await storage.getUserLoungeAccess(userId);
       for (const row of access) {
         accessMap[row.lounge_key] = row.granted;
       }
