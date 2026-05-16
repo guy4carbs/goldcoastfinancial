@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.45";
+export const LIFEOS_VERSION = "1.0.46";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,12 @@ export const LIFEOS_VERSION = "1.0.45";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Demo carriers permanently removed from the Master Directory";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.46";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The Mutual of Omaha, Foresters Financial, and Americo Financial Life seed entries are now gone from carrier_directory on every boot, alongside any leftover overrides and compliance requirements. Founders build the real carrier book by adding new carriers themselves.";
+  "No Gold Coast changes in 1.0.46 — Heritage shipped a fix so non-founder users created via the /apply flow can actually see their lounges. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Demo carriers deleted on boot.** Mutual of Omaha, Foresters Financial, and Americo Financial Life are no longer auto-seeded into the Master Carrier Directory. The boot hook now does a one-time cleanup that clears (in FK-safe order) any leftover contracts, commission overrides, and finally the directory rows themselves. Idempotent on subsequent boots.
-- **Master Directory starts clean.** Founders → Agency Management → Carriers now opens with an empty Master Directory by default; add real carriers via the "Add New Carrier" button as you onboard them.`;
+- **No functional Gold Coast changes.** Heritage's 1.0.46 makes \`/api/my-lounge-access\` fall back to role defaults when a user has no rows in \`user_lounge_access\`. Gold Coast doesn't use that endpoint. Tracks the version for lockstep parity.`;
 
 
 /**
