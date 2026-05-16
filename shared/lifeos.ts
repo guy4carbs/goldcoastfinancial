@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.45";
+export const LIFEOS_VERSION = "1.0.46";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,14 @@ export const LIFEOS_VERSION = "1.0.45";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Gold Coast — both apps on 1.0.45";
+export const LIFEOS_RELEASE_TITLE = "Heritage lounge access falls back to role defaults";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Heritage-side changes in 1.0.45 — Gold Coast permanently removed three demo carriers from the Master Directory. Heritage doesn't have a carrier directory page; the version bump keeps the apps paired.";
+  "Users created via gcf's /apply flow had zero rows in user_lounge_access, so signing into Heritage gave them 'no access to anything' even though their role permitted plenty. The /api/my-lounge-access endpoint now overlays role defaults under explicit DB grants/revokes — so every signed-in user sees the lounges their role allows.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Heritage changes.** Gold Coast's 1.0.45 cleaned up the auto-seeded demo carriers (Mutual of Omaha, Foresters, Americo) from the carrier_directory table. Heritage doesn't surface that data. Tracks the version for lockstep parity.`;
+- **Role defaults now back-stop the lounge access check.** \`/api/my-lounge-access\` used to return an empty access map for any non-founder/owner user with no rows in the \`user_lounge_access\` table — and that was every user created via gcf's \`/apply\` flow. The endpoint now starts with the role's default lounge list (mirroring \`storage.initializeDefaultLoungeAccess\`) and overlays explicit DB rows on top, so admin grants/revokes still work AND fresh users get baseline access without needing a manual seed.
+- **What this means for agency_managers / managers:** they now see Agent Lounge, Manager Lounge, Lobby, and Onboarding in Heritage's lobby on first sign-in. Previously they saw nothing.
+- **What this means for sales_agents:** they now see Agent Lounge + Lobby + Onboarding. Previously: nothing.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
