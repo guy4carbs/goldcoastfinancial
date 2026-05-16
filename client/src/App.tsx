@@ -236,6 +236,7 @@ import Accessibility from "@/pages/legal/Accessibility";
 import Licenses from "@/pages/legal/Licenses";
 import DoNotSell from "@/pages/legal/DoNotSell";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Force2FAGate } from "@/components/auth/Force2FAGate";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AgentProtectedRoute } from "@/components/AgentProtectedRoute";
@@ -1158,25 +1159,27 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WebSocketProvider>
-          <SiteSettingsProvider>
-            <CelebrationProvider>
-              <ConfirmProvider>
-                <TooltipProvider>
-                  <AnalyticsProvider>
-                    <ChunkLoadGuard>
-                      <LifeOSUpdateProvider>
-                        <Toaster />
-                        <Router />
-                        <LindyChat />
-                      </LifeOSUpdateProvider>
-                    </ChunkLoadGuard>
-                  </AnalyticsProvider>
-                </TooltipProvider>
-              </ConfirmProvider>
-            </CelebrationProvider>
-          </SiteSettingsProvider>
-        </WebSocketProvider>
+        <Force2FAGate>
+          <WebSocketProvider>
+            <SiteSettingsProvider>
+              <CelebrationProvider>
+                <ConfirmProvider>
+                  <TooltipProvider>
+                    <AnalyticsProvider>
+                      <ChunkLoadGuard>
+                        <LifeOSUpdateProvider>
+                          <Toaster />
+                          <Router />
+                          <LindyChat />
+                        </LifeOSUpdateProvider>
+                      </ChunkLoadGuard>
+                    </AnalyticsProvider>
+                  </TooltipProvider>
+                </ConfirmProvider>
+              </CelebrationProvider>
+            </SiteSettingsProvider>
+          </WebSocketProvider>
+        </Force2FAGate>
       </AuthProvider>
     </QueryClientProvider>
   );
