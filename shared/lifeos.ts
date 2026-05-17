@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.47";
+export const LIFEOS_VERSION = "1.0.48";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.47";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.47";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.48";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes in 1.0.47 — Heritage shipped Wave 1 of its agent lounge debug sweep: 2FA enrollment + verification now actually fire on login. Gold Coast already had this behavior since 1.0.40.";
+  "No Gold Coast changes in 1.0.48 — Heritage shipped a one-for-one port of Gold Coast's /auth/2fa flow (Touch ID + email code), Heritage-branded. Gold Coast tracks the version for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage's 1.0.47 exempts \`/api/ai/2fa/*\` endpoints from its 2FA gate and adds a Force2FAGate wrapper that auto-redirects high-trust users to enroll or verify. Gold Coast already had equivalent behavior baked in since 1.0.40 (PR #82). Tracks the version for lockstep parity.`;
+- **No functional Gold Coast changes.** Heritage's 1.0.48 ports the full gcf-style 2FA UX to \`/auth/2fa\` + \`/auth/2fa/enroll\`: WebAuthn (Touch ID / Face ID) + email-code 6-digit verification with a Heritage-branded email. Both apps now have visually identical 2FA flows, just with their own brand identity. Gold Coast tracks the version number for parity.`;
 
 
 /**
