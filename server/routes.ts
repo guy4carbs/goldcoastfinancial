@@ -5,6 +5,15 @@ import { storage } from "./storage";
 import { insertQuoteRequestSchema, insertContactMessageSchema, insertJobApplicationSchema, loginSchema, registerSchema, agentRegisterSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 import { sendContactNotification, sendQuoteNotification, sendQuoteConfirmationToApplicant, sendPortalMessage, sendMeetingNotification, sendJobApplicationNotification, sendPrivacyRequestNotification, sendSecureFormEmail, sendBookingLinkEmail, sendRecruitInviteEmail, sendPolicyQuoteEmail, sendAgentLeadNotification, sendWebsiteLinkEmail, sendPasswordResetEmail, sendProductGuideEmail } from "./gmail";
+import { requestEmailOtp, verifyEmailOtp } from "./services/emailOtp";
+import {
+  buildRegistrationOptions as webauthnBuildRegistrationOptions,
+  consumeRegistration as webauthnConsumeRegistration,
+  buildAuthenticationOptions as webauthnBuildAuthenticationOptions,
+  consumeAuthentication as webauthnConsumeAuthentication,
+  listCredentials as webauthnListCredentials,
+  deleteCredential as webauthnDeleteCredential,
+} from "./services/webauthn";
 import { sendSecureFormLink, sendBookingLink, sendSms, isSmsAvailable } from "./services/smsService";
 import { encryptField, decryptField } from "./services/encryptionService";
 import * as s3Service from "./services/s3Service";
@@ -826,6 +835,205 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error checking 2FA status:", error);
       res.status(500).json({ error: "Failed to check 2FA status" });
+    }
+  });
+
+  // ─── Email-code 2FA (gcf-style) ─────────────────────────────────────────
+  // First-time enrollment: send a 6-digit code → verify → flip
+  // users.twoFactorEnabled=true and mark session verified. Returning user:
+  // request/verify to mark current session as 2FA-verified.
+  app.post("/api/auth/2fa/email/enroll/begin", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    if (req.user.twoFactorEnabled) {
+      return res.status(409).json({ error: "2FA is already enabled" });
+    }
+    try {
+      const result = await requestEmailOtp({
+        userId: req.user.id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+      });
+      res.json({ ok: true, rateLimited: !!result.rateLimited, email: req.user.email });
+    } catch (e: any) {
+      console.error("[2fa/email/enroll/begin]:", e?.message);
+      res.status(500).json({ error: "Failed to send code" });
+    }
+  });
+
+  app.post("/api/auth/2fa/email/enroll/verify", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const code = String((req.body as any)?.code || "").trim();
+    if (!code) return res.status(400).json({ error: "Code required" });
+    try {
+      const result = await verifyEmailOtp({ userId: req.user.id, code });
+      if (!result.ok) {
+        const status = result.reason === "too-many-attempts" || result.reason === "expired" ? 410 : 401;
+        return res.status(status).json({
+          error:
+            result.reason === "expired" ? "Code expired — request a new one"
+            : result.reason === "too-many-attempts" ? "Too many wrong tries — request a new code"
+            : result.reason === "no-active-code" ? "No active code — request a new one"
+            : "Invalid code",
+          code: result.reason,
+        });
+      }
+      await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[2fa/email/enroll/verify]:", e?.message);
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+  app.post("/api/auth/2fa/email/request", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      const result = await requestEmailOtp({
+        userId: req.user.id,
+        email: req.user.email,
+        firstName: req.user.firstName,
+      });
+      res.json({ ok: true, rateLimited: !!result.rateLimited });
+    } catch (e: any) {
+      console.error("[2fa/email/request]:", e?.message);
+      res.status(500).json({ error: "Failed to send code" });
+    }
+  });
+
+  app.post("/api/auth/2fa/email/verify", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const code = String((req.body as any)?.code || "").trim();
+    if (!code) return res.status(400).json({ error: "Code required" });
+    try {
+      const result = await verifyEmailOtp({ userId: req.user.id, code });
+      if (!result.ok) {
+        const status = result.reason === "too-many-attempts" || result.reason === "expired" ? 410 : 401;
+        return res.status(status).json({
+          error:
+            result.reason === "expired" ? "Code expired — request a new one"
+            : result.reason === "too-many-attempts" ? "Too many wrong tries — request a new code"
+            : result.reason === "no-active-code" ? "No active code — request a new one"
+            : "Invalid code",
+          code: result.reason,
+        });
+      }
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[2fa/email/verify]:", e?.message);
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+  // ─── WebAuthn / passkeys (Touch ID / Face ID) ────────────────────────
+  app.post("/api/auth/webauthn/register/begin", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      const existing = await webauthnListCredentials(req.user.id);
+      if (existing.length > 0) {
+        if (!req.user.twoFactorEnabled) {
+          await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
+        }
+        (req.session as any).twoFactorVerified = true;
+        return res.status(200).json({
+          ok: true,
+          alreadyEnrolled: true,
+          message: "Passkey already enrolled — using existing credential.",
+        });
+      }
+      const options = await webauthnBuildRegistrationOptions({
+        userId: req.user.id,
+        userEmail: req.user.email,
+        userName: `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim(),
+        req,
+      });
+      (req.session as any).webauthnChallenge = options.challenge;
+      res.json(options);
+    } catch (e: any) {
+      console.error("[webauthn/register/begin]:", e?.message);
+      res.status(500).json({ error: "Failed to start passkey registration" });
+    }
+  });
+
+  app.post("/api/auth/webauthn/register/finish", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const expectedChallenge = (req.session as any).webauthnChallenge as string | undefined;
+    if (!expectedChallenge) return res.status(400).json({ error: "No registration in progress" });
+    try {
+      const result = await webauthnConsumeRegistration({
+        userId: req.user.id,
+        expectedChallenge,
+        body: (req.body as any)?.attestation || req.body,
+        nickname: (req.body as any)?.nickname,
+        req,
+      });
+      delete (req.session as any).webauthnChallenge;
+      if (!result.ok) return res.status(400).json({ error: result.reason });
+      await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[webauthn/register/finish]:", e?.message);
+      res.status(500).json({ error: "Failed to register passkey" });
+    }
+  });
+
+  app.post("/api/auth/webauthn/auth/begin", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      const options = await webauthnBuildAuthenticationOptions({ userId: req.user.id, req });
+      if (!options) return res.status(404).json({ error: "No passkey enrolled" });
+      (req.session as any).webauthnChallenge = options.challenge;
+      res.json(options);
+    } catch (e: any) {
+      console.error("[webauthn/auth/begin]:", e?.message);
+      res.status(500).json({ error: "Failed to start passkey authentication" });
+    }
+  });
+
+  app.post("/api/auth/webauthn/auth/finish", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const expectedChallenge = (req.session as any).webauthnChallenge as string | undefined;
+    if (!expectedChallenge) return res.status(400).json({ error: "No authentication in progress" });
+    try {
+      const result = await webauthnConsumeAuthentication({
+        userId: req.user.id,
+        expectedChallenge,
+        body: (req.body as any)?.assertion || req.body,
+        req,
+      });
+      delete (req.session as any).webauthnChallenge;
+      if (!result.ok) return res.status(401).json({ error: result.reason });
+      (req.session as any).twoFactorVerified = true;
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[webauthn/auth/finish]:", e?.message);
+      res.status(500).json({ error: "Failed to verify passkey" });
+    }
+  });
+
+  app.get("/api/auth/webauthn/credentials", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    try {
+      res.json(await webauthnListCredentials(req.user.id));
+    } catch (e: any) {
+      console.error("[webauthn/credentials list]:", e?.message);
+      res.status(500).json({ error: "Failed to list passkeys" });
+    }
+  });
+
+  app.delete("/api/auth/webauthn/credentials/:id", requireAuth, async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: "Authentication required" });
+    const id = req.params.id;
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: "Invalid id" });
+    try {
+      const ok = await webauthnDeleteCredential(req.user.id, id);
+      if (!ok) return res.status(404).json({ error: "Not found" });
+      res.json({ ok: true });
+    } catch (e: any) {
+      console.error("[webauthn/credentials delete]:", e?.message);
+      res.status(500).json({ error: "Failed to delete passkey" });
     }
   });
 

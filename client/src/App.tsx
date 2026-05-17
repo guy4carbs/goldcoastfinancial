@@ -151,6 +151,8 @@ import AdminLeadRevenue from "@/pages/admin/AdminLeadRevenue";
 // 2FA Pages
 import TwoFactorSetup from "@/pages/ai/TwoFactorSetup";
 import TwoFactorVerify from "@/pages/ai/TwoFactorVerify";
+import Auth2faEnrollPage from "@/pages/auth/Auth2faEnrollPage";
+import Auth2faVerifyPage from "@/pages/auth/Auth2faVerifyPage";
 // Lounge Pages
 import { AIDashboard } from "@/pages/ai";
 import {
@@ -602,6 +604,10 @@ function Router() {
         </Route>
 
         {/* Two-Factor Authentication Routes */}
+        {/* gcf-style email + Touch ID (Heritage-branded) — primary 2FA UX */}
+        <Route path="/auth/2fa/enroll" component={Auth2faEnrollPage} />
+        <Route path="/auth/2fa" component={Auth2faVerifyPage} />
+        {/* Legacy TOTP — kept for users already enrolled via the old flow */}
         <Route path="/ai/2fa-setup" component={TwoFactorSetup} />
         <Route path="/ai/2fa-verify" component={TwoFactorVerify} />
 

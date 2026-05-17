@@ -1,0 +1,235 @@
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+  type GenerateRegistrationOptionsOpts,
+  type VerifyRegistrationResponseOpts,
+  type GenerateAuthenticationOptionsOpts,
+  type VerifyAuthenticationResponseOpts,
+} from "@simplewebauthn/server";
+import { pool } from "../db";
+
+/**
+ * WebAuthn / passkey service — Heritage edition.
+ *
+ * Ported from gcf in 1.0.48. Same DB table (`webauthn_credentials`) — shared
+ * Neon DB means credentials are stored centrally. RP ID is derived from the
+ * request hostname so Heritage credentials register against
+ * `heritagels.org` (separate origin from gcf's `goldcoastfinancial.co`).
+ *
+ * A user with a passkey enrolled on EITHER app can verify against that
+ * specific RP ID; cross-domain passkeys don't transfer (this is a WebAuthn
+ * spec property, not a code choice).
+ */
+
+function getRpName(): string {
+  return "Heritage Life Solutions";
+}
+
+function getRpID(req?: { hostname?: string; headers?: Record<string, any> }): string {
+  const explicit = process.env.WEBAUTHN_RP_ID;
+  if (explicit) return explicit;
+  const hostHeader = (req?.headers?.host as string | undefined) || req?.hostname;
+  const host = (hostHeader || "localhost").split(":")[0];
+  return host;
+}
+
+function getOrigin(req?: { protocol?: string; headers?: Record<string, any> }): string {
+  const explicit = process.env.WEBAUTHN_ORIGIN;
+  if (explicit) return explicit;
+  const proto =
+    (req?.headers?.["x-forwarded-proto"] as string | undefined) || req?.protocol || "http";
+  const host = (req?.headers?.host as string | undefined) || "localhost:3000";
+  return `${proto}://${host}`;
+}
+
+// ─── Registration ────────────────────────────────────────────────────────
+
+export async function buildRegistrationOptions(opts: {
+  userId: string;
+  userEmail: string;
+  userName: string;
+  req: any;
+}) {
+  const existing = await pool.query(
+    `SELECT credential_id, transports FROM webauthn_credentials WHERE user_id = $1`,
+    [opts.userId],
+  );
+  const excludeCredentials = existing.rows.map((r: any) => ({
+    id: r.credential_id,
+    transports: r.transports
+      ? (String(r.transports).split(",") as ("usb" | "nfc" | "ble" | "internal" | "hybrid")[])
+      : undefined,
+  }));
+
+  const generateOpts: GenerateRegistrationOptionsOpts = {
+    rpName: getRpName(),
+    rpID: getRpID(opts.req),
+    userID: new TextEncoder().encode(opts.userId),
+    userName: opts.userEmail,
+    userDisplayName: opts.userName || opts.userEmail,
+    timeout: 60_000,
+    attestationType: "none",
+    excludeCredentials,
+    authenticatorSelection: {
+      authenticatorAttachment: "platform",
+      residentKey: "required",
+      requireResidentKey: true,
+      userVerification: "required",
+    },
+    preferredAuthenticatorType: "localDevice",
+    supportedAlgorithmIDs: [-7, -257],
+  };
+  const options = await generateRegistrationOptions(generateOpts);
+  return options;
+}
+
+export async function consumeRegistration(opts: {
+  userId: string;
+  expectedChallenge: string;
+  body: any;
+  req: any;
+  nickname?: string;
+}) {
+  const verifyOpts: VerifyRegistrationResponseOpts = {
+    response: opts.body,
+    expectedChallenge: opts.expectedChallenge,
+    expectedOrigin: getOrigin(opts.req),
+    expectedRPID: getRpID(opts.req),
+    requireUserVerification: false,
+  };
+  const verification = await verifyRegistrationResponse(verifyOpts);
+  if (!verification.verified || !verification.registrationInfo) {
+    return { ok: false as const, reason: "registration verification failed" };
+  }
+  const info = verification.registrationInfo;
+  const credential = info.credential;
+  const credentialIdB64 = credential.id;
+  const publicKeyB64 = Buffer.from(credential.publicKey).toString("base64url");
+  const transports = (opts.body?.response?.transports as string[] | undefined)?.join(",") || null;
+  const deviceType = info.credentialDeviceType;
+  const backedUp = info.credentialBackedUp;
+
+  await pool.query(
+    `INSERT INTO webauthn_credentials
+       (user_id, credential_id, public_key, counter, transports, device_type, backed_up, nickname, last_used_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+     ON CONFLICT (credential_id) DO NOTHING`,
+    [
+      opts.userId,
+      credentialIdB64,
+      publicKeyB64,
+      Number(credential.counter || 0),
+      transports,
+      deviceType,
+      backedUp,
+      opts.nickname?.slice(0, 120) || null,
+    ],
+  );
+  return { ok: true as const };
+}
+
+// ─── Authentication ──────────────────────────────────────────────────────
+
+export async function buildAuthenticationOptions(opts: { userId: string; req: any }) {
+  const existing = await pool.query(
+    `SELECT credential_id, transports FROM webauthn_credentials WHERE user_id = $1`,
+    [opts.userId],
+  );
+  if (existing.rowCount === 0) return null;
+  const allowCredentials = existing.rows.map((r: any) => {
+    const stored = r.transports
+      ? (String(r.transports)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean) as ("usb" | "nfc" | "ble" | "internal" | "hybrid" | "smart-card")[])
+      : [];
+    const transports = stored.length === 0
+      ? undefined
+      : stored.includes("internal")
+        ? stored
+        : (["internal", ...stored] as typeof stored);
+    return { id: r.credential_id as string, transports };
+  });
+  const generateOpts: GenerateAuthenticationOptionsOpts = {
+    rpID: getRpID(opts.req),
+    timeout: 60_000,
+    userVerification: "required",
+    allowCredentials,
+  };
+  const options = await generateAuthenticationOptions(generateOpts);
+  return { ...options, hints: ["client-device"] } as typeof options & {
+    hints: string[];
+  };
+}
+
+export async function consumeAuthentication(opts: {
+  userId: string;
+  expectedChallenge: string;
+  body: any;
+  req: any;
+}) {
+  const credentialId = opts.body?.id as string | undefined;
+  if (!credentialId) return { ok: false as const, reason: "missing credential id" };
+
+  const lookup = await pool.query(
+    `SELECT id, credential_id, public_key, counter, transports
+     FROM webauthn_credentials WHERE user_id = $1 AND credential_id = $2`,
+    [opts.userId, credentialId],
+  );
+  if (lookup.rowCount === 0) return { ok: false as const, reason: "credential not found" };
+  const row = lookup.rows[0];
+
+  const verifyOpts: VerifyAuthenticationResponseOpts = {
+    response: opts.body,
+    expectedChallenge: opts.expectedChallenge,
+    expectedOrigin: getOrigin(opts.req),
+    expectedRPID: getRpID(opts.req),
+    credential: {
+      id: row.credential_id,
+      publicKey: new Uint8Array(Buffer.from(row.public_key, "base64url")),
+      counter: Number(row.counter || 0),
+      transports: row.transports
+        ? (String(row.transports).split(",") as ("usb" | "nfc" | "ble" | "internal" | "hybrid")[])
+        : undefined,
+    },
+    requireUserVerification: false,
+  };
+  const verification = await verifyAuthenticationResponse(verifyOpts);
+  if (!verification.verified) return { ok: false as const, reason: "verification failed" };
+
+  await pool.query(
+    `UPDATE webauthn_credentials SET counter = $1, last_used_at = NOW() WHERE id = $2`,
+    [Number(verification.authenticationInfo.newCounter || 0), row.id],
+  );
+  return { ok: true as const };
+}
+
+// ─── Listings ────────────────────────────────────────────────────────────
+
+export async function listCredentials(userId: string) {
+  const result = await pool.query(
+    `SELECT id, credential_id, transports, device_type, backed_up, nickname, last_used_at, created_at
+     FROM webauthn_credentials WHERE user_id = $1 ORDER BY created_at ASC`,
+    [userId],
+  );
+  return result.rows.map((r: any) => ({
+    id: r.id,
+    credentialId: r.credential_id,
+    transports: r.transports,
+    deviceType: r.device_type,
+    backedUp: r.backed_up,
+    nickname: r.nickname,
+    lastUsedAt: r.last_used_at,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function deleteCredential(userId: string, id: string) {
+  const res = await pool.query(
+    `DELETE FROM webauthn_credentials WHERE id = $1 AND user_id = $2`,
+    [id, userId],
+  );
+  return (res.rowCount || 0) > 0;
+}

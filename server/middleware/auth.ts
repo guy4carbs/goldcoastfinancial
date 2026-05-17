@@ -123,6 +123,13 @@ const TWO_FA_EXEMPT_PATHS = [
   '/api/auth/2fa/enroll/verify',
   '/api/auth/2fa/verify',
   '/api/auth/2fa/recovery',
+  // Email-code 2FA (gcf-style) ported in 1.0.48. Enrollment endpoints
+  // must be exempt or a fresh user can't flip their own twoFactorEnabled
+  // flag for the first time.
+  '/api/auth/2fa/email/enroll/begin',
+  '/api/auth/2fa/email/enroll/verify',
+  '/api/auth/2fa/email/request',
+  '/api/auth/2fa/email/verify',
   // Heritage's TOTP enrollment + verify flow lives under /api/ai/2fa/*.
   // Without exempting these, a fresh high-trust user can never enroll —
   // the very endpoint they need to call gets 403'd by the 2FA gate it's
