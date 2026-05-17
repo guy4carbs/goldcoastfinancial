@@ -14,14 +14,14 @@ import { useAuth } from "@/contexts/AuthContext";
  *
  * Two states this gate handles:
  *
- *   1. user.twoFactorEnabled === false → push to /ai/2fa-setup
- *      (Heritage's existing TOTP enrollment page that talks to
- *      /api/ai/2fa/setup → returns QR code → user scans → verifies
- *      → backend flips twoFactorEnabled=true and twoFactorVerified=true).
+ *   1. user.twoFactorEnabled === false → push to /auth/2fa/enroll
+ *      (Heritage's gcf-style 2FA enrollment page: Touch ID OR email-code
+ *      6-digit verification. Backend flips twoFactorEnabled=true on
+ *      successful verify.)
  *
  *   2. user.twoFactorEnabled && !user.twoFactorVerified → push to
- *      /ai/2fa-verify (Heritage's existing TOTP verify page that
- *      accepts a 6-digit code → marks the session verified).
+ *      /auth/2fa (verify page — same Touch ID + email-code options;
+ *      marks the session verified).
  *
  * EXEMPT_PATHS lists locations where redirecting would loop or break
  * other flows — the login pages themselves, the 2FA pages, public
@@ -51,6 +51,8 @@ const EXEMPT_PATHS = [
   "/agents/login",
   "/admin/login",
   "/client/login",
+  "/auth/2fa",
+  "/auth/2fa/enroll",
   "/ai/2fa-setup",
   "/ai/2fa-verify",
   "/client/2fa-setup",
@@ -74,11 +76,11 @@ export function Force2FAGate({ children }: { children: ReactNode }) {
     if (isExemptPath(location)) return;
 
     if (!user.twoFactorEnabled) {
-      setLocation("/ai/2fa-setup");
+      setLocation("/auth/2fa/enroll");
       return;
     }
     if (!user.twoFactorVerified) {
-      setLocation("/ai/2fa-verify");
+      setLocation("/auth/2fa");
       return;
     }
   }, [user, isLoading, location, setLocation]);
