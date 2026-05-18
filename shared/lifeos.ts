@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.54";
+export const LIFEOS_VERSION = "1.0.55";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.54";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.54";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.55";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage fix: post-2FA users were bouncing back to /auth/2fa instead of landing at the CRM Lobby because AuthContext hardcoded twoFactorVerified=false on every user load. Now reads from /api/auth/user. Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage fix continued: 1.0.54 fixed the client to read twoFactorVerified from /api/auth/user, but audit found the server was never including it in the response. /api/auth/user now merges req.session.twoFactorVerified into the payload — post-2FA routing to /crm finally works. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage fix: after completing 2FA via Touch ID or the email code, users were getting bounced right back to \`/auth/2fa\` instead of landing at the CRM Lobby. \`AuthContext\` was hardcoding \`twoFactorVerified: false\` on every user load even though the server's \`/api/auth/user\` returns the authoritative session-level flag. All four load sites now read the server value. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage fix continued from 1.0.54: that release made the client read \`twoFactorVerified\` from \`/api/auth/user\`, but turned out the server was never sending it. \`twoFactorEnabled\` is a DB column (persistent, set on enrollment); \`twoFactorVerified\` is session-scoped (\`req.session.twoFactorVerified\`, set by each verify endpoint). The auth middleware merges them on every gated request — \`/api/auth/user\` did not. Now it does. Post-2FA users finally land at \`/crm\` and stay there. Gold Coast tracks the version number for parity.`;
 
 
 /**
