@@ -18,24 +18,26 @@ import { useToast } from "@/hooks/use-toast";
  * navigator.credentials.get() outside a user gesture.
  */
 
-// Same Heritage violet + amber tokens as the enroll page; see
-// `lib/heritageDesignSystem.ts` for the source of truth.
+// Same Heritage light tokens as the enroll page. Mirrors LobbyLayout's
+// slate-50→white outer gradient, white card with violet accents, and the
+// standard Heritage violet→gold button gradient (same as the Policy
+// Reminder email).
 const heritageAuthVars: Record<string, string> = {
-  "--gc-bg": "#1A0B2E",
-  "--gc-surface": "#2D1B4E",
-  "--gc-surface-2": "#3D2B5E",
-  "--gc-border": "rgba(245,158,11,0.20)",
-  "--gc-gold": "#f59e0b",
-  "--gc-gold-bright": "#fbbf24",
-  "--gc-btn-primary-bg": "linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)",
+  "--gc-bg": "#f8fafc",
+  "--gc-surface": "#ffffff",
+  "--gc-surface-2": "#f5f3ff",
+  "--gc-border": "#e9d5ff",
+  "--gc-gold": "#7c3aed",
+  "--gc-gold-bright": "#D4AF37",
+  "--gc-btn-primary-bg": "linear-gradient(135deg, #7c3aed 0%, #D4AF37 100%)",
   "--gc-btn-primary-text": "#ffffff",
-  "--gc-text-primary": "#F5F3FF",
-  "--gc-text-secondary": "rgba(245,243,255,0.78)",
-  "--gc-text-muted": "rgba(245,243,255,0.50)",
+  "--gc-text-primary": "#111827",
+  "--gc-text-secondary": "#374151",
+  "--gc-text-muted": "#6b7280",
   "--gc-font-body": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   "--gc-font-display": "'Playfair Display', Georgia, serif",
-  "--gc-shadow-sm": "0 2px 8px rgba(0,0,0,0.25)",
-  "--gc-shadow-lg": "0 20px 50px rgba(0,0,0,0.4)",
+  "--gc-shadow-sm": "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
+  "--gc-shadow-lg": "0 20px 50px rgba(124,58,237,0.18), 0 8px 16px rgba(124,58,237,0.08)",
   "--gc-radius-sm": "8px",
   "--gc-radius-md": "12px",
   "--gc-radius-full": "999px",
@@ -196,10 +198,9 @@ export default function Auth2faVerifyPage() {
   return (
     <div
       data-theme="heritage-auth"
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-gray-50/50"
       style={{
         ...heritageAuthVars,
-        backgroundColor: "var(--gc-bg)",
         fontFamily: "var(--gc-font-body)",
         padding: "var(--gc-space-6) var(--gc-space-4)",
         position: "relative",
@@ -242,19 +243,40 @@ export default function Auth2faVerifyPage() {
               pointerEvents: "none",
             }}
           />
-          <div className="flex items-center justify-center mb-4" style={{ position: "relative" }}>
+          <div className="flex items-center justify-center mb-3" style={{ position: "relative" }}>
             <img
               src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b"
               alt="Heritage Life Solutions"
               style={{
-                width: 80,
-                height: 80,
+                width: 72,
+                height: 72,
                 borderRadius: 16,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
                 display: "block",
               }}
             />
           </div>
+          <div
+            style={{
+              fontFamily: "var(--gc-font-display)",
+              fontSize: "var(--gc-text-md)",
+              fontWeight: 600,
+              color: "#ffffff",
+              letterSpacing: "var(--gc-tracking-wider)",
+              position: "relative",
+              marginBottom: "var(--gc-space-3)",
+            }}
+          >
+            HERITAGE LIFE SOLUTIONS
+          </div>
+          <div
+            className="h-[2px] mx-auto mb-5"
+            style={{
+              width: 56,
+              background: "rgba(255,255,255,0.45)",
+              position: "relative",
+            }}
+          />
           <h1
             style={{
               fontFamily: "var(--gc-font-display)",
@@ -317,7 +339,8 @@ export default function Auth2faVerifyPage() {
                   width: 40,
                   height: 40,
                   borderRadius: "var(--gc-radius-sm)",
-                  background: "rgba(45, 10, 18, 0.20)",
+                  background: "rgba(255,255,255,0.22)",
+                  border: "1px solid rgba(255,255,255,0.28)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -471,14 +494,15 @@ export default function Auth2faVerifyPage() {
                     style={{
                       width: "100%",
                       padding: "var(--gc-space-4)",
-                      background: "var(--gc-surface)",
-                      border: "1px solid var(--gc-border)",
+                      background: "#ffffff",
+                      border: "2px solid var(--gc-gold)",
                       borderRadius: "var(--gc-radius-sm)",
                       fontFamily: "monospace",
                       fontSize: "var(--gc-text-2xl)",
+                      fontWeight: 700,
                       letterSpacing: "0.5em",
                       textAlign: "center",
-                      color: "var(--gc-text-primary)",
+                      color: "#5b21b6",
                       marginBottom: "var(--gc-space-3)",
                       outline: "none",
                     }}
