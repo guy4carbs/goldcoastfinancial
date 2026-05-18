@@ -69,6 +69,31 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Security headers with Helmet
+//
+// CSP allow-list reference (Wave 2 of the agent-lounge debug sweep):
+//   - Stripe.js + Elements (lead marketplace payment flow):
+//       script-src   js.stripe.com
+//       frame-src    js.stripe.com, hooks.stripe.com (3D Secure)
+//       connect-src  *.stripe.com (api.stripe.com, m.stripe.com, etc.)
+//   - Cloudflare Insights (heritagels.org is CF-proxied — beacon auto-injected):
+//       script-src   static.cloudflareinsights.com
+//       connect-src  cloudflareinsights.com
+//   - Google Tag Manager / Analytics (allow-listed defensively even if not
+//     currently wired up — original Wave 2 plan, may be live via CF Apps):
+//       script-src   www.googletagmanager.com, apis.google.com
+//       connect-src  www.google-analytics.com, *.google-analytics.com
+//   - Firebase Auth (client SDK at lib/firebase.ts — was blocked by the
+//     prior `connect-src 'self'` and only worked because session auth at
+//     /api/auth/login is primary; this closes the latent Firebase fallback
+//     hole):
+//       connect-src  identitytoolkit.googleapis.com,
+//                    securetoken.googleapis.com,
+//                    www.googleapis.com
+//       frame-src    *.firebaseapp.com (OAuth handler iframe)
+//   - WebSocket (wss: wildcard already covers heritagels.org/ws/gcf etc.;
+//     Wave 3 covers the upgrade-handshake bug separately, not a CSP issue).
+//   - imgSrc stays `https:` wildcard so Stripe + CF + Firebase + any
+//     carrier-logo CDN keeps working.
 app.use(helmet({
   contentSecurityPolicy: isProduction ? {
     directives: {
@@ -76,11 +101,37 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "wss:", "https://api.openai.com", "wss://*.telnyx.com", "https://*.telnyx.com", "https://api.telnyx.com"],
+      scriptSrc: [
+        "'self'",
+        "https://js.stripe.com",
+        "https://static.cloudflareinsights.com",
+        "https://www.googletagmanager.com",
+        "https://apis.google.com",
+      ],
+      connectSrc: [
+        "'self'",
+        "wss:",
+        "https://api.openai.com",
+        "wss://*.telnyx.com",
+        "https://*.telnyx.com",
+        "https://api.telnyx.com",
+        "https://*.stripe.com",
+        "https://cloudflareinsights.com",
+        "https://www.google-analytics.com",
+        "https://*.google-analytics.com",
+        "https://identitytoolkit.googleapis.com",
+        "https://securetoken.googleapis.com",
+        "https://www.googleapis.com",
+      ],
       mediaSrc: ["'self'", "https://*.telnyx.com", "https://firebasestorage.googleapis.com"],
-      frameSrc: ["'self'"],
+      frameSrc: [
+        "'self'",
+        "https://js.stripe.com",
+        "https://hooks.stripe.com",
+        "https://*.firebaseapp.com",
+      ],
       objectSrc: ["'none'"],
+      frameAncestors: ["'self'"],
     },
   } : false, // Disable CSP in development for easier debugging
   crossOriginEmbedderPolicy: false, // Required for some external resources
