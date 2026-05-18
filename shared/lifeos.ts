@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.57";
+export const LIFEOS_VERSION = "1.0.58";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.57";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.57";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.58";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage shipped Wave 3 of the agent-lounge debug sweep: all three WebSocket endpoints (/ws/gcf, /ws/chat, /ws/avatar-council) migrated from client-trusted ?userId= / in-band auth to authoritative session-cookie auth on the upgrade handler. Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage shipped Wave 4 (final wave) of the agent-lounge debug sweep: /api/calls/token now returns structured Telnyx error codes (so we can see in prod logs which step actually failed), and /ws/chat + /ws/avatar-council got server-side ping/pong heartbeats so Cloudflare's idle timeout stops killing connections. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage shipped Wave 3 of the agent-lounge debug sweep: WebSocket upgrade handlers now reuse the same session-cookie middleware as REST routes. \`/ws/gcf\`, \`/ws/chat\`, and \`/ws/avatar-council\` were all rejecting upgrades because they read identity from client-supplied URL params / in-band messages instead of the session cookie. Now all three look up \`session.userId\` from the same PG-backed session store every REST endpoint uses. \`/ws/gcf\` additionally gates on \`session.twoFactorVerified\` for parity with the REST 2FA gate. Backwards-compatible: stale client bundles still sending \`?userId=\` keep working (param is ignored, cookie wins). Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage shipped Wave 4 (final wave) of the agent-lounge debug sweep. \`/api/calls/token\` (Telnyx WebRTC token endpoint) now returns structured \`{ error, code, retryable }\` per failure mode (\`VOICE_NOT_CONFIGURED\`, \`VOICE_UPSTREAM_AUTH\`, \`VOICE_CREDENTIAL_STALE\`, \`VOICE_UPSTREAM_UNAVAILABLE\`, \`VOICE_TOKEN_FAILED\`) so the dialer UI shows users what went wrong and our prod logs reveal which pipeline stage failed. Stale credentials are auto-cleared so the next call re-provisions. WebSocket endpoints \`/ws/chat\` and \`/ws/avatar-council\` got server-side ping/pong heartbeats (30s interval) so Cloudflare's ~100s idle-WebSocket timeout no longer kills quiet connections. Gold Coast tracks the version number for parity.`;
 
 
 /**
