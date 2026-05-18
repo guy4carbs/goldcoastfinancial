@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import { requireAuth } from "../middleware/auth";
 import { storage } from "../storage";
 import {
@@ -36,6 +36,47 @@ const voicemailUpload = multer({
 });
 
 const router = Router();
+
+// ---------------------------------------------------------------------------
+// Route-level timeout middleware
+// ---------------------------------------------------------------------------
+//
+// Fires BEFORE requireAuth + the route handler. If middleware (session
+// lookup, attachUser DB call, anything in the chain) hangs past `ms`, this
+// returns our own JSON timeout response — guaranteeing the client never
+// sees Cloudflare's HTML 502 page (which yields the dreaded
+// `code=UNKNOWN http=502` symptom because CF's body isn't parseable JSON).
+//
+// Use on critical routes where we MUST return a structured response on every
+// request shape, regardless of where the chain stalls.
+function withTimeout(ms: number, code: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const t = setTimeout(() => {
+      if (res.headersSent) return;
+      console.warn(`[withTimeout] ${req.method} ${req.path} hit ${ms}ms ceiling — responding with ${code}`);
+      res.status(504).json({
+        error: "Request timed out before reaching the handler",
+        code,
+        retryable: true,
+      });
+    }, ms);
+    const clear = () => clearTimeout(t);
+    res.on("finish", clear);
+    res.on("close", clear);
+    next();
+  };
+}
+
+// ---------------------------------------------------------------------------
+// /api/calls/_ping — diagnostic
+// ---------------------------------------------------------------------------
+// Trivial endpoint: no auth, no DB, no Telnyx. Just confirms Express is
+// reachable through Railway + Cloudflare. If this returns 200, the issue
+// with /token is in our handler or its middleware. If this returns 502,
+// the issue is upstream (Railway / CF / process health).
+router.get("/_ping", (_req, res) => {
+  res.status(200).json({ ok: true, ts: new Date().toISOString() });
+});
 
 // RBAC helper: check if user can access a specific recording
 async function checkRecordingAccess(
@@ -202,7 +243,7 @@ function decodeClientState(encodedState: string | undefined): Record<string, any
 // client inside this window — never Cloudflare's HTML 502 page.
 const TOKEN_HANDLER_WALL_CLOCK_MS = 25_000;
 
-router.get("/token", requireAuth, async (req: Request, res: Response) => {
+router.get("/token", withTimeout(28_000, "VOICE_GATEWAY_TIMEOUT"), requireAuth, async (req: Request, res: Response) => {
   const user = req.user!;
   const startTs = Date.now();
   console.log(`[Calls/token] enter user=${user.id}`);

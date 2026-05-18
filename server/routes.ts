@@ -23,7 +23,6 @@ import { addLeadToSheet } from "./sheets";
 import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
-import { Pool } from "pg";
 import agentNotificationsRouter from "./routes/agent-notifications";
 import adminProductsRouter from "./routes/admin-products";
 import adminContentRouter from "./routes/admin-content";
@@ -109,9 +108,12 @@ declare module "express-session" {
   }
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Share the single connection pool with the Drizzle ORM (server/db.ts).
+// Was previously a separate `new Pool({...})` with default settings — that
+// gave us two independent pools both pointing at the same Neon DB,
+// competing for the connection budget. Under any load, either pool could
+// exhaust and middleware would hang. See server/db.ts header comment.
+import { pool } from "./db";
 
 const PgSession = connectPgSimple(session);
 

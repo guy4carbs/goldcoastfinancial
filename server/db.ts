@@ -6,11 +6,20 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
 }
 
+// Shared connection pool. PgSession (express-session store) reads from this
+// too — see server/routes.ts:setupSession. Previously routes.ts maintained
+// its own separate `new Pool({...})` which gave us TWO pools sharing the
+// same Neon DB and competing for the same connection budget; under load
+// either pool could exhaust, leaving session lookups (and downstream
+// attachUser DB calls) hanging indefinitely → Cloudflare returned its own
+// HTML 502 → client saw `code=UNKNOWN`. Single pool, 20-connection budget,
+// 5s timeout on individual connection acquisition so we fail fast instead
+// of hanging the request.
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 10,
+  max: 20,
   idleTimeoutMillis: 10000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 5000,
   allowExitOnIdle: true,
 });
 

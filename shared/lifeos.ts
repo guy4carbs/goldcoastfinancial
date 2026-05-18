@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.60";
+export const LIFEOS_VERSION = "1.0.61";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,14 +35,14 @@ export const LIFEOS_VERSION = "1.0.60";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Telnyx never-hangs guarantee + lifeOS badge defensive render";
+export const LIFEOS_RELEASE_TITLE = "Telnyx — merge DB pools + route-level timeout (middleware hangs no longer 502)";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Even after 1.0.59's 15s SDK timeout, users still saw code=UNKNOWN http=502 (Cloudflare's HTML page) — meaning Telnyx SDK retries pushed total wall-clock past the gateway window. Now bounded at 25s with a handler-level Promise.race: the /token endpoint ALWAYS returns structured JSON, even on infrastructure failure. lifeOS pill in the topbar also gets a defensive fallback so it can never render blank.";
+  "1.0.60's handler-level wall-clock only fired AFTER requireAuth + attachUser ran. If middleware itself hung (waiting for a DB connection from an exhausted second pool), the handler never started, the wall-clock never fired, and Cloudflare returned its own HTML 502. Fixed by merging the dual pg.Pool instances into one shared pool and adding a route-level withTimeout middleware that fires BEFORE auth runs — always returns our JSON. Plus a /api/calls/_ping diagnostic so we can isolate origin issues from handler issues.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Telnyx /token never hangs past 25s.** 1.0.59 added \`timeout: 15_000\` on the SDK client, but the SDK still retried up to 2 times silently (= 45s worst-case wall-clock), which could exceed gateway timeouts and result in Cloudflare's HTML 502 page (client saw \`code=UNKNOWN\`). 1.0.60 sets \`maxRetries: 0\` on the SDK AND wraps the entire \`/token\` handler in a hard 25s wall-clock via \`setTimeout\` + a \`respond()\` helper that clears it. After 25s the handler returns its own 504 JSON (\`code: VOICE_HANDLER_TIMEOUT\`, \`retryable: true\`) — guaranteed structured response, never CF's opaque page. Entry/exit + elapsed-ms logging now lands in Railway logs for every request so we can see the actual stage timing.
-- **Specific code for connection-level failures.** The catch block now distinguishes \`APIConnectionTimeoutError\` / \`APIConnectionError\` / generic network errors (ETIMEDOUT/ECONNRESET/EAI_AGAIN) and returns \`code: VOICE_UPSTREAM_UNAVAILABLE\` with \`retryable: true\` instead of the generic 500 fallback. So even SDK-level timeouts now show a meaningful code, not UNKNOWN.
-- **lifeOS pill defensive render.** \`LifeOSVersionBadge\` now falls back to \`…\` if \`yourVersion\` is empty during initial hydration (was rendering a sparkle icon with invisible trailing-space text in a flex container that could clip). Added \`whitespace-nowrap\` + \`flex-shrink-0\` so the pill always preserves enough width to show the version label.`;
+- **Dual DB pool merged.** \`server/routes.ts\` was constructing its own \`new Pool({...})\` for the express-session store while \`server/db.ts\` already exported a separate pool for Drizzle/ORM. Two pools sharing one Neon DB → either could exhaust under load, causing session lookup or \`attachUser\` to hang indefinitely. They now share a single 20-connection pool with a 5s connection-acquisition timeout (fail fast vs. hang).
+- **Route-level \`withTimeout\` middleware on /token.** 1.0.60's wall-clock was a \`setTimeout\` *inside* the handler — it only fired after the middleware chain (\`requireAuth\` → \`attachUser\`) finished. If those hung on a DB call, the handler never started and Cloudflare returned a 502 (no JSON body → client saw \`code=UNKNOWN\`). The new middleware fires before \`requireAuth\`, with a 28s ceiling, and returns our own JSON (\`code: VOICE_GATEWAY_TIMEOUT\`, \`retryable: true\`). Middleware hangs are now caught.
+- **\`/api/calls/_ping\` diagnostic.** Trivial endpoint, no auth, no DB, no Telnyx. Returns \`{ ok: true, ts: ... }\`. If \`/_ping\` returns 200 cleanly but \`/token\` 502s, the issue is downstream (DB/Telnyx); if \`/_ping\` itself 502s, the issue is Railway/Cloudflare/process-level.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
