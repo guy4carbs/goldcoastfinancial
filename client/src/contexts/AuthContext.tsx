@@ -65,7 +65,7 @@ async function fetchUserProfile(email: string): Promise<Partial<AppUser> | null>
           role: isValidRole(data.user.role) ? data.user.role : Roles.CLIENT,
           isActive: data.user.isActive ?? true,
           twoFactorEnabled: data.user.twoFactorEnabled ?? false,
-          twoFactorVerified: false, // Needs to be verified separately
+          twoFactorVerified: data.user.twoFactorVerified ?? false,
           phone: data.user.phone,
           avatarUrl: data.user.avatarUrl,
           timezone: data.user.timezone,
@@ -100,7 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: profile?.role || Roles.CLIENT,
       isActive: profile?.isActive ?? true,
       twoFactorEnabled: profile?.twoFactorEnabled ?? false,
-      twoFactorVerified: twoFactorVerified,
+      // Prefer the authoritative server flag (set on the session by the
+      // 2FA verify endpoints); fall back to the legacy local state for the
+      // TOTP flow at /ai/2fa-verify which calls set2FAVerified() directly.
+      twoFactorVerified: profile?.twoFactorVerified ?? twoFactorVerified,
       phone: profile?.phone,
       avatarUrl: profile?.avatarUrl,
       timezone: profile?.timezone || 'America/Chicago',
@@ -128,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               role: isValidRole(data.user.role) ? data.user.role : Roles.CLIENT,
               isActive: data.user.isActive ?? true,
               twoFactorEnabled: data.user.twoFactorEnabled ?? false,
-              twoFactorVerified: false,
+              twoFactorVerified: data.user.twoFactorVerified ?? false,
               phone: data.user.phone,
               avatarUrl: data.user.avatarUrl,
               timezone: data.user.timezone || 'America/Chicago',
@@ -204,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: isValidRole(data.user.role) ? data.user.role : Roles.CLIENT,
             isActive: data.user.isActive ?? true,
             twoFactorEnabled: data.user.twoFactorEnabled ?? false,
-            twoFactorVerified: false,
+            twoFactorVerified: data.user.twoFactorVerified ?? false,
             phone: data.user.phone,
             avatarUrl: data.user.avatarUrl,
             timezone: data.user.timezone || 'America/Chicago',

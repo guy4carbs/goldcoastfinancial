@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.53";
+export const LIFEOS_VERSION = "1.0.54";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.0.53";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Fix invisible Send-code-to-my-email + Verify buttons on 2FA";
+export const LIFEOS_RELEASE_TITLE = "Post-2FA routing — actually land at the CRM Lobby instead of bouncing back";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Hotfix for 1.0.52. The \"Send code to my email\" and \"Verify\" buttons on /auth/2fa(/enroll) were rendering with white text on the violet-50 card surface (no visible button) because the gradient was applied via CSS \`background-color:\` instead of \`background:\` — background-color doesn't accept linear-gradient values, so the gradient silently dropped to transparent. Fixed on both pages.";
+  "AuthContext was hardcoding \`twoFactorVerified: false\` on every user load, so after completing 2FA + the hard reload to /crm, Force2FAGate would read the stale-false flag and immediately redirect back to /auth/2fa. Now reads the authoritative \`twoFactorVerified\` from the server's /api/auth/user response.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Hotfix:** The "Send code to my email" and "Verify" buttons on \`/auth/2fa\` and \`/auth/2fa/enroll\` are visible again. CSS bug from 1.0.52 — the violet→gold gradient was being set via \`background-color\` instead of \`background\` (gradients aren't valid background-color values), so the button surface fell through to transparent over the violet-50 card. Swapped to the correct shorthand. Touch ID button was already using \`background:\` so it always rendered correctly.`;
+- **Post-2FA routing fix.** Verifying via Touch ID or the email code now actually takes you to the CRM Lobby. The bug: AuthContext (\`client/src/contexts/AuthContext.tsx\`) was hardcoding \`twoFactorVerified: false\` at four user-load sites, so even though the server marked the session 2FA-verified and \`/api/auth/user\` returned \`twoFactorVerified: true\`, the client always saw \`false\` and \`Force2FAGate\` bounced the user right back to \`/auth/2fa\`. All four sites now read \`data.user.twoFactorVerified ?? false\`. The legacy \`set2FAVerified\` setter is still wired for the TOTP flow at \`/ai/2fa-verify\` as a fallback.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
