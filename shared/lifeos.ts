@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.52";
+export const LIFEOS_VERSION = "1.0.53";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,15 +35,12 @@ export const LIFEOS_VERSION = "1.0.52";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "2FA screens rebuilt in Heritage's light-card style";
+export const LIFEOS_RELEASE_TITLE = "Fix invisible Send-code-to-my-email + Verify buttons on 2FA";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The /auth/2fa and /auth/2fa/enroll pages now match the rest of the Heritage app: the slate-50→white LobbyLayout gradient outside, a white card with violet accents inside, and the same violet→gold action gradient used in every Heritage email — instead of the standalone dark-violet card. HERITAGE LIFE SOLUTIONS wordmark is back beneath the logo.";
+  "Hotfix for 1.0.52. The \"Send code to my email\" and \"Verify\" buttons on /auth/2fa(/enroll) were rendering with white text on the violet-50 card surface (no visible button) because the gradient was applied via CSS \`background-color:\` instead of \`background:\` — background-color doesn't accept linear-gradient values, so the gradient silently dropped to transparent. Fixed on both pages.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Light card body, white surface, violet accents.** The 2FA pages now use Heritage's standard visual language (LobbyLayout's slate-50 → white gradient outside, white card with shadow inside) instead of the dark-violet card they shipped with. The whole flow now reads as part of the same app, not a standalone auth surface.
-- **HERITAGE LIFE SOLUTIONS text restored.** The wordmark is back on the gradient hero, beneath the Heritage logo image, with the white-translucent divider above the headline.
-- **Heritage-standard violet → gold action gradient.** Primary buttons + Touch ID button now use the same \`#7c3aed → #D4AF37\` gradient as the Policy Reminder / Welcome / verification emails — screen and inbox use the exact same button look.
-- **Code input rebuilt for legibility.** White background, 2px violet border, bold dark-violet (\`#5b21b6\`) monospace digits — clear at a glance, brand-consistent.`;
+- **Hotfix:** The "Send code to my email" and "Verify" buttons on \`/auth/2fa\` and \`/auth/2fa/enroll\` are visible again. CSS bug from 1.0.52 — the violet→gold gradient was being set via \`background-color\` instead of \`background\` (gradients aren't valid background-color values), so the button surface fell through to transparent over the violet-50 card. Swapped to the correct shorthand. Touch ID button was already using \`background:\` so it always rendered correctly.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
