@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.51";
+export const LIFEOS_VERSION = "1.0.52";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.51";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.51";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.52";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage rebuilt its 2FA verification email in the standard Heritage email template (real Heritage logo, white card body, violet accents — matches Policy Reminder) and put the same logo on the on-screen 2FA hero. Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage rebuilt its 2FA screens in the rest of the app's light-card style (white card, violet accents, violet→gold action gradient — same look as LobbyLayout + every Heritage email). Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage standardized its 2FA branding: the verification email now mirrors the rest of the Heritage email family (Policy Reminder template — gradient header with the real Heritage logo image, white card body, violet accents, light legal footer), and the on-screen 2FA pages now show the same Heritage logo above the gradient hero instead of a generic Shield icon. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage's \`/auth/2fa\` and \`/auth/2fa/enroll\` were the last screens still on the dark-violet standalone auth treatment from the original gcf port. They now use Heritage's light-card style (LobbyLayout's slate-50→white outer gradient, white card with violet accents inside, violet→gold action gradient) so the entire app reads as one brand. Gold Coast tracks the version number for parity.`;
 
 
 /**
