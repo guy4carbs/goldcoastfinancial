@@ -4,7 +4,6 @@ import {
   ShieldCheck,
   Loader2,
   Fingerprint,
-  Shield,
   Mail,
   MessageSquare,
 } from "lucide-react";
@@ -243,37 +242,19 @@ export default function Auth2faVerifyPage() {
               pointerEvents: "none",
             }}
           />
-          <div className="flex items-center justify-center gap-3 mb-3" style={{ position: "relative" }}>
-            <div
+          <div className="flex items-center justify-center mb-4" style={{ position: "relative" }}>
+            <img
+              src="https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b"
+              alt="Heritage Life Solutions"
               style={{
-                padding: "var(--gc-space-2)",
-                background: "rgba(255,255,255,0.18)",
-                border: "1px solid rgba(255,255,255,0.28)",
-                borderRadius: "var(--gc-radius-md)",
+                width: 80,
+                height: 80,
+                borderRadius: 16,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                display: "block",
               }}
-            >
-              <Shield className="w-5 h-5" style={{ color: "#ffffff" }} aria-hidden="true" />
-            </div>
-            <span
-              style={{
-                fontFamily: "var(--gc-font-display)",
-                fontSize: "var(--gc-text-xl)",
-                fontWeight: 600,
-                color: "#ffffff",
-                letterSpacing: "var(--gc-tracking-wide)",
-              }}
-            >
-              HERITAGE LIFE SOLUTIONS
-            </span>
+            />
           </div>
-          <div
-            className="h-[2px] mx-auto mb-5"
-            style={{
-              width: 64,
-              background: "rgba(255,255,255,0.45)",
-              position: "relative",
-            }}
-          />
           <h1
             style={{
               fontFamily: "var(--gc-font-display)",

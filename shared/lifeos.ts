@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.50";
+export const LIFEOS_VERSION = "1.0.51";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,14 +35,13 @@ export const LIFEOS_VERSION = "1.0.50";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "2FA hero gradient — full Heritage violet→amber signature";
+export const LIFEOS_RELEASE_TITLE = "Heritage logo on the 2FA flow + verification email matches the rest of the email family";
 export const LIFEOS_RELEASE_SUMMARY =
-  "The \`/auth/2fa\` + \`/auth/2fa/enroll\` hero headers and the verification email banner now use Heritage's signature violet→purple→amber gradient (the same one in the lobby's hero and the What's New modal). Post-2FA still routes to the CRM Lobby.";
+  "The 2FA verification email now uses Heritage's standard email template (gradient header with the real Heritage logo image, white card body, violet accents, light legal footer) — same look as the Policy Reminder and other Heritage emails. The on-screen 2FA pages drop the generic Shield pill and show the same Heritage logo image.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Signature gradient on the 2FA hero.** Both 2FA screens now have the full Heritage hero gradient (135° violet → purple → amber, from \`COLORS.gradients.heroWithAccent\`) instead of a flat dark surface — same gradient the lobby and the What's New modal use, so the auth screens read as part of the same brand surface.
-- **Email banner matches.** The verification email's brand band now mirrors the on-screen hero with the same gradient, white "H" tile, and white headline.
-- **Defensive post-verify routing.** The 2FA enroll handler's "already enrolled" branch now does a full page reload to \`/crm\` instead of a soft route change, so a stale \`Force2FAGate\` snapshot can't bounce the user back to \`/auth/2fa\`.`;
+- **Verification email matches the Heritage email family.** Rebuilt against the same template Policy Reminder / Welcome use: gradient header (violet → gold) with the real Heritage logo image (firebase-hosted, the navy column-building badge), white card body, light-violet greeting banner, violet-bordered code box with dark violet digits, light security note, white-on-light footer + GLBA legal block. Recipients now see Heritage as one consistent brand across every email.
+- **Heritage logo on the on-screen 2FA hero.** \`/auth/2fa\` and \`/auth/2fa/enroll\` now show the same Heritage logo image as the email (replacing the generic Shield icon + wordmark pill). One brand, two surfaces.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

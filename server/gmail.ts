@@ -4791,10 +4791,10 @@ export async function sendEmailWithAttachments(data: {
 // =============================================================================
 //
 // Sends a 6-digit code for email-as-second-factor enrollment + verification.
-// Heritage palette: deep violet + amber to match the rest of the app
-// (LobbyLanding, LifeOSVersionBadge, the 2FA screens). Colors are sourced
-// from `client/src/lib/heritageDesignSystem.ts` so a recipient sees the
-// same visual identity in the email as on the Heritage surface.
+// Visual identity mirrors `sendPolicyReminderEmail` so all Heritage emails read
+// as the same brand family: gradient header (violet → gold) with the real
+// Heritage logo image (firebase-hosted, same URL the policy + welcome emails
+// use), white card body with violet accents, light legal footer.
 function escapeHtmlBasic(input: string): string {
   return String(input || "")
     .replace(/&/g, "&amp;")
@@ -4803,6 +4803,9 @@ function escapeHtmlBasic(input: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+const HERITAGE_LOGO_URL =
+  "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b";
 
 export async function sendVerificationCodeEmail(data: {
   firstName: string;
@@ -4814,41 +4817,60 @@ export async function sendVerificationCodeEmail(data: {
   const code = escapeHtmlBasic(data.code);
   const ttl = Math.max(1, Math.floor(data.ttlMinutes || 5));
 
+  const primaryColor = "#7c3aed";
+  const goldColor = "#D4AF37";
+  const gradientFrom = "#7c3aed";
+  const gradientTo = "#D4AF37";
+
   const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8" /><title>Heritage Life Solutions verification code</title></head>
-<body style="margin:0;padding:0;background:#1A0B2E;font-family:'Inter','-apple-system','BlinkMacSystemFont','Segoe UI',sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A0B2E;padding:32px 16px;">
+<html><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Heritage Life Solutions verification code</title></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f8fafc;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 20px;">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#2D1B4E;border-radius:16px;overflow:hidden;border:1px solid rgba(245,158,11,0.20);">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
 
-<tr><td style="padding:32px 32px 24px;text-align:center;background:linear-gradient(135deg,#7c3aed 0%,#9333ea 50%,#f59e0b 100%);">
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 12px;">
-<tr><td style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:10px;line-height:0;">
-<span style="display:inline-block;width:24px;height:24px;color:#ffffff;font-weight:700;font-size:20px;line-height:24px;font-family:'Playfair Display',Georgia,serif;">H</span>
-</td><td style="padding-left:14px;font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;color:#ffffff;letter-spacing:0.06em;">
-HERITAGE LIFE SOLUTIONS
-</td></tr></table>
-<div style="width:64px;height:2px;margin:8px auto 20px;background:rgba(255,255,255,0.45);"></div>
-<h1 style="margin:0 0 8px;font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:600;color:#ffffff;line-height:1.15;">Verify your identity</h1>
-<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:15px;color:rgba(255,255,255,0.88);line-height:1.55;">Confirm this code to finish signing in.</p>
+<!-- Header — gradient + Heritage logo -->
+<tr><td style="background:linear-gradient(135deg,${gradientFrom} 0%,${gradientTo} 100%);padding:32px 40px;text-align:center;">
+<img src="${HERITAGE_LOGO_URL}" alt="Heritage Life Solutions" style="width:80px;height:80px;border-radius:16px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.2);" />
+<h1 style="color:#ffffff;margin:16px 0 8px 0;font-size:24px;font-weight:700;">Verify your identity</h1>
+<p style="color:rgba(255,255,255,0.92);margin:0;font-size:14px;font-weight:500;">Confirm this code to finish signing in.</p>
 </td></tr>
 
-<tr><td style="padding:28px 32px;">
-<p style="margin:0 0 18px;font-size:15px;color:#F5F3FF;line-height:1.6;">Hi ${firstName || "there"},</p>
-<p style="margin:0 0 24px;font-size:15px;color:rgba(245,243,255,0.85);line-height:1.6;">Use the code below to finish signing in to <strong style="color:#F5F3FF;">Heritage Life Solutions</strong>.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-<tr><td align="center" style="padding:24px;background:#3D2B5E;border-radius:12px;border:1px solid rgba(245,158,11,0.28);">
-<div style="font-family:'SF Mono','Menlo','Consolas',monospace;font-size:40px;font-weight:700;letter-spacing:12px;color:#fbbf24;line-height:1;">${code}</div>
-<p style="margin:12px 0 0;font-size:11px;color:rgba(245,243,255,0.55);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;">expires in ${ttl} ${ttl === 1 ? "minute" : "minutes"}</p>
-</td></tr></table>
-<div style="background:#3D2B5E;border-left:3px solid #f59e0b;border-radius:6px;padding:14px 18px;margin:0 0 22px;">
-<p style="margin:0;font-size:13px;color:rgba(245,243,255,0.75);line-height:1.55;"><strong style="color:#F5F3FF;">Security note:</strong> Heritage Life Solutions staff will never call, text, or email asking for this code. If you didn't try to sign in, ignore this email and consider rotating your password.</p>
-</div>
-<p style="margin:0;font-size:14px;color:rgba(245,243,255,0.65);line-height:1.6;">Questions? Reach us at <a href="mailto:contact@heritagels.org" style="color:#fbbf24;text-decoration:none;font-weight:600;">contact@heritagels.org</a>.</p>
+<!-- Greeting Banner -->
+<tr><td style="padding:24px 40px;background-color:#f5f3ff;border-bottom:1px solid #e9d5ff;">
+<p style="color:#5b21b6;font-size:15px;margin:0;font-weight:600;text-align:center;">Hi ${firstName || "there"} — here's your sign-in code.</p>
 </td></tr>
 
-<tr><td style="padding:18px 32px;background:#1A0B2E;border-top:1px solid rgba(245,158,11,0.15);text-align:center;">
-<p style="margin:0;font-size:11px;color:rgba(245,243,255,0.45);letter-spacing:0.05em;">Required by the Heritage Information Security Program · GLBA 16 CFR § 314.4</p>
+<!-- Body -->
+<tr><td style="padding:32px 40px 16px;">
+<p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 24px 0;">Use the code below to finish signing in to <strong style="color:${primaryColor};">Heritage Life Solutions</strong>. It's good for ${ttl} ${ttl === 1 ? "minute" : "minutes"}.</p>
+
+<!-- Code Box -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px 0;">
+<tr><td align="center" style="padding:28px 24px;background-color:#f5f3ff;border:2px solid ${primaryColor};border-radius:14px;">
+<div style="font-family:'SF Mono','Menlo','Consolas',monospace;font-size:40px;font-weight:700;letter-spacing:14px;color:#5b21b6;line-height:1;">${code}</div>
+<p style="margin:14px 0 0;font-size:11px;color:${goldColor};letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">expires in ${ttl} ${ttl === 1 ? "minute" : "minutes"}</p>
+</td></tr></table>
+
+<!-- Security Note -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f3ff;border-left:4px solid ${primaryColor};border-radius:0 12px 12px 0;margin:0 0 24px 0;">
+<tr><td style="padding:18px 22px;">
+<p style="color:#374151;font-size:14px;line-height:1.55;margin:0;"><strong style="color:${primaryColor};">Security note:</strong> Heritage Life Solutions staff will never call, text, or email asking for this code. If you didn't try to sign in, ignore this email and consider rotating your password.</p>
+</td></tr></table>
+
+<p style="color:#6b7280;font-size:14px;line-height:1.6;margin:0;">Questions? Reach us at <a href="mailto:contact@heritagels.org" style="color:${primaryColor};text-decoration:none;font-weight:600;">contact@heritagels.org</a>.</p>
+</td></tr>
+
+<!-- Brand Footer -->
+<tr><td style="background-color:#f8fafc;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
+<p style="color:${primaryColor};font-size:16px;font-weight:700;margin:0 0 4px 0;">Heritage Life Solutions</p>
+<p style="color:#9ca3af;font-size:12px;margin:0;">Protecting families with personalized insurance solutions</p>
+</td></tr>
+
+<!-- Legal Footer -->
+<tr><td style="background-color:#f1f5f9;padding:20px 40px;border-top:1px solid #e5e7eb;">
+<p style="color:#64748b;font-size:11px;line-height:1.6;margin:0 0 8px 0;text-align:center;">&copy; 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.</p>
+<p style="color:#94a3b8;font-size:10px;line-height:1.5;margin:0;text-align:center;">Required by the Heritage Information Security Program · GLBA 16 CFR § 314.4</p>
 </td></tr>
 
 </table>
