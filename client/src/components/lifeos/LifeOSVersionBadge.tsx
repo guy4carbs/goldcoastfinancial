@@ -22,6 +22,16 @@ const AMBER = COLORS.accent.amber;
 export function LifeOSVersionBadge() {
   const { yourVersion, updateAvailable, openWhatsNew, openUpdate } = useLifeOS();
 
+  // Defensive fallback. `yourVersion` should always come back populated from
+  // `getRuntimeLifeOSVersion()` (Vite-injected at build time → falls back to
+  // the LIFEOS_VERSION import). But if the provider hasn't mounted yet (rare
+  // race during initial hydration) or the runtime read returns an empty
+  // string, render a placeholder rather than `lifeOS ` with a trailing space
+  // that looks like an empty button. Verified failure mode from a user
+  // screenshot where the badge rendered with just the sparkle icon and no
+  // visible text.
+  const versionLabel = (yourVersion && yourVersion.length > 0) ? yourVersion : "…";
+
   const handleClick = () => {
     if (updateAvailable) {
       openUpdate();
@@ -31,8 +41,8 @@ export function LifeOSVersionBadge() {
   };
 
   const tooltip = updateAvailable
-    ? `Click to update from lifeOS ${yourVersion}`
-    : `lifeOS ${yourVersion} (latest)`;
+    ? `Click to update from lifeOS ${versionLabel}`
+    : `lifeOS ${versionLabel} (latest)`;
 
   const accent = updateAvailable ? AMBER[500] : VIOLET[600];
 
@@ -42,7 +52,7 @@ export function LifeOSVersionBadge() {
       onClick={handleClick}
       title={tooltip}
       data-testid="lifeos-version-badge"
-      className="flex items-center gap-1.5 transition-all"
+      className="flex items-center gap-1.5 transition-all whitespace-nowrap"
       style={{
         padding: "4px 10px",
         fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
@@ -54,6 +64,7 @@ export function LifeOSVersionBadge() {
         border: `1px solid ${updateAvailable ? AMBER[300] : COLORS.gray[200]}`,
         borderRadius: RADIUS.pill,
         cursor: "pointer",
+        flexShrink: 0,
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = accent;
@@ -65,11 +76,13 @@ export function LifeOSVersionBadge() {
       }}
     >
       {updateAvailable ? (
-        <Download className="w-3 h-3" style={{ color: accent }} />
+        <Download className="w-3 h-3 flex-shrink-0" style={{ color: accent }} />
       ) : (
-        <Sparkles className="w-3 h-3" style={{ color: accent }} />
+        <Sparkles className="w-3 h-3 flex-shrink-0" style={{ color: accent }} />
       )}
-      <span>{updateAvailable ? `Update · ${yourVersion}` : `lifeOS ${yourVersion}`}</span>
+      <span style={{ whiteSpace: "nowrap" }}>
+        {updateAvailable ? `Update · ${versionLabel}` : `lifeOS ${versionLabel}`}
+      </span>
       {updateAvailable && (
         <span
           aria-hidden
@@ -80,6 +93,7 @@ export function LifeOSVersionBadge() {
             backgroundColor: AMBER[500],
             marginLeft: 2,
             boxShadow: `0 0 0 2px ${AMBER[50]}`,
+            flexShrink: 0,
           }}
         />
       )}

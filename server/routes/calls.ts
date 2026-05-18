@@ -195,10 +195,44 @@ function decodeClientState(encodedState: string | undefined): Record<string, any
 // GET /token — Generate Telnyx WebRTC JWT for browser SDK
 // =============================================================================
 
+// Hard wall-clock ceiling for the whole /token request. The SDK already has
+// timeout: 15_000 + maxRetries: 0, but if a DB call + a Telnyx call both
+// take their max budget the total could exceed our gateway window. This
+// Promise.race guarantees we ALWAYS return a structured JSON 504 to the
+// client inside this window — never Cloudflare's HTML 502 page.
+const TOKEN_HANDLER_WALL_CLOCK_MS = 25_000;
+
 router.get("/token", requireAuth, async (req: Request, res: Response) => {
   const user = req.user!;
+  const startTs = Date.now();
+  console.log(`[Calls/token] enter user=${user.id}`);
   const stage = { name: "init" }; // mutates as we walk the pipeline so the
                                   // catch block can attribute the failure
+
+  // Hard timeout: if the pipeline below doesn't resolve in time, respond
+  // with our own 504 (gateway timeout, but JSON we control) so the client
+  // sees a real code instead of CF's opaque code=UNKNOWN page.
+  const wallClock = setTimeout(() => {
+    if (res.headersSent) return;
+    console.error(
+      `[Calls/token] WALL-CLOCK ${TOKEN_HANDLER_WALL_CLOCK_MS}ms exceeded ` +
+        `stage=${stage.name} user=${user.id}`,
+    );
+    res.status(504).json({
+      error: "Voice token request timed out",
+      code: "VOICE_HANDLER_TIMEOUT",
+      retryable: true,
+      stage: stage.name,
+    });
+  }, TOKEN_HANDLER_WALL_CLOCK_MS);
+
+  // Helper that wraps `res.json/status` and clears the wall-clock so we don't
+  // log a spurious timeout after a successful (or already-errored) response.
+  const respond = (status: number, body: any) => {
+    clearTimeout(wallClock);
+    if (res.headersSent) return;
+    return res.status(status).json(body);
+  };
 
   try {
     stage.name = "env-check";
@@ -210,7 +244,7 @@ router.get("/token", requireAuth, async (req: Request, res: Response) => {
         !process.env.TELNYX_DEFAULT_CALLER_ID && "TELNYX_DEFAULT_CALLER_ID",
       ].filter(Boolean);
       console.warn(`[Calls/token] voice not configured — missing env: ${missing.join(", ")}`);
-      return res.status(503).json({
+      return respond(503, {
         error: "Voice service not configured",
         code: "VOICE_NOT_CONFIGURED",
         retryable: false,
@@ -240,7 +274,8 @@ router.get("/token", requireAuth, async (req: Request, res: Response) => {
     stage.name = "telnyx-create-token";
     const token = await generateWebRTCToken(credential.telnyxCredentialId);
 
-    return res.json({
+    console.log(`[Calls/token] success user=${user.id} elapsed=${Date.now() - startTs}ms`);
+    return respond(200, {
       token,
       sipUsername: credential.sipUsername,
       callerId: process.env.TELNYX_DEFAULT_CALLER_ID || "",
@@ -252,8 +287,10 @@ router.get("/token", requireAuth, async (req: Request, res: Response) => {
     const telnyxStatus = error?.status ?? error?.response?.status;
     const telnyxCode = error?.code ?? error?.errors?.[0]?.code;
     const telnyxDetail = error?.errors?.[0]?.detail ?? error?.errors?.[0]?.title;
+    const errorName = error?.name ?? error?.constructor?.name;
     console.error(
-      `[Calls/token] FAILED stage=${stage.name} user=${user.id}` +
+      `[Calls/token] FAILED stage=${stage.name} user=${user.id} elapsed=${Date.now() - startTs}ms` +
+        ` errName=${errorName ?? "?"}` +
         (telnyxStatus ? ` telnyxStatus=${telnyxStatus}` : "") +
         (telnyxCode ? ` telnyxCode=${telnyxCode}` : "") +
         (telnyxDetail ? ` telnyxDetail="${telnyxDetail}"` : "") +
@@ -264,7 +301,7 @@ router.get("/token", requireAuth, async (req: Request, res: Response) => {
     // upstream — bad key, wrong account, revoked. Surface as 502 (upstream
     // bad gateway) so the client knows it's not a user fixable issue.
     if (telnyxStatus === 401 || telnyxStatus === 403) {
-      return res.status(502).json({
+      return respond(502, {
         error: "Voice provider rejected our credentials",
         code: "VOICE_UPSTREAM_AUTH",
         retryable: false,
@@ -280,7 +317,7 @@ router.get("/token", requireAuth, async (req: Request, res: Response) => {
       } catch (delErr: any) {
         console.error(`[Calls/token] failed to clear stale credential row: ${delErr?.message ?? delErr}`);
       }
-      return res.status(409).json({
+      return respond(409, {
         error: "Voice credential expired — refresh and try again",
         code: "VOICE_CREDENTIAL_STALE",
         retryable: true,
@@ -288,14 +325,24 @@ router.get("/token", requireAuth, async (req: Request, res: Response) => {
     }
     // Network / 5xx from Telnyx is transient.
     if (telnyxStatus && telnyxStatus >= 500) {
-      return res.status(502).json({
+      return respond(502, {
         error: "Voice provider temporarily unavailable",
         code: "VOICE_UPSTREAM_UNAVAILABLE",
         retryable: true,
       });
     }
+    // SDK-level timeout (APIConnectionTimeoutError) or network-level failure
+    // (no HTTP status). These are also transient — surface as 502 with the
+    // retryable flag so the client can retry on user gesture.
+    if (!telnyxStatus && (errorName === "APIConnectionTimeoutError" || errorName === "APIConnectionError" || /timeout|network|ECONNRESET|ETIMEDOUT|EAI_AGAIN/i.test(error?.message ?? ""))) {
+      return respond(502, {
+        error: "Voice provider didn't respond in time",
+        code: "VOICE_UPSTREAM_UNAVAILABLE",
+        retryable: true,
+      });
+    }
 
-    return res.status(500).json({
+    return respond(500, {
       error: "Failed to generate token",
       code: "VOICE_TOKEN_FAILED",
       retryable: false,
