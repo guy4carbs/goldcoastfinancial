@@ -69,6 +69,7 @@ import {
 } from "lucide-react";
 import { goldCoastUrlForRole } from '@/lib/goldCoastUrl';
 import { useAuth } from '@/contexts/AuthContext';
+import { safeGet, safeSet } from '@/lib/safeStorage';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -179,13 +180,11 @@ interface AgentLoungeLayoutProps {
 }
 
 export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
-  // Sidebar state with localStorage persistence
+  // Sidebar state with safeStorage persistence (handles Safari private mode
+  // where direct localStorage access throws SecurityError — would otherwise
+  // crash the whole lounge on first render).
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(SIDEBAR_STATE_KEY);
-      return saved === 'true';
-    }
-    return false;
+    return safeGet(SIDEBAR_STATE_KEY) === 'true';
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -203,7 +202,7 @@ export function AgentLoungeLayout({ children }: AgentLoungeLayoutProps) {
 
   // Persist sidebar state
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_STATE_KEY, String(sidebarCollapsed));
+    safeSet(SIDEBAR_STATE_KEY, String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   // Keyboard shortcut for sidebar toggle (Ctrl/Cmd + B)

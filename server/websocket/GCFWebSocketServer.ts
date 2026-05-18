@@ -72,20 +72,30 @@ export const ALL_CHANNELS: Channel[] = Object.values(Channels);
 /**
  * Channels accessible by each role
  */
+// Channels for the manager tier (used by both legacy `manager` and canonical
+// `agency_manager` Role string values — see types/permissions.ts which defines
+// both for backwards compat).
+const MANAGER_CHANNELS: Channel[] = [
+  Channels.AGENTS, Channels.SYSTEM, Channels.ALERTS, Channels.ERRORS,
+  Channels.LEADS, Channels.PIPELINE,
+  Channels.MY_APPOINTMENTS, Channels.COACHING, Channels.TEAM,
+  Channels.ESCALATIONS, Channels.COMPLIANCE,
+  Channels.REVENUE, Channels.KPIS,
+  Channels.CONTENT, Channels.SOCIAL, Channels.CAMPAIGNS, Channels.REPUTATION,
+  Channels.NOTIFICATIONS, Channels.CALLS, Channels.DEALS,
+];
+
 const ROLE_CHANNEL_ACCESS: Record<Role, Channel[]> = {
+  // Top-tier — all channels.
+  [Roles.FOUNDER]: ALL_CHANNELS,
   [Roles.OWNER]: ALL_CHANNELS,
-
   [Roles.SYSTEM_ADMIN]: ALL_CHANNELS,
+  [Roles.DIRECTOR]: ALL_CHANNELS,
 
-  [Roles.AGENCY_MANAGER]: [
-    Channels.AGENTS, Channels.SYSTEM, Channels.ALERTS, Channels.ERRORS,
-    Channels.LEADS, Channels.PIPELINE,
-    Channels.MY_APPOINTMENTS, Channels.COACHING, Channels.TEAM,
-    Channels.ESCALATIONS, Channels.COMPLIANCE,
-    Channels.REVENUE, Channels.KPIS,
-    Channels.CONTENT, Channels.SOCIAL, Channels.CAMPAIGNS, Channels.REPUTATION,
-    Channels.NOTIFICATIONS, Channels.CALLS, Channels.DEALS,
-  ],
+  // Manager tier — same channel list under both string values
+  // ('manager' legacy + 'agency_manager' canonical).
+  [Roles.AGENCY_MANAGER]: MANAGER_CHANNELS,
+  [Roles.MANAGER_CANONICAL]: MANAGER_CHANNELS,
 
   [Roles.SALES_AGENT]: [
     Channels.MY_LEADS, Channels.PIPELINE,
@@ -112,10 +122,20 @@ const ROLE_CHANNEL_ACCESS: Record<Role, Channel[]> = {
 /**
  * Default channels to auto-subscribe based on role
  */
+const MANAGER_DEFAULTS: Channel[] = [
+  Channels.LEADS, Channels.TEAM, Channels.ALERTS, Channels.NOTIFICATIONS, Channels.CALLS,
+];
+const EXECUTIVE_DEFAULTS: Channel[] = [
+  Channels.AGENTS, Channels.ALERTS, Channels.REVENUE, Channels.KPIS, Channels.NOTIFICATIONS,
+];
+
 const DEFAULT_CHANNELS: Record<Role, Channel[]> = {
+  [Roles.FOUNDER]: EXECUTIVE_DEFAULTS,
   [Roles.OWNER]: [Channels.AGENTS, Channels.ALERTS, Channels.NOTIFICATIONS],
   [Roles.SYSTEM_ADMIN]: [Channels.AGENTS, Channels.ALERTS, Channels.ERRORS, Channels.NOTIFICATIONS],
-  [Roles.AGENCY_MANAGER]: [Channels.LEADS, Channels.TEAM, Channels.ALERTS, Channels.NOTIFICATIONS, Channels.CALLS],
+  [Roles.DIRECTOR]: EXECUTIVE_DEFAULTS,
+  [Roles.AGENCY_MANAGER]: MANAGER_DEFAULTS,
+  [Roles.MANAGER_CANONICAL]: MANAGER_DEFAULTS,
   [Roles.SALES_AGENT]: [Channels.MY_LEADS, Channels.MY_APPOINTMENTS, Channels.NOTIFICATIONS],
   [Roles.MARKETING_STAFF]: [Channels.CONTENT, Channels.NOTIFICATIONS],
   [Roles.CLIENT]: [Channels.MY_POLICIES, Channels.NOTIFICATIONS],

@@ -1247,23 +1247,13 @@ export const contactRelationships = pgTable("contact_relationships", {
 
 export type ContactRelationship = typeof contactRelationships.$inferSelect;
 
-// Import History
-export const importHistory = pgTable("import_history", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  importType: varchar("import_type", { length: 50 }).notNull(), // leads, contacts, policies
-  fileName: varchar("file_name", { length: 255 }),
-  status: varchar("status", { length: 50 }).notNull(), // pending, processing, completed, failed
-  totalRows: integer("total_rows"),
-  successfulRows: integer("successful_rows"),
-  failedRows: integer("failed_rows"),
-  errors: jsonb("errors"),
-  importedBy: uuid("imported_by").references(() => users.id),
-  startedAt: timestamp("started_at"),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export type ImportHistoryEntry = typeof importHistory.$inferSelect;
+// Import History — duplicate definition removed. The canonical
+// `importHistory` table is in ./crm.ts; the schema duplicated the export
+// here for historical reasons but nothing actually imported this version
+// (verified via grep on 1.0.59), so it just produced a TS2308 "already
+// exported" error on every build. Kept commented for paper-trail.
+// export const importHistory = pgTable("import_history", { ... });
+// export type ImportHistoryEntry = typeof importHistory.$inferSelect;
 
 // Executive Snapshots
 export const executiveSnapshots = pgTable("executive_snapshots", {
