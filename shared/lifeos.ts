@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.52";
+export const LIFEOS_VERSION = "1.0.53";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.52";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.52";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.53";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage rebuilt its 2FA screens in the rest of the app's light-card style (white card, violet accents, violet→gold action gradient — same look as LobbyLayout + every Heritage email). Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage hotfix: the Send-code-to-my-email + Verify buttons on its 2FA screens were rendering invisible (CSS gradient on background-color, which silently drops). Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage's \`/auth/2fa\` and \`/auth/2fa/enroll\` were the last screens still on the dark-violet standalone auth treatment from the original gcf port. They now use Heritage's light-card style (LobbyLayout's slate-50→white outer gradient, white card with violet accents inside, violet→gold action gradient) so the entire app reads as one brand. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage hotfix: in 1.0.52 the violet→gold gradient on the "Send code to my email" + "Verify" buttons was applied via CSS \`background-color\` (which doesn't accept gradient values), so the buttons rendered as transparent surfaces with only the white icon + label visible. Swapped to the \`background:\` shorthand. Gold Coast tracks the version number for parity.`;
 
 
 /**
