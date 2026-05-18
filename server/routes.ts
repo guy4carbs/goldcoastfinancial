@@ -1842,7 +1842,6 @@ export async function registerRoutes(
         message: "Booking link sent successfully",
         bookingLink,
         emailSent: true,
-        smsSent: false
       });
     } catch (error: any) {
       console.error("[BookingLink] Error:", error);

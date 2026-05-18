@@ -50,9 +50,24 @@ const STATE_NAMES: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Stripe singleton (loaded once, reused across renders)
+// Stripe lazy singleton — only loaded when the checkout dialog actually opens.
+//
+// Why: loadStripe() injects an external script (js.stripe.com/v3) AND Stripe
+// then auto-fires a RUM beacon to m.stripe.network/b. Both of those have a
+// real cost (network, eval, CSP processing) on every page that imports this
+// module. Previously this fired at module-import time — i.e. on EVERY page
+// visit, not just AgentLeadMarketplace — which is why `Failed to load /b` 400s
+// were showing up in consoles outside the marketplace. getStripePromise() is
+// idempotent (returns the same Promise on subsequent calls, per Stripe's docs)
+// so call sites can ask for it freely without duplicate loads.
 // ---------------------------------------------------------------------------
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+let _stripePromise: ReturnType<typeof loadStripe> | null = null;
+function getStripePromise() {
+  if (!_stripePromise) {
+    _stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+  }
+  return _stripePromise;
+}
 
 // ---------------------------------------------------------------------------
 // Product visual mapping
@@ -567,10 +582,12 @@ export default function AgentLeadMarketplace() {
               </div>
             )}
 
-            {/* Stripe Elements */}
+            {/* Stripe Elements — getStripePromise() is the lazy variant (only
+                loads Stripe.js + fires the RUM beacon when the user actually
+                opens checkout, not on every page render). */}
             {clientSecret && (
               <Elements
-                stripe={stripePromise}
+                stripe={getStripePromise()}
                 options={{
                   clientSecret,
                   appearance: { theme: "stripe" },

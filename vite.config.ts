@@ -46,6 +46,10 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // Ship source maps in prod so user-reported stack traces resolve back to
+    // .tsx file:line. Adds ~30% to dist size (the .map files) but makes prod
+    // bugs debuggable from a screenshot of the console alone.
+    sourcemap: true,
   },
   server: {
     host: "0.0.0.0",

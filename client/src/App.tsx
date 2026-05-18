@@ -250,6 +250,7 @@ import { ConfirmProvider } from "@/components/agent/primitives/ConfirmDialog";
 // lifeOS — system update + release notes (read-only on Heritage)
 import { LifeOSUpdateProvider } from "@/components/lifeos/LifeOSUpdateProvider";
 import { ChunkLoadGuard } from "@/components/lifeos/ChunkLoadGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import WhatsNewArchive from "@/pages/lifeos/WhatsNewArchive";
 import { AnalyticsProvider } from "@/hooks/useAnalytics";
 import { WebSocketProvider } from "@/providers/WebSocketProvider";
@@ -1163,31 +1164,33 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Force2FAGate>
-          <WebSocketProvider>
-            <SiteSettingsProvider>
-              <CelebrationProvider>
-                <ConfirmProvider>
-                  <TooltipProvider>
-                    <AnalyticsProvider>
-                      <ChunkLoadGuard>
-                        <LifeOSUpdateProvider>
-                          <Toaster />
-                          <Router />
-                          <LindyChat />
-                        </LifeOSUpdateProvider>
-                      </ChunkLoadGuard>
-                    </AnalyticsProvider>
-                  </TooltipProvider>
-                </ConfirmProvider>
-              </CelebrationProvider>
-            </SiteSettingsProvider>
-          </WebSocketProvider>
-        </Force2FAGate>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Force2FAGate>
+            <WebSocketProvider>
+              <SiteSettingsProvider>
+                <CelebrationProvider>
+                  <ConfirmProvider>
+                    <TooltipProvider>
+                      <AnalyticsProvider>
+                        <ChunkLoadGuard>
+                          <LifeOSUpdateProvider>
+                            <Toaster />
+                            <Router />
+                            <LindyChat />
+                          </LifeOSUpdateProvider>
+                        </ChunkLoadGuard>
+                      </AnalyticsProvider>
+                    </TooltipProvider>
+                  </ConfirmProvider>
+                </CelebrationProvider>
+              </SiteSettingsProvider>
+            </WebSocketProvider>
+          </Force2FAGate>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -20,6 +20,7 @@ import {
 import { motion } from "framer-motion";
 import { AdminPageHero, AdminGlassCard, AdminStaggerContainer, AdminStatCard, AdminStatCardGrid, AdminEmptyState, ADMIN_GRADIENT } from "@/components/admin/AdminHeritagePrimitives";
 import { GLASS, RADIUS, SHADOW, MOTION, TYPE, GRID, COLORS, fadeInUp, staggerContainer } from "@/lib/heritageDesignSystem";
+import { safeGet, safeKeys, safeSet, safeRemove } from "@/lib/safeStorage";
 import { AdminLoungeLayout } from "./admin/AdminLoungeLayout";
 
 type TabType = "quotes" | "contacts" | "applications";
@@ -140,12 +141,13 @@ export default function AdminSubmissions() {
   // Read status tracking (persisted in localStorage)
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
 
-  // Load read status from localStorage on mount
+  // Load read status from localStorage on mount. Uses safeStorage so the
+  // page doesn't crash in Safari private browsing (where localStorage access
+  // throws SecurityError).
   useEffect(() => {
     const readSet = new Set<string>();
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith("submission_read_") && localStorage.getItem(key) === "true") {
+    for (const key of safeKeys("local")) {
+      if (key.startsWith("submission_read_") && safeGet(key) === "true") {
         readSet.add(key);
       }
     }
@@ -159,14 +161,14 @@ export default function AdminSubmissions() {
   const markAsRead = (type: "quote" | "contact" | "application", id: number) => {
     const key = getReadStorageKey(type, id);
     if (!readItems.has(key)) {
-      localStorage.setItem(key, "true");
+      safeSet(key, "true");
       setReadItems((prev) => new Set([...Array.from(prev), key]));
     }
   };
 
   const markAsUnread = (type: "quote" | "contact" | "application", id: number) => {
     const key = getReadStorageKey(type, id);
-    localStorage.removeItem(key);
+    safeRemove(key);
     setReadItems((prev) => {
       const newSet = new Set(prev);
       newSet.delete(key);

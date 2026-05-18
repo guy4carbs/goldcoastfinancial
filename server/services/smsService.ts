@@ -184,9 +184,14 @@ export async function sendPolicyUpdate(
 export async function sendSecureFormLink(
   phone: string,
   clientName: string,
-  link: string
+  formType: string,
+  link: string,
+  agentName?: string,
 ): Promise<SmsResult> {
-  const message = `Hi ${clientName}! Please complete your Heritage Life secure form: ${link} (expires in 24 hours)`;
+  const intro = agentName
+    ? `Hi ${clientName}! ${agentName} from Heritage Life Solutions sent you a ${formType} form`
+    : `Hi ${clientName}! Please complete your Heritage Life ${formType} form`;
+  const message = `${intro}: ${link} (expires in 24 hours)`;
   return sendSms(phone, message);
 }
 

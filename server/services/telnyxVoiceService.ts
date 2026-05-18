@@ -13,8 +13,14 @@ function getClient(): InstanceType<typeof Telnyx> {
   if (telnyxClient) return telnyxClient;
   const apiKey = process.env.TELNYX_API_KEY;
   if (!apiKey) throw new Error('[Voice] TELNYX_API_KEY not configured');
-  telnyxClient = new Telnyx({ apiKey });
-  console.log('[Voice] Telnyx client initialized');
+  // 15s timeout (Telnyx SDK default is 60s). Cloudflare proxies heritagels.org
+  // and returns its own HTML 502 if the origin doesn't respond inside ~100s.
+  // A 15s ceiling here means our handler ALWAYS gets a chance to return
+  // structured JSON (the catch block in routes/calls.ts maps
+  // APIConnectionTimeoutError → code:VOICE_UPSTREAM_UNAVAILABLE) instead
+  // of the user seeing CF's opaque "code=UNKNOWN http=502" page.
+  telnyxClient = new Telnyx({ apiKey, timeout: 15_000 });
+  console.log('[Voice] Telnyx client initialized (timeout 15s)');
   return telnyxClient;
 }
 

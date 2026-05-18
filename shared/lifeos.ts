@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.58";
+export const LIFEOS_VERSION = "1.0.59";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,18 +35,20 @@ export const LIFEOS_VERSION = "1.0.58";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Wave 4 — Telnyx token diagnostics + WS heartbeats (idle disconnects fixed)";
+export const LIFEOS_RELEASE_TITLE = "Deep clean — Telnyx 502 root cause + latent runtime bugs swept";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Two prod failures cleaned up: /api/calls/token now returns structured error codes so the dialer UI can show specific messaging (and prod logs reveal which Telnyx step failed); /ws/chat and /ws/avatar-council have server-side ping/pong heartbeats so Cloudflare's ~100s idle timeout stops killing connections.";
+  "The Telnyx 502 was Cloudflare's own page (origin hung past CF's window); 15s SDK timeout makes failures land as structured JSON. Plus: missing role-channel maps for founder/director (real C-suite WS bug), top-level ErrorBoundary so a single crash can't white-screen the app, source maps in prod, Safari-private-mode-safe localStorage, deferred Stripe loader, schema dedup, and TS target bumped to ES2020.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Telnyx /token diagnostics.** \`/api/calls/token\` previously caught every failure as a generic 500 "Failed to generate token". It now reports back \`{ error, code, retryable }\` with a specific code per failure mode: \`VOICE_NOT_CONFIGURED\` (env vars missing — also logs which env var), \`VOICE_UPSTREAM_AUTH\` (Telnyx rejected our API key), \`VOICE_CREDENTIAL_STALE\` (stored credentialId no longer exists on Telnyx — endpoint auto-clears the row so the next call re-provisions), \`VOICE_UPSTREAM_UNAVAILABLE\` (Telnyx 5xx), \`VOICE_TOKEN_FAILED\` (unknown). Server logs also report which pipeline stage failed (\`env-check\`, \`db-credential-lookup\`, \`telnyx-create-credential\`, \`telnyx-create-token\`).
-- **Dialer UI shows the actual reason.** The \`useTelnyxDevice\` hook now parses the structured shape and surfaces specific messages ("Voice service isn't configured", "Voice provider rejected our credentials", "Voice credential expired — refreshing", "Voice provider is temporarily unavailable") so users see what to do instead of a generic console error.
-- **/ws/chat heartbeat.** Cloudflare (which proxies heritagels.org) terminates idle WebSockets after ~100s of no traffic. Without server-side pings, chat tabs that sat idle showed up as "network connection was lost" the next time the page tried to send. Server now pings every 30s and terminates any socket that doesn't pong inside the window (same canonical pattern from the \`ws\` library docs that \`GCFWebSocketServer\` already used).
-- **/ws/avatar-council heartbeat.** Same fix — was also missing a heartbeat.
-- **Storage soft-delete for stale Telnyx credentials.** Added \`storage.deleteAgentTelephonyCredential()\` (marks the row \`isActive=false\`) so the auto-recovery path on \`VOICE_CREDENTIAL_STALE\` works without leaving zombie rows.
-- **The /b 400 in the console is Stripe's own analytics beacon** (\`m.stripe.network/b/...\`) — not a Heritage endpoint, not in our codebase. Stripe's beacon is independent of the payment flow; harmless. Left alone.
-- **The original /metrics 404 has stopped firing** — no longer in the user's console output. No fix needed.`;
+- **Telnyx 502 root cause.** The \`code=UNKNOWN http=502\` users were seeing was Cloudflare's HTML 502 page — not our handler. Telnyx SDK's default timeout is 60s, ours had no override, and Cloudflare cut the request before our handler could respond. Set \`timeout: 15_000\` on the Telnyx client. Failures now land as structured JSON (\`code: VOICE_UPSTREAM_UNAVAILABLE\` etc.) inside CF's window, and the dialer shows the real reason instead of a generic error.
+- **C-suite real-time comms restored.** \`GCFWebSocketServer\` had a \`Record<Role, Channel[]>\` typed map that only covered 7 of 10 roles. When a founder, director, or canonical-string agency_manager connected to \`/ws/gcf\`, channel-access lookup returned \`undefined\` — they silently received zero real-time data. Added all three missing entries plus an executive-defaults preset.
+- **Top-level ErrorBoundary.** A single component crash no longer white-screens the entire app. \`<ErrorBoundary>\` wraps the whole provider tree and renders a clean Heritage-styled fallback ("Try again" / "Reload page") with the dev-mode stack visible in DevTools.
+- **Source maps in prod.** Vite \`build.sourcemap: true\`. Console stack traces now resolve to the .tsx file:line instead of \`index-BloVtNjH.js:5447:21646\`.
+- **Safari private mode safe.** New \`@/lib/safeStorage\` wrappers (\`safeGet\` / \`safeSet\` / \`safeRemove\` / \`safeKeys\`) replace direct \`localStorage.*\` calls in AgentLoungeLayout, LoungeLayout, and AdminSubmissions. Previously crashed on first render in Safari private + some in-app browsers.
+- **Stripe deferred.** \`loadStripe()\` was firing at module-import time, kicking off Stripe's \`m.stripe.network/b\` RUM beacon on every page that touched the marketplace bundle (even when the user wasn't paying). Switched to a lazy \`getStripePromise()\` that only runs when the checkout dialog opens. Cuts the \`/b\` 400s from every page-load down to actual checkout sessions.
+- **TS target → ES2020.** Wipes the half-dozen pre-existing Map/Set iteration errors at once. No runtime risk on Node 18+/Vite.
+- **Pre-existing TS errors fixed.** \`routes.ts:1476\` (\`sendSecureFormLink\` signature now matches the call site, includes form-type + agent name in the SMS message). \`routes.ts:1845\` (duplicate \`smsSent\` key removed). \`shared/schema.ts\` duplicate \`importHistory\` export removed (CRM version kept; enterprise duplicate had no consumers).
+- **/b 400 on the marketplace page itself remains** — it's Stripe's own beacon firing during checkout. Not our endpoint; not fixable from our side.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

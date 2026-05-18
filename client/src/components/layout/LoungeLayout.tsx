@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { safeGet, safeSet } from '@/lib/safeStorage';
 import { PersistedScrollNav } from './PersistedScrollNav';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -202,20 +203,17 @@ export function LoungeLayout({
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
 
-  // Sidebar state with localStorage persistence
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(SIDEBAR_STATE_KEY);
-      return saved === 'true';
-    }
-    return false;
-  });
+  // Sidebar state with safeStorage persistence (handles Safari private mode
+  // where direct localStorage access throws SecurityError).
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => safeGet(SIDEBAR_STATE_KEY) === 'true'
+  );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   // Persist sidebar state
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_STATE_KEY, String(sidebarCollapsed));
+    safeSet(SIDEBAR_STATE_KEY, String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   // Keyboard shortcut for sidebar toggle (Ctrl/Cmd + B)
