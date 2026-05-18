@@ -4791,10 +4791,10 @@ export async function sendEmailWithAttachments(data: {
 // =============================================================================
 //
 // Sends a 6-digit code for email-as-second-factor enrollment + verification.
-// Heritage palette: deep burgundy + warm gold to match the auth screens. The
-// brand frame mirrors gcf's verification email but with Heritage colors,
-// sender name, and contact info so a recipient never sees Gold Coast copy on
-// what they expect to be a Heritage email.
+// Heritage palette: deep violet + amber to match the rest of the app
+// (LobbyLanding, LifeOSVersionBadge, the 2FA screens). Colors are sourced
+// from `client/src/lib/heritageDesignSystem.ts` so a recipient sees the
+// same visual identity in the email as on the Heritage surface.
 function escapeHtmlBasic(input: string): string {
   return String(input || "")
     .replace(/&/g, "&amp;")
@@ -4816,39 +4816,39 @@ export async function sendVerificationCodeEmail(data: {
 
   const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8" /><title>Heritage Life Solutions verification code</title></head>
-<body style="margin:0;padding:0;background:#1a0a14;font-family:'Inter','-apple-system','BlinkMacSystemFont','Segoe UI',sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1a0a14;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#1A0B2E;font-family:'Inter','-apple-system','BlinkMacSystemFont','Segoe UI',sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A0B2E;padding:32px 16px;">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#2D0B16;border-radius:16px;overflow:hidden;border:1px solid rgba(196,151,90,0.18);">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#2D1B4E;border-radius:16px;overflow:hidden;border:1px solid rgba(245,158,11,0.20);">
 
-<tr><td style="padding:32px 32px 16px;text-align:center;background:linear-gradient(180deg,#3A0E1C 0%,#2D0B16 100%);border-bottom:1px solid rgba(196,151,90,0.18);">
+<tr><td style="padding:32px 32px 16px;text-align:center;background:linear-gradient(135deg,#7c3aed 0%,#9333ea 50%,#3D2B5E 100%);border-bottom:1px solid rgba(245,158,11,0.20);">
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 12px;">
-<tr><td style="background:#C4975A;border-radius:8px;padding:10px;line-height:0;">
-<span style="display:inline-block;width:24px;height:24px;color:#2D0B16;font-weight:700;font-size:20px;line-height:24px;font-family:'Playfair Display',Georgia,serif;">H</span>
-</td><td style="padding-left:14px;font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;color:#F5EFE5;letter-spacing:0.06em;">
+<tr><td style="background:linear-gradient(135deg,#7c3aed,#f59e0b);border-radius:8px;padding:10px;line-height:0;">
+<span style="display:inline-block;width:24px;height:24px;color:#ffffff;font-weight:700;font-size:20px;line-height:24px;font-family:'Playfair Display',Georgia,serif;">H</span>
+</td><td style="padding-left:14px;font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;color:#F5F3FF;letter-spacing:0.06em;">
 HERITAGE LIFE SOLUTIONS
 </td></tr></table>
-<div style="width:64px;height:2px;margin:8px auto 20px;background:linear-gradient(90deg,#C4975A,#D4A55A);"></div>
-<h1 style="margin:0 0 8px;font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:600;color:#F5EFE5;line-height:1.15;">Verify your identity</h1>
-<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:15px;color:rgba(245,239,229,0.75);line-height:1.55;">Confirm this code to finish signing in.</p>
+<div style="width:64px;height:2px;margin:8px auto 20px;background:linear-gradient(90deg,#7c3aed,#f59e0b);"></div>
+<h1 style="margin:0 0 8px;font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:600;color:#F5F3FF;line-height:1.15;">Verify your identity</h1>
+<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:15px;color:rgba(245,243,255,0.75);line-height:1.55;">Confirm this code to finish signing in.</p>
 </td></tr>
 
 <tr><td style="padding:28px 32px;">
-<p style="margin:0 0 18px;font-size:15px;color:#F5EFE5;line-height:1.6;">Hi ${firstName || "there"},</p>
-<p style="margin:0 0 24px;font-size:15px;color:rgba(245,239,229,0.85);line-height:1.6;">Use the code below to finish signing in to <strong style="color:#F5EFE5;">Heritage Life Solutions</strong>.</p>
+<p style="margin:0 0 18px;font-size:15px;color:#F5F3FF;line-height:1.6;">Hi ${firstName || "there"},</p>
+<p style="margin:0 0 24px;font-size:15px;color:rgba(245,243,255,0.85);line-height:1.6;">Use the code below to finish signing in to <strong style="color:#F5F3FF;">Heritage Life Solutions</strong>.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-<tr><td align="center" style="padding:24px;background:#3A0E1C;border-radius:12px;border:1px solid rgba(196,151,90,0.25);">
-<div style="font-family:'SF Mono','Menlo','Consolas',monospace;font-size:40px;font-weight:700;letter-spacing:12px;color:#C4975A;line-height:1;">${code}</div>
-<p style="margin:12px 0 0;font-size:11px;color:rgba(245,239,229,0.55);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;">expires in ${ttl} ${ttl === 1 ? "minute" : "minutes"}</p>
+<tr><td align="center" style="padding:24px;background:#3D2B5E;border-radius:12px;border:1px solid rgba(245,158,11,0.28);">
+<div style="font-family:'SF Mono','Menlo','Consolas',monospace;font-size:40px;font-weight:700;letter-spacing:12px;color:#fbbf24;line-height:1;">${code}</div>
+<p style="margin:12px 0 0;font-size:11px;color:rgba(245,243,255,0.55);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;">expires in ${ttl} ${ttl === 1 ? "minute" : "minutes"}</p>
 </td></tr></table>
-<div style="background:#3A0E1C;border-left:3px solid #C4975A;border-radius:6px;padding:14px 18px;margin:0 0 22px;">
-<p style="margin:0;font-size:13px;color:rgba(245,239,229,0.75);line-height:1.55;"><strong style="color:#F5EFE5;">Security note:</strong> Heritage Life Solutions staff will never call, text, or email asking for this code. If you didn't try to sign in, ignore this email and consider rotating your password.</p>
+<div style="background:#3D2B5E;border-left:3px solid #f59e0b;border-radius:6px;padding:14px 18px;margin:0 0 22px;">
+<p style="margin:0;font-size:13px;color:rgba(245,243,255,0.75);line-height:1.55;"><strong style="color:#F5F3FF;">Security note:</strong> Heritage Life Solutions staff will never call, text, or email asking for this code. If you didn't try to sign in, ignore this email and consider rotating your password.</p>
 </div>
-<p style="margin:0;font-size:14px;color:rgba(245,239,229,0.65);line-height:1.6;">Questions? Reach us at <a href="mailto:contact@heritagels.org" style="color:#C4975A;text-decoration:none;font-weight:600;">contact@heritagels.org</a>.</p>
+<p style="margin:0;font-size:14px;color:rgba(245,243,255,0.65);line-height:1.6;">Questions? Reach us at <a href="mailto:contact@heritagels.org" style="color:#fbbf24;text-decoration:none;font-weight:600;">contact@heritagels.org</a>.</p>
 </td></tr>
 
-<tr><td style="padding:18px 32px;background:#1a0a14;border-top:1px solid rgba(196,151,90,0.15);text-align:center;">
-<p style="margin:0;font-size:11px;color:rgba(245,239,229,0.45);letter-spacing:0.05em;">Required by the Heritage Information Security Program · GLBA 16 CFR § 314.4</p>
+<tr><td style="padding:18px 32px;background:#1A0B2E;border-top:1px solid rgba(245,158,11,0.15);text-align:center;">
+<p style="margin:0;font-size:11px;color:rgba(245,243,255,0.45);letter-spacing:0.05em;">Required by the Heritage Information Security Program · GLBA 16 CFR § 314.4</p>
 </td></tr>
 
 </table>

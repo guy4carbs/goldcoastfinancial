@@ -19,18 +19,20 @@ import { useToast } from "@/hooks/use-toast";
  * navigator.credentials.get() outside a user gesture.
  */
 
+// Same Heritage violet + amber tokens as the enroll page; see
+// `lib/heritageDesignSystem.ts` for the source of truth.
 const heritageAuthVars: Record<string, string> = {
-  "--gc-bg": "#1a0a14",
-  "--gc-surface": "#2D0B16",
-  "--gc-surface-2": "#3A0E1C",
-  "--gc-border": "rgba(196,151,90,0.18)",
-  "--gc-gold": "#C4975A",
-  "--gc-gold-bright": "#D4A55A",
-  "--gc-btn-primary-bg": "#C4975A",
-  "--gc-btn-primary-text": "#2D0B16",
-  "--gc-text-primary": "#F5EFE5",
-  "--gc-text-secondary": "rgba(245,239,229,0.78)",
-  "--gc-text-muted": "rgba(245,239,229,0.50)",
+  "--gc-bg": "#1A0B2E",
+  "--gc-surface": "#2D1B4E",
+  "--gc-surface-2": "#3D2B5E",
+  "--gc-border": "rgba(245,158,11,0.20)",
+  "--gc-gold": "#f59e0b",
+  "--gc-gold-bright": "#fbbf24",
+  "--gc-btn-primary-bg": "linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)",
+  "--gc-btn-primary-text": "#ffffff",
+  "--gc-text-primary": "#F5F3FF",
+  "--gc-text-secondary": "rgba(245,243,255,0.78)",
+  "--gc-text-muted": "rgba(245,243,255,0.50)",
   "--gc-font-body": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   "--gc-font-display": "'Playfair Display', Georgia, serif",
   "--gc-shadow-sm": "0 2px 8px rgba(0,0,0,0.25)",
