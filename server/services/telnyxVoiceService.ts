@@ -13,14 +13,16 @@ function getClient(): InstanceType<typeof Telnyx> {
   if (telnyxClient) return telnyxClient;
   const apiKey = process.env.TELNYX_API_KEY;
   if (!apiKey) throw new Error('[Voice] TELNYX_API_KEY not configured');
-  // 15s timeout (Telnyx SDK default is 60s). Cloudflare proxies heritagels.org
-  // and returns its own HTML 502 if the origin doesn't respond inside ~100s.
-  // A 15s ceiling here means our handler ALWAYS gets a chance to return
-  // structured JSON (the catch block in routes/calls.ts maps
-  // APIConnectionTimeoutError → code:VOICE_UPSTREAM_UNAVAILABLE) instead
-  // of the user seeing CF's opaque "code=UNKNOWN http=502" page.
-  telnyxClient = new Telnyx({ apiKey, timeout: 15_000 });
-  console.log('[Voice] Telnyx client initialized (timeout 15s)');
+  // 15s timeout (Telnyx SDK default is 60s) + maxRetries: 0 so total wall-clock
+  // is strictly bounded at 15s. Telnyx SDK default is maxRetries: 2, which
+  // multiplies the timeout (15s × 3 attempts = 45s) — too long when chained
+  // with our DB lookups inside the route, since some Railway/Cloudflare
+  // gateway paths cut shorter than the 100s CF documents. We want one
+  // attempt, fail loud, return structured JSON to the client. Retries belong
+  // at the application layer (with explicit user-visible "Try again" UI),
+  // not silently inside the SDK.
+  telnyxClient = new Telnyx({ apiKey, timeout: 15_000, maxRetries: 0 });
+  console.log('[Voice] Telnyx client initialized (timeout 15s, maxRetries 0)');
   return telnyxClient;
 }
 
