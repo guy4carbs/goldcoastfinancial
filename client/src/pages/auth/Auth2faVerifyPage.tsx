@@ -413,7 +413,7 @@ export default function Auth2faVerifyPage() {
                       className="w-full flex items-center justify-center gap-2"
                       style={{
                         padding: "var(--gc-space-3) var(--gc-space-4)",
-                        backgroundColor: "var(--gc-btn-primary-bg)",
+                        background: "var(--gc-btn-primary-bg)",
                         color: "var(--gc-btn-primary-text)",
                         borderRadius: "var(--gc-radius-sm)",
                         border: "none",
@@ -513,7 +513,7 @@ export default function Auth2faVerifyPage() {
                     className="w-full flex items-center justify-center gap-2"
                     style={{
                       padding: "var(--gc-space-3) var(--gc-space-4)",
-                      backgroundColor: "var(--gc-btn-primary-bg)",
+                      background: "var(--gc-btn-primary-bg)",
                       color: "var(--gc-btn-primary-text)",
                       borderRadius: "var(--gc-radius-sm)",
                       border: "none",
