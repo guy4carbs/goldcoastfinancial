@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.50";
+export const LIFEOS_VERSION = "1.0.51";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.50";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.50";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.51";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage rolled forward two patches: its 2FA screens + verification email now use the Heritage violet→amber palette and the signature hero gradient. Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage rebuilt its 2FA verification email in the standard Heritage email template (real Heritage logo, white card body, violet accents — matches Policy Reminder) and put the same logo on the on-screen 2FA hero. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage shipped two consecutive visual patches against the 2FA flow it ported from Gold Coast: first a palette swap from gcf burgundy + gold to Heritage violet + amber, then the full Heritage hero gradient (135° violet → purple → amber) on the 2FA screens and the verification email banner. Gold Coast skips an explicit 1.0.49 entry and tracks straight to 1.0.50 in lockstep.`;
+- **No functional Gold Coast changes.** Heritage standardized its 2FA branding: the verification email now mirrors the rest of the Heritage email family (Policy Reminder template — gradient header with the real Heritage logo image, white card body, violet accents, light legal footer), and the on-screen 2FA pages now show the same Heritage logo above the gradient hero instead of a generic Shield icon. Gold Coast tracks the version number for parity.`;
 
 
 /**
