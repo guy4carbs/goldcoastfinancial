@@ -81,7 +81,25 @@ export function setupAvatarWebSocket(server: Server): WebSocketServer {
     }
   });
 
+  // Heartbeat — same Cloudflare-idle-timeout defense as /ws/chat.
+  // 30s ping interval; terminate sockets that don't pong inside the window.
+  const HEARTBEAT_INTERVAL = 30_000;
+  const heartbeatTimer = setInterval(() => {
+    wss.clients.forEach((ws: any) => {
+      if (ws.isAlive === false) {
+        console.warn("[AvatarWS] terminating dead connection (no pong)");
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      try { ws.ping(); } catch { /* socket closing */ }
+    });
+  }, HEARTBEAT_INTERVAL);
+  wss.on("close", () => clearInterval(heartbeatTimer));
+
   wss.on("connection", (ws: WebSocket) => {
+    (ws as any).isAlive = true;
+    ws.on("pong", () => { (ws as any).isAlive = true; });
+
     const clientId = crypto.randomUUID();
     const authUserId = (ws as any).__authUserId as string | undefined;
     console.log(`[AvatarWS] Client connected: ${clientId} as ${authUserId ?? "anonymous"}`);

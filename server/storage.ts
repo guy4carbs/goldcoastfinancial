@@ -402,6 +402,7 @@ export interface IStorage {
   // Agent Telephony Credentials
   getAgentTelephonyCredential(agentUserId: string): Promise<AgentTelephonyCredential | null>;
   createAgentTelephonyCredential(data: InsertAgentTelephonyCredential): Promise<AgentTelephonyCredential>;
+  deleteAgentTelephonyCredential(agentUserId: string): Promise<void>;
 
   // Telnyx Number Pool
   getNumberByAreaCode(areaCode: string): Promise<TelnyxPoolNumber | null>;
@@ -3003,6 +3004,15 @@ export class DatabaseStorage implements IStorage {
   async createAgentTelephonyCredential(data: InsertAgentTelephonyCredential): Promise<AgentTelephonyCredential> {
     const [cred] = await db.insert(agentTelephonyCredentials).values(data).returning();
     return cred;
+  }
+
+  // Soft-delete: mark inactive so the next /api/calls/token call re-provisions
+  // a fresh credential from Telnyx. Used when Telnyx 404s the stored
+  // credentialId (account reset / manual deletion on the Telnyx dashboard).
+  async deleteAgentTelephonyCredential(agentUserId: string): Promise<void> {
+    await db.update(agentTelephonyCredentials)
+      .set({ isActive: false })
+      .where(eq(agentTelephonyCredentials.agentUserId, agentUserId));
   }
 
   // Telnyx Number Pool

@@ -22,11 +22,34 @@ export interface UseTelnyxDeviceReturn {
   rejectIncoming: () => void;
 }
 
+/**
+ * Server token errors come back with `{ error, code, retryable }`. We surface
+ * the structured shape so the dialer UI can show useful messaging — "Voice
+ * not configured" / "Voice unavailable" / "Try again" — instead of one
+ * generic "Failed to generate token" line that gives users nothing to act on.
+ */
+export class TelnyxTokenError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly retryable: boolean,
+    public readonly httpStatus: number,
+  ) {
+    super(message);
+    this.name = "TelnyxTokenError";
+  }
+}
+
 async function fetchToken(): Promise<{ token: string; sipUsername: string; callerId: string }> {
   const res = await fetch('/api/calls/token', { credentials: 'include' });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `Token fetch failed: ${res.status}`);
+    throw new TelnyxTokenError(
+      data.error || `Token fetch failed: ${res.status}`,
+      data.code || "UNKNOWN",
+      data.retryable === true,
+      res.status,
+    );
   }
   return res.json();
 }
@@ -337,10 +360,38 @@ export function useTelnyxDevice(): UseTelnyxDeviceReturn {
         await client.connect();
         clientRef.current = client;
       } catch (initError: any) {
-        console.error('[TelnyxDevice] Init failed:', initError);
-        if (mounted) {
-          setError(initError.message || 'Failed to initialize phone system');
-          setDeviceStatus('error');
+        // Structured handling for the new server response shape (1.0.58+).
+        // Pre-1.0.58 server returned generic 500 "Failed to generate token"
+        // with no code — keep the fallback for the old shape so an in-flight
+        // bundle still shows something useful.
+        if (initError instanceof TelnyxTokenError) {
+          const message = (() => {
+            switch (initError.code) {
+              case "VOICE_NOT_CONFIGURED":
+                return "Voice service isn't configured on this environment yet.";
+              case "VOICE_UPSTREAM_AUTH":
+                return "Voice provider rejected our credentials. Please contact support.";
+              case "VOICE_CREDENTIAL_STALE":
+                return "Voice credential expired — refreshing.";
+              case "VOICE_UPSTREAM_UNAVAILABLE":
+                return "Voice provider is temporarily unavailable. Try again in a moment.";
+              default:
+                return initError.message || "Failed to initialize phone system";
+            }
+          })();
+          console.error(
+            `[TelnyxDevice] Init failed: code=${initError.code} http=${initError.httpStatus} retryable=${initError.retryable}`,
+          );
+          if (mounted) {
+            setError(message);
+            setDeviceStatus("error");
+          }
+        } else {
+          console.error("[TelnyxDevice] Init failed:", initError);
+          if (mounted) {
+            setError(initError.message || "Failed to initialize phone system");
+            setDeviceStatus("error");
+          }
         }
       }
     }
