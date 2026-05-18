@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.47";
+export const LIFEOS_VERSION = "1.0.49";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,17 +35,17 @@ export const LIFEOS_VERSION = "1.0.47";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Heritage 2FA enrollment + verification actually fire on login (Wave 1)";
+export const LIFEOS_RELEASE_TITLE = "Visual parity for Heritage's 2FA screens and email";
 export const LIFEOS_RELEASE_SUMMARY =
-  "High-trust users signing into Heritage now get routed to the TOTP enrollment page on first login, and to the verify page on subsequent logins — instead of landing on a broken lounge where every API call 403s. First of four waves cleaning up the agent lounge.";
+  "Heritage's \`/auth/2fa\` and \`/auth/2fa/enroll\` screens plus the verification email now use Heritage's actual brand palette (deep violet + amber), matching the lobby and the rest of the app. Same UX, correct colors.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **2FA enrollment endpoints exempted from the 2FA gate.** Heritage's \`/api/ai/2fa/setup\`, \`/verify\`, \`/status\`, and DELETE \`/api/ai/2fa\` were stuck in a circular dependency — the very endpoints a fresh user needed to enroll were gated by the 2FA gate they were trying to clear. All four are now in \`TWO_FA_EXEMPT_PATHS\`. Same circular fix we shipped on Gold Coast in 1.0.40.
-- **New \`Force2FAGate\` wrapper.** A top-level component now redirects authenticated high-trust users to \`/ai/2fa-setup\` (if not enrolled) or \`/ai/2fa-verify\` (if not yet session-verified). Before this, users would land on a lounge with every API call returning 403 and no clue why or where to go. The gate mirrors the server-side \`HIGH_TRUST_2FA_ROLES\` policy exactly.
+- **2FA screens recolored to Heritage's brand.** The enroll + verify pages and the 6-digit code email were initially copied from Gold Coast with its burgundy + gold palette. They now pull from \`heritageDesignSystem.ts\` — deep violet surfaces, amber accents, violet→amber gradient primary buttons. No functional changes; the Touch ID + email-code flow works exactly as before.
+- **Verification email matches.** The Heritage-branded 6-digit code email now uses the same violet + amber palette as the on-screen 2FA flow, so the experience reads as a single brand across screen and inbox.
 
-## Wave 1 of 4
+## Wave 2A of 4
 
-Console errors on the agent lounge had four root causes: 2FA gate (this wave), CSP, WebSocket, and a missing \`/metrics\` endpoint. Each ships in its own version + verification cycle.`;
+Wave 1 (2FA enrollment + verify flow) is shipped and working. This is the visual fit-and-finish pass. Still queued: CSP allow-list (Wave 2), WebSocket \`/ws/gcf\` (Wave 3), \`/metrics\` 404 (Wave 4).`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
