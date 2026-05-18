@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.56";
+export const LIFEOS_VERSION = "1.0.57";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.56";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.56";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.57";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage shipped Wave 2 of the agent-lounge debug sweep: CSP allow-list extended for Stripe, Cloudflare Insights, Firebase Auth, and GTM/GA. Gold Coast tracks the version number for parity (gcf has its own separate CSP in routes.ts with Plaid + Census/OSM allow-listed and is unaffected).";
+  "No Gold Coast changes. Heritage shipped Wave 3 of the agent-lounge debug sweep: all three WebSocket endpoints (/ws/gcf, /ws/chat, /ws/avatar-council) migrated from client-trusted ?userId= / in-band auth to authoritative session-cookie auth on the upgrade handler. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage shipped Wave 2 of the agent-lounge debug sweep: server/index.ts CSP directives extended to allow Stripe (js.stripe.com + *.stripe.com + hooks.stripe.com), Cloudflare Insights (static.cloudflareinsights.com + cloudflareinsights.com), Google Tag Manager / Analytics, and Firebase Auth (identitytoolkit + securetoken + *.firebaseapp.com) — the last of which was a latent prod bug from before this debug pass. Gold Coast's separate CSP (in routes.ts with Plaid + Census + OSM allow-listed) is unaffected. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage shipped Wave 3 of the agent-lounge debug sweep: WebSocket upgrade handlers now reuse the same session-cookie middleware as REST routes. \`/ws/gcf\`, \`/ws/chat\`, and \`/ws/avatar-council\` were all rejecting upgrades because they read identity from client-supplied URL params / in-band messages instead of the session cookie. Now all three look up \`session.userId\` from the same PG-backed session store every REST endpoint uses. \`/ws/gcf\` additionally gates on \`session.twoFactorVerified\` for parity with the REST 2FA gate. Backwards-compatible: stale client bundles still sending \`?userId=\` keep working (param is ignored, cookie wins). Gold Coast tracks the version number for parity.`;
 
 
 /**
