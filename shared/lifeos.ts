@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.53";
+export const LIFEOS_VERSION = "1.0.54";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.53";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.53";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.54";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage hotfix: the Send-code-to-my-email + Verify buttons on its 2FA screens were rendering invisible (CSS gradient on background-color, which silently drops). Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage fix: post-2FA users were bouncing back to /auth/2fa instead of landing at the CRM Lobby because AuthContext hardcoded twoFactorVerified=false on every user load. Now reads from /api/auth/user. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage hotfix: in 1.0.52 the violet→gold gradient on the "Send code to my email" + "Verify" buttons was applied via CSS \`background-color\` (which doesn't accept gradient values), so the buttons rendered as transparent surfaces with only the white icon + label visible. Swapped to the \`background:\` shorthand. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage fix: after completing 2FA via Touch ID or the email code, users were getting bounced right back to \`/auth/2fa\` instead of landing at the CRM Lobby. \`AuthContext\` was hardcoding \`twoFactorVerified: false\` on every user load even though the server's \`/api/auth/user\` returns the authoritative session-level flag. All four load sites now read the server value. Gold Coast tracks the version number for parity.`;
 
 
 /**
