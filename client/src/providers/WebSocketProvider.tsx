@@ -81,17 +81,19 @@ export function WebSocketProvider({ children, wsUrl }: WebSocketProviderProps) {
   const BASE_RECONNECT_DELAY = 1000;
   const MAX_RECONNECT_DELAY = 30000;
 
-  // Build WebSocket URL
+  // Build WebSocket URL. Server-side now uses session-cookie auth (the same
+  // `connect.sid` cookie REST routes use), so we don't need to thread the
+  // userId through the URL anymore — it was always impersonatable + flaky
+  // on the AuthContext-load race. We still gate the connect attempt on
+  // user being loaded so we don't open a WS before the session cookie is
+  // even set.
   const getWebSocketUrl = useCallback(() => {
     if (wsUrl) return wsUrl;
+    if (!(user?.id || user?.uid)) return null;
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const userId = user?.id || user?.uid;
-
-    if (!userId) return null;
-
-    return `${protocol}//${host}/ws/gcf?userId=${userId}`;
+    return `${protocol}//${host}/ws/gcf`;
   }, [wsUrl, user]);
 
   // Calculate reconnect delay with exponential backoff and jitter

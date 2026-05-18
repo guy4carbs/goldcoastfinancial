@@ -115,33 +115,46 @@ const pool = new Pool({
 
 const PgSession = connectPgSimple(session);
 
-export function setupSession(app: Express) {
-  const isProduction = process.env.NODE_ENV === "production";
+// Session middleware is built once and reused by both Express (every REST
+// route) AND the WebSocket upgrade handlers in server/websocket{,-avatars}.ts
+// + server/websocket/GCFWebSocketServer.ts. Reusing the same function means
+// the upgrade request goes through the exact same session lookup as a
+// regular HTTP request — same PG store, same cookie name (`connect.sid`),
+// same expiry. Without this, WS endpoints had to invent their own auth
+// (the old `?userId=<id>` query-string pattern) and were trivially
+// impersonatable + flaky on race conditions.
+let _sessionMiddleware: ReturnType<typeof session> | null = null;
 
-  // SECURITY: Session secret must be set in environment
+export function getSessionMiddleware(): ReturnType<typeof session> {
+  if (_sessionMiddleware) return _sessionMiddleware;
+
   if (!process.env.SESSION_SECRET) {
-    throw new Error('SESSION_SECRET environment variable is required');
+    throw new Error("SESSION_SECRET environment variable is required");
   }
 
+  _sessionMiddleware = session({
+    store: new PgSession({
+      pool,
+      tableName: "sessions",
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: "lax", // SECURITY: Changed from 'none' to 'lax' for better security
+    },
+  });
+
+  return _sessionMiddleware;
+}
+
+export function setupSession(app: Express) {
   app.set("trust proxy", 1);
-  app.use(
-    session({
-      store: new PgSession({
-        pool,
-        tableName: "sessions",
-        createTableIfMissing: true,
-      }),
-      secret: process.env.SESSION_SECRET,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: isProduction,
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: "lax", // SECURITY: Changed from 'none' to 'lax' for better security
-      },
-    })
-  );
+  app.use(getSessionMiddleware());
 }
 
 // Legacy requireAuth - now uses RBAC middleware internally

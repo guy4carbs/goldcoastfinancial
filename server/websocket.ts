@@ -24,20 +24,56 @@ const clientChatConnections = new Map<string, ClientChatConnection>();
 export function setupWebSocket(server: Server) {
   const wss = new WebSocketServer({ noServer: true });
 
-  // Handle upgrade manually
-  server.on("upgrade", (request, socket, head) => {
+  // Upgrade handler: session-cookie auth. We parse the same `connect.sid`
+  // cookie the REST routes use (via the shared getSessionMiddleware
+  // singleton) and reject the upgrade if no session userId is present.
+  // The in-band `{type:"auth", userId}` message below is preserved as a
+  // no-op so stale client bundles don't error out, but the authoritative
+  // userId now comes from the session — not the client's URL or message.
+  server.on("upgrade", async (request, socket, head) => {
     const pathname = new URL(request.url || "", `http://${request.headers.host}`).pathname;
+    if (pathname !== "/ws/chat") return;
 
-    if (pathname === "/ws/chat") {
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit("connection", ws, request);
+    try {
+      const { getSessionMiddleware } = await import("./routes");
+      const sessionParser = getSessionMiddleware();
+
+      sessionParser(request as any, {} as any, async () => {
+        const session = (request as any).session;
+        if (!session?.userId) {
+          console.warn("[WebSocket /ws/chat] no session userId — rejecting upgrade");
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+          return socket.destroy();
+        }
+
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          // Stamp the authenticated userId onto the socket so the connection
+          // handler picks it up without trusting in-band messages.
+          (ws as any).__authUserId = session.userId;
+          wss.emit("connection", ws, request);
+        });
       });
+    } catch (err) {
+      console.error("[WebSocket /ws/chat] upgrade error:", err);
+      socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+      socket.destroy();
     }
-    // Let other WebSocket servers handle their paths
   });
 
-  wss.on("connection", (ws) => {
-    let userId: string | null = null;
+  wss.on("connection", async (ws) => {
+    // userId comes from the session, not from the client. The in-band
+    // `auth` message stays around for backwards compat with bundles already
+    // in users' browsers but the userId on it is now ignored.
+    let userId: string | null = (ws as any).__authUserId ?? null;
+    if (userId) {
+      const conversations = await storage.getChatConversationsByUserId(userId);
+      clients.set(userId, {
+        ws,
+        userId,
+        conversationIds: new Set(conversations.map(c => c.id)),
+      });
+      ws.send(JSON.stringify({ type: "auth_success" }));
+    }
 
     ws.on("message", async (data) => {
       try {
@@ -45,16 +81,9 @@ export function setupWebSocket(server: Server) {
 
         switch (message.type) {
           case "auth": {
-            userId = message.userId;
-            if (userId) {
-              const conversations = await storage.getChatConversationsByUserId(userId);
-              clients.set(userId, {
-                ws,
-                userId: userId,
-                conversationIds: new Set(conversations.map(c => c.id)),
-              });
-              ws.send(JSON.stringify({ type: "auth_success" }));
-            }
+            // No-op: userId is already established from the session on
+            // upgrade. Stale client bundles still send this — just ack.
+            if (userId) ws.send(JSON.stringify({ type: "auth_success" }));
             break;
           }
 

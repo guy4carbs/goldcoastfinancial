@@ -173,38 +173,63 @@ export class GCFWebSocketServer {
   }
 
   /**
-   * Handle WebSocket upgrade with authentication
+   * Handle WebSocket upgrade with session-cookie authentication.
+   *
+   * Replaces the previous `?userId=<id>` query-string scheme (client-trusted,
+   * impersonatable, flaky during AuthContext load races). We now parse the
+   * same `connect.sid` cookie the REST routes use, look up the session in
+   * the shared PG session store, and reject the upgrade if the user isn't
+   * authenticated. Also gates on `session.twoFactorVerified` so high-trust
+   * roles can't receive real-time data over WS that they couldn't fetch via
+   * REST (matches the requireAuth + require2FA behavior on /api routes).
    */
   private async handleUpgrade(request: IncomingMessage, socket: Socket, head: Buffer) {
     try {
-      const url = new URL(request.url || '', `http://${request.headers.host}`);
-      const userId = url.searchParams.get('userId');
-      const sessionId = url.searchParams.get('sessionId');
+      // Lazy-import to avoid a circular dep with server/routes.ts (which
+      // imports the WS server during registerRoutes).
+      const { getSessionMiddleware } = await import("../routes");
+      const sessionParser = getSessionMiddleware();
 
-      // For now, we'll use userId directly (session-based auth)
-      // In production, this should validate a session or JWT
-      if (!userId) {
-        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-        socket.destroy();
-        return;
-      }
+      sessionParser(request as any, {} as any, async () => {
+        try {
+          const session = (request as any).session;
 
-      // Fetch user from database
-      const user = await storage.getUserById(userId);
-      if (!user || !user.isActive) {
-        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-        socket.destroy();
-        return;
-      }
+          if (!session?.userId) {
+            console.warn("[WebSocket /ws/gcf] no session userId — rejecting upgrade");
+            socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+            return socket.destroy();
+          }
 
-      // Complete upgrade
-      this.wss.handleUpgrade(request, socket, head, (ws) => {
-        const role: Role = isValidRole(user.role) ? user.role : Roles.CLIENT;
-        this.onConnection(ws, userId, user.email, role);
+          const user = await storage.getUserById(session.userId);
+          if (!user || !user.isActive) {
+            console.warn(`[WebSocket /ws/gcf] user ${session.userId} not found or inactive`);
+            socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+            return socket.destroy();
+          }
+
+          // 2FA gate — mirrors the requireAuth/require2FA REST middleware.
+          // If the user has enrolled in 2FA but the session isn't verified,
+          // they're sitting on /auth/2fa and shouldn't receive RBAC events
+          // for channels they couldn't query via REST anyway.
+          if (user.twoFactorEnabled && !session.twoFactorVerified) {
+            console.warn(`[WebSocket /ws/gcf] 2FA not verified for user ${user.id}`);
+            socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+            return socket.destroy();
+          }
+
+          this.wss.handleUpgrade(request, socket, head, (ws) => {
+            const role: Role = isValidRole(user.role) ? user.role : Roles.CLIENT;
+            this.onConnection(ws, user.id, user.email, role);
+          });
+        } catch (innerErr) {
+          console.error("[WebSocket /ws/gcf] post-session-parse error:", innerErr);
+          socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+          socket.destroy();
+        }
       });
     } catch (error) {
-      console.error('[WebSocket] Upgrade error:', error);
-      socket.write('HTTP/1.1 500 Internal Server Error\r\n\r\n');
+      console.error("[WebSocket /ws/gcf] Upgrade error:", error);
+      socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
       socket.destroy();
     }
   }

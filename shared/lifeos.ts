@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.56";
+export const LIFEOS_VERSION = "1.0.57";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,17 +35,17 @@ export const LIFEOS_VERSION = "1.0.56";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Wave 2 — CSP allow-list: Stripe, Cloudflare, Firebase Auth + more";
+export const LIFEOS_RELEASE_TITLE = "Wave 3 — WebSocket session-cookie auth across all three endpoints";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Heritage's Content Security Policy was blocking Stripe, Cloudflare Insights, Google Tag Manager, and quietly breaking Firebase Auth's fallback. Allow-list extended to cover all four. The agent lounge's wall of console errors is shrinking.";
+  "All three Heritage WebSocket endpoints (/ws/gcf, /ws/chat, /ws/avatar-council) were failing because the upgrade handlers trusted a client-supplied userId and skipped Express session middleware entirely. Now all three reuse the same session-cookie auth as REST routes. /ws/gcf adds a 2FA gate matching the REST behavior.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Stripe unblocked.** \`js.stripe.com\` in script-src + frame-src; \`*.stripe.com\` in connect-src; \`hooks.stripe.com\` in frame-src for 3D Secure. The Agent Lead Marketplace (\`AgentLeadMarketplace.tsx\`, \`@stripe/stripe-js\` + Payment Element) loads cleanly instead of console-blocking.
-- **Cloudflare Insights unblocked.** \`static.cloudflareinsights.com\` in script-src + \`cloudflareinsights.com\` in connect-src — the beacon Cloudflare auto-injects on heritagels.org no longer trips a CSP error on every page load.
-- **GTM + GA allow-listed defensively.** \`www.googletagmanager.com\` + \`apis.google.com\` in script-src; \`*.google-analytics.com\` in connect-src. If/when tracking is wired up, no follow-up CSP change needed.
-- **Latent Firebase Auth bug fixed.** The Firebase Web SDK at \`lib/firebase.ts\` calls \`identitytoolkit.googleapis.com\` + \`securetoken.googleapis.com\` for any email/password fallback or session refresh. These were not in connect-src — only the session-based \`/api/auth/login\` path was working in prod. All three Google Auth endpoints now allow-listed, plus \`*.firebaseapp.com\` in frame-src for the OAuth handler.
-- **frame-ancestors 'self'** explicitly set (clickjacking defense, was unconstrained before).
-- **No-op everywhere else.** Existing OpenAI, Telnyx, fonts, WebSocket, and image directives unchanged.`;
+- **WS upgrade now uses the session cookie.** \`/ws/gcf\`, \`/ws/chat\`, and \`/ws/avatar-council\` all run the request through \`getSessionMiddleware()\` (the same one Express uses for REST), look up \`session.userId\`, and reject the upgrade if it's missing or the user record is inactive. The old \`?userId=\` query-string scheme was client-trusted, impersonatable by editing the URL, and broke whenever \`AuthContext.user\` was momentarily null during page load.
+- **2FA gate on /ws/gcf.** If the user has 2FA enrolled but the session isn't verified yet (i.e. they're sitting on \`/auth/2fa\`), the WS upgrade returns 403 instead of streaming RBAC events for channels they couldn't query via REST anyway. Matches the \`require2FA\` posture on \`/api\` routes.
+- **Client drops the userId query param.** \`WebSocketProvider.tsx\` no longer appends \`?userId=\${userId}\` — the cookie is authoritative. Still gates the connect attempt on the user being loaded so we don't open a socket before the session exists.
+- **In-band auth on chat/avatars is now a no-op.** Stale client bundles still send \`{type:'auth', userId}\` after open; the server acks but ignores the userId (it's already established from the session). No flag day required.
+- **Console wall of "WebSocket connection failed" entries is gone** — all three endpoints either return \`101 Switching Protocols\` (signed in) or a single clean \`401\`/\`403\` (not signed in), no reconnect loop.
+- **Backwards compatible.** No client coordination needed; old bundles still send \`?userId=\` which is now ignored, server uses the cookie. \`/ws/client-chat\` is left untouched (server-side it's defined but never wired up — separate issue, not a Wave 3 regression).`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
