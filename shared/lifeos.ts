@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.55";
+export const LIFEOS_VERSION = "1.0.56";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,17 @@ export const LIFEOS_VERSION = "1.0.55";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Post-2FA actually lands at the CRM Lobby — server now returns twoFactorVerified";
+export const LIFEOS_RELEASE_TITLE = "Wave 2 — CSP allow-list: Stripe, Cloudflare, Firebase Auth + more";
 export const LIFEOS_RELEASE_SUMMARY =
-  "1.0.54 fixed the client to read \`data.user.twoFactorVerified\` from /api/auth/user. Turns out the server never put it in the response — \`storage.getUserById()\` only returns the DB record, and the session-scoped flag wasn't being merged in. Now it is. Post-2FA routing to /crm finally works.";
+  "Heritage's Content Security Policy was blocking Stripe, Cloudflare Insights, Google Tag Manager, and quietly breaking Firebase Auth's fallback. Allow-list extended to cover all four. The agent lounge's wall of console errors is shrinking.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Post-2FA routing — actually fixed this time.** 1.0.54 made the client read \`twoFactorVerified\` from the server's \`/api/auth/user\` response, but audit revealed the server was never sending it. \`twoFactorEnabled\` lives on the DB user record (persistent, set on enrollment); \`twoFactorVerified\` lives on the session (\`req.session.twoFactorVerified\`, set by each verify endpoint). The auth middleware merges them correctly for every gated route — \`/api/auth/user\` did not, so the response carried \`twoFactorVerified: undefined\` and the client's \`?? false\` fallback bounced the user back to \`/auth/2fa\` forever. Endpoint now merges the session flag into the response payload, matching the middleware. Touch ID + email-code verify both land at \`/crm\` (CRM Lobby) and stay there.`;
+- **Stripe unblocked.** \`js.stripe.com\` in script-src + frame-src; \`*.stripe.com\` in connect-src; \`hooks.stripe.com\` in frame-src for 3D Secure. The Agent Lead Marketplace (\`AgentLeadMarketplace.tsx\`, \`@stripe/stripe-js\` + Payment Element) loads cleanly instead of console-blocking.
+- **Cloudflare Insights unblocked.** \`static.cloudflareinsights.com\` in script-src + \`cloudflareinsights.com\` in connect-src — the beacon Cloudflare auto-injects on heritagels.org no longer trips a CSP error on every page load.
+- **GTM + GA allow-listed defensively.** \`www.googletagmanager.com\` + \`apis.google.com\` in script-src; \`*.google-analytics.com\` in connect-src. If/when tracking is wired up, no follow-up CSP change needed.
+- **Latent Firebase Auth bug fixed.** The Firebase Web SDK at \`lib/firebase.ts\` calls \`identitytoolkit.googleapis.com\` + \`securetoken.googleapis.com\` for any email/password fallback or session refresh. These were not in connect-src — only the session-based \`/api/auth/login\` path was working in prod. All three Google Auth endpoints now allow-listed, plus \`*.firebaseapp.com\` in frame-src for the OAuth handler.
+- **frame-ancestors 'self'** explicitly set (clickjacking defense, was unconstrained before).
+- **No-op everywhere else.** Existing OpenAI, Telnyx, fonts, WebSocket, and image directives unchanged.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
