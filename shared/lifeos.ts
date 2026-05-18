@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.49";
+export const LIFEOS_VERSION = "1.0.50";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,17 +35,14 @@ export const LIFEOS_VERSION = "1.0.49";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Visual parity for Heritage's 2FA screens and email";
+export const LIFEOS_RELEASE_TITLE = "2FA hero gradient — full Heritage violet→amber signature";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Heritage's \`/auth/2fa\` and \`/auth/2fa/enroll\` screens plus the verification email now use Heritage's actual brand palette (deep violet + amber), matching the lobby and the rest of the app. Same UX, correct colors.";
+  "The \`/auth/2fa\` + \`/auth/2fa/enroll\` hero headers and the verification email banner now use Heritage's signature violet→purple→amber gradient (the same one in the lobby's hero and the What's New modal). Post-2FA still routes to the CRM Lobby.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **2FA screens recolored to Heritage's brand.** The enroll + verify pages and the 6-digit code email were initially copied from Gold Coast with its burgundy + gold palette. They now pull from \`heritageDesignSystem.ts\` — deep violet surfaces, amber accents, violet→amber gradient primary buttons. No functional changes; the Touch ID + email-code flow works exactly as before.
-- **Verification email matches.** The Heritage-branded 6-digit code email now uses the same violet + amber palette as the on-screen 2FA flow, so the experience reads as a single brand across screen and inbox.
-
-## Wave 2A of 4
-
-Wave 1 (2FA enrollment + verify flow) is shipped and working. This is the visual fit-and-finish pass. Still queued: CSP allow-list (Wave 2), WebSocket \`/ws/gcf\` (Wave 3), \`/metrics\` 404 (Wave 4).`;
+- **Signature gradient on the 2FA hero.** Both 2FA screens now have the full Heritage hero gradient (135° violet → purple → amber, from \`COLORS.gradients.heroWithAccent\`) instead of a flat dark surface — same gradient the lobby and the What's New modal use, so the auth screens read as part of the same brand surface.
+- **Email banner matches.** The verification email's brand band now mirrors the on-screen hero with the same gradient, white "H" tile, and white headline.
+- **Defensive post-verify routing.** The 2FA enroll handler's "already enrolled" branch now does a full page reload to \`/crm\` instead of a soft route change, so a stale \`Force2FAGate\` snapshot can't bounce the user back to \`/auth/2fa\`.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

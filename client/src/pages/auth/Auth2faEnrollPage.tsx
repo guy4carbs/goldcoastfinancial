@@ -140,7 +140,10 @@ export default function Auth2faEnrollPage() {
       const data = await res.json().catch(() => ({}));
       if (res.status === 409) {
         toast({ title: "2FA already enabled" });
-        setLocation(POST_ENROLL_DESTINATION);
+        // Force a hard reload so AuthContext re-fetches the now-2FA-cleared
+        // session — otherwise Force2FAGate sees stale `twoFactorVerified=false`
+        // and bounces the user straight back to /auth/2fa.
+        window.location.assign(POST_ENROLL_DESTINATION);
         return;
       }
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
@@ -217,31 +220,49 @@ export default function Auth2faEnrollPage() {
           boxShadow: "var(--gc-shadow-lg)",
         }}
       >
-        {/* Hero */}
+        {/* Hero — Heritage signature gradient (violet → purple → amber)
+            matching COLORS.gradients.heroWithAccent so the auth screen reads
+            as part of the same brand surface as the lobby + What's New modal. */}
         <div
           style={{
+            position: "relative",
             padding: "var(--gc-space-8) var(--gc-space-6) var(--gc-space-5)",
-            background: "linear-gradient(180deg, var(--gc-surface-2) 0%, var(--gc-surface) 100%)",
-            borderBottom: "1px solid var(--gc-border)",
+            background: "linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)",
             textAlign: "center",
+            overflow: "hidden",
           }}
         >
-          <div className="flex items-center justify-center gap-3 mb-3">
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              top: -60,
+              right: -50,
+              width: 220,
+              height: 220,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.16)",
+              filter: "blur(40px)",
+              pointerEvents: "none",
+            }}
+          />
+          <div className="flex items-center justify-center gap-3 mb-3" style={{ position: "relative" }}>
             <div
               style={{
                 padding: "var(--gc-space-2)",
-                backgroundColor: "var(--gc-gold)",
+                background: "rgba(255,255,255,0.18)",
+                border: "1px solid rgba(255,255,255,0.28)",
                 borderRadius: "var(--gc-radius-md)",
               }}
             >
-              <Shield className="w-5 h-5" style={{ color: "var(--gc-btn-primary-text)" }} aria-hidden="true" />
+              <Shield className="w-5 h-5" style={{ color: "#ffffff" }} aria-hidden="true" />
             </div>
             <span
               style={{
                 fontFamily: "var(--gc-font-display)",
                 fontSize: "var(--gc-text-xl)",
                 fontWeight: 600,
-                color: "var(--gc-text-primary)",
+                color: "#ffffff",
                 letterSpacing: "var(--gc-tracking-wide)",
               }}
             >
@@ -252,7 +273,8 @@ export default function Auth2faEnrollPage() {
             className="h-[2px] mx-auto mb-5"
             style={{
               width: 64,
-              background: "linear-gradient(90deg, var(--gc-gold), var(--gc-gold-bright))",
+              background: "rgba(255,255,255,0.45)",
+              position: "relative",
             }}
           />
           <h1
@@ -260,11 +282,12 @@ export default function Auth2faEnrollPage() {
               fontFamily: "var(--gc-font-display)",
               fontSize: "var(--gc-text-3xl)",
               fontWeight: 600,
-              color: "var(--gc-text-primary)",
+              color: "#ffffff",
               lineHeight: 1.15,
               letterSpacing: "var(--gc-tracking-tight)",
               margin: 0,
               marginBottom: "var(--gc-space-2)",
+              position: "relative",
             }}
           >
             Verify your identity
@@ -274,11 +297,12 @@ export default function Auth2faEnrollPage() {
               fontFamily: "var(--gc-font-display)",
               fontStyle: "italic",
               fontSize: "var(--gc-text-md)",
-              color: "var(--gc-text-secondary)",
+              color: "rgba(255,255,255,0.88)",
               lineHeight: 1.55,
               margin: 0,
               maxWidth: 380,
               marginInline: "auto",
+              position: "relative",
             }}
           >
             Confirm with Touch ID or Face ID on this device.

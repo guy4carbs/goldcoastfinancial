@@ -4821,16 +4821,16 @@ export async function sendVerificationCodeEmail(data: {
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#2D1B4E;border-radius:16px;overflow:hidden;border:1px solid rgba(245,158,11,0.20);">
 
-<tr><td style="padding:32px 32px 16px;text-align:center;background:linear-gradient(135deg,#7c3aed 0%,#9333ea 50%,#3D2B5E 100%);border-bottom:1px solid rgba(245,158,11,0.20);">
+<tr><td style="padding:32px 32px 24px;text-align:center;background:linear-gradient(135deg,#7c3aed 0%,#9333ea 50%,#f59e0b 100%);">
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 12px;">
-<tr><td style="background:linear-gradient(135deg,#7c3aed,#f59e0b);border-radius:8px;padding:10px;line-height:0;">
+<tr><td style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:10px;line-height:0;">
 <span style="display:inline-block;width:24px;height:24px;color:#ffffff;font-weight:700;font-size:20px;line-height:24px;font-family:'Playfair Display',Georgia,serif;">H</span>
-</td><td style="padding-left:14px;font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;color:#F5F3FF;letter-spacing:0.06em;">
+</td><td style="padding-left:14px;font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:600;color:#ffffff;letter-spacing:0.06em;">
 HERITAGE LIFE SOLUTIONS
 </td></tr></table>
-<div style="width:64px;height:2px;margin:8px auto 20px;background:linear-gradient(90deg,#7c3aed,#f59e0b);"></div>
-<h1 style="margin:0 0 8px;font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:600;color:#F5F3FF;line-height:1.15;">Verify your identity</h1>
-<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:15px;color:rgba(245,243,255,0.75);line-height:1.55;">Confirm this code to finish signing in.</p>
+<div style="width:64px;height:2px;margin:8px auto 20px;background:rgba(255,255,255,0.45);"></div>
+<h1 style="margin:0 0 8px;font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:600;color:#ffffff;line-height:1.15;">Verify your identity</h1>
+<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:15px;color:rgba(255,255,255,0.88);line-height:1.55;">Confirm this code to finish signing in.</p>
 </td></tr>
 
 <tr><td style="padding:28px 32px;">
