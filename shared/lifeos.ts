@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.58";
+export const LIFEOS_VERSION = "1.0.59";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.58";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.58";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.59";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage shipped Wave 4 (final wave) of the agent-lounge debug sweep: /api/calls/token now returns structured Telnyx error codes (so we can see in prod logs which step actually failed), and /ws/chat + /ws/avatar-council got server-side ping/pong heartbeats so Cloudflare's idle timeout stops killing connections. Gold Coast tracks the version number for parity.";
+  "No Gold Coast changes. Heritage shipped a deep-clean pass: Telnyx 502 root cause fixed (Cloudflare was returning its own 502 page because the Telnyx SDK had no client-side timeout), founder/director WS channel access restored, top-level ErrorBoundary, Safari-private-mode-safe localStorage, deferred Stripe loader, source maps in prod, TS target → ES2020, plus three pre-existing TS errors cleared.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage shipped Wave 4 (final wave) of the agent-lounge debug sweep. \`/api/calls/token\` (Telnyx WebRTC token endpoint) now returns structured \`{ error, code, retryable }\` per failure mode (\`VOICE_NOT_CONFIGURED\`, \`VOICE_UPSTREAM_AUTH\`, \`VOICE_CREDENTIAL_STALE\`, \`VOICE_UPSTREAM_UNAVAILABLE\`, \`VOICE_TOKEN_FAILED\`) so the dialer UI shows users what went wrong and our prod logs reveal which pipeline stage failed. Stale credentials are auto-cleared so the next call re-provisions. WebSocket endpoints \`/ws/chat\` and \`/ws/avatar-council\` got server-side ping/pong heartbeats (30s interval) so Cloudflare's ~100s idle-WebSocket timeout no longer kills quiet connections. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage shipped a deep-clean pass after the four-wave debug sweep, weeding out latent issues that hadn't yet surfaced visibly. Headlines: Telnyx 502 root cause was Cloudflare's HTML 502 (origin hung past CF's window because the Telnyx SDK had no client-side timeout — now \`timeout: 15_000\`); founder/director/agency_manager were missing from \`GCFWebSocketServer\`'s role-channel maps so C-suite silently received zero real-time data (added all three); top-level \`<ErrorBoundary>\` so a single component crash can't white-screen the app; Vite \`build.sourcemap: true\` so console stack traces resolve to .tsx file:line; new \`safeStorage\` helper deployed to AgentLoungeLayout / LoungeLayout / AdminSubmissions so Safari private mode no longer crashes the page; lazy \`getStripePromise()\` so Stripe's RUM beacon only fires when the checkout dialog opens (not on every marketplace page load); TS target bumped to ES2020 (wipes ~6 Map/Set iteration errors); and three pre-existing TS errors fixed (routes.ts duplicate-key + arg count, schema.ts duplicate \`importHistory\` export). Gold Coast tracks the version number for parity.`;
 
 
 /**
