@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.54";
+export const LIFEOS_VERSION = "1.0.55";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.0.54";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Post-2FA routing — actually land at the CRM Lobby instead of bouncing back";
+export const LIFEOS_RELEASE_TITLE = "Post-2FA actually lands at the CRM Lobby — server now returns twoFactorVerified";
 export const LIFEOS_RELEASE_SUMMARY =
-  "AuthContext was hardcoding \`twoFactorVerified: false\` on every user load, so after completing 2FA + the hard reload to /crm, Force2FAGate would read the stale-false flag and immediately redirect back to /auth/2fa. Now reads the authoritative \`twoFactorVerified\` from the server's /api/auth/user response.";
+  "1.0.54 fixed the client to read \`data.user.twoFactorVerified\` from /api/auth/user. Turns out the server never put it in the response — \`storage.getUserById()\` only returns the DB record, and the session-scoped flag wasn't being merged in. Now it is. Post-2FA routing to /crm finally works.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Post-2FA routing fix.** Verifying via Touch ID or the email code now actually takes you to the CRM Lobby. The bug: AuthContext (\`client/src/contexts/AuthContext.tsx\`) was hardcoding \`twoFactorVerified: false\` at four user-load sites, so even though the server marked the session 2FA-verified and \`/api/auth/user\` returned \`twoFactorVerified: true\`, the client always saw \`false\` and \`Force2FAGate\` bounced the user right back to \`/auth/2fa\`. All four sites now read \`data.user.twoFactorVerified ?? false\`. The legacy \`set2FAVerified\` setter is still wired for the TOTP flow at \`/ai/2fa-verify\` as a fallback.`;
+- **Post-2FA routing — actually fixed this time.** 1.0.54 made the client read \`twoFactorVerified\` from the server's \`/api/auth/user\` response, but audit revealed the server was never sending it. \`twoFactorEnabled\` lives on the DB user record (persistent, set on enrollment); \`twoFactorVerified\` lives on the session (\`req.session.twoFactorVerified\`, set by each verify endpoint). The auth middleware merges them correctly for every gated route — \`/api/auth/user\` did not, so the response carried \`twoFactorVerified: undefined\` and the client's \`?? false\` fallback bounced the user back to \`/auth/2fa\` forever. Endpoint now merges the session flag into the response payload, matching the middleware. Touch ID + email-code verify both land at \`/crm\` (CRM Lobby) and stay there.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

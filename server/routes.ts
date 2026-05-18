@@ -634,7 +634,17 @@ export async function registerRoutes(
       }
 
       const { password, twoFactorSecret, ...safeUser } = user;
-      res.json({ user: safeUser });
+      // Merge in the session-scoped 2FA flag. Without this the response
+      // only carries `twoFactorEnabled` (DB-persistent) and the client sees
+      // `twoFactorVerified: undefined` → Force2FAGate bounces to /auth/2fa
+      // forever, even after a successful verify (see also auth middleware
+      // line ~79 which does the same merge on every gated request).
+      res.json({
+        user: {
+          ...safeUser,
+          twoFactorVerified: req.session.twoFactorVerified ?? false,
+        },
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });
