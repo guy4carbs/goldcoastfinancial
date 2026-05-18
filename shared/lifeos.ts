@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.48";
+export const LIFEOS_VERSION = "1.0.50";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.0.48";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.48";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.50";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes in 1.0.48 — Heritage shipped a one-for-one port of Gold Coast's /auth/2fa flow (Touch ID + email code), Heritage-branded. Gold Coast tracks the version for parity.";
+  "No Gold Coast changes. Heritage rolled forward two patches: its 2FA screens + verification email now use the Heritage violet→amber palette and the signature hero gradient. Gold Coast tracks the version number for parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage's 1.0.48 ports the full gcf-style 2FA UX to \`/auth/2fa\` + \`/auth/2fa/enroll\`: WebAuthn (Touch ID / Face ID) + email-code 6-digit verification with a Heritage-branded email. Both apps now have visually identical 2FA flows, just with their own brand identity. Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage shipped two consecutive visual patches against the 2FA flow it ported from Gold Coast: first a palette swap from gcf burgundy + gold to Heritage violet + amber, then the full Heritage hero gradient (135° violet → purple → amber) on the 2FA screens and the verification email banner. Gold Coast skips an explicit 1.0.49 entry and tracks straight to 1.0.50 in lockstep.`;
 
 
 /**
