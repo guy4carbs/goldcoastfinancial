@@ -60,11 +60,34 @@ export function setupWebSocket(server: Server) {
     }
   });
 
-  wss.on("connection", async (ws) => {
+  // Heartbeat — Cloudflare (which proxies heritagels.org) terminates idle
+  // WebSocket connections after ~100s of no traffic. Without server-side
+  // pings, an open-but-quiet chat tab gets killed and the browser surfaces
+  // "WebSocket connection ... network connection was lost". We send a ping
+  // every 30s and terminate any connection that doesn't pong inside the
+  // same window. Same canonical pattern from the ws library docs that the
+  // GCFWebSocketServer already uses.
+  const HEARTBEAT_INTERVAL = 30_000;
+  const heartbeatTimer = setInterval(() => {
+    wss.clients.forEach((ws: any) => {
+      if (ws.isAlive === false) {
+        console.warn("[WebSocket /ws/chat] terminating dead connection (no pong)");
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      try { ws.ping(); } catch { /* socket closing */ }
+    });
+  }, HEARTBEAT_INTERVAL);
+  wss.on("close", () => clearInterval(heartbeatTimer));
+
+  wss.on("connection", async (ws: any) => {
+    ws.isAlive = true;
+    ws.on("pong", () => { ws.isAlive = true; });
+
     // userId comes from the session, not from the client. The in-band
     // `auth` message stays around for backwards compat with bundles already
     // in users' browsers but the userId on it is now ignored.
-    let userId: string | null = (ws as any).__authUserId ?? null;
+    let userId: string | null = ws.__authUserId ?? null;
     if (userId) {
       const conversations = await storage.getChatConversationsByUserId(userId);
       clients.set(userId, {
@@ -75,7 +98,7 @@ export function setupWebSocket(server: Server) {
       ws.send(JSON.stringify({ type: "auth_success" }));
     }
 
-    ws.on("message", async (data) => {
+    ws.on("message", async (data: Buffer | string) => {
       try {
         const message = JSON.parse(data.toString());
 
@@ -174,7 +197,7 @@ export function setupClientChatWebSocket(server: any) {
   wss.on("connection", (ws) => {
     let connectionId: string | null = null;
 
-    ws.on("message", async (data) => {
+    ws.on("message", async (data: Buffer | string) => {
       try {
         const message = JSON.parse(data.toString());
 

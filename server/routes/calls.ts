@@ -196,40 +196,111 @@ function decodeClientState(encodedState: string | undefined): Record<string, any
 // =============================================================================
 
 router.get("/token", requireAuth, async (req: Request, res: Response) => {
+  const user = req.user!;
+  const stage = { name: "init" }; // mutates as we walk the pipeline so the
+                                  // catch block can attribute the failure
+
   try {
+    stage.name = "env-check";
     if (!isVoiceAvailable()) {
-      return res.status(503).json({ error: "Voice service not configured" });
+      const missing = [
+        !process.env.TELNYX_API_KEY && "TELNYX_API_KEY",
+        !process.env.TELNYX_PUBLIC_KEY && "TELNYX_PUBLIC_KEY",
+        !process.env.TELNYX_CONNECTION_ID && "TELNYX_CONNECTION_ID",
+        !process.env.TELNYX_DEFAULT_CALLER_ID && "TELNYX_DEFAULT_CALLER_ID",
+      ].filter(Boolean);
+      console.warn(`[Calls/token] voice not configured — missing env: ${missing.join(", ")}`);
+      return res.status(503).json({
+        error: "Voice service not configured",
+        code: "VOICE_NOT_CONFIGURED",
+        retryable: false,
+      });
     }
 
-    const user = req.user!;
     // Credential connection is for WebRTC auth; Call Control connection is for PSTN dialing
     const credentialConnectionId = process.env.TELNYX_CREDENTIAL_CONNECTION_ID || process.env.TELNYX_CONNECTION_ID!;
 
-    // Check if agent already has a credential, create one if not
+    stage.name = "db-credential-lookup";
     let credential = await storage.getAgentTelephonyCredential(user.id);
 
     if (!credential) {
+      stage.name = "telnyx-create-credential";
       const { credentialId, sipUsername } = await createAgentCredential(credentialConnectionId);
+
+      stage.name = "db-credential-insert";
       credential = await storage.createAgentTelephonyCredential({
         agentUserId: user.id,
         telnyxCredentialId: credentialId,
         sipUsername,
       });
-      console.log(`[Calls] Created telephony credential for agent ${user.id}: ${sipUsername}`);
+      console.log(`[Calls/token] created telephony credential for agent ${user.id}: ${sipUsername}`);
     }
 
     // Generate a fresh JWT (24h TTL)
+    stage.name = "telnyx-create-token";
     const token = await generateWebRTCToken(credential.telnyxCredentialId);
 
-    res.json({
+    return res.json({
       token,
       sipUsername: credential.sipUsername,
-      callerId: process.env.TELNYX_DEFAULT_CALLER_ID || '',
+      callerId: process.env.TELNYX_DEFAULT_CALLER_ID || "",
       expiresIn: 86400, // 24 hours
     });
   } catch (error: any) {
-    console.error("[Calls] Token generation failed:", error.message);
-    res.status(500).json({ error: "Failed to generate token" });
+    // Structured logging: which stage failed, what the upstream said, full
+    // shape of the error so we can diagnose prod 500s from logs alone.
+    const telnyxStatus = error?.status ?? error?.response?.status;
+    const telnyxCode = error?.code ?? error?.errors?.[0]?.code;
+    const telnyxDetail = error?.errors?.[0]?.detail ?? error?.errors?.[0]?.title;
+    console.error(
+      `[Calls/token] FAILED stage=${stage.name} user=${user.id}` +
+        (telnyxStatus ? ` telnyxStatus=${telnyxStatus}` : "") +
+        (telnyxCode ? ` telnyxCode=${telnyxCode}` : "") +
+        (telnyxDetail ? ` telnyxDetail="${telnyxDetail}"` : "") +
+        ` message="${error?.message ?? error}"`,
+    );
+
+    // 401/403 from Telnyx means our API key/credential is rejected at the
+    // upstream — bad key, wrong account, revoked. Surface as 502 (upstream
+    // bad gateway) so the client knows it's not a user fixable issue.
+    if (telnyxStatus === 401 || telnyxStatus === 403) {
+      return res.status(502).json({
+        error: "Voice provider rejected our credentials",
+        code: "VOICE_UPSTREAM_AUTH",
+        retryable: false,
+      });
+    }
+    // 404 from Telnyx during createToken means the stored credentialId is
+    // gone (deleted in the Telnyx dashboard, account reset). Wipe the row
+    // so the next request re-provisions a fresh credential.
+    if (telnyxStatus === 404 && stage.name === "telnyx-create-token") {
+      console.warn(`[Calls/token] credential ${user.id} is stale on Telnyx side — clearing local row for re-provision`);
+      try {
+        await storage.deleteAgentTelephonyCredential(user.id);
+      } catch (delErr: any) {
+        console.error(`[Calls/token] failed to clear stale credential row: ${delErr?.message ?? delErr}`);
+      }
+      return res.status(409).json({
+        error: "Voice credential expired — refresh and try again",
+        code: "VOICE_CREDENTIAL_STALE",
+        retryable: true,
+      });
+    }
+    // Network / 5xx from Telnyx is transient.
+    if (telnyxStatus && telnyxStatus >= 500) {
+      return res.status(502).json({
+        error: "Voice provider temporarily unavailable",
+        code: "VOICE_UPSTREAM_UNAVAILABLE",
+        retryable: true,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Failed to generate token",
+      code: "VOICE_TOKEN_FAILED",
+      retryable: false,
+      stage: stage.name,
+    });
   }
 });
 

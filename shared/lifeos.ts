@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.57";
+export const LIFEOS_VERSION = "1.0.58";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,17 +35,18 @@ export const LIFEOS_VERSION = "1.0.57";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Wave 3 — WebSocket session-cookie auth across all three endpoints";
+export const LIFEOS_RELEASE_TITLE = "Wave 4 — Telnyx token diagnostics + WS heartbeats (idle disconnects fixed)";
 export const LIFEOS_RELEASE_SUMMARY =
-  "All three Heritage WebSocket endpoints (/ws/gcf, /ws/chat, /ws/avatar-council) were failing because the upgrade handlers trusted a client-supplied userId and skipped Express session middleware entirely. Now all three reuse the same session-cookie auth as REST routes. /ws/gcf adds a 2FA gate matching the REST behavior.";
+  "Two prod failures cleaned up: /api/calls/token now returns structured error codes so the dialer UI can show specific messaging (and prod logs reveal which Telnyx step failed); /ws/chat and /ws/avatar-council have server-side ping/pong heartbeats so Cloudflare's ~100s idle timeout stops killing connections.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **WS upgrade now uses the session cookie.** \`/ws/gcf\`, \`/ws/chat\`, and \`/ws/avatar-council\` all run the request through \`getSessionMiddleware()\` (the same one Express uses for REST), look up \`session.userId\`, and reject the upgrade if it's missing or the user record is inactive. The old \`?userId=\` query-string scheme was client-trusted, impersonatable by editing the URL, and broke whenever \`AuthContext.user\` was momentarily null during page load.
-- **2FA gate on /ws/gcf.** If the user has 2FA enrolled but the session isn't verified yet (i.e. they're sitting on \`/auth/2fa\`), the WS upgrade returns 403 instead of streaming RBAC events for channels they couldn't query via REST anyway. Matches the \`require2FA\` posture on \`/api\` routes.
-- **Client drops the userId query param.** \`WebSocketProvider.tsx\` no longer appends \`?userId=\${userId}\` — the cookie is authoritative. Still gates the connect attempt on the user being loaded so we don't open a socket before the session exists.
-- **In-band auth on chat/avatars is now a no-op.** Stale client bundles still send \`{type:'auth', userId}\` after open; the server acks but ignores the userId (it's already established from the session). No flag day required.
-- **Console wall of "WebSocket connection failed" entries is gone** — all three endpoints either return \`101 Switching Protocols\` (signed in) or a single clean \`401\`/\`403\` (not signed in), no reconnect loop.
-- **Backwards compatible.** No client coordination needed; old bundles still send \`?userId=\` which is now ignored, server uses the cookie. \`/ws/client-chat\` is left untouched (server-side it's defined but never wired up — separate issue, not a Wave 3 regression).`;
+- **Telnyx /token diagnostics.** \`/api/calls/token\` previously caught every failure as a generic 500 "Failed to generate token". It now reports back \`{ error, code, retryable }\` with a specific code per failure mode: \`VOICE_NOT_CONFIGURED\` (env vars missing — also logs which env var), \`VOICE_UPSTREAM_AUTH\` (Telnyx rejected our API key), \`VOICE_CREDENTIAL_STALE\` (stored credentialId no longer exists on Telnyx — endpoint auto-clears the row so the next call re-provisions), \`VOICE_UPSTREAM_UNAVAILABLE\` (Telnyx 5xx), \`VOICE_TOKEN_FAILED\` (unknown). Server logs also report which pipeline stage failed (\`env-check\`, \`db-credential-lookup\`, \`telnyx-create-credential\`, \`telnyx-create-token\`).
+- **Dialer UI shows the actual reason.** The \`useTelnyxDevice\` hook now parses the structured shape and surfaces specific messages ("Voice service isn't configured", "Voice provider rejected our credentials", "Voice credential expired — refreshing", "Voice provider is temporarily unavailable") so users see what to do instead of a generic console error.
+- **/ws/chat heartbeat.** Cloudflare (which proxies heritagels.org) terminates idle WebSockets after ~100s of no traffic. Without server-side pings, chat tabs that sat idle showed up as "network connection was lost" the next time the page tried to send. Server now pings every 30s and terminates any socket that doesn't pong inside the window (same canonical pattern from the \`ws\` library docs that \`GCFWebSocketServer\` already used).
+- **/ws/avatar-council heartbeat.** Same fix — was also missing a heartbeat.
+- **Storage soft-delete for stale Telnyx credentials.** Added \`storage.deleteAgentTelephonyCredential()\` (marks the row \`isActive=false\`) so the auto-recovery path on \`VOICE_CREDENTIAL_STALE\` works without leaving zombie rows.
+- **The /b 400 in the console is Stripe's own analytics beacon** (\`m.stripe.network/b/...\`) — not a Heritage endpoint, not in our codebase. Stripe's beacon is independent of the payment flow; harmless. Left alone.
+- **The original /metrics 404 has stopped firing** — no longer in the user's console output. No fix needed.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
