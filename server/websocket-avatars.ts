@@ -47,26 +47,51 @@ export function setupAvatarWebSocket(server: Server): WebSocketServer {
 
   console.log("[AvatarWS] WebSocket server created on /ws/avatar-council");
 
-  // Handle upgrade manually
-  server.on("upgrade", (request, socket, head) => {
+  // Upgrade handler: session-cookie auth (same pattern as /ws/gcf + /ws/chat).
+  // Previously this endpoint accepted any upgrade and trusted in-band
+  // `{type:'auth', userId}` messages, leaving the connection "anonymous"
+  // until a client message arrived — easy to impersonate and noisy on the
+  // initial console wall of failures. Now the session cookie is the
+  // authoritative source.
+  server.on("upgrade", async (request, socket, head) => {
     const pathname = new URL(request.url || "", `http://${request.headers.host}`).pathname;
+    if (pathname !== "/ws/avatar-council") return;
 
-    if (pathname === "/ws/avatar-council") {
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit("connection", ws, request);
+    try {
+      const { getSessionMiddleware } = await import("./routes");
+      const sessionParser = getSessionMiddleware();
+
+      sessionParser(request as any, {} as any, () => {
+        const session = (request as any).session;
+        if (!session?.userId) {
+          console.warn("[AvatarWS] no session userId — rejecting upgrade");
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+          return socket.destroy();
+        }
+
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          (ws as any).__authUserId = session.userId;
+          wss.emit("connection", ws, request);
+        });
       });
+    } catch (err) {
+      console.error("[AvatarWS] upgrade error:", err);
+      socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+      socket.destroy();
     }
-    // Let other WebSocket servers handle their paths
   });
 
   wss.on("connection", (ws: WebSocket) => {
     const clientId = crypto.randomUUID();
-    console.log(`[AvatarWS] Client connected: ${clientId}`);
+    const authUserId = (ws as any).__authUserId as string | undefined;
+    console.log(`[AvatarWS] Client connected: ${clientId} as ${authUserId ?? "anonymous"}`);
 
-    // Initialize client
+    // Initialize client with the authenticated session userId. Stale client
+    // bundles may still send `{type:'auth:user', userId}` — handler is now a
+    // no-op since userId is already established.
     const client: AvatarClient = {
       ws,
-      userId: "anonymous",
+      userId: authUserId ?? "anonymous",
       sessionId: null,
       debateId: null,
       isAdmin: false,
