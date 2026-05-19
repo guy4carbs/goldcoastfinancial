@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.61";
+export const LIFEOS_VERSION = "1.0.62";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,7 +35,7 @@ export const LIFEOS_VERSION = "1.0.61";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Telnyx — merge DB pools + route-level timeout (middleware hangs no longer 502)";
+export const LIFEOS_RELEASE_TITLE = "Telnyx — app-level timeout BEFORE session + Cloudflare-aware client error parsing";
 export const LIFEOS_RELEASE_SUMMARY =
   "1.0.60's handler-level wall-clock only fired AFTER requireAuth + attachUser ran. If middleware itself hung (waiting for a DB connection from an exhausted second pool), the handler never started, the wall-clock never fired, and Cloudflare returned its own HTML 502. Fixed by merging the dual pg.Pool instances into one shared pool and adding a route-level withTimeout middleware that fires BEFORE auth runs — always returns our JSON. Plus a /api/calls/_ping diagnostic so we can isolate origin issues from handler issues.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New

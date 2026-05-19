@@ -164,6 +164,57 @@ app.use(
 
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
+// =============================================================================
+// APP-LEVEL DIAGNOSTIC + REQUEST TIMEOUT
+// =============================================================================
+//
+// Trivial liveness ping. No auth, no DB, no session. Always returns 200.
+// If a user is seeing CF/Railway 502s, hitting this URL tells us whether the
+// problem is platform-level (502 from /api/_ping too) or application-level
+// (200 here, 502 only on real routes). Mounted at the very top of the
+// middleware chain so even a broken session middleware can't shadow it.
+app.get("/api/_ping", (_req, res) => {
+  res.status(200).json({
+    ok: true,
+    ts: new Date().toISOString(),
+    version: process.env.npm_package_version || "unknown",
+  });
+});
+
+// App-level request-timeout safety net.
+//
+// Earlier waves added a wall-clock setTimeout INSIDE specific route handlers
+// (e.g. /api/calls/token), and 1.0.61 added a route-level withTimeout
+// middleware. Both still ran AFTER the session middleware (added inside
+// registerRoutes via setupSession). If the session middleware or any
+// upstream middleware hangs (PG pool exhaustion, network blip, etc.), our
+// route-level timer never arms — Cloudflare/Railway returns an HTML 502
+// and the client falls through to `code=UNKNOWN`.
+//
+// This middleware sits BEFORE registerRoutes runs, so the timer arms on
+// the bare Express request, before any session/auth/router-specific logic.
+// 27s is below typical gateway windows (CF ~100s, Railway ~30s on some
+// paths) so we always beat the gateway to a structured JSON response.
+const APP_REQUEST_TIMEOUT_MS = 27_000;
+app.use("/api", (req, res, next) => {
+  const timer = setTimeout(() => {
+    if (res.headersSent) return;
+    console.warn(
+      `[AppTimeout] ${req.method} ${req.path} exceeded ${APP_REQUEST_TIMEOUT_MS}ms — responding with REQUEST_TIMEOUT`,
+    );
+    res.status(504).json({
+      error: "Request timed out before reaching the handler",
+      code: "REQUEST_TIMEOUT",
+      retryable: true,
+      path: req.path,
+    });
+  }, APP_REQUEST_TIMEOUT_MS);
+  const clear = () => clearTimeout(timer);
+  res.on("finish", clear);
+  res.on("close", clear);
+  next();
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",

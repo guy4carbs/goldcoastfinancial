@@ -43,11 +43,44 @@ export class TelnyxTokenError extends Error {
 async function fetchToken(): Promise<{ token: string; sipUsername: string; callerId: string }> {
   const res = await fetch('/api/calls/token', { credentials: 'include' });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
+    // Try JSON first (our structured response). If that fails (CF/Railway
+    // returned an HTML page on a gateway 502), fall back to peeking at the
+    // text body and the Server header so we surface a meaningful code that
+    // actually tells us what happened. Previously this just yielded
+    // `code=UNKNOWN` and we had no idea whether the issue was our handler,
+    // our middleware, the gateway, or the proxy in front of it.
+    const rawText = await res.text().catch(() => "");
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(rawText);
+    } catch {
+      /* not JSON */
+    }
+
+    const serverHeader = res.headers.get("server") ?? "";
+    const cfRay = res.headers.get("cf-ray") ?? "";
+    let inferredCode: string;
+    if (parsed?.code) {
+      inferredCode = parsed.code;
+    } else if (serverHeader.toLowerCase().includes("cloudflare") || cfRay) {
+      inferredCode = "GATEWAY_HTML_502_FROM_CLOUDFLARE";
+    } else if (rawText.includes("<html") || rawText.includes("<!DOCTYPE")) {
+      inferredCode = "GATEWAY_HTML_RESPONSE";
+    } else if (rawText.length === 0) {
+      inferredCode = "EMPTY_RESPONSE_BODY";
+    } else {
+      inferredCode = "UNKNOWN";
+    }
+
+    console.error(
+      `[fetchToken] non-OK status=${res.status} server="${serverHeader}" cf-ray="${cfRay}" ` +
+        `code=${inferredCode} body[0..200]="${rawText.slice(0, 200).replace(/\s+/g, " ")}"`,
+    );
+
     throw new TelnyxTokenError(
-      data.error || `Token fetch failed: ${res.status}`,
-      data.code || "UNKNOWN",
-      data.retryable === true,
+      parsed?.error || `Token fetch failed: ${res.status}`,
+      inferredCode,
+      parsed?.retryable === true,
       res.status,
     );
   }
