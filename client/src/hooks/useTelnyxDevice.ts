@@ -40,8 +40,13 @@ export class TelnyxTokenError extends Error {
   }
 }
 
+// Token endpoint switched from /api/calls/token → /api/voice/token in 1.0.63.
+// Cloudflare was returning its own HTML 502 page on the legacy path (confirmed
+// via server="cloudflare" + cf-ray response headers in 1.0.62 logs). The new
+// URL bypasses any CF cache / WAF state tied to the old path. Same handler,
+// same auth chain — see server/routes.ts for the parallel mount.
 async function fetchToken(): Promise<{ token: string; sipUsername: string; callerId: string }> {
-  const res = await fetch('/api/calls/token', { credentials: 'include' });
+  const res = await fetch('/api/voice/token', { credentials: 'include' });
   if (!res.ok) {
     // Try JSON first (our structured response). If that fails (CF/Railway
     // returned an HTML page on a gateway 502), fall back to peeking at the

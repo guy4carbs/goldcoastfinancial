@@ -56,6 +56,35 @@ const isProduction = process.env.NODE_ENV === "production";
 // Initialize Sentry for error tracking (before other middleware)
 initializeSentry(app);
 
+// ===========================================================================
+// FIRST-MIDDLEWARE DIAGNOSTIC LOGGER (1.0.63+)
+// ===========================================================================
+//
+// Logs the entry of every Telnyx-related request BEFORE any other middleware
+// runs (before CORS, helmet, rate limiter, body parser, session, etc.). If
+// Railway logs show `[REQ]` lines for these paths, the request DID reach our
+// origin — meaning the 502 we're seeing in the browser is happening because
+// the response can't get back to Cloudflare (Node crash mid-response, etc.).
+// If Railway logs DON'T show `[REQ]` lines, the request never reached us —
+// CF or Railway is dropping it before our app sees it.
+//
+// Scoped to specific diagnostic paths so we don't fill logs with noise.
+app.use((req, _res, next) => {
+  const p = req.path;
+  if (
+    p === "/api/_ping" ||
+    p === "/api/calls/token" ||
+    p === "/api/voice/token"
+  ) {
+    console.log(
+      `[REQ] ${req.method} ${p} ip=${req.ip ?? "?"} cf-ray=${
+        req.headers["cf-ray"] ?? "none"
+      } ua="${(req.headers["user-agent"] ?? "").toString().slice(0, 50)}"`,
+    );
+  }
+  next();
+});
+
 // CORS configuration
 const corsOptions = {
   origin: isProduction
@@ -174,6 +203,8 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 // (200 here, 502 only on real routes). Mounted at the very top of the
 // middleware chain so even a broken session middleware can't shadow it.
 app.get("/api/_ping", (_req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, private, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
   res.status(200).json({
     ok: true,
     ts: new Date().toISOString(),

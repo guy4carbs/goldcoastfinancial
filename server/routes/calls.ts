@@ -243,7 +243,37 @@ function decodeClientState(encodedState: string | undefined): Record<string, any
 // client inside this window — never Cloudflare's HTML 502 page.
 const TOKEN_HANDLER_WALL_CLOCK_MS = 25_000;
 
-router.get("/token", withTimeout(28_000, "VOICE_GATEWAY_TIMEOUT"), requireAuth, async (req: Request, res: Response) => {
+/**
+ * Shared Telnyx-token handler. Mounted at TWO URLs:
+ *   - /api/calls/token  — legacy (1.0.45+). May be on a CF cache/WAF blocklist;
+ *                         keeping it here for backwards-compat with in-flight
+ *                         bundles that still call the old URL.
+ *   - /api/voice/token  — new URL (1.0.63+). Bypasses any CF state tied to the
+ *                         old path. Different cache key, different WAF match,
+ *                         different rule lineage.
+ *
+ * Both routes also expose the same `withTimeout` + `requireAuth` middleware
+ * chain. Exported via `voiceTokenChain` so server/routes.ts can mount the
+ * new /api/voice/token route with identical guarantees.
+ */
+export const telnyxTokenHandler = async (req: Request, res: Response) => {
+  // Cache-bust headers: belt-and-suspenders against any CF/Worker that might
+  // be caching a 5xx response under this URL.
+  res.setHeader("Cache-Control", "no-store, no-cache, private, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  return runTokenHandler(req, res);
+};
+
+// Middleware chain re-exported so the new /api/voice/token route in
+// server/routes.ts can mount with the same withTimeout + requireAuth guards
+// as the legacy /api/calls/token route below.
+export const voiceTokenTimeoutMiddleware = withTimeout(28_000, "VOICE_GATEWAY_TIMEOUT");
+
+// Legacy route (kept alive for in-flight client bundles). Identical chain to
+// the new /api/voice/token mount in routes.ts.
+router.get("/token", voiceTokenTimeoutMiddleware, requireAuth, telnyxTokenHandler);
+
+async function runTokenHandler(req: Request, res: Response) {
   const user = req.user!;
   const startTs = Date.now();
   console.log(`[Calls/token] enter user=${user.id}`);
@@ -390,7 +420,7 @@ router.get("/token", withTimeout(28_000, "VOICE_GATEWAY_TIMEOUT"), requireAuth, 
       stage: stage.name,
     });
   }
-});
+}
 
 // =============================================================================
 // POST /dial — Server-initiated outbound call (Call Control API → bridge to WebRTC)

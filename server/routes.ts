@@ -52,7 +52,7 @@ import claimsRouter from "./routes/claims";
 import referralsRouter from "./routes/referrals";
 import agentClientsRouter from "./routes/agent-clients";
 import leadDistributionRouter from "./routes/lead-distribution";
-import callsRouter from "./routes/calls";
+import callsRouter, { telnyxTokenHandler, voiceTokenTimeoutMiddleware } from "./routes/calls";
 import monitorRouter from "./routes/monitor";
 import dncRouter from "./routes/dnc";
 import executiveRouter from "./routes/executive";
@@ -3712,6 +3712,12 @@ export async function registerRoutes(
 
   // Telnyx Voice Calls (auth built into router)
   app.use("/api/calls", callsRouter);
+
+  // New URL for the Telnyx WebRTC token — bypasses any CF cache/WAF state
+  // tied to the legacy /api/calls/token path (after 1.0.62 confirmed
+  // Cloudflare was returning its own HTML 502 page on the legacy path,
+  // not our origin). Same handler, same auth + timeout chain.
+  app.get("/api/voice/token", voiceTokenTimeoutMiddleware, requireAuth, telnyxTokenHandler);
 
   // Call Monitoring (listen in / whisper / barge)
   app.use("/api/monitor", monitorRouter);
