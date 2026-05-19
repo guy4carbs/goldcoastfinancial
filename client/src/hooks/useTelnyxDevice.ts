@@ -52,7 +52,19 @@ export class TelnyxTokenError extends Error {
 // the CF rule is broader than URL patterns and the fix moves out of code
 // into the Cloudflare dashboard (Security → Events).
 async function fetchToken(): Promise<{ token: string; sipUsername: string; callerId: string }> {
-  const res = await fetch('/api/realtime/wrtc-auth', { credentials: 'include' });
+  // 1.0.65 — switched from GET → POST. CF was 502'ing all three previous URLs
+  // (calls/token, voice/token, realtime/wrtc-auth) at its edge with no [REQ]
+  // log on origin. After ruling out URL-pattern matching as the cause, the
+  // remaining likely trigger is CF managed-rule heuristics that treat GET
+  // XHRs-with-credentials as credential-leak suspects. POST has a different
+  // default rule profile. Server accepts both methods so a stale-bundle
+  // client doesn't break.
+  const res = await fetch('/api/realtime/wrtc-auth', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
   if (!res.ok) {
     // Try JSON first (our structured response). If that fails (CF/Railway
     // returned an HTML page on a gateway 502), fall back to peeking at the
