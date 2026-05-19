@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.61";
+export const LIFEOS_VERSION = "1.0.62";
 
 /**
  * Release notes that ship with this version. The server's
