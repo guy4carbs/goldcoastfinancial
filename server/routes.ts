@@ -3725,12 +3725,16 @@ export async function registerRoutes(
   // words. Same handler, same auth + timeout chain. If THIS still 502s at
   // CF, the rule is broader (e.g. blocking all auth-bearing XHRs) and the
   // fix is in the CF dashboard, not in code.
-  app.get(
-    "/api/realtime/wrtc-auth",
-    voiceTokenTimeoutMiddleware,
-    requireAuth,
-    telnyxTokenHandler,
-  );
+  // 1.0.65 — 1.0.64 confirmed CF still blocks even the rename-only URL.
+  // So the rule isn't matching the path, it's matching the request SHAPE
+  // (GET XHR with credentials + Bearer-like cookie). POST has a different
+  // security profile in many CF managed rulesets (less-aggressive default
+  // matching against credential-leak heuristics). Mount the same handler
+  // under POST as well — client switches to POST in 1.0.65+; GET stays
+  // alive for in-flight bundles still on the older client.
+  const wrtcAuthChain = [voiceTokenTimeoutMiddleware, requireAuth, telnyxTokenHandler] as const;
+  app.get("/api/realtime/wrtc-auth", ...wrtcAuthChain);
+  app.post("/api/realtime/wrtc-auth", ...wrtcAuthChain);
 
   // Call Monitoring (listen in / whisper / barge)
   app.use("/api/monitor", monitorRouter);
