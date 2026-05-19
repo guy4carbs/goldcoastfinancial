@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.61";
+export const LIFEOS_VERSION = "1.0.62";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,9 +34,9 @@ export const LIFEOS_VERSION = "1.0.61";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.61";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.62";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage merged its dual pg.Pool instances into one shared 20-connection pool (fixes session-middleware hangs that were producing Cloudflare 502s on /api/calls/token) and added a route-level timeout middleware that fires before requireAuth — middleware hangs now return our structured JSON instead of CF's HTML 502.";
+  "No Gold Coast changes. Heritage added an app-level 27s request timeout that sits BEFORE session middleware (1.0.61's route-level timeout could be shadowed by a hung session lookup), plus a Cloudflare-aware client error parser so the next time something 502s the console shows a real code, not UNKNOWN. Plus /api/_ping at the app root for one-curl health checks.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
 - **No functional Gold Coast changes.** Heritage shipped a deep-clean pass after the four-wave debug sweep, weeding out latent issues that hadn't yet surfaced visibly. Headlines: Telnyx 502 root cause was Cloudflare's HTML 502 (origin hung past CF's window because the Telnyx SDK had no client-side timeout — now \`timeout: 15_000\`); founder/director/agency_manager were missing from \`GCFWebSocketServer\`'s role-channel maps so C-suite silently received zero real-time data (added all three); top-level \`<ErrorBoundary>\` so a single component crash can't white-screen the app; Vite \`build.sourcemap: true\` so console stack traces resolve to .tsx file:line; new \`safeStorage\` helper deployed to AgentLoungeLayout / LoungeLayout / AdminSubmissions so Safari private mode no longer crashes the page; lazy \`getStripePromise()\` so Stripe's RUM beacon only fires when the checkout dialog opens (not on every marketplace page load); TS target bumped to ES2020 (wipes ~6 Map/Set iteration errors); and three pre-existing TS errors fixed (routes.ts duplicate-key + arg count, schema.ts duplicate \`importHistory\` export). Gold Coast tracks the version number for parity.`;
