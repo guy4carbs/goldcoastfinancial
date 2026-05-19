@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.63";
+export const LIFEOS_VERSION = "1.0.64";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,9 +35,9 @@ export const LIFEOS_VERSION = "1.0.63";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Telnyx — new /api/voice/token URL bypasses Cloudflare state on legacy path";
+export const LIFEOS_RELEASE_TITLE = "Telnyx — /api/realtime/wrtc-auth (third URL, no red-flag words) + crash handlers";
 export const LIFEOS_RELEASE_SUMMARY =
-  "1.0.62 confirmed via server=cloudflare + cf-ray response headers that the persistent /api/calls/token 502 IS Cloudflare's HTML page, not our origin. Six rounds of in-app defenses haven't helped because the problem is on the URL path itself — likely a CF cache or WAF rule tied to the legacy /api/calls/token. 1.0.63 routes around it by mounting the same handler at a new /api/voice/token URL (different cache key, different WAF match). Plus first-middleware [REQ] logging so Railway logs definitively show whether requests reach our origin at all.";
+  "1.0.63 logs definitively showed [REQ] entries for /api/_ping reaching our origin but NO [REQ] entries for /api/voice/token — Cloudflare is dropping that URL at its edge before Railway sees it. CF appears to be matching URL patterns containing 'voice'/'token'. 1.0.64 moves the endpoint to /api/realtime/wrtc-auth (no red-flag words) and adds process-level uncaughtException + unhandledRejection handlers so the Node process never dies mid-response. If THIS URL also 502s at CF, the rule is broader and the fix moves to the Cloudflare dashboard.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
 - **Dual DB pool merged.** \`server/routes.ts\` was constructing its own \`new Pool({...})\` for the express-session store while \`server/db.ts\` already exported a separate pool for Drizzle/ORM. Two pools sharing one Neon DB → either could exhaust under load, causing session lookup or \`attachUser\` to hang indefinitely. They now share a single 20-connection pool with a 5s connection-acquisition timeout (fail fast vs. hang).

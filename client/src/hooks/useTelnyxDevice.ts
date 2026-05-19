@@ -40,13 +40,19 @@ export class TelnyxTokenError extends Error {
   }
 }
 
-// Token endpoint switched from /api/calls/token → /api/voice/token in 1.0.63.
-// Cloudflare was returning its own HTML 502 page on the legacy path (confirmed
-// via server="cloudflare" + cf-ray response headers in 1.0.62 logs). The new
-// URL bypasses any CF cache / WAF state tied to the old path. Same handler,
-// same auth chain — see server/routes.ts for the parallel mount.
+// Token endpoint URL history (since the original /api/calls/token began
+// returning CF HTML 502s):
+//   1.0.45 — /api/calls/token (legacy)
+//   1.0.63 — /api/voice/token (also 502'd at CF edge — Railway never saw
+//            the request per missing [REQ] log line)
+//   1.0.64 — /api/realtime/wrtc-auth (generic path, no "token"/"voice"/"call"
+//            words that might match a CF WAF heuristic)
+//
+// Same server handler, same auth + timeout chain. If even this URL 502s,
+// the CF rule is broader than URL patterns and the fix moves out of code
+// into the Cloudflare dashboard (Security → Events).
 async function fetchToken(): Promise<{ token: string; sipUsername: string; callerId: string }> {
-  const res = await fetch('/api/voice/token', { credentials: 'include' });
+  const res = await fetch('/api/realtime/wrtc-auth', { credentials: 'include' });
   if (!res.ok) {
     // Try JSON first (our structured response). If that fails (CF/Railway
     // returned an HTML page on a gateway 502), fall back to peeking at the

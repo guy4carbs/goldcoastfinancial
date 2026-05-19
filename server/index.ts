@@ -41,6 +41,22 @@ let eventBridgeCleanup: (() => void) | null = null;
 const app = express();
 const httpServer = createServer(app);
 
+// ============================================================================
+// PROCESS-LEVEL CRASH HANDLERS (1.0.64+)
+// ============================================================================
+// If anything ever throws synchronously off the event loop or rejects an
+// async without a catch, Node's default behavior is to print a stack and
+// exit. Railway restarts the container, but the in-flight request gets cut
+// without a response → Cloudflare returns its own HTML 502 page → user sees
+// `code=GATEWAY_HTML_502_FROM_CLOUDFLARE`. These handlers log loudly and
+// keep the process alive so any in-flight Express response can complete.
+process.on("uncaughtException", (err: Error) => {
+  console.error("[FATAL] uncaughtException — process stays alive:", err.stack || err);
+});
+process.on("unhandledRejection", (reason: unknown) => {
+  console.error("[FATAL] unhandledRejection — process stays alive:", reason);
+});
+
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
@@ -74,7 +90,8 @@ app.use((req, _res, next) => {
   if (
     p === "/api/_ping" ||
     p === "/api/calls/token" ||
-    p === "/api/voice/token"
+    p === "/api/voice/token" ||
+    p === "/api/realtime/wrtc-auth"
   ) {
     console.log(
       `[REQ] ${req.method} ${p} ip=${req.ip ?? "?"} cf-ray=${
