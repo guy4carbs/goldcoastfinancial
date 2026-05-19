@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.63";
+export const LIFEOS_VERSION = "1.0.64";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,7 +34,7 @@ export const LIFEOS_VERSION = "1.0.63";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.63";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.64";
 export const LIFEOS_RELEASE_SUMMARY =
   "No Gold Coast changes. Heritage added an app-level 27s request timeout that sits BEFORE session middleware (1.0.61's route-level timeout could be shadowed by a hung session lookup), plus a Cloudflare-aware client error parser so the next time something 502s the console shows a real code, not UNKNOWN. Plus /api/_ping at the app root for one-curl health checks.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
