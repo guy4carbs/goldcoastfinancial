@@ -3713,11 +3713,24 @@ export async function registerRoutes(
   // Telnyx Voice Calls (auth built into router)
   app.use("/api/calls", callsRouter);
 
-  // New URL for the Telnyx WebRTC token — bypasses any CF cache/WAF state
-  // tied to the legacy /api/calls/token path (after 1.0.62 confirmed
-  // Cloudflare was returning its own HTML 502 page on the legacy path,
-  // not our origin). Same handler, same auth + timeout chain.
-  app.get("/api/voice/token", voiceTokenTimeoutMiddleware, requireAuth, telnyxTokenHandler);
+  // 1.0.62 confirmed (via server="cloudflare" + cf-ray headers) that
+  // /api/calls/token's 502 was Cloudflare returning its own HTML page.
+  // 1.0.63 tried /api/voice/token — direct browser navigation ALSO returned
+  // CF's HTML 502 with no `[REQ]` log on our origin, meaning Cloudflare is
+  // dropping the request at the edge BEFORE Railway sees it. The CF rule
+  // appears to match URL patterns containing words like "voice", "calls",
+  // or "token" (common WAF heuristic against credential-leak endpoints).
+  //
+  // 1.0.64 moves the endpoint to a generic-API path with NONE of those
+  // words. Same handler, same auth + timeout chain. If THIS still 502s at
+  // CF, the rule is broader (e.g. blocking all auth-bearing XHRs) and the
+  // fix is in the CF dashboard, not in code.
+  app.get(
+    "/api/realtime/wrtc-auth",
+    voiceTokenTimeoutMiddleware,
+    requireAuth,
+    telnyxTokenHandler,
+  );
 
   // Call Monitoring (listen in / whisper / barge)
   app.use("/api/monitor", monitorRouter);
