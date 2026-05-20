@@ -89,6 +89,9 @@ app.use((req, _res, next) => {
   const p = req.path;
   if (
     p === "/api/_ping" ||
+    p === "/api/realtime/healthcheck" ||
+    p === "/api/wrtc-healthcheck" ||
+    p === "/api/dialer-ping" ||
     p === "/api/calls/token" ||
     p === "/api/voice/token" ||
     p === "/api/realtime/wrtc-auth"
@@ -219,15 +222,27 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 // problem is platform-level (502 from /api/_ping too) or application-level
 // (200 here, 502 only on real routes). Mounted at the very top of the
 // middleware chain so even a broken session middleware can't shadow it.
-app.get("/api/_ping", (_req, res) => {
+// Diagnostic factory — mounted at multiple paths to triangulate which path
+// patterns reach our origin. If /api/_ping returns 200 but
+// /api/realtime/healthcheck returns 502, the /api/realtime/* pattern is
+// broken at Railway's routing layer. If all three healthchecks return 200
+// but /api/realtime/wrtc-auth still 502s, the issue is in our middleware
+// chain (session, auth, attachUser, handler).
+const _diagHandler = (label: string) => (_req: any, res: any) => {
   res.setHeader("Cache-Control", "no-store, no-cache, private, must-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.status(200).json({
     ok: true,
     ts: new Date().toISOString(),
     version: process.env.npm_package_version || "unknown",
+    lifeOSVersion: LIFEOS_VERSION,
+    label,
   });
-});
+};
+app.get("/api/_ping", _diagHandler("ping"));
+app.get("/api/realtime/healthcheck", _diagHandler("realtime-healthcheck"));
+app.get("/api/wrtc-healthcheck", _diagHandler("wrtc-healthcheck"));
+app.get("/api/dialer-ping", _diagHandler("dialer-ping"));
 
 // App-level request-timeout safety net.
 //

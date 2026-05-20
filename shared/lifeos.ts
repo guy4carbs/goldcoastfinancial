@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.65";
+export const LIFEOS_VERSION = "1.0.66";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,9 +35,9 @@ export const LIFEOS_VERSION = "1.0.65";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Telnyx — change request shape to POST (last code-side stopgap before CF dashboard fix)";
+export const LIFEOS_RELEASE_TITLE = "Telnyx 502 — triple diagnostic endpoints to pinpoint the failure layer";
 export const LIFEOS_RELEASE_SUMMARY =
-  "1.0.64's /api/realtime/wrtc-auth (third URL, generic path with no red-flag words) ALSO returned CF HTML 502 — meaning the CF rule isn't matching the URL, it's matching the request shape (GET XHR with credentials, headers, or Bot Management heuristic). 1.0.65 switches the request to POST (different CF managed-rule profile) — last code-side stopgap. Server accepts both GET + POST so stale client bundles don't break. If POST still 502s, the fix is unambiguously in the Cloudflare dashboard (Security → Events → see which rule is firing).";
+  "Cloudflare Security Events page is EMPTY (no rule blocking) but CF Error 502 = origin returned 502. /api/_ping works, /api/realtime/wrtc-auth doesn't. 1.0.66 mounts three new bare-app diagnostic endpoints (no auth, no session, no middleware) at different path patterns: /api/realtime/healthcheck, /api/wrtc-healthcheck, /api/dialer-ping. Same JSON return shape on all three. User pastes each URL in browser — pattern of which return 200 vs 502 pinpoints exactly which layer is broken (Railway routing on /api/realtime/* vs our middleware chain).";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
 - **Dual DB pool merged.** \`server/routes.ts\` was constructing its own \`new Pool({...})\` for the express-session store while \`server/db.ts\` already exported a separate pool for Drizzle/ORM. Two pools sharing one Neon DB → either could exhaust under load, causing session lookup or \`attachUser\` to hang indefinitely. They now share a single 20-connection pool with a 5s connection-acquisition timeout (fail fast vs. hang).
