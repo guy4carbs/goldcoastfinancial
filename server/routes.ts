@@ -3736,6 +3736,28 @@ export async function registerRoutes(
   app.get("/api/realtime/wrtc-auth", ...wrtcAuthChain);
   app.post("/api/realtime/wrtc-auth", ...wrtcAuthChain);
 
+  // 1.0.67 — auth-only diagnostic. Same session + requireAuth chain as the
+  // real token endpoint but with a trivial handler that returns the user's
+  // ID. If this returns 200 cleanly but /api/realtime/wrtc-auth still 502s,
+  // the failure is unambiguously inside telnyxTokenHandler (Telnyx SDK,
+  // DB call for telephony credential, etc.) rather than in the session/
+  // auth/timeout middleware chain.
+  app.get(
+    "/api/realtime/auth-only-test",
+    voiceTokenTimeoutMiddleware,
+    requireAuth,
+    (req: any, res: any) => {
+      res.setHeader("Cache-Control", "no-store, no-cache, private, must-revalidate");
+      res.status(200).json({
+        ok: true,
+        userId: req.user?.id,
+        email: req.user?.email,
+        ts: new Date().toISOString(),
+        label: "auth-only-test",
+      });
+    },
+  );
+
   // Call Monitoring (listen in / whisper / barge)
   app.use("/api/monitor", monitorRouter);
 

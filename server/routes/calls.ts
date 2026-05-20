@@ -281,15 +281,15 @@ async function runTokenHandler(req: Request, res: Response) {
                                   // catch block can attribute the failure
 
   // Hard timeout: if the pipeline below doesn't resolve in time, respond
-  // with our own 504 (gateway timeout, but JSON we control) so the client
-  // sees a real code instead of CF's opaque code=UNKNOWN page.
+  // with structured JSON (always HTTP 200 — see respond() below for why).
   const wallClock = setTimeout(() => {
     if (res.headersSent) return;
     console.error(
       `[Calls/token] WALL-CLOCK ${TOKEN_HANDLER_WALL_CLOCK_MS}ms exceeded ` +
         `stage=${stage.name} user=${user.id}`,
     );
-    res.status(504).json({
+    res.status(200).json({
+      ok: false,
       error: "Voice token request timed out",
       code: "VOICE_HANDLER_TIMEOUT",
       retryable: true,
@@ -297,12 +297,25 @@ async function runTokenHandler(req: Request, res: Response) {
     });
   }, TOKEN_HANDLER_WALL_CLOCK_MS);
 
-  // Helper that wraps `res.json/status` and clears the wall-clock so we don't
-  // log a spurious timeout after a successful (or already-errored) response.
-  const respond = (status: number, body: any) => {
+  // ALWAYS HTTP 200 — Cloudflare's "Always show error pages" feature (and
+  // similar proxy behavior) replaces ANY 5xx response from the origin with
+  // a generic HTML 502 page. That destroys our structured JSON error body
+  // and the user just sees `code=GATEWAY_HTML_502_FROM_CLOUDFLARE` again.
+  // By returning 200 with `{ ok: true | false, code, ... }` in the body,
+  // the response always passes through CF unmodified. Client checks
+  // `data.ok` (see useTelnyxDevice.ts) and treats `ok: false` as the
+  // structured error case. Status code in the body lets the client
+  // distinguish what the original error was for logging.
+  const respond = (statusOverride: number, body: any) => {
     clearTimeout(wallClock);
     if (res.headersSent) return;
-    return res.status(status).json(body);
+    // For success responses (200 from a successful Telnyx call), pass
+    // through. For error responses, set ok: false + intendedStatus and
+    // emit HTTP 200 so CF doesn't replace our body with its error page.
+    if (statusOverride >= 200 && statusOverride < 300) {
+      return res.status(200).json(body);
+    }
+    return res.status(200).json({ ok: false, intendedStatus: statusOverride, ...body });
   };
 
   try {
@@ -347,6 +360,7 @@ async function runTokenHandler(req: Request, res: Response) {
 
     console.log(`[Calls/token] success user=${user.id} elapsed=${Date.now() - startTs}ms`);
     return respond(200, {
+      ok: true,
       token,
       sipUsername: credential.sipUsername,
       callerId: process.env.TELNYX_DEFAULT_CALLER_ID || "",

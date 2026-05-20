@@ -94,7 +94,8 @@ app.use((req, _res, next) => {
     p === "/api/dialer-ping" ||
     p === "/api/calls/token" ||
     p === "/api/voice/token" ||
-    p === "/api/realtime/wrtc-auth"
+    p === "/api/realtime/wrtc-auth" ||
+    p === "/api/realtime/auth-only-test"
   ) {
     console.log(
       `[REQ] ${req.method} ${p} ip=${req.ip ?? "?"} cf-ray=${

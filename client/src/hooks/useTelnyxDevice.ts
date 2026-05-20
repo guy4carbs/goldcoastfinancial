@@ -52,13 +52,13 @@ export class TelnyxTokenError extends Error {
 // the CF rule is broader than URL patterns and the fix moves out of code
 // into the Cloudflare dashboard (Security → Events).
 async function fetchToken(): Promise<{ token: string; sipUsername: string; callerId: string }> {
-  // 1.0.65 — switched from GET → POST. CF was 502'ing all three previous URLs
-  // (calls/token, voice/token, realtime/wrtc-auth) at its edge with no [REQ]
-  // log on origin. After ruling out URL-pattern matching as the cause, the
-  // remaining likely trigger is CF managed-rule heuristics that treat GET
-  // XHRs-with-credentials as credential-leak suspects. POST has a different
-  // default rule profile. Server accepts both methods so a stale-bundle
-  // client doesn't break.
+  // 1.0.67 — server now ALWAYS returns HTTP 200 with `{ ok: true|false, code, ... }`.
+  // Reason: Cloudflare's "Always show error pages" feature (or similar proxy
+  // behavior on Railway) replaces ANY 5xx origin response with a generic CF
+  // HTML 502 page. That stripped our structured JSON error body every time
+  // and left the client falling through to GATEWAY_HTML_502_FROM_CLOUDFLARE.
+  // Status code in `data.intendedStatus` lets us preserve the original
+  // semantic error class.
   const res = await fetch('/api/realtime/wrtc-auth', {
     method: 'POST',
     credentials: 'include',
@@ -107,7 +107,24 @@ async function fetchToken(): Promise<{ token: string; sipUsername: string; calle
       res.status,
     );
   }
-  return res.json();
+  // 1.0.67 — server now always returns HTTP 200 with `{ ok: true|false, ... }`
+  // (bypasses CF "Always show error pages" replacing 5xx with HTML). Check
+  // the body's ok flag and throw a structured error if the request failed
+  // semantically even though it succeeded HTTP-wise.
+  const data = await res.json();
+  if (data?.ok === false) {
+    console.error(
+      `[fetchToken] 200-with-ok-false code=${data.code} intendedStatus=${data.intendedStatus} ` +
+        `stage=${data.stage ?? "?"} error="${data.error ?? ""}"`,
+    );
+    throw new TelnyxTokenError(
+      data.error || `Token request failed: code=${data.code}`,
+      data.code || "UNKNOWN",
+      data.retryable === true,
+      data.intendedStatus || 500,
+    );
+  }
+  return data as { token: string; sipUsername: string; callerId: string };
 }
 
 /** Format a phone number to E.164 (adds +1 for US numbers) */
