@@ -30,12 +30,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CARRIERS = [
-  'Pacific Life', 'MassMutual', 'Nationwide', 'Mutual of Omaha',
-  'Transamerica', 'Banner Life', 'Athene', 'New York Life',
-  'Protective Life', 'Prudential', 'MetLife', 'Lincoln Financial',
-  'AIG', 'Foresters Financial', 'National Life Group', 'Americo',
-  'North American', 'Global Atlantic', 'Corebridge Financial',
-  'John Hancock', 'Securian Financial',
+  'Aetna', 'American Amicable', 'Americo', 'Banner Life', 'Chubb', 'Corebridge Financial',
+  'Foresters Financial', 'Globe Life', 'Guarantee Trust', 'InstaBrain',
+  'Lafayette Life', 'Mutual of Omaha',
+  'Nationwide', 'North American', 'Protective Life', 'Transamerica',
+  'Trinity Life', 'United Home Life',
 ];
 
 // Input formatters

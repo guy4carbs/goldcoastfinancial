@@ -10,8 +10,6 @@ const carrierPortals = [
   { name: "Protective Life", url: "https://www.protective.com/login" },
   { name: "North American", url: "https://www.nacolah.com/login" },
   { name: "Transamerica", url: "https://www.transamerica.com/login" },
-  { name: "Lincoln Financial", url: "https://www.lfg.com/login" },
-  { name: "Pacific Life", url: "https://www.pacificlife.com/login" },
   { name: "Nationwide", url: "https://www.nationwide.com/login" },
 ];
 

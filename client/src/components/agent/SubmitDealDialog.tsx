@@ -16,12 +16,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const CARRIERS = [
-  'Pacific Life', 'MassMutual', 'Nationwide', 'Mutual of Omaha',
-  'Transamerica', 'Banner Life', 'Athene', 'New York Life',
-  'Protective Life', 'Prudential', 'MetLife', 'Lincoln Financial',
-  'AIG', 'Foresters Financial', 'National Life Group', 'Americo',
-  'North American', 'Global Atlantic', 'Corebridge Financial',
-  'John Hancock', 'Securian Financial',
+  'Aetna', 'AIG', 'American Amicable', 'Americo', 'Banner Life', 'Chubb', 'Corebridge Financial',
+  'Foresters Financial', 'Global Atlantic', 'Globe Life', 'Guarantee Trust',
+  'InstaBrain', 'Lafayette Life',
+  'MetLife', 'Mutual of Omaha', 'National Life Group', 'Nationwide',
+  'North American', 'Protective Life', 'Securian Financial', 'Transamerica',
+  'Trinity Life', 'United Home Life',
 ];
 
 function formatCurrency(value: string | number): string {

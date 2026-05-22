@@ -18,12 +18,11 @@ import { useAgentStore, type Beneficiary, type MedicalInfo, type ClientStatus } 
 // Document upload goes through server-side API (Firebase Storage via s3Service)
 
 const CARRIERS = [
-  'Pacific Life', 'MassMutual', 'Nationwide', 'Mutual of Omaha',
-  'Transamerica', 'Banner Life', 'Athene', 'New York Life',
-  'Protective Life', 'Prudential', 'MetLife', 'Lincoln Financial',
-  'AIG', 'Foresters Financial', 'National Life Group', 'Americo',
-  'North American', 'Global Atlantic', 'Corebridge Financial',
-  'John Hancock', 'Securian Financial',
+  'Aetna', 'American Amicable', 'Americo', 'Banner Life', 'Chubb', 'Corebridge Financial',
+  'Foresters Financial', 'Globe Life', 'Guarantee Trust', 'InstaBrain',
+  'Lafayette Life', 'Mutual of Omaha',
+  'Nationwide', 'North American', 'Protective Life', 'Transamerica',
+  'Trinity Life', 'United Home Life',
 ];
 
 // Input formatters

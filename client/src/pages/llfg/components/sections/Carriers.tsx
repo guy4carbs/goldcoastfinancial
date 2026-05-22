@@ -33,8 +33,6 @@ const CARRIERS: Carrier[] = [
   { name: "Polish Falcons", sub: "of America", products: "Life · Annuity" },
   { name: "American", sub: "Home Life", products: "Life · FE" },
   { name: "Aetna", sub: "Insurance", products: "Health · Life · Dental" },
-  { name: "Athene", sub: "", products: "Annuity · FIA" },
-  { name: "MassMutual", sub: "", products: "Life · Annuity · DI" },
   { name: "Fidelity", sub: "Life", products: "Term · WL · GI" },
   { name: "Chubb", sub: "", products: "Life · Supplemental" },
   { name: "InstaBrain", sub: "", products: "Insurtech · Term · GI" },

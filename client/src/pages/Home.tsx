@@ -206,15 +206,29 @@ export default function Home() {
         </div>
         <div className="relative w-full">
           <div className="flex w-max animate-carousel">
-            {[...carrierLinks, ...carrierLinks].map((carrier, i) => (
-              <Link key={i} href={carrier.href} className="flex-shrink-0 w-[200px] mx-6 h-24 flex items-center justify-center hover:opacity-70 transition-opacity cursor-pointer">
-                <img
-                  src={carrier.logo}
-                  alt={carrier.name}
-                  className={`object-contain ${carrier.size === 'large' ? 'h-20 max-w-[180px]' : 'h-16 max-w-[160px]'}`}
-                />
-              </Link>
-            ))}
+            {[...carrierLinks, ...carrierLinks].map((carrier, i) => {
+              const logoClass =
+                carrier.size === 'xl' ? 'h-28 max-w-[220px]'
+                : carrier.size === 'large' ? 'h-24 max-w-[200px]'
+                : 'h-20 max-w-[180px]';
+              return (
+                <Link key={i} href={carrier.href} className="flex-shrink-0 w-[220px] mx-6 h-28 flex items-center justify-center hover:opacity-70 transition-opacity cursor-pointer">
+                  {carrier.logo ? (
+                    <img
+                      src={carrier.logo}
+                      alt={carrier.name}
+                      className={`object-contain ${logoClass}`}
+                    />
+                  ) : (
+                    <div className="w-[200px] h-24 rounded-xl border border-[#e8e0d5] bg-[#fffaf3] flex items-center justify-center px-4 text-center">
+                      <span className="font-serif text-sm leading-tight text-[#4f5a3f] line-clamp-2">
+                        {carrier.name}
+                      </span>
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

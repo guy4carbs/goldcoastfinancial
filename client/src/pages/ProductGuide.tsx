@@ -57,7 +57,7 @@ const productGuides = [
         { objection: "I'm young and healthy — do I really need this now?", response: "That's actually the best time to get coverage. Your age and health are the two biggest factors in your premium, and they only go in one direction. Locking in a rate now while you're healthy means you'll pay the lowest possible premium for the entire term. A 30-year-old pays roughly half what a 40-year-old pays for the same coverage. Plus, if a health issue develops later, you may not qualify at all." },
         { objection: "Can I get coverage if I have health issues?", response: "Yes — many of our carriers specialize in covering people with common health conditions like high blood pressure, diabetes, high cholesterol, sleep apnea, and more. While your premium may be higher than someone in perfect health, we work with multiple carriers to find the most competitive rate for your specific situation. Some carriers are more lenient on certain conditions than others, and that's where our expertise adds real value." },
       ],
-      carriers: ["Lincoln Financial", "Transamerica", "Americo", "Corebridge", "Ethos", "Ladder"],
+      carriers: ["Transamerica", "Americo", "Corebridge", "Ethos"],
     },
   },
   {
@@ -116,7 +116,7 @@ const productGuides = [
         { objection: "I've already maxed out my 401(k) — why do I need this?", response: "That's exactly why IUL is valuable. Once you've maxed your 401(k) ($23,500/year in 2025) and IRA ($7,000/year), there are very few tax-advantaged options left. IUL has no contribution limits from a tax perspective — you can fund it with significantly more per year. The cash value grows tax-deferred, and you access it tax-free through policy loans. For high earners, this creates a 'tax-free bucket' of retirement income that provides tremendous flexibility in managing your tax liability throughout retirement." },
         { objection: "What if I need to stop paying premiums?", response: "IUL is designed with flexibility in mind. If you need to reduce or stop premiums temporarily, the policy can continue as long as there's sufficient cash value to cover the monthly cost of insurance. If you've funded the policy well in the early years, it may be able to sustain itself for years without additional premiums. You can also take partial withdrawals or policy loans from the cash value if you need access to funds." },
       ],
-      carriers: ["Lincoln Financial", "Corebridge", "Americo", "Transamerica"],
+      carriers: ["Corebridge", "Americo", "Transamerica"],
     },
   },
   {
@@ -176,7 +176,7 @@ const productGuides = [
         { objection: "My spouse works too — we'd be fine on one income", response: "Many dual-income families rely on both incomes to maintain their lifestyle and cover the mortgage. Even if your spouse could technically afford the mortgage alone, losing one income often means cutting back on everything else — retirement savings, children's activities, vacations, emergency fund contributions. Mortgage protection ensures your family maintains their standard of living rather than just surviving. It protects their future, not just the immediate crisis." },
         { objection: "What about the living benefits — do I really need those?", response: "Living benefits are one of the most valuable features of mortgage protection that most people don't know about. Consider: if you had a heart attack, stroke, or cancer diagnosis and couldn't work for 6-12 months, who would pay your mortgage? Disability insurance may cover a portion of your income, but the living benefits on your mortgage protection policy let you access your death benefit while you're alive to keep your mortgage current. Over 50% of all mortgage foreclosures are caused by a medical crisis — not death — making living benefits potentially more important than the death benefit itself." },
       ],
-      carriers: ["Transamerica", "Mutual of Omaha", "Lincoln Financial", "Americo", "Corebridge"],
+      carriers: ["Transamerica", "Mutual of Omaha", "Americo", "Corebridge"],
     },
   },
   {
@@ -208,7 +208,7 @@ const productGuides = [
         { objection: "I'm already getting Social Security — why do I need another income stream?", response: "Social Security was designed to replace about 40% of your pre-retirement income — and for many retirees, it covers even less. Consider your essential monthly expenses: housing, healthcare, food, utilities, transportation, and insurance. If Social Security covers $2,000-$3,000/month but your expenses are $4,000-$5,000/month, there's a gap that needs to be filled. An annuity with a lifetime income rider creates a personal pension that, combined with Social Security, can cover all of your essential expenses with guaranteed income. This means you'll never have to worry about running out of money, regardless of what the stock market does or how long you live." },
         { objection: "I'm too old to start an annuity", response: "Many of our annuity carriers accept applications from clients up to age 85 or even older. In fact, annuities can be especially valuable for older clients because the guaranteed income payments are higher (since they're based on a shorter life expectancy), you may want to protect savings from market risk now more than ever, and the probate avoidance benefit simplifies estate transfer for your heirs. Even a short-term fixed annuity (3-5 years) can provide a safe, guaranteed return that outperforms CDs and savings accounts while you plan the next phase of your financial strategy." },
       ],
-      carriers: ["Athene", "Corebridge", "Lincoln Financial"],
+      carriers: ["Corebridge"],
     },
   },
 ];

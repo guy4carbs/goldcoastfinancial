@@ -16,14 +16,25 @@ const c = {
 };
 
 const carriers = [
-  { name: "Northwestern Mutual", rating: "A++", ratingOrg: "AM Best" },
-  { name: "New York Life", rating: "A++", ratingOrg: "AM Best" },
-  { name: "MassMutual", rating: "A++", ratingOrg: "AM Best" },
-  { name: "Guardian Life", rating: "A++", ratingOrg: "AM Best" },
-  { name: "Pacific Life", rating: "A+", ratingOrg: "AM Best" },
   { name: "Mutual of Omaha", rating: "A+", ratingOrg: "AM Best" },
-  { name: "Prudential", rating: "A+", ratingOrg: "AM Best" },
-  { name: "John Hancock", rating: "A+", ratingOrg: "AM Best" }
+  { name: "Royal Neighbors", rating: "A", ratingOrg: "AM Best" },
+  { name: "Baltimore Life", rating: "A", ratingOrg: "AM Best" },
+  { name: "Americo", rating: "A", ratingOrg: "AM Best" },
+  { name: "Transamerica", rating: "A", ratingOrg: "AM Best" },
+  { name: "Polish Falcons", rating: "A", ratingOrg: "AM Best" },
+  { name: "Ethos", rating: "A", ratingOrg: "AM Best" },
+  { name: "Aetna", rating: "A", ratingOrg: "AM Best" },
+  { name: "American Amicable", rating: "A", ratingOrg: "AM Best" },
+  { name: "Banner Life", rating: "A+", ratingOrg: "AM Best" },
+  { name: "Chubb", rating: "A++", ratingOrg: "AM Best" },
+  { name: "Corebridge", rating: "A", ratingOrg: "AM Best" },
+  { name: "Foresters", rating: "A", ratingOrg: "AM Best" },
+  { name: "Globe Life", rating: "A", ratingOrg: "AM Best" },
+  { name: "Guarantee Trust", rating: "A-", ratingOrg: "AM Best" },
+  { name: "Fidelity Life", rating: "A-", ratingOrg: "AM Best" },
+  { name: "Lafayette Life", rating: "A+", ratingOrg: "AM Best" },
+  { name: "Trinity Life", rating: "A", ratingOrg: "AM Best" },
+  { name: "United Home Life", rating: "A-", ratingOrg: "AM Best" }
 ];
 
 export function HeritageCarrierPartners() {
@@ -49,14 +60,14 @@ export function HeritageCarrierPartners() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-10">
           {carriers.map((carrier, index) => (
             <motion.div
               key={carrier.name}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: Math.min(index * 0.04, 0.4) }}
               className="rounded-xl p-5 border hover:shadow-lg transition-all duration-300 group"
               style={{
                 background: `linear-gradient(to bottom right, ${c.cream}, ${c.white})`,

@@ -1251,7 +1251,7 @@ export const useAgentStore = create<AgentStore>()(
         set({
           leads: [...state.leads, {
             ...lead,
-            id: `lead-${Date.now()}`,
+            id: `lead-${crypto.randomUUID()}`,
             createdDate: new Date().toISOString().split('T')[0],
             notes: [],
             assignedTo: user?.id || 'unknown'

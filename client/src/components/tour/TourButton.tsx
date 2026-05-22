@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Compass } from "lucide-react";
+import { Compass, X } from "lucide-react";
 import { useTour } from "@/lib/tour/TourProvider";
 import { getTourForRoute } from "@/lib/tour/registry";
 import { TOUR, tourAttr } from "@/lib/tour/selectors";
@@ -10,9 +11,11 @@ export function TourButton() {
   const { user } = useAuth();
   const [location] = useLocation();
   const { startTour, activeTourId } = useTour();
+  const [dismissed, setDismissed] = useState(false);
 
   if (!user) return null;
   if (activeTourId) return null;
+  if (dismissed) return null;
 
   // Only show inside the Agent Lounge and the CRM
   const inAgents = location.startsWith("/agents");
@@ -28,9 +31,16 @@ export function TourButton() {
   if (!config) return null;
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => startTour(config.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          startTour(config.id);
+        }
+      }}
       {...tourAttr(TOUR.SHELL.TOUR_BUTTON)}
       title={`Take the ${config.label} walkthrough`}
       aria-label={`Take the ${config.label} walkthrough`}
@@ -53,6 +63,7 @@ export function TourButton() {
         cursor: "pointer",
         boxShadow: "0 10px 28px rgba(124, 58, 237, 0.28), 0 0 0 1px rgba(0,0,0,0.04)",
         transition: "transform 150ms ease, box-shadow 150ms ease, filter 150ms ease",
+        userSelect: "none",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
@@ -67,6 +78,50 @@ export function TourButton() {
     >
       <Compass className="w-4 h-4" />
       <span>Take the tour</span>
-    </button>
+      <span
+        aria-hidden="true"
+        style={{
+          width: 1,
+          height: 16,
+          background: "rgba(31, 41, 55, 0.25)",
+          marginLeft: 2,
+        }}
+      />
+      <button
+        type="button"
+        aria-label="Dismiss tour button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setDismissed(true);
+        }}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+        }}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 2,
+          margin: 0,
+          background: "transparent",
+          color: "#1f2937",
+          border: "none",
+          borderRadius: 999,
+          cursor: "pointer",
+          opacity: 0.7,
+          transition: "opacity 120ms ease",
+        }}
+        onMouseEnter={(e) => {
+          e.stopPropagation();
+          e.currentTarget.style.opacity = "1";
+        }}
+        onMouseLeave={(e) => {
+          e.stopPropagation();
+          e.currentTarget.style.opacity = "0.7";
+        }}
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
   );
 }

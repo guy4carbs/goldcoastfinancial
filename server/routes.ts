@@ -27,6 +27,8 @@ import agentNotificationsRouter from "./routes/agent-notifications";
 import adminProductsRouter from "./routes/admin-products";
 import adminContentRouter from "./routes/admin-content";
 import adminCrmRouter from "./routes/admin-crm";
+import adminImagesRouter from "./routes/admin-images";
+import adminEmailTestRouter from "./routes/admin-email-test";
 import contentRouter from "./routes/content";
 import quotesRouter from "./routes/quotes";
 import avatarCouncilRouter from "./routes/avatar-council";
@@ -2222,7 +2224,7 @@ export async function registerRoutes(
   // Send product guide email to a client
   app.post("/api/product-guides/send", requireAuth, async (req, res) => {
     try {
-      const { clientName, clientEmail, guideId, guideTitle, guideDescription, personalMessage, agent } = req.body;
+      const { clientName, clientEmail, guideId, guideTitle, guideDescription, personalMessage, carrierId, carrierName, agent } = req.body;
 
       if (!clientName || !clientEmail || !guideId || !guideTitle) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -2261,6 +2263,8 @@ export async function registerRoutes(
         guideTitle,
         guideDescription: guideDescription || '',
         personalMessage: personalMessage || undefined,
+        carrierId: carrierId || undefined,
+        carrierName: carrierName || undefined,
         agent: {
           name: agent.name,
           email: agent.email,
@@ -3626,6 +3630,16 @@ export async function registerRoutes(
 
   // Admin: Content management (CMS, requires admin role)
   app.use("/api/admin/content", requireAuth, requireAdmin, adminContentRouter);
+
+  // Admin: Image CDN (upload/list/delete). Auth gate is owner/system_admin/founder
+  // only and is enforced inside the router itself — mounted BEFORE the broader
+  // /api/admin catch-all so the stricter ADMINS gate runs first.
+  app.use("/api/admin/images", adminImagesRouter);
+
+  // Admin: Carrier-branded email QA test sender. Auth gate is owner/system_admin/founder
+  // only and is enforced inside the router itself — mounted BEFORE the broader
+  // /api/admin catch-all so the stricter ADMINS gate runs first.
+  app.use("/api/admin/email", adminEmailTestRouter);
 
   // Admin: CRM (leads, settings, testimonials - requires admin role)
   app.use("/api/admin", requireAuth, requireAdmin, adminCrmRouter);

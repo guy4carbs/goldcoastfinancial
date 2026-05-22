@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, UserPlus, Inbox, ArrowUpDown,
   Sparkles, Clock, Briefcase, CheckCircle, Send, ArrowRight, FileSpreadsheet,
-  ChevronLeft, ChevronRight, AlertCircle, RefreshCw, Loader2,
+  AlertCircle, RefreshCw, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { cn, formatProductLabel } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAgentStore, type Lead } from "@/lib/agentStore";
@@ -286,7 +295,15 @@ export default function AgentLeadInbox() {
   }, [userLeads, activeTab, searchQuery, sortBy]);
 
   // Dedup + paginate
-  const dedupedLeads = filteredLeads.filter((lead, idx, arr) => arr.findIndex(l => l.id === lead.id) === idx);
+  const dedupedLeads = useMemo(() => {
+    const seen = new Set<string>();
+    return filteredLeads.filter(l => {
+      const key = `${(l.email || '').toLowerCase()}|${l.phone || ''}|${l.name || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [filteredLeads]);
   const totalPages = Math.ceil(dedupedLeads.length / LEADS_PER_PAGE);
   const safePage = Math.min(currentPage, Math.max(totalPages - 1, 0));
   const paginatedLeads = dedupedLeads.slice(safePage * LEADS_PER_PAGE, safePage * LEADS_PER_PAGE + LEADS_PER_PAGE);
@@ -594,36 +611,85 @@ export default function AgentLeadInbox() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400">
-                {safePage * LEADS_PER_PAGE + 1}–{Math.min((safePage + 1) * LEADS_PER_PAGE, dedupedLeads.length)} of {dedupedLeads.length} leads
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={safePage === 0}
-                  onClick={() => setCurrentPage(p => p - 1)}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-xs font-medium text-gray-600">
-                  {safePage + 1} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={safePage >= totalPages - 1}
-                  onClick={() => setCurrentPage(p => p + 1)}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+          {totalPages > 1 && (() => {
+            const current = safePage + 1;
+            const goTo = (page: number) => (e: React.MouseEvent) => {
+              e.preventDefault();
+              setCurrentPage(Math.max(0, Math.min(totalPages - 1, page - 1)));
+            };
+            const pages: (number | 'ellipsis-left' | 'ellipsis-right')[] = [];
+            if (totalPages <= 7) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+              pages.push(1);
+              if (current > 3) pages.push('ellipsis-left');
+              const start = Math.max(2, current - 1);
+              const end = Math.min(totalPages - 1, current + 1);
+              for (let i = start; i <= end; i++) pages.push(i);
+              if (current < totalPages - 2) pages.push('ellipsis-right');
+              pages.push(totalPages);
+            }
+            const atStart = safePage === 0;
+            const atEnd = safePage >= totalPages - 1;
+            return (
+              <div
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-t border-gray-100"
+                style={{ borderBottomLeftRadius: RADIUS.card, borderBottomRightRadius: RADIUS.card }}
+              >
+                <p className="text-xs text-gray-500">
+                  {safePage * LEADS_PER_PAGE + 1}–{Math.min((safePage + 1) * LEADS_PER_PAGE, dedupedLeads.length)} of {dedupedLeads.length} leads
+                </p>
+                <Pagination className="mx-0 sm:justify-end w-auto">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (!atStart) setCurrentPage((p) => p - 1);
+                        }}
+                        aria-disabled={atStart}
+                        tabIndex={atStart ? -1 : 0}
+                        className={cn(atStart && 'pointer-events-none opacity-50')}
+                        style={{ borderRadius: RADIUS.button }}
+                      />
+                    </PaginationItem>
+                    {pages.map((p, idx) =>
+                      p === 'ellipsis-left' || p === 'ellipsis-right' ? (
+                        <PaginationItem key={`${p}-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={p}>
+                          <PaginationLink
+                            href="#"
+                            isActive={p === current}
+                            onClick={goTo(p)}
+                            style={{ borderRadius: RADIUS.button }}
+                          >
+                            {p}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ),
+                    )}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (!atEnd) setCurrentPage((p) => p + 1);
+                        }}
+                        aria-disabled={atEnd}
+                        tabIndex={atEnd ? -1 : 0}
+                        className={cn(atEnd && 'pointer-events-none opacity-50')}
+                        style={{ borderRadius: RADIUS.button }}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Empty state */}
           {filteredLeads.length === 0 && (

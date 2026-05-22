@@ -157,9 +157,6 @@ export default function Dividends() {
   ];
 
   const topMutualCompanies = [
-    { name: "Northwestern Mutual", dividendRate: "5.0%", streak: "170+ years" },
-    { name: "MassMutual", dividendRate: "6.2%", streak: "170+ years" },
-    { name: "New York Life", dividendRate: "5.65%", streak: "169 years" },
     { name: "Guardian", dividendRate: "5.65%", streak: "160+ years" },
     { name: "Penn Mutual", dividendRate: "5.5%", streak: "175+ years" }
   ];

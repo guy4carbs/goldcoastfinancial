@@ -340,10 +340,7 @@ export const DEMO_EXEC_COMPLIANCE = [
 
 // ─── CARRIER CONTRACTS ──────────────────────────────
 export const DEMO_EXEC_CARRIERS = [
-  { name: 'Pacific Life', contractType: 'IUL / Whole Life', baseRate: 95, overrideRate: 15, renewalDate: '2026-09-30', status: 'active' as const },
   { name: 'Nationwide', contractType: 'Term / Whole Life', baseRate: 90, overrideRate: 12, renewalDate: '2026-12-15', status: 'active' as const },
-  { name: 'Lincoln Financial', contractType: 'IUL / Annuity', baseRate: 92, overrideRate: 14, renewalDate: '2026-06-01', status: 'active' as const },
-  { name: 'Prudential', contractType: 'Term / Whole Life', baseRate: 88, overrideRate: 10, renewalDate: '2026-11-30', status: 'active' as const },
   { name: 'Transamerica', contractType: 'Final Expense / Term', baseRate: 85, overrideRate: 11, renewalDate: '2026-08-15', status: 'active' as const },
   { name: 'North American', contractType: 'IUL / Annuity', baseRate: 90, overrideRate: 13, renewalDate: '2027-01-01', status: 'pending' as const },
 ] as const;
@@ -1667,7 +1664,7 @@ export const DEMO_DISTRIBUTION_LEADS: DistributionLead[] = [
     estimatedValue: 150000, leadScore: 31, scoreTier: 'cold', status: 'lost',
     distributedTo: 'Brandon Mills', assignedTo: 'Emily Davis', distributedAt: '2026-02-15', assignedAt: '2026-02-16',
     pipelineStage: 'lost', lastActivity: 'Marked lost — client purchased through competitor', nextFollowUp: '2026-06-15',
-    notes: 'Lost to Northwestern Mutual. Client had existing relationship. Set 90-day follow-up for review.', importBatch: 'batch-003', importedAt: '2026-03-10',
+    notes: 'Lost to competitor. Client had existing relationship. Set 90-day follow-up for review.', importBatch: 'batch-003', importedAt: '2026-03-10',
   },
   {
     id: 'ld-40', firstName: 'Betty', lastName: 'Hoffman', email: 'betty.hoffman@email.com', phone: '(412) 555-3312',
@@ -1713,7 +1710,7 @@ export const DEMO_LEAD_ACTIVITIES: LeadActivity[] = [
   { id: 'la-09', leadId: 'ld-29', type: 'call', description: 'Follow-up call — application paperwork review and signature', performedBy: 'Sarah Johnson', timestamp: '2026-03-08T13:00:00' },
   { id: 'la-10', leadId: 'ld-29', type: 'note', description: 'Paramedical exam scheduled for March 19 at client home', performedBy: 'Sarah Johnson', timestamp: '2026-03-09T09:30:00' },
   { id: 'la-11', leadId: 'ld-39', type: 'status_change', description: 'Status changed: in_progress → lost (purchased competitor policy)', performedBy: 'Emily Davis', timestamp: '2026-03-05T17:00:00' },
-  { id: 'la-12', leadId: 'ld-39', type: 'note', description: 'Client went with Northwestern Mutual — had existing advisor relationship. Set 90-day revisit.', performedBy: 'Emily Davis', timestamp: '2026-03-05T17:05:00' },
+  { id: 'la-12', leadId: 'ld-39', type: 'note', description: 'Client went with a competitor — had existing advisor relationship. Set 90-day revisit.', performedBy: 'Emily Davis', timestamp: '2026-03-05T17:05:00' },
   { id: 'la-13', leadId: 'ld-21', type: 'assignment', description: 'Assigned to Sarah Johnson — top producer for exec referrals', performedBy: 'Marcus Rivera', timestamp: '2026-03-09T08:15:00' },
   { id: 'la-14', leadId: 'ld-21', type: 'call', description: 'Intro call — client confirmed interest, reviewing current coverage', performedBy: 'Sarah Johnson', timestamp: '2026-03-10T10:45:00' },
   { id: 'la-15', leadId: 'ld-30', type: 'email', description: 'Sent fixed index annuity illustration — 3 scenarios presented', performedBy: 'Mike Chen', timestamp: '2026-03-11T14:00:00' },

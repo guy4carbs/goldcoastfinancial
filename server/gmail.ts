@@ -1013,7 +1013,7 @@ Please respond within 45 days as required by law.
 }
 
 // Carrier branding data for emails (subset of full branding)
-const CARRIER_EMAIL_BRANDING: Record<string, {
+export const CARRIER_EMAIL_BRANDING: Record<string, {
   name: string;
   shortName: string;
   primaryColor: string;
@@ -1032,16 +1032,6 @@ const CARRIER_EMAIL_BRANDING: Record<string, {
     gradientTo: "#2D5A87",
     tagline: "Life Insurance That Fits Your Life",
     logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277183671-cropped-Americologo_red_289-2.png?alt=media&token=29048512-a27a-454c-959e-096a921d68ba"
-  },
-  "athene": {
-    name: "Athene Annuity and Life Company",
-    shortName: "Athene",
-    primaryColor: "#00205B",
-    secondaryColor: "#00A3E0",
-    gradientFrom: "#00205B",
-    gradientTo: "#003380",
-    tagline: "Retirement Innovators",
-    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643"
   },
   "baltimore-life": {
     name: "Baltimore Life Insurance Company",
@@ -1123,26 +1113,116 @@ const CARRIER_EMAIL_BRANDING: Record<string, {
     tagline: "Strength Through Unity",
     logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277746680-Polish_Falcons_of_America_Logo.png?alt=media&token=c50ffd89-0c8c-4e05-81ed-23289b74f238"
   },
-  "ladder": {
-    name: "Ladder Life Insurance",
-    shortName: "Ladder",
-    primaryColor: "#1A1A2E",
-    secondaryColor: "#16C79A",
-    gradientFrom: "#1A1A2E",
-    gradientTo: "#2D2D44",
-    tagline: "Flexible Life Insurance for Today",
-    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733"
+  "aetna": {
+    name: "Aetna Life Insurance Company",
+    shortName: "Aetna",
+    primaryColor: "#7D3F98",
+    secondaryColor: "#5E2D73",
+    gradientFrom: "#7D3F98",
+    gradientTo: "#5E2D73",
+    tagline: "Trusted Life Insurance Protection",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477424884-5e2b0177944ba5e6-1779477424883-955c129d-aetna-logo.png?alt=media&token=71eab5fb-ddbc-42de-ac41-635337b05999"
   },
-  "lincoln-financial": {
-    name: "Lincoln Financial Group",
-    shortName: "Lincoln Financial",
-    primaryColor: "#6B1C23",
-    secondaryColor: "#8B2D35",
-    gradientFrom: "#6B1C23",
-    gradientTo: "#8B2D35",
-    tagline: "Chief Life Officer",
-    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b"
-  }
+  "american-amicable": {
+    name: "American-Amicable Life Insurance Company of Texas",
+    shortName: "American Amicable",
+    primaryColor: "#1B365D",
+    secondaryColor: "#C4A052",
+    gradientFrom: "#1B365D",
+    gradientTo: "#0F2240",
+    tagline: "Texas Heritage Since 1910",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477431400-0609c28bdd65d75b-1779477431400-4eda86bc-american-amicable_logo_1.png?alt=media&token=89fe44f6-3263-4aac-812b-bb9114570b15"
+  },
+  "banner-life": {
+    name: "Banner Life Insurance Company",
+    shortName: "Banner Life",
+    primaryColor: "#0033A0",
+    secondaryColor: "#002270",
+    gradientFrom: "#0033A0",
+    gradientTo: "#002270",
+    tagline: "Term Life Insurance Specialists",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477445351-87fa09e82283a1f0-1779477445351-567d429a-banner-life-insurance-j_l_-thomas-company-e1669266532352-1.png?alt=media&token=d9036873-9dd6-4154-acbf-1d994f8b5fdf"
+  },
+  "chubb": {
+    name: "Chubb Life Insurance Company",
+    shortName: "Chubb",
+    primaryColor: "#0A2D5F",
+    secondaryColor: "#1B4480",
+    gradientFrom: "#0A2D5F",
+    gradientTo: "#051A38",
+    tagline: "Insurance Built for the World's Most Discerning Clients",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477418701-642b572ec3a2d2f3-1779477418701-3bd315fe-7d8e412f.png?alt=media&token=ba264fe1-aa40-4ee7-98d1-54dc0db3f309"
+  },
+  "foresters": {
+    name: "Foresters Financial (The Independent Order of Foresters)",
+    shortName: "Foresters",
+    primaryColor: "#5B2D8A",
+    secondaryColor: "#7849A6",
+    gradientFrom: "#5B2D8A",
+    gradientTo: "#3A1A5C",
+    tagline: "More Than Insurance, a Fraternal Benefit Society",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477584995-280f064c6418d41c-1779477584995-76c8a81e-foresters_financial_logo_svg.png?alt=media&token=906d8f3b-964e-484c-acd4-8fe677a0896b"
+  },
+  "globe-life": {
+    name: "Globe Life And Accident Insurance Company",
+    shortName: "Globe Life",
+    primaryColor: "#005EB8",
+    secondaryColor: "#0080C8",
+    gradientFrom: "#005EB8",
+    gradientTo: "#003D7A",
+    tagline: "Making Life Insurance Simple",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477603129-be1449bbb948bcf0-1779477603129-8c111d5a-globe_life_logo_svg.png?alt=media&token=cf24a7ed-001d-468b-ae35-174082630c51"
+  },
+  "guarantee-trust": {
+    name: "Guarantee Trust Life Insurance Company",
+    shortName: "Guarantee Trust",
+    primaryColor: "#1976D2",
+    secondaryColor: "#0D47A1",
+    gradientFrom: "#1976D2",
+    gradientTo: "#0D47A1",
+    tagline: "Supplemental Health and Life Protection",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477412459-c9bb79ff5c233d65-1779477412458-ac12eae6-5d94cde1ce897b57ada207e7_logo-gtl.png?alt=media&token=e9835113-f6db-4fcb-bf80-872f76711b9f"
+  },
+  "instabrain": {
+    name: "Fidelity Life Association",
+    shortName: "InstaBrain",
+    primaryColor: "#0066CC",
+    secondaryColor: "#003D7A",
+    gradientFrom: "#0066CC",
+    gradientTo: "#003D7A",
+    tagline: "Instant-Decision Life Insurance",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477575205-5cd55096c61d5d02-1779477575204-2847c37b-favicon.png?alt=media&token=38348e6e-c9ad-4334-ab09-b93facfe039c"
+  },
+  "lafayette-life": {
+    name: "The Lafayette Life Insurance Company",
+    shortName: "Lafayette Life",
+    primaryColor: "#7B1838",
+    secondaryColor: "#C4A052",
+    gradientFrom: "#7B1838",
+    gradientTo: "#4F0F23",
+    tagline: "Participating Whole Life Since 1905",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477622815-5743fd1ba0cbde3a-1779477622815-55f0b238-lafayette-life-png-1.png?alt=media&token=a29a1ae5-fb83-410a-9c6f-06de7a02efcb"
+  },
+  "trinity-life": {
+    name: "Trinity Life Insurance Company",
+    shortName: "Trinity Life",
+    primaryColor: "#2E7D32",
+    secondaryColor: "#3F9B43",
+    gradientFrom: "#2E7D32",
+    gradientTo: "#1B5E20",
+    tagline: "Final Expense Protection",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477643668-2ae455c7972edf7d-1779477643668-e5d735b2-tlic_png.webp?alt=media&token=4cc5c46f-5b93-442c-ad00-b026cc3cfba2"
+  },
+  "united-home-life": {
+    name: "United Home Life Insurance Company",
+    shortName: "United Home Life",
+    primaryColor: "#7B1E3B",
+    secondaryColor: "#A02D52",
+    gradientFrom: "#7B1E3B",
+    gradientTo: "#5C1129",
+    tagline: "Burial and Final Expense Protection",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477655506-3a0a964550188aba-1779477655506-ebd73135-unitedhomelife-logo.png?alt=media&token=0dc97c19-36f3-4d7e-9516-a55fcc4b93c9"
+  },
 };
 
 // Send secure data collection form link to client
@@ -3544,6 +3624,8 @@ export async function sendProductGuideEmail(data: {
   guideTitle: string;
   guideDescription: string;
   personalMessage?: string;
+  carrierId?: string;
+  carrierName?: string;
   agent: {
     name: string;
     email: string;
@@ -3557,11 +3639,20 @@ export async function sendProductGuideEmail(data: {
   const agentFirst = data.agent.name.split(' ')[0];
   const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
-  const primaryColor = '#7c3aed';
-  const gradientTo = '#D4AF37';
-  const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+  // Carrier branding lookup with Heritage fallback (mirrors sendSecureFormEmail pattern)
+  const carrierBranding = data.carrierId ? CARRIER_EMAIL_BRANDING[data.carrierId] : null;
+  const primaryColor = carrierBranding?.primaryColor || '#7c3aed';
+  const gradientFrom = carrierBranding?.gradientFrom || '#7c3aed';
+  const gradientTo = carrierBranding?.gradientTo || '#D4AF37';
+  const carrierShortName = carrierBranding?.shortName || data.carrierName || '';
+  const carrierLogoUrl = carrierBranding?.logoUrl || '';
+  const heritageLogoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
+  // Backwards-compatible alias — body markup below still references `logoUrl` for the header brand image
+  const logoUrl = carrierLogoUrl || heritageLogoUrl;
 
-  const subject = `${agentFirst} prepared a ${data.guideTitle} guide for you`;
+  const subject = carrierShortName
+    ? `${agentFirst} prepared a ${data.guideTitle} guide for you about ${carrierShortName}`
+    : `${agentFirst} prepared a ${data.guideTitle} guide for you`;
 
   const defaultMessage = `I put together a comprehensive guide on ${data.guideTitle} that I think would be really helpful for you. It covers key benefits, common questions, and the top carriers we work with — all in one easy-to-read page. Take a look when you get a chance, and feel free to reach out if you have any questions.`;
   const bodyMessage = data.personalMessage || defaultMessage;
@@ -3581,8 +3672,10 @@ export async function sendProductGuideEmail(data: {
 
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${gradientTo} 100%); padding: 32px 40px; text-align: center;">
-              <img src="${logoUrl}" alt="Heritage Life Solutions" style="width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+            <td style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); padding: 32px 40px; text-align: center;">
+              ${carrierLogoUrl
+                ? `<table cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;"><tr><td align="center" style="background-color: #ffffff; border-radius: 12px; padding: 14px 22px;"><img src="${carrierLogoUrl}" alt="${carrierShortName || 'Carrier'}" width="180" style="display: block; max-height: 60px; width: auto;" /></td></tr></table>`
+                : `<img src="${heritageLogoUrl}" alt="Heritage Life Solutions" style="width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />`}
             </td>
           </tr>
 
@@ -3647,7 +3740,7 @@ export async function sendProductGuideEmail(data: {
                     <!-- Agent Avatar -->
                     <table cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="width: 56px; height: 56px; background: linear-gradient(135deg, ${primaryColor} 0%, #D4AF37 100%); border-radius: 14px; text-align: center; vertical-align: middle;">
+                        <td style="width: 56px; height: 56px; background: linear-gradient(135deg, ${primaryColor} 0%, ${gradientTo} 100%); border-radius: 14px; text-align: center; vertical-align: middle;">
                           <span style="color: #ffffff; font-size: 22px; font-weight: 700;">${agentInitials}</span>
                         </td>
                       </tr>
@@ -3670,7 +3763,8 @@ export async function sendProductGuideEmail(data: {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">Heritage Life Solutions</p>
+                    ${carrierShortName ? `<table cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 12px auto;"><tr><td style="padding-right: 12px;"><img src="${heritageLogoUrl}" alt="Heritage Life Solutions" style="width: 32px; height: 32px; border-radius: 8px;" /></td>${carrierLogoUrl ? `<td style="padding-left: 12px; border-left: 1px solid #e5e7eb;"><img src="${carrierLogoUrl}" alt="${carrierShortName}" style="max-width: 72px; max-height: 32px;" /></td>` : `<td style="padding-left: 12px; border-left: 1px solid #e5e7eb; color: ${primaryColor}; font-size: 13px; font-weight: 700;">${carrierShortName}</td>`}</tr></table>` : ''}
+                    <p style="color: ${primaryColor}; font-size: 16px; font-weight: 700; margin: 0 0 4px 0;">Heritage Life Solutions${carrierShortName ? ` &middot; ${carrierShortName}` : ''}</p>
                     <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                       Protecting families with personalized insurance solutions
                     </p>

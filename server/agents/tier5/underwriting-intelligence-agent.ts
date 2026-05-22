@@ -236,7 +236,6 @@ export class UnderwritingIntelligenceAgent extends BaseAgent {
     // If no carriers are in the knowledge base, generate synthetic quotes
     const carrierList = carriers.length > 0 ? carriers : [
       { id: 'mutual-of-omaha', name: 'Mutual of Omaha', underwritingType: 'simplified', avgApprovalDays: 3, states: [] as string[], products: [], commissionSchedule: { firstYear: 110, renewal: 5 }, contactInfo: {} },
-      { id: 'aig', name: 'AIG', underwritingType: 'full', avgApprovalDays: 21, states: [] as string[], products: [], commissionSchedule: { firstYear: 100, renewal: 4 }, contactInfo: {} },
       { id: 'nationwide', name: 'Nationwide', underwritingType: 'simplified', avgApprovalDays: 7, states: [] as string[], products: [], commissionSchedule: { firstYear: 105, renewal: 5 }, contactInfo: {} },
       { id: 'transamerica', name: 'Transamerica', underwritingType: 'full', avgApprovalDays: 14, states: [] as string[], products: [], commissionSchedule: { firstYear: 95, renewal: 3 }, contactInfo: {} },
     ];

@@ -44,12 +44,20 @@ const productOptions = [
 ];
 
 const carrierOptions = [
-  { value: 'mutual-omaha', label: 'Mutual of Omaha' },
+  { value: 'aetna', label: 'Aetna' },
+  { value: 'american-amicable', label: 'American Amicable' },
   { value: 'american-national', label: 'American National' },
+  { value: 'banner-life', label: 'Banner Life' },
+  { value: 'chubb', label: 'Chubb' },
+  { value: 'foresters', label: 'Foresters' },
+  { value: 'globe-life', label: 'Globe Life' },
+  { value: 'guarantee-trust', label: 'Guarantee Trust' },
+  { value: 'instabrain', label: 'InstaBrain' },
+  { value: 'lafayette-life', label: 'Lafayette Life' },
+  { value: 'mutual-omaha', label: 'Mutual of Omaha' },
   { value: 'transamerica', label: 'Transamerica' },
-  { value: 'prudential', label: 'Prudential' },
-  { value: 'aig', label: 'AIG' },
-  { value: 'lincoln-financial', label: 'Lincoln Financial' },
+  { value: 'trinity-life', label: 'Trinity Life' },
+  { value: 'united-home-life', label: 'United Home Life' },
 ];
 
 const coverageOptions = [

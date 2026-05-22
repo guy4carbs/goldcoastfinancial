@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.67";
+export const LIFEOS_VERSION = "1.1.0";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,15 +34,20 @@ export const LIFEOS_VERSION = "1.0.67";
  *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
-export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Telnyx 502 — token endpoint always returns HTTP 200 (bypasses CF/proxy 5xx replacement)";
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
+export const LIFEOS_RELEASE_TITLE = "20-carrier rollout: branded emails, logos, and image CDN";
 export const LIFEOS_RELEASE_SUMMARY =
-  "1.0.66 confirmed all four bare-app diagnostic URLs (incl. /api/realtime/healthcheck) return 200 JSON. Cloudflare + Railway + Express are all healthy. The 502 only happens on /api/realtime/wrtc-auth, which means Cloudflare's 'Always show error pages' (or similar proxy behavior) is replacing our origin's 5xx response with CF's HTML page. 1.0.67 makes the token endpoint ALWAYS return HTTP 200 with `{ ok: true | false, code, ... }` in the body — bypasses the proxy 5xx replacement entirely. Client checks `data.ok` and throws structured TelnyxTokenError if false.";
+  "11 new carrier partners, branded transactional emails for all 20 carriers (quote, secure forms, product guides), Firebase image CDN admin panel, refreshed homepage carousel, and producer-portal access from the Agent Lounge.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Dual DB pool merged.** \`server/routes.ts\` was constructing its own \`new Pool({...})\` for the express-session store while \`server/db.ts\` already exported a separate pool for Drizzle/ORM. Two pools sharing one Neon DB → either could exhaust under load, causing session lookup or \`attachUser\` to hang indefinitely. They now share a single 20-connection pool with a 5s connection-acquisition timeout (fail fast vs. hang).
-- **Route-level \`withTimeout\` middleware on /token.** 1.0.60's wall-clock was a \`setTimeout\` *inside* the handler — it only fired after the middleware chain (\`requireAuth\` → \`attachUser\`) finished. If those hung on a DB call, the handler never started and Cloudflare returned a 502 (no JSON body → client saw \`code=UNKNOWN\`). The new middleware fires before \`requireAuth\`, with a 28s ceiling, and returns our own JSON (\`code: VOICE_GATEWAY_TIMEOUT\`, \`retryable: true\`). Middleware hangs are now caught.
-- **\`/api/calls/_ping\` diagnostic.** Trivial endpoint, no auth, no DB, no Telnyx. Returns \`{ ok: true, ts: ... }\`. If \`/_ping\` returns 200 cleanly but \`/token\` 502s, the issue is downstream (DB/Telnyx); if \`/_ping\` itself 502s, the issue is Railway/Cloudflare/process-level.`;
+- **11 new carrier partners** added: Aetna, American-Amicable, Banner Life, Chubb, Foresters, Globe Life, Guarantee Trust, Fidelity Life (InstaBrain), Lafayette Life, Trinity Life, and United Home Life. Total partners: 20.
+- **Real Firebase-hosted carrier logos** now render in the homepage carousel (no more text placeholders) and on each \`/carriers/<slug>\` page.
+- **Branded transactional emails for all 20 carriers** — quote, secure form (data encryption), and product guide emails now use carrier-specific colors, gradients, and logos. Product guide emails added carrier branding for the first time.
+- **Real customer reviews** sourced from Trustpilot, BBB, and named industry review sites for all 11 new carriers. All quotes anonymized per NAIC guidance.
+- **Image CDN Manager** wired to Firebase Storage via a new admin backend route — the broken client-side SDK approach is replaced with a proven server-side upload path.
+- **Agent Lounge Carriers tab** expanded to 20 carriers with researched producer-portal URLs (Aetna Producer World, LG America Partner, Combined Insurance Agent Portal for Chubb, etc.) and rating tooltips showing AM Best qualifiers.
+- **New admin email test endpoint** (\`POST /api/admin/email/test\`) lets owners trigger any branded template to any address for visual QA — used to send 48 test emails this release for verification.
+- **5 carrier color palettes corrected** to match each carrier's actual brand: Chubb dark navy, Foresters purple, Globe Life blue, Trinity Life green, United Home Life maroon.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

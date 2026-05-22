@@ -71,20 +71,28 @@ const getCarrierGradient = (carrierId: string): { from: string; to: string } => 
   };
 };
 
-// 12 Insurance Carriers
+// Insurance Carriers
 const INSURANCE_CARRIERS = [
+  { id: "aetna", name: "Aetna" },
+  { id: "american-amicable", name: "American Amicable" },
   { id: "americo", name: "Americo Financial" },
-  { id: "athene", name: "Athene" },
   { id: "baltimore-life", name: "Baltimore Life" },
+  { id: "banner-life", name: "Banner Life" },
+  { id: "chubb", name: "Chubb" },
   { id: "corebridge", name: "Corebridge Financial" },
   { id: "mutual-of-omaha", name: "Mutual of Omaha" },
   { id: "ethos", name: "Ethos Life" },
+  { id: "foresters", name: "Foresters" },
+  { id: "globe-life", name: "Globe Life" },
+  { id: "guarantee-trust", name: "Guarantee Trust" },
+  { id: "instabrain", name: "InstaBrain" },
+  { id: "lafayette-life", name: "Lafayette Life" },
   { id: "royal-neighbors", name: "Royal Neighbors" },
   { id: "transamerica", name: "Transamerica" },
   { id: "american-home-life", name: "American Home Life" },
   { id: "polish-falcons", name: "Polish Falcons" },
-  { id: "ladder", name: "Ladder Life" },
-  { id: "lincoln-financial", name: "Lincoln Financial" },
+  { id: "trinity-life", name: "Trinity Life" },
+  { id: "united-home-life", name: "United Home Life" },
 ];
 
 interface SecureFormType {

@@ -49,6 +49,60 @@ export interface CarrierBranding {
 }
 
 export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
+  "aetna": {
+    id: "aetna",
+    name: "Aetna Life Insurance Company",
+    shortName: "Aetna",
+    tagline: "Trusted Life Insurance Protection",
+    description: "A CVS Health company offering life insurance solutions for families",
+
+    primaryColor: "#7D3F98",
+    secondaryColor: "#5E2D73",
+    accentColor: "#2563EB",
+    gradientFrom: "#7D3F98",
+    gradientTo: "#5E2D73",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Aetna Life Insurance Company is part of CVS Health, with A (Excellent) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Aetna distribution partner.",
+
+    ssnFormTitle: "Aetna Secure Identity Verification",
+    bankingFormTitle: "Aetna Premium Payment Setup",
+    applicationFormTitle: "Aetna Life Insurance Application",
+
+    productTypes: ["Term Life", "Whole Life", "Final Expense"],
+
+    footerText: "Aetna Life Insurance Company"
+  },
+
+  "american-amicable": {
+    id: "american-amicable",
+    name: "American-Amicable Life Insurance Company of Texas",
+    shortName: "American Amicable",
+    tagline: "Texas Heritage Since 1910",
+    description: "Waco-based life insurer specializing in whole life, term, and final expense coverage; a wholly owned subsidiary of iA Financial Group.",
+
+    primaryColor: "#1B365D",
+    secondaryColor: "#C4A052",
+    accentColor: "#2563EB",
+    gradientFrom: "#1B365D",
+    gradientTo: "#0F2240",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "American-Amicable Life Insurance Company of Texas operates with an A (Excellent) financial strength rating from A.M. Best and is part of iA Financial Group, one of the largest insurance organizations in North America.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized American Amicable distribution partner.",
+
+    ssnFormTitle: "American Amicable Secure Identity Verification",
+    bankingFormTitle: "American Amicable Premium Payment Setup",
+    applicationFormTitle: "American Amicable Life Insurance Application",
+
+    productTypes: ["Whole Life", "Term Life", "Final Expense", "Annuities"],
+
+    footerText: "American-Amicable Life Insurance Company of Texas"
+  },
+
   "americo": {
     id: "americo",
     name: "Americo Financial Life and Annuity Insurance Company",
@@ -83,43 +137,6 @@ export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
 
     footerText: "Americo Financial Life and Annuity Insurance Company",
     regulatoryInfo: "Licensed in all 50 states. Home Office: Kansas City, MO"
-  },
-
-  "athene": {
-    id: "athene",
-    name: "Athene Annuity and Life Company",
-    shortName: "Athene",
-    tagline: "Retirement Innovators",
-    description: "Leading provider of retirement savings products",
-
-    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277359214-logo.png?alt=media&token=6770c112-2236-4b92-b80e-2811635f6643",
-    logoAlt: "Athene Logo",
-
-    primaryColor: "#00205B",
-    secondaryColor: "#00A3E0",
-    accentColor: "#00A3E0",
-    gradientFrom: "#00205B",
-    gradientTo: "#003380",
-    textOnPrimary: "#FFFFFF",
-
-    trustMessage: "Athene is one of the largest providers of retirement savings products in the United States.",
-    securityMessage: "Bank-level encryption protects all data transmitted through this secure form.",
-    partnerMessage: "Heritage Life Solutions is a licensed Athene distribution partner.",
-
-    ssnFormTitle: "Athene Identity Verification",
-    bankingFormTitle: "Athene Account Information",
-    applicationFormTitle: "Athene Retirement Application",
-
-    productTypes: ["Fixed Annuity", "Fixed Indexed Annuity", "Multi-Year Guaranteed Annuity (MYGA)", "Income Annuity"],
-
-    additionalFields: [
-      { id: "fundingSource", label: "Source of Funds", type: "select", required: true, options: ["401(k) Rollover", "IRA Transfer", "Pension Distribution", "Personal Savings", "CD Maturity", "Other"] },
-      { id: "investmentObjective", label: "Primary Investment Objective", type: "select", required: true, options: ["Growth", "Income", "Preservation of Capital", "Combination"] },
-      { id: "surrenderPeriod", label: "Preferred Surrender Period", type: "select", required: true, options: ["3 Years", "5 Years", "7 Years", "10 Years"] }
-    ],
-
-    footerText: "Athene Annuity and Life Company",
-    regulatoryInfo: "Licensed nationwide. Headquarters: West Des Moines, IA"
   },
 
   "baltimore-life": {
@@ -158,12 +175,67 @@ export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
     regulatoryInfo: "Established 1882. Home Office: Owings Mills, MD"
   },
 
+  "banner-life": {
+    id: "banner-life",
+    name: "Banner Life Insurance Company",
+    shortName: "Banner Life",
+    tagline: "Term Life Insurance Specialists",
+    description: "Part of Legal & General America, specializing in term life insurance",
+
+    primaryColor: "#0033A0",
+    secondaryColor: "#002270",
+    accentColor: "#2563EB",
+    gradientFrom: "#0033A0",
+    gradientTo: "#002270",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Banner Life Insurance Company is part of Legal & General America, with A+ (Superior) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Banner Life distribution partner.",
+
+    ssnFormTitle: "Banner Life Secure Identity Verification",
+    bankingFormTitle: "Banner Life Premium Payment Setup",
+    applicationFormTitle: "Banner Life Life Insurance Application",
+
+    productTypes: ["Term Life", "Universal Life"],
+
+    footerText: "Banner Life Insurance Company"
+  },
+
+  "chubb": {
+    id: "chubb",
+    name: "Chubb Life Insurance Company",
+    shortName: "Chubb",
+    tagline: "Insurance Built for the World's Most Discerning Clients",
+    description: "A global insurer with A++ (Superior) financial strength from AM Best",
+
+    primaryColor: "#0A2D5F",
+    secondaryColor: "#1B4480",
+    accentColor: "#2563EB",
+    gradientFrom: "#0A2D5F",
+    gradientTo: "#051A38",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Chubb is one of the world's largest publicly traded property and casualty insurers, with A++ (Superior) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Chubb distribution partner.",
+
+    ssnFormTitle: "Chubb Secure Identity Verification",
+    bankingFormTitle: "Chubb Premium Payment Setup",
+    applicationFormTitle: "Chubb Life Insurance Application",
+
+    productTypes: ["Term Life", "Whole Life", "Universal Life", "Accident & Health"],
+
+    footerText: "Chubb Life Insurance Company",
+    regulatoryInfo: "NYSE: CB. Licensed in all 50 states."
+  },
+
   "corebridge": {
     id: "corebridge",
     name: "Corebridge Financial",
     shortName: "Corebridge",
     tagline: "Helping People Act on Their Ambitions",
-    description: "Formerly AIG Life & Retirement, now independently focused on your financial future",
+    description: "Spun out from its former parent in 2022, now independently focused on your financial future",
 
     logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277446062-Corebridge_financial_logo.svg.png?alt=media&token=cd088f44-4437-432e-88a3-b3a54ee520e2",
     logoAlt: "Corebridge Financial Logo",
@@ -175,7 +247,7 @@ export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
     gradientTo: "#5A1AD3",
     textOnPrimary: "#FFFFFF",
 
-    trustMessage: "Corebridge Financial, formerly part of AIG, serves millions of customers nationwide.",
+    trustMessage: "Corebridge Financial, spun out from its former parent company in 2022, serves millions of customers nationwide.",
     securityMessage: "Enterprise-grade security protects every piece of information you share.",
     partnerMessage: "Heritage Life Solutions is a registered Corebridge Financial partner.",
 
@@ -266,6 +338,141 @@ export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
 
     footerText: "Ethos Technologies, Inc.",
     regulatoryInfo: "San Francisco, CA"
+  },
+
+  "foresters": {
+    id: "foresters",
+    name: "Foresters Financial (The Independent Order of Foresters)",
+    shortName: "Foresters",
+    tagline: "More Than Insurance, a Fraternal Benefit Society",
+    description: "A fraternal benefit society offering life insurance and member benefits",
+
+    primaryColor: "#5B2D8A",
+    secondaryColor: "#7849A6",
+    accentColor: "#2563EB",
+    gradientFrom: "#5B2D8A",
+    gradientTo: "#3A1A5C",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Foresters Financial is a fraternal benefit society with A (Excellent) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Foresters distribution partner.",
+
+    ssnFormTitle: "Foresters Secure Identity Verification",
+    bankingFormTitle: "Foresters Premium Payment Setup",
+    applicationFormTitle: "Foresters Life Insurance Application",
+
+    productTypes: ["Term Life", "Whole Life", "Universal Life", "Final Expense"],
+
+    footerText: "The Independent Order of Foresters"
+  },
+
+  "globe-life": {
+    id: "globe-life",
+    name: "Globe Life And Accident Insurance Company",
+    shortName: "Globe Life",
+    tagline: "Making Life Insurance Simple",
+    description: "A subsidiary of Globe Life Inc, offering mortgage protection and final expense coverage",
+
+    primaryColor: "#005EB8",
+    secondaryColor: "#0080C8",
+    accentColor: "#2563EB",
+    gradientFrom: "#005EB8",
+    gradientTo: "#003D7A",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Globe Life And Accident Insurance Company is a subsidiary of Globe Life Inc, with A (Excellent) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Globe Life distribution partner.",
+
+    ssnFormTitle: "Globe Life Secure Identity Verification",
+    bankingFormTitle: "Globe Life Premium Payment Setup",
+    applicationFormTitle: "Globe Life Life Insurance Application",
+
+    productTypes: ["Term Life", "Whole Life", "Final Expense", "Mortgage Protection"],
+
+    footerText: "Globe Life And Accident Insurance Company"
+  },
+
+  "guarantee-trust": {
+    id: "guarantee-trust",
+    name: "Guarantee Trust Life Insurance Company",
+    shortName: "Guarantee Trust",
+    tagline: "Supplemental Health and Life Protection",
+    description: "Specializing in supplemental health and final expense coverage",
+
+    primaryColor: "#1976D2",
+    secondaryColor: "#0D47A1",
+    accentColor: "#2563EB",
+    gradientFrom: "#1976D2",
+    gradientTo: "#0D47A1",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Guarantee Trust Life Insurance Company holds an A- (Excellent) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Guarantee Trust distribution partner.",
+
+    ssnFormTitle: "Guarantee Trust Secure Identity Verification",
+    bankingFormTitle: "Guarantee Trust Premium Payment Setup",
+    applicationFormTitle: "Guarantee Trust Life Insurance Application",
+
+    productTypes: ["Final Expense", "Whole Life", "Supplemental Health"],
+
+    footerText: "Guarantee Trust Life Insurance Company"
+  },
+
+  "instabrain": {
+    id: "instabrain",
+    name: "Fidelity Life Association",
+    shortName: "InstaBrain",
+    tagline: "Instant-Decision Life Insurance",
+    description: "Chicago-based legal reserve life insurer (founded 1896) delivering instant-decision underwriting via the InstaBrain platform, backed by iA Financial Corporation.",
+
+    primaryColor: "#0066CC",
+    secondaryColor: "#003D7A",
+    accentColor: "#00A3E0",
+    gradientFrom: "#0066CC",
+    gradientTo: "#003D7A",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Fidelity Life Association holds an A- (Excellent) financial strength rating from A.M. Best (affirmed 2024) and is backed by iA Financial Corporation, with the InstaBrain platform delivering instant-decision underwriting.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized InstaBrain distribution partner.",
+
+    ssnFormTitle: "InstaBrain Secure Identity Verification",
+    bankingFormTitle: "InstaBrain Premium Payment Setup",
+    applicationFormTitle: "InstaBrain Life Insurance Application",
+
+    productTypes: ["Term Life", "Whole Life", "Final Expense", "Accelerated Underwriting"],
+
+    footerText: "Fidelity Life Association"
+  },
+
+  "lafayette-life": {
+    id: "lafayette-life",
+    name: "The Lafayette Life Insurance Company",
+    shortName: "Lafayette Life",
+    tagline: "Participating Whole Life Since 1905",
+    description: "Indiana-based mutual-structured life insurer (founded 1905) and member of Western & Southern Financial Group, specializing in participating whole life and fixed/indexed annuities.",
+
+    primaryColor: "#7B1838",
+    secondaryColor: "#C4A052",
+    accentColor: "#2563EB",
+    gradientFrom: "#7B1838",
+    gradientTo: "#4F0F23",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "The Lafayette Life Insurance Company carries an A+ (Superior) financial strength rating from A.M. Best and is a member of Western & Southern Financial Group, a Fortune 500 diversified financial services organization.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Lafayette Life distribution partner.",
+
+    ssnFormTitle: "Lafayette Life Secure Identity Verification",
+    bankingFormTitle: "Lafayette Life Premium Payment Setup",
+    applicationFormTitle: "Lafayette Life Life Insurance Application",
+
+    productTypes: ["Whole Life", "Term Life", "Fixed Indexed Annuities", "Immediate Annuities"],
+
+    footerText: "The Lafayette Life Insurance Company"
   },
 
   "royal-neighbors": {
@@ -415,79 +622,58 @@ export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
     regulatoryInfo: "Fraternal Benefit Society. Pittsburgh, PA"
   },
 
-  "ladder": {
-    id: "ladder",
-    name: "Ladder Life Insurance",
-    shortName: "Ladder",
-    tagline: "Flexible Life Insurance for Today",
-    description: "Digital-first life insurance that adapts to your life",
+  "trinity-life": {
+    id: "trinity-life",
+    name: "Trinity Life Insurance Company",
+    shortName: "Trinity Life",
+    tagline: "Final Expense Protection",
+    description: "Specializing in final expense and burial protection coverage",
 
-    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277843227-Ladder-Logo-Full-Black.png?alt=media&token=b8543d44-66ce-4afe-96da-809fd4817733",
-    logoAlt: "Ladder Logo",
-
-    primaryColor: "#1A1A2E",
-    secondaryColor: "#16C79A",
-    accentColor: "#16C79A",
-    gradientFrom: "#1A1A2E",
-    gradientTo: "#2D2D44",
+    primaryColor: "#2E7D32",
+    secondaryColor: "#3F9B43",
+    accentColor: "#2563EB",
+    gradientFrom: "#2E7D32",
+    gradientTo: "#1B5E20",
     textOnPrimary: "#FFFFFF",
 
-    trustMessage: "Ladder provides instant, flexible coverage backed by Allianz and Fidelity Security Life.",
-    securityMessage: "Modern security technology protects every interaction.",
-    partnerMessage: "Heritage Life Solutions is an authorized Ladder distribution partner.",
+    trustMessage: "Trinity Life Insurance Company offers final expense and burial protection products.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Trinity Life distribution partner.",
 
-    ssnFormTitle: "Ladder Identity Verification",
-    bankingFormTitle: "Ladder Payment Setup",
-    applicationFormTitle: "Ladder Life Application",
+    ssnFormTitle: "Trinity Life Secure Identity Verification",
+    bankingFormTitle: "Trinity Life Premium Payment Setup",
+    applicationFormTitle: "Trinity Life Life Insurance Application",
 
-    productTypes: ["10-Year Term", "15-Year Term", "20-Year Term", "25-Year Term", "30-Year Term"],
+    productTypes: ["Final Expense", "Whole Life"],
 
-    additionalFields: [
-      { id: "coverageFlexibility", label: "Interested in Ladder's coverage flexibility feature?", type: "select", required: true, options: ["Yes - Want ability to adjust coverage", "No - Fixed coverage is fine"] },
-      { id: "primaryDependents", label: "Number of Financial Dependents", type: "select", required: true, options: ["0", "1", "2", "3", "4 or more"] },
-      { id: "mortgageBalance", label: "Approximate Mortgage Balance (if applicable)", type: "select", required: false, options: ["No Mortgage", "Under $100,000", "$100,000 - $300,000", "$300,000 - $500,000", "Over $500,000"] }
-    ],
-
-    footerText: "Ladder Insurance Services, LLC",
-    regulatoryInfo: "Palo Alto, CA. Policies issued by Allianz Life Insurance Company"
+    footerText: "Trinity Life Insurance Company"
   },
 
-  "lincoln-financial": {
-    id: "lincoln-financial",
-    name: "Lincoln Financial Group",
-    shortName: "Lincoln Financial",
-    tagline: "Chief Life Officer",
-    description: "A Fortune 200 financial services company",
+  "united-home-life": {
+    id: "united-home-life",
+    name: "United Home Life Insurance Company",
+    shortName: "United Home Life",
+    tagline: "Burial and Final Expense Protection",
+    description: "Focused on burial and final expense coverage for families",
 
-    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769277880206-Lincoln-Financial-Logo-old.png?alt=media&token=b8028b6a-d38c-42e7-bb83-9a3d5750524b",
-    logoAlt: "Lincoln Financial Logo",
-
-    primaryColor: "#6B1C23",
-    secondaryColor: "#8B2D35",
-    accentColor: "#7B2530",
-    gradientFrom: "#6B1C23",
-    gradientTo: "#8B2D35",
+    primaryColor: "#7B1E3B",
+    secondaryColor: "#A02D52",
+    accentColor: "#2563EB",
+    gradientFrom: "#7B1E3B",
+    gradientTo: "#5C1129",
     textOnPrimary: "#FFFFFF",
 
-    trustMessage: "Lincoln Financial is a Fortune 200 company with an A+ rating for financial strength.",
-    securityMessage: "Fortune 200 security standards protect all submitted information.",
-    partnerMessage: "Heritage Life Solutions is a registered Lincoln Financial producer.",
+    trustMessage: "United Home Life Insurance Company holds an A- (Excellent) financial strength rating from AM Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized United Home Life distribution partner.",
 
-    ssnFormTitle: "Lincoln Financial Identity Verification",
-    bankingFormTitle: "Lincoln Financial Payment Authorization",
-    applicationFormTitle: "Lincoln Financial Life Application",
+    ssnFormTitle: "United Home Life Secure Identity Verification",
+    bankingFormTitle: "United Home Life Premium Payment Setup",
+    applicationFormTitle: "United Home Life Life Insurance Application",
 
-    productTypes: ["Term Life", "Indexed Universal Life (IUL)", "Variable Universal Life (VUL)", "Survivorship IUL", "Survivorship VUL"],
+    productTypes: ["Final Expense", "Whole Life", "Burial Insurance"],
 
-    additionalFields: [
-      { id: "investmentExperience", label: "Investment Experience Level", type: "select", required: true, options: ["Beginner", "Intermediate", "Experienced"] },
-      { id: "premiumFrequency", label: "Intended Premium Payment Frequency", type: "select", required: true, options: ["Monthly", "Quarterly", "Semi-Annual", "Annual", "Single Premium"] },
-      { id: "cashValuePriority", label: "Priority: Death Benefit vs Cash Value Growth", type: "select", required: true, options: ["Death Benefit Focused", "Cash Value Growth Focused", "Balanced Approach"] },
-      { id: "businessOwner", label: "Are you a business owner?", type: "select", required: true, options: ["No", "Yes - Sole Proprietor", "Yes - Partnership", "Yes - Corporation"] }
-    ],
-
-    footerText: "Lincoln National Life Insurance Company",
-    regulatoryInfo: "NYSE: LNC. Fortune 200. Radnor, PA"
+    footerText: "United Home Life Insurance Company"
   }
 };
 

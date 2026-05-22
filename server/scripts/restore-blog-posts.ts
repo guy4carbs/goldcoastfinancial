@@ -280,7 +280,7 @@ const blogPosts = [
       <p>Think of it as a refund of excess premium.</p>
 
       <h2>Important: Not Guaranteed</h2>
-      <p>Top companies like Northwestern Mutual and MassMutual have paid dividends for 100+ years straight. But dividends are never guaranteed—they depend on company performance.</p>
+      <p>Top mutual insurance carriers have paid dividends for 100+ years straight. But dividends are never guaranteed—they depend on company performance.</p>
 
       <h2>What Can You Do With Dividends?</h2>
 

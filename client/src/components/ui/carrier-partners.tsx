@@ -2,14 +2,13 @@ import { motion } from "framer-motion";
 import { Shield, Award } from "lucide-react";
 
 const carriers = [
-  { name: "Northwestern Mutual", rating: "A++", ratingOrg: "AM Best" },
-  { name: "New York Life", rating: "A++", ratingOrg: "AM Best" },
-  { name: "MassMutual", rating: "A++", ratingOrg: "AM Best" },
-  { name: "Guardian Life", rating: "A++", ratingOrg: "AM Best" },
-  { name: "Pacific Life", rating: "A+", ratingOrg: "AM Best" },
   { name: "Mutual of Omaha", rating: "A+", ratingOrg: "AM Best" },
-  { name: "Prudential", rating: "A+", ratingOrg: "AM Best" },
-  { name: "John Hancock", rating: "A+", ratingOrg: "AM Best" }
+  { name: "Royal Neighbors", rating: "A", ratingOrg: "AM Best" },
+  { name: "Baltimore Life", rating: "A", ratingOrg: "AM Best" },
+  { name: "Americo", rating: "A", ratingOrg: "AM Best" },
+  { name: "Transamerica", rating: "A", ratingOrg: "AM Best" },
+  { name: "Polish Falcons", rating: "A", ratingOrg: "AM Best" },
+  { name: "Ethos", rating: "A", ratingOrg: "AM Best" }
 ];
 
 export function CarrierPartners() {

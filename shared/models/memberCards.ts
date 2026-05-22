@@ -28,6 +28,7 @@ export type CoverageType = typeof coverageTypeEnum[number];
 /**
  * Insurance carriers commonly used
  */
+// Underlying DB column is varchar(50), not a Postgres ENUM — do not attempt ALTER TYPE DDL.
 export const insuranceCarrierEnum = [
   "mutual_of_omaha",
   "americo",
@@ -37,8 +38,6 @@ export const insuranceCarrierEnum = [
   "transamerica",
   "aig",
   "protective_life",
-  "lincoln_financial",
-  "prudential",
   "other"
 ] as const;
 export type InsuranceCarrier = typeof insuranceCarrierEnum[number];
@@ -184,12 +183,11 @@ export function formatCarrierName(carrier: InsuranceCarrier, otherName?: string)
     transamerica: "Transamerica",
     aig: "AIG",
     protective_life: "Protective Life",
-    lincoln_financial: "Lincoln Financial",
-    prudential: "Prudential",
     other: "Other",
   };
 
-  return names[carrier];
+  // Defensive fallback: DB column is varchar(50), so legacy/unknown values may exist.
+  return names[carrier] ?? carrier;
 }
 
 /**

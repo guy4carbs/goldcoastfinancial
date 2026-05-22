@@ -73,7 +73,7 @@ export const DEMO_CLIENT_POLICIES = [
     id: 'pol-3',
     policyNumber: 'HLS-2023-20156',
     type: 'IUL' as const,
-    carrier: 'Lincoln Financial',
+    carrier: 'Transamerica',
     status: 'active' as const,
     coverageAmount: 500000,
     monthlyPremium: 350,
@@ -105,7 +105,7 @@ export const DEMO_CLIENT_POLICIES = [
 export const DEMO_CLIENT_DOCUMENTS = [
   { id: 'doc-1', name: 'Term Life Policy Document -Protective Life', category: 'policy' as const, date: 'Jan 15, 2022', fileSize: '2.4 MB', isNew: false, policyId: 'pol-1' },
   { id: 'doc-2', name: 'Whole Life Policy Document -North American', category: 'policy' as const, date: 'Mar 1, 2022', fileSize: '3.1 MB', isNew: false, policyId: 'pol-2' },
-  { id: 'doc-3', name: 'IUL Policy Document -Lincoln Financial', category: 'policy' as const, date: 'Jun 10, 2023', fileSize: '4.2 MB', isNew: false, policyId: 'pol-3' },
+  { id: 'doc-3', name: 'IUL Policy Document -Transamerica', category: 'policy' as const, date: 'Jun 10, 2023', fileSize: '4.2 MB', isNew: false, policyId: 'pol-3' },
   { id: 'doc-4', name: '2025 Annual Statement -Whole Life', category: 'statement' as const, date: 'Jan 31, 2026', fileSize: '1.8 MB', isNew: true, policyId: 'pol-2' },
   { id: 'doc-5', name: '2025 Annual Statement -IUL', category: 'statement' as const, date: 'Jan 31, 2026', fileSize: '2.1 MB', isNew: true, policyId: 'pol-3' },
   { id: 'doc-6', name: '1099-R Tax Form -2025', category: 'tax' as const, date: 'Feb 15, 2026', fileSize: '540 KB', isNew: true, policyId: 'pol-3' },
@@ -268,7 +268,7 @@ export const DEMO_CLIENT_NOTIFICATIONS = [
 export const DEMO_CLIENT_MESSAGES = [
   { id: 'msg-1', from: 'agent' as const, fromName: 'Sarah Johnson', message: 'Hi John! Welcome to Heritage Life Solutions. I\'m excited to help you build a comprehensive protection plan for your family.', timestamp: 'Jan 20, 2022 9:00 AM', isRead: true },
   { id: 'msg-2', from: 'client' as const, fromName: 'John Mitchell', message: 'Thanks Sarah! I\'m interested in learning more about the IUL policy we discussed. Can you send me some details?', timestamp: 'Jan 20, 2022 9:15 AM', isRead: true },
-  { id: 'msg-3', from: 'agent' as const, fromName: 'Sarah Johnson', message: 'Absolutely! I\'ve attached an IUL illustration based on our conversation. The Lincoln Financial product offers great upside potential with downside protection. Let me know if you have any questions.', timestamp: 'Jan 20, 2022 10:30 AM', isRead: true },
+  { id: 'msg-3', from: 'agent' as const, fromName: 'Sarah Johnson', message: 'Absolutely! I\'ve attached an IUL illustration based on our conversation. The Transamerica product offers great upside potential with downside protection. Let me know if you have any questions.', timestamp: 'Jan 20, 2022 10:30 AM', isRead: true },
   { id: 'msg-4', from: 'client' as const, fromName: 'John Mitchell', message: 'This looks great. I\'d like to move forward with the application. What do I need to do next?', timestamp: 'Jan 21, 2022 2:00 PM', isRead: true },
   { id: 'msg-5', from: 'agent' as const, fromName: 'Sarah Johnson', message: 'Wonderful! I\'ll send you the application link. You\'ll need your driver\'s license, Social Security number, and your doctor\'s contact info for the medical records request.', timestamp: 'Jan 21, 2022 2:30 PM', isRead: true },
   { id: 'msg-6', from: 'agent' as const, fromName: 'Sarah Johnson', message: 'Hi John -just a heads up, your annual IUL statement is now available in your documents section. Your cash value grew 8.2% this year! Let\'s schedule a review to discuss your options.', timestamp: 'Feb 1, 2026 10:00 AM', isRead: true },

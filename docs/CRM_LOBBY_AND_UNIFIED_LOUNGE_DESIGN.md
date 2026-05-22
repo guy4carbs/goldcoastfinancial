@@ -108,7 +108,7 @@ The CRM is not a workspace - it's the **grand lobby** of your business. Like wal
 │                                                                     │
 │  ┌─────────────────── ANNOUNCEMENTS ────────────────────────────┐  │
 │  │                                                               │  │
-│  │  📢 New carrier added: Prudential          Posted 2 days ago │  │
+│  │  📢 New carrier added: Royal Neighbors     Posted 2 days ago │  │
 │  │  📢 Q1 kickoff meeting Friday 9am          Posted 3 days ago │  │
 │  │                                                               │  │
 │  └───────────────────────────────────────────────────────────────┘  │

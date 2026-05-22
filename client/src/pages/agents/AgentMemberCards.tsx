@@ -115,16 +115,22 @@ interface IssueCardFormData {
 // =============================================================================
 
 const CARRIERS = [
-  { value: "mutual_of_omaha", label: "Mutual of Omaha" },
+  { value: "aetna", label: "Aetna" },
+  { value: "american_amicable", label: "American Amicable" },
   { value: "americo", label: "Americo" },
-  { value: "north_american", label: "North American" },
-  { value: "national_life_group", label: "National Life Group" },
+  { value: "banner-life", label: "Banner Life" },
+  { value: "chubb", label: "Chubb" },
   { value: "foresters", label: "Foresters" },
-  { value: "transamerica", label: "Transamerica" },
-  { value: "aig", label: "AIG" },
+  { value: "globe-life", label: "Globe Life" },
+  { value: "guarantee-trust", label: "Guarantee Trust" },
+  { value: "instabrain", label: "InstaBrain" },
+  { value: "lafayette_life", label: "Lafayette Life" },
+  { value: "mutual_of_omaha", label: "Mutual of Omaha" },
+  { value: "north_american", label: "North American" },
   { value: "protective_life", label: "Protective Life" },
-  { value: "lincoln_financial", label: "Lincoln Financial" },
-  { value: "prudential", label: "Prudential" },
+  { value: "transamerica", label: "Transamerica" },
+  { value: "trinity-life", label: "Trinity Life" },
+  { value: "united-home-life", label: "United Home Life" },
   { value: "other", label: "Other" },
 ];
 

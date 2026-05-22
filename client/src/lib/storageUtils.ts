@@ -12,101 +12,100 @@ export interface UploadedImage {
   name: string;
   url: string;
   path: string;
-  ref: StorageReference;
+  // Legacy field retained for backward compatibility. Image functions now go
+  // through the server-side admin API and no longer return a Firebase
+  // StorageReference. Kept optional so consumers don't break.
+  ref?: StorageReference | null;
 }
 
 /**
- * Upload an image to Firebase Storage
+ * Upload an image via the server-side admin endpoint.
+ * Backend handles the Firebase Storage interaction so we avoid opaque
+ * client-side failures on `.firebasestorage.app` buckets.
+ *
  * @param file - The file to upload
- * @param folder - Optional folder path (e.g., 'hero', 'products')
+ * @param folder - Folder slug (e.g., 'images', 'hero', 'products', 'team', 'logos')
  * @returns Promise with the download URL and metadata
  */
 export async function uploadImage(
   file: File,
   folder: string = 'images'
 ): Promise<{ url: string; path: string; name: string }> {
-  try {
-    // Create a unique filename
-    const timestamp = Date.now();
-    const fileName = `${timestamp}-${file.name}`;
-    const filePath = `${folder}/${fileName}`;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', folder);
 
-    // Create a storage reference
-    const storageRef = ref(storage, filePath);
+  const res = await fetch('/api/admin/images/upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
 
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, file);
-
-    // Get the download URL
-    const url = await getDownloadURL(snapshot.ref);
-
-    return {
-      url,
-      path: filePath,
-      name: fileName
-    };
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    throw error;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `Upload failed (${res.status})`);
   }
+
+  return await res.json(); // { url, path, name, size }
 }
 
 /**
- * List all images in a folder
+ * List all images in a folder via the server-side admin endpoint.
  * @param folder - The folder to list images from
  * @returns Promise with array of image data
  */
 export async function listImages(folder: string = 'images'): Promise<UploadedImage[]> {
-  try {
-    const folderRef = ref(storage, folder);
-    const result = await listAll(folderRef);
+  const res = await fetch(
+    `/api/admin/images/list?folder=${encodeURIComponent(folder)}`,
+    { credentials: 'include' }
+  );
 
-    const images = await Promise.all(
-      result.items.map(async (itemRef) => {
-        const url = await getDownloadURL(itemRef);
-        return {
-          name: itemRef.name,
-          url,
-          path: itemRef.fullPath,
-          ref: itemRef
-        };
-      })
-    );
-
-    return images;
-  } catch (error) {
-    console.error('Error listing images:', error);
-    throw error;
+  if (!res.ok) {
+    throw new Error(`List failed (${res.status})`);
   }
+
+  const data = await res.json();
+  return (data.images || []).map((img: any) => ({
+    name: img.name,
+    url: img.url,
+    path: img.path,
+    ref: null,
+  }));
 }
 
 /**
- * Delete an image from Firebase Storage
+ * Delete an image via the server-side admin endpoint.
  * @param path - The full path of the image to delete
  */
 export async function deleteImage(path: string): Promise<void> {
-  try {
-    const imageRef = ref(storage, path);
-    await deleteObject(imageRef);
-  } catch (error) {
-    console.error('Error deleting image:', error);
-    throw error;
+  const res = await fetch(
+    `/api/admin/images?path=${encodeURIComponent(path)}`,
+    {
+      method: 'DELETE',
+      credentials: 'include',
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Delete failed (${res.status})`);
   }
 }
 
 /**
- * Get a download URL for an existing image
- * @param path - The full path of the image
+ * Get a download URL for an existing image.
+ * Derives the folder from the path's first segment, lists the folder,
+ * and returns the matching image's URL.
+ * @param path - The full path of the image (e.g., 'hero/1234-foo.png')
  * @returns Promise with the download URL
  */
 export async function getImageUrl(path: string): Promise<string> {
-  try {
-    const imageRef = ref(storage, path);
-    return await getDownloadURL(imageRef);
-  } catch (error) {
-    console.error('Error getting image URL:', error);
-    throw error;
+  const folder = path.split('/')[0];
+  const images = await listImages(folder);
+  const match = images.find((i) => i.path === path);
+  if (!match) {
+    throw new Error(`Image not found: ${path}`);
   }
+  return match.url;
 }
 
 // ============ VIDEO FUNCTIONS ============

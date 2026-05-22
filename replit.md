@@ -92,7 +92,7 @@ This is a professional website for Gold Coast Financial, an independent life ins
 ### Premium Features Added
 - **Careers Page**: Full recruitment page with hero section, "Why Join Us" benefits (6 cards), leadership team profiles, open positions (3 accordions), application process timeline, employee testimonials, and multi-field application form. Applications sent to applications@goldcoastfnl.com
 - **Coverage Calculator Wizard**: 5-step interactive calculator (Income → Debts → Family → Profile → Results) with personalized coverage recommendations and estimated monthly premiums
-- **Carrier Partners Section**: Displays 8 top-rated insurance carriers (A++ and A+ AM Best ratings) - Northwestern Mutual, New York Life, MassMutual, Guardian, Pacific Life, Mutual of Omaha, Prudential, John Hancock
+- **Carrier Partners Section**: Displays A-rated insurance carriers (AM Best) - Royal Neighbors, Baltimore Life, Americo, Transamerica, Polish Falcons, Ethos, Mutual of Omaha
 - **Appointment Scheduler**: Full scheduling system with meeting type selection (video/phone/in-person), date/time picker, and confirmation flow
 - **Downloadable Guides**: 4 PDF resources with lead capture forms - Life Insurance 101, Coverage Calculator Worksheet, Term vs Permanent Comparison, New Parent Checklist
 - **Before/After Scenarios**: 3 real-life examples showing how life insurance protects families (Young Family, Business Owner, Empty Nesters)

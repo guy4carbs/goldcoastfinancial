@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   FileText,
   Download,
@@ -68,7 +69,7 @@ const productGuides = [
         { objection: "I'm young and healthy — do I really need this now?", response: "That's actually the best time to get coverage. Your age and health are the two biggest factors in your premium, and they only go in one direction. Locking in a rate now while you're healthy means you'll pay the lowest possible premium for the entire term. A 30-year-old pays roughly half what a 40-year-old pays for the same coverage. Plus, if a health issue develops later, you may not qualify at all." },
         { objection: "Can I get coverage if I have health issues?", response: "Yes — many of our carriers specialize in covering people with common health conditions like high blood pressure, diabetes, high cholesterol, sleep apnea, and more. While your premium may be higher than someone in perfect health, we work with multiple carriers to find the most competitive rate for your specific situation. Some carriers are more lenient on certain conditions than others, and that's where our expertise adds real value." }
       ],
-      carriers: ["Lincoln Financial", "Transamerica", "Americo", "Corebridge", "Ethos", "Ladder"]
+      carriers: ["Transamerica", "Americo", "Corebridge", "Ethos"]
     }
   },
   {
@@ -129,7 +130,7 @@ const productGuides = [
         { objection: "I've already maxed out my 401(k) — why do I need this?", response: "That's exactly why IUL is valuable. Once you've maxed your 401(k) ($23,500/year in 2025) and IRA ($7,000/year), there are very few tax-advantaged options left. IUL has no contribution limits from a tax perspective — you can fund it with significantly more per year. The cash value grows tax-deferred, and you access it tax-free through policy loans. For high earners, this creates a 'tax-free bucket' of retirement income that provides tremendous flexibility in managing your tax liability throughout retirement." },
         { objection: "What if I need to stop paying premiums?", response: "IUL is designed with flexibility in mind. If you need to reduce or stop premiums temporarily, the policy can continue as long as there's sufficient cash value to cover the monthly cost of insurance. If you've funded the policy well in the early years, it may be able to sustain itself for years without additional premiums. You can also take partial withdrawals or policy loans from the cash value if you need access to funds." }
       ],
-      carriers: ["Lincoln Financial", "Corebridge", "Americo", "Transamerica"]
+      carriers: ["Corebridge", "Americo", "Transamerica"]
     }
   },
   {
@@ -191,7 +192,7 @@ const productGuides = [
         { objection: "My spouse works too — we'd be fine on one income", response: "Many dual-income families rely on both incomes to maintain their lifestyle and cover the mortgage. Even if your spouse could technically afford the mortgage alone, losing one income often means cutting back on everything else — retirement savings, children's activities, vacations, emergency fund contributions. Mortgage protection ensures your family maintains their standard of living rather than just surviving. It protects their future, not just the immediate crisis." },
         { objection: "What about the living benefits — do I really need those?", response: "Living benefits are one of the most valuable features of mortgage protection that most people don't know about. Consider: if you had a heart attack, stroke, or cancer diagnosis and couldn't work for 6-12 months, who would pay your mortgage? Disability insurance may cover a portion of your income, but the living benefits on your mortgage protection policy let you access your death benefit while you're alive to keep your mortgage current. Over 50% of all mortgage foreclosures are caused by a medical crisis — not death — making living benefits potentially more important than the death benefit itself." }
       ],
-      carriers: ["Transamerica", "Mutual of Omaha", "Lincoln Financial", "Americo", "Corebridge"]
+      carriers: ["Transamerica", "Mutual of Omaha", "Americo", "Corebridge"]
     }
   },
   {
@@ -224,7 +225,7 @@ const productGuides = [
         { objection: "I'm already getting Social Security — why do I need another income stream?", response: "Social Security was designed to replace about 40% of your pre-retirement income — and for many retirees, it covers even less. Consider your essential monthly expenses: housing, healthcare, food, utilities, transportation, and insurance. If Social Security covers $2,000-$3,000/month but your expenses are $4,000-$5,000/month, there's a gap that needs to be filled. An annuity with a lifetime income rider creates a personal pension that, combined with Social Security, can cover all of your essential expenses with guaranteed income. This means you'll never have to worry about running out of money, regardless of what the stock market does or how long you live." },
         { objection: "I'm too old to start an annuity", response: "Many of our annuity carriers accept applications from clients up to age 85 or even older. In fact, annuities can be especially valuable for older clients because the guaranteed income payments are higher (since they're based on a shorter life expectancy), you may want to protect savings from market risk now more than ever, and the probate avoidance benefit simplifies estate transfer for your heirs. Even a short-term fixed annuity (3-5 years) can provide a safe, guaranteed return that outperforms CDs and savings accounts while you plan the next phase of your financial strategy." }
       ],
-      carriers: ["Athene", "Corebridge", "Lincoln Financial"]
+      carriers: ["Corebridge"]
     }
   },
 ];
@@ -242,25 +243,43 @@ const resourceDownloads = [
 ];
 
 // Carriers data
-const carriers = [
-  { name: "American Home Life", products: ["Final Expense", "Whole Life"], rating: "A-", portal: "https://ahlpatriotseries.com/new-agent-portal/" },
+type CarrierEntry = {
+  name: string;
+  products: string[];
+  rating: string;
+  ratingFull?: string;  // optional qualifier for hover tooltip
+  portal: string;
+};
+
+const carriers: CarrierEntry[] = [
+  { name: "Aetna", products: ["Group Life", "Group Disability", "AD&D"], rating: "A", ratingFull: "A (Excellent)", portal: "https://www.aetna.com/producer_public/login.fcc" },
+  { name: "American Amicable", products: ["Term", "Whole Life", "Final Expense"], rating: "A", ratingFull: "A (Excellent)", portal: "https://www.americanamicable.com/v4/AgentLogin.php" },
+  { name: "American Home Life", products: ["Final Expense", "Whole Life"], rating: "B++", ratingFull: "B++ (Good) — negative ICR outlook (Aug 2025)", portal: "https://ahlpatriotseries.com/new-agent-portal/" },
   { name: "Americo", products: ["Term", "IUL", "Final Expense"], rating: "A", portal: "https://portal.americoagent.com/" },
-  { name: "Athene", products: ["Fixed Annuities", "FIA"], rating: "A", portal: "https://www.athene.com/producer/login" },
   { name: "Baltimore Life", products: ["Term", "Whole Life", "Final Expense"], rating: "A-", portal: "https://agentportal.baltlife.com/" },
+  { name: "Banner Life", products: ["Term", "UL", "No-Exam Term"], rating: "A+", ratingFull: "A+ (Under Review — Meiji Yasuda acquisition pending)", portal: "https://partner.lgamerica.com/" },
+  { name: "Chubb", products: ["Term", "Whole Life", "UL"], rating: "A++", ratingFull: "A++ (Chubb Group rating)", portal: "https://sales.combinedinsurance.com/AgentPortal" },
   { name: "Corebridge", products: ["Term", "IUL", "Annuities"], rating: "A+", portal: "https://www.connext.corebridgefinancial.com/life/connext-portal/public/login" },
   { name: "Ethos", products: ["Term", "Whole Life"], rating: "A", portal: "https://agents.ethoslife.com/login" },
-  { name: "Ladder", products: ["Term"], rating: "A", portal: "https://www.ladderlife.com/advisors/login" },
-  { name: "Lincoln Financial", products: ["Term", "IUL", "Annuities"], rating: "A+", portal: "https://www.lincolnfinancial.com/public/general/registration" },
+  { name: "Fidelity Life", products: ["Term", "Whole Life", "Final Expense"], rating: "A-", ratingFull: "A- (Positive outlook)", portal: "https://fidelitylife.com/login/" },
+  { name: "Foresters", products: ["Term", "Whole Life", "Final Expense"], rating: "A", ratingFull: "A (Excellent)", portal: "https://ezbiz.foresters.com/" },
+  { name: "Globe Life", products: ["Term", "Final Expense", "Mortgage Prot."], rating: "A", ratingFull: "A (Excellent)", portal: "https://globelife.my.site.com/GAPortal/login" },
+  { name: "Guarantee Trust", products: ["Final Expense", "Crit. Illness", "Hospital Indem."], rating: "A", ratingFull: "A (Excellent — upgraded Oct 2024)", portal: "https://eapp.gtlic.com/" },
+  { name: "Lafayette Life", products: ["Whole Life", "Term", "Annuities"], rating: "A+", ratingFull: "A+ (Superior)", portal: "https://www.westernsouthern.com/lafayette/log-in" },
   { name: "Mutual of Omaha", products: ["Term", "Final Expense"], rating: "A+", portal: "https://producer.mutualofomaha.com/" },
   { name: "Polish Falcons", products: ["Whole Life", "Final Expense"], rating: "A-", portal: "https://www.polishfalcons.org/" },
   { name: "Royal Neighbors", products: ["Term", "Whole Life", "Final Expense"], rating: "A", portal: "https://agent.royalneighbors.org/" },
   { name: "Transamerica", products: ["Term", "Whole Life", "IUL"], rating: "A", portal: "https://transact.transamerica.com/" },
+  { name: "Trinity Life", products: ["Final Expense", "Whole Life", "Term"], rating: "B++", ratingFull: "B++ (Good)", portal: "https://trinity.ihlic.com/" },
+  { name: "United Home Life", products: ["Final Expense", "Whole Life", "Term"], rating: "A", ratingFull: "A (Excellent — upgraded June 2025)", portal: "https://agentportal.unitedhomelife.com/" },
 ];
 
 const ratingColors: Record<string, string> = {
+  'A++': 'bg-emerald-100 text-emerald-700',
   'A+': 'bg-emerald-100 text-emerald-700',
   'A': 'bg-green-100 text-green-700',
   'A-': 'bg-blue-100 text-blue-700',
+  'B++': 'bg-amber-100 text-amber-800',
 };
 
 // Support contacts
@@ -679,13 +698,20 @@ export default function AgentResources() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <h3 className="font-semibold text-gray-900">{carrier.name}</h3>
-                          <Badge
-                            className={cn(ratingColors[carrier.rating] || 'bg-gray-100 text-gray-700', 'border-0')}
-                            style={{ borderRadius: RADIUS.pill }}
-                            aria-label={`AM Best rating: ${carrier.rating}`}
-                          >
-                            {carrier.rating}
-                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                className={cn(ratingColors[carrier.rating] || 'bg-gray-100 text-gray-700', 'border-0')}
+                                style={{ borderRadius: RADIUS.pill }}
+                                aria-label={`AM Best rating: ${carrier.ratingFull ?? carrier.rating}`}
+                              >
+                                {carrier.rating}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">{carrier.ratingFull ?? carrier.rating}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                         <div className="flex flex-wrap gap-1 mb-3">
                           {carrier.products.map((product, idx) => (

@@ -304,11 +304,15 @@ export default function CarrierPage() {
       {/* Hero Section */}
       <section className="relative bg-primary py-20 md:py-28 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <img
-            src={carrier.heroImage}
-            alt=""
-            className="w-full h-full object-cover"
-          />
+          {carrier.heroImage ? (
+            <img
+              src={carrier.heroImage}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-purple-900 via-violet-700 to-indigo-700" />
+          )}
         </div>
         <div className="relative max-w-6xl mx-auto px-6">
           <motion.div
@@ -323,11 +327,19 @@ export default function CarrierPage() {
 
             <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10 mb-8">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-2xl p-4 flex items-center justify-center shadow-xl">
-                <img
-                  src={carrier.logo}
-                  alt={carrier.name}
-                  className="max-w-full max-h-full object-contain"
-                />
+                {carrier.logo ? (
+                  <img
+                    src={carrier.logo}
+                    alt={carrier.name}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-900 via-violet-700 to-indigo-700 rounded-xl flex items-center justify-center px-3 text-center">
+                    <span className="font-serif text-white text-xl md:text-2xl leading-tight tracking-tight">
+                      {carrier.name.split(' ').slice(0, 2).join(' ')}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
@@ -399,11 +411,23 @@ export default function CarrierPage() {
               className="relative"
             >
               <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src={carrier.heroImage}
-                  alt={`${carrier.name} - Professional Services`}
-                  className="w-full h-full object-cover"
-                />
+                {carrier.heroImage ? (
+                  <img
+                    src={carrier.heroImage}
+                    alt={`${carrier.name} - Professional Services`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-900 via-violet-700 to-indigo-700 flex items-center justify-center p-8">
+                    <div className="text-center">
+                      <Shield className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                      <p className="font-serif text-white text-2xl leading-snug">
+                        {carrier.name.split(' ').slice(0, 3).join(' ')}
+                      </p>
+                      <p className="text-white/70 text-sm mt-2">Est. {carrier.founded}</p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-lg p-4 max-w-xs hidden md:block">
                 <div className="flex items-center gap-3">
