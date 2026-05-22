@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.0.67";
+export const LIFEOS_VERSION = "1.1.0";
 
 /**
  * Release notes that ship with this version. The server's
@@ -33,13 +33,13 @@ export const LIFEOS_VERSION = "1.0.67";
  *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
-export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.0.67";
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.1.0";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No Gold Coast changes. Heritage added an app-level 27s request timeout that sits BEFORE session middleware (1.0.61's route-level timeout could be shadowed by a hung session lookup), plus a Cloudflare-aware client error parser so the next time something 502s the console shows a real code, not UNKNOWN. Plus /api/_ping at the app root for one-curl health checks.";
+  "No functional Gold Coast changes. Heritage shipped a 20-carrier rollout: 11 new carrier partners with full data + Firebase-hosted logos, branded transactional emails (quote, secure forms, product guides) for all 20 carriers, a new Firebase image CDN admin panel, refreshed homepage carousel showing every partner, and producer-portal access from the Agent Lounge with researched portal URLs and rating tooltips. Gold Coast tracks the version number for WhatsNew popup parity.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **No functional Gold Coast changes.** Heritage shipped a deep-clean pass after the four-wave debug sweep, weeding out latent issues that hadn't yet surfaced visibly. Headlines: Telnyx 502 root cause was Cloudflare's HTML 502 (origin hung past CF's window because the Telnyx SDK had no client-side timeout — now \`timeout: 15_000\`); founder/director/agency_manager were missing from \`GCFWebSocketServer\`'s role-channel maps so C-suite silently received zero real-time data (added all three); top-level \`<ErrorBoundary>\` so a single component crash can't white-screen the app; Vite \`build.sourcemap: true\` so console stack traces resolve to .tsx file:line; new \`safeStorage\` helper deployed to AgentLoungeLayout / LoungeLayout / AdminSubmissions so Safari private mode no longer crashes the page; lazy \`getStripePromise()\` so Stripe's RUM beacon only fires when the checkout dialog opens (not on every marketplace page load); TS target bumped to ES2020 (wipes ~6 Map/Set iteration errors); and three pre-existing TS errors fixed (routes.ts duplicate-key + arg count, schema.ts duplicate \`importHistory\` export). Gold Coast tracks the version number for parity.`;
+- **No functional Gold Coast changes.** Heritage shipped 1.1.0 — a 20-carrier rollout that expanded partners from 9 to 20, added branded transactional emails for every carrier (quote, secure form, and product guide flows now carrier-themed with logos + colors), wired the Image CDN Manager admin panel to Firebase Storage via a proven server-side upload path, refreshed the homepage logo carousel with real Firebase-hosted logos, and added producer-portal access on the Agent Lounge Carriers tab with rating tooltips. Gold Coast tracks the version number so the WhatsNew popup infra stays in lockstep across both apps.`;
 
 
 /**
