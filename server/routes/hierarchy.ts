@@ -17,6 +17,18 @@ router.use(requireAuth);
 router.use(requireRole(...RoleGroups.STAFF));
 
 // =============================================================================
+// VISIBILITY GATE — Wave H2
+// Only the exec tier (founder, owner, system_admin) can see full-tree data
+// and any caller's uplines. Everyone else: own node + descendants only.
+// =============================================================================
+
+const EXEC_TIER = [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN] as const;
+
+function isExecTier(role: string | undefined): boolean {
+  return !!role && (EXEC_TIER as readonly string[]).includes(role);
+}
+
+// =============================================================================
 // TYPES
 // =============================================================================
 
@@ -157,14 +169,20 @@ router.get("/my-position", async (req: Request, res: Response) => {
     }
 
     const user = result.rows[0];
+    const userRole = (req as any).user?.role;
     const member = await formatHierarchyMember(user, user);
+
+    // Wave H2: only exec tier sees upline references in /my-position.
+    // For everyone else, return self-only data — no directUplineId, no
+    // uplineChain leak. UI renders my-node + downlines correctly without them.
+    const exec = isExecTier(userRole);
 
     res.json({
       success: true,
       data: {
         ...member,
-        directUplineId: user.direct_upline_id,
-        uplineChain: user.upline_chain || [],
+        directUplineId: exec ? user.direct_upline_id : null,
+        uplineChain: exec ? (user.upline_chain || []) : [],
         overrideEligible: user.override_eligible || false,
         overridePercentage: user.override_percentage,
       },
@@ -182,8 +200,16 @@ router.get("/my-position", async (req: Request, res: Response) => {
 router.get("/upline", async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
     if (!userId) {
       return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    // Wave H2: only exec tier can see upline data. Non-exec callers get
+    // an empty upline list — never a 403 — so existing UI doesn't break;
+    // it just renders no upline section.
+    if (!isExecTier(userRole)) {
+      return res.json({ success: true, data: [] });
     }
 
     // Get the user's upline chain
@@ -286,9 +312,11 @@ async function hierarchyTableExists(): Promise<boolean> {
 router.get("/full", async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
     if (!userId) {
       return res.status(401).json({ error: "Not authenticated" });
     }
+    const exec = isExecTier(userRole);
 
     // Check if hierarchy table exists
     const tableExists = await hierarchyTableExists();
@@ -319,9 +347,9 @@ router.get("/full", async (req: Request, res: Response) => {
     const agent = await formatHierarchyMember(user, user);
     const uplineChain: string[] = user.upline_chain || [];
 
-    // Fetch upline members (only if we have upline data and table exists)
+    // Wave H2: only exec tier sees upline members. Non-exec callers get [].
     const uplineMembers: HierarchyMember[] = [];
-    if (tableExists && uplineChain.length > 0) {
+    if (exec && tableExists && uplineChain.length > 0) {
       const uplineResult = await pool.query(`
         SELECT u.*, h.hierarchy_level, h.hierarchy_title, h.contract_level
         FROM users u
@@ -381,36 +409,46 @@ router.get("/team-tree", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // Check permissions
-    if (!hasPermission(userRole, Permission.HIERARCHY_VIEW_TEAM) &&
-        !hasPermission(userRole, Permission.HIERARCHY_VIEW_ALL)) {
-      return res.status(403).json({ error: "Not authorized to view team tree" });
-    }
+    // Wave H2: every authenticated user can see their own team-tree
+    // (subtree = self + descendants). Exec tier (founder/owner/system_admin)
+    // sees every agent system-wide. Permission gate removed in favor of the
+    // dispatch below; the previous gate denied legitimate downline viewing
+    // for agents with at least one downline.
+    const exec = isExecTier(userRole);
 
-    // Recursive CTE to get all downline
-    const result = await pool.query(`
-      WITH RECURSIVE team_tree AS (
-        -- Base case: direct reports
-        SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
-               h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
-               1 as depth
-        FROM users u
-        JOIN agent_hierarchy h ON u.id = h.agent_user_id
-        WHERE h.direct_upline_id = $1 AND h.effective_to IS NULL
+    const result = exec
+      ? await pool.query(`
+          SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
+                 h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
+                 CASE WHEN h.direct_upline_id IS NULL THEN 0 ELSE COALESCE(jsonb_array_length(h.upline_chain), 0) + 1 END as depth
+          FROM users u
+          JOIN agent_hierarchy h ON u.id = h.agent_user_id
+          WHERE h.effective_to IS NULL
+          ORDER BY depth, h.hierarchy_level, u.first_name
+        `)
+      : await pool.query(`
+          WITH RECURSIVE team_tree AS (
+            -- Base case: direct reports
+            SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
+                   h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
+                   1 as depth
+            FROM users u
+            JOIN agent_hierarchy h ON u.id = h.agent_user_id
+            WHERE h.direct_upline_id = $1 AND h.effective_to IS NULL
 
-        UNION ALL
+            UNION ALL
 
-        -- Recursive case: reports of reports
-        SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
-               h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
-               tt.depth + 1
-        FROM users u
-        JOIN agent_hierarchy h ON u.id = h.agent_user_id
-        JOIN team_tree tt ON h.direct_upline_id = tt.id
-        WHERE h.effective_to IS NULL AND tt.depth < 10
-      )
-      SELECT * FROM team_tree ORDER BY depth, hierarchy_level, first_name
-    `, [userId]);
+            -- Recursive case: reports of reports
+            SELECT u.id, u.first_name, u.last_name, u.email, u.phone, u.role, u.avatar_url,
+                   h.hierarchy_level, h.hierarchy_title, h.direct_upline_id, h.contract_level,
+                   tt.depth + 1
+            FROM users u
+            JOIN agent_hierarchy h ON u.id = h.agent_user_id
+            JOIN team_tree tt ON h.direct_upline_id = tt.id
+            WHERE h.effective_to IS NULL AND tt.depth < 10
+          )
+          SELECT * FROM team_tree ORDER BY depth, hierarchy_level, first_name
+        `, [userId]);
 
     const teamMembers: (HierarchyMember & { depth: number; directUplineId: string })[] = [];
     for (const member of result.rows) {
