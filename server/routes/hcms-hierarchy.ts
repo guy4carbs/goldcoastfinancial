@@ -1,6 +1,7 @@
 import { Router, type Request } from "express";
 import { pool } from "../db";
 import { requireAuth, requireRole, MANAGER_PLUS, ADMIN_PLUS } from "../middleware/auth";
+import { Roles } from "../types/permissions";
 import { logFounderAction } from "../services/founderAudit";
 import {
   emitHierarchyChanged,
@@ -14,11 +15,20 @@ import { resolveAgentAgency } from "../services/agencyResolver";
 const router = Router();
 import { HIERARCHY_LEVELS, HIERARCHY_TITLES } from "../../shared/models/enterprise";
 
+// Exec tier — roles that get full system-wide hierarchy visibility on the
+// read endpoints (/tree, /flat, /uplines, /stats). Lower tiers either get
+// scoped views (/aip-rollup falls back to their subtree) or are blocked.
+// Wave H2 (2026-05-23): widened from {OWNER, SYSTEM_ADMIN} system-wide /
+// FOUNDER agency-scoped → all three roles get system-wide oversight, since
+// founders own their org's hierarchy and need the full picture.
+const EXEC_TIER = [Roles.FOUNDER, Roles.OWNER, Roles.SYSTEM_ADMIN] as const;
+
 // ─── Tenancy scope helpers (mirror Dashboard + Revenue) ─────────────────────
 //
 // The hierarchy was previously system-wide for all MANAGER_PLUS roles. Wave H1
-// (2026-05) closes the cross-tenant leak: founders see only agents inside
-// their resolved agency. OWNER + SYSTEM_ADMIN keep system-wide oversight.
+// (2026-05) closed the cross-tenant leak: founders saw only agents inside
+// their resolved agency. Wave H2 (2026-05-23) re-elevates founders to
+// system-wide so they match owner + system_admin on the read endpoints.
 
 type ViewerScope =
   | { systemWide: true }
@@ -27,7 +37,14 @@ type ViewerScope =
 
 async function viewerAgencyScope(req: Request): Promise<ViewerScope> {
   const role = req.user?.role;
-  if (role === "owner" || role === "system_admin") return { systemWide: true };
+  // Wave H2 (2026-05-23): founder joins owner + system_admin in the exec
+  // tier — all three get system-wide visibility on the hierarchy reads.
+  // Helper is file-local (grep `viewerAgencyScope server/` confirmed:
+  // finance-revenue.ts and founders-oversight.ts each have their own copy),
+  // so widening here only affects hcms-hierarchy.ts.
+  if (role === "founder" || role === "owner" || role === "system_admin") {
+    return { systemWide: true };
+  }
   const userId = req.user?.id;
   if (!userId) return { forbidden: true };
   const resolved = await resolveAgentAgency(userId);
@@ -84,7 +101,8 @@ const HIERARCHY_NAME_SELECT = `
   END AS display_name
 `;
 
-router.get("/tree", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
+router.get("/tree", requireAuth, requireRole(...EXEC_TIER), async (req, res) => {
+  const startTime = Date.now();
   try {
     const scope = await viewerAgencyScope(req);
     if ("forbidden" in scope) return res.status(403).json({ error: "Agency not resolved." });
@@ -121,13 +139,34 @@ router.get("/tree", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) 
       agentIds ? [agentIds] : [],
     );
     res.json(result.rows);
+
+    // Helix H2 follow-up (SOC 2 CC6.1): emit an audit trail entry every time
+    // an exec-tier user views the system-wide hierarchy tree. Fire-and-forget
+    // via setImmediate so the audit-log INSERT never blocks the response;
+    // logFounderAction already pool-catches its own errors on the non-
+    // transactional path, the extra .catch() here is defense-in-depth so a
+    // rejected promise can't ever surface as an unhandledRejection.
+    setImmediate(() => {
+      logFounderAction({
+        actorUserId: req.user!.id,
+        action: "hierarchy.tree.viewed",
+        entityType: "agent_hierarchy",
+        payload: {
+          actorRole: req.user!.role,
+          scope: agentIds ? { kind: "agency", agencyId } : { kind: "systemWide" },
+          agentCount: result.rows.length,
+          queryDurationMs: Date.now() - startTime,
+        },
+      }).catch((err) => console.error("[hcms-hierarchy /tree] audit log error:", err?.message ?? err));
+    });
   } catch (e: any) {
     console.error("[hcms-hierarchy /tree] DB error:", e?.message, e?.stack);
     res.status(500).json({ error: "Hierarchy tree query failed" });
   }
 });
 
-router.get("/flat", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
+router.get("/flat", requireAuth, requireRole(...EXEC_TIER), async (req, res) => {
+  const startTime = Date.now();
   try {
     const scope = await viewerAgencyScope(req);
     if ("forbidden" in scope) return res.status(403).json({ error: "Agency not resolved." });
@@ -145,7 +184,29 @@ router.get("/flat", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) 
     if (search) { p.push(`%${search}%`); sql += ` AND (u.first_name ILIKE $${p.length} OR u.last_name ILIKE $${p.length} OR ap.company_name ILIKE $${p.length} OR ap.dba_name ILIKE $${p.length})`; }
     if (level) { p.push(parseInt(level as string)); sql += ` AND ah.hierarchy_level = $${p.length}`; }
     sql += ` ORDER BY ah.hierarchy_level ASC`;
-    res.json((await pool.query(sql, p)).rows);
+    const result = await pool.query(sql, p);
+    res.json(result.rows);
+
+    // Helix H2 follow-up (SOC 2 CC6.1): emit an audit trail entry every time
+    // an exec-tier user views the flat hierarchy listing. Same fire-and-forget
+    // shape as /tree above — see that handler for rationale.
+    setImmediate(() => {
+      logFounderAction({
+        actorUserId: req.user!.id,
+        action: "hierarchy.flat.viewed",
+        entityType: "agent_hierarchy",
+        payload: {
+          actorRole: req.user!.role,
+          scope: agentIds ? { kind: "agency", agencyId } : { kind: "systemWide" },
+          agentCount: result.rows.length,
+          filters: {
+            search: typeof search === "string" ? search : null,
+            level: level != null ? parseInt(level as string) : null,
+          },
+          queryDurationMs: Date.now() - startTime,
+        },
+      }).catch((err) => console.error("[hcms-hierarchy /flat] audit log error:", err?.message ?? err));
+    });
   } catch (e: any) {
     console.error("[hcms-hierarchy /flat] DB error:", e?.message);
     res.status(500).json({ error: "Hierarchy flat query failed" });
@@ -192,7 +253,7 @@ router.get("/my-subtree", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
+router.get("/uplines", requireAuth, requireRole(...EXEC_TIER), async (req, res) => {
   try {
     const scope = await viewerAgencyScope(req);
     if ("forbidden" in scope) return res.status(403).json({ error: "Agency not resolved." });
@@ -303,31 +364,51 @@ router.get("/uplines", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
 
 // GET /aip-rollup — per-agent YTD AP including the entire downline subtree.
 // Mirror dashboard convention: status NOT IN ('rejected','reversed','cancelled'),
-// honor system, agency-scoped.
-router.get("/aip-rollup", requireAuth, requireRole(...MANAGER_PLUS), async (req, res) => {
+// honor system.
+//
+// Wave H2 (2026-05-23): auth widened to `requireAuth` only — any logged-in
+// user can call. Visibility auto-scopes by role:
+//   - EXEC_TIER (founder/owner/system_admin) → system-wide rollup
+//   - everyone else → only the viewer + every descendant whose
+//     `upline_chain` JSONB array contains the viewer's id (mirrors
+//     /my-subtree's filter using the `?` jsonb-contains-key operator).
+router.get("/aip-rollup", requireAuth, async (req, res) => {
   try {
-    const scope = await viewerAgencyScope(req);
-    if ("forbidden" in scope) return res.status(403).json({ error: "Agency not resolved." });
-    const agencyId = scopeId(scope);
-    const agentIds = await scopedAgentIds(agencyId);
+    const viewerId = req.user!.id;
+    const viewerRole = req.user?.role;
+    const isExec =
+      viewerRole === Roles.FOUNDER ||
+      viewerRole === Roles.OWNER ||
+      viewerRole === Roles.SYSTEM_ADMIN;
 
-    // Personal AP for every agent in the scope (or system-wide).
+    // For non-exec viewers, restrict to viewer + their subtree. Filter shape
+    // matches /my-subtree exactly: `agent_user_id = $1 OR upline_chain ? $1`
+    // (the `?` operator tests for a top-level JSONB array element).
+    const subtreeFilter = isExec
+      ? ""
+      : ` AND (agent_user_id::text = $1 OR upline_chain ? $1)`;
+    const dealsSubtreeFilter = isExec
+      ? ""
+      : // For deals we need the same constraint, but deals don't carry an
+        // upline_chain — we restrict to agents whose hierarchy row is in the
+        // viewer's subtree via a subquery on agent_hierarchy.
+        ` AND agent_user_id::text IN (
+            SELECT ah.agent_user_id::text FROM agent_hierarchy ah
+             WHERE (ah.effective_to IS NULL OR ah.effective_to > NOW())
+               AND (ah.agent_user_id::text = $1 OR ah.upline_chain ? $1)
+          )`;
+    const params: any[] = isExec ? [] : [viewerId];
+
+    // Personal AP for every agent in scope.
     const personalRes = await pool.query(
-      agentIds
-        ? `SELECT agent_user_id::text AS id,
-                  COALESCE(SUM(annual_premium::numeric), 0)::numeric(14,2) AS ap
-             FROM deals
-            WHERE status NOT IN ('rejected', 'reversed', 'cancelled')
-              AND created_at >= date_trunc('year', CURRENT_DATE)
-              AND agent_user_id::text = ANY($1::text[])
-            GROUP BY agent_user_id`
-        : `SELECT agent_user_id::text AS id,
-                  COALESCE(SUM(annual_premium::numeric), 0)::numeric(14,2) AS ap
-             FROM deals
-            WHERE status NOT IN ('rejected', 'reversed', 'cancelled')
-              AND created_at >= date_trunc('year', CURRENT_DATE)
-            GROUP BY agent_user_id`,
-      agentIds ? [agentIds] : [],
+      `SELECT agent_user_id::text AS id,
+              COALESCE(SUM(annual_premium::numeric), 0)::numeric(14,2) AS ap
+         FROM deals
+        WHERE status NOT IN ('rejected', 'reversed', 'cancelled')
+          AND created_at >= date_trunc('year', CURRENT_DATE)
+          ${dealsSubtreeFilter}
+        GROUP BY agent_user_id`,
+      params,
     );
     const personal = new Map<string, number>();
     for (const r of personalRes.rows) personal.set(String(r.id), parseFloat(r.ap || "0"));
@@ -335,15 +416,11 @@ router.get("/aip-rollup", requireAuth, requireRole(...MANAGER_PLUS), async (req,
     // For rollup: read agent_hierarchy upline_chain so we can attribute each
     // agent's personal AP to all of their uplines (cumulative team AP).
     const hierRes = await pool.query(
-      agentIds
-        ? `SELECT agent_user_id::text AS id, upline_chain
-             FROM agent_hierarchy
-            WHERE (effective_to IS NULL OR effective_to > NOW())
-              AND agent_user_id::text = ANY($1::text[])`
-        : `SELECT agent_user_id::text AS id, upline_chain
-             FROM agent_hierarchy
-            WHERE (effective_to IS NULL OR effective_to > NOW())`,
-      agentIds ? [agentIds] : [],
+      `SELECT agent_user_id::text AS id, upline_chain
+         FROM agent_hierarchy
+        WHERE (effective_to IS NULL OR effective_to > NOW())
+          ${subtreeFilter}`,
+      params,
     );
 
     // rollup[X] = X's own personal + sum of every downline whose chain
@@ -376,7 +453,7 @@ router.get("/aip-rollup", requireAuth, requireRole(...MANAGER_PLUS), async (req,
     res.status(500).json({ error: "AIP rollup query failed" });
   }
 });
-router.get("/stats", requireAuth, requireRole(...MANAGER_PLUS), async (_req, res) => {
+router.get("/stats", requireAuth, requireRole(...EXEC_TIER), async (_req, res) => {
   try {
     const result = await pool.query(`SELECT hierarchy_level, COUNT(*)::int as count, AVG(contract_level::numeric)::numeric(5,2) as avg_contract FROM agent_hierarchy WHERE effective_to IS NULL OR effective_to > NOW() GROUP BY hierarchy_level ORDER BY hierarchy_level`);
     res.json(result.rows);
