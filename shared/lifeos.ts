@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.0";
+export const LIFEOS_VERSION = "1.1.1";
 
 /**
  * Release notes that ship with this version. The server's
@@ -33,13 +33,16 @@ export const LIFEOS_VERSION = "1.1.0";
  *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
-export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage — both apps on 1.1.0";
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
+export const LIFEOS_RELEASE_TITLE = "Hierarchy: subtree-only visibility + audit logging";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No functional Gold Coast changes. Heritage shipped a 20-carrier rollout: 11 new carrier partners with full data + Firebase-hosted logos, branded transactional emails (quote, secure forms, product guides) for all 20 carriers, a new Firebase image CDN admin panel, refreshed homepage carousel showing every partner, and producer-portal access from the Agent Lounge with researched portal URLs and rating tooltips. Gold Coast tracks the version number for WhatsNew popup parity.";
-export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
+  "Hierarchy API tightened: /tree, /flat, /uplines, /stats restricted to founder + owner + system_admin. Managers and agents now see only their own subtree (self + descendants). /aip-rollup auto-scopes per viewer role. /tree + /flat reads now logged via logFounderAction for SOC 2 CC6.1 audit trail.";
+export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
 
-- **No functional Gold Coast changes.** Heritage shipped 1.1.0 — a 20-carrier rollout that expanded partners from 9 to 20, added branded transactional emails for every carrier (quote, secure form, and product guide flows now carrier-themed with logos + colors), wired the Image CDN Manager admin panel to Firebase Storage via a proven server-side upload path, refreshed the homepage logo carousel with real Firebase-hosted logos, and added producer-portal access on the Agent Lounge Carriers tab with rating tooltips. Gold Coast tracks the version number so the WhatsNew popup infra stays in lockstep across both apps.`;
+- **Subtree-only visibility for non-exec roles.** Previously every staff member (manager, director, agent) could call \`/api/hcms/hierarchy/tree\` and see their agency's full hierarchy — peers, uplines, and all. Now restricted to founder + owner + system_admin only. Everyone else uses \`/my-subtree\` which returns self + descendants via the \`upline_chain\` JSONB containment operator.
+- **Founder reach expanded to system-wide.** \`viewerAgencyScope()\` helper updated: founders now see every agent across every agency (matching owner + system_admin). Sibling helpers in \`finance-revenue.ts\` and \`founders-oversight.ts\` intentionally left agency-scoped — revenue + oversight attribution must stay tenant-isolated per Ledger review.
+- **\`/aip-rollup\` auto-scopes by viewer role.** Exec tier gets system-wide rollup; everyone else gets their subtree only. Drops the \`MANAGER_PLUS\` role gate so KPI cards still work on the my-subtree view for agents.
+- **Audit logging on \`/tree\` + \`/flat\` reads.** \`logFounderAction\` entries written via the existing \`founder_audit_log\` table for SOC 2 CC6.1 evidence. Fired post-response via \`setImmediate\` so no user-visible latency.`;
 
 
 /**
