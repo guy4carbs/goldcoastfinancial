@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.0";
+export const LIFEOS_VERSION = "1.1.1";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,20 +34,15 @@ export const LIFEOS_VERSION = "1.1.0";
  *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
-export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
-export const LIFEOS_RELEASE_TITLE = "20-carrier rollout: branded emails, logos, and image CDN";
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
+export const LIFEOS_RELEASE_TITLE = "Hierarchy: full recursive downline + upline privacy";
 export const LIFEOS_RELEASE_SUMMARY =
-  "11 new carrier partners, branded transactional emails for all 20 carriers (quote, secure forms, product guides), Firebase image CDN admin panel, refreshed homepage carousel, and producer-portal access from the Agent Lounge.";
-export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
+  "My Hierarchy now shows every layer of your downline (direct reports, their reports, and so on down the chain), not just direct reports. Upline visibility is restricted to founders + owners + system admins — managers and agents no longer see who's above them in the chain.";
+export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
 
-- **11 new carrier partners** added: Aetna, American-Amicable, Banner Life, Chubb, Foresters, Globe Life, Guarantee Trust, Fidelity Life (InstaBrain), Lafayette Life, Trinity Life, and United Home Life. Total partners: 20.
-- **Real Firebase-hosted carrier logos** now render in the homepage carousel (no more text placeholders) and on each \`/carriers/<slug>\` page.
-- **Branded transactional emails for all 20 carriers** — quote, secure form (data encryption), and product guide emails now use carrier-specific colors, gradients, and logos. Product guide emails added carrier branding for the first time.
-- **Real customer reviews** sourced from Trustpilot, BBB, and named industry review sites for all 11 new carriers. All quotes anonymized per NAIC guidance.
-- **Image CDN Manager** wired to Firebase Storage via a new admin backend route — the broken client-side SDK approach is replaced with a proven server-side upload path.
-- **Agent Lounge Carriers tab** expanded to 20 carriers with researched producer-portal URLs (Aetna Producer World, LG America Partner, Combined Insurance Agent Portal for Chubb, etc.) and rating tooltips showing AM Best qualifiers.
-- **New admin email test endpoint** (\`POST /api/admin/email/test\`) lets owners trigger any branded template to any address for visual QA — used to send 48 test emails this release for verification.
-- **5 carrier color palettes corrected** to match each carrier's actual brand: Chubb dark navy, Foresters purple, Globe Life blue, Trinity Life green, United Home Life maroon.`;
+- **My Hierarchy renders the full downline tree.** Previously the agent hierarchy page only showed direct reports. It now uses the recursive team-tree endpoint so every layer renders — your direct reports, their reports, their reports' reports, and so on. Founders + owners + system admins see every agent system-wide.
+- **Upline visibility tightened.** \`/api/hierarchy/upline\` returns an empty list for non-exec callers. \`/api/hierarchy/my-position\` no longer leaks \`directUplineId\` or \`uplineChain\` to non-exec callers. \`/api/hierarchy/full\` returns an empty upline array for non-exec callers. The exec tier (founder + owner + system_admin) retains full visibility.
+- **Team-tree permission gate fixed.** The legacy \`HIERARCHY_VIEW_TEAM\` permission check on \`/team-tree\` was blocking legitimate downline viewing for agents with at least one downline. Every authenticated user can now view their own subtree on the My Hierarchy page.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
