@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.1";
+export const LIFEOS_VERSION = "1.1.2";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,14 +35,12 @@ export const LIFEOS_VERSION = "1.1.1";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Hierarchy: full recursive downline + upline privacy";
+export const LIFEOS_RELEASE_TITLE = "2FA verify race fix — no more 'no access' after login";
 export const LIFEOS_RELEASE_SUMMARY =
-  "My Hierarchy now shows every layer of your downline (direct reports, their reports, and so on down the chain), not just direct reports. Upline visibility is restricted to founders + owners + system admins — managers and agents no longer see who's above them in the chain.";
+  "Fixes a session-write race that caused some users (especially agency_manager + manager + sales_agent) to land in a 'no access to lounges, CRM, anything' state immediately after entering their 2FA code. All six 2FA verify endpoints (TOTP, recovery, email enroll, email login, passkey enroll, passkey login) now explicitly save the session to PostgreSQL before responding, so the SPA's next request can never load a stale session row.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
 
-- **My Hierarchy renders the full downline tree.** Previously the agent hierarchy page only showed direct reports. It now uses the recursive team-tree endpoint so every layer renders — your direct reports, their reports, their reports' reports, and so on. Founders + owners + system admins see every agent system-wide.
-- **Upline visibility tightened.** \`/api/hierarchy/upline\` returns an empty list for non-exec callers. \`/api/hierarchy/my-position\` no longer leaks \`directUplineId\` or \`uplineChain\` to non-exec callers. \`/api/hierarchy/full\` returns an empty upline array for non-exec callers. The exec tier (founder + owner + system_admin) retains full visibility.
-- **Team-tree permission gate fixed.** The legacy \`HIERARCHY_VIEW_TEAM\` permission check on \`/team-tree\` was blocking legitimate downline viewing for agents with at least one downline. Every authenticated user can now view their own subtree on the My Hierarchy page.`;
+- **2FA verify session-write race.** Every 2FA verify path used to set \`session.twoFactorVerified = true\` and immediately respond, relying on express-session's implicit save-on-finish. With the PostgreSQL session store, that save can race against the SPA's immediate \`window.location.assign(...)\` — the next request loads a session row that doesn't yet have the verified flag, every API call 403s with \`REQUIRES_2FA\`, and the user sees an empty dashboard interpreted as "no access". All six verify endpoints (\`/api/auth/2fa/verify\`, \`/api/auth/2fa/email/enroll/verify\`, \`/api/auth/2fa/email/verify\`, \`/api/auth/webauthn/register/begin\` self-heal, \`/api/auth/webauthn/register/finish\`, \`/api/auth/webauthn/auth/finish\`) now explicitly call \`req.session.save()\` and only respond inside its callback. On failure they return \`{ error, code: SESSION_SAVE_FAILED }\` so the SPA can surface a real error instead of a silent broken state.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant

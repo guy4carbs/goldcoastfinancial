@@ -809,10 +809,21 @@ export async function registerRoutes(
         await log2FAEnabled(req.session.userId!, getAuditContext(req));
       }
 
-      res.json({
-        success: true,
-        message: result.message,
-        twoFactorVerified: true,
+      // Wave AH7: explicit session.save before responding — express-session's
+      // implicit save on response 'finish' races with the SPA's immediate
+      // window.location.assign(), leading to the next request loading a
+      // session row without twoFactorVerified=true. Subsequent API calls
+      // then 403 with REQUIRES_2FA and the user sees "no access" UI.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({
+          success: true,
+          message: result.message,
+          twoFactorVerified: true,
+        });
       });
     } catch (error) {
       console.error("Error verifying 2FA:", error);
@@ -906,7 +917,14 @@ export async function registerRoutes(
       }
       await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      // Wave AH7: see TOTP verify above — explicit save to avoid the race.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2fa/email/enroll/verify] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("[2fa/email/enroll/verify]:", e?.message);
       res.status(500).json({ error: "Verification failed" });
@@ -946,7 +964,14 @@ export async function registerRoutes(
         });
       }
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      // Wave AH7: see TOTP verify above — explicit save to avoid the race.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2fa/email/verify] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("[2fa/email/verify]:", e?.message);
       res.status(500).json({ error: "Verification failed" });
@@ -963,10 +988,17 @@ export async function registerRoutes(
           await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
         }
         (req.session as any).twoFactorVerified = true;
-        return res.status(200).json({
-          ok: true,
-          alreadyEnrolled: true,
-          message: "Passkey already enrolled — using existing credential.",
+        // Wave AH7: explicit save before responding to avoid session-write race.
+        return req.session.save((err) => {
+          if (err) {
+            console.error("[webauthn/register/begin self-heal] session.save failed:", err?.message);
+            return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+          }
+          res.status(200).json({
+            ok: true,
+            alreadyEnrolled: true,
+            message: "Passkey already enrolled — using existing credential.",
+          });
         });
       }
       const options = await webauthnBuildRegistrationOptions({
@@ -999,7 +1031,14 @@ export async function registerRoutes(
       if (!result.ok) return res.status(400).json({ error: result.reason });
       await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      // Wave AH7: explicit save to avoid session-write race.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[webauthn/register/finish] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("[webauthn/register/finish]:", e?.message);
       res.status(500).json({ error: "Failed to register passkey" });
@@ -1033,7 +1072,14 @@ export async function registerRoutes(
       delete (req.session as any).webauthnChallenge;
       if (!result.ok) return res.status(401).json({ error: result.reason });
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      // Wave AH7: explicit save to avoid session-write race.
+      req.session.save((err) => {
+        if (err) {
+          console.error("[webauthn/auth/finish] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("[webauthn/auth/finish]:", e?.message);
       res.status(500).json({ error: "Failed to verify passkey" });
