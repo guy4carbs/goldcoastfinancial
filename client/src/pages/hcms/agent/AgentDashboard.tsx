@@ -13,11 +13,32 @@ export default function AgentDashboard() {
 
   useEffect(() => {
     fetch("/api/agent-portal/me", { credentials: "include" })
-      .then(r => {
-        if (!r.ok) throw new Error(r.status === 401 ? "Please log in again" : "Failed to load dashboard");
+      .then(async r => {
+        if (!r.ok) {
+          // 2FA gate fired — force redirect mirroring queryClient.ts behavior
+          // (see throwIfResNotOk + the global fetch interceptor). Without this
+          // local handling the user sees "Failed to load dashboard" for the
+          // split-second before the interceptor navigates away.
+          if (r.status === 403) {
+            const body = await r.json().catch(() => ({}));
+            if (body?.code === "REQUIRES_2FA_ENROLLMENT") {
+              window.location.assign("/auth/2fa/enroll");
+              return null;
+            }
+            if (body?.code === "REQUIRES_2FA") {
+              window.location.assign("/auth/2fa");
+              return null;
+            }
+          }
+          throw new Error(r.status === 401 ? "Please log in again" : "Failed to load dashboard");
+        }
         return r.json();
       })
-      .then(d => { if (d?.user) setData(d); else setError("Profile data unavailable"); setLoading(false); })
+      .then(d => {
+        if (d === null) return; // already redirecting to the 2FA flow
+        if (d?.user) setData(d); else setError("Profile data unavailable");
+        setLoading(false);
+      })
       .catch(e => { setError(e.message || "Network error"); setLoading(false); });
   }, []);
 

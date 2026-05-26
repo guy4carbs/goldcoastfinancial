@@ -712,7 +712,13 @@ export async function registerRoutes(
       delete session.pending2faSecret;
       delete session.pending2faRecoveryCodes;
       session.twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("2FA enroll/verify error:", e?.message || "enroll_verify_failed");
       res.status(500).json({ error: "Failed to enable 2FA" });
@@ -734,7 +740,13 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Invalid code" });
       }
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("2FA verify error:", e?.message || "verify_failed");
       res.status(500).json({ error: "Verification failed" });
@@ -749,7 +761,13 @@ export async function registerRoutes(
       const ok = await consumeRecoveryCode(req.user.id, code);
       if (!ok) return res.status(401).json({ error: "Invalid recovery code" });
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("2FA recovery error:", e?.message || "recovery_failed");
       res.status(500).json({ error: "Recovery failed" });
@@ -809,7 +827,13 @@ export async function registerRoutes(
       // already-verified so they don't get bounced back to /auth/2fa.
       await pool.query(`UPDATE users SET two_factor_enabled = true, updated_at = NOW() WHERE id = $1`, [req.user.id]);
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("[2fa/email/enroll/verify]:", e?.message);
       res.status(500).json({ error: "Verification failed" });
@@ -857,7 +881,13 @@ export async function registerRoutes(
         });
       }
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("Email OTP verify error:", e?.message || "verify_failed");
       res.status(500).json({ error: "Verification failed" });
@@ -880,10 +910,16 @@ export async function registerRoutes(
           await storage.updateUser(req.user.id, { twoFactorEnabled: true } as any);
         }
         (req.session as any).twoFactorVerified = true;
-        return res.status(200).json({
-          ok: true,
-          alreadyEnrolled: true,
-          message: "Passkey already enrolled — using existing credential.",
+        return req.session.save((err) => {
+          if (err) {
+            console.error("[2FA] session.save failed:", err?.message);
+            return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+          }
+          res.status(200).json({
+            ok: true,
+            alreadyEnrolled: true,
+            message: "Passkey already enrolled — using existing credential.",
+          });
         });
       }
       const options = await buildRegistrationOptions({
@@ -919,7 +955,13 @@ export async function registerRoutes(
       // way TOTP enrol does.
       await storage.updateUser(req.user.id, { twoFactorEnabled: true } as any);
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("WebAuthn register/finish error:", e?.message || "register_finish_failed");
       res.status(500).json({ error: "Failed to register passkey" });
@@ -953,7 +995,13 @@ export async function registerRoutes(
       delete (req.session as any).webauthnChallenge;
       if (!result.ok) return res.status(401).json({ error: result.reason });
       (req.session as any).twoFactorVerified = true;
-      res.json({ ok: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("[2FA] session.save failed:", err?.message);
+          return res.status(500).json({ error: "Session save failed", code: "SESSION_SAVE_FAILED" });
+        }
+        res.json({ ok: true });
+      });
     } catch (e: any) {
       console.error("WebAuthn auth/finish error:", e?.message || "auth_finish_failed");
       res.status(500).json({ error: "Failed to verify passkey" });

@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.1";
+export const LIFEOS_VERSION = "1.1.2";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,15 +34,14 @@ export const LIFEOS_VERSION = "1.1.1";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Hierarchy: subtree-only visibility + audit logging";
+export const LIFEOS_RELEASE_TITLE = "2FA verify race fix — no more 'no access' after login";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Hierarchy API tightened: /tree, /flat, /uplines, /stats restricted to founder + owner + system_admin. Managers and agents now see only their own subtree (self + descendants). /aip-rollup auto-scopes per viewer role. /tree + /flat reads now logged via logFounderAction for SOC 2 CC6.1 audit trail.";
+  "Fixes a session-write race that caused some users (especially agency_manager + manager + sales_agent) to land in a 'no access to lounges, CRM, anything' state immediately after entering their 2FA code. All eight 2FA verify endpoints now explicitly save the session to PostgreSQL before responding, so the SPA's next request can never load a stale session row. Plus: agent dashboard now gracefully handles the 403 if it ever fires (redirects to /auth/2fa instead of showing 'Failed to load dashboard'). Plus: post-verify redirect is now role-aware so non-founders skip the wasted /founders → /hcms bounce.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
 
-- **Subtree-only visibility for non-exec roles.** Previously every staff member (manager, director, agent) could call \`/api/hcms/hierarchy/tree\` and see their agency's full hierarchy — peers, uplines, and all. Now restricted to founder + owner + system_admin only. Everyone else uses \`/my-subtree\` which returns self + descendants via the \`upline_chain\` JSONB containment operator.
-- **Founder reach expanded to system-wide.** \`viewerAgencyScope()\` helper updated: founders now see every agent across every agency (matching owner + system_admin). Sibling helpers in \`finance-revenue.ts\` and \`founders-oversight.ts\` intentionally left agency-scoped — revenue + oversight attribution must stay tenant-isolated per Ledger review.
-- **\`/aip-rollup\` auto-scopes by viewer role.** Exec tier gets system-wide rollup; everyone else gets their subtree only. Drops the \`MANAGER_PLUS\` role gate so KPI cards still work on the my-subtree view for agents.
-- **Audit logging on \`/tree\` + \`/flat\` reads.** \`logFounderAction\` entries written via the existing \`founder_audit_log\` table for SOC 2 CC6.1 evidence. Fired post-response via \`setImmediate\` so no user-visible latency.`;
+- **2FA verify session-write race (primary).** Every 2FA verify path used to set \`session.twoFactorVerified = true\` and immediately respond, relying on express-session's implicit save-on-finish. With the PostgreSQL session store, that save can race against the SPA's immediate \`window.location.assign(...)\` — the next request loads a session row that doesn't yet have the verified flag, every API call 403s with \`REQUIRES_2FA\`, and the user sees an empty dashboard interpreted as "no access". All eight verify endpoints (\`/api/auth/2fa/verify\`, \`/api/auth/2fa/recovery\`, \`/api/auth/2fa/email/enroll/verify\`, \`/api/auth/2fa/email/verify\`, WebAuthn enroll/register/auth, and the enrollment self-heal branch) now explicitly call \`req.session.save()\` and only respond inside its callback. On failure they return \`{ error, code: SESSION_SAVE_FAILED }\` so the SPA can surface a real error.
+- **Agent dashboard handles 403 REQUIRES_2FA gracefully.** The dashboard's raw \`fetch()\` of \`/api/agent-portal/me\` used to surface a generic "Failed to load dashboard" error UI when the 2FA gate fired. It now detects the \`REQUIRES_2FA*\` codes and force-redirects to \`/auth/2fa\` (or \`/auth/2fa/enroll\`), matching the SPA-wide pattern in queryClient.ts. Safety net for any future race or token expiry.
+- **Post-2FA verify redirect is now role-aware.** Previously every user landed on \`/founders\` after verify, then bounced to \`/hcms\` → \`/hcms/my/dashboard\` via the FoundersOnly + DashboardContent gates. Each extra hop gave the session-save race more time to bite. The verify page now reads the user's role from \`/api/auth/user\` (2FA-exempt) and routes directly to the right home: founder → /founders, owner/system_admin → /hcms, marketing_staff → /marketing, client → /client/dashboard, investor → /investor/dashboard, everything else → /hcms/my/dashboard.`;
 
 
 /**

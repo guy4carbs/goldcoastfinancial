@@ -12,6 +12,27 @@ import { startAuthentication } from "@simplewebauthn/browser";
 import { csrfHeaders } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Role-aware post-verify redirect. Mirrors LoginPage.tsx's role dispatch so a
+// freshly-verified agency_manager (or any non-founder) lands directly on their
+// real home rather than bouncing /founders → /hcms → /hcms/my/dashboard. The
+// extra hops give the parallel session-write race more time to bite and cause
+// a visible flash. /api/auth/user is 2FA-exempt so this call is safe here.
+async function redirectByRole() {
+  try {
+    const res = await fetch("/api/auth/user", { credentials: "include" });
+    const data = await res.json().catch(() => ({}));
+    const role = data?.user?.role;
+    if (role === "founder") return window.location.assign("/founders");
+    if (role === "owner" || role === "system_admin") return window.location.assign("/hcms");
+    if (role === "marketing_staff") return window.location.assign("/marketing");
+    if (role === "client") return window.location.assign("/client/dashboard");
+    if (role === "investor") return window.location.assign("/investor/dashboard");
+    return window.location.assign("/hcms/my/dashboard");
+  } catch {
+    window.location.assign("/hcms/my/dashboard"); // safe fallback
+  }
+}
+
 export default function Auth2faVerifyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -48,7 +69,7 @@ export default function Auth2faVerifyPage() {
         throw new Error(data.error || `HTTP ${finishRes.status}`);
       }
       toast({ title: "Verified with Touch ID" });
-      window.location.assign("/founders");
+      await redirectByRole();
     } catch (e: any) {
       // NotAllowedError is the iOS Safari "you didn't tap, or you cancelled"
       // failure mode. Show friendlier copy that nudges users toward the
@@ -145,7 +166,7 @@ export default function Auth2faVerifyPage() {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
       toast({ title: "Verified" });
-      window.location.assign("/founders");
+      await redirectByRole();
     } catch (e: any) {
       toast({
         title: "Verification failed",
