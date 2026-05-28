@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.3";
+export const LIFEOS_VERSION = "1.1.4";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,12 +34,12 @@ export const LIFEOS_VERSION = "1.1.3";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage 1.1.3 — agency_manager role recognition";
+export const LIFEOS_RELEASE_TITLE = "Lockstep with Heritage 1.1.4 — case-insensitive email login";
 export const LIFEOS_RELEASE_SUMMARY =
-  "No functional Gold Coast changes. Heritage shipped 1.1.3 fixing a frontend role-enum mismatch that was silently downgrading users with role 'agency_manager' (created via the recent /apply invite flow) to 'client' and showing them 'no access' on every protected page. Gold Coast's frontend (HCMSLayout's AdminOnly/ManagerOnly gates) already accepts both 'manager' and 'agency_manager' so the same bug doesn't exist here — version bumped only to keep both apps in lockstep for the WhatsNew popup.";
+  "No functional Gold Coast changes. Heritage shipped 1.1.4 backporting PR #48 (commit 411ac87 from May 2026) — case-insensitive email lookup in storage.getUserByEmail so users whose emails were stored with mixed case (e.g., 'Khadinmorrow@icloud.com') can sign in and reset passwords regardless of how they type or autofill their email. Gold Coast already had this fix from the original May 2026 merge; version bumped only to keep both apps in lockstep for the WhatsNew popup.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
 
-- **No functional Gold Coast changes.** Heritage shipped 1.1.3 patching its \`client/src/types/permissions.ts\` so the frontend Role enum recognizes the canonical server string \`'agency_manager'\` (was only accepting the legacy \`'manager'\`). Users invited via the recent \`/apply\` flow get the new string in their DB row; without the patch, the heritage SPA's \`RoleProtectedRoute\` fell back to \`Roles.CLIENT\` and showed an AccessDenied UI saying "role: client". Gold Coast's frontend uses a different gate pattern (\`HCMSLayout.tsx\`'s \`ADMIN_ROLES\` array already includes \`'agency_manager'\`) and never had this bug. Lockstep version bump only on Gold Coast.`;
+- **No functional Gold Coast changes.** Heritage shipped 1.1.4 backporting PR #48 (commit 411ac87) — \`storage.getUserByEmail\` now compares \`LOWER(users.email)\` on both sides via a drizzle sql template so an email stored as \`'Khadinmorrow@icloud.com'\` at invite time matches a login of \`'khadinmorrow@icloud.com'\` (or any other casing). Without the fix, Heritage's user lookup silently returned null for mixed-case emails and the user saw "Invalid email or password" even after a fresh password reset — exactly the symptom Khadin Morrow reported. Gold Coast (main) had received this fix back in May 2026 via the original PR merge, which is why he could log into Gold Coast cleanly while Heritage stayed broken. Version bumped only here so both apps' WhatsNew popups stay in lockstep.`;
 
 
 /**
