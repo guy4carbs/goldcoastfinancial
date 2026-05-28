@@ -179,7 +179,27 @@ export function isAdminRole(role: Role): boolean {
 }
 
 export function isValidRole(role: string): role is Role {
-  return ALL_ROLES.includes(role as Role);
+  // Accept both the legacy DB value 'manager' (4 active users) and the
+  // current canonical 'agency_manager' (3 active users). The server-side
+  // permissions.ts emits 'agency_manager' as Roles.AGENCY_MANAGER, but
+  // this frontend's Roles.AGENCY_MANAGER constant is still the legacy
+  // string 'manager' — so without this branch, every 'agency_manager'
+  // user hitting RoleProtectedRoute would fall back to Roles.CLIENT and
+  // see "no access" UI on every protected page.
+  return ALL_ROLES.includes(role as Role) || role === 'agency_manager';
+}
+
+/**
+ * Normalize any incoming role string to a canonical Role.
+ * - 'agency_manager' (server canonical) → Roles.AGENCY_MANAGER (= 'manager')
+ *   so existing role checks against Roles.AGENCY_MANAGER keep working.
+ * - Anything else valid → returned as-is.
+ * - Anything unrecognized → Roles.CLIENT (lowest-privilege safe default).
+ */
+export function normalizeRole(role: string | undefined | null): Role {
+  if (role === 'agency_manager') return Roles.AGENCY_MANAGER;
+  if (role && isValidRole(role)) return role;
+  return Roles.CLIENT;
 }
 
 // =============================================================================

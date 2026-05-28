@@ -14,6 +14,7 @@ import {
   hasAllPermissions,
   DEFAULT_ROUTE_BY_ROLE,
   isValidRole,
+  normalizeRole,
   Roles,
 } from '@/types/permissions';
 import { AccessDenied } from './AccessDenied';
@@ -87,8 +88,11 @@ export function RoleProtectedRoute({
       return;
     }
 
-    // Get user's role (with fallback)
-    const userRole: Role = isValidRole(user.role) ? user.role : Roles.CLIENT;
+    // Get user's role (with fallback). normalizeRole accepts both the legacy
+    // 'manager' DB value AND the canonical 'agency_manager' string the server
+    // now emits — without this normalization, agency_manager users get treated
+    // as Roles.CLIENT and locked out of every manager-tier page.
+    const userRole: Role = normalizeRole(user.role);
 
     // Check 2FA requirement
     if (require2FA && user.twoFactorEnabled && !user.twoFactorVerified) {
@@ -155,8 +159,10 @@ export function RoleProtectedRoute({
     }
 
     if (accessState === 'denied' && !showAccessDenied && user) {
-      // Redirect to user's default route based on their role
-      const userRole: Role = isValidRole(user.role) ? user.role : Roles.CLIENT;
+      // Redirect to user's default route based on their role.
+      // normalizeRole handles 'agency_manager' → Roles.AGENCY_MANAGER mapping
+      // so DEFAULT_ROUTE_BY_ROLE lookup works for legacy + new users alike.
+      const userRole: Role = normalizeRole(user.role);
       const defaultRoute = DEFAULT_ROUTE_BY_ROLE[userRole] || '/';
       setLocation(defaultRoute);
     }

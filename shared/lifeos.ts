@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.2";
+export const LIFEOS_VERSION = "1.1.3";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,12 +35,12 @@ export const LIFEOS_VERSION = "1.1.2";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "2FA verify race fix — no more 'no access' after login";
+export const LIFEOS_RELEASE_TITLE = "agency_manager role recognition — fixes 'role is client' lockout";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Fixes a session-write race that caused some users (especially agency_manager + manager + sales_agent) to land in a 'no access to lounges, CRM, anything' state immediately after entering their 2FA code. All six 2FA verify endpoints (TOTP, recovery, email enroll, email login, passkey enroll, passkey login) now explicitly save the session to PostgreSQL before responding, so the SPA's next request can never load a stale session row.";
+  "Users with role 'agency_manager' (created via the recent /apply invite flow) were being silently downgraded to 'client' by the frontend RoleProtectedRoute guard because the client-side Role enum only knew about the legacy 'manager' string. They saw 'no access' on every protected page. RoleProtectedRoute now normalizes 'agency_manager' to the canonical AGENCY_MANAGER role so both legacy 'manager' and new 'agency_manager' DB values resolve to the same manager-tier access.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
 
-- **2FA verify session-write race.** Every 2FA verify path used to set \`session.twoFactorVerified = true\` and immediately respond, relying on express-session's implicit save-on-finish. With the PostgreSQL session store, that save can race against the SPA's immediate \`window.location.assign(...)\` — the next request loads a session row that doesn't yet have the verified flag, every API call 403s with \`REQUIRES_2FA\`, and the user sees an empty dashboard interpreted as "no access". All six verify endpoints (\`/api/auth/2fa/verify\`, \`/api/auth/2fa/email/enroll/verify\`, \`/api/auth/2fa/email/verify\`, \`/api/auth/webauthn/register/begin\` self-heal, \`/api/auth/webauthn/register/finish\`, \`/api/auth/webauthn/auth/finish\`) now explicitly call \`req.session.save()\` and only respond inside its callback. On failure they return \`{ error, code: SESSION_SAVE_FAILED }\` so the SPA can surface a real error instead of a silent broken state.`;
+- **agency_manager → client downgrade in RoleProtectedRoute.** The frontend's \`Roles.AGENCY_MANAGER\` constant was still the legacy string \`'manager'\` (4 active users), while the server now emits \`'agency_manager'\` for newly-invited managers (3 active users). \`isValidRole('agency_manager')\` returned false, so \`RoleProtectedRoute\` fell back to \`Roles.CLIENT\` and the AccessDenied UI displayed "role: client" on every protected page — even though the database row was correct. Added \`normalizeRole()\` in \`client/src/types/permissions.ts\` that maps the canonical server string \`'agency_manager'\` → \`Roles.AGENCY_MANAGER\` (= \`'manager'\`) so existing access checks against the legacy constant keep working unchanged, AND new 'agency_manager' users now resolve correctly. Both DB values now mean manager-tier access.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
