@@ -1,27 +1,17 @@
 /**
  * Automation Email Service
- * Handles sending automated emails triggered by the automation engine
+ * Handles sending automated emails triggered by the automation engine.
+ *
+ * Delivery now routes through the shared `server/services/email` transport
+ * (Resend with Gmail fallback). The transport owns provider selection,
+ * suppression checks, List-Unsubscribe headers for marketing categories, and
+ * emails_sent logging — this module only resolves templates and picks a category.
  */
 
-import { google } from 'googleapis';
+import { sendEmail, resolveTemplate, type EmailCategory } from "./email";
 
-// OAuth2 client for Gmail
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  'https://developers.google.com/oauthplayground'
-);
-
-oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
-});
-
-async function getGmailClient() {
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
-    throw new Error('Gmail not configured - missing Google OAuth credentials');
-  }
-  return google.gmail({ version: 'v1', auth: oauth2Client });
-}
+// Re-export the shared resolver so existing importers of this module keep working.
+export { resolveTemplate };
 
 // =============================================================================
 // EMAIL TEMPLATES
@@ -102,6 +92,21 @@ The Heritage Life Solutions Team`,
   },
 };
 
+// Default category per built-in template. Templates the recipient asked for or
+// that relate to their account map to transactional categories; relationship
+// outreach maps to marketing categories.
+const TEMPLATE_CATEGORIES: Record<string, EmailCategory> = {
+  "follow-up": "follow_up",
+  "birthday-greeting": "birthday_greeting",
+  "renewal-reminder": "policy_update",
+  "quote-follow-up": "follow_up",
+  "welcome-new-client": "system_notification",
+};
+
+// Fallback for ad-hoc emails with no recognized template — treat as relationship
+// outreach (the safest default; transport will attach unsubscribe headers).
+const DEFAULT_CATEGORY: EmailCategory = "follow_up";
+
 // =============================================================================
 // EMAIL SENDING
 // =============================================================================
@@ -111,6 +116,7 @@ interface SendAutomationEmailParams {
   templateId?: string;
   subject?: string;
   body?: string;
+  category?: EmailCategory;
   agent: {
     name: string;
     email: string;
@@ -120,27 +126,7 @@ interface SendAutomationEmailParams {
 }
 
 /**
- * Resolve template variables in a string
- */
-function resolveTemplate(template: string, context: Record<string, any>): string {
-  return template.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
-    const parts = path.trim().split('.');
-    let value: any = context;
-
-    for (const part of parts) {
-      if (value && typeof value === 'object' && part in value) {
-        value = value[part];
-      } else {
-        return match; // Keep original if not found
-      }
-    }
-
-    return value !== undefined ? String(value) : match;
-  });
-}
-
-/**
- * Send an automated email
+ * Send an automated email through the shared transport.
  */
 export async function sendAutomationEmail(params: SendAutomationEmailParams): Promise<{
   success: boolean;
@@ -148,11 +134,9 @@ export async function sendAutomationEmail(params: SendAutomationEmailParams): Pr
   error?: string;
 }> {
   try {
-    const gmail = await getGmailClient();
-
     // Get template if specified
-    let subject = params.subject || '';
-    let body = params.body || '';
+    let subject = params.subject || "";
+    let body = params.body || "";
 
     if (params.templateId && EMAIL_TEMPLATES[params.templateId]) {
       const template = EMAIL_TEMPLATES[params.templateId];
@@ -171,33 +155,27 @@ export async function sendAutomationEmail(params: SendAutomationEmailParams): Pr
     body = resolveTemplate(body, context);
 
     if (!params.to || !subject || !body) {
-      throw new Error('Missing required email fields (to, subject, or body)');
+      throw new Error("Missing required email fields (to, subject, or body)");
     }
 
-    // Create email message
-    const message = [
-      'Content-Type: text/plain; charset="UTF-8"',
-      'MIME-Version: 1.0',
-      'Content-Transfer-Encoding: 7bit',
-      `From: ${params.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-      `To: ${params.to}`,
-      `Reply-To: ${params.agent.email}`,
-      `Subject: ${subject}`,
-      '',
-      body
-    ].join('\n');
+    const category: EmailCategory =
+      params.category ||
+      (params.templateId ? TEMPLATE_CATEGORIES[params.templateId] : undefined) ||
+      DEFAULT_CATEGORY;
 
-    const encodedMessage = Buffer.from(message)
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+    const html = `<pre style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; white-space: pre-wrap; word-wrap: break-word;">${body
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")}</pre>`;
 
-    const result = await gmail.users.messages.send({
-      userId: 'me',
-      requestBody: {
-        raw: encodedMessage
-      }
+    const result = await sendEmail({
+      to: params.to,
+      from: `${params.agent.name} <${process.env.GMAIL_FROM_EMAIL || "contact@heritagels.org"}>`,
+      replyTo: params.agent.email,
+      subject,
+      html,
+      text: body,
+      category,
     });
 
     console.log(`[AutomationEmail] Sent to ${params.to}: ${subject}`);
@@ -207,7 +185,7 @@ export async function sendAutomationEmail(params: SendAutomationEmailParams): Pr
       messageId: result.data.id || undefined,
     };
   } catch (error: any) {
-    console.error('[AutomationEmail] Failed to send email:', error.message);
+    console.error("[AutomationEmail] Failed to send email:", error.message);
     return {
       success: false,
       error: error.message,
@@ -216,9 +194,12 @@ export async function sendAutomationEmail(params: SendAutomationEmailParams): Pr
 }
 
 /**
- * Check if email service is configured
+ * Check if email service is configured (provider-aware).
  */
 export function isEmailConfigured(): boolean {
+  if (process.env.EMAIL_PROVIDER === "resend" && process.env.RESEND_API_KEY) {
+    return true;
+  }
   return !!(
     process.env.GOOGLE_CLIENT_ID &&
     process.env.GOOGLE_CLIENT_SECRET &&

@@ -33,6 +33,10 @@ import { automationEngine } from "./services/automation-engine";
 // Workflow Engine (Visual Workflow Builder execution)
 import { workflowEngine } from "./services/workflow-engine";
 
+// Background job queue (BullMQ) + drip sequence workers
+import { shutdown as shutdownJobQueue } from "./services/jobQueue";
+import { registerSequenceWorkers, scheduleDispatcher } from "./services/sequenceQueue";
+
 // Global agent registry for graceful shutdown
 let agentRegistry: AgentRegistry | null = null;
 let gcfWebSocketServer: GCFWebSocketServer | null = null;
@@ -410,6 +414,16 @@ app.use(sentryUserMiddleware);
     // Continue running - workflow engine is optional
   }
 
+  // Initialize BullMQ sequence workers + repeating dispatcher (no-op without REDIS_URL)
+  try {
+    registerSequenceWorkers();
+    await scheduleDispatcher();
+    console.log('[SERVER] ✅ Sequence workers registered');
+  } catch (error) {
+    console.error('[SERVER] ❌ Failed to initialize sequence workers:', error);
+    // Continue running - drip sequences are optional
+  }
+
   // Sentry error middleware (must be before custom error handler)
   app.use(sentryErrorMiddleware);
 
@@ -498,6 +512,13 @@ app.use(sentryUserMiddleware);
       workflowEngine.shutdown();
     } catch (error) {
       console.error('[SERVER] Error stopping workflow engine:', error);
+    }
+
+    // Stop BullMQ workers + queues (drains in-flight sequence sends)
+    try {
+      await shutdownJobQueue();
+    } catch (error) {
+      console.error('[SERVER] Error stopping job queue:', error);
     }
 
     // Close Sentry (flush pending events)

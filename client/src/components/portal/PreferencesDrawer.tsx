@@ -18,8 +18,10 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface PreferencesDrawerProps {
   open: boolean;
@@ -37,33 +39,110 @@ interface Preferences {
   documentDelivery: string;
 }
 
+const DEFAULT_PREFERENCES: Preferences = {
+  emailNotifications: true,
+  smsNotifications: false,
+  paperlessStatements: true,
+  paymentReminders: true,
+  policyUpdates: true,
+  marketingEmails: false,
+  reminderFrequency: "7days",
+  documentDelivery: "email",
+};
+
+// The GET handler returns the raw user_preferences row (snake_case) or a
+// default object. Marketing/secondary toggles live in the custom_settings
+// JSONB (Atlas extends the PATCH handler to persist them). Map both shapes
+// defensively so we tolerate either casing.
+function mapServerPreferences(row: any): Preferences {
+  if (!row) return DEFAULT_PREFERENCES;
+  const custom = row.custom_settings ?? row.customSettings ?? {};
+  const pick = <T,>(...vals: (T | undefined | null)[]): T | undefined =>
+    vals.find((v) => v !== undefined && v !== null) as T | undefined;
+
+  return {
+    emailNotifications:
+      pick<boolean>(row.email_notifications, row.emailNotifications) ??
+      DEFAULT_PREFERENCES.emailNotifications,
+    smsNotifications:
+      pick<boolean>(row.sms_notifications, row.smsNotifications) ??
+      DEFAULT_PREFERENCES.smsNotifications,
+    paperlessStatements:
+      pick<boolean>(custom.paperlessStatements, row.paperless_statements) ??
+      DEFAULT_PREFERENCES.paperlessStatements,
+    paymentReminders:
+      pick<boolean>(custom.paymentReminders, row.payment_reminders) ??
+      DEFAULT_PREFERENCES.paymentReminders,
+    policyUpdates:
+      pick<boolean>(custom.policyUpdates, row.policy_updates) ??
+      DEFAULT_PREFERENCES.policyUpdates,
+    marketingEmails:
+      pick<boolean>(custom.marketingEmails, row.marketing_emails) ??
+      DEFAULT_PREFERENCES.marketingEmails,
+    reminderFrequency:
+      pick<string>(custom.reminderFrequency, custom.digestFrequency, row.reminder_frequency) ??
+      DEFAULT_PREFERENCES.reminderFrequency,
+    documentDelivery:
+      pick<string>(custom.documentDelivery, row.document_delivery) ??
+      DEFAULT_PREFERENCES.documentDelivery,
+  };
+}
+
 export function PreferencesDrawer({ open, onOpenChange }: PreferencesDrawerProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [preferences, setPreferences] = useState<Preferences>({
-    emailNotifications: true,
-    smsNotifications: false,
-    paperlessStatements: true,
-    paymentReminders: true,
-    policyUpdates: true,
-    marketingEmails: false,
-    reminderFrequency: "7days",
-    documentDelivery: "email"
+  const queryClient = useQueryClient();
+  const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
+
+  const { data: serverPrefs } = useQuery<any>({
+    queryKey: ["/api/portal/preferences"],
+    enabled: open,
   });
+
+  // Seed local toggle state whenever fresh server prefs arrive.
+  useEffect(() => {
+    if (serverPrefs) {
+      setPreferences(mapServerPreferences(serverPrefs));
+    }
+  }, [serverPrefs]);
 
   const updatePreference = (key: keyof Preferences, value: boolean | string) => {
     setPreferences(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success("Preferences saved", {
-      description: "Your notification preferences have been updated."
-    });
-    
-    setIsSaving(false);
-    onOpenChange(false);
+  const saveMutation = useMutation({
+    mutationFn: async (payload: Preferences) => {
+      // Send the FULL payload. The backend currently persists only a subset;
+      // Atlas extends PATCH to store the rest in custom_settings.
+      const res = await apiRequest("PATCH", "/api/portal/preferences", {
+        emailNotifications: payload.emailNotifications,
+        smsNotifications: payload.smsNotifications,
+        pushNotifications: payload.emailNotifications, // no dedicated push toggle in UI; mirror email
+        marketingEmails: payload.marketingEmails,
+        paymentReminders: payload.paymentReminders,
+        policyUpdates: payload.policyUpdates,
+        paperlessStatements: payload.paperlessStatements,
+        documentDelivery: payload.documentDelivery,
+        digestFrequency: payload.reminderFrequency,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/portal/preferences"] });
+      toast.success("Preferences saved", {
+        description: "Your notification preferences have been updated.",
+      });
+      onOpenChange(false);
+    },
+    onError: () => {
+      toast.error("Couldn't save preferences", {
+        description: "Something went wrong. Please try again.",
+      });
+    },
+  });
+
+  const isSaving = saveMutation.isPending;
+
+  const handleSave = () => {
+    saveMutation.mutate(preferences);
   };
 
   return (

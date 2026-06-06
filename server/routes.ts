@@ -29,6 +29,11 @@ import adminContentRouter from "./routes/admin-content";
 import adminCrmRouter from "./routes/admin-crm";
 import adminImagesRouter from "./routes/admin-images";
 import adminEmailTestRouter from "./routes/admin-email-test";
+import resendWebhookRouter from "./routes/webhooks-resend";
+import unsubscribeRouter from "./routes/unsubscribe";
+import sequencesRouter from "./routes/sequences";
+import adminSequenceTestRouter from "./routes/admin-sequence-test";
+import { suppress, unsuppress } from "./services/email";
 import contentRouter from "./routes/content";
 import quotesRouter from "./routes/quotes";
 import avatarCouncilRouter from "./routes/avatar-council";
@@ -1738,7 +1743,7 @@ export async function registerRoutes(
           const formLabel = formTypeLabels[form.form_type] || form.form_type;
           await sendPortalMessage({
             senderName: form.client_name || 'Client',
-            senderEmail: 'noreply@goldcoastfnl.com',
+            senderEmail: 'noreply@heritagels.org',
             recipientEmail: form.agent_email,
             recipientName: form.agent_name || 'Agent',
             subject: `Secure Form Completed - ${form.client_name}`,
@@ -3404,13 +3409,61 @@ export async function registerRoutes(
   // Portal: Update notification preferences
   app.patch("/api/portal/preferences", requireAuth, async (req, res) => {
     try {
-      const { emailNotifications, pushNotifications, smsNotifications } = req.body;
+      const {
+        emailNotifications, pushNotifications, smsNotifications,
+        marketingEmails, paymentReminders, policyUpdates,
+        paperlessStatements, documentDelivery, digestFrequency,
+      } = req.body;
+      // Insurance-specific toggles persist in the custom_settings JSONB column
+      const customSettings: Record<string, unknown> = {};
+      if (marketingEmails !== undefined) customSettings.marketingEmails = !!marketingEmails;
+      if (paymentReminders !== undefined) customSettings.paymentReminders = !!paymentReminders;
+      if (policyUpdates !== undefined) customSettings.policyUpdates = !!policyUpdates;
+      if (paperlessStatements !== undefined) customSettings.paperlessStatements = !!paperlessStatements;
+      if (documentDelivery !== undefined) customSettings.documentDelivery = !!documentDelivery;
+      if (digestFrequency !== undefined) customSettings.digestFrequency = digestFrequency;
+
       await pool.query(`
-        INSERT INTO user_preferences (user_id, email_notifications, push_notifications, sms_notifications, updated_at)
-        VALUES ($1, $2, $3, $4, NOW())
+        INSERT INTO user_preferences (user_id, email_notifications, push_notifications, sms_notifications, custom_settings, updated_at)
+        VALUES ($1, $2, $3, $4, $5::jsonb, NOW())
         ON CONFLICT (user_id) DO UPDATE SET
-          email_notifications = $2, push_notifications = $3, sms_notifications = $4, updated_at = NOW()
-      `, [req.session.userId, emailNotifications ?? true, pushNotifications ?? true, smsNotifications ?? false]);
+          email_notifications = $2, push_notifications = $3, sms_notifications = $4,
+          custom_settings = COALESCE(user_preferences.custom_settings, '{}'::jsonb) || $5::jsonb,
+          updated_at = NOW()
+      `, [req.session.userId, emailNotifications ?? true, pushNotifications ?? true, smsNotifications ?? false, JSON.stringify(customSettings)]);
+
+      // Wire category toggles to the email suppression store (in-portal unsubscribe equivalent)
+      try {
+        const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.session.userId]);
+        const userEmail: string | undefined = userResult.rows[0]?.email;
+        if (userEmail) {
+          const toggleMap: Array<[boolean | undefined, Array<"marketing_general" | "product_guide" | "newsletter" | "payment_reminder" | "policy_update">]> = [
+            [marketingEmails, ["marketing_general", "product_guide", "newsletter"]],
+            [paymentReminders, ["payment_reminder"]],
+            [policyUpdates, ["policy_update"]],
+          ];
+          for (const [value, scopes] of toggleMap) {
+            if (value === undefined) continue;
+            for (const scope of scopes) {
+              if (value === false) {
+                await suppress(userEmail, "unsubscribed", { scope, source: "preferences_drawer" });
+              } else {
+                await unsuppress(userEmail, scope);
+              }
+            }
+          }
+          // Master email toggle: global marketing suppression (transactional mail still delivers)
+          if (emailNotifications === false) {
+            await suppress(userEmail, "unsubscribed", { scope: null, source: "preferences_drawer" });
+          } else if (emailNotifications === true) {
+            await unsuppress(userEmail, null);
+          }
+        }
+      } catch (suppressionError) {
+        // Preference save succeeded; suppression sync is best-effort
+        console.error("Preferences suppression sync failed:", suppressionError);
+      }
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating preferences:", error);
@@ -3687,8 +3740,22 @@ export async function registerRoutes(
   // /api/admin catch-all so the stricter ADMINS gate runs first.
   app.use("/api/admin/email", adminEmailTestRouter);
 
+  // Admin: Drip sequence QA (seed templates, test-enroll, run-now). Auth gate is
+  // owner/system_admin/founder only, enforced inside the router — mounted BEFORE
+  // the broader /api/admin catch-all so the stricter gate runs first.
+  app.use("/api/admin/sequences", adminSequenceTestRouter);
+
   // Admin: CRM (leads, settings, testimonials - requires admin role)
   app.use("/api/admin", requireAuth, requireAdmin, adminCrmRouter);
+
+  // Resend delivery-event webhook (PUBLIC — svix signature is the only gate; never auth-gate)
+  app.use("/api/webhooks/resend", resendWebhookRouter);
+
+  // Email unsubscribe (PUBLIC — HMAC token is the only gate; RFC 8058 one-click requires no auth/CSRF)
+  app.use("/api/unsubscribe", unsubscribeRouter);
+
+  // Email drip sequences (CRUD + enrollment; management-role gated inside the router)
+  app.use("/api/sequences", sequencesRouter);
 
   // Public content (blog, FAQs, pages)
   app.use("/api/content", contentRouter);

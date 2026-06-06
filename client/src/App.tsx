@@ -26,6 +26,7 @@ import AdminSettings from "@/pages/AdminSettings";
 import AdminTestimonials from "@/pages/AdminTestimonials";
 import AdminNewsletter from "@/pages/AdminNewsletter";
 import Unsubscribe from "@/pages/Unsubscribe";
+import UnsubscribePage from "@/pages/UnsubscribePage";
 import RiskStrategy from "@/pages/RiskStrategy";
 import Products from "@/pages/Products";
 import Quote from "@/pages/Quote";
@@ -1156,6 +1157,7 @@ function Router() {
         <Route path="/legal/licenses" component={Licenses} />
         <Route path="/legal/do-not-sell" component={DoNotSell} />
         <Route path="/unsubscribe/:token" component={Unsubscribe} />
+        <Route path="/unsubscribe" component={UnsubscribePage} />
         <Route component={NotFound} />
       </Switch>
     </>

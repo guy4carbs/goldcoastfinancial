@@ -9,6 +9,7 @@ import { storage } from "../storage";
 import { sendSms } from "./smsService";
 import { sendPushToUser } from "./pushNotificationService";
 import { sendAutomationEmail } from "./automation-email";
+import { enrollLeadInSequence } from "./sequenceProcessor";
 import type {
   Automation,
   AutomationAction,
@@ -305,79 +306,20 @@ export class AutomationEngine {
   }
 
   /**
-   * Evaluate a single condition
+   * Evaluate a single condition.
+   * Delegates to the exported standalone `evaluateCondition` so the same
+   * operator semantics can be reused by the sequence engine (Phase 3) without
+   * copying the switch.
    */
   private evaluateCondition(operator: string, actual: any, expected: any): boolean {
-    switch (operator) {
-      case "eq":
-        return actual === expected;
-      case "neq":
-        return actual !== expected;
-      case "gt":
-        return actual > expected;
-      case "gte":
-        return actual >= expected;
-      case "lt":
-        return actual < expected;
-      case "lte":
-        return actual <= expected;
-      case "contains":
-        return typeof actual === "string" && actual.includes(expected);
-      case "not_contains":
-        return typeof actual === "string" && !actual.includes(expected);
-      case "in":
-        return Array.isArray(expected) && expected.includes(actual);
-      case "not_in":
-        return Array.isArray(expected) && !expected.includes(actual);
-      case "is_empty":
-        return actual === null || actual === undefined || actual === "" || (Array.isArray(actual) && actual.length === 0);
-      case "is_not_empty":
-        return actual !== null && actual !== undefined && actual !== "" && !(Array.isArray(actual) && actual.length === 0);
-      case "is_today":
-        if (!actual) return false;
-        const today = new Date();
-        const date = new Date(actual);
-        return (
-          date.getDate() === today.getDate() &&
-          date.getMonth() === today.getMonth()
-        );
-      case "older_than":
-        if (!actual) return false;
-        const daysAgo = this.parseDuration(expected);
-        const cutoff = new Date(Date.now() - daysAgo);
-        return new Date(actual) < cutoff;
-      case "days_until":
-        if (!actual) return false;
-        const targetDate = new Date(actual);
-        const now = new Date();
-        const diffDays = Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return diffDays === expected;
-      case "past_due":
-        if (!actual) return false;
-        return new Date(actual) < new Date();
-      default:
-        console.warn(`[AutomationEngine] Unknown operator: ${operator}`);
-        return false;
-    }
+    return evaluateCondition(operator, actual, expected);
   }
 
   /**
    * Parse a duration string like "3d" or "2h" into milliseconds
    */
   private parseDuration(duration: string): number {
-    const match = duration.match(/^(\d+)([dhms])$/);
-    if (!match) return 0;
-
-    const value = parseInt(match[1], 10);
-    const unit = match[2];
-
-    switch (unit) {
-      case "d": return value * 24 * 60 * 60 * 1000;
-      case "h": return value * 60 * 60 * 1000;
-      case "m": return value * 60 * 1000;
-      case "s": return value * 1000;
-      default: return 0;
-    }
+    return parseDuration(duration);
   }
 
   // ─── ACTION EXECUTION ────────────────────────────────────────────
@@ -450,9 +392,37 @@ export class AutomationEngine {
         return this.executeWebhook(config, context);
       case "wait":
         return this.executeWait(config, context);
+      case "enroll_in_sequence":
+        return this.executeEnrollInSequence(config, context);
       default:
         throw new Error(`Unknown action type: ${(action as any).type}`);
     }
+  }
+
+  /**
+   * Enroll the triggering lead into a drip/email sequence.
+   * The lead id is resolved the same way other lead-scoped actions resolve it
+   * (entityId set from the trigger payload, falling back to context.lead.id).
+   */
+  private async executeEnrollInSequence(
+    config: { sequenceId?: string },
+    context: ExecutionContext
+  ): Promise<any> {
+    const leadId = context.entityId || context.lead?.id;
+    if (!leadId) {
+      throw new Error("No lead ID to enroll in sequence");
+    }
+    if (!config.sequenceId) {
+      throw new Error("enroll_in_sequence requires a sequenceId");
+    }
+
+    const enrollment = await enrollLeadInSequence(config.sequenceId, leadId);
+
+    console.log(
+      `[AutomationEngine] Enrolled lead ${leadId} into sequence ${config.sequenceId} (enrollment ${enrollment?.id ?? "existing"})`,
+    );
+
+    return { enrolled: true, leadId, sequenceId: config.sequenceId, enrollmentId: enrollment?.id };
   }
 
   // ─── ACTION IMPLEMENTATIONS ──────────────────────────────────────
@@ -778,6 +748,92 @@ export class AutomationEngine {
       triggeredBy: "user",
       data: triggerData || {},
     });
+  }
+}
+
+// =============================================================================
+// SHARED CONDITION / DURATION HELPERS (reused by the sequence engine)
+// =============================================================================
+
+/**
+ * Parse a duration string like "3d" or "2h" into milliseconds.
+ * Returns 0 for unrecognized formats.
+ */
+export function parseDuration(duration: string): number {
+  const match = duration.match(/^(\d+)([dhms])$/);
+  if (!match) return 0;
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+
+  switch (unit) {
+    case "d": return value * 24 * 60 * 60 * 1000;
+    case "h": return value * 60 * 60 * 1000;
+    case "m": return value * 60 * 1000;
+    case "s": return value * 1000;
+    default: return 0;
+  }
+}
+
+/**
+ * Evaluate a single condition operator against actual/expected values.
+ * Canonical operator semantics — shared by the automation engine and the
+ * drip/sequence engine (step-level conditions). Do NOT duplicate this switch.
+ */
+export function evaluateCondition(operator: string, actual: any, expected: any): boolean {
+  switch (operator) {
+    case "eq":
+      return actual === expected;
+    case "neq":
+      return actual !== expected;
+    case "gt":
+      return actual > expected;
+    case "gte":
+      return actual >= expected;
+    case "lt":
+      return actual < expected;
+    case "lte":
+      return actual <= expected;
+    case "contains":
+      return typeof actual === "string" && actual.includes(expected);
+    case "not_contains":
+      return typeof actual === "string" && !actual.includes(expected);
+    case "in":
+      return Array.isArray(expected) && expected.includes(actual);
+    case "not_in":
+      return Array.isArray(expected) && !expected.includes(actual);
+    case "is_empty":
+      return actual === null || actual === undefined || actual === "" || (Array.isArray(actual) && actual.length === 0);
+    case "is_not_empty":
+      return actual !== null && actual !== undefined && actual !== "" && !(Array.isArray(actual) && actual.length === 0);
+    case "is_today": {
+      if (!actual) return false;
+      const today = new Date();
+      const date = new Date(actual);
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth()
+      );
+    }
+    case "older_than": {
+      if (!actual) return false;
+      const daysAgo = parseDuration(expected);
+      const cutoff = new Date(Date.now() - daysAgo);
+      return new Date(actual) < cutoff;
+    }
+    case "days_until": {
+      if (!actual) return false;
+      const targetDate = new Date(actual);
+      const now = new Date();
+      const diffDays = Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays === expected;
+    }
+    case "past_due":
+      if (!actual) return false;
+      return new Date(actual) < new Date();
+    default:
+      console.warn(`[AutomationEngine] Unknown operator: ${operator}`);
+      return false;
   }
 }
 

@@ -35,7 +35,8 @@ export const actionTypeEnum = [
   "create_activity",
   "send_notification",
   "webhook",
-  "wait"
+  "wait",
+  "enroll_in_sequence"
 ] as const;
 export type ActionType = typeof actionTypeEnum[number];
 
@@ -264,6 +265,13 @@ export const waitActionSchema = z.object({
   }),
 });
 
+export const enrollInSequenceActionSchema = z.object({
+  type: z.literal("enroll_in_sequence"),
+  config: z.object({
+    sequenceId: z.string(), // email_sequences.id to enroll the triggering lead into
+  }),
+});
+
 export const automationActionSchema = z.union([
   sendEmailActionSchema,
   sendSmsActionSchema,
@@ -275,6 +283,7 @@ export const automationActionSchema = z.union([
   sendNotificationActionSchema,
   webhookActionSchema,
   waitActionSchema,
+  enrollInSequenceActionSchema,
 ]);
 
 // =============================================================================

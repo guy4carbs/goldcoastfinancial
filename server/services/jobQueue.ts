@@ -56,7 +56,9 @@ export type JobName =
   | 'call:ai-welcome'
   | 'report:generate'
   | 'cleanup:expired-tokens'
-  | 'cleanup:audit-logs';
+  | 'cleanup:audit-logs'
+  | 'sequence:dispatch'
+  | 'sequence:send';
 
 /**
  * Get or create a queue
@@ -237,6 +239,7 @@ const NOTIFICATION_QUEUE = 'notifications';
 const REMINDER_QUEUE = 'reminders';
 const CLEANUP_QUEUE = 'cleanup';
 const CALLS_QUEUE = 'calls';
+const SEQUENCES_QUEUE = 'sequences';
 
 /**
  * Queue an email to be sent
@@ -412,6 +415,7 @@ export function initialize(): boolean {
   getQueue(REMINDER_QUEUE);
   getQueue(CLEANUP_QUEUE);
   getQueue(CALLS_QUEUE);
+  getQueue(SEQUENCES_QUEUE);
 
   console.log('[JobQueue] Job queue system initialized');
   return true;

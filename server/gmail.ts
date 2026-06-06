@@ -1,4 +1,57 @@
-import { google } from 'googleapis';
+import { sendEmail } from './services/email';
+import type { EmailCategory } from '@shared/schema';
+
+// ============================================================================
+// Shared transport delivery helper
+// ----------------------------------------------------------------------------
+// Every branded email function in this file now routes through the shared
+// `server/services/email` transport (Resend with Gmail fallback). The transport
+// owns provider selection, suppression checks, RFC 8058 List-Unsubscribe headers
+// for marketing categories, MIME/attachment assembly, and emails_sent logging.
+//
+// `deliver()` accepts the html/subject/to/from/replyTo each function already
+// computes and returns the transport result. The result shape is compatible
+// with the previous Gmail send result (`.data.id`) so functions that returned
+// the send result keep working unchanged.
+//
+// For plain-text notification emails (no HTML template), pass `text` only and a
+// readable HTML fallback is synthesized so the transport always has an html body.
+// ============================================================================
+
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function deliver(input: {
+  to: string;
+  from?: string;
+  replyTo?: string;
+  subject: string;
+  html?: string;
+  text?: string;
+  attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
+  category: EmailCategory;
+}) {
+  const html =
+    input.html ??
+    `<pre style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(
+      input.text ?? ''
+    )}</pre>`;
+
+  return sendEmail({
+    to: input.to,
+    from: input.from,
+    replyTo: input.replyTo,
+    subject: input.subject,
+    html,
+    text: input.text,
+    attachments: input.attachments,
+    category: input.category,
+  });
+}
 
 // Format coverage type for proper display (e.g., "iul" -> "IUL")
 function formatCoverageType(type: string): string {
@@ -40,39 +93,6 @@ function formatCoverageType(type: string): string {
   return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-// Create OAuth2 client using environment variables
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  'https://developers.google.com/oauthplayground'
-);
-
-// Set the refresh token from environment
-oauth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
-});
-
-async function getGmailClient() {
-  // Check if credentials are configured
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_REFRESH_TOKEN) {
-    console.log('Gmail integration: Missing Google OAuth credentials in environment');
-    throw new Error('Gmail not configured - missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_REFRESH_TOKEN');
-  }
-
-  return google.gmail({ version: 'v1', auth: oauth2Client });
-}
-
-
-function generateMessageId(domain: string): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  return `<${timestamp}.${random}@${domain}>`;
-}
-
-function formatRFC2822Date(): string {
-  return new Date().toUTCString().replace('GMT', '+0000');
-}
-
 export async function sendContactNotification(data: {
   firstName: string;
   lastName: string;
@@ -80,8 +100,6 @@ export async function sendContactNotification(data: {
   phone?: string;
   message: string;
 }) {
-  const gmail = await getGmailClient();
-  
   const subject = `New Contact Form Submission from ${data.firstName} ${data.lastName}`;
   const body = `
 New contact form submission from Heritage Life Solutions website:
@@ -97,29 +115,13 @@ ${data.message}
 This message was sent from the Heritage Life Solutions website contact form.
   `.trim();
 
-  const message = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Heritage Life Solutions <contact@heritagels.org>`,
-    `To: contact@heritagels.org`,
-    `Reply-To: ${data.email}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    from: 'Heritage Life Solutions <contact@heritagels.org>',
+    to: 'contact@heritagels.org',
+    replyTo: data.email,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -136,8 +138,6 @@ export async function sendPostCloseWelcomeEmail(data: {
   portalUrl: string;
   tempPassword?: string;
 }) {
-  const gmail = await getGmailClient();
-
   const primaryColor = '#7c3aed';
   const goldColor = '#D4AF37';
   const gradientFrom = '#7c3aed';
@@ -374,39 +374,14 @@ Heritage Life Solutions
 (c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as an independent insurance agency, licensed in all 50 states. IL License #22128144.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.clientEmail}`,
-    `Reply-To: ${data.agentEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage }
+  const result = await deliver({
+    from: `Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.clientEmail,
+    replyTo: data.agentEmail,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'system_notification',
   });
 
   console.log(`[PostCloseEmail] Welcome email sent to ${data.clientEmail}`);
@@ -430,8 +405,6 @@ export async function sendFollowUpEmail(data: {
   message: string;
   emoji?: string;
 }) {
-  const gmail = await getGmailClient();
-
   const primaryColor = '#7c3aed';
   const gradientFrom = '#7c3aed';
   const gradientTo = '#D4AF37';
@@ -529,21 +502,15 @@ export async function sendFollowUpEmail(data: {
 
   const plainTextBody = `${data.headline}\n\nHi ${data.clientFirstName},\n\n${data.message}\n\nLog in to your Client Portal: ${data.portalUrl}/client/login\n\nBest regards,\n${data.agentName}\nHeritage Life Solutions`;
 
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.clientEmail}`,
-    `Reply-To: ${data.agentEmail}`,
-    `Subject: ${data.subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '', `--${boundary}`, 'Content-Type: text/plain; charset="UTF-8"', 'Content-Transfer-Encoding: 8bit', '', plainTextBody,
-    '', `--${boundary}`, 'Content-Type: text/html; charset="UTF-8"', 'Content-Transfer-Encoding: 8bit', '', htmlBody,
-    '', `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  await gmail.users.messages.send({ userId: 'me', requestBody: { raw: encodedMessage } });
+  await deliver({
+    from: `Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.clientEmail,
+    replyTo: data.agentEmail,
+    subject: data.subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'follow_up',
+  });
   console.log(`[FollowUpEmail] ${data.headline} sent to ${data.clientEmail}`);
 }
 
@@ -556,8 +523,6 @@ export async function sendPortalMessage(data: {
   message: string;
   priority?: 'normal' | 'high';
 }) {
-  const gmail = await getGmailClient();
-  
   const priorityPrefix = data.priority === 'high' ? '[URGENT] ' : '';
   const fullSubject = `${priorityPrefix}Portal Message: ${data.subject}`;
   const body = `
@@ -576,29 +541,13 @@ To reply, respond directly to this email or log into the advisor portal.
 This message was sent securely through the Gold Coast Financial Partners Client Portal.
   `.trim();
 
-  const emailMessage = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Gold Coast Financial Partners Client Portal <client@goldcoastfnl.com>`,
-    `To: ${data.recipientEmail}`,
-    `Reply-To: ${data.senderEmail}`,
-    `Subject: ${fullSubject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(emailMessage)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    from: 'Gold Coast Financial Partners Client Portal <contact@heritagels.org>',
+    to: data.recipientEmail,
+    replyTo: data.senderEmail,
+    subject: fullSubject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -612,8 +561,6 @@ export async function sendAgentLeadNotification(data: {
   zipCode: string;
   message?: string;
 }) {
-  const gmail = await getGmailClient();
-
   const formattedProduct = formatCoverageType(data.productInterest);
   const subject = `New Lead from Your Heritage Website -${data.leadName}`;
   const body = `
@@ -644,29 +591,13 @@ https://heritagels.org/agents/inbox
 Heritage Life Solutions
   `.trim();
 
-  const message = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Heritage Life Solutions <contact@heritagels.org>`,
-    `To: ${data.agentEmail}`,
-    `Reply-To: ${data.leadEmail}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    from: 'Heritage Life Solutions <contact@heritagels.org>',
+    to: data.agentEmail,
+    replyTo: data.leadEmail,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -687,8 +618,6 @@ export async function sendQuoteNotification(data: {
   birthDate: string;
   medicalBackground: string;
 }) {
-  const gmail = await getGmailClient();
-  
   const formattedCoverageType = formatCoverageType(data.coverageType);
   const subject = `New Quote Request: ${formattedCoverageType} - ${data.firstName} ${data.lastName}`;
   const body = `
@@ -724,29 +653,13 @@ ${data.medicalBackground}
 Submitted via Heritage Life Solutions website
   `.trim();
 
-  const message = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Heritage Life Solutions <contact@heritagels.org>`,
-    `To: contact@heritagels.org`,
-    `Reply-To: ${data.email}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    from: 'Heritage Life Solutions <contact@heritagels.org>',
+    to: 'contact@heritagels.org',
+    replyTo: data.email,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -757,8 +670,6 @@ export async function sendQuoteConfirmationToApplicant(data: {
   coverageType: string;
   coverageAmount: string;
 }) {
-  const gmail = await getGmailClient();
-
   const formattedCoverageType = formatCoverageType(data.coverageType);
   const subject = `We've Received Your Quote Request - Heritage Life Solutions`;
   const body = `
@@ -788,28 +699,12 @@ www.heritagels.org
 ----------------------------------------
   `.trim();
 
-  const message = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Heritage Life Solutions <contact@heritagels.org>`,
-    `To: ${data.email}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    from: 'Heritage Life Solutions <contact@heritagels.org>',
+    to: data.email,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -823,8 +718,6 @@ export async function sendMeetingNotification(data: {
   topic: string;
   message?: string;
 }) {
-  const gmail = await getGmailClient();
-  
   const meetingTypeLabels: Record<string, string> = {
     'video': 'Video Call (Google Meet or Zoom)',
     'phone': 'Phone Call',
@@ -867,28 +760,12 @@ ${data.message ? `ADDITIONAL NOTES:\n${data.message}` : ''}
 This meeting request was submitted from the Gold Coast Financial Partners website.
   `.trim();
 
-  const emailMessage = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `To: meetings@goldcoastfnl.com`,
-    `Reply-To: ${data.email}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(emailMessage)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    to: 'contact@heritagels.org',
+    replyTo: data.email,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -904,8 +781,6 @@ export async function sendJobApplicationNotification(data: {
   hasLicense?: string;
   resumeFileName?: string;
 }) {
-  const gmail = await getGmailClient();
-  
   const subject = `New Job Application: ${data.position} - ${data.firstName} ${data.lastName}`;
   const body = `
 New job application submitted on Heritage Life Solutions website:
@@ -929,29 +804,13 @@ ${data.whyJoinUs}
 This application was submitted from the Heritage Life Solutions careers page.
   `.trim();
 
-  const emailMessage = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Heritage Life Solutions Careers <careers@heritagels.org>`,
-    `To: careers@heritagels.org`,
-    `Reply-To: ${data.email}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(emailMessage)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  await deliver({
+    from: 'Heritage Life Solutions Careers <careers@heritagels.org>',
+    to: 'careers@heritagels.org',
+    replyTo: data.email,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -963,8 +822,6 @@ export async function sendPrivacyRequestNotification(data: {
   requestType: string;
   message: string;
 }) {
-  const gmail = await getGmailClient();
-
   const requestTypeLabels: Record<string, string> = {
     'do-not-sell': 'Do Not Sell',
     'delete': 'Data Deletion',
@@ -986,29 +843,13 @@ Submitted via Heritage Life Solutions website
 Please respond within 45 days as required by law.
   `.trim();
 
-  const privacyMessage = [
-    'Content-Type: text/plain; charset="UTF-8"',
-    'MIME-Version: 1.0',
-    'Content-Transfer-Encoding: 8bit',
-    `From: Heritage Life Solutions Privacy <privacy@heritagels.org>`,
-    `To: privacy@heritagels.org`,
-    `Reply-To: ${data.email}`,
-    `Subject: ${subject}`,
-    '',
-    body
-  ].join('\n');
-
-  const encodedPrivacyMessage = Buffer.from(privacyMessage)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedPrivacyMessage
-    }
+  await deliver({
+    from: 'Heritage Life Solutions Privacy <privacy@heritagels.org>',
+    to: 'privacy@heritagels.org',
+    replyTo: data.email,
+    subject,
+    text: body,
+    category: 'system_notification',
   });
 }
 
@@ -1241,8 +1082,6 @@ export async function sendSecureFormEmail(data: {
     phone: string;
   };
 }) {
-  const gmail = await getGmailClient();
-
   const formTypeLabels: Record<string, string> = {
     ssn: 'Social Security Number',
     banking: 'Banking Information',
@@ -1526,41 +1365,14 @@ Heritage Life Solutions partners with A-rated insurance carriers to provide comp
   `.trim();
 
   // Create multipart email with HTML and plain text
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.clientEmail}`,
-    `Reply-To: ${data.agent.email}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  const result = await deliver({
+    from: `${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.clientEmail,
+    replyTo: data.agent.email,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'secure_form',
   });
 
   console.log(`[SecureForm] Email sent to ${data.clientEmail} for ${formTypeLabel} (${carrierName})`);
@@ -1581,8 +1393,6 @@ export async function sendBookingLinkEmail(data: {
     phone: string;
   };
 }) {
-  const gmail = await getGmailClient();
-
   const customerFirstName = data.customerName.split(' ')[0];
   const agentFirstName = data.agent.name.split(' ')[0];
   const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -1839,41 +1649,14 @@ Protecting families with personalized insurance solutions
   `.trim();
 
   // Create multipart email with HTML and plain text
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.customerEmail}`,
-    `Reply-To: ${data.agent.email}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  const result = await deliver({
+    from: `${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.customerEmail,
+    replyTo: data.agent.email,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'follow_up',
   });
 
   console.log(`[BookingLink] Email sent to ${data.customerEmail} for ${durationLabel} ${meetingTypeLabel}`);
@@ -1894,8 +1677,6 @@ export async function sendRecruitInviteEmail(data: {
     phone: string;
   };
 }) {
-  const gmail = await getGmailClient();
-
   const prospectFirstName = data.prospectName.split(' ')[0];
   const agentFirstName = data.agent.name.split(' ')[0];
   const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -2183,42 +1964,14 @@ Protecting families with personalized insurance solutions
 (c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners. Commission rates are based on product type and production level. Income examples are not guarantees. Individual results may vary.
   `.trim();
 
-  // Create multipart email with HTML and plain text
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.prospectEmail}`,
-    `Reply-To: ${data.agent.email}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: {
-      raw: encodedMessage
-    }
+  const result = await deliver({
+    from: `${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.prospectEmail,
+    replyTo: data.agent.email,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'recruit_invite',
   });
 
   console.log(`[RecruitInvite] Email sent to ${data.prospectEmail} (${data.approach})`);
@@ -2250,8 +2003,6 @@ export async function sendPolicyQuoteEmail(data: {
     npn?: string;
   };
 }) {
-  const gmail = await getGmailClient();
-
   const clientFirstName = data.clientName.split(' ')[0];
   const agentFirstName = data.agent.name.split(' ')[0];
   const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -2498,39 +2249,14 @@ Heritage Life Solutions - Authorized ${carrier.shortName} Distribution Partner
 (c) 2026 Gold Coast Financial Partners. This quote is for informational purposes only and does not constitute a binding contract. Final rates and coverage are subject to underwriting approval by ${carrier.name}.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: ${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.clientEmail}`,
-    `Reply-To: ${data.agent.email}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage }
+  const result = await deliver({
+    from: `${data.agent.name} <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.clientEmail,
+    replyTo: data.agent.email,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'system_notification',
   });
 
   console.log(`[PolicyQuote] Email sent to ${data.clientEmail} (${data.quoteType} via ${carrier.shortName})`);
@@ -2545,7 +2271,6 @@ export async function sendApprovalEmail(data: {
   loginUrl: string;
   approvedBy: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
   const firstName = data.agentName.split(' ')[0];
 
   // Heritage Executive/orange brand colors
@@ -2726,39 +2451,15 @@ contact@heritagels.org
 (c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.agentEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.agentEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'account_security',
   });
 
   console.log(`[Approval] Email sent to ${data.agentEmail}`);
@@ -2773,7 +2474,6 @@ export async function sendRejectionEmail(data: {
   reason: string;
   contactEmail: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
   const firstName = data.applicantName.split(' ')[0];
 
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
@@ -2912,39 +2612,15 @@ Protecting families with personalized insurance solutions
 (c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.applicantEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.applicantEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'account_security',
   });
 
   console.log(`[Rejection] Email sent to ${data.applicantEmail}`);
@@ -2962,7 +2638,6 @@ export async function sendPromotionEmail(data: {
   newLoungeAccess: string[];
   loginUrl: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
   const firstName = data.agentName.split(' ')[0];
 
   // Heritage brand colors — violet/purple primary, amber/gold accent
@@ -3157,39 +2832,15 @@ Commission rates referenced are based on product type and production level. Inco
 Heritage Life Solutions is an equal opportunity organization. All applicants are welcome regardless of background, experience level, or prior industry knowledge.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.agentEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.agentEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'account_security',
   });
 
   console.log(`[Promotion] Email sent to ${data.agentEmail} -promoted to ${data.newTitle}`);
@@ -3205,7 +2856,6 @@ export async function sendAccessChangeEmail(data: {
   reason?: string;
   loginUrl: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
   const firstName = data.memberName.split(' ')[0];
 
   // Heritage violet-to-amber brand colors
@@ -3345,39 +2995,15 @@ Protecting families with personalized insurance solutions
 (c) 2026 Gold Coast Financial Partners. Heritage Life Solutions is a DBA of Gold Coast Financial Partners.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.memberEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.memberEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'account_security',
   });
 
   console.log(`[AccessChange] Email sent to ${data.memberEmail}`);
@@ -3395,8 +3021,6 @@ export async function sendWebsiteLinkEmail(data: {
     phone: string;
   };
 }) {
-  const gmail = await getGmailClient();
-
   const recipientFirst = data.recipientName.split(' ')[0];
   const agentFirst = data.agent.name.split(' ')[0];
   const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -3572,43 +3196,14 @@ To stop receiving emails, reply with "Unsubscribe" in the subject line.
 Heritage Life Solutions | 1007 N. Orange St., Suite 1432 | Wilmington, DE 19801
 `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
-  const messageId = `<website-${Date.now()}-${Math.random().toString(36).slice(2)}@heritagels.org>`;
-  const rawMessage = [
-    'MIME-Version: 1.0',
-    `Message-ID: ${messageId}`,
-    `From: ${data.agent.name} via Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.recipientName} <${data.recipientEmail}>`,
-    `Reply-To: ${data.agent.name} <${data.agent.email}>`,
-    `Subject: ${subject}`,
-    'X-Mailer: Heritage Life Solutions',
-    `List-Unsubscribe: <mailto:${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}?subject=Unsubscribe>`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(rawMessage)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `${data.agent.name} via Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.recipientEmail,
+    replyTo: `${data.agent.name} <${data.agent.email}>`,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'marketing_general',
   });
 
   console.log(`[WebsiteLink] Email sent to ${data.recipientEmail} from agent ${data.agent.name}`);
@@ -3633,8 +3228,6 @@ export async function sendProductGuideEmail(data: {
     npn?: string;
   };
 }) {
-  const gmail = await getGmailClient();
-
   const recipientFirst = data.recipientName.split(' ')[0];
   const agentFirst = data.agent.name.split(' ')[0];
   const agentInitials = data.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -3831,43 +3424,14 @@ To stop receiving emails, reply with "Unsubscribe" in the subject line.
 Heritage Life Solutions | 1007 N. Orange St., Suite 1432 | Wilmington, DE 19801
 `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
-  const messageId = `<guide-${Date.now()}-${Math.random().toString(36).slice(2)}@heritagels.org>`;
-  const rawMessage = [
-    'MIME-Version: 1.0',
-    `Message-ID: ${messageId}`,
-    `From: ${data.agent.name} via Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.recipientName} <${data.recipientEmail}>`,
-    `Reply-To: ${data.agent.name} <${data.agent.email}>`,
-    `Subject: ${subject}`,
-    'X-Mailer: Heritage Life Solutions',
-    `List-Unsubscribe: <mailto:${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}?subject=Unsubscribe>`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(rawMessage)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `${data.agent.name} via Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.recipientEmail,
+    replyTo: `${data.agent.name} <${data.agent.email}>`,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'product_guide',
   });
 
   console.log(`[ProductGuide] Email sent to ${data.recipientEmail} — guide: ${data.guideTitle} — from agent ${data.agent.name}`);
@@ -3883,7 +3447,6 @@ export async function sendOnboardingEmail(data: {
   onboardingType: 'licensed' | 'new_agent';
   approvedBy: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
   const firstName = data.agentName.split(' ')[0];
 
   const primaryColor = '#7c3aed';
@@ -4082,39 +3645,15 @@ Heritage Life Solutions is a DBA of Gold Coast Financial Partners. We operate as
 All products are issued by the respective carrier. Heritage Life Solutions does not guarantee any specific policy outcomes.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.agentEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.agentEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'system_notification',
   });
 
   console.log(`[Onboarding] Email sent to ${data.agentEmail} (${data.onboardingType})`);
@@ -4129,7 +3668,6 @@ export async function sendOnboardingCompletionEmail(data: {
   onboardingType: 'licensed' | 'new_agent';
   loungeUrl: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
   const firstName = data.agentName.split(' ')[0];
 
   const primaryColor = '#7c3aed';
@@ -4351,39 +3889,15 @@ All products are issued by the respective carrier. Heritage Life Solutions does 
 Your signed documents are securely stored with AES-256 encryption and SHA-256 integrity verification.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.agentEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.agentEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'system_notification',
   });
 
   console.log(`[Onboarding] Completion email sent to ${data.agentEmail} (${data.onboardingType})`);
@@ -4396,8 +3910,6 @@ export async function sendPasswordResetEmail(data: {
   recipientEmail: string;
   resetLink: string;
 }): Promise<any> {
-  const gmail = await getGmailClient();
-
   const primaryColor = '#7c3aed';
   const gradient = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #f59e0b 100%)';
   const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/logos%2F1769280405865-C37E9C6F-C99B-40BE-80BB-6157A4006C2F.jpg?alt=media&token=916e40fc-b30a-423d-993d-9cd9085abc6b';
@@ -4505,39 +4017,15 @@ contact@heritagels.org
 (c) 2024-2026 Gold Coast Financial Partners. All rights reserved. IL License #22128144.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
   const fromEmail = process.env.GMAIL_FROM_EMAIL || 'noreply@heritagels.org';
-  const messageParts = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${fromEmail}>`,
-    `To: ${data.recipientEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    textBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`,
-  ].join('\n');
 
-  const encodedMessage = Buffer.from(messageParts)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${fromEmail}>`,
+    to: data.recipientEmail,
+    subject,
+    html: htmlBody,
+    text: textBody,
+    category: 'password_reset',
   });
 
   console.log(`[PasswordReset] Reset email sent to ${data.recipientEmail}`);
@@ -4556,8 +4044,6 @@ export async function sendPolicyReminderEmail(data: {
   agentPhone?: string;
   message?: string;
 }) {
-  const gmail = await getGmailClient();
-
   const primaryColor = '#7c3aed';
   const goldColor = '#D4AF37';
   const gradientFrom = '#7c3aed';
@@ -4751,39 +4237,14 @@ ${data.agentEmail}${data.agentPhone ? '\n' + data.agentPhone : ''}
 IL License #22128144. Policies are issued by our carrier partners.
   `.trim();
 
-  const boundary = `boundary_${Date.now()}`;
-  const message = [
-    'MIME-Version: 1.0',
-    `From: Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
-    `To: ${data.clientEmail}`,
-    `Reply-To: ${data.agentEmail}`,
-    `Subject: ${subject}`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    plainTextBody,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    htmlBody,
-    '',
-    `--${boundary}--`
-  ].join('\n');
-
-  const encodedMessage = Buffer.from(message)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-  const result = await gmail.users.messages.send({
-    userId: 'me',
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${process.env.GMAIL_FROM_EMAIL || 'contact@heritagels.org'}>`,
+    to: data.clientEmail,
+    replyTo: data.agentEmail,
+    subject,
+    html: htmlBody,
+    text: plainTextBody,
+    category: 'policy_update',
   });
 
   console.log(`[Reminder] Policy reminder sent to ${data.clientEmail}`);
@@ -4810,70 +4271,21 @@ export async function sendEmailWithAttachments(data: {
     contentType: string;
   }>;
 }): Promise<any> {
-  const gmail = await getGmailClient();
-  if (!gmail) {
-    console.warn("[Gmail] Not configured - skipping attachment email");
-    return null;
-  }
-
   const from = process.env.GMAIL_FROM_EMAIL || "contact@heritagels.org";
-  const outerBoundary = `outer_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const innerBoundary = `inner_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-  // Build multipart/mixed message
-  const parts: string[] = [
-    "MIME-Version: 1.0",
-    `From: Heritage Life Solutions <${from}>`,
-    `To: ${data.to}`,
-    ...(data.replyTo ? [`Reply-To: ${data.replyTo}`] : []),
-    `Subject: ${data.subject}`,
-    `Content-Type: multipart/mixed; boundary="${outerBoundary}"`,
-    "",
-    `--${outerBoundary}`,
-    `Content-Type: multipart/alternative; boundary="${innerBoundary}"`,
-    "",
-    // Plain text part
-    `--${innerBoundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
-    "",
-    data.plainTextBody,
-    "",
-    // HTML part
-    `--${innerBoundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
-    "",
-    data.htmlBody,
-    "",
-    `--${innerBoundary}--`,
-  ];
-
-  // Add each PDF attachment
-  for (const attachment of data.attachments) {
-    parts.push(
-      "",
-      `--${outerBoundary}`,
-      `Content-Type: ${attachment.contentType}; name="${attachment.filename}"`,
-      "Content-Transfer-Encoding: base64",
-      `Content-Disposition: attachment; filename="${attachment.filename}"`,
-      "",
-      attachment.content.toString("base64"),
-    );
-  }
-
-  parts.push("", `--${outerBoundary}--`);
-
-  const rawMessage = parts.join("\n");
-  const encodedMessage = Buffer.from(rawMessage)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const result = await gmail.users.messages.send({
-    userId: "me",
-    requestBody: { raw: encodedMessage },
+  const result = await deliver({
+    from: `Heritage Life Solutions <${from}>`,
+    to: data.to,
+    replyTo: data.replyTo,
+    subject: data.subject,
+    html: data.htmlBody,
+    text: data.plainTextBody,
+    attachments: data.attachments.map((a) => ({
+      filename: a.filename,
+      content: a.content,
+      contentType: a.contentType,
+    })),
+    category: 'policy_document',
   });
 
   console.log(`[Gmail] Email with ${data.attachments.length} attachment(s) sent to ${data.to}`);
@@ -4974,40 +4386,14 @@ export async function sendVerificationCodeEmail(data: {
   const plainText = `Hi ${data.firstName || "there"},\n\nYour Heritage Life Solutions verification code is:\n\n  ${data.code}\n\nThis code expires in ${ttl} ${ttl === 1 ? "minute" : "minutes"}.\n\nSecurity note: Heritage Life Solutions staff will never ask you for this code. If you didn't request it, ignore this email.\n\nQuestions? contact@heritagels.org`;
 
   const subject = `${data.code} is your Heritage Life Solutions sign-in code`;
-  const boundary = `heritage_otp_${Date.now().toString(36)}`;
 
-  const message = [
-    `From: Heritage Life Solutions <contact@heritagels.org>`,
-    `To: ${data.email}`,
-    `Subject: ${subject}`,
-    "MIME-Version: 1.0",
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
-    "",
-    plainText,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "Content-Transfer-Encoding: 8bit",
-    "",
+  await deliver({
+    from: 'Heritage Life Solutions <contact@heritagels.org>',
+    to: data.email,
+    subject,
     html,
-    "",
-    `--${boundary}--`,
-  ].join("\n");
-
-  const encodedMessage = Buffer.from(message)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const gmail = await getGmailClient();
-  await gmail.users.messages.send({
-    userId: "me",
-    requestBody: { raw: encodedMessage },
+    text: plainText,
+    category: 'two_factor',
   });
   console.log(`[Gmail] 2FA verification code sent to ${data.email}`);
 }

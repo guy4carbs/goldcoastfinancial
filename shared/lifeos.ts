@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.1.4";
+export const LIFEOS_VERSION = "1.2.0";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,13 +34,25 @@ export const LIFEOS_VERSION = "1.1.4";
  *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
-export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
-export const LIFEOS_RELEASE_TITLE = "Sign-in works regardless of email case";
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
+export const LIFEOS_RELEASE_TITLE = "Email Platform";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Heritage's user lookup was case-sensitive — if your email was stored as 'khadinmorrow@icloud.com' but your browser autofilled 'Khadinmorrow@icloud.com', login + password reset silently returned 'invalid email or password'. Fixed: getUserByEmail now compares LOWER(email) on both sides so any casing of the same address resolves to the same user. Backport of PR #48 (411ac87) that had been merged on every other branch except heritage-app.";
-export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's Fixed
+  "lifeOS now runs on its own email infrastructure: a dedicated delivery provider with real delivery/open/click tracking, a working unsubscribe system, notification preferences that actually save, and automated email sequences for client follow-ups.";
+export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Case-insensitive email lookup in \`storage.getUserByEmail\`.** Heritage's user lookup did \`eq(users.email, email)\` — a case-sensitive exact match. When a user's email was stored at invite time as \`Khadinmorrow@icloud.com\` (or any mixed case) and they later typed or pasted \`khadinmorrow@icloud.com\` to log in, the lookup returned null, the password check never ran, and they got "Invalid email or password" — even though their password (and a fresh password reset) was perfectly valid. Same email mismatch silently broke the password-reset email send (returned 200 for enumeration safety, never sent). Fix replaces the equality with \`LOWER(\${users.email}) = \${normalized}\` and trims/lowercases the input before comparison. PR #48 (commit 411ac87) shipped this fix to every branch back in May; heritage-app was the only one that never received it.`;
+- **Modern email delivery.** Company email (quotes, secure forms, welcome kits, onboarding, password resets) now rides a dedicated email platform built for deliverability — no more single-mailbox sending limits. Every email is tracked: delivered, opened, clicked, bounced.
+- **Working unsubscribe.** Marketing-type emails now carry one-click unsubscribe (the kind Gmail and Yahoo require). Recipients who opt out are automatically suppressed across the platform — and transactional email like password resets always still delivers.
+- **Notification preferences that save.** The portal preferences drawer now actually persists your choices — marketing emails, payment reminders, and policy updates can each be toggled, and they take effect immediately.
+- **Automated email sequences.** Drip campaigns are live: enroll a lead in a multi-step sequence (follow-ups, renewal reminders, birthday greetings) and the platform sends each step on schedule, skipping anyone who unsubscribed.
+
+## Under the Hood
+
+- New \`server/services/email/\` transport layer (Resend + Gmail fallback, suppression gate, send logging) — all 27 existing email functions migrated with zero signature changes.
+- Resend delivery webhooks populate \`emails_sent\` tracking columns; bounces and complaints auto-suppress.
+- BullMQ job system wired at startup (was dormant) — powers the sequence dispatcher and fixes post-close jobs that were silently queueing into nothing.
+- HMAC-signed unsubscribe tokens (RFC 8058 one-click), \`email_suppressions\` audit table, CRLF header-injection hardening, OTP/reset emails redacted from logs.
+- Legacy goldcoastfnl.com sender addresses retired in favor of heritagels.org.
+- Rollout is provider-flagged: \`EMAIL_PROVIDER\` defaults to gmail (no behavior change) until the Resend cutover; rollback is a single env flip.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
