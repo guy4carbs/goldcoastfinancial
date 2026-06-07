@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -677,6 +678,25 @@ export function AutomationWizard({
 }
 
 // =============================================================================
+// SEQUENCE OPTIONS HOOK
+// =============================================================================
+
+interface SequenceOption {
+  id: string;
+  name: string;
+}
+
+/**
+ * Fetch active drip sequences for the "Enroll in Sequence" action.
+ * Uses the default queryFn (queryKey-as-URL) from queryClient.
+ */
+function useSequenceOptions() {
+  return useQuery<SequenceOption[]>({
+    queryKey: ["/api/sequences/options"],
+  });
+}
+
+// =============================================================================
 // ACTION CONFIG COMPONENT
 // =============================================================================
 
@@ -917,9 +937,56 @@ function ActionConfig({ type, config, onChange }: ActionConfigProps) {
         </div>
       );
 
+    case "enroll_in_sequence":
+      return <EnrollInSequenceConfig config={config} update={update} />;
+
     default:
       return null;
   }
+}
+
+// =============================================================================
+// ENROLL IN SEQUENCE CONFIG
+// =============================================================================
+
+interface EnrollInSequenceConfigProps {
+  config: Record<string, unknown>;
+  update: (key: string, value: unknown) => void;
+}
+
+function EnrollInSequenceConfig({ config, update }: EnrollInSequenceConfigProps) {
+  const { data: sequences, isLoading } = useSequenceOptions();
+  const selected = (config.sequenceId as string) || "";
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <Label className="text-xs">Sequence *</Label>
+        {isLoading ? (
+          <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Loading sequences...
+          </div>
+        ) : !sequences || sequences.length === 0 ? (
+          <p className="mt-1 text-xs text-gray-500">No active sequences yet</p>
+        ) : (
+          <Select value={selected} onValueChange={(v) => update("sequenceId", v)}>
+            <SelectTrigger className="mt-1 bg-white">
+              <SelectValue placeholder="Choose a sequence..." />
+            </SelectTrigger>
+            <SelectContent>
+              {sequences.map((seq) => (
+                <SelectItem key={seq.id} value={seq.id}>
+                  {seq.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+      <p className="text-xs text-gray-500">Lead will be enrolled when this automation fires.</p>
+    </div>
+  );
 }
 
 export default AutomationWizard;

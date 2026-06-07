@@ -1916,6 +1916,64 @@ router.get("/leads/:id/full", async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/crm/leads/:id/emails
+ * Recent (last 50) emails sent to this lead, newest first.
+ * Inherits the router-level STAFF gate (requireRole(...RoleGroups.STAFF)).
+ */
+router.get("/leads/:id/emails", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ error: "Lead id is required" });
+    }
+
+    const result = await pool.query(`
+      SELECT
+        id,
+        to_email,
+        subject,
+        status,
+        sent_at,
+        delivered_at,
+        opened_at,
+        clicked_at,
+        bounced_at,
+        bounce_reason,
+        open_count,
+        click_count,
+        sequence_id,
+        template_id
+      FROM emails_sent
+      WHERE lead_id = $1
+      ORDER BY sent_at DESC
+      LIMIT 50
+    `, [id]);
+
+    const emails = result.rows.map((e: any) => ({
+      id: e.id,
+      toEmail: e.to_email,
+      subject: e.subject,
+      status: e.status,
+      sentAt: e.sent_at,
+      deliveredAt: e.delivered_at,
+      openedAt: e.opened_at,
+      clickedAt: e.clicked_at,
+      bouncedAt: e.bounced_at,
+      bounceReason: e.bounce_reason,
+      openCount: e.open_count,
+      clickCount: e.click_count,
+      sequenceId: e.sequence_id,
+      templateId: e.template_id,
+    }));
+
+    res.json({ emails });
+  } catch (error) {
+    console.error("[CRM Lead Emails] Error:", error);
+    res.status(500).json({ error: "Failed to load lead emails" });
+  }
+});
+
+/**
  * POST /api/crm/leads/:id/notes
  * Add a note to a lead
  */

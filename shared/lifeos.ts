@@ -44,6 +44,7 @@ export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 - **Working unsubscribe.** Marketing-type emails now carry one-click unsubscribe (the kind Gmail and Yahoo require). Recipients who opt out are automatically suppressed across the platform — and transactional email like password resets always still delivers.
 - **Notification preferences that save.** The portal preferences drawer now actually persists your choices — marketing emails, payment reminders, and policy updates can each be toggled, and they take effect immediately.
 - **Automated email sequences.** Drip campaigns are live: enroll a lead in a multi-step sequence (follow-ups, renewal reminders, birthday greetings) and the platform sends each step on schedule, skipping anyone who unsubscribed.
+- **Sequences manager.** New admin page (Engagement → Sequences) for managers and up: build multi-step sequences with a template library, enroll leads, and watch per-enrollment delivery, opens, and clicks. Automations can now enroll leads in a sequence as an action, and every lead profile has a new Emails tab showing full send history with tracking.
 
 ## Under the Hood
 

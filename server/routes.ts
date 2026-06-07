@@ -32,6 +32,7 @@ import adminEmailTestRouter from "./routes/admin-email-test";
 import resendWebhookRouter from "./routes/webhooks-resend";
 import unsubscribeRouter from "./routes/unsubscribe";
 import sequencesRouter from "./routes/sequences";
+import emailTemplatesRouter from "./routes/email-templates";
 import adminSequenceTestRouter from "./routes/admin-sequence-test";
 import { suppress, unsuppress } from "./services/email";
 import contentRouter from "./routes/content";
@@ -3756,6 +3757,9 @@ export async function registerRoutes(
 
   // Email drip sequences (CRUD + enrollment; management-role gated inside the router)
   app.use("/api/sequences", sequencesRouter);
+
+  // Email templates (CRUD; management-role gated inside the router)
+  app.use("/api/email-templates", emailTemplatesRouter);
 
   // Public content (blog, FAQs, pages)
   app.use("/api/content", contentRouter);

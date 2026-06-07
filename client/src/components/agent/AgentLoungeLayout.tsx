@@ -151,6 +151,7 @@ const clientItems: NavItem[] = [
 const outreachItems: NavItem[] = [
   { icon: Phone, label: "Dialer", href: "/agents/dialer" },
   { icon: MessageSquare, label: "Communications", href: "/agents/communications" },
+  { icon: Zap, label: "Automations", href: "/agents/automations" },
   { icon: BookOpen, label: "Scripts", href: "/agents/scripts" },
   { icon: UserPlus, label: "Recruiting", href: "/agents/recruiting" },
 ];

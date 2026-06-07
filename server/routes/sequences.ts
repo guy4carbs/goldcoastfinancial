@@ -22,6 +22,7 @@ import {
   emailTemplates,
   emailsSent,
 } from "@shared/models/enterprise";
+import { leads } from "@shared/models/crm";
 import { enrollLeadInSequence, computeNextSendAt } from "../services/sequenceProcessor";
 
 const router = Router();
@@ -155,6 +156,30 @@ router.post("/", ...manageGate, async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/sequences/options — lightweight {id, name} list of active sequences.
+ *
+ * Gated by requireAuth ONLY (any authenticated user can populate a picker),
+ * unlike the management-gated CRUD routes.
+ *
+ * ORDERING CONSTRAINT: this MUST be registered before `GET /:id`. Express
+ * matches routes in declaration order, so if `/:id` came first it would
+ * capture the literal path "options" as :id and this handler would never run.
+ */
+router.get("/options", requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const rows = await db
+      .select({ id: emailSequences.id, name: emailSequences.name })
+      .from(emailSequences)
+      .where(eq(emailSequences.isActive, true))
+      .orderBy(emailSequences.name);
+    res.json(rows);
+  } catch (error: any) {
+    console.error("[Sequences] Error listing sequence options:", error?.message || error);
+    res.status(500).json({ error: "Failed to list sequence options" });
+  }
+});
+
+/**
  * GET /api/sequences/:id
  */
 router.get("/:id", ...manageGate, async (req: Request, res: Response) => {
@@ -249,9 +274,24 @@ router.post("/:id/enroll", ...manageGate, async (req: Request, res: Response) =>
  */
 router.get("/:id/enrollments", ...manageGate, async (req: Request, res: Response) => {
   try {
+    // Left-join leads so the UI can show who is enrolled, not just a leadId.
     const rows = await db
-      .select()
+      .select({
+        id: emailSequenceEnrollments.id,
+        sequenceId: emailSequenceEnrollments.sequenceId,
+        leadId: emailSequenceEnrollments.leadId,
+        currentStep: emailSequenceEnrollments.currentStep,
+        status: emailSequenceEnrollments.status,
+        nextSendAt: emailSequenceEnrollments.nextSendAt,
+        enrolledAt: emailSequenceEnrollments.enrolledAt,
+        completedAt: emailSequenceEnrollments.completedAt,
+        unsubscribedAt: emailSequenceEnrollments.unsubscribedAt,
+        leadFirstName: leads.firstName,
+        leadLastName: leads.lastName,
+        leadEmail: leads.email,
+      })
       .from(emailSequenceEnrollments)
+      .leftJoin(leads, eq(leads.id, emailSequenceEnrollments.leadId))
       .where(eq(emailSequenceEnrollments.sequenceId, req.params.id))
       .orderBy(desc(emailSequenceEnrollments.enrolledAt));
     res.json(rows);

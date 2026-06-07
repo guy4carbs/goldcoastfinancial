@@ -25,6 +25,8 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminSettings from "@/pages/AdminSettings";
 import AdminTestimonials from "@/pages/AdminTestimonials";
 import AdminNewsletter from "@/pages/AdminNewsletter";
+import AdminSequences from "@/pages/admin/AdminSequences";
+import AgentAutomations from "@/pages/agents/AgentAutomations";
 import Unsubscribe from "@/pages/Unsubscribe";
 import UnsubscribePage from "@/pages/UnsubscribePage";
 import RiskStrategy from "@/pages/RiskStrategy";
@@ -373,6 +375,11 @@ function Router() {
         <Route path="/agents/dialer">
           <AgentProtectedRoute>
             <AgentDialer />
+          </AgentProtectedRoute>
+        </Route>
+        <Route path="/agents/automations">
+          <AgentProtectedRoute>
+            <AgentAutomations />
           </AgentProtectedRoute>
         </Route>
         <Route path="/agents/communications">
@@ -1123,6 +1130,12 @@ function Router() {
         <Route path="/admin/newsletter">
           <RoleProtectedRoute allowedRoles={RoleGroups.ADMINS} loungeKey="admin_panel">
             <AdminNewsletter />
+          </RoleProtectedRoute>
+        </Route>
+        {/* Sequences: management tier (matches the /api/sequences manageGate, broader than ADMINS) */}
+        <Route path="/admin/sequences">
+          <RoleProtectedRoute allowedRoles={RoleGroups.MANAGEMENT} loungeKey="manager_lounge">
+            <AdminSequences />
           </RoleProtectedRoute>
         </Route>
         <Route path="/admin/avatar-council">

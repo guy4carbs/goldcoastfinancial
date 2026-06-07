@@ -25,6 +25,7 @@ import {
   Shield,
   CreditCard,
   Cake,
+  ListOrdered,
   type LucideIcon,
 } from "lucide-react";
 
@@ -71,6 +72,7 @@ export const ACTION_ICONS: Record<string, LucideIcon> = {
   create_activity: FileText,
   webhook: Webhook,
   wait: Timer,
+  enroll_in_sequence: ListOrdered,
   default: Zap,
 };
 
@@ -181,6 +183,13 @@ export const ACTION_TYPES: ActionTypeConfig[] = [
     icon: Timer,
     color: "bg-orange-100 text-orange-600",
     description: "Wait before next action",
+  },
+  {
+    value: "enroll_in_sequence",
+    label: "Enroll in Sequence",
+    icon: ListOrdered,
+    color: "bg-indigo-100 text-indigo-600",
+    description: "Enroll the lead in a drip email sequence",
   },
 ];
 
@@ -322,6 +331,10 @@ export function isActionConfigValid(action: { type: string; config: Record<strin
       // Wait needs a duration
       return !!config.duration;
 
+    case "enroll_in_sequence":
+      // Enroll needs a non-empty sequence id
+      return typeof config.sequenceId === "string" && config.sequenceId.length > 0;
+
     default:
       return false;
   }
@@ -373,6 +386,10 @@ export function getActionValidationMessage(action: { type: string; config: Recor
       if (!config.duration) return "Wait duration is required";
       return null;
 
+    case "enroll_in_sequence":
+      if (!config.sequenceId) return "A sequence is required";
+      return null;
+
     default:
       return "Unknown action type";
   }
@@ -399,6 +416,8 @@ export function getDefaultActionConfig(type: string): Record<string, unknown> {
       return { url: "", method: "POST" };
     case "wait":
       return { duration: "1d" };
+    case "enroll_in_sequence":
+      return { sequenceId: "" };
     default:
       return {};
   }
@@ -434,6 +453,7 @@ export function formatActionType(actionType: string): string {
     case "add_tag": return "Tag";
     case "webhook": return "Webhook";
     case "wait": return "Wait";
+    case "enroll_in_sequence": return "Enroll";
     default: return actionType;
   }
 }

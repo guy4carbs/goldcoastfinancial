@@ -28,6 +28,7 @@ import {
   Inbox,
   Star,
   Mail,
+  ListOrdered,
   Package,
   BarChart3,
   Bot,
@@ -132,6 +133,7 @@ const engagementItems: NavItem[] = [
   { icon: Inbox, label: 'Submissions', href: '/admin/submissions' },
   { icon: Star, label: 'Testimonials', href: '/admin/testimonials' },
   { icon: Mail, label: 'Newsletter', href: '/admin/newsletter' },
+  { icon: ListOrdered, label: 'Sequences', href: '/admin/sequences' },
 ];
 
 const productItems: NavItem[] = [
@@ -160,6 +162,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   submissions: '/admin/submissions',
   testimonials: '/admin/testimonials',
   newsletter: '/admin/newsletter',
+  sequences: '/admin/sequences',
   products: '/admin/products',
   analytics: '/admin/analytics',
   'avatar-council': '/admin/avatar-council',
@@ -177,6 +180,7 @@ const ADMIN_SEARCH_ITEMS = [
   { id: 'submissions', label: 'Submissions', icon: Inbox, href: '/admin/submissions' },
   { id: 'testimonials', label: 'Testimonials', icon: Star, href: '/admin/testimonials' },
   { id: 'newsletter', label: 'Newsletter', icon: Mail, href: '/admin/newsletter' },
+  { id: 'sequences', label: 'Email Sequences', icon: ListOrdered, href: '/admin/sequences' },
   { id: 'products', label: 'Products', icon: Package, href: '/admin/products' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
   { id: 'avatar-council', label: 'Avatar Council', icon: Bot, href: '/admin/avatar-council' },

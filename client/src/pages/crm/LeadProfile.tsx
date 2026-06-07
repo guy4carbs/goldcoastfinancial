@@ -48,6 +48,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LeadEmailHistory } from '@/components/crm/LeadEmailHistory';
 import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
 import {
@@ -1183,7 +1184,7 @@ export function LeadProfile() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="quotes" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="quotes" className="text-xs">
                       Quotes ({relatedEntities.quotes.length})
                     </TabsTrigger>
@@ -1195,6 +1196,9 @@ export function LeadProfile() {
                     </TabsTrigger>
                     <TabsTrigger value="policies" className="text-xs">
                       Policies ({relatedEntities.policies.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="emails" className="text-xs">
+                      Emails
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="quotes" className="mt-3">
@@ -1252,6 +1256,9 @@ export function LeadProfile() {
                         ))}
                       </div>
                     )}
+                  </TabsContent>
+                  <TabsContent value="emails" className="mt-3">
+                    <LeadEmailHistory leadId={lead.id} />
                   </TabsContent>
                 </Tabs>
               </CardContent>
