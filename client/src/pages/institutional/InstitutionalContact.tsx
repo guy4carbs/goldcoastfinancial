@@ -7,6 +7,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Accordion,
   AccordionContent,
@@ -96,26 +97,16 @@ function CorporateInquiryForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/institutional/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          title: formData.title || null,
-          organization: formData.organization || null,
-          email: formData.email,
-          phone: formData.phone || null,
-          inquiryType: formData.inquiryType,
-          message: formData.message,
-          source: "contact_form",
-        }),
+      await apiRequest("POST", "/api/institutional/contact", {
+        name: formData.name,
+        title: formData.title || null,
+        organization: formData.organization || null,
+        email: formData.email,
+        phone: formData.phone || null,
+        inquiryType: formData.inquiryType,
+        message: formData.message,
+        source: "contact_form",
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit inquiry");
-      }
 
       setIsSubmitted(true);
       toast({

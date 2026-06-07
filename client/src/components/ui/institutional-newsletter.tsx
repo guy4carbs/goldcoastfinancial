@@ -4,6 +4,7 @@ import { Mail, CheckCircle, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface NewsletterSignupProps {
   variant?: "inline" | "card" | "minimal" | "banner";
@@ -28,24 +29,14 @@ export function InstitutionalNewsletter({ variant = "card", className = "" }: Ne
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/newsletter/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          name: name.trim() || undefined,
-          subscriptionType: "institutional"
-        }),
+      await apiRequest("POST", "/api/newsletter/subscribe", {
+        email: email.trim(),
+        name: name.trim() || undefined,
+        subscriptionType: "institutional"
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setIsSubscribed(true);
-        toast({ title: "Successfully subscribed!", description: "You'll receive our updates." });
-      } else {
-        throw new Error(data.error || "Failed to subscribe");
-      }
+      setIsSubscribed(true);
+      toast({ title: "Successfully subscribed!", description: "You'll receive our updates." });
     } catch (error: any) {
       toast({
         title: "Subscription failed",

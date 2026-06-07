@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { InstitutionalSecurityBadgesCompact } from "./institutional-security-badges";
 
 const timeSlots = [
@@ -114,28 +115,18 @@ export function InstitutionalAppointmentScheduler() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/institutional/meetings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          title: formData.title || null,
-          organization: formData.organization || null,
-          email: formData.email,
-          phone: formData.phone || null,
-          date: formData.date,
-          time: formData.time,
-          meetingType: formData.meetingType,
-          topic: formData.topic || null,
-          message: formData.message || null,
-        }),
+      await apiRequest("POST", "/api/institutional/meetings", {
+        name: formData.name,
+        title: formData.title || null,
+        organization: formData.organization || null,
+        email: formData.email,
+        phone: formData.phone || null,
+        date: formData.date,
+        time: formData.time,
+        meetingType: formData.meetingType,
+        topic: formData.topic || null,
+        message: formData.message || null,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit meeting request");
-      }
 
       setIsComplete(true);
       toast({

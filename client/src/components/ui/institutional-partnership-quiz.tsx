@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface QuizData {
   companyName: string;
@@ -140,23 +141,14 @@ export function InstitutionalPartnershipQuiz() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/institutional/partnership-quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
+      const response = await apiRequest("POST", "/api/institutional/partnership-quiz", data);
       const responseData = await response.json();
 
-      if (response.ok) {
-        setResult({
-          score: responseData.score,
-          qualification: responseData.qualification,
-        });
-        toast({ title: "Assessment complete!", description: "We'll be in touch soon." });
-      } else {
-        throw new Error(responseData.error || "Failed to submit");
-      }
+      setResult({
+        score: responseData.score,
+        qualification: responseData.qualification,
+      });
+      toast({ title: "Assessment complete!", description: "We'll be in touch soon." });
     } catch (error: any) {
       toast({
         title: "Submission failed",
