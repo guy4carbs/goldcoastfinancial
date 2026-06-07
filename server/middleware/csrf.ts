@@ -80,6 +80,15 @@ const EXEMPT_PATH_PREFIXES = [
   "/api/apply/sign",
   "/api/apply/upload",
   "/api/apply/prefill",
+  // Public institutional lead-capture forms — submitted by anonymous visitors
+  // with no session, so the session-bound double-submit CSRF token can never
+  // validate (same situation as the /api/apply/* and /api/auth/* public flows
+  // above). These create low-value unauthenticated records and mutate no user
+  // state; spam is mitigated by rate limiting, not CSRF.
+  "/api/institutional/contact",
+  "/api/institutional/meetings",
+  "/api/institutional/partnership-quiz",
+  "/api/newsletter/subscribe",
   "/api/health",
 ];
 

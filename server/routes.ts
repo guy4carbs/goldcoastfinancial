@@ -378,6 +378,24 @@ export async function registerRoutes(
   });
   app.use("/api/auth/register", registerRateLimiter);
 
+  // Public lead-capture forms (institutional contact/meetings/quiz + newsletter)
+  // are unauthenticated and CSRF-exempt, and several fan out to outbound email
+  // (staff notifications + subscriber welcome). Rate-limit per IP to close the
+  // spam / email-amplification vector (Sentinel SHOULD-FIX, 2026-06-07).
+  const leadCaptureLimiter = rateLimit({
+    windowMs: 60_000,
+    max: 8,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.ip || "unknown",
+    skip: () => process.env.NODE_ENV !== "production",
+    message: { error: "Too many submissions. Please try again in a minute.", code: "RATE_LIMITED" },
+  });
+  app.use("/api/institutional/contact", leadCaptureLimiter);
+  app.use("/api/institutional/meetings", leadCaptureLimiter);
+  app.use("/api/institutional/partnership-quiz", leadCaptureLimiter);
+  app.use("/api/newsletter/subscribe", leadCaptureLimiter);
+
   // Auth: Register new user
   app.post("/api/auth/register", async (req, res) => {
     try {
