@@ -11,6 +11,7 @@ import FoundersTeamPerformance from "./FoundersTeamPerformance";
 import FoundersLeadDistribution from "./FoundersLeadDistribution";
 import FoundersAgencyManagement from "./FoundersAgencyManagement";
 import FoundersProfitSplit from "./FoundersProfitSplit";
+import FoundersSequences from "./FoundersSequences";
 import FoundersLoungeAccess from "./FoundersLoungeAccess";
 import FoundersViewAs from "./FoundersViewAs";
 import FoundersSettings from "./FoundersSettings";
@@ -72,6 +73,7 @@ export default function FoundersLoungeLayout() {
           <Route path="/founders/book" component={FoundersBookOfBusiness} />
           <Route path="/founders/team-performance" component={FoundersTeamPerformance} />
           <Route path="/founders/lead-distribution" component={FoundersLeadDistribution} />
+          <Route path="/founders/sequences" component={FoundersSequences} />
           <Route path="/founders/agency-management" component={FoundersAgencyManagement} />
           <Route path="/founders/profit-split" component={FoundersProfitSplit} />
           <Route path="/founders/access" component={FoundersLoungeAccess} />

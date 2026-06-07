@@ -61,6 +61,7 @@ import WhatsNewAll from "@/pages/lifeos/WhatsNewAll";
 
 // Auth / Public
 import AgentApplication from "@/pages/apply/AgentApplication";
+import UnsubscribePage from "@/pages/UnsubscribePage";
 import LoginPage from "@/pages/auth/LoginPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
@@ -95,7 +96,7 @@ function RealtimeBridge({ children }: { children: React.ReactNode }) {
 
 function InstitutionalWrapper() {
   const [location] = useLocation();
-  const isPlatform = location.startsWith("/hcms") || location.startsWith("/ops") || location.startsWith("/finance") || location.startsWith("/investors/") || location.startsWith("/marketing") || location.startsWith("/founders") || location.startsWith("/apply") || location.startsWith("/login") || location.startsWith("/forgot-password") || location.startsWith("/reset-password") || location.startsWith("/auth/");
+  const isPlatform = location.startsWith("/hcms") || location.startsWith("/ops") || location.startsWith("/finance") || location.startsWith("/investors/") || location.startsWith("/marketing") || location.startsWith("/founders") || location.startsWith("/apply") || location.startsWith("/unsubscribe") || location.startsWith("/login") || location.startsWith("/forgot-password") || location.startsWith("/reset-password") || location.startsWith("/auth/");
   if (isPlatform) return null;
   return (
     <>
@@ -185,6 +186,7 @@ function Router() {
 
         {/* Auth / Public */}
         <Route path="/apply" component={AgentApplication} />
+        <Route path="/unsubscribe" component={UnsubscribePage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/forgot-password" component={ForgotPasswordPage} />
         <Route path="/reset-password" component={ResetPasswordPage} />

@@ -20,6 +20,8 @@ export * from "./models/production";
 export * from "./models/complianceFlags";
 export * from "./models/founders";
 export * from "./models/leadMarketplace";
+export * from "./models/email";
+export * from "./models/emailPlatform";
 
 export const guideRequests = pgTable("guide_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert, UserPlus, ArrowLeftRight, Banknote, RotateCcw, Receipt, FileCheck, Crown, Network, Rocket, Eye, Send, Coins, Sparkles } from "lucide-react";
+import { Shield, Menu, X, LayoutDashboard, FileSignature, Kanban, Users, Award, Building2, GitBranch, DollarSign, FolderOpen, ShieldCheck, AlertTriangle, BarChart3, Handshake, GitPullRequest, TrendingUp, PieChart, FileText, Megaphone, Landmark, Settings, ChevronDown, ChevronRight, CreditCard, GraduationCap, Briefcase, HelpCircle, ScrollText, ShieldAlert, UserPlus, ArrowLeftRight, Banknote, RotateCcw, Receipt, FileCheck, Crown, Network, Rocket, Eye, Send, Coins, Sparkles, Mail } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -132,6 +132,7 @@ const foundersNav: NavSection[] = [
     { label: "Book of Business", href: "/founders/book", icon: FolderOpen },
     { label: "Team Performance", href: "/founders/team-performance", icon: Users },
     { label: "Lead Distribution", href: "/founders/lead-distribution", icon: Send },
+    { label: "Email Sequences", href: "/founders/sequences", icon: Mail },
     { label: "Agency Management", href: "/founders/agency-management", icon: Building2 },
   ]},
   { title: "OWNERSHIP", items: [

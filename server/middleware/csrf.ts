@@ -67,6 +67,8 @@ const {
 const EXEMPT_PATH_PREFIXES = [
   "/api/founders/plaid/webhook",
   "/api/webhooks/stripe",     // signature-verified by Stripe-Signature header
+  "/api/webhooks/resend",     // signature-verified by svix headers
+  "/api/unsubscribe",         // public CAN-SPAM/RFC 8058 flow, HMAC-token gated
   "/api/auth/login",          // pre-session, no token to issue yet
   "/api/auth/register",
   "/api/auth/password-reset",

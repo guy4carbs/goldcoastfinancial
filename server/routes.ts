@@ -96,6 +96,12 @@ import {
   leadRevenueFoundersRouter,
   leadRevenueAgentRouter,
 } from "./routes/lead-revenue";
+// Email platform (ported from heritage). Webhook + unsubscribe are PUBLIC;
+// sequences + email-templates are management-gated.
+import webhooksResendRouter from "./routes/webhooks-resend";
+import unsubscribeRouter from "./routes/unsubscribe";
+import sequencesRouter from "./routes/sequences";
+import emailTemplatesRouter from "./routes/email-templates";
 
 declare module "express-session" {
   interface SessionData {
@@ -264,6 +270,15 @@ export async function registerRoutes(
       next();
     });
   }
+
+  // ── PUBLIC email-platform endpoints (NO auth / NO CSRF / NO view-as) ───────
+  // Mounted BEFORE the global view-as, CSRF, and attachUser middleware so they
+  // are never blocked. The Resend webhook authenticates via its svix signature
+  // (req.rawBody is captured by the global express.json verify hook in
+  // server/index.ts); the unsubscribe endpoints authenticate via an HMAC token.
+  // (/api/webhooks/resend is also listed in csrf.ts EXEMPT_PATH_PREFIXES.)
+  app.use("/api/webhooks/resend", webhooksResendRouter);
+  app.use("/api/unsubscribe", unsubscribeRouter);
 
   // GLOBAL view-as write block (Sentinel C1). Mounted AFTER session is attached
   // so req.session.viewingAs is populated, but BEFORE any write-capable route
@@ -2052,6 +2067,13 @@ export async function registerRoutes(
   app.use("/api/ops/marketing", opsMarketingRouter);
   app.use("/api/ops/investors", opsInvestorsRouter);
   app.use("/api/ops/settings", opsSettingsRouter);
+
+  // ============================================
+  // EMAIL PLATFORM — drip sequences + reusable templates (management-gated;
+  // each router carries its own requireAuth + requireRole(management) gate).
+  // ============================================
+  app.use("/api/sequences", attachUser, sequencesRouter);
+  app.use("/api/email-templates", attachUser, emailTemplatesRouter);
 
   // ============================================
   // FINANCE LOUNGE ROUTES
