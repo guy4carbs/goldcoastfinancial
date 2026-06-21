@@ -32,9 +32,31 @@ router.post("/", async (req: Request, res: Response) => {
     const monthly = parseFloat(String(monthlyPremium).replace(/[$,]/g, ''));
     const annual = Math.round(monthly * 12 * 100) / 100;
 
+    // Resolve the submitting agent's agency so the deal is tenant-scoped and
+    // shows up in the Gold Coast Founders Lounge (which filters by agency_id).
+    // Mirrors the GC backfill logic: agency_teams (if the agent is a manager)
+    // → nearest manager in agent_hierarchy.upline_chain → root agency fallback.
     const result = await pool.query(`
-      INSERT INTO deals (agent_user_id, client_name, carrier, monthly_premium, annual_premium, notes, product_type, state_code)
-      VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO deals (agent_user_id, agency_id, client_name, carrier, monthly_premium, annual_premium, notes, product_type, state_code)
+      VALUES (
+        $1::uuid,
+        COALESCE(
+          (SELECT at.agency_id FROM agency_teams at
+            WHERE at.manager_user_id = $1::uuid LIMIT 1),
+          (SELECT at.agency_id
+             FROM agent_hierarchy ah
+             JOIN agency_teams at
+               ON at.manager_user_id::text = ANY(
+                    ARRAY(SELECT jsonb_array_elements_text(ah.upline_chain))
+                  )
+            WHERE ah.agent_user_id = $1::uuid
+              AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+            ORDER BY ah.effective_from DESC
+            LIMIT 1),
+          '00000000-0000-4000-8000-000000000001'::uuid
+        ),
+        $2, $3, $4, $5, $6, $7, $8
+      )
       RETURNING *
     `, [userId, clientName || null, carrier, monthly, annual, notes || null, productType || null, stateCode || null]);
 
