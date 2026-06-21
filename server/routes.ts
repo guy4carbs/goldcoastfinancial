@@ -66,6 +66,7 @@ import dncRouter from "./routes/dnc";
 import executiveRouter from "./routes/executive";
 import postCloseRouter, { postCloseWebhookRouter } from "./routes/post-close";
 import dealsRouter from "./routes/deals";
+import integrationsRouter from "./routes/integrations";
 import leadPurchasesRouter, { leadPurchasesWebhookRouter } from "./routes/lead-purchases";
 import businessCardRouter, { publicBusinessCardRouter } from "./routes/business-card";
 import snapchatAuthRouter from "./routes/snapchat-auth";
@@ -3902,6 +3903,7 @@ export async function registerRoutes(
   app.use("/api/post-close", postCloseRouter);
   app.use("/api/webhooks/post-close", postCloseWebhookRouter);
   app.use("/api/deals", dealsRouter);
+  app.use("/api/integrations", integrationsRouter);
   app.use("/api/lead-purchases", leadPurchasesRouter);
   app.use("/api/webhooks/lead-purchases", leadPurchasesWebhookRouter);
   app.use("/api/business-card", businessCardRouter);
