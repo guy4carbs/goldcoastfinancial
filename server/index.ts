@@ -32,6 +32,7 @@ import { initializeDatabase } from "./db";
 import { setupWebSocket } from "./websocket";
 import { stripeWebhookHandler } from "./routes/stripe-webhook";
 import { ensureLifeOSReleaseSeed } from "./routes/lifeos";
+import { initDiscordNotifications } from "./services/discordNotifications";
 
 const app = express();
 const httpServer = createServer(app);
@@ -171,7 +172,10 @@ app.use((req, res, next) => {
   
   // Setup WebSocket for real-time chat
   setupWebSocket(httpServer);
-  
+
+  // Discord lead notifications (no-ops if DISCORD_WEBHOOK_URL unset)
+  initDiscordNotifications();
+
   // Initialize owner account (Gold Coast Financial Partners LLC — root of hierarchy)
   try {
     await storage.initializeOwnerAccount();

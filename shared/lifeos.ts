@@ -16,7 +16,7 @@
  * gcf root (Gold Coast) and the heritage-app branch's shared/ (Heritage)
  * to stay in lockstep.
  */
-export const LIFEOS_VERSION = "1.2.0";
+export const LIFEOS_VERSION = "1.3.0";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,22 +34,19 @@ export const LIFEOS_VERSION = "1.2.0";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
-export const LIFEOS_RELEASE_TITLE = "Email Platform";
+export const LIFEOS_RELEASE_TITLE = "Discord Production Feed";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Gold Coast now runs on its own email infrastructure: a dedicated delivery provider with real delivery/open/click tracking, a working unsubscribe system, notification preferences that save, and automated email sequences for client follow-ups — matching Heritage 1.2.0.";
+  "Lead activity now posts to your team's Discord in real time. New leads and lead distributions land in the Discord channel automatically — keeping the floor in sync without anyone lifting a finger.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Modern email delivery.** Company email (quotes, portal messages, approvals, onboarding, password resets, 2FA) now rides a dedicated email platform built for deliverability. Every email is tracked: delivered, opened, clicked, bounced.
-- **Working unsubscribe.** Marketing-type emails carry one-click unsubscribe (the kind Gmail and Yahoo require). Opt-outs are suppressed platform-wide — and transactional email like password resets always still delivers.
-- **Notification preferences that save.** The portal preferences drawer now persists your choices and they take effect immediately.
-- **Email sequences.** Founders get a sequences manager (Organization → Email Sequences): build multi-step drip sequences with a template library, enroll leads, and watch per-enrollment delivery, opens, and clicks.
+- **Live lead feed in Discord.** New leads post to your team's Discord channel the moment they arrive — name, email, and source on a clean card.
+- **Distribution alerts.** When leads are distributed to managers, Discord gets a summary (how many leads, how many managers) so the team sees the handoff in real time.
+- **Zero extra work.** It's automatic and rides the existing founders event bus — no new endpoints, no manual posting.
 
 ## Under the Hood
 
-- New \`server/services/email/\` transport (Resend + Gmail fallback, suppression gate, send logging) — all existing email functions migrated with zero signature changes; from-addresses stay on goldcoastfnl.com.
-- Resend delivery webhooks populate the shared \`emails_sent\` tracking columns; bounces and complaints auto-suppress.
-- HMAC-signed unsubscribe tokens (RFC 8058 one-click), shared \`email_suppressions\` store, CRLF header-injection hardening, OTP/reset emails redacted from logs.
-- Sequence sending is processed by the Heritage worker on the shared database; Gold Coast provides the management UI and read/write surface.`;
+- New \`server/services/discordNotifications.ts\` subscribes once at boot to the founders event bus and posts \`lead:new\` / \`lead:distributed\` as Discord embeds.
+- Outbound-only via a Discord incoming webhook, env-gated on \`DISCORD_WEBHOOK_URL\`, fire-and-forget. Disabled cleanly when the webhook URL is unset.`;
 
 
 /**
