@@ -13,7 +13,6 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db";
 import { recordCommissions } from "../services/commissionRecordService";
-import { notifyNewSale } from "../services/discordNotificationService";
 
 const router = Router();
 
@@ -87,21 +86,10 @@ router.post("/deals", async (req: Request, res: Response) => {
       } catch { /* agencies table optional */ }
     }
 
-    // Discord production feed (fire-and-forget; agent name resolved for the card).
-    try {
-      const u = await pool.query(
-        "SELECT trim(coalesce(first_name,'') || ' ' || coalesce(last_name,'')) AS name FROM users WHERE id = $1::uuid",
-        [agentUserId],
-      );
-      notifyNewSale({
-        agentName: u.rows[0]?.name || "Agent",
-        carrier,
-        monthlyPremium: monthly,
-        annualPremium: annual,
-        clientName: clientName || null,
-        productType: productType || null,
-      }).catch(() => { /* logged in the service */ });
-    } catch { /* non-fatal */ }
+    // NOTE: no production-feed notification here. The GCF Production Feed posts
+    // only for deals submitted directly in the Heritage agent lounge
+    // (server/routes/deals.ts). A Discord /sale already shows its own "Sale
+    // Logged" card, so firing the webhook too would double-post.
 
     return res.status(201).json({
       success: true,
