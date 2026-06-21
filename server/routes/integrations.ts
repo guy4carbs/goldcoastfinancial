@@ -36,7 +36,7 @@ router.post("/deals", async (req: Request, res: Response) => {
   try {
     const {
       agentUserId, carrier, monthlyPremium, annualPremium,
-      clientName, productType, stateCode,
+      clientName, productType, stateCode, agencyName,
     } = req.body || {};
 
     if (!agentUserId) return res.status(400).json({ success: false, message: "agentUserId is required" });
@@ -48,25 +48,18 @@ router.post("/deals", async (req: Request, res: Response) => {
       : Math.round(monthly * 12 * 100) / 100;
     if (annual <= 0) return res.status(400).json({ success: false, message: "premium must be greater than 0" });
 
+    // "Label only — always under Gold Coast": every bot-logged deal is OWNED by
+    // the root (Gold Coast) agency so it always rolls up to the Founders Lounge.
+    // The typed agency is just a brand tag stored on the deal + shown on the card.
+    const brand = agencyName && String(agencyName).trim() ? String(agencyName).trim() : null;
+    const brandNote = brand ? `Brand: ${brand}` : null;
+
     // Same agency_id resolution as the agent-lounge deal route.
     const result = await pool.query(`
-      INSERT INTO deals (agent_user_id, agency_id, client_name, carrier, monthly_premium, annual_premium, product_type, state_code, status)
-      VALUES (
-        $1::uuid,
-        COALESCE(
-          (SELECT at.agency_id FROM agency_teams at WHERE at.manager_user_id = $1::uuid LIMIT 1),
-          (SELECT at.agency_id FROM agent_hierarchy ah
-             JOIN agency_teams at ON at.manager_user_id::text = ANY(
-                  ARRAY(SELECT jsonb_array_elements_text(ah.upline_chain)))
-            WHERE ah.agent_user_id = $1::uuid
-              AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
-            ORDER BY ah.effective_from DESC LIMIT 1),
-          $8::uuid
-        ),
-        $2, $3, $4, $5, $6, $7, 'submitted'
-      )
+      INSERT INTO deals (agent_user_id, agency_id, client_name, carrier, monthly_premium, annual_premium, product_type, state_code, notes, status)
+      VALUES ($1::uuid, $8::uuid, $2, $3, $4, $5, $6, $7, $9, 'submitted')
       RETURNING *
-    `, [agentUserId, clientName || null, carrier, monthly, annual, productType || null, stateCode || null, ROOT_AGENCY_ID]);
+    `, [agentUserId, clientName || null, carrier, monthly, annual, productType || null, stateCode || null, ROOT_AGENCY_ID, brandNote]);
 
     const deal = result.rows[0];
 
@@ -77,12 +70,12 @@ router.post("/deals", async (req: Request, res: Response) => {
       );
     }
 
-    // Resolve the agency name for the response (the bot shows it).
-    let agencyName: string | null = null;
+    // Resolve the agency name for the response (the bot shows it on the card).
+    let resolvedAgencyName: string | null = null;
     if (deal?.agency_id) {
       try {
         const a = await pool.query("SELECT name FROM agencies WHERE id = $1::uuid LIMIT 1", [deal.agency_id]);
-        agencyName = a.rows[0]?.name ?? null;
+        resolvedAgencyName = a.rows[0]?.name ?? null;
       } catch { /* agencies table optional */ }
     }
 
@@ -94,7 +87,7 @@ router.post("/deals", async (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       deal: { id: deal.id, agency_id: deal.agency_id, annual_premium: annual, monthly_premium: monthly },
-      agency: agencyName,
+      agency: brand || resolvedAgencyName,
     });
   } catch (error: any) {
     console.error("[Integrations] Error creating deal:", error?.message);
