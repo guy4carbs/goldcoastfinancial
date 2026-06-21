@@ -7,6 +7,7 @@ import { pool } from "../db";
 import { requireAuth, requireRole } from "../middleware/auth";
 import { Roles, RoleGroups } from "../types/permissions";
 import { recordCommissions } from "../services/commissionRecordService";
+import { notifyNewSale } from "../services/discordNotificationService";
 
 const router = Router();
 
@@ -64,6 +65,19 @@ router.post("/", async (req: Request, res: Response) => {
       recordCommissions(deal.id, userId, annual, "deal").catch((err) =>
         console.error("[Deals] Commission recording failed:", err)
       );
+    }
+
+    // Post to the Discord production feed (fire-and-forget, env-gated)
+    {
+      const agentName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Agent';
+      notifyNewSale({
+        agentName,
+        carrier,
+        monthlyPremium: monthly,
+        annualPremium: annual,
+        clientName: clientName || null,
+        productType: productType || null,
+      }).catch(() => { /* already logged inside the service */ });
     }
 
     // Auto-populate policy map

@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.2.0";
+export const LIFEOS_VERSION = "1.3.0";
 
 /**
  * Release notes that ship with this version. The server's
@@ -35,25 +35,18 @@ export const LIFEOS_VERSION = "1.2.0";
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
 export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
-export const LIFEOS_RELEASE_TITLE = "Email Platform";
+export const LIFEOS_RELEASE_TITLE = "Discord Production Feed";
 export const LIFEOS_RELEASE_SUMMARY =
-  "lifeOS now runs on its own email infrastructure: a dedicated delivery provider with real delivery/open/click tracking, a working unsubscribe system, notification preferences that actually save, and automated email sequences for client follow-ups.";
+  "Deals now post to your team's Discord in real time. When an agent submits a deal, a clean production card lands in the Discord channel automatically — no extra steps, no manual posting.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Modern email delivery.** Company email (quotes, secure forms, welcome kits, onboarding, password resets) now rides a dedicated email platform built for deliverability — no more single-mailbox sending limits. Every email is tracked: delivered, opened, clicked, bounced.
-- **Working unsubscribe.** Marketing-type emails now carry one-click unsubscribe (the kind Gmail and Yahoo require). Recipients who opt out are automatically suppressed across the platform — and transactional email like password resets always still delivers.
-- **Notification preferences that save.** The portal preferences drawer now actually persists your choices — marketing emails, payment reminders, and policy updates can each be toggled, and they take effect immediately.
-- **Automated email sequences.** Drip campaigns are live: enroll a lead in a multi-step sequence (follow-ups, renewal reminders, birthday greetings) and the platform sends each step on schedule, skipping anyone who unsubscribed.
-- **Sequences manager.** New admin page (Engagement → Sequences) for managers and up: build multi-step sequences with a template library, enroll leads, and watch per-enrollment delivery, opens, and clicks. Automations can now enroll leads in a sequence as an action, and every lead profile has a new Emails tab showing full send history with tracking.
+- **Live deal feed in Discord.** Every deal submitted in Heritage now posts instantly to your team's Discord channel as a formatted card — agent, carrier, annual & monthly premium, product, and client. Great for celebrating wins and keeping the floor in sync.
+- **Zero extra work.** It's automatic. Submit a deal the way you always have; the Discord post fires on its own.
 
 ## Under the Hood
 
-- New \`server/services/email/\` transport layer (Resend + Gmail fallback, suppression gate, send logging) — all 27 existing email functions migrated with zero signature changes.
-- Resend delivery webhooks populate \`emails_sent\` tracking columns; bounces and complaints auto-suppress.
-- BullMQ job system wired at startup (was dormant) — powers the sequence dispatcher and fixes post-close jobs that were silently queueing into nothing.
-- HMAC-signed unsubscribe tokens (RFC 8058 one-click), \`email_suppressions\` audit table, CRLF header-injection hardening, OTP/reset emails redacted from logs.
-- Legacy goldcoastfnl.com sender addresses retired in favor of heritagels.org.
-- Rollout is provider-flagged: \`EMAIL_PROVIDER\` defaults to gmail (no behavior change) until the Resend cutover; rollback is a single env flip.`;
+- New \`server/services/discordNotificationService.ts\` — outbound-only, env-gated on \`DISCORD_WEBHOOK_URL\`, fire-and-forget. The commission engine is untouched: the notification rides alongside the existing deal broadcast at the route layer.
+- Posts via a Discord incoming webhook (no bot, no inbound surface). Disabled cleanly when the webhook URL is unset.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
