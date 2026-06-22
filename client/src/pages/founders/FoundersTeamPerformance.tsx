@@ -115,12 +115,16 @@ export default function FoundersTeamPerformance() {
     queryKey: [`/api/founders/teams/kpis?period=${period}`, period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const teamsQ = useQuery<Team[]>({
     queryKey: [`/api/founders/teams?period=${period}`, period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   // Trends always shows a 6-month rolling window — period is ignored by
@@ -129,6 +133,8 @@ export default function FoundersTeamPerformance() {
     queryKey: ["/api/founders/teams/trends?months=6"],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
@@ -468,6 +474,8 @@ function AgentRankings({ teams, period }: { teams: Team[]; period: string }) {
     queries: teams.map((t) => ({
       queryKey: [`/api/founders/teams/${t.id}/agents?period=${period}`, t.id, period],
       staleTime: 60_000,
+      refetchInterval: 15_000,
+      refetchIntervalInBackground: false,
     })),
   }) as ReturnType<typeof useQuery<AgentRanking[]>>[];
   const combined: AgentRanking[] = [];
@@ -534,6 +542,8 @@ function TeamAgents({ teamId, period }: { teamId: string; period: string }) {
   const q = useQuery<AgentRanking[]>({
     queryKey: [`/api/founders/teams/${teamId}/agents?period=${period}`, teamId, period],
     staleTime: 60_000,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
   if (q.isLoading) {
     return (

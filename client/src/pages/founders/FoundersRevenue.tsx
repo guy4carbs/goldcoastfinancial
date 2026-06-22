@@ -165,42 +165,56 @@ export default function FoundersRevenue() {
     queryKey: ["/api/founders/revenue/kpis", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const periodTrendQ = useQuery<PeriodTrendData>({
     queryKey: ["/api/founders/revenue/period-trend", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const overrideDecompQ = useQuery<OverrideDecompositionData>({
     queryKey: ["/api/founders/revenue/override-decomposition", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const carriersQ = useQuery<ByCarrierRow[]>({
     queryKey: ["/api/finance/revenue/by-carrier", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const agentsQ = useQuery<ByAgentRow[]>({
     queryKey: ["/api/finance/revenue/by-agent", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const leadKpiQ = useQuery<LeadRevenueKPIs>({
     queryKey: ["/api/founders/lead-revenue/kpis", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const leadByProductQ = useQuery<LeadRevenueByProductRow[]>({
     queryKey: ["/api/founders/lead-revenue/by-product", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   // Hard-fail the page only if EVERY core query errors. Per-section components

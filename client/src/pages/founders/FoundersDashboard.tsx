@@ -338,12 +338,16 @@ export default function FoundersDashboard() {
     queryKey: ["/api/founders/dashboard/kpis", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const glanceQ = useQuery<AtAGlanceData>({
     queryKey: ["/api/founders/dashboard/at-a-glance", period],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const topPerformersQ = useQuery<TopPerformer[]>({
@@ -358,24 +362,32 @@ export default function FoundersDashboard() {
     },
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const attentionQ = useQuery<AttentionItem[]>({
     queryKey: ["/api/founders/dashboard/attention"],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const goalsQ = useQuery<QuarterlyGoal[]>({
     queryKey: ["/api/founders/dashboard/quarterly-goals"],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const pipelineQ = useQuery<OnboardingPipelineData>({
     queryKey: ["/api/founders/dashboard/onboarding-pipeline"],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const velocityQ = useQuery<CarrierVelocityData>({
@@ -390,24 +402,32 @@ export default function FoundersDashboard() {
     },
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const complianceQ = useQuery<ComplianceData>({
     queryKey: ["/api/founders/dashboard/compliance"],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const cashFlowQ = useQuery<CashFlowData>({
     queryKey: ["/api/founders/dashboard/cash-flow"],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   const activityQ = useQuery<RecentActivityItem[]>({
     queryKey: ["/api/founders/dashboard/recent-activity", { limit: 15 }],
     staleTime: 60_000,
     retry: 1,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   // Hard-fail the page only if EVERY query errors. Per-section components
