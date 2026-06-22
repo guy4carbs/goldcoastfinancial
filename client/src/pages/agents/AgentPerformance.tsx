@@ -91,15 +91,19 @@ export default function AgentPerformance() {
   // Real performance data from API — re-fetches when time period changes
   const { data: perfData, isLoading: perfLoading, error: perfError } = useQuery<any>({
     queryKey: [`/api/commissions/performance?period=${timePeriod}`],
+    refetchInterval: 15000,
   });
   const { data: pipelineStats, isLoading: pipelineLoading, error: pipelineError } = useQuery<any>({
     queryKey: [`/api/commissions/pipeline-stats?period=${timePeriod}`],
+    refetchInterval: 15000,
   });
   const { data: leadSourceROI } = useQuery<any>({
     queryKey: [`/api/commissions/lead-source-roi?period=${timePeriod}`],
+    refetchInterval: 15000,
   });
   const { data: statementsData } = useQuery<any>({
     queryKey: ['/api/commissions/statements?limit=4'],
+    refetchInterval: 15000,
   });
 
   const isPageLoading = perfLoading || pipelineLoading;

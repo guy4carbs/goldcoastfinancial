@@ -138,7 +138,7 @@ export function ExecutiveKPIs() {
     leads: { total: number; thisMonth: number; won: number; wonThisMonth: number; totalRevenue: number; revenueThisMonth: number; pipelineValue: number; avgLeadScore: number };
     calls: { total: number; thisMonth: number; avgDuration: number };
     licenses: { total: number; valid: number; expiring: number; expired: number };
-  }>({ queryKey: ['/api/executive/kpis'] });
+  }>({ queryKey: ['/api/executive/kpis'], refetchInterval: 15000 });
 
   const { data: dashboardData } = useQuery<{
     orgMetrics?: typeof DEMO_ORG_METRICS;
@@ -146,7 +146,7 @@ export function ExecutiveKPIs() {
     topPerformers?: any[];
     quarterlyGoals?: typeof DEMO_QUARTERLY_GOALS;
     monthlyTrends?: typeof DEMO_EXEC_MONTHLY_TRENDS;
-  }>({ queryKey: ['/api/executive/dashboard'] });
+  }>({ queryKey: ['/api/executive/dashboard'], refetchInterval: 15000 });
 
   // ── Map API responses to local variables, falling back to DEMO_* constants ──
   const orgMetrics = useMemo(() => {

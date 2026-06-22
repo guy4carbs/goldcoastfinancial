@@ -85,23 +85,28 @@ export function AgentCommissions() {
 
   const { data: myPosition, isLoading: positionLoading, isError: positionError } = useQuery<any>({
     queryKey: ['/api/hierarchy/my-position'],
+    refetchInterval: 15000,
   });
 
   const { data: myTargets, isError: targetsError } = useQuery<any>({
     queryKey: [`/api/commission-targets/agent/${currentUser?.id}`],
+    refetchInterval: 15000,
     enabled: !!currentUser?.id,
   });
 
   const { data: myRequests, isError: requestsError } = useQuery<any>({
     queryKey: ['/api/hierarchy-requests/my-requests'],
+    refetchInterval: 15000,
   });
 
   const { data: myCommissions, isError: commissionsError } = useQuery<any>({
     queryKey: ['/api/commissions/my-earnings'],
+    refetchInterval: 15000,
   });
 
   const { data: myDealStats } = useQuery<any>({
     queryKey: ['/api/deals/my-stats?period=month'],
+    refetchInterval: 15000,
   });
 
   // =========================================================================

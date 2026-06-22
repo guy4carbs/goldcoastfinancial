@@ -83,6 +83,7 @@ export default function AgentLeaderboard() {
     totalAP: number; dealCount: number; contractLevel: number; isCurrentUser: boolean;
   }>; currentUserRank: number | null }>({
     queryKey: [`/api/deals/leaderboard?period=${periodParam}`],
+    refetchInterval: 15000,
     staleTime: 30000,
   });
 

@@ -123,6 +123,7 @@ export default function AgentDeals() {
     data: { totalAP: number; totalDeals: number; avgDealSize: number };
   }>({
     queryKey: [`/api/deals/stats?period=${period}`],
+    refetchInterval: 15000,
   });
 
   const { data: dealsData, isLoading: dealsLoading } = useQuery<{
@@ -130,6 +131,7 @@ export default function AgentDeals() {
     data: any[];
   }>({
     queryKey: [`/api/deals?period=${period}`],
+    refetchInterval: 15000,
   });
 
   const { data: leaderboardData, isLoading: leaderboardLoading } = useQuery<{
@@ -137,6 +139,7 @@ export default function AgentDeals() {
     data: any[];
   }>({
     queryKey: [`/api/deals/leaderboard?period=${period}`],
+    refetchInterval: 15000,
   });
 
   const stats = statsData?.data;

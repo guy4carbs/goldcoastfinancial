@@ -137,12 +137,14 @@ function AgentDashboardInner() {
     rank: number; agentUserId: string; firstName: string; lastName: string; name: string; totalAP: number; dealCount: number;
   }> }>({
     queryKey: ['/api/deals/leaderboard?period=month'],
+    refetchInterval: 15000,
     staleTime: 60000,
   });
 
   // Agent's personal deal stats
   const { data: myDealStats } = useQuery<{ success: boolean; data: { totalAP: number; totalDeals: number; rank: number } }>({
     queryKey: ['/api/deals/my-stats?period=month'],
+    refetchInterval: 15000,
     staleTime: 60000,
   });
   const personalAP = myDealStats?.data?.totalAP || 0;
@@ -150,6 +152,7 @@ function AgentDashboardInner() {
   // Pipeline stats from real API
   const { data: apiPipelineStats } = useQuery<any>({
     queryKey: ['/api/commissions/pipeline-stats?period=month'],
+    refetchInterval: 15000,
     staleTime: 60000,
   });
 
@@ -162,6 +165,7 @@ function AgentDashboardInner() {
   // Earnings from real API
   const { data: apiEarnings } = useQuery<any>({
     queryKey: ['/api/commissions/my-earnings'],
+    refetchInterval: 15000,
     staleTime: 60000,
   });
 

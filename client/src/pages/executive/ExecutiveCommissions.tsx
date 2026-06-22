@@ -211,6 +211,7 @@ export function ExecutiveCommissions() {
   // ── Fetch real commissions data ──
   const { data: commissionsData } = useQuery<CommissionsApiResponse>({
     queryKey: ['/api/executive/commissions'],
+    refetchInterval: 15000,
   });
 
   // ── Map API response to local shapes, falling back to demo constants ──

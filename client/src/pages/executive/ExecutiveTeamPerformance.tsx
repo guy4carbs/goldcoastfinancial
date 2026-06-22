@@ -182,10 +182,12 @@ export function ExecutiveTeamPerformance() {
   // ── Fetch real data from APIs ──
   const { data: dashboardData } = useQuery<ExecDashboardResponse>({
     queryKey: ['/api/executive/dashboard'],
+    refetchInterval: 15000,
   });
 
   const { data: teamTreeData } = useQuery({
     queryKey: ['/api/hierarchy/team-tree'],
+    refetchInterval: 15000,
   });
 
   // ── Local variables with real data → DEMO fallbacks ──

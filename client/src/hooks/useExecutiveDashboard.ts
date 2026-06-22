@@ -77,6 +77,7 @@ export interface ExecutiveDashboardData {
 export function useExecutiveDashboard() {
   return useQuery<ExecutiveDashboardData>({
     queryKey: ['/api/executive/dashboard'],
+    refetchInterval: 15000,
     staleTime: 60_000,
     retry: 1,
   });
