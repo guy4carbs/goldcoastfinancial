@@ -80,6 +80,7 @@ const EXEMPT_PATH_PREFIXES = [
   "/api/apply/sign",
   "/api/apply/upload",
   "/api/apply/prefill",
+  "/api/apply/invite/bot",     // Discord bot service-token invite (x-bot-token auth, no session)
   // Public institutional lead-capture forms — submitted by anonymous visitors
   // with no session, so the session-bound double-submit CSRF token can never
   // validate (same situation as the /api/apply/* and /api/auth/* public flows
