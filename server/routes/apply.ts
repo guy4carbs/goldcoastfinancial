@@ -269,6 +269,164 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Shared invite core — same logic as POST /invite, callable without a session.
+// Used by the service-token bot route below. Caller is responsible for any
+// authority/role-tier checks before calling.
+// ─────────────────────────────────────────────────────────────────────────────
+type InviteResult =
+  | { ok: true; applicationUrl: string; userId: string; emailSent: boolean }
+  | { ok: false; status: number; error: string };
+
+async function performInvite(p: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  inviteeRole: string;
+  uplineId?: string | null;
+  contractLevel?: number | null;
+  actorUserId: string | null;
+  actorEmail: string | null;
+}): Promise<InviteResult> {
+  const { firstName, lastName, email, phone, inviteeRole } = p;
+  const isHierarchyRole = HIERARCHY_ROLES.has(inviteeRole);
+  const placement = isHierarchyRole ? INVITE_ROLE_PLACEMENT[inviteeRole] : null;
+  const uplineId = p.uplineId ?? null;
+  const contractLevel = p.contractLevel ?? null;
+
+  if (isHierarchyRole) {
+    if (!uplineId || contractLevel === undefined || contractLevel === null) {
+      return { ok: false, status: 400, error: "Upline and contract level are required for this role" };
+    }
+    if (contractLevel % 5 !== 0) {
+      return { ok: false, status: 400, error: "Contract level must be in increments of 5%" };
+    }
+    const uplineResult = await pool.query(
+      `SELECT u.id, u.role, COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 120 ELSE 80 END) as contract_level
+       FROM users u LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
+       WHERE u.id = $1`, [uplineId]
+    );
+    if (!uplineResult.rows[0]) return { ok: false, status: 400, error: "Selected upline not found" };
+    const uplineContractLevel = parseFloat(uplineResult.rows[0].contract_level);
+    if (contractLevel > uplineContractLevel - 5) {
+      return { ok: false, status: 400, error: `Contract level must be at most ${uplineContractLevel - 5}% (5% below upline's ${uplineContractLevel}%)` };
+    }
+  }
+
+  const inviteToken = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const tempPassword = await bcrypt.hash(crypto.randomUUID(), 10);
+  const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+  let userId: string;
+
+  if (existing.rows.length > 0) {
+    userId = existing.rows[0].id;
+    await pool.query("UPDATE users SET first_name = $1, last_name = $2, phone = COALESCE($3, phone), role = $4, invite_token = $5, invite_token_expires_at = $6, onboarding_status = 'invited', password_reset_required = true, updated_at = NOW() WHERE id = $7",
+      [firstName, lastName, phone || null, inviteeRole, inviteToken, expiresAt, userId]);
+    if (isHierarchyRole) {
+      const ep = await pool.query("SELECT id FROM agent_profiles WHERE user_id::text = $1", [userId]);
+      if (ep.rows.length > 0) {
+        await pool.query("UPDATE agent_profiles SET onboarding_token = $1, onboarding_token_expires_at = $2, onboarding_step = 0, updated_at = NOW() WHERE user_id::text = $3", [inviteToken, expiresAt, userId]);
+      } else {
+        await pool.query("INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at) VALUES ($1, $2, $3, $4, $5)", [userId, "pending_review", 0, inviteToken, expiresAt]);
+      }
+      const ec = await pool.query("SELECT id FROM contracting_checklists WHERE agent_user_id::text = $1", [userId]);
+      if (ec.rows.length === 0) await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [userId]);
+    }
+  } else {
+    const [user] = await db.insert(users).values({
+      email, password: tempPassword, firstName, lastName, phone: phone || null,
+      role: inviteeRole, onboardingStatus: "invited", inviteToken, inviteTokenExpiresAt: expiresAt, passwordResetRequired: true,
+    }).returning();
+    userId = user.id;
+    if (isHierarchyRole) {
+      await pool.query("INSERT INTO agent_profiles (user_id, approval_status, onboarding_step, onboarding_token, onboarding_token_expires_at) VALUES ($1, $2, $3, $4, $5)", [userId, "pending_review", 0, inviteToken, expiresAt]);
+      await pool.query("INSERT INTO contracting_checklists (agent_user_id) VALUES ($1)", [userId]);
+    }
+  }
+
+  try {
+    await reinitializeLoungeAccess({
+      userId, newRole: inviteeRole, performedByUserId: p.actorUserId ?? userId,
+      reason: `Invite by ${p.actorEmail || "system"} via /api/apply/invite`, brand: "both", force: true,
+    });
+  } catch (loungeErr: any) {
+    console.error("[Apply] Lounge access sync failed:", loungeErr?.message);
+  }
+
+  if (isHierarchyRole && placement && uplineId && contractLevel !== undefined && contractLevel !== null) {
+    const chainResult = await pool.query(
+      `SELECT upline_chain FROM agent_hierarchy WHERE agent_user_id::text = $1 AND (effective_to IS NULL OR effective_to > NOW())`, [uplineId]
+    );
+    const uplineChain = chainResult.rows[0]?.upline_chain || [];
+    const newChain = [uplineId, ...uplineChain];
+    await pool.query(
+      `INSERT INTO agent_hierarchy (agent_user_id, direct_upline_id, hierarchy_level, hierarchy_title, upline_chain, contract_level, override_eligible, override_percentage, effective_from)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, NOW()) ON CONFLICT DO NOTHING`,
+      [userId, uplineId, placement.level, placement.title, JSON.stringify(newChain), contractLevel, placement.overrideEligible]
+    );
+    try {
+      await logFounderAction({
+        actorUserId: p.actorUserId ?? null, action: "hierarchy.create", entityType: "agent_hierarchy", entityId: userId,
+        payload: { invitedAgentUserId: userId, directUplineId: uplineId, hierarchyLevel: placement.level, hierarchyTitle: placement.title, contractLevel, inviteeRole, overrideEligible: placement.overrideEligible, uplineChain: newChain, seededVia: "performInvite" },
+      });
+    } catch (auditErr: any) { console.error("[Apply] Audit log failed:", auditErr?.message); }
+  } else {
+    try {
+      await logFounderAction({
+        actorUserId: p.actorUserId ?? null, action: "user.invite_non_hierarchy", entityType: "users", entityId: userId,
+        payload: { invitedUserId: userId, inviteeRole, isHierarchyRole: false, seededVia: "performInvite" },
+      });
+    } catch (auditErr: any) { console.error("[Apply] Audit log failed:", auditErr?.message); }
+  }
+
+  const baseUrl = process.env.APP_URL || "https://goldcoastfinancial.co";
+  const applicationUrl = `${baseUrl}/apply?token=${inviteToken}`;
+  let emailSent = false;
+  try {
+    await sendApplicationInvite({ firstName, lastName, email, applicationUrl });
+    emailSent = true;
+  } catch (emailErr: any) {
+    console.error("[Apply] Email send failed:", emailErr?.message);
+  }
+  console.log(`[Apply] performInvite: userId=${userId}, emailSent=${emailSent}`);
+  return { ok: true, applicationUrl, userId, emailSent };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/apply/invite/bot — service-token invite for the Discord bot.
+// Authenticated by x-bot-token (BOT_SERVICE_TOKEN). Cannot create founder/owner.
+// ─────────────────────────────────────────────────────────────────────────────
+router.post("/invite/bot", async (req, res) => {
+  try {
+    const expected = process.env.BOT_SERVICE_TOKEN;
+    const got = req.header("x-bot-token");
+    if (!expected || got !== expected) {
+      return res.status(401).json({ error: "Invalid service token" });
+    }
+    const { firstName, lastName, phone, uplineId, contractLevel, role: rawRole } = req.body || {};
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!firstName || !lastName || !email) {
+      return res.status(400).json({ error: "firstName, lastName, and email are required" });
+    }
+    const inviteeRole: string = typeof rawRole === "string" && VALID_INVITE_ROLES.has(rawRole) ? rawRole : "sales_agent";
+    if (FOUNDER_GATED_ROLES.has(inviteeRole)) {
+      return res.status(403).json({ error: "The bot cannot invite founder/owner roles" });
+    }
+    const result = await performInvite({
+      firstName, lastName, email, phone: phone ?? null, inviteeRole,
+      uplineId: uplineId ?? null, contractLevel: contractLevel ?? null,
+      actorUserId: null, actorEmail: "discord-bot",
+    });
+    if (!result.ok) return res.status(result.status).json({ error: result.error });
+    return res.json({ success: true, applicationUrl: result.applicationUrl, userId: result.userId, emailSent: result.emailSent });
+  } catch (e: any) {
+    console.error("[Apply] Bot invite error:", e?.message);
+    return res.status(500).json({ error: "Failed to create invitation" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/apply/register — Organic user creates skeleton account at Step 1
 // ─────────────────────────────────────────────────────────────────────────────
