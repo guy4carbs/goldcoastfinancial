@@ -492,8 +492,8 @@ router.patch("/agents/:agentId", requireAuth, requireRole(...ADMIN_PLUS), async 
     return res.status(400).json({ error: "At least one field (directUplineId, hierarchyTitle, contractLevel) must be provided" });
   }
   if (hasContract) {
-    if (typeof contractLevel !== "number" || !Number.isFinite(contractLevel) || contractLevel < 60 || contractLevel > 125) {
-      return res.status(400).json({ error: "contractLevel must be a number between 60 and 125" });
+    if (typeof contractLevel !== "number" || !Number.isFinite(contractLevel) || contractLevel < 60 || contractLevel > 135) {
+      return res.status(400).json({ error: "contractLevel must be a number between 60 and 135" });
     }
   }
   if (hasTitle) {
