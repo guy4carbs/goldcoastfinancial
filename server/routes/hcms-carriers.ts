@@ -62,7 +62,7 @@ const CreateAppointmentsSchema = z.object({
     .optional()
     .default("appointed"),
   writingNumber: z.string().max(100).optional(),
-  commissionLevel: z.number().min(60).max(135).optional(),
+  commissionLevel: z.number().min(60).max(145).optional(),
 });
 router.post(
   "/appointments",
@@ -142,7 +142,7 @@ const UpdateAppointmentSchema = z
         "in_review",
       ])
       .optional(),
-    commissionLevel: z.number().min(60).max(135).optional(),
+    commissionLevel: z.number().min(60).max(145).optional(),
     notes: z.string().max(500).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, {

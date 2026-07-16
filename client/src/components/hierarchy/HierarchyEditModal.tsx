@@ -5,7 +5,7 @@
  *
  * Two render modes:
  *   - "title"     → Radix Select of HIERARCHY_LEVELS values
- *   - "contract"  → Radix Select of 60..135 in steps of 5
+ *   - "contract"  → Radix Select of 60..145 in steps of 5
  *
  * Submission is parent-driven (parent owns the mutation + toast). The modal
  * just collects the new value, calls onSubmit(value), and closes when the
@@ -31,10 +31,10 @@ export interface HierarchyEditModalProps {
 
 const TITLE_OPTIONS = Object.values(HIERARCHY_LEVELS);
 
-// Contract level allowed range: 60..135 inclusive in steps of 5.
+// Contract level allowed range: 60..145 inclusive in steps of 5.
 const CONTRACT_OPTIONS: number[] = (() => {
   const out: number[] = [];
-  for (let v = 60; v <= 135; v += 5) out.push(v);
+  for (let v = 60; v <= 145; v += 5) out.push(v);
   return out;
 })();
 
