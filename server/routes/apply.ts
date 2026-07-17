@@ -118,7 +118,7 @@ router.post("/invite", requireAuth, requireRole(...MANAGER_PLUS), async (req, re
         return res.status(400).json({ error: "Contract level must be in increments of 5%" });
       }
       const uplineResult = await pool.query(
-        `SELECT u.id, u.role, COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 120 ELSE 80 END) as contract_level
+        `SELECT u.id, u.role, COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 145 ELSE 80 END) as contract_level
          FROM users u LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
          WHERE u.id = $1`, [uplineId]
       );
@@ -302,7 +302,7 @@ async function performInvite(p: {
       return { ok: false, status: 400, error: "Contract level must be in increments of 5%" };
     }
     const uplineResult = await pool.query(
-      `SELECT u.id, u.role, COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 120 ELSE 80 END) as contract_level
+      `SELECT u.id, u.role, COALESCE(ah.contract_level, CASE WHEN u.role = 'owner' THEN 145 ELSE 80 END) as contract_level
        FROM users u LEFT JOIN agent_hierarchy ah ON u.id = ah.agent_user_id AND (ah.effective_to IS NULL OR ah.effective_to > NOW())
        WHERE u.id = $1`, [uplineId]
     );
@@ -419,6 +419,22 @@ router.post("/invite/bot", async (req, res) => {
       actorUserId: null, actorEmail: "discord-bot",
     });
     if (!result.ok) return res.status(result.status).json({ error: result.error });
+
+    // Discord apply step: applicants state the commission level they are
+    // currently at with their existing IMO. Self-reported context for the
+    // approver — NOT their Gold Coast placement. Stored on agent_profiles and
+    // surfaced in the founders approve modal via /api/members/pending.
+    const priorRaw = req.body?.currentCommissionLevel;
+    if (priorRaw !== undefined && priorRaw !== null && result.userId) {
+      const prior = Number(priorRaw);
+      if (Number.isFinite(prior) && prior >= 0 && prior <= 160) {
+        await pool.query(
+          `UPDATE agent_profiles SET current_commission_level_at_prior_imo = $1, updated_at = NOW() WHERE user_id::text = $2`,
+          [Math.round(prior), String(result.userId)],
+        ).catch((e: any) => console.error("[Apply] prior IMO commission save failed:", e?.message));
+      }
+    }
+
     return res.json({ success: true, applicationUrl: result.applicationUrl, userId: result.userId, emailSent: result.emailSent });
   } catch (e: any) {
     console.error("[Apply] Bot invite error:", e?.message);

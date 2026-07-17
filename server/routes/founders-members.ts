@@ -71,6 +71,7 @@ router.get("/pending", async (_req, res) => {
         ap.licensed_states,
         ap.years_experience,
         ap.referral_source,
+        ap.current_commission_level_at_prior_imo AS prior_imo_commission_level,
         ap.created_at               AS applied_at,
         ah.direct_upline_id::text   AS invited_upline_id,
         ah.contract_level           AS invited_contract_level
@@ -204,12 +205,15 @@ router.post("/:id/approve", blockWritesDuringViewAs, async (req, res) => {
   const performedBy = req.user!.id;
   // Wave AC1: founder picks where to place the new agent + sets contract level.
   // Body: { uplineId?: string|null, contractLevelPct?: number, reason?: string }
-  // Defaults: top-of-tree placement (uplineId=null), 80% baseline (clamped 0-120).
+  // Defaults: top-of-tree placement (uplineId=null), 80% baseline.
+  // Clamp ceiling is 155 = the 160 contract-level ceiling minus MIN_SPREAD(5);
+  // matches the FoundersLoungeAccess UI clamp. The hierarchy spread guard
+  // remains the authoritative per-upline check.
   const uplineId =
     String((req.body || {}).uplineId || "").trim() || null;
   const contractLevelPct = Math.max(
     0,
-    Math.min(120, Number((req.body || {}).contractLevelPct ?? 80)),
+    Math.min(155, Number((req.body || {}).contractLevelPct ?? 80)),
   );
   const approveReason =
     String((req.body || {}).reason || "").slice(0, 500) || null;

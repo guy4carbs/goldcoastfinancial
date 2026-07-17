@@ -2010,6 +2010,22 @@ export default function FoundersLoungeAccess() {
           }}
           width={520}
         >
+          {(approveTarget as any).prior_imo_commission_level != null && (
+            <div
+              className="mb-3"
+              style={{
+                fontSize: 12,
+                color: "var(--gc-text-muted)",
+                fontFamily: "var(--gc-font-body)",
+              }}
+            >
+              Applicant states they are currently at{" "}
+              <strong style={{ color: "var(--gc-gold)" }}>
+                {(approveTarget as any).prior_imo_commission_level}%
+              </strong>{" "}
+              with their prior IMO.
+            </div>
+          )}
           <div className="mb-3">
             <label style={GC_FORM_LABEL}>Upline</label>
             <GCSelect

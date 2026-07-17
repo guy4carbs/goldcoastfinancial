@@ -17,6 +17,9 @@ export const agentProfiles = pgTable("agent_profiles", {
   companyName: varchar("company_name", { length: 200 }),
   yearsExperience: varchar("years_experience", { length: 20 }),
   previousAgency: varchar("previous_agency", { length: 200 }),
+  // Self-reported commission level at the applicant's existing IMO (Discord
+  // apply step) — context for the approver, not their Gold Coast placement.
+  priorImoCommissionLevel: integer("current_commission_level_at_prior_imo"),
   npn: varchar("npn", { length: 20 }),
   isLicensed: boolean("is_licensed").default(false),
   licenseNumber: varchar("license_number", { length: 50 }),
