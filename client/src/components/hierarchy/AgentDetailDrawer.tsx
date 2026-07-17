@@ -1537,7 +1537,7 @@ function AppointmentStateRow({
             <input
               type="number"
               min={60}
-              max={145}
+              max={160}
               value={commission}
               onChange={(e) => setCommission(e.target.value)}
               style={GC_FORM_INPUT}

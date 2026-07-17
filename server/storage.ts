@@ -422,10 +422,10 @@ export class DatabaseStorage implements IStorage {
       });
       // Set role to founder (top-tier — Founders Lounge access)
       await db.update(users).set({ role: "founder" }).where(eq(users.email, ownerEmail));
-      // Create agent_hierarchy record as Founder at 120%
+      // Create agent_hierarchy record as Founder at 145%
       await pool.query(
         `INSERT INTO agent_hierarchy (agent_user_id, direct_upline_id, hierarchy_level, hierarchy_title, upline_chain, contract_level, override_eligible, override_percentage, effective_from)
-         VALUES ($1, NULL, 0, 'Founder', '[]', 120, true, 0, NOW())
+         VALUES ($1, NULL, 0, 'Founder', '[]', 145, true, 0, NOW())
          ON CONFLICT DO NOTHING`,
         [owner.id]
       );
@@ -443,19 +443,26 @@ export class DatabaseStorage implements IStorage {
       if (hierarchy.rows.length === 0) {
         await pool.query(
           `INSERT INTO agent_hierarchy (agent_user_id, direct_upline_id, hierarchy_level, hierarchy_title, upline_chain, contract_level, override_eligible, override_percentage, effective_from)
-           VALUES ($1, NULL, 0, 'Founder', '[]', 120, true, 0, NOW())`,
+           VALUES ($1, NULL, 0, 'Founder', '[]', 145, true, 0, NOW())`,
           [existing.id]
         );
-        console.log("Owner hierarchy record created: Founder at 120%");
+        console.log("Owner hierarchy record created: Founder at 145%");
       } else {
-        // Ensure contract level is 120
+        // Ensure Founder title/level only. Contract level is deliberately NOT
+        // touched here: this seed runs on EVERY boot (after migrations), and
+        // the old `SET contract_level = 120` silently reverted every
+        // migration- or UI-driven contract change (root cause of migrations
+        // 0028/0029 "applying OK" yet the hierarchy still showing 120/125).
+        // The owner's contract level is data, owned by migrations + the
+        // hierarchy PATCH endpoint — never by a boot seed.
         await pool.query(
-          `UPDATE agent_hierarchy SET contract_level = 120, hierarchy_level = 0, hierarchy_title = 'Founder', updated_at = NOW()
-           WHERE agent_user_id = $1 AND (effective_to IS NULL OR effective_to > NOW())`,
+          `UPDATE agent_hierarchy SET hierarchy_level = 0, hierarchy_title = 'Founder', updated_at = NOW()
+           WHERE agent_user_id = $1 AND (effective_to IS NULL OR effective_to > NOW())
+             AND (hierarchy_level IS DISTINCT FROM 0 OR hierarchy_title IS DISTINCT FROM 'Founder')`,
           [existing.id]
         );
       }
-      console.log("Owner account updated: guy4carbs@gmail.com (role=founder, 120%, Founder)");
+      console.log("Owner account updated: guy4carbs@gmail.com (role=founder, Founder)");
     }
   }
 

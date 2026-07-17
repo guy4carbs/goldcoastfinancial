@@ -1774,7 +1774,9 @@ export default function FoundersLoungeAccess() {
                             ? 80
                             : Number(reg.invited_contract_level);
                         setApproveContractPct(
-                          Number.isFinite(invitedPct) ? Math.max(0, Math.min(120, invitedPct)) : 80,
+                          // 155 = 160 ceiling minus MIN_SPREAD(5); the hierarchy
+                          // PATCH's spread guard remains the authoritative check.
+                          Number.isFinite(invitedPct) ? Math.max(0, Math.min(155, invitedPct)) : 80,
                         );
                         setApproveReason("");
                       }}
@@ -2044,11 +2046,11 @@ export default function FoundersLoungeAccess() {
             <Input
               type="number"
               min={0}
-              max={120}
+              max={155}
               value={approveContractPct}
               onChange={(e) =>
                 setApproveContractPct(
-                  Math.max(0, Math.min(120, Number(e.target.value) || 0)),
+                  Math.max(0, Math.min(155, Number(e.target.value) || 0)),
                 )
               }
               style={GC_FORM_INPUT}
