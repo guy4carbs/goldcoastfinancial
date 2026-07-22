@@ -67,6 +67,7 @@ const INSURANCE_CARRIERS = [
   { id: "guarantee-trust", name: "Guarantee Trust" },
   { id: "instabrain", name: "InstaBrain" },
   { id: "lafayette-life", name: "Lafayette Life" },
+  { id: "lumico", name: "Lumico" },
   { id: "royal-neighbors", name: "Royal Neighbors" },
   { id: "transamerica", name: "Transamerica" },
   { id: "american-home-life", name: "American Home Life" },

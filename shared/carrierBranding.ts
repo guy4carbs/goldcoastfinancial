@@ -475,6 +475,39 @@ export const CARRIER_BRANDING: Record<string, CarrierBranding> = {
     footerText: "The Lafayette Life Insurance Company"
   },
 
+  "lumico": {
+    id: "lumico",
+    name: "Lumico Life Insurance Company",
+    shortName: "Lumico",
+    tagline: "Family of Insurance Companies",
+    description: "A Swiss Re Group company offering simplified-issue term life, whole life, and final expense coverage",
+
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1784749669047-2336ae797315d755-1784749669046-80ad404a-lfic-gradient-logo_feature-img_white-bg.webp?alt=media&token=57e0105b-a2d6-42e6-b11e-f7c426b42bfc",
+    logoAlt: "Lumico Logo",
+
+    // Wordmark gradient: purple → magenta → red-orange → amber (sampled from
+    // the official gradient logo). Two-stop email gradient uses the outer
+    // sweep; primary is the magenta heart of the mark.
+    primaryColor: "#D62373",
+    secondaryColor: "#F5A81C",
+    accentColor: "#F26430",
+    gradientFrom: "#8E4CA8",
+    gradientTo: "#F26430",
+    textOnPrimary: "#FFFFFF",
+
+    trustMessage: "Lumico Life Insurance Company is part of the Swiss Re Group, one of the world's leading providers of reinsurance and insurance, and holds an A (Excellent) financial strength rating from A.M. Best.",
+    securityMessage: "Your information is encrypted with 256-bit SSL security, the same level used by major financial institutions.",
+    partnerMessage: "Heritage Life Solutions is an authorized Lumico distribution partner.",
+
+    ssnFormTitle: "Lumico Secure Identity Verification",
+    bankingFormTitle: "Lumico Premium Payment Setup",
+    applicationFormTitle: "Lumico Life Insurance Application",
+
+    productTypes: ["Term Life", "Whole Life", "Final Expense"],
+
+    footerText: "Lumico Life Insurance Company"
+  },
+
   "royal-neighbors": {
     id: "royal-neighbors",
     name: "Royal Neighbors of America",

@@ -1044,6 +1044,18 @@ export const CARRIER_EMAIL_BRANDING: Record<string, {
     tagline: "Participating Whole Life Since 1905",
     logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1779477622815-5743fd1ba0cbde3a-1779477622815-55f0b238-lafayette-life-png-1.png?alt=media&token=a29a1ae5-fb83-410a-9c6f-06de7a02efcb"
   },
+  "lumico": {
+    name: "Lumico Life Insurance Company",
+    shortName: "Lumico",
+    // Wordmark gradient purple → magenta → orange → amber; email header uses
+    // the outer sweep, primary = the magenta heart of the mark.
+    primaryColor: "#D62373",
+    secondaryColor: "#F5A81C",
+    gradientFrom: "#8E4CA8",
+    gradientTo: "#F26430",
+    tagline: "Family of Insurance Companies",
+    logoUrl: "https://firebasestorage.googleapis.com/v0/b/gold-coast-fnl.firebasestorage.app/o/documents%2Fimages%2F59af1d59-9900-429a-98b8-f78b795977bc%2F1784749669047-2336ae797315d755-1784749669046-80ad404a-lfic-gradient-logo_feature-img_white-bg.webp?alt=media&token=57e0105b-a2d6-42e6-b11e-f7c426b42bfc"
+  },
   "trinity-life": {
     name: "Trinity Life Insurance Company",
     shortName: "Trinity Life",

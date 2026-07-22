@@ -17,7 +17,7 @@
  * gcf root (Gold Coast) and the heritage-app branch (Heritage) to stay
  * in lockstep.
  */
-export const LIFEOS_VERSION = "1.3.0";
+export const LIFEOS_VERSION = "1.3.1";
 
 /**
  * Release notes that ship with this version. The server's
@@ -34,19 +34,19 @@ export const LIFEOS_VERSION = "1.3.0";
  *   4. Set LIFEOS_RELEASE_SUMMARY — one-line subhead
  *   5. Set LIFEOS_RELEASE_BODY_MARKDOWN — bullets describing the changes
  */
-export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "minor";
-export const LIFEOS_RELEASE_TITLE = "Discord Production Feed";
+export const LIFEOS_RELEASE_TYPE: "major" | "minor" | "patch" = "patch";
+export const LIFEOS_RELEASE_TITLE = "Lumico Joins the Carrier Lineup";
 export const LIFEOS_RELEASE_SUMMARY =
-  "Deals now post to your team's Discord in real time. When an agent submits a deal, a clean production card lands in the Discord channel automatically — no extra steps, no manual posting.";
+  "Lumico Life Insurance Company is now available across Data Encryption and Quotes — send carrier-branded secure forms (SSN, banking, driver's license, full application) and policy quotes under Lumico's official branding.";
 export const LIFEOS_RELEASE_BODY_MARKDOWN = `## What's New
 
-- **Live deal feed in Discord.** Every deal submitted in Heritage now posts instantly to your team's Discord channel as a formatted card — agent, carrier, annual & monthly premium, product, and client. Great for celebrating wins and keeping the floor in sync.
-- **Zero extra work.** It's automatic. Submit a deal the way you always have; the Discord post fires on its own.
+- **Lumico is live in Data Encryption.** Pick Lumico in the carrier dropdown and all four secure forms — Social Security Number, Banking Information, Driver's License / State ID, and Full Application — send with Lumico's official branding: their gradient wordmark logo, brand colors, and carrier-specific trust messaging (a Swiss Re Group company, A (Excellent) A.M. Best).
+- **Quotes too.** Lumico is also selectable on the Quotes page, and policy-quote emails carry the same branded treatment.
+- **Client-facing forms match.** The secure form your client lands on uses Lumico's colors, form titles, and security messaging — consistent from inbox to submission.
 
 ## Under the Hood
 
-- New \`server/services/discordNotificationService.ts\` — outbound-only, env-gated on \`DISCORD_WEBHOOK_URL\`, fire-and-forget. The commission engine is untouched: the notification rides alongside the existing deal broadcast at the route layer.
-- Posts via a Discord incoming webhook (no bot, no inbound surface). Disabled cleanly when the webhook URL is unset.`;
+- One new entry in \`CARRIER_EMAIL_BRANDING\` (server) + \`CARRIER_BRANDING\` (shared) covers every surface — colors sampled directly from the official gradient logo (purple #8E4CA8 → magenta #D62373 → orange #F26430 → amber #F5A81C), hosted on our own Firebase storage.`;
 
 /**
  * Runtime version reader — prefers the Vite-injected build-time constant
